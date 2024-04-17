@@ -59,6 +59,7 @@ end
 transformation_type(g::AbstractTransformation{T}) where {T} = T;
 stoichiometry_balance_names(g::AbstractTransformation) = g.stoichiometry_balance_names;
 has_storage(g::AbstractTransformation) = :storage ∈ stoichiometry_balance_names(g);
+has_hydro(g::AbstractTransformation) = :hydro ∈ stoichiometry_balance_names(g);
 get_id(g::AbstractTransformation) = g.id;
 time_interval(g::AbstractTransformation) = g.timedata.time_interval;
 subperiods(g::AbstractTransformation) = g.timedata.subperiods;
@@ -78,6 +79,16 @@ fixed_om_cost_storage(g::AbstractTransformation) = g.fixed_om_cost_storage;
 storage_level(g::AbstractTransformation) = g.operation_vars[:storage_level];
 storage_level(g::AbstractTransformation,t::Int64) = storage_level(g)[t];
 storage_loss_fraction(g::AbstractTransformation) = g.storage_loss_fraction;
+
+existing_capacity_hydro(g::AbstractTransformation) = g.existing_capacity_hydro;
+new_capacity_hydro(g::AbstractTransformation) = g.planning_vars[:new_capacity_hydro];
+ret_capacity_hydro(g::AbstractTransformation) = g.planning_vars[:ret_capacity_hydro];
+capacity_hydro(g::AbstractTransformation) = g.planning_vars[:capacity_hydro];
+investment_cost_hydro(g::AbstractTransformation) = g.investment_cost_hydro;
+fixed_om_cost_hydro(g::AbstractTransformation) = g.fixed_om_cost_hydro;
+hydro_level(g::AbstractTransformation) = g.operation_vars[:hydro_level];
+hydro_level(g::AbstractTransformation,t::Int64) = hydro_level(g)[t];
+hydro_loss_fraction(g::AbstractTransformation) = g.hydro_loss_fraction;
 
 #### Transformation Edge interface
 commodity_type(e::AbstractTransformationEdge{T}) where {T} = T;
