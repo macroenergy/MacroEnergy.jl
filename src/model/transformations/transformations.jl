@@ -195,6 +195,65 @@ function add_planning_variables!(g::AbstractTransformation,model::Model)
 
     end
 
+
+    if has_hydro(g)
+    
+        g.planning_vars[:new_capacity_hydro] = @variable(
+            model,
+            lower_bound = 0.0,
+            base_name = "vNEWCAPHYDRO_$(g.id)"
+        )
+    
+        g.planning_vars[:ret_capacity_hydro] = @variable(
+            model,
+            lower_bound = 0.0,
+            base_name = "vRETCAPHYDRO_$(g.id)"
+        )
+    
+        g.planning_vars[:capacity_hydro] = @variable(
+            model,
+            lower_bound = 0.0,
+            base_name = "vCAPHYDRO_$(g.id)"
+        )
+       
+        @constraint(
+            model,
+            capacity_hydro(g) ==
+            new_capacity_hydro(g) - ret_capacity_hydro(g) + existing_capacity_hydro(g)
+        )
+     
+        @constraint(model, ret_capacity_hydro(g) <= existing_capacity_hydro(g))
+    
+
+        if !g.can_expand
+            fix(new_capacity_hydro(g), 0.0; force = true)
+        else
+            add_to_expression!(model[:eFixedCost],investment_cost_hydro(g), new_capacity_hydro(g)) 
+        end
+    
+        if !g.can_retire
+            fix(ret_capacity_hydro(g), 0.0; force = true)
+        end
+    
+    
+        if fixed_om_cost_hydro(g)>0
+            add_to_expression!(model[:eFixedCost],fixed_om_cost_hydro(g), capacity_hydro(g))
+        end
+
+        if g.max_duration > 0
+    
+            e_discharge = g.TEdges[g.discharge_edge];
+
+            @constraint(model, capacity_hydro(g) <= g.max_duration * capacity(e_discharge))
+
+            if g.min_duration > 0
+                @constraint(model, capacity_hydro(g) >= g.min_duration * capacity(e_discharge))
+            end
+
+        end
+
+    end
+
 end
 
 function add_operation_variables!(g::AbstractTransformation,model::Model)
