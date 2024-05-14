@@ -41,6 +41,7 @@ abstract type DACElectric <: TransformationType  end
 abstract type SyntheticNG <: TransformationType  end
 abstract type VRE <: TransformationType end
 abstract type Storage <: TransformationType end
+abstract type HydroStor <: Storage end 
 # type hierarchy
 
 # globals
@@ -102,6 +103,7 @@ export Electricity,
     SyntheticNG,
     VRE,
     Storage,
+    HydroStor,
     Node,
     Edge,
     Transformation,
