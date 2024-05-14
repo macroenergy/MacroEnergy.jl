@@ -12,6 +12,7 @@ abstract type Electricity <: Commodity end
 abstract type Hydrogen <: Commodity end
 abstract type NaturalGas <: Commodity end
 abstract type CO2 <: Commodity end
+abstract type Water <: Commodity end
 abstract type CO2Captured <: CO2 end
 
 abstract type AbstractTimeData{T<:Commodity} end
@@ -51,7 +52,7 @@ abstract type HydroStor <: Storage end
 const JuMPConstraint = Union{Array,Containers.DenseAxisArray,Containers.SparseAxisArray}
 # const DataFrameRow = DataFrames.DataFrameRow;
 # const DataFrame = DataFrames.DataFrame;
-function include_all_in_folder(folder)
+function include_all_in_folder
     base_path = joinpath(@__DIR__, folder)
     for (root, dirs, files) in Base.Filesystem.walkdir(base_path)
         for file in files
