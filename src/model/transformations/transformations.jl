@@ -17,7 +17,7 @@ macro AbstractTransformationEdgeBaseAttributes()
         investment_cost::Float64 = 0.0
         fixed_om_cost::Float64 = 0.0
         variable_om_cost::Float64 = 0.0
-        price::Vector{Float64} = Float64[]
+        price::Union{Vector{Float64},Dict{Int64,Float64}} = Float64[]
         price_header::Union{Nothing,Symbol} = nothing
         ramp_up_fraction::Float64 = 1.0
         ramp_down_fraction::Float64 = 1.0

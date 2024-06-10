@@ -130,4 +130,4 @@ Macro.@objective(model,Min,model[:eFixedCost] + model[:eVariableCost])
 Macro.set_optimizer(model,Gurobi.Optimizer)
 Macro.optimize!(model)
 
-println("The model has built a facility with capacity = $(value(Macro.capacity(biomass_to_h2.TEdges[:B]))) ton/day")
+println("The model has built a facility with capacity = $(Macro.value(Macro.capacity(biomass_to_h2.TEdges[:B]))) ton/day")

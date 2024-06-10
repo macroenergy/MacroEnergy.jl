@@ -1,7 +1,7 @@
 Base.@kwdef mutable struct Node{T} <: AbstractNode{T}
     ### Fields without defaults
     id::Symbol
-    demand::Vector{Float64}
+    demand::Union{Vector{Float64},Dict{Int64,Float64}}
     demand_header::Union{Nothing,Symbol}
     timedata::TimeData{T}
     #### Fields with defaults

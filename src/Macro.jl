@@ -13,6 +13,7 @@ using JSON3
 abstract type Commodity end
 abstract type Electricity <: Commodity end
 abstract type Hydrogen <: Commodity end
+abstract type Biomass <: Commodity end
 abstract type NaturalGas <: Commodity end
 abstract type CO2 <: Commodity end
 abstract type CO2Captured <: CO2 end
@@ -29,6 +30,7 @@ abstract type AbstractTransformationEdgeWithUC{T} <: AbstractTransformationEdge{
 ## Transformation types
 abstract type AbstractTransform end
 abstract type TransformationType end  # Note: this is only used to improved readability
+abstract type GasificationH2<: TransformationType end
 abstract type NaturalGasPowerTransform <: TransformationType  end
 abstract type NaturalGasPowerCCS <: NaturalGasPowerTransform  end
 abstract type NaturalGasHydrogen <: TransformationType  end
@@ -51,6 +53,9 @@ abstract type PlanningConstraint <: AbstractTypeConstraint end
 # global constants
 const H2_MWh = 33.33 # MWh per tonne of H2
 const NG_MWh = 0.29307107 # MWh per MMBTU of NG 
+
+# const Containers = JuMP.Containers
+# const VariableRef = JuMP.VariableRef
 const JuMPConstraint = Union{Array,Containers.DenseAxisArray,Containers.SparseAxisArray}
 
 function include_all_in_folder(folder)
@@ -103,6 +108,8 @@ export Electricity,
     NaturalGas,
     CO2,
     CO2Captured,
+    Biomass,
+    GasificationH2,
     NaturalGasPower,
     NaturalGasPowerCCS,
     NaturalGasHydrogen,
