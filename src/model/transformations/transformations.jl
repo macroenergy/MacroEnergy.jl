@@ -60,6 +60,7 @@ transformation_type(g::AbstractTransformation{T}) where {T} = T;
 stoichiometry_balance_names(g::AbstractTransformation) = g.stoichiometry_balance_names;
 has_storage(g::AbstractTransformation) = :storage ∈ stoichiometry_balance_names(g);
 has_hydro(g::AbstractTransformation) = :hydro ∈ stoichiometry_balance_names(g);
+has_hydrostor(g::Storage) = :hydrostor ∈ stoichiometry_balance_names(g);
 get_id(g::AbstractTransformation) = g.id;
 time_interval(g::AbstractTransformation) = g.timedata.time_interval;
 subperiods(g::AbstractTransformation) = g.timedata.subperiods;
@@ -283,6 +284,162 @@ function add_operation_variables!(g::AbstractTransformation,model::Model)
         @constraint(model,
         [t in time_interval(g)], 
         st_coeff(e_discharge)[:storage]*flow(e_discharge,t)<=storage_level(g,timestepbefore(t,1,subperiods(g))))
+
+    end
+
+end
+
+function add_planning_variables!(g::Storage,model::Model)
+
+    edges_vec = collect(values(edges(g)));
+
+    add_planning_variables!.(edges_vec,model)
+
+    if has_hydrostor(g)
+    
+        g.planning_vars[:new_capacity_storage] = @variable(
+            model,
+            lower_bound = 0.0,
+            base_name = "vNEWCAPSTOR_$(g.id)"
+        )
+    
+        g.planning_vars[:ret_capacity_storage] = @variable(
+            model,
+            lower_bound = 0.0,
+            base_name = "vRETCAPSTOR_$(g.id)"
+        )
+    
+        g.planning_vars[:capacity_storage] = @variable(
+            model,
+            lower_bound = 0.0,
+            base_name = "vCAPSTOR_$(g.id)"
+        )
+       
+        @constraint(
+            model,
+            capacity_storage(g) ==
+            new_capacity_storage(g) - ret_capacity_storage(g) + existing_capacity_storage(g)
+        )
+     
+        @constraint(model, ret_capacity_storage(g) <= existing_capacity_storage(g))
+    
+
+        if !g.can_expand
+            fix(new_capacity_storage(g), 0.0; force = true)
+        else
+            add_to_expression!(model[:eFixedCost],investment_cost_storage(g), new_capacity_storage(g)) 
+        end
+    
+        if !g.can_retire
+            fix(ret_capacity_storage(g), 0.0; force = true)
+        end
+    
+    
+        if fixed_om_cost_storage(g)>0
+            add_to_expression!(model[:eFixedCost],fixed_om_cost_storage(g), capacity_storage(g))
+        end
+
+        if g.max_duration > 0
+    
+            e_discharge = g.TEdges[g.discharge_edge];
+
+            @constraint(model, capacity_storage(g) <= g.max_duration * capacity(e_discharge))
+
+            if g.min_duration > 0
+                @constraint(model, capacity_storage(g) >= g.min_duration * capacity(e_discharge))
+            end
+
+        end
+    
+        g.planning_vars[:new_capacity_hydro] = @variable(
+            model,
+            lower_bound = 0.0,
+            base_name = "vNEWCAPHYDRO_$(g.id)"
+        )
+    
+        g.planning_vars[:ret_capacity_hydro] = @variable(
+            model,
+            lower_bound = 0.0,
+            base_name = "vRETCAPHYDRO_$(g.id)"
+        )
+    
+        g.planning_vars[:capacity_hydro] = @variable(
+            model,
+            lower_bound = 0.0,
+            base_name = "vCAPHYDRO_$(g.id)"
+        )
+       
+        @constraint(
+            model,
+            capacity_hydro(g) ==
+            new_capacity_hydro(g) - ret_capacity_hydro(g) + existing_capacity_hydro(g)
+        )
+     
+        @constraint(model, ret_capacity_hydro(g) <= existing_capacity_hydro(g))
+    
+
+        if !g.can_expand
+            fix(new_capacity_hydro(g), 0.0; force = true)
+        else
+            add_to_expression!(model[:eFixedCost],investment_cost_hydro(g), new_capacity_hydro(g)) 
+        end
+    
+        if !g.can_retire
+            fix(ret_capacity_hydro(g), 0.0; force = true)
+        end
+    
+    
+        if fixed_om_cost_hydro(g)>0
+            add_to_expression!(model[:eFixedCost],fixed_om_cost_hydro(g), capacity_hydro(g))
+        end
+
+        if g.max_duration > 0
+    
+            e_discharge = g.TEdges[g.discharge_edge];
+
+            @constraint(model, capacity_hydro(g) <= g.max_duration * capacity(e_discharge))
+
+            if g.min_duration > 0
+                @constraint(model, capacity_hydro(g) >= g.min_duration * capacity(e_discharge))
+            end
+
+        end
+
+    end
+
+end
+
+function add_operation_variables!(g::Storage,model::Model)
+
+    if !isempty(stoichiometry_balance_names(g))
+        g.operation_expr[:stoichiometry_balance] = @expression(model, [i in stoichiometry_balance_names(g), t in time_interval(g)], 0 * model[:vREF])
+    end
+
+    edges_vec = collect(values(edges(g)));
+
+    add_operation_variables!.(edges_vec,model)
+
+    if has_hydrostor(g)
+        g.operation_vars[:storage_level] = @variable(
+            model,
+            [t in time_interval(g)],
+            lower_bound = 0.0,
+            base_name = "vSTOR_$(g.id)"
+        )
+        for t in time_interval(g)
+            add_to_expression!(
+            stoichiometry_balance(g,:storage,t),
+            storage_level(g,t) - (1 - storage_loss_fraction(g)) * storage_level(g,timestepbefore(t,1,subperiods(g))),
+            )
+        end
+        e_discharge = g.TEdges[g.discharge_edge]
+        @constraint(model,
+        [t in time_interval(g)], 
+        st_coeff(e_discharge)[:storage]*flow(e_discharge,t)<=storage_level(g,timestepbefore(t,1,subperiods(g))))
+
+        @constraint(model,
+        [t in time_interval(g)], 
+        st_coeff(e_discharge)[:storage]*flow(e_discharge,t)<=spill_term(g)+p_gen_term(g)+outflow_term(g))
 
     end
 

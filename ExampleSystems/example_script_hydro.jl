@@ -73,6 +73,16 @@ e_node = Node{Electricity}(;
     constraints = [Macro.DemandBalanceConstraint()]
 )
 
+w_node = Node{Water}(;
+    id = Symbol("W_node"),
+    demand = electricity_demand,
+    time_interval = time_interval(Water), #set to hourly for now 
+    subperiods = subperiods(Water),
+    max_nsd = [0.0],
+    price_nsd = [0.0],
+    constraints = [Macro.DemandBalanceConstraint()]
+)
+
 solar_pv = Transformation{SolarPV}(;
 id = :solar_pv,
 time_interval = time_interval(Electricity),
@@ -144,7 +154,7 @@ st_coeff = Dict(:storage=>battery_eff_up),
 )
 
 hydrostor = Transformation{Storage}(;
-id = :battery,
+id = :hydrostor,
 stoichiometry_balance_names = [:storage],
 time_interval = time_interval(Electricity),
 subperiods = subperiods(Electricity),
@@ -157,6 +167,38 @@ min_duration = battery_min_duration ,
 max_duration = battery_max_duration ,
 constraints = [Macro.StorageCapacityConstraint(),Macro.StoichiometryBalanceConstraint()],
 discharge_capacity_edge = :discharge
+)
+
+hydrostor.TEdges[:discharge] = TEdge{Water}(;
+id = :discharge,
+node = e_node,
+transformation = battery,
+time_interval = time_interval(Water),
+subperiods = subperiods(Water),
+direction = :output,
+has_planning_variables = true,
+can_expand = true,
+can_retire = false,
+existing_capacity = 0.0,
+investment_cost = battery_inv_cost,
+fixed_om_cost = battery_fom_cost,
+variable_om_cost = battery_fom_cost,
+st_coeff = Dict(:storage=>1/battery_eff_down),
+constraints = [Macro.CapacityConstraint()]
+)
+
+hydrostor.TEdges[:charge] = TEdge{Water}(;
+id = :charge,
+node = e_node,
+time_interval = time_interval(Water),
+subperiods = subperiods(Water),
+transformation = battery,
+direction = :input,
+has_planning_variables = false,
+can_expand = false,
+can_retire = false,
+variable_om_cost = battery_fom_cost,
+st_coeff = Dict(:storage=>battery_eff_up),
 )
 
 hydrostor.TEdges[:discharge] = TEdge{Electricity}(;
