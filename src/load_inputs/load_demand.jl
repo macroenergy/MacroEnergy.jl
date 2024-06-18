@@ -66,6 +66,7 @@ function add_nsd_to_nodes!(nodes::Dict{Symbol,Node}, nsd_data::Dict{Symbol,Dict}
     macro_commodities = commodity_types()
     # loop over commodities in nsd_data
     for (commodity, data) in nsd_data
+        voll = data[:voll]
         commodity = macro_commodities[commodity] # get the correct commodity type
         # for each commodity, add the nsd data to the corresponding nodes
         nodes_commodity = get_nodes_sametype(nodes, commodity)
@@ -73,7 +74,7 @@ function add_nsd_to_nodes!(nodes::Dict{Symbol,Node}, nsd_data::Dict{Symbol,Dict}
             max_nsd = Float64.([x[:max_demand_curtailment] for x in data[:nsd_data]])
             node.max_nsd = max_nsd
             price_nsd = Float64.([x[:cost_of_demand_curtailment_per_mw] for x in data[:nsd_data]])
-            node.price_nsd = price_nsd
+            node.price_nsd = price_nsd .* voll
         end
     end
     return nothing

@@ -1,0 +1,127 @@
+{
+    "ng": {
+        "type": "NaturalGasPower",
+        "global": {
+            "time_interval": "Electricity",
+            "stoichiometry_balance_names": [
+                "energy",
+                "emissions"
+            ],
+            "constraints": {
+                "stoichiometry_balance": true
+            },
+            "edges": {
+                "elec": {
+                    "uc": true,
+                    "type": "Electricity",
+                    "direction": "output",
+                    "can_expand": true,
+                    "can_retire": false,
+                    "has_planning_vars": true,
+                    "capacity_size": 250,
+                    "existing_capacity": 0,
+                    "investment_cost": 65400,
+                    "ramp_up_fraction": 0.64,
+                    "ramp_down_fraction": 0.64,
+                    "min_up_time": 6,
+                    "min_down_time": 6,
+                    "start_cost": 91,
+                    "start_fuel": 0.58614214,
+                    "fuel_stoichiometry_name": "energy",
+                    "constraints": {
+                        "capacity": true,
+                        "ramping_limit": true,
+                        "min_flow": true,
+                        "min_up_time": true,
+                        "min_down_time": true
+                    }
+                },
+                "natgas": {
+                    "direction": "input",
+                    "type": "NaturalGas",
+                    "has_planning_vars": false,
+                    "stoichiometry_coefficients": {
+                        "energy": 1
+                    }
+                },
+                "co2": {
+                    "direction": "output",
+                    "type": "CO2",
+                    "has_planning_vars": false,
+                    "stoichiometry_coefficients": {
+                        "energy": 0,
+                        "emissions": 1
+                    }
+                }
+            }
+        },
+        "instance": [
+            {
+                "id": "ng_MA",
+                "nodes": {
+                    "Electricity": "elec_MA",
+                    "NaturalGas": "ng_source",
+                    "CO2": "co2_MA"
+                },
+                "edges": {
+                    "elec": {
+                        "stoichiometry_coefficients": {
+                            "energy": 2.1775,
+                            "emissions": 0
+                        },
+                        "fixed_om_cost": 10287,
+                        "variable_om_cost": 3.55,
+                        "min_flow_fraction": 0.468
+                    },
+                    "natgas": {
+                        "price_header": "natgas_MA"
+                    }
+                }
+            },
+            {
+                "id": "ng_CT",
+                "nodes": {
+                    "Electricity": "elec_CT",
+                    "NaturalGas": "ng_source",
+                    "CO2": "co2_CT"
+                },
+                "edges": {
+                    "elec": {
+                        "fixed_om_cost": 9698,
+                        "variable_om_cost": 3.57,
+                        "min_flow_fraction": 0.338,
+                        "stoichiometry_coefficients": {
+                            "energy": 2.0866660184,
+                            "emissions": 0
+                        }
+                    },
+                    "natgas": {
+                        "price_header": "natgas_CT"
+                    }
+                }
+            },
+            {
+                "id": "ng_ME",
+                "nodes": {
+                    "Electricity": "elec_ME",
+                    "NaturalGas": "ng_source",
+                    "CO2": "co2_ME"
+                },
+                "edges": {
+                    "elec": {
+                        "fixed_om_cost": 16291,
+                        "variable_om_cost": 4.5,
+                        "min_flow_fraction": 0.474,
+                        "stoichiometry_coefficients": {
+                            "energy": 3.6985569033999997,
+                            "emissions": 0
+                        }
+                    },
+                    "natgas": {
+                        "price_header": "natgas_ME"
+                    }
+                }
+            }
+        ]
+    }
+}

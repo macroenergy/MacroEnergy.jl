@@ -41,9 +41,7 @@ abstract type SyntheticNG <: TransformationType  end
 abstract type VRE <: TransformationType end
 abstract type SolarPVTransform <: VRE end
 abstract type Storage <: TransformationType end
-<<<<<<< HEAD
-abstract type HydroStor <: Storage end 
-=======
+
 
 ## Assets types
 abstract type AbstractAsset end
@@ -54,7 +52,6 @@ abstract type OperationConstraint <: AbstractTypeConstraint end
 abstract type PolicyConstraint <: OperationConstraint end
 abstract type PlanningConstraint <: AbstractTypeConstraint end
 
->>>>>>> origin/feature/dev-assets
 # type hierarchy
 
 # globals
@@ -64,7 +61,7 @@ abstract type PlanningConstraint <: AbstractTypeConstraint end
 const JuMPConstraint = Union{Array,Containers.DenseAxisArray,Containers.SparseAxisArray}
 # const DataFrameRow = DataFrames.DataFrameRow;
 # const DataFrame = DataFrames.DataFrame;
-function include_all_in_folder
+function include_all_in_folder(folder)
     base_path = joinpath(@__DIR__, folder)
     for (root, dirs, files) in Base.Filesystem.walkdir(base_path)
         for file in files
@@ -74,8 +71,6 @@ function include_all_in_folder
         end
     end
 end
-
-# namedtuple(d::Dict) = (; (Symbol(k) => v for (k, v) in d)...)
 
 # include files
 

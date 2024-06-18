@@ -61,7 +61,23 @@ end
 function assets_instance_data(
     global_data::AbstractDict{Symbol,Any},
     instance_data::AbstractDict{Symbol,Any}
-)
+    )
+
+    # Merge global and edge data, with edge data overwriting global data
+    if haskey(global_data, :edges)
+        instance_data = copy(instance_data)
+        if !haskey(instance_data, :edges)
+            instance_data[:edges] = Dict()
+        end
+        for (edge_name, edge_data) in global_data[:edges]
+            if haskey(instance_data[:edges], edge_name)
+                merge!(instance_data[:edges][edge_name], edge_data)
+            else
+                instance_data[:edges][edge_name] = edge_data
+            end
+        end
+    end    
+    
     # Merge global and node data, with node data overwriting global data
     instance_data = merge(global_data, instance_data)
 

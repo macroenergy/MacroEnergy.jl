@@ -23,10 +23,10 @@ end
 function add_fuel_to_tedges!(tedges::Dict{Symbol,T}, fuel_data::Dict{Symbol,Vector{Float64}}, co2_emission::JSON3.Object) where T<:AbstractTransformationEdge
     for (_, tedge) in tedges
         if tedge.price_header ∈ keys(fuel_data)
-            tedge.price = fuel_data[tedge.price_header]
+            tedge.price = fuel_data[tedge.price_header] / NG_MWh
         end
         if tedge.price_header ∈ keys(co2_emission)
-            tedge.st_coeff[:emissions] = co2_emission[tedge.price_header]
+            tedge.st_coeff[:emissions] = co2_emission[tedge.price_header] / NG_MWh
         end
     end
     return nothing

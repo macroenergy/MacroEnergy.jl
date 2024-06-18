@@ -40,7 +40,7 @@ function create_time_data(time_data::JSON3.Object, commodities::Dict{Symbol,Data
 
         hours_per_subperiod = time_data[:HoursPerSubperiod][sym]
         subperiods = collect(Iterators.partition(time_interval, Int(hours_per_subperiod / hours_per_timestep)))
-        weights_per_subperiod = 1 # TODO: Implement this
+        weights_per_subperiod = hours_per_subperiod # TODO: Implement this
 
         all_timedata[sym] = Macro.TimeData{type}(;
             time_interval=time_interval,

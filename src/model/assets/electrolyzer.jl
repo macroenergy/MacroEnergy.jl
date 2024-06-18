@@ -29,5 +29,9 @@ function make_electrolyzer(data::Dict{Symbol,Any}, time_data::Dict{Symbol,TimeDa
     _elec_node = nodes[_elec_node_id]
     _elec_tedge = make_tedge(_elec_tedge_data, time_data, _electrolyzer_transform, _elec_node)
 
+    ## add reference to tedges in transformation
+    _TEdges = Dict(:H2=>_h2_tedge, :E=>_elec_tedge)
+    _electrolyzer_transform.TEdges = _TEdges
+    
     return Electrolyzer(_electrolyzer_transform, _h2_tedge, _elec_tedge)
 end

@@ -107,6 +107,19 @@ function validate_max_line_reinforcement!(data::Dict{Symbol,Any})
     return nothing
 end
 
+function validate_rhs_policy!(data::Dict{Symbol,Any})
+    if haskey(data, :rhs_policy)
+        rhs_policy = Dict{DataType,Float64}()
+        constraints = constraint_types()
+        for (k,v) in data[:rhs_policy]
+            new_k = constraints[Symbol(k)]
+            rhs_policy[new_k] = v
+        end
+        data[:rhs_policy] = rhs_policy
+    end
+    return nothing
+end
+
 function validate_data!(data::Dict{Symbol,Any})
     validate_id!(data)
     validate_direction!(data)
@@ -116,12 +129,13 @@ function validate_data!(data::Dict{Symbol,Any})
     validate_max_line_reinforcement!(data)
     validate_demand_header!(data)
     validate_fuel_header!(data)
+    validate_rhs_policy!(data)
     return nothing
 end
 
-function get_tedge_data(data::Dict{Symbol,Any}, commodity::Symbol, immutable::Bool=false)
-    for (_, edge_data) in data[:edges]
-        if edge_data[:type] == string(commodity)
+function get_tedge_data(data::Dict{Symbol,Any}, id::Symbol, immutable::Bool=false)
+    for (edge_id, edge_data) in data[:edges]
+        if edge_id == id || edge_data[:type] == string(id)
             immutable && return edge_data
             return copy(edge_data)
         end

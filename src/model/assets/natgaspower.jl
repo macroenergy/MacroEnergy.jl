@@ -44,6 +44,10 @@ function make_natgaspower(data::Dict{Symbol,Any}, time_data::Dict{Symbol,TimeDat
     _co2_node = nodes[_co2_node_id]
     _co2_tedge = make_tedge(_co2_tedge_data, time_data, _ngcc_transform, _co2_node)
 
+    ## add reference to tedges in transformation
+    _TEdges = Dict(:E=>_e_tedge, :NG=>_ng_tedge, :CO2=>_co2_tedge)
+    _ngcc_transform.TEdges = _TEdges
+
     return NaturalGasPower(_ngcc_transform, _e_tedge, _ng_tedge, _co2_tedge)
 end
 

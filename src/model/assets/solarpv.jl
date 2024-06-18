@@ -29,6 +29,10 @@ function make_solarpv(data::Dict{Symbol,Any}, time_data::Dict{Symbol,TimeData}, 
     # make the edge
     _tedge = make_tedge(_tedge_data, time_data, _solar_pv_transform, node_out)
 
+    ## add reference to tedges in transformation
+    _TEdges = Dict(:E=>_tedge)
+    _solar_pv_transform.TEdges = _TEdges
+
     return SolarPV(_solar_pv_transform, _tedge)
 end
 
