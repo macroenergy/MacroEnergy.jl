@@ -725,19 +725,19 @@ function dolphyn_to_macro(dolphyn_inputs_original_units::Dict,settings_path::Str
 
 
 
-        # load storage
-        if commodity == NaturalGas
-            # Do nothing. For now, we ignore Natural Gas storage.
-        elseif commodity == CO2
-            # Do nothing. For now, we ignore CO2 storage.
-        else
-            storage_d[Symbol(commodity_str)] = create_storage_from_dolphyn(
-            dolphyn_inputs,
-            nodes,
-            time_interval,
-            subperiods,
-            )
-        end
+        # # load storage
+        # if commodity == NaturalGas
+        #     # Do nothing. For now, we ignore Natural Gas storage.
+        # elseif commodity == CO2
+        #     # Do nothing. For now, we ignore CO2 storage.
+        # else
+        #     storage_d[Symbol(commodity_str)] = create_storage_from_dolphyn(
+        #     dolphyn_inputs,
+        #     nodes,
+        #     time_interval,
+        #     subperiods,
+        #     )
+        # end
 
     end
 
@@ -754,7 +754,7 @@ function dolphyn_to_macro(dolphyn_inputs_original_units::Dict,settings_path::Str
     
     @info "Dolphyn data successfully read in into MACRO"
 
-    return InputData(macro_settings, node_d, network_d, resource_d, storage_d,transformation_d), macro_settings
+    return InputData(macro_settings, node_d, network_d, resource_d, storage_d, transformation_d), macro_settings
 end
 
 function dolphyn_cols_to_macro_attrs(c::Type{Electricity})

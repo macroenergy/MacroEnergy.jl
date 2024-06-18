@@ -1,0 +1,87 @@
+{
+    "natgas": {
+        "type": "NaturalGas",
+        "global": {
+            "time_interval": "NaturalGas"  
+        },
+        "instance": [
+            {
+                "id": "natgas_MA"
+            },
+            {
+                "id": "natgas_CT"
+            },
+            {
+                "id": "natgas_ME"
+            }
+        ]
+    },
+    "elec": {
+        "type": "Electricity",
+        "global": {
+            "time_interval": "Electricity",
+            "constraints": {
+                "demand_balance": true,
+                "max_non_served_demand": true,
+                "max_non_served_demand_per_segment": true
+            }
+        },
+        "instance": [
+            {
+                "id": "elec_MA",
+                "demand_header": "MA"
+            },
+            {
+                "id": "elec_CT",
+                "demand_header": "CT"
+            },
+            {
+                "id": "elec_ME",
+                "demand_header": "ME"
+            }
+        ]
+    },
+    "emiss": {
+        "type": "CO2",
+        "global": {
+            "time_interval": "CO2"
+        },
+        "instance": [
+            {
+                "id": "co2_MA",
+                "policy_rhs":
+                    {"CO2CapConstraint": 1000.0}
+            },
+            {
+                "id": "co2_CT",
+                "policy_rhs":
+                    {"CO2CapConstraint": 2000.0}
+            },
+            {
+                "id": "co2_ME",
+                "policy_rhs":
+                    {"CO2CapConstraint": 3000.0}
+            }
+        ]
+    },
+    "h2": {
+        "type": "Hydrogen",
+        "global": {
+            "time_interval": "Hydrogen"
+        },
+        "instance": [
+            {
+                "id": "h2_MA",
+                "demand_header": "h2_MA"
+            },
+            {
+                "id": "h2_CT",
+                "demand_header": "h2_CT"
+            },
+            {
+                "id": "h2_ME",
+                "demand_header": "h2_ME"
+            }
+        ]
+    }
+}

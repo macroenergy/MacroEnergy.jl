@@ -1,0 +1,64 @@
+{
+    "stor": {
+        "type": "Electrolyzer",
+        "global": {
+            "time_interval": "Electricity",
+            "stoichiometry_balance_names": [
+                "energy"
+            ],
+            "edges": {
+                "elec": {
+                    "direction": "input",
+                    "type": "Electricity",
+                    "has_planning_vars": false,
+                    "time_interval": "Electricity",
+                    "stoichiometry_coefficients": {
+                        "energy": 0.74
+                    }
+                },
+                "h2": {
+                    "direction": "output",
+                    "type": "Hydrogen",
+                    "has_planning_vars": true,
+                    "capacity_size": 66.7,
+                    "time_interval": "Hydrogen",
+                    "can_expand": true,
+                    "can_retire": false,
+                    "existing_capacity": 0,
+                    "investment_cost": 61000,
+                    "fixed_om_cost": 915,
+                    "variable_om_cost": 0,
+                    "stoichiometry_coefficients": {
+                        "energy": 1.0
+                    }
+                }
+            },
+            "constraints": {
+                "stoichiometry_balance": true
+            }
+        },
+        "instance": [
+            {
+                "id": "electrolyzer_MA",
+                "nodes": {
+                    "Electricity": "elec_MA",
+                    "Hydrogen": "h2_MA"
+                }
+            },
+            {
+                "id": "electrolyzer_CT",
+                "nodes": {
+                    "Electricity": "elec_CT",
+                    "Hydrogen": "h2_CT"
+                }
+            },
+            {
+                "id": "electrolyzer_ME",
+                "nodes": {
+                    "Electricity": "elec_ME",
+                    "Hydrogen": "h2_ME"
+                }
+            }
+        ]
+    }
+}

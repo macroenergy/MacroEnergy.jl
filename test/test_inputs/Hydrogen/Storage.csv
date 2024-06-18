@@ -1,4 +1,0 @@
-﻿Id,Type,Node,Min_Capacity,Max_Capacity,Min_Capacity_Storage,Max_Capacity_Storage,existing_capacity,existing_capacity_storage,can_expand,can_retire,investment_cost,investment_cost_storage,investment_cost_charge,fixed_om_cost,fixed_om_cost_storage,fixed_om_cost_charge,variable_om_cost,variable_om_cost_charge,efficiency_charge,efficiency_discharge,self_discharge,min_storage_level
-H2_st_1,Symmetric,Node_H_1,0,Inf,-1,Inf,0,0,TRUE,TRUE,1653.986107,1157.790275,0,231.5580549,115.7790275,165.3986107,0,0,1,1,0,0.3
-H2_st_2,Symmetric,Node_H_2,0,Inf,-1,Inf,0,0,TRUE,TRUE,1653.986107,1157.790275,0,231.5580549,115.7790275,165.3986107,0,0,1,1,0,0.3
-H2_st_3,Symmetric,Node_H_3,0,Inf,-1,Inf,0,0,TRUE,TRUE,1653.986107,1157.790275,0,231.5580549,115.7790275,165.3986107,0,0,1,1,0,0.3

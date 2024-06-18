@@ -4,26 +4,8 @@ Base.@kwdef mutable struct TimeData{T} <: AbstractTimeData{T}
     subperiod_weights::Dict{StepRange{Int64,Int64},Float64} = Dict{StepRange{Int64,Int64},Float64}()
 end
 
-function create_time_data(settings::NamedTuple)
-
-    all_timedata = Dict();
-    for c in keys(settings.Commodities)
-        time_interval = 1 : settings.Commodities[c][:HoursPerTimeStep] : settings.PeriodLength;
-        subperiods = collect(Iterators.partition(time_interval, Int(settings.Commodities[c][:HoursPerSubperiod] / settings.Commodities[c][:HoursPerTimeStep])))
-        
-        all_timedata[c] = Macro.TimeData{c}(;
-        time_interval =  time_interval,
-        subperiods = subperiods,
-        subperiod_weights = Dict(subperiods.=> settings.Commodities[c][:WeightsPerSubperiod]/settings.Commodities[c][:HoursPerSubperiod])
-        )
-    end
-    return all_timedata
-end
-
-
-
 @doc raw"""
-timestepbefore(t::Int, h::Int,subperiods::Vector{StepRange{Int64,Int64})
+    timestepbefore(t::Int, h::Int,subperiods::Vector{StepRange{Int64,Int64})
 
 Determines the time step that is h steps bßefore index t in
 subperiod p with circular indexing.

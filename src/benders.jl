@@ -8,7 +8,7 @@ function generate_decomposed_system(system_full::Vector{Any},w::StepRange{Int64,
     return system
 end
 
-function restrict_to_subperiod!(y::Union{AbstractNode,AbstractTransformation,AbstractTransformationEdge,AbstractEdge},w::StepRange{Int64,Int64})
+function restrict_to_subperiod!(y::Union{AbstractNode,AbstractTransform,AbstractTransformationEdge,AbstractEdge},w::StepRange{Int64,Int64})
 
     y.timedata.time_interval = w;
     y.timedata.subperiod_weights = Dict(w => y.timedata.subperiod_weights[w]);
@@ -91,7 +91,7 @@ function add_subproblem_planning_variables!(n::AbstractNode,model::Model)
     return nothing
 end
 
-function add_subproblem_planning_variables!(g::AbstractTransformation,model::Model)
+function add_subproblem_planning_variables!(g::AbstractTransform,model::Model)
 
     edges_vec = collect(values(edges(g)));
 
@@ -132,7 +132,7 @@ function add_operation_constraints!(
     return nothing
 end
 
-function add_operation_constraints!(y::AbstractTransformation, model::Model)
+function add_operation_constraints!(y::AbstractTransform, model::Model)
 
     for ct in all_constraints(y)
         if supertype(typeof(ct)) == OperationConstraint
@@ -162,7 +162,7 @@ function add_planning_constraints!(
     return nothing
 end
 
-function add_planning_constraints!(y::AbstractTransformation, model::Model)
+function add_planning_constraints!(y::AbstractTransform, model::Model)
 
     for ct in all_constraints(y)
         if supertype(typeof(ct)) == PlanningConstraint

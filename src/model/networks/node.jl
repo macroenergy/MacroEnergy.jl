@@ -2,6 +2,7 @@ Base.@kwdef mutable struct Node{T} <: AbstractNode{T}
     ### Fields without defaults
     id::Symbol
     demand::Vector{Float64}
+    demand_header::Union{Nothing,Symbol}
     timedata::TimeData{T}
     #### Fields with defaults
     max_nsd::Vector{Float64} = [0.0]
@@ -14,6 +15,23 @@ Base.@kwdef mutable struct Node{T} <: AbstractNode{T}
     constraints::Vector{AbstractTypeConstraint} = Vector{AbstractTypeConstraint}()
 end
 
+function make_node(data::Dict{Symbol,Any}, time_data::Dict{Symbol,TimeData}, commodity::DataType)
+    _node = Node{commodity}(;
+        id = data[:id],
+        demand = get(data, :demand, Vector{Float64}()),
+        demand_header = get(data, :demand_header, nothing),
+        timedata = time_data[Symbol(commodity)],
+        max_nsd = get(data, :max_nsd, [0.0]),
+        price_nsd = get(data, :price_nsd, [0.0]),
+        price_unmet_policy = get(data, :price_unmet_policy, Dict{DataType,Float64}()),
+        rhs_policy = get(data, :rhs_policy, Dict{DataType,Float64}())
+    )
+    add_constraints!(_node, data)
+    return _node
+end
+
+Node(data::Dict{Symbol,Any}, time_data::Dict{Symbol,TimeData}, commodity::DataType) = make_node(data, time_data, commodity)
+
 time_interval(n::AbstractNode) = n.timedata.time_interval;
 subperiods(n::AbstractNode) = n.timedata.subperiods;
 subperiod_weight(n::AbstractNode,w::StepRange{Int64, Int64}) = n.timedata.subperiod_weights[w];
@@ -25,6 +43,7 @@ get_id(n::AbstractNode) = n.id;
 
 demand(n::AbstractNode) = n.demand;
 demand(n::AbstractNode,t::Int64) = demand(n)[t];
+demand_header(n::AbstractNode) = n.demand_header;
 
 non_served_demand(n::AbstractNode) = n.operation_vars[:non_served_demand];
 non_served_demand(n::AbstractNode,s::Int64,t::Int64) = non_served_demand(n)[s,t];
@@ -89,4 +108,8 @@ function add_planning_variables!(n::AbstractNode,model::Model)
         end
     end
     return nothing
+end
+
+function get_nodes_sametype(nodes::Dict{Symbol,Node},commodity::DataType)
+    return filter(((k,n),) -> commodity_type(n)==commodity, nodes)
 end

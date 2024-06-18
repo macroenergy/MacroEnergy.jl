@@ -1,12 +1,12 @@
-function generate_model(system::Vector{Any})
+function generate_model(system::Vector{T}) where T<:Union{Node, Edge, AbstractAsset}
 
     model = Model()
 
     @variable(model, vREF == 1)
 
-    @expression(model, eFixedCost, 0 * model[:vREF])
+    model[:eFixedCost] = AffExpr(0.0)
 
-    @expression(model, eVariableCost, 0 * model[:vREF])
+    model[:eVariableCost] = AffExpr(0.0)
 
     add_planning_variables!.(system, Ref(model))
 

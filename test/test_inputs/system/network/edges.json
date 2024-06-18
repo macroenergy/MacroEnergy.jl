@@ -1,0 +1,55 @@
+{
+    "natgas": {
+        "type": "NaturalGas",
+        "global": {
+            "start_node_id": "natgas_MA",
+            "end_node_id": "natgas_CT",
+            "existing_capacity": 0.0,
+            "unidirectional": false,
+            "max_line_reinforcement": "Inf",
+            "line_reinforcement_cost": 0.0,
+            "can_expand": true,
+            "op_cost": 0.0,
+            "distance": 0.0,
+            "line_loss_fraction": 0.0
+        },
+        "instance": [
+            {
+                "id": "natgas_MA_to_CT"
+            }
+        ] 
+    },
+    "elec": {
+        "type": "Electricity",
+        "global": {
+            "time_interval": "Electricity",
+            "unidirectional": false,
+            "can_expand": true,
+            "constraints": {
+                "capacity": true
+            }
+        },
+        "instance": [
+            {
+                "id": "elec_MA_to_CT",
+                "start_node_id": "elec_MA",
+                "end_node_id": "elec_CT",
+                "distance": 123.06,
+                "existing_capacity": 2950.0,
+                "max_line_reinforcement": 2950.0,
+                "line_reinforcement_cost": 12060,
+                "line_loss_fraction": 0.01
+            },
+            {
+                "id": "elec_MA_to_ME",
+                "start_node_id": "elec_MA",
+                "end_node_id": "elec_ME",
+                "distance": 196.54,
+                "existing_capacity": 2000,
+                "max_line_reinforcement": 2000.0,
+                "line_reinforcement_cost": 19261,
+                "line_loss_fraction": 0.02
+            }
+        ]
+    }
+}

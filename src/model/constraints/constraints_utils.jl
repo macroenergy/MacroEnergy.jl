@@ -19,15 +19,11 @@ function add_all_model_constraints!(
     return nothing
 end
 
-function add_all_model_constraints!(y::AbstractTransformation, model::Model)
+function add_all_model_constraints!(y::AbstractTransform, model::Model)
 
     for ct in all_constraints(y)
         add_model_constraint!(ct, y, model)
     end
-
-    edges_vec = collect(values(edges(y)));
-
-    add_all_model_constraints!.(edges_vec,model)
 
     return nothing
 end

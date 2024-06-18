@@ -6,7 +6,7 @@ end
 
 function add_model_constraint!(
     ct::StoichiometryBalanceConstraint,
-    g::AbstractTransformation,
+    g::AbstractTransform,
     model::Model,
 )
 

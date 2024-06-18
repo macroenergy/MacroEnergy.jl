@@ -4,34 +4,17 @@ using Macro
 using Test
 
 
-function test_configure_settings()
-    settings = configure_settings("test_inputs/macro_settings.yml")
+settings_path = joinpath(@__DIR__, "test_inputs/settings/macro_settings.yml")
 
-    # Electricity
-    commodity_settings = settings.Commodities["Electricity"]
-    @test commodity_settings["InputDataPath"] == "test_inputs/Electricity"
-    @test commodity_settings["HoursPerTimeStep"] == 1
+function test_configure_settings(settings_path::String)
+    settings = configure_settings(settings_path)
 
-    # Hydrogen
-    commodity_settings = settings.Commodities["Hydrogen"]
-    @test commodity_settings["InputDataPath"] == "test_inputs/Hydrogen"
-    @test commodity_settings["HoursPerTimeStep"] == 1
-
-    # Natural Gas
-    commodity_settings = settings.Commodities["NaturalGas"]
-    @test commodity_settings["InputDataPath"] == "test_inputs/NaturalGas"
-    @test commodity_settings["HoursPerTimeStep"] == 1
-
-
-    # Across all commodities
-    @test settings[:PeriodLength] == 24
-    @test settings[:HoursPerSubperiod] == 24
-    @test settings[:NetworkExpansion] == 0
-    @test settings[:MultiStage] == 0
+    @test settings[:UCommit] == true
+    @test settings[:NetworkExpansion] == true
 
     return nothing
 end
 
-test_configure_settings()
+test_configure_settings(settings_path)
 
 end # module TestConfig

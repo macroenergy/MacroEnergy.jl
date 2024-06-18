@@ -1,3 +1,0 @@
-﻿Id,start_node,end_node,Existing_capacity,unidirectional,max_line_flow_capacity,Max_line_reinforcement,Line_reinforcement_cost,Num_lines_existing,can_expand,Max_num_Lines_expanded,investment_cost,Op_cost,Distance,Line_Loss_fraction
-Edge_E_1_2,Node_E_1,Node_E_2,100,FALSE,2950,2950,12060,1,FALSE,0,0,0,198.124024,0.012305837
-Edge_E_1_3,Node_E_2,Node_E_3,100,FALSE,2000,2000,19261,2,FALSE,0,0,0,316.426985,0.019653847

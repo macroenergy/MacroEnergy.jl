@@ -41,14 +41,6 @@ function adjust_cols_types!(df::DataFrame)
     df[!, cols] = float.(df[!, cols])
 end
 
-# pop column from dataframe and return it
-function popat_col!(df::DataFrame, col::Symbol)
-    @assert (col ∈ propertynames(df))
-    col_values = df[!, col]
-    select!(df, Not(col))
-    return col_values
-end
-
 function commodity_type(c::AbstractString)
     T = eval(Symbol(c))
     @assert (T <: Commodity)

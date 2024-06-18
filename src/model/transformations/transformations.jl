@@ -2,13 +2,13 @@ macro AbstractTransformationEdgeBaseAttributes()
     esc(quote
         id::Symbol
         node::AbstractNode{T}
-        transformation::AbstractTransformation
+        transformation::AbstractTransform
         timedata::TimeData{T}
         direction::Symbol = :input
         has_planning_variables::Bool = false
         can_retire::Bool = false
         can_expand::Bool = false 
-        capacity_size :: Float64 = 1.0
+        capacity_size::Float64 = 1.0
         capacity_factor::Vector{Float64} = Float64[]
         st_coeff::Dict{Symbol,Float64} = Dict{Symbol,Float64}()
         min_capacity::Float64 = 0.0
@@ -18,6 +18,7 @@ macro AbstractTransformationEdgeBaseAttributes()
         fixed_om_cost::Float64 = 0.0
         variable_om_cost::Float64 = 0.0
         price::Vector{Float64} = Float64[]
+        price_header::Union{Nothing,Symbol} = nothing
         ramp_up_fraction::Float64 = 1.0
         ramp_down_fraction::Float64 = 1.0
         min_flow_fraction::Float64 = 0.0
@@ -31,11 +32,52 @@ Base.@kwdef mutable struct TEdge{T} <: AbstractTransformationEdge{T}
     @AbstractTransformationEdgeBaseAttributes()
 end
 
-Base.@kwdef mutable struct Transformation{T} <: AbstractTransformation{T}
+function make_tedge(::Type{TEdge}, data::Dict{Symbol,Any}, time_data::Dict{Symbol,TimeData}, transformation::AbstractTransform, node::AbstractNode)
+    commodity = commodity_type(node)
+    _t_edge = TEdge{commodity}(;
+        id = data[:id],
+        node = node,
+        transformation = transformation,
+        timedata = time_data[Symbol(commodity)],
+        direction = get(data, :direction, :input),
+        has_planning_variables = get(data, :has_planning_vars, false),
+        can_retire = get(data, :can_retire, false),
+        can_expand = get(data, :can_expand, false),
+        capacity_size = get(data, :capacity_size, 1.0),
+        capacity_factor = get(data, :capacity_factor, Float64[]),
+        st_coeff = get(data, :stoichiometry_coefficients, Dict{Symbol,Float64}()),
+        min_capacity = get(data, :min_capacity, 0.0),
+        max_capacity = get(data, :max_capacity, Inf),
+        existing_capacity = get(data, :existing_capacity, 0.0),
+        investment_cost = get(data, :investment_cost, 0.0),
+        fixed_om_cost = get(data, :fixed_om_cost, 0.0),
+        variable_om_cost = get(data, :variable_om_cost, 0.0),
+        price = get(data, :price, Float64[]),
+        price_header = get(data, :price_header, nothing),
+        ramp_up_fraction = get(data, :ramp_up_fraction, 1.0),
+        ramp_down_fraction = get(data, :ramp_down_fraction, 1.0),
+        min_flow_fraction = get(data, :min_flow_fraction, 0.0),
+    )
+    add_constraints!(_t_edge, data)
+    return _t_edge
+end
+TEdge(data::Dict{Symbol,Any}, time_data::Dict{Symbol,TimeData}, transformation::AbstractTransform, node::AbstractNode) = make_tedge(data, time_data, transformation, node)
+
+
+function make_tedge(data::Dict{Symbol,Any}, time_data::Dict{Symbol,TimeData}, transformation::AbstractTransform, node::AbstractNode)
+    validate_data!(data)
+    if get(data, :uc, false)
+        return make_tedge(TEdgeWithUC, data, time_data, transformation, node)
+    else
+        return make_tedge(TEdge, data, time_data, transformation, node)
+    end
+end
+
+Base.@kwdef mutable struct Transformation <: AbstractTransform
     id::Symbol
     timedata::TimeData
     stoichiometry_balance_names::Vector{Symbol} = Vector{Symbol}()
-    TEdges::Dict{Symbol,AbstractTransformationEdge} = Dict{Symbol,AbstractTransformationEdge}()
+    # TEdges::Dict{Symbol,AbstractTransformationEdge} = Dict{Symbol,AbstractTransformationEdge}()
     operation_expr::Dict = Dict()
     planning_vars::Dict = Dict()
     operation_vars::Dict = Dict()
@@ -51,11 +93,12 @@ Base.@kwdef mutable struct Transformation{T} <: AbstractTransformation{T}
     min_duration::Float64 = 0.0
     max_duration::Float64 = 0.0
     storage_loss_fraction::Float64 = 0.0
-    discharge_edge::Symbol = Symbol(".")
-    charge_edge::Symbol = Symbol(".")
+    discharge_edge::Symbol = :discharge
+    charge_edge::Symbol = :charge
 end
 
 #### Transformation interface
+<<<<<<< HEAD
 transformation_type(g::AbstractTransformation{T}) where {T} = T;
 stoichiometry_balance_names(g::AbstractTransformation) = g.stoichiometry_balance_names;
 has_storage(g::AbstractTransformation) = :storage ∈ stoichiometry_balance_names(g);
@@ -80,6 +123,30 @@ fixed_om_cost_storage(g::AbstractTransformation) = g.fixed_om_cost_storage;
 storage_level(g::AbstractTransformation) = g.operation_vars[:storage_level];
 storage_level(g::AbstractTransformation,t::Int64) = storage_level(g)[t];
 storage_loss_fraction(g::AbstractTransformation) = g.storage_loss_fraction;
+=======
+stoichiometry_balance_names(g::AbstractTransform) = g.stoichiometry_balance_names;
+has_storage(g::AbstractTransform) = :storage ∈ stoichiometry_balance_names(g);
+get_id(g::AbstractTransform) = g.id;
+time_interval(g::AbstractTransform) = g.timedata.time_interval;
+subperiods(g::AbstractTransform) = g.timedata.subperiods;
+subperiod_weight(g::AbstractTransform,w::StepRange{Int64, Int64}) = g.timedata.subperiod_weights[w];
+current_subperiod(g::AbstractTransform,t::Int64) = subperiods(g)[findfirst(t .∈ subperiods(g))];
+min_duration(g::AbstractTransform) = g.min_duration;
+max_duration(g::AbstractTransform) = g.max_duration;
+
+all_constraints(g::AbstractTransform) = g.constraints;
+stoichiometry_balance(g::AbstractTransform) = g.operation_expr[:stoichiometry_balance];
+stoichiometry_balance(g::AbstractTransform,i::Symbol,t::Int64) = stoichiometry_balance(g)[i,t];
+existing_capacity_storage(g::AbstractTransform) = g.existing_capacity_storage;
+new_capacity_storage(g::AbstractTransform) = g.planning_vars[:new_capacity_storage];
+ret_capacity_storage(g::AbstractTransform) = g.planning_vars[:ret_capacity_storage];
+capacity_storage(g::AbstractTransform) = g.planning_vars[:capacity_storage];
+investment_cost_storage(g::AbstractTransform) = g.investment_cost_storage;
+fixed_om_cost_storage(g::AbstractTransform) = g.fixed_om_cost_storage;
+storage_level(g::AbstractTransform) = g.operation_vars[:storage_level];
+storage_level(g::AbstractTransform,t::Int64) = storage_level(g)[t];
+storage_loss_fraction(g::AbstractTransform) = g.storage_loss_fraction;
+>>>>>>> origin/feature/dev-assets
 
 existing_capacity_hydro(g::AbstractTransformation) = g.existing_capacity_hydro;
 new_capacity_hydro(g::AbstractTransformation) = g.planning_vars[:new_capacity_hydro];
@@ -109,6 +176,7 @@ fixed_om_cost(e::AbstractTransformationEdge) = e.fixed_om_cost;
 variable_om_cost(e::AbstractTransformationEdge) = e.variable_om_cost;
 price(e::AbstractTransformationEdge) = e.price;
 price(e::AbstractTransformationEdge,t::Int64) = price(e)[t];
+price_header(e::AbstractTransformationEdge) = e.price_header;
 min_capacity(e::AbstractTransformationEdge) = e.min_capacity;
 max_capacity(e::AbstractTransformationEdge) = e.max_capacity;
 can_expand(e::AbstractTransformationEdge) = e.can_expand;
@@ -130,13 +198,9 @@ stoichiometry_balance_names(e::AbstractTransformationEdge) = stoichiometry_balan
 get_transformation_id(e::AbstractTransformationEdge) = get_id(e.transformation);
 get_id(e::AbstractTransformationEdge) = e.id;
 st_coeff(e::AbstractTransformationEdge) = e.st_coeff;
+transformation(e::AbstractTransformationEdge) = e.transformation;
 
-
-function add_planning_variables!(g::AbstractTransformation,model::Model)
-
-    edges_vec = collect(values(edges(g)));
-
-    add_planning_variables!.(edges_vec,model)
+function add_planning_variables!(g::AbstractTransform,model::Model)
 
     if has_storage(g)
     
@@ -180,18 +244,6 @@ function add_planning_variables!(g::AbstractTransformation,model::Model)
     
         if fixed_om_cost_storage(g)>0
             add_to_expression!(model[:eFixedCost],fixed_om_cost_storage(g), capacity_storage(g))
-        end
-
-        if g.max_duration > 0
-    
-            e_discharge = g.TEdges[g.discharge_edge];
-
-            @constraint(model, capacity_storage(g) <= g.max_duration * capacity(e_discharge))
-
-            if g.min_duration > 0
-                @constraint(model, capacity_storage(g) >= g.min_duration * capacity(e_discharge))
-            end
-
         end
 
     end
@@ -257,15 +309,11 @@ function add_planning_variables!(g::AbstractTransformation,model::Model)
 
 end
 
-function add_operation_variables!(g::AbstractTransformation,model::Model)
+function add_operation_variables!(g::AbstractTransform,model::Model)
 
     if !isempty(stoichiometry_balance_names(g))
         g.operation_expr[:stoichiometry_balance] = @expression(model, [i in stoichiometry_balance_names(g), t in time_interval(g)], 0 * model[:vREF])
     end
-
-    edges_vec = collect(values(edges(g)));
-
-    add_operation_variables!.(edges_vec,model)
 
     if has_storage(g)
         g.operation_vars[:storage_level] = @variable(
@@ -280,11 +328,6 @@ function add_operation_variables!(g::AbstractTransformation,model::Model)
             storage_level(g,t) - (1 - storage_loss_fraction(g)) * storage_level(g,timestepbefore(t,1,subperiods(g))),
             )
         end
-        e_discharge = g.TEdges[g.discharge_edge]
-        @constraint(model,
-        [t in time_interval(g)], 
-        st_coeff(e_discharge)[:storage]*flow(e_discharge,t)<=storage_level(g,timestepbefore(t,1,subperiods(g))))
-
     end
 
 end
@@ -486,6 +529,16 @@ function add_planning_variables!(e::AbstractTransformationEdge, model::Model)
         if fixed_om_cost(e)>0
             add_to_expression!(model[:eFixedCost], fixed_om_cost(e), capacity(e))
         end
+
+        g = transformation(e)
+        if get_id(e) == :discharge && max_duration(g) > 0
+
+            @constraint(model, capacity_storage(g) <= max_duration(g) * capacity(e))
+
+            if min_duration(g) > 0
+                @constraint(model, capacity_storage(g) >= min_duration(g) * capacity(e))
+            end
+        end
     end
 
     return nothing
@@ -529,6 +582,96 @@ function add_operation_variables!(e::AbstractTransformationEdge, model::Model)
 
     end
 
+    g = transformation(e)
+
+    if has_storage(g) && get_id(e) == :discharge
+
+        @constraint(model,
+        [t in time_interval(g)], 
+        st_coeff(e)[:storage]*flow(e,t) <= storage_level(g,timestepbefore(t,1,subperiods(g))))
+    
+    end
 
     return nothing
 end
+
+function add_constraints!(target::T, data::Dict{Symbol,Any}) where T<:Union{Node, Edge, AbstractAsset, AbstractTransform, AbstractTransformationEdge}
+    constraints = get(data, :constraints, nothing)
+    if constraints !== nothing
+        macro_constraints = constraint_types()
+        for (k,v) in constraints
+            v == true && add_constraint!(target, macro_constraints[k])
+        end
+    end
+    return nothing
+end
+
+function add_planning_variables!(a::AbstractAsset, model::Model)
+    for t in fieldnames(a)
+        add_planning_variables!(getfield(a,t), model)
+    end
+    return nothing
+end
+
+function add_operation_variables!(a::AbstractAsset, model::Model)
+    for t in fieldnames(a)
+        add_operation_variables!(getfield(a,t), model)
+    end
+    return nothing
+end
+
+function add_constraint!(a::AbstractAsset, c::Type{<:AbstractTypeConstraint})
+    for t in fieldnames(a)
+        add_constraint!(getfield(a,t), c())
+    end
+    return nothing
+end
+
+function add_constraint!(t::T, c::Type{<:AbstractTypeConstraint}) where T<:Union{Node, Edge, AbstractTransform, AbstractTransformationEdge}
+    push!(t.constraints, c())
+    return nothing
+end
+
+function add_all_model_constraints!(a::AbstractAsset, model::Model)
+    for t in fieldnames(a)
+        add_all_model_constraints!(getfield(a,t), model)
+    end
+    return nothing
+end
+
+function fieldnames(a::AbstractAsset)
+    ordered_fields = Symbol[]
+    fields = Base.fieldnames(typeof(a))
+    # move transformation fields to the front
+    for f in fields
+        if isa(getfield(a, f), AbstractTransform)
+            push!(ordered_fields, f)
+        end
+    end
+    # move edge fields to the back
+    for f in fields
+        if isa(getfield(a, f), AbstractTransformationEdge)
+            push!(ordered_fields, f)
+        end
+    end
+    # check if all fields are accounted for
+    if length(ordered_fields) != length(fields)
+        error("Not all fields accounted for in fieldnames(::Type{<:AbstractAsset})")
+    end
+    return ordered_fields
+end
+
+function tedges(assets::Dict{Symbol,AbstractAsset})
+    tedges = Dict{Symbol,AbstractTransformationEdge}()
+    for (k, v) in assets
+        for f in fieldnames(v)
+            if isa(getfield(v, f), AbstractTransformationEdge)
+                tedges[Symbol(string(k, "_", f))] = getfield(v, f)
+            end
+        end
+    end
+    return tedges
+end 
+
+
+    

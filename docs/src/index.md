@@ -4,7 +4,7 @@ CurrentModule = Macro
 
 # Macro
 
-Documentation for [Macro](https://github.com/macroenergy/Macro).
+Welcome to the [Macro](https://github.com/macroenergy/Macro) documentation!
 
 ```@index
 ```

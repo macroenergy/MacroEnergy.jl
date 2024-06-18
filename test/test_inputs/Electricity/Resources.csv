@@ -1,5 +1,0 @@
-﻿Id,Node,Min_Capacity,Max_Capacity,Existing_Capacity,Can_Expand,Can_Retire,Investment_Cost,Fixed_Om_Cost,Variable_Om_Cost
-Solar_1,Node_E_1,0,Inf,0,TRUE,TRUE,85300,18760,0
-Solar_2,Node_E_2,0,Inf,0,TRUE,TRUE,85300,18760,0
-Wind_2,Node_E_2,0,Inf,0,TRUE,TRUE,97200,43205,1
-Wind_3,Node_E_3,0,Inf,0,TRUE,TRUE,97200,43205,1

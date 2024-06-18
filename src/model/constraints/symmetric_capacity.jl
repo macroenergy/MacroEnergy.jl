@@ -7,10 +7,10 @@ end
 
 function add_model_constraint!(
     ct::SymmetricCapacityConstraint,
-    g::AbstractTransformation,
+    g::AbstractTransform,
     model::Model,
 )
-    if has_storage(g)
+    if has_storage(g) && false ## TODO: Fix this
         e_discharge = g.TEdges[g.discharge_edge]
         e_charge = g.TEdges[g.charge_edge]
         ct.constraint_ref = @constraint(

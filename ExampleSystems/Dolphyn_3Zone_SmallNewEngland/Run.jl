@@ -1,6 +1,6 @@
-using Pkg
-### Activate environment where Macro package is
-Pkg.activate(dirname(dirname(@__DIR__)))
+# using Pkg
+# ### Activate environment where Macro package is
+# Pkg.activate(dirname(dirname(@__DIR__)))
 
 using Dolphyn
 using Revise
@@ -29,7 +29,7 @@ end
 
 using Macro, BenchmarkTools
 
-macro_inputs, macro_settings = dolphyn_to_macro(inputs,settings_path);
+macro_inputs, macro_settings = Macro.dolphyn_to_macro(inputs,settings_path);
 
 model = Macro.generate_model(macro_inputs);
 

@@ -7,7 +7,7 @@ end
 
 function add_model_constraint!(
     ct::StorageCapacityConstraint,
-    g::AbstractTransformation,
+    g::AbstractTransform,
     model::Model,
 )
 
