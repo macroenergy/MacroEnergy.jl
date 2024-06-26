@@ -75,7 +75,7 @@
     "hydrostor": {
         "type": "HydroStor",
         "global": {
-            "time_interval": "Electricity",
+            "time_interval": "Water",
             "can_expand": true,
             "can_retire": false,
             "existing_capacity_storage": 0,
@@ -108,6 +108,34 @@
                 },
                 "charge": {
                     "type": "Electricity",
+                    "direction": "input",
+                    "can_expand": true,
+                    "can_retire": false,
+                    "existing_capacity": 0,
+                    "investment_cost": 1000,
+                    "fixed_om_cost": 10,
+                    "variable_om_cost": 0
+                },
+                "discharge_spill": {
+                    "type": "Water",
+                    "direction": "output",
+                    "can_expand": true,
+                    "can_retire": false,
+                    "existing_capacity": 0,
+                    "investment_cost": 1000,
+                    "fixed_om_cost": 10,
+                    "variable_om_cost": 0,
+                    "has_planning_vars": true,
+                    "stoichiometry_coefficients": {
+                        "storage": 1
+                    },
+                    "constraints": {
+                        "capacity": true,
+                        "ramping_limit": true
+                    }
+                },
+                "charge_water": {
+                    "type": "Water",
                     "direction": "input",
                     "can_expand": true,
                     "can_retire": false,
