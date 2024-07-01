@@ -21,7 +21,7 @@ function add_model_constraint!(
     else
         
         ct.constraint_ref = @constraint(model,
-        [t in time_interval(e)],
+        [t in timesteps(e)],
         capacity(e)/capacity_size(e) - ucommit(e,t) >= sum(ushut(e,s) for s in [timestepbefore(t,h,subperiods(e)) for h in 0:min_down_time(e)-1];init=0)
         )
     end
@@ -41,7 +41,7 @@ function add_model_constraint!(
         error("The minimum up time for $(get_transformation_id(e))_$(get_id(e)) is longer than the length of one subperiod")
     else
         ct.constraint_ref = @constraint(model,
-        [t in time_interval(e)],
+        [t in timesteps(e)],
         ucommit(e,t) >= sum(ustart(e,s) for s  in [timestepbefore(t,h,subperiods(e)) for h in 0:min_up_time(e)-1];init=0)
         )
     end

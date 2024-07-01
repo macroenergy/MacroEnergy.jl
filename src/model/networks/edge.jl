@@ -43,7 +43,7 @@ end_node(e::AbstractEdge) = e.end_node;
 start_node_id(e::AbstractEdge) = get_id(e.start_node);
 end_node_id(e::AbstractEdge) = get_id(e.end_node);
 
-time_interval(e::AbstractEdge) = e.timedata.time_interval;
+timesteps(e::AbstractEdge) = e.timedata.timesteps;
 subperiods(e::AbstractEdge) = e.timedata.subperiods;
 subperiod_weight(e::AbstractEdge,w::StepRange{Int64, Int64}) = e.timedata.subperiod_weights[w];
 current_subperiod(e::AbstractEdge,t::Int64) = subperiods(e)[findfirst(t .∈ subperiods(e))];
@@ -91,14 +91,14 @@ function add_operation_variables!(e::AbstractEdge, model::Model)
     if e.unidirectional
         e.operation_vars[:flow] = @variable(
             model,
-            [t in time_interval(e)],
+            [t in timesteps(e)],
             lower_bound = 0.0,
             base_name = "vFLOW_$(start_node_id(e))_$(end_node_id(e))"
         )
     else
         e.operation_vars[:flow] = @variable(
             model,
-            [t in time_interval(e)],
+            [t in timesteps(e)],
             base_name = "vFLOW_$(start_node_id(e))_$(end_node_id(e))"
         )
     end

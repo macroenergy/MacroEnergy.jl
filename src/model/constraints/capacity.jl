@@ -10,7 +10,7 @@ function add_model_constraint!(ct::CapacityConstraint, e::AbstractTransformation
 
     ct.constraint_ref = @constraint(
             model,
-            [t in time_interval(e)],
+            [t in timesteps(e)],
             flow(e,t) <= capacity_factor(e,t)*capacity(e)
         )
     
@@ -24,7 +24,7 @@ function add_model_constraint!(ct::CapacityConstraint, e::AbstractTransformation
     
     ct.constraint_ref = @constraint(
             model,
-            [t in time_interval(e)],
+            [t in timesteps(e)],
             flow(e,t) <= capacity_factor(e,t)*capacity_size(e)*ucommit(e,t)
         )
  
@@ -37,11 +37,11 @@ function add_model_constraint!(ct::CapacityConstraint, e::AbstractEdge, model::M
 
     if e.unidirectional
         ct.constraint_ref =
-            @constraint(model, [t in time_interval(e)], flow(e,t) <= capacity(e))
+            @constraint(model, [t in timesteps(e)], flow(e,t) <= capacity(e))
     else
         ct.constraint_ref = @constraint(
             model,
-            [i in [-1, 1], t in time_interval(e)],
+            [i in [-1, 1], t in timesteps(e)],
             i * flow(e,t) <= capacity(e)
         )
     end

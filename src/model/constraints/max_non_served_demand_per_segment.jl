@@ -12,7 +12,7 @@ function add_model_constraint!(
     if haskey(n.operation_vars,:non_served_demand)
         ct.constraint_ref = @constraint(
             model,
-            [s in segments_non_served_demand(n), t in time_interval(n)],
+            [s in segments_non_served_demand(n), t in timesteps(n)],
             non_served_demand(n,s,t) <= max_non_served_demand(n,s) * demand(n,t)
         )
     else

@@ -28,12 +28,12 @@ NG_MWh = 0.29307107 # MWh per MMBTU of NG
 ts = CSV.read(dirname(dirname(@__DIR__))*"/tutorials/time_series_data.csv",DataFrame)
 
 #### Gasification to Hydrogen
-## Biomass + CO2 -> H2
+## Biomass (MWh) -> H2 (MWh) + CO2Captured (tons)
 ## H2 = BtoH2_eff * Biomass 
-## Removed CO2 = CDR_potential * Biomass =  (CDR_potential/BtoH2_eff)*H2
+## CO2Captured = CDR_potential * Biomass =  (CDR_potential/BtoH2_eff)*H2
 
-BtoH2_eff = 0.8; ### {MWh of H2}/{ton of biomass} ## Fake numbers, need to be converted to right units
-CDR_potential = 1; ## {ton of CO2 captured}{ton of biomass} Fake numbers, need to be converted to right units
+BtoH2_eff = 0.8; ### {MWh of H2}/{MWh of biomass} ## Fake numbers, need to be converted to right units
+CDR_potential = 1; ## {ton of CO2 captured}{MWh of biomass} Fake numbers, need to be converted to right units
 
 h2_demand = H2_MWh*[sum(ts.H2_Demand_tonne[24*(i-1)+i:24*i]) for i in 1:10] # MWh of hydrogen (daily demand)
 
@@ -41,27 +41,29 @@ node_biomass = Node{Biomass}(;
 id = Symbol("Bnode"),
 timedata = all_timedata[Biomass],
 #### Note that this node does not have a demand balance because we are modeling exogenous inflow of biomass
-demand = Dict(t => 0.0 for t in all_timedata[Biomass].time_interval),
+demand = Dict(t => 0.0 for t in all_timedata[Biomass].timesteps),
+price_curve_segs = [0.0]; # intervals: 10, 20, 30 #MWh
+price_curve_prices = [0.0]; # $/MWh
 )
 
 node_h2 = Node{Hydrogen}(;
 id = Symbol("H2node"),
 timedata = all_timedata[Hydrogen],
-demand = Dict(t => h2_demand[findfirst(all_timedata[Biomass].time_interval.==t)] for t in all_timedata[Hydrogen].time_interval),
+demand = Dict(t => h2_demand[findfirst(all_timedata[Biomass].timesteps.==t)] for t in all_timedata[Hydrogen].timesteps),
 constraints = [Macro.DemandBalanceConstraint()]
 )
 
 atmosphere_co2 = Node{CO2}(;
 id = Symbol("AtmCO2"),
 timedata = all_timedata[CO2],
-demand = Dict(t => 0.0 for t in all_timedata[CO2].time_interval),
+demand = Dict(t => 0.0 for t in all_timedata[CO2].timesteps),
 #### Note that this node does not have a demand balance because we are modeling exogenous inflow of co2 (we do not model processes that produce CO2)
 )
 
 # captured_co2 = Node{CO2Captured}(;
 # id = Symbol("StorCO2"),
 # timedata = all_timedata[CO2Captured],
-# demand = zeros(length(all_timedata[CO2Captured].time_interval)),
+# demand = zeros(length(all_timedata[CO2Captured].timesteps)),
 # #### Note that this node does not have a demand balance because we are modeling a sink of CO2, that does not carry a demand balance
 # )
 
@@ -86,7 +88,7 @@ existing_capacity = 0.0,
 investment_cost =  763602317.52/2000, ### $/(ton/day) #Check that this is correct from Input/Output Efficiency spreadsheet
 fixed_om_cost = 38180115.88/2000/365, ### $/(ton/day) #Check that this is correct from Input/Output Efficiency
 variable_om_cost = 11930447.22/2000/365, ### $/(ton/day) #Check that this is correct from Input/Output Efficiency
-price = Dict(t => 39420000/2000/365 for t in all_timedata[Biomass].time_interval),
+price = Dict(t => 39420000/2000/365 for t in all_timedata[Biomass].timesteps),
 st_coeff = Dict(:h2production => BtoH2_eff,:carbon_removal=>0.0), 
 constraints = [Macro.CapacityConstraint()]
 )

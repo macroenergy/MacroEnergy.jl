@@ -32,7 +32,7 @@ end
 
 Node(data::Dict{Symbol,Any}, time_data::Dict{Symbol,TimeData}, commodity::DataType) = make_node(data, time_data, commodity)
 
-time_interval(n::AbstractNode) = n.timedata.time_interval;
+timesteps(n::AbstractNode) = n.timedata.timesteps;
 subperiods(n::AbstractNode) = n.timedata.subperiods;
 subperiod_weight(n::AbstractNode,w::StepRange{Int64, Int64}) = n.timedata.subperiod_weights[w];
 current_subperiod(n::AbstractNode,t::Int64) = subperiods(n)[findfirst(t .∈ subperiods(n))];
@@ -70,17 +70,17 @@ rhs_policy(n::AbstractNode,c::DataType) = rhs_policy(n)[c];
 function add_operation_variables!(n::AbstractNode, model::Model)
 
     n.operation_expr[:net_balance] =
-        @expression(model, [t in time_interval(n)], 0 * model[:vREF])
+        @expression(model, [t in timesteps(n)], 0 * model[:vREF])
 
     if !all(max_non_served_demand(n).==0)
         n.operation_vars[:non_served_demand] = @variable(
             model,
-            [s in segments_non_served_demand(n) ,t in time_interval(n)],
+            [s in segments_non_served_demand(n) ,t in timesteps(n)],
             lower_bound = 0.0,
             base_name = "vNSD_$(get_id(n))"
         )
 
-        for t in time_interval(n)
+        for t in timesteps(n)
             w = current_subperiod(n,t);
             for s in segments_non_served_demand(n)
                 add_to_expression!(model[:eVariableCost], subperiod_weight(n,w)*price_non_served_demand(n,s), non_served_demand(n,s,t))

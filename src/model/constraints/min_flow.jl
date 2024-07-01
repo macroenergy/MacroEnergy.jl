@@ -12,7 +12,7 @@ function add_model_constraint!(
 
     ct.constraint_ref = @constraint(
             model, 
-            [t in time_interval(e)], 
+            [t in timesteps(e)], 
             flow(e,t) >= min_flow_fraction(e)*capacity(e)
             )
     return nothing
@@ -26,7 +26,7 @@ function add_model_constraint!(
 
     ct.constraint_ref = @constraint(
             model, 
-            [t in time_interval(e)], 
+            [t in timesteps(e)], 
             flow(e,t) >= min_flow_fraction(e)*capacity_size(e)*ucommit(e,t)
             )
     return nothing

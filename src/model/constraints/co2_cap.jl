@@ -12,7 +12,7 @@ function add_model_constraint!(ct::CO2CapConstraint,
 
     subperiod_net_balance = @expression(model,[w in subperiods(n)],0*model[:vREF]);
 
-    for t in time_interval(n)
+    for t in timesteps(n)
         w = current_subperiod(n,t);
         add_to_expression!(subperiod_net_balance[w],subperiod_weight(n,w),net_balance(n,t));
     end

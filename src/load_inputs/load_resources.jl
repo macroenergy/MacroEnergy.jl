@@ -2,7 +2,7 @@ function load_resources(
     filepath::AbstractString,
     nodes::Dict{Symbol,Node},
     commodity,
-    time_interval::StepRange{Int64,Int64},
+    timesteps::StepRange{Int64,Int64},
     subperiods::Vector{StepRange{Int64,Int64}},
 )
 
@@ -22,7 +22,7 @@ function load_resources(
         resources[i] = Resource{commodity}(;
             id = resource_id[i],
             node = nodes[node_id[i]],
-            time_interval = time_interval,
+            timesteps = timesteps,
             subperiods = subperiods,
             row...,
         )
