@@ -4,9 +4,9 @@ struct Hydrostor <: AbstractAsset
 	spillage_tedge::TEdge{Water}
 	charge_tedge_electricity::TEdge{Electricity}
 	charge_tedge_water::TEdge{Water}
-    end
+end
     
-    function make_hydrostor(data::Dict{Symbol,Any}, time_data::Dict{Symbol,TimeData}, nodes::Dict{Symbol,Node})
+function make_hydrostor(data::Dict{Symbol,Any}, time_data::Dict{Symbol,TimeData}, nodes::Dict{Symbol,Node})
 	## conversion process (node)
 	_hydrostor_transform = Transformation(;
 	    id=:Hydrostor,
