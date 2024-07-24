@@ -22,7 +22,7 @@
     "elec": {
         "type": "Electricity",
         "global": {
-            "time_interval": "Electricity",
+            "timesteps": "Electricity",
             "unidirectional": false,
             "can_expand": true,
             "constraints": {

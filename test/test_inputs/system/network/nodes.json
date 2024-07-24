@@ -2,7 +2,7 @@
     "natgas": {
         "type": "NaturalGas",
         "global": {
-            "time_interval": "NaturalGas"  
+            "timesteps": "NaturalGas"  
         },
         "instance": [
             {
@@ -19,7 +19,7 @@
     "elec": {
         "type": "Electricity",
         "global": {
-            "time_interval": "Electricity",
+            "timesteps": "Electricity",
             "constraints": {
                 "demand_balance": true,
                 "max_non_served_demand": true,
@@ -44,7 +44,7 @@
     "emiss": {
         "type": "CO2",
         "global": {
-            "time_interval": "CO2"
+            "timesteps": "CO2"
         },
         "instance": [
             {
@@ -67,7 +67,7 @@
     "h2": {
         "type": "Hydrogen",
         "global": {
-            "time_interval": "Hydrogen"
+            "timesteps": "Hydrogen"
         },
         "instance": [
             {

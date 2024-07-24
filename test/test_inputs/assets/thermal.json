@@ -2,7 +2,7 @@
     "ng": {
         "type": "NaturalGasPower",
         "global": {
-            "time_interval": "Electricity",
+            "timesteps": "Electricity",
             "stoichiometry_balance_names": [
                 "energy",
                 "emissions"
@@ -95,7 +95,7 @@
     "natgas": {
         "type": "NaturalGasPower",
         "global": {
-            "time_interval": "Electricity"
+            "timesteps": "Electricity"
         },
         "instance": [
             {

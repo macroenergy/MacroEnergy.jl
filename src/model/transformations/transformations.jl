@@ -106,12 +106,6 @@ get_id(g::AbstractTransform) = g.id;
 min_duration(g::AbstractTransform) = g.min_duration;
 max_duration(g::AbstractTransform) = g.max_duration;
 
-timesteps(g::AbstractTransform) = g.timedata.timesteps;
-hours(g::AbstractTransform) = g.timedata.hours;
-hours(g::AbstractTransform,t::Int64) = g.timedata.hours[t];
-subperiods(g::AbstractTransform) = g.timedata.subperiods;
-subperiod_weight(g::AbstractTransform,w::StepRange{Int64, Int64}) = g.timedata.subperiod_weights[w];
-current_subperiod(g::AbstractTransform,t::Int64) = subperiods(g)[findfirst(t .∈ subperiods(g))];
 
 all_constraints(g::AbstractTransform) = g.constraints;
 stoichiometry_balance(g::AbstractTransform) = g.operation_expr[:stoichiometry_balance];
@@ -129,13 +123,6 @@ storage_loss_fraction(g::AbstractTransform) = g.storage_loss_fraction;
 
 #### Transformation Edge interface
 commodity_type(e::AbstractTransformationEdge{T}) where {T} = T;
-timesteps(e::AbstractTransformationEdge) = e.timedata.timesteps;
-hours(e::AbstractTransformationEdge) = e.timedata.hours;
-hours(e::AbstractTransformationEdge,t::Int64) = e.timedata.hours[t];
-subperiods(e::AbstractTransformationEdge) = e.timedata.subperiods;
-subperiod_weight(e::AbstractTransformationEdge,w::StepRange{Int64, Int64}) = e.timedata.subperiod_weights[w];
-current_subperiod(e::AbstractTransformationEdge,t::Int64) = subperiods(e)[findfirst(t .∈ subperiods(e))];
-
 
 has_planning_variables(e::AbstractTransformationEdge) = e.has_planning_variables;
 direction(e::AbstractTransformationEdge) = e.direction;

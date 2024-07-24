@@ -32,11 +32,6 @@ end
 
 Node(data::Dict{Symbol,Any}, time_data::Dict{Symbol,TimeData}, commodity::DataType) = make_node(data, time_data, commodity)
 
-timesteps(n::AbstractNode) = n.timedata.timesteps;
-subperiods(n::AbstractNode) = n.timedata.subperiods;
-subperiod_weight(n::AbstractNode,w::StepRange{Int64, Int64}) = n.timedata.subperiod_weights[w];
-current_subperiod(n::AbstractNode,t::Int64) = subperiods(n)[findfirst(t .∈ subperiods(n))];
-
 commodity_type(n::AbstractNode{T}) where {T} = T;
 
 get_id(n::AbstractNode) = n.id;

@@ -734,7 +734,7 @@ function dolphyn_to_macro(dolphyn_inputs_original_units::Dict,settings_path::Str
         #     storage_d[Symbol(commodity_str)] = create_storage_from_dolphyn(
         #     dolphyn_inputs,
         #     nodes,
-        #     time_interval,
+        #     timesteps,
         #     subperiods,
         #     )
         # end

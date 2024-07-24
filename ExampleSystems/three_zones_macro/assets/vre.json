@@ -2,7 +2,7 @@
     "solar_pv": {
         "type": "SolarPV",
         "global": {
-            "time_interval": "Electricity",
+            "timesteps": "Electricity",
             "edges": {
                 "elec": {
                     "type": "Electricity",
@@ -49,7 +49,7 @@
     "onshore_wind": {
         "type": "WindTurbine",
         "global": {
-            "time_interval": "Electricity",
+            "timesteps": "Electricity",
             "edges": {
                 "elec": {
                     "type": "Electricity",

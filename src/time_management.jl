@@ -5,22 +5,14 @@ Base.@kwdef mutable struct TimeData{T} <: AbstractTimeData{T}
     hours::Vector{StepRange{Int64,Int64}} 
 end
 
-function create_time_data(settings::NamedTuple)
 
-    all_timedata = Dict();
-    for c in keys(settings.Commodities)
-        timesteps = 1 : Int.(settings.PeriodLength/settings.Commodities[c][:HoursPerTimeStep]);
-        subperiods = collect(Iterators.partition(timesteps, Int(settings.Commodities[c][:HoursPerSubperiod] / settings.Commodities[c][:HoursPerTimeStep])))
-        all_timedata[c] = Macro.TimeData{c}(;
-        timesteps =  timesteps,
-        subperiods = subperiods,
-        subperiod_weights = Dict(subperiods.=> settings.Commodities[c][:WeightsPerSubperiod]/settings.Commodities[c][:HoursPerSubperiod]),
-        hours =  [((t-1)*settings.Commodities[c][:HoursPerTimeStep] +1 : t*settings.Commodities[c][:HoursPerTimeStep]) for t in timesteps]
-        )
-    end
-    return all_timedata
-end
 
+timesteps(y::Union{AbstractNode,AbstractEdge,AbstractTransform,AbstractTransformationEdge}) = y.timedata.timesteps;
+subperiods(y::Union{AbstractNode,AbstractEdge,AbstractTransform,AbstractTransformationEdge}) = y.timedata.subperiods;
+subperiod_weight(y::Union{AbstractNode,AbstractEdge,AbstractTransform,AbstractTransformationEdge},w::StepRange{Int64, Int64}) = y.timedata.subperiod_weights[w];
+current_subperiod(y::Union{AbstractNode,AbstractEdge,AbstractTransform,AbstractTransformationEdge},t::Int64) = subperiods(y)[findfirst(t .∈ subperiods(y))];
+hours(y::Union{AbstractNode,AbstractEdge,AbstractTransform,AbstractTransformationEdge}) = y.timedata.hours;
+hours(y::Union{AbstractNode,AbstractEdge,AbstractTransform,AbstractTransformationEdge},t::Int64) = y.timedata.hours[t];
 
 
 @doc raw"""

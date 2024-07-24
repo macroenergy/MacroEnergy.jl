@@ -43,11 +43,6 @@ end_node(e::AbstractEdge) = e.end_node;
 start_node_id(e::AbstractEdge) = get_id(e.start_node);
 end_node_id(e::AbstractEdge) = get_id(e.end_node);
 
-timesteps(e::AbstractEdge) = e.timedata.timesteps;
-subperiods(e::AbstractEdge) = e.timedata.subperiods;
-subperiod_weight(e::AbstractEdge,w::StepRange{Int64, Int64}) = e.timedata.subperiod_weights[w];
-current_subperiod(e::AbstractEdge,t::Int64) = subperiods(e)[findfirst(t .∈ subperiods(e))];
-
 commodity_type(e::AbstractEdge{T}) where {T} = T;
 existing_capacity(e::AbstractEdge) = e.existing_capacity;
 max_line_reinforcement(e::AbstractEdge) = e.max_line_reinforcement;
