@@ -155,19 +155,23 @@
             {
                 "id": "storage_MA",
                 "nodes": {
-                    "Electricity": "elec_MA"
+                    "Electricity": "elec_MA",
+                    "Water": "water_MA"
+
                 }
             },
             {
                 "id": "storage_CT",
                 "nodes": {
-                    "Electricity": "elec_CT"
+                    "Electricity": "elec_CT",
+                    "Water": "water_CT"
                 }
             },  
             {
                 "id": "stor_ME",
                 "nodes": {
-                    "Electricity": "elec_ME"
+                    "Electricity": "elec_ME",
+                    "Water": "water_ME"
                 }
             }
         ]
