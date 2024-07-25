@@ -1,0 +1,198 @@
+{
+    "ng": {
+        "type": "BiomassToH2",
+        "global": {
+            "timesteps": "Biomass",
+            "stoichiometry_balance_names": [
+                "h2production",
+                "carbon_removal"
+            ],
+            "constraints": {
+                "stoichiometry_balance": true
+            },
+            "edges": {
+                "biomass": {
+                    "uc": false,
+                    "type": "Biomass",
+                    "direction": "input",
+                    "can_expand": true,
+                    "can_retire": false,
+                    "has_planning_vars": true,
+                    "existing_capacity": 0,
+                    "stoichiometry_coefficients": {
+                            "h2production": 0.59,
+                            "carbon_removal": 0
+                        },
+                    "supply_curve":{
+                        "segments":[312688.84,831516.01,1143755.13,1173018.28,11974586.12,12343965.88,12629917.61,12830399.6,13450889.07,17224120.4,17960536.15,18001261.07,28877015.18,29817240.27,29856976.53,29961590.53,35499127.08,35682656.8,37412794.33,40773024.21,52421917.1,112399814,121737264.3,129847367.8,130210675.5,130243959.1,130383799.8,138944183.5,139911409.3,140047110.4,140325691.7,151055360.5,151245824.7,151834053.3,151911287.6,151997256.9,152081597.7],                    
+                        "prices":[14.09,15.92,16.74,18.76,20.03,20.05,20.54,20.81,20.96,22.32,24.16,24.19,25.24,25.33,25.46,25.48,25.92,26.05,26.16,26.43,26.81,27,28,29.56,29.69,38.85,42.97,43.84,50.01,54.95,69.39,70.72,72.98,74.96,75.06,78.01,88.85]
+                    },
+                    "constraints": {
+                        "capacity": true
+                    }
+                },
+                "captured_co2": {
+                    "direction": "input",
+                    "type": "CO2",
+                    "has_planning_vars": false,
+                    "stoichiometry_coefficients": {
+                        "h2production": 0,
+                        "carbon_removal": 1
+                    }
+                },
+                "h2": {
+                    "direction": "output",
+                    "type": "Hydrogen",
+                    "has_planning_vars": false,
+                    "stoichiometry_coefficients": {
+                        "h2production": 1,
+                        "carbon_removal": 0.54366101694
+                    }
+                }
+            }
+        },
+        "instance": [
+            {
+                "id": "BiomassToH2_Size1_MA",
+                "nodes": {
+                    "Biomass": "biomass_NE",
+                    "Hydrogen": "h2_MA",
+                    "CO2": "co2_MA"
+                },
+                "edges": {
+                    "biomass": {
+                        "capacity_size":100,                    "investment_cost": 312708.04,
+                        "fixed_om_cost": 147503.79,
+                        "variable_om_cost": 5.60
+                    }
+                }
+            },
+            {
+                "id": "BiomassToH2_Size1_ME",
+                "nodes": {
+                    "Biomass": "biomass_NE",
+                    "Hydrogen": "h2_ME",
+                    "CO2": "co2_ME"
+                },
+                "edges": {
+                    "biomass": {
+                        "capacity_size":100,                    "investment_cost": 312708.04,
+                        "fixed_om_cost": 147503.79,
+                        "variable_om_cost": 5.60
+                    }
+                }
+            },
+            {
+                "id": "BiomassToH2_Size1_CT",
+                "nodes": {
+                    "Biomass": "biomass_NE",
+                    "Hydrogen": "h2_CT",
+                    "CO2": "co2_CT"
+                },
+                "edges": {
+                    "biomass": {
+                        "capacity_size":100,                    "investment_cost": 312708.04,
+                        "fixed_om_cost": 147503.79,
+                        "variable_om_cost": 5.60
+                    }
+                }
+            },
+            {
+                "id": "BiomassToH2_Size2_MA",
+                "nodes": {
+                    "Biomass": "biomass_NE",
+                    "Hydrogen": "h2_MA",
+                    "CO2": "co2_MA"
+                },
+                "edges": {
+                    "biomass": {
+                        "capacity_size": 400,
+                        "investment_cost": 182110.78,
+                        "fixed_om_cost": 85901.31,
+                        "variable_om_cost": 5.60
+                    }
+                }
+            },
+            {
+                "id": "BiomassToH2_Size2_ME",
+                "nodes": {
+                    "Biomass": "biomass_NE",
+                    "Hydrogen": "h2_ME",
+                    "CO2": "co2_ME"
+                },
+                "edges": {
+                    "biomass": {
+                        "capacity_size": 400,                 
+                        "investment_cost": 182110.78,
+                        "fixed_om_cost": 85901.31,
+                        "variable_om_cost": 5.60
+                    }
+                }
+            },
+            {
+                "id": "BiomassToH2_Size2_CT",
+                "nodes": {
+                    "Biomass": "biomass_NE",
+                    "Hydrogen": "h2_CT",
+                    "CO2": "co2_CT"
+                },
+                "edges": {
+                    "biomass": {
+                        "capacity_size": 400,                 
+                        "investment_cost": 182110.78,
+                        "fixed_om_cost": 85901.31,
+                        "variable_om_cost": 5.60
+                    }
+                }
+            },
+            {
+                "id": "BiomassToH2_Size3_MA",
+                "nodes": {
+                    "Biomass": "biomass_NE",
+                    "Hydrogen": "h2_MA",
+                    "CO2": "co2_MA"
+                },
+                "edges": {
+                    "biomass": {
+                        "capacity_size": 700,                 
+                        "investment_cost": 146403.28,
+                        "fixed_om_cost": 69058.151,
+                        "variable_om_cost": 5.60
+                    }
+                }
+            },
+            {
+                "id": "BiomassToH2_Size3_ME",
+                "nodes": {
+                    "Biomass": "biomass_NE",
+                    "Hydrogen": "h2_ME",
+                    "CO2": "co2_ME"
+                },
+                "edges": {
+                    "biomass": {
+                        "capacity_size": 700,                 
+                        "investment_cost": 146403.28,
+                        "fixed_om_cost": 69058.151,
+                        "variable_om_cost": 5.60
+                    }
+                }
+            },
+            {
+                "id": "BiomassToH2_Size3_CT",
+                "nodes": {
+                    "Biomass": "biomass_NE",
+                    "Hydrogen": "h2_CT",
+                    "CO2": "co2_CT"
+                },
+                "edges": {
+                    "biomass": {
+                        "capacity_size": 700,                 
+                        "investment_cost": 146403.28,
+                        "fixed_om_cost": 69058.151,
+                        "variable_om_cost": 5.60
+                    }
+                }
+            }
+        ]
+    }
+}

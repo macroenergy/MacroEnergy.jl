@@ -20,13 +20,13 @@ function make_natgash2(data::Dict{Symbol,Any}, time_data::Dict{Symbol,TimeData},
     # step 3: get the correct node
     # step 4: make the edge
 
-    ## electricity edge
+    ## hydrogen edge
     _h2_tedge_data = get_tedge_data(data, :Hydrogen)
     isnothing(_h2_tedge_data) && error("No hydrogen edge data found for NaturalGasH2")
     _h2_tedge_data[:id] = :H2
-    _e_node_id = Symbol(data[:nodes][:Hydrogen])
-    _e_node = nodes[_e_node_id]
-    _h2_tedge = make_tedge(_h2_tedge_data, time_data, _smr_transform, _e_node)
+    _h2_node_id = Symbol(data[:nodes][:Hydrogen])
+    _h2_node = nodes[_h2_node_id]
+    _h2_tedge = make_tedge(_h2_tedge_data, time_data, _smr_transform, _h2_node)
 
     ## natural gas edge
     _ng_tedge_data = get_tedge_data(data, :NaturalGas)

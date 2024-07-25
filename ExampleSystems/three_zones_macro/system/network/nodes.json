@@ -16,9 +16,7 @@
         "global": {
             "timesteps": "Hydrogen",
             "constraints": {
-                "demand_balance": true,
-                "max_non_served_demand": true,
-                "max_non_served_demand_per_segment": true
+                "demand_balance": true
             }
         },
         "instance": [
@@ -89,5 +87,16 @@
                     {"CO2CapConstraint": 0}
             }
         ]
+    },
+    "biomass":{
+        "type": "Biomass",
+        "global": {
+            "timesteps": "Biomass"
+        },
+        "instance": [
+            {
+                "id": "biomass_NE",
+                "demand_header": "biomass_NE"
+            }]
     }
 }

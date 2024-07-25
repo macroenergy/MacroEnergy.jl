@@ -4,12 +4,14 @@
         "Electricity": 1,
         "NaturalGas": 1,
         "CO2": 1,
-        "Hydrogen": 1
+        "Hydrogen": 1,
+        "Biomass": 8760
     },
     "HoursPerSubperiod": {
         "Electricity": 8760,
         "NaturalGas": 8760,
         "CO2": 8760,
-        "Hydrogen": 8760
+        "Hydrogen": 8760,
+        "Biomass": 8760
     }
 }

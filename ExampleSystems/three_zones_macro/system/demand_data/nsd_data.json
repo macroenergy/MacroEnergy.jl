@@ -27,15 +27,5 @@
                 "max_demand_curtailment": 0.003
             }
         ]
-    },
-    "Hydrogen": {
-        "voll": 50000,
-        "nsd_data": [
-            {
-                "demand_segment": 1,
-                "cost_of_demand_curtailment_per_mw": 1,
-                "max_demand_curtailment": 1
-            }
-        ]
     }
 }

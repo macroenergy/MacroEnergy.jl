@@ -250,3 +250,13 @@ function make_asset(::Type{H2Storage}, data::Dict{Symbol,Any}, time_data::Dict{S
     h2storage = make_h2storage(data, time_data, nodes)
     return h2storage
 end
+
+function make_asset(::Type{BiomassToH2}, data::Dict{Symbol,Any}, time_data::Dict{Symbol,TimeData}, nodes::Dict{Symbol,Node})
+    #=============================================
+    This function makes a BiomassToH2 from the data Dict.
+    It is a helper function for load_assets!.
+    =============================================#
+    # Make the BiomassToH2
+    biomassH2 = make_biomassH2(data, time_data, nodes)
+    return biomassH2
+end

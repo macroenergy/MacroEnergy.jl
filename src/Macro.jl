@@ -30,7 +30,6 @@ abstract type AbstractTransformationEdgeWithUC{T} <: AbstractTransformationEdge{
 ## Transformation types
 abstract type AbstractTransform end
 abstract type TransformationType end  # Note: this is only used to improved readability
-abstract type GasificationH2Transform<: TransformationType end
 abstract type NaturalGasPowerTransform <: TransformationType  end
 abstract type NaturalGasPowerCCSTransform <: NaturalGasPowerTransform  end
 abstract type NaturalGasH2Transform <: TransformationType  end
@@ -109,7 +108,7 @@ export Electricity,
     CO2,
     CO2Captured,
     Biomass,
-    GasificationH2,
+    BiomassToH2,
     NaturalGasPower,
     Electrolyzer,
     FuelCell,
