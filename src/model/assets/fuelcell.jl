@@ -1,0 +1,37 @@
+struct FuelCell <: AbstractAsset
+    fuelcell_transform::Transformation
+    h2_tedge::TEdge{Hydrogen}
+    elec_tedge::TEdge{Electricity}
+end
+
+function make_fuelcell(data::Dict{Symbol,Any}, time_data::Dict{Symbol,TimeData}, nodes::Dict{Symbol,Node})
+    ## conversion process (node)
+    _fuelcell_transform = Transformation(;
+        id=:fuelcell,
+        timedata=time_data[:Hydrogen],
+        stoichiometry_balance_names=get(data, :stoichiometry_balance_names, [:energy])
+    )
+    add_constraints!(_fuelcell_transform, data)
+
+    ## hydrogen edge
+    _h2_tedge_data = get_tedge_data(data, :Hydrogen)
+    isnothing(_h2_tedge_data) && error("No hydrogen edge data found for fuelcell")
+    _h2_tedge_data[:id] = :H2
+    _h2_node_id = Symbol(data[:nodes][:Hydrogen])
+    _h2_node = nodes[_h2_node_id]
+    _h2_tedge = make_tedge(_h2_tedge_data, time_data, _fuelcell_transform, _h2_node)
+
+    ## electricity edge
+    _elec_tedge_data = get_tedge_data(data, :Electricity)
+    isnothing(_elec_tedge_data) && error("No electricity edge data found for fuelcell")
+    _elec_tedge_data[:id] = :E
+    _elec_node_id = Symbol(data[:nodes][:Electricity])
+    _elec_node = nodes[_elec_node_id]
+    _elec_tedge = make_tedge(_elec_tedge_data, time_data, _fuelcell_transform, _elec_node)
+
+    ## add reference to tedges in transformation
+    _TEdges = Dict(:H2=>_h2_tedge, :E=>_elec_tedge)
+    _fuelcell_transform.TEdges = _TEdges
+    
+    return FuelCell(_fuelcell_transform, _h2_tedge, _elec_tedge)
+end

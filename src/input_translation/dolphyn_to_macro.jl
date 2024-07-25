@@ -424,7 +424,7 @@ function create_transformations_from_dolphyn(
 end
 
 function create_transformations_from_dolphyn(
-    transform_type::Type{NaturalGasHydrogen},
+    transform_type::Type{NaturalGasH2Transform},
     dolphyn_inputs::Dict, 
     node_d::Dict, 
     timesteps_commodity_map::Dict,
@@ -432,7 +432,7 @@ function create_transformations_from_dolphyn(
 
     dfH2Gen = dolphyn_inputs["dfH2Gen"]
 
-    transformations = Vector{Transformation{NaturalGasHydrogen}}()  
+    transformations = Vector{Transformation{NaturalGasH2Transform}}()  
 
     for i in 1:size(dfH2Gen,1)
 
@@ -443,7 +443,7 @@ function create_transformations_from_dolphyn(
                 capture_rate = 0.9;
             end
 
-            smr = Transformation{NaturalGasHydrogen}(;
+            smr = Transformation{NaturalGasH2Transform}(;
                 id = Symbol(dfH2Gen.H2_Resource[i]),
                 timesteps = timesteps_commodity_map[Hydrogen],
                 stoichiometry_balance_names = [:energy,:emissions],
@@ -513,7 +513,7 @@ end
 
 
 function create_transformations_from_dolphyn(
-    transform_type::Type{Electrolyzer},
+    transform_type::Type{ElectrolyzerTransform},
     dolphyn_inputs::Dict, 
     node_d::Dict, 
     timesteps_commodity_map::Dict,
@@ -521,23 +521,23 @@ function create_transformations_from_dolphyn(
 
     dfH2Gen = dolphyn_inputs["dfH2Gen"]
 
-    transformations = Vector{Transformation{Electrolyzer}}()  
+    transformations = Vector{Transformation{ElectrolyzerTransform}}()  
 
     for i in 1:size(dfH2Gen,1)
 
-        if occursin("Electrolyzer",dfH2Gen.H2_Resource[i])
+        if occursin("ElectrolyzerTransform",dfH2Gen.H2_Resource[i])
 
-            electrolyzer = Transformation{Electrolyzer}(;
+            ElectrolyzerTransform = Transformation{ElectrolyzerTransform}(;
                 id = Symbol(dfH2Gen.H2_Resource[i]),
                 timesteps = timesteps_commodity_map[Electricity],
                 stoichiometry_balance_names = [:energy],
                 constraints = [StoichiometryBalanceConstraint()]
                 )
             
-            electrolyzer.TEdges[:H2] = TEdge{Hydrogen}(;
+            ElectrolyzerTransform.TEdges[:H2] = TEdge{Hydrogen}(;
             id = :H2,
             node = node_d[:Hydrogen][dfH2Gen.Zone[i]],
-            transformation = electrolyzer,
+            transformation = ElectrolyzerTransform,
             direction = :output,
             has_planning_variables = true,
             can_expand = dfH2Gen.New_Build[i]==1,
@@ -563,10 +563,10 @@ function create_transformations_from_dolphyn(
             constraints = [CapacityConstraint()]
             )
 
-            electrolyzer.TEdges[:E] =TEdge{Electricity}(;
+            ElectrolyzerTransform.TEdges[:E] =TEdge{Electricity}(;
             id = :E,
             node = node_d[:Electricity][dfH2Gen.Zone[i]],
-            transformation = electrolyzer,
+            transformation = ElectrolyzerTransform,
             direction = :input,
             has_planning_variables = false,
             timesteps = timesteps_commodity_map[Electricity],
@@ -574,7 +574,7 @@ function create_transformations_from_dolphyn(
             st_coeff = Dict(:energy=>1.0)
             )
             
-            push!(transformations,electrolyzer)
+            push!(transformations,ElectrolyzerTransform)
 
         end
 
@@ -585,7 +585,7 @@ function create_transformations_from_dolphyn(
 end
 
 function create_transformations_from_dolphyn(
-    transform_type::Type{FuelCell},
+    transform_type::Type{FuelCellTransform},
     dolphyn_inputs::Dict, 
     node_d::Dict, 
     timesteps_commodity_map::Dict,
@@ -593,23 +593,23 @@ function create_transformations_from_dolphyn(
 
     dfH2G2P = dolphyn_inputs["dfH2G2P"]
 
-    transformations = Vector{Transformation{FuelCell}}()  
+    transformations = Vector{Transformation{FuelCellTransform}}()  
 
     for i in 1:size(dfH2G2P,1)
 
         if occursin("G2P",dfH2G2P.H2_Resource[i])
 
-            fuelcell = Transformation{FuelCell}(;
+            FuelCellTransform = Transformation{FuelCellTransform}(;
                 id = Symbol(dfH2G2P.H2_Resource[i]),
                 timesteps = timesteps_commodity_map[Electricity],
                 stoichiometry_balance_names = [:energy],
                 constraints = [StoichiometryBalanceConstraint()]
                 )
             
-            fuelcell.TEdges[Symbol(dfH2G2P.H2_Resource[i]*"_E")] = TEdge{Electricity}(;
+            FuelCellTransform.TEdges[Symbol(dfH2G2P.H2_Resource[i]*"_E")] = TEdge{Electricity}(;
             id = Symbol(dfH2G2P.H2_Resource[i]*"_E"),
             node = node_d[:Electricity][dfH2G2P.Zone[i]],
-            transformation = fuelcell,
+            transformation = FuelCellTransform,
             direction = :output,
             has_planning_variables = true,
             can_expand = dfH2G2P.New_Build[i]==1,
@@ -635,10 +635,10 @@ function create_transformations_from_dolphyn(
             constraints = [CapacityConstraint()]
             )
 
-            fuelcell.TEdges[Symbol(dfH2G2P.H2_Resource[i]*"_H2")] = TEdge{Hydrogen}(;
+            FuelCellTransform.TEdges[Symbol(dfH2G2P.H2_Resource[i]*"_H2")] = TEdge{Hydrogen}(;
             id = Symbol(dfH2G2P.H2_Resource[i]*"_H2"),
             node = node_d[:Hydrogen][dfH2G2P.Zone[i]],
-            transformation = fuelcell,
+            transformation = FuelCellTransform,
             direction = :input,
             has_planning_variables = false,
             timesteps = timesteps_commodity_map[Hydrogen],
@@ -646,7 +646,7 @@ function create_transformations_from_dolphyn(
             st_coeff = Dict(:energy=>dfH2G2P.etaG2P_MWh_p_tonne[i])
             )
             
-            push!(transformations,fuelcell)
+            push!(transformations,FuelCellTransform)
 
         end
 
@@ -742,9 +742,9 @@ function dolphyn_to_macro(dolphyn_inputs_original_units::Dict,settings_path::Str
     end
 
     dolphyn_transformation_types = [NaturalGasPower, 
-                                    NaturalGasHydrogen, 
-                                    Electrolyzer, 
-                                    FuelCell]
+                                    NaturalGasH2Transform, 
+                                    ElectrolyzerTransform, 
+                                    FuelCellTransform]
 
     for tt in dolphyn_transformation_types
 

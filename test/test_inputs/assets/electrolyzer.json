@@ -1,6 +1,6 @@
 {
     "stor": {
-        "type": "Electrolyzer",
+        "type": "ElectrolyzerTransform",
         "global": {
             "timesteps": "Electricity",
             "stoichiometry_balance_names": [
@@ -39,21 +39,21 @@
         },
         "instance": [
             {
-                "id": "electrolyzer_MA",
+                "id": "ElectrolyzerTransform_MA",
                 "nodes": {
                     "Electricity": "elec_MA",
                     "Hydrogen": "h2_MA"
                 }
             },
             {
-                "id": "electrolyzer_CT",
+                "id": "ElectrolyzerTransform_CT",
                 "nodes": {
                     "Electricity": "elec_CT",
                     "Hydrogen": "h2_CT"
                 }
             },
             {
-                "id": "electrolyzer_ME",
+                "id": "ElectrolyzerTransform_ME",
                 "nodes": {
                     "Electricity": "elec_ME",
                     "Hydrogen": "h2_ME"

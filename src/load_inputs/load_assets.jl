@@ -177,6 +177,16 @@ function make_asset(::Type{NaturalGasPower}, data::Dict{Symbol,Any}, time_data::
     return natgaspower
 end
 
+function make_asset(::Type{NaturalGasH2}, data::Dict{Symbol,Any}, time_data::Dict{Symbol,TimeData}, nodes::Dict{Symbol,Node})
+    #=============================================
+    This function makes a NaturalGasH2 from the data Dict.
+    It is a helper function for load_assets!.
+    =============================================#
+    # Make the NaturalGasPower
+    natgash2 = make_natgash2(data, time_data, nodes)
+    return natgash2
+end
+
 function make_asset(::Type{SolarPV}, data::Dict{Symbol,Any}, time_data::Dict{Symbol,TimeData}, nodes::Dict{Symbol,Node})
     #=============================================
     This function makes a SolarPV from the data Dict.
@@ -219,4 +229,24 @@ function make_asset(::Type{Electrolyzer}, data::Dict{Symbol,Any}, time_data::Dic
     # Make the Electrolyzer
     electrolyzer = make_electrolyzer(data, time_data, nodes)
     return electrolyzer
+end
+
+function make_asset(::Type{FuelCell}, data::Dict{Symbol,Any}, time_data::Dict{Symbol,TimeData}, nodes::Dict{Symbol,Node})
+    #=============================================
+    This function makes a Fuel Cell from the data Dict.
+    It is a helper function for load_assets!.
+    =============================================#
+    # Make the Fuel Cell
+    fuelcell = make_fuelcell(data, time_data, nodes)
+    return fuelcell
+end
+
+function make_asset(::Type{H2Storage}, data::Dict{Symbol,Any}, time_data::Dict{Symbol,TimeData}, nodes::Dict{Symbol,Node})
+    #=============================================
+    This function makes a H2Storage from the data Dict.
+    It is a helper function for load_assets!.
+    =============================================#
+    # Make the H2Storage
+    h2storage = make_h2storage(data, time_data, nodes)
+    return h2storage
 end

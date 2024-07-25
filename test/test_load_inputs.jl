@@ -174,7 +174,7 @@ function test_load_inputs()
     @test length(system) == 28
     @test typeof(system[1]) == Node{Electricity}
     @test typeof(system[length(nodes)+1]) == Edge{NaturalGas}
-    @test typeof(system[length(nodes)+length(edges)+1]) == Electrolyzer
+    @test typeof(system[length(nodes)+length(edges)+1]) == ElectrolyzerTransform
 end
 
 test_load_inputs()

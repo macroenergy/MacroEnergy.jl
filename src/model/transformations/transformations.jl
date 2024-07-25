@@ -258,7 +258,7 @@ function add_operation_variables!(g::AbstractTransform,model::Model)
         @constraint(
             model,
             [t in timesteps(g)], 
-            st_coeff(e_discharge)[:storage]*flow(e_discharge,t) <= storage_level(g,timestepbefore(t,1,subperiods(g))))å
+            st_coeff(e_discharge)[:storage]*flow(e_discharge,t) <= storage_level(g,timestepbefore(t,1,subperiods(g))))
     end
 
 end
@@ -329,16 +329,11 @@ function add_operation_variables!(e::AbstractTransformationEdge, model::Model)
 
     add_to_expression!.(net_balance(e_node),directional_flow)
 
-    for t in timesteps(e.transformation)
-        H = findall(intersect(h,hours(e.transformation,t))==h for h in hours(e));
-        for i in stoichiometry_balance_names(e)
-            for h in H
-                add_to_expression!(stoichiometry_balance(e,i,t), e_st_coeff[i], directional_flow[h])
-            end
-        end
-    end
-
     for t in timesteps(e)
+        transform_time = ceil(Int,(hours_per_timestep(e) * t)/hours_per_timestep(e.transformation));
+        for i in stoichiometry_balance_names(e)
+            add_to_expression!(stoichiometry_balance(e,i,transform_time), e_st_coeff[i], directional_flow[t])
+        end
 
         w = current_subperiod(e,t);
 
@@ -349,30 +344,28 @@ function add_operation_variables!(e::AbstractTransformationEdge, model::Model)
         if !isempty(price(e))
             add_to_expression!(model[:eVariableCost], subperiod_weight(e,w)*price(e,t), flow(e,t))
         end
+    end
 
-        if !isempty(supply_curve(e))
+    if !isempty(supply_curve(e))
 
-            e.operation_vars[:flow_segments] = @variable(
-                model,
-                [s in eachindex(supply_segments(e)) ,t in timesteps(e)],
-                lower_bound = 0.0,
-                upper_bound = supply_segments(e,s),
-                base_name = "vFLOW_SGM_$(get_id(e))"
+        e.operation_vars[:flow_segments] = @variable(
+            model,
+            [s in eachindex(supply_segments(e)) ,t in timesteps(e)],
+            lower_bound = 0.0,
+            upper_bound = supply_segments(e,s),
+            base_name = "vFLOW_SGM_$(get_id(e))"
+        )
+        @constraint(
+            model,
+            [t in timesteps(e)],
+            flow(e,t) == sum(flow_segments(e,s,t) for s in eachindex(supply_segments(e)))
             )
-            @constraint(
-                model,
-                [t in timesteps(e)],
-                flow(e,t) == sum(flow_segments(e,s,t) for s in eachindex(supply_segments(e)))
-                )
-            for t in timesteps(e)
-                w = current_subperiod(e,t);
-                for s in eachindex(supply_segments(e))
-                    add_to_expression!(model[:eVariableCost], subperiod_weight(e,w)*price_segments(e,s), flow_segments(e,s,t))
-                end
+        for t in timesteps(e)
+            w = current_subperiod(e,t);
+            for s in eachindex(supply_segments(e))
+                add_to_expression!(model[:eVariableCost], subperiod_weight(e,w)*price_segments(e,s), flow_segments(e,s,t))
             end
-
         end
-
 
     end
 

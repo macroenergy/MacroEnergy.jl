@@ -1,5 +1,5 @@
 {
-    "stor": {
+    "elec_stor": {
         "type": "Battery",
         "global": {
             "timesteps": "Electricity",
@@ -51,20 +51,112 @@
         },
         "instance": [
             {
-                "id": "storage_MA",
+                "id": "elec_storage_MA",
                 "nodes": {
                     "Electricity": "elec_MA"
                 }
             },
             {
-                "id": "storage_CT",
+                "id": "elec_storage_CT",
                 "nodes": {
                     "Electricity": "elec_CT"
                 }
             },  
             {
-                "id": "storage_ME",
+                "id": "elec_storage_ME",
                 "nodes": {
+                    "Electricity": "elec_ME"
+                }
+            }
+        ]
+    },
+    "h2_stor": {
+        "type": "H2Storage",
+        "global": {
+            "timesteps": "Hydrogen",
+            "can_expand": true,
+            "can_retire": false,
+            "existing_capacity_storage": 0,
+            "investment_cost_storage": 1050.105011,
+            "fixed_om_cost_storage": 105.0105011,
+            "storage_loss_fraction": 0.0,
+            "min_duration": 0,
+            "max_duration": 0,
+            "stoichiometry_balance_names": [
+                "storage",
+                "energy"
+            ],
+            "constraints": {
+                "storage_capacity": true,
+                "stoichiometry_balance": true
+            },
+            "edges": {
+                "discharge": {
+                    "type": "Hydrogen",
+                    "direction": "output",
+                    "can_expand": true,
+                    "can_retire": false,
+                    "existing_capacity": 0,
+                    "investment_cost": 0,
+                    "fixed_om_cost": 210.0210021,
+                    "variable_om_cost": 0,
+                    "has_planning_vars": true,
+                    "stoichiometry_coefficients": {
+                        "storage": 1,
+                        "energy": 0
+                    },
+                    "constraints": {
+                        "capacity": true
+                    }
+                },
+                "charge": {
+                    "type": "Hydrogen",
+                    "direction": "input",
+                    "can_expand": true,
+                    "can_retire": false,
+                    "existing_capacity": 0,
+                    "investment_cost": 1500.150015,
+                    "fixed_om_cost": 150.0150015,
+                    "variable_om_cost": 0,
+                    "has_planning_vars": true,
+                    "stoichiometry_coefficients": {
+                        "storage": 1,
+                        "energy": -2
+                    },
+                    "constraints": {
+                        "capacity": true
+                    }
+                },
+                "elec": {
+                    "type": "Electricity",
+                    "direction": "input",
+                    "has_planning_vars": false,
+                    "stoichiometry_coefficients": {
+                        "storage": 0,
+                        "energy": 1
+                    }
+                }
+            }
+        },
+        "instance": [
+            {
+                "id": "h2_storage_MA",
+                "nodes": {
+                    "Hydrogen": "h2_MA",
+                    "Electricity": "elec_MA"
+                }
+            },
+            {
+                "id": "h2_storage_CT",
+                "nodes": {
+                    "Hydrogen": "h2_CT",
+                    "Electricity": "elec_CT"
+                }
+            },  
+            {
+                "id": "h2_storage_ME",
+                "nodes": {
+                    "Hydrogen": "h2_ME",
                     "Electricity": "elec_ME"
                 }
             }
