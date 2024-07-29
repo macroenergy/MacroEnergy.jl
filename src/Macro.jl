@@ -122,9 +122,7 @@ export Electricity,
     VRE,
     SolarPVTransform,
     Storage,
-<<<<<<< HEAD
     HydroStor,
-=======
     TransformationType,
     #Resource,
     #Sink,
@@ -132,7 +130,6 @@ export Electricity,
     #SymmetricStorage,
     #AsymmetricStorage,
     #InputFilesNames,
->>>>>>> origin/feature/dev-assets
     Node,
     Edge,
     Transformation,

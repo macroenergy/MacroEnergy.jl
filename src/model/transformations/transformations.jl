@@ -121,7 +121,7 @@ fixed_om_cost_storage(g::AbstractTransform) = g.fixed_om_cost_storage;
 storage_level(g::AbstractTransform) = g.operation_vars[:storage_level];
 storage_level(g::AbstractTransform,t::Int64) = storage_level(g)[t];
 storage_loss_fraction(g::AbstractTransform) = g.storage_loss_fraction;
-
+#=
 existing_capacity_hydro(g::AbstractTransformation) = g.existing_capacity_hydro;
 new_capacity_hydro(g::AbstractTransformation) = g.planning_vars[:new_capacity_hydro];
 ret_capacity_hydro(g::AbstractTransformation) = g.planning_vars[:ret_capacity_hydro];
@@ -131,7 +131,7 @@ fixed_om_cost_hydro(g::AbstractTransformation) = g.fixed_om_cost_hydro;
 hydro_level(g::AbstractTransformation) = g.operation_vars[:hydro_level];
 hydro_level(g::AbstractTransformation,t::Int64) = hydro_level(g)[t];
 hydro_loss_fraction(g::AbstractTransformation) = g.hydro_loss_fraction;
-
+=#
 #### Transformation Edge interface
 commodity_type(e::AbstractTransformationEdge{T}) where {T} = T;
 time_interval(e::AbstractTransformationEdge) = e.timedata.time_interval;
