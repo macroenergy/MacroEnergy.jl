@@ -63,7 +63,7 @@
                 }
             },  
             {
-                "id": "stor_ME",
+                "id": "storage_ME",
                 "nodes": {
                     "Electricity": "elec_ME"
                 }

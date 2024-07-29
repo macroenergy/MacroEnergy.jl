@@ -189,6 +189,18 @@ function make_asset(::Type{SolarPV}, data::Dict{Symbol,Any}, time_data::Dict{Sym
     return solar_pv
 end
 
+function make_asset(::Type{WindTurbine}, data::Dict{Symbol,Any}, time_data::Dict{Symbol,TimeData}, nodes::Dict{Symbol,Node})
+    #=============================================
+    This function makes a WindTurbine from the data Dict.
+    It is a helper function for load_assets!.
+    =============================================#
+    # Make the WindTurbine
+    node_out_id = Symbol(data[:nodes][:Electricity])
+    node_out = nodes[node_out_id]
+    wind_turbine = make_windturbine(data, time_data, node_out)
+    return wind_turbine
+end
+
 function make_asset(::Type{Battery}, data::Dict{Symbol,Any}, time_data::Dict{Symbol,TimeData}, nodes::Dict{Symbol,Node})
     #=============================================
     This function makes a Battery from the data Dict.

@@ -66,7 +66,7 @@
                 "edges": {
                     "elec": {
                         "stoichiometry_coefficients": {
-                            "energy": 2.1775,
+                            "energy": 2.1775180500999998,
                             "emissions": 0
                         },
                         "fixed_om_cost": 10287,
