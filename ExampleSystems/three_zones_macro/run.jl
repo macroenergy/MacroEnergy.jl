@@ -1,3 +1,5 @@
+using Pkg
+Pkg.activate(dirname(dirname(@__DIR__)))
 using Macro
 using Gurobi
 
