@@ -39,21 +39,21 @@
         },
         "instance": [
             {
-                "id": "ElectrolyzerTransform_MA",
+                "id": "electrolyzer_MA",
                 "nodes": {
                     "Electricity": "elec_MA",
                     "Hydrogen": "h2_MA"
                 }
             },
             {
-                "id": "ElectrolyzerTransform_CT",
+                "id": "electrolyzer_CT",
                 "nodes": {
                     "Electricity": "elec_CT",
                     "Hydrogen": "h2_CT"
                 }
             },
             {
-                "id": "ElectrolyzerTransform_ME",
+                "id": "electrolyzer_ME",
                 "nodes": {
                     "Electricity": "elec_ME",
                     "Hydrogen": "h2_ME"

@@ -13,7 +13,7 @@
 #####
 
   #   - TimestepsPerRepPeriod 
-  #   Typically 168 time_interval (e.g., hours) per period, this designates 
+  #   Typically 168 timesteps (e.g., hours) per period, this designates 
   #   the length of each representative period.
 TimestepsPerRepPeriod: 168
 
