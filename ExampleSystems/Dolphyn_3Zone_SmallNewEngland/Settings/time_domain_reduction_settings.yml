@@ -77,7 +77,7 @@ WeightTotal: 8760
   #   time series in Fuels_data.csv in the clustering process. If 0, this function will still write
   #   Fuels_data_clustered.csv with reshaped fuel prices based on the number and size of the
   #   representative weeks, assuming a constant time series of fuel prices with length equal to the
-  #   number of time_interval in the raw input data.
+  #   number of timesteps in the raw input data.
 ClusterFuelPrices: 1
 
   #   - UseExtremePeriods 
