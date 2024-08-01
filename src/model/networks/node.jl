@@ -65,17 +65,17 @@ rhs_policy(n::AbstractNode,c::DataType) = rhs_policy(n)[c];
 function add_operation_variables!(n::AbstractNode, model::Model)
 
     n.operation_expr[:net_balance] =
-        @expression(model, [t in timesteps(n)], 0 * model[:vREF])
+        @expression(model, [t in time_interval(n)], 0 * model[:vREF])
 
     if !all(max_non_served_demand(n).==0)
         n.operation_vars[:non_served_demand] = @variable(
             model,
-            [s in segments_non_served_demand(n) ,t in timesteps(n)],
+            [s in segments_non_served_demand(n) ,t in time_interval(n)],
             lower_bound = 0.0,
             base_name = "vNSD_$(get_id(n))"
         )
 
-        for t in timesteps(n)
+        for t in time_interval(n)
             w = current_subperiod(n,t);
             for s in segments_non_served_demand(n)
                 add_to_expression!(model[:eVariableCost], subperiod_weight(n,w)*price_non_served_demand(n,s), non_served_demand(n,s,t))

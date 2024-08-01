@@ -11,7 +11,7 @@ function add_model_constraint!(
 )
 
     ct.constraint_ref =
-        @constraint(model, [i in stoichiometry_balance_names(g), t in timesteps(g)], stoichiometry_balance(g,i,t) == 0.0)
+        @constraint(model, [i in stoichiometry_balance_names(g), t in time_interval(g)], stoichiometry_balance(g,i,t) == 0.0)
 
     return nothing
 end

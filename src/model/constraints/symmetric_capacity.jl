@@ -15,7 +15,7 @@ function add_model_constraint!(
         e_charge = g.TEdges[g.charge_edge]
         ct.constraint_ref = @constraint(
             model,
-            [t in timesteps(g)],
+            [t in time_interval(g)],
             flow(e_discharge,t) + flow(e_charge,t) <= capacity(e_discharge)
         )
     else

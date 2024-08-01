@@ -14,7 +14,7 @@ function add_model_constraint!(
     if has_storage(g)
         ct.constraint_ref = @constraint(
             model,
-            [t in timesteps(g)],
+            [t in time_interval(g)],
             storage_level(g,t) <= capacity_storage(g)
         )
     else

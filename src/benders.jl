@@ -10,7 +10,7 @@ end
 
 function restrict_to_subperiod!(y::Union{AbstractNode,AbstractTransform,AbstractTransformationEdge,AbstractEdge},w::StepRange{Int64,Int64})
 
-    y.timedata.timesteps = w;
+    y.timedata.time_interval = w;
     y.timedata.subperiod_weights = Dict(w => y.timedata.subperiod_weights[w]);
     y.timedata.subperiods = [w];
 

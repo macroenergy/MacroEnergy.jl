@@ -7,13 +7,13 @@ function prepare_inputs!(setup::Dict)
     hours_per_timestep =
         Dict(c => setup[c]["hours_per_timestep"] for c in setup["commodities"])
 
-    timesteps_map =
+    time_interval_map =
         Dict(c => 1:hours_per_timestep[c]:PeriodLength for c in setup["commodities"])
 
     subperiod_map = Dict(
         c => collect(
             Iterators.partition(
-                timesteps_map[c],
+                time_interval_map[c],
                 Int(hours_per_subperiod / hours_per_timestep[c]),
             ),
         ) for c in setup["commodities"]
@@ -21,7 +21,7 @@ function prepare_inputs!(setup::Dict)
 
     setup["subperiod_map"] = subperiod_map
 
-    setup["timesteps_map"] = timesteps_map
+    setup["time_interval_map"] = time_interval_map
 
     return loadresources(setup), loadedges(setup), loadnodes(setup)#,loadtransformations(setup)
 end
@@ -29,7 +29,7 @@ end
 function makeresource(
     c::DataType,
     row::DataFrameRow,
-    timesteps::StepRange{Int64,Int64},
+    time_interval::StepRange{Int64,Int64},
     subperiods::Vector{StepRange{Int64,Int64}},
 )
 
@@ -37,34 +37,34 @@ function makeresource(
         return Resource{c}(
             node = row.node,
             r_id = row.r_id,
-            timesteps = timesteps,
+            time_interval = time_interval,
             subperiods = subperiods,
             investment_cost = row.investment_cost,
             fixed_om_cost = row.fixed_om_cost,
-            capacity_factor = ones(length(timesteps)),
-            price = zeros(length(timesteps)),
+            capacity_factor = ones(length(time_interval)),
+            price = zeros(length(time_interval)),
         )
     elseif row.storage == 1
         return SymmetricStorage{c}(
             node = row.node,
             r_id = row.r_id,
-            timesteps = timesteps,
+            time_interval = time_interval,
             subperiods = subperiods,
             investment_cost = row.investment_cost,
             fixed_om_cost = row.fixed_om_cost,
-            capacity_factor = ones(length(timesteps)),
-            price = zeros(length(timesteps)),
+            capacity_factor = ones(length(time_interval)),
+            price = zeros(length(time_interval)),
         )
     elseif row.storage == 2
         return AsymmetricStorage{c}(
             node = row.node,
             r_id = row.r_id,
-            timesteps = timesteps,
+            time_interval = time_interval,
             subperiods = subperiods,
             investment_cost = row.investment_cost,
             fixed_om_cost = row.fixed_om_cost,
-            capacity_factor = ones(length(timesteps)),
-            price = zeros(length(timesteps)),
+            capacity_factor = ones(length(time_interval)),
+            price = zeros(length(time_interval)),
         )
     end
 
@@ -79,31 +79,31 @@ end
 #         nodes = Dict(commodity_type(row[Symbol("commodity_$i")])=>row[Symbol("node_$i")] for i in 1:number_of_commodities), 
 #         stoichiometry = Dict(commodity_type(row[Symbol("commodity_$i")])=>row[Symbol("stoichiometry_$i")] for i in 1:number_of_commodities),
 #         direction =  Dict(commodity_type(row[Symbol("commodity_$i")])=>row[Symbol("direction_$i")] for i in 1:number_of_commodities), 
-#         timesteps = Dict(commodity_type(row[Symbol("commodity_$i")])=>setup["timesteps_map"][commodity_type(row[Symbol("commodity_$i")])] for i in 1:number_of_commodities), 
+#         time_interval = Dict(commodity_type(row[Symbol("commodity_$i")])=>setup["time_interval_map"][commodity_type(row[Symbol("commodity_$i")])] for i in 1:number_of_commodities), 
 #         subperiods = Dict(commodity_type(row[Symbol("commodity_$i")])=>setup["subperiod_map"][commodity_type(row[Symbol("commodity_$i")])] for i in 1:number_of_commodities), 
 #     )
 
 # end
 
 
-function makeedge(c::DataType, row::DataFrameRow, timesteps::StepRange{Int64,Int64})
+function makeedge(c::DataType, row::DataFrameRow, time_interval::StepRange{Int64,Int64})
 
     return Edge{c}(
         start_node = row.start_node,
         end_node = row.end_node,
         existing_capacity = row.existing_capacity,
-        timesteps = timesteps,
+        time_interval = time_interval,
     )
 
 end
 
-function makenode(c::DataType, row::DataFrameRow, timesteps::StepRange{Int64,Int64})
+function makenode(c::DataType, row::DataFrameRow, time_interval::StepRange{Int64,Int64})
 
     return Node{c}(
         id = row.id,
-        demand = collect(row[2+first(timesteps):2+last(timesteps)]),
+        demand = collect(row[2+first(time_interval):2+last(time_interval)]),
         max_nsd = row.max_nsd,
-        timesteps = timesteps,
+        time_interval = time_interval,
     )
 
 end
@@ -114,7 +114,7 @@ function loadresources(setup::Dict)
     for c in setup["commodities"]
         filepath = setup[c]["resource_filepath"]
         if !ismissing(filepath)
-            nt = length(setup["timesteps_map"][c])
+            nt = length(setup["time_interval_map"][c])
             df = CSV.read(filepath, DataFrame)
             for row in eachrow(df)
                 push!(
@@ -122,7 +122,7 @@ function loadresources(setup::Dict)
                     makeresource(
                         c,
                         row,
-                        setup["timesteps_map"][c],
+                        setup["time_interval_map"][c],
                         setup["subperiod_map"][c],
                     ),
                 )
@@ -141,7 +141,7 @@ function loadedges(setup::Dict)
         if !ismissing(filepath)
             df = CSV.read(filepath, DataFrame)
             for row in eachrow(df)
-                push!(edges, makeedge(c, row, setup["timesteps_map"][c]))
+                push!(edges, makeedge(c, row, setup["time_interval_map"][c]))
             end
         end
     end
@@ -156,7 +156,7 @@ function loadnodes(setup::Dict)
         if !ismissing(filepath)
             df = CSV.read(filepath, DataFrame)
             for row in eachrow(df)
-                push!(nodes, makenode(c, row, setup["timesteps_map"][c]))
+                push!(nodes, makenode(c, row, setup["time_interval_map"][c]))
             end
         end
     end

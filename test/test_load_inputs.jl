@@ -35,7 +35,7 @@ function test_load_inputs()
     # test the time data
     @test typeof(time_data) == Dict{Symbol,Macro.TimeData}
     @test length(time_data) == 4
-    @test time_data[:Electricity].timesteps == 1:1:8760
+    @test time_data[:Electricity].time_interval == 1:1:8760
     @test time_data[:Electricity].subperiods[1] == 1:1:8760
     # @test time_data[:Electricity].subperiod_weights # TODO: Implement this
 

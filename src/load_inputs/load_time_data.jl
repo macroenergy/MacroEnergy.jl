@@ -36,14 +36,14 @@ function create_time_data(time_data::JSON3.Object, commodities::Dict{Symbol,Data
     all_timedata = Dict{Symbol,TimeData}()
     for (sym,type) in commodities
         hours_per_timestep = time_data[:HoursPerTimeStep][sym]
-        timesteps = 1:hours_per_timestep:period_length
+        time_interval = 1:hours_per_timestep:period_length
 
         hours_per_subperiod = time_data[:HoursPerSubperiod][sym]
-        subperiods = collect(Iterators.partition(timesteps, Int(hours_per_subperiod / hours_per_timestep)))
+        subperiods = collect(Iterators.partition(time_interval, Int(hours_per_subperiod / hours_per_timestep)))
         weights_per_subperiod = hours_per_subperiod # TODO: Implement this
 
         all_timedata[sym] = Macro.TimeData{type}(;
-            timesteps=timesteps,
+            time_interval=time_interval,
             subperiods=subperiods,
             subperiod_weights=Dict(subperiods .=> weights_per_subperiod / hours_per_subperiod),
             hours_per_timestep =  time_data[:HoursPerTimeStep][sym]

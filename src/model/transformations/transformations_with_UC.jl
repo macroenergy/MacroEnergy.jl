@@ -61,28 +61,28 @@ function add_operation_variables!(e::AbstractTransformationEdgeWithUC, model::Mo
 
     e.operation_vars[:flow] = @variable(
         model,
-        [t in timesteps(e)],
+        [t in time_interval(e)],
         lower_bound = 0.0,
         base_name = "vFLOW_$(get_transformation_id(e))_$(get_id(e))"
     )
 
     e.operation_vars[:ucommit] = @variable(
         model,
-        [t in timesteps(e)],
+        [t in time_interval(e)],
         lower_bound = 0.0,
         base_name = "vCOMMIT_$(get_transformation_id(e))_$(get_id(e))"
     )
 
     e.operation_vars[:ustart] = @variable(
         model,
-        [t in timesteps(e)],
+        [t in time_interval(e)],
         lower_bound = 0.0,
         base_name = "vSTART_$(get_transformation_id(e))_$(get_id(e))"
     )
 
     e.operation_vars[:ushut] = @variable(
         model,
-        [t in timesteps(e)],
+        [t in time_interval(e)],
         lower_bound = 0.0,
         base_name = "vSHUT_$(get_transformation_id(e))_$(get_id(e))"
     )
@@ -97,7 +97,7 @@ function add_operation_variables!(e::AbstractTransformationEdgeWithUC, model::Mo
 
     add_to_expression!.(net_balance(e_node),directional_flow)
 
-    for t in timesteps(e)
+    for t in time_interval(e)
 
         w = current_subperiod(e,t);
 
@@ -124,13 +124,13 @@ function add_operation_variables!(e::AbstractTransformationEdgeWithUC, model::Mo
     end
 
     @constraints(model, begin
-    [t in timesteps(e)], ucommit(e,t) <= capacity(e)/capacity_size(e)    
-    [t in timesteps(e)], ustart(e,t) <= capacity(e)/capacity_size(e)   
-    [t in timesteps(e)], ushut(e,t) <= capacity(e)/capacity_size(e)  
+    [t in time_interval(e)], ucommit(e,t) <= capacity(e)/capacity_size(e)    
+    [t in time_interval(e)], ustart(e,t) <= capacity(e)/capacity_size(e)   
+    [t in time_interval(e)], ushut(e,t) <= capacity(e)/capacity_size(e)  
     end)
 
     @constraint(model,
-    [t in timesteps(e)], 
+    [t in time_interval(e)], 
     ucommit(e,t)-ucommit(e,timestepbefore(t,1,subperiods(e))) == ustart(e,t) - ushut(e,t)
     )
 

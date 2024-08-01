@@ -39,8 +39,8 @@ function validate_names(settings::NamedTuple)
     end
 end
 
-function configure_timesteps!(macro_settings::NamedTuple, commodities::Dict{Symbol,DataType}=commodity_types(Macro))
-    timestepss = Dict{Any, StepRange{Int64, Int64}}()
+function configure_time_interval!(macro_settings::NamedTuple, commodities::Dict{Symbol,DataType}=commodity_types(Macro))
+    time_intervals = Dict{Any, StepRange{Int64, Int64}}()
     subperiods = Dict{Any, Vector{StepRange{Int64, Int64}}}()
     for (name, time_details) in macro_settings[:Commodities]
         commodity_type = commodities[Symbol(name)]
@@ -49,13 +49,13 @@ function configure_timesteps!(macro_settings::NamedTuple, commodities::Dict{Symb
         hours_per_timestep = time_details["HoursPerTimeStep"]
         hours_per_subperiod = time_details["HoursPerSubperiod"]
         
-        timesteps = 1:hours_per_timestep:period_length
-        timestepss[commodity_type] = timesteps
+        time_interval = 1:hours_per_timestep:period_length
+        time_intervals[commodity_type] = time_interval
         
         subperiods[commodity_type] = collect(
-            Iterators.partition(timesteps, Int(hours_per_subperiod / hours_per_timestep)),
+            Iterators.partition(time_interval, Int(hours_per_subperiod / hours_per_timestep)),
         )
     end
-    macro_settings = merge(macro_settings, [:TimeIntervals=>timestepss, :SubPeriods=>subperiods])
+    macro_settings = merge(macro_settings, [:TimeIntervals=>time_intervals, :SubPeriods=>subperiods])
     return macro_settings    
 end

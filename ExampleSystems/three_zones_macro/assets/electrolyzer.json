@@ -2,7 +2,7 @@
     "Electrolyzer": {
         "type": "Electrolyzer",
         "global": {
-            "timesteps": "Hydrogen",
+            "time_interval": "Hydrogen",
             "stoichiometry_balance_names": [
                 "energy"            
             ],

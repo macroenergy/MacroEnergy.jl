@@ -145,7 +145,7 @@ function load_data_from_genx(compare_with_TDR,case_path,genx_settings)
     ng_node = Node{NaturalGas}(;
     id = :ng_source,
     timedata = all_timedata[NaturalGas],
-    demand = zeros(length(all_timedata[NaturalGas].timesteps)),   
+    demand = zeros(length(all_timedata[NaturalGas].time_interval)),   
     #### Note that this node does not have a demand balance because we are modeling exogenous inflow of NG
     )
 
@@ -157,7 +157,7 @@ function load_data_from_genx(compare_with_TDR,case_path,genx_settings)
     co2_nodes[i] = Node{CO2}(;
     id = Symbol("CO2_node_$i"),
     timedata = all_timedata[CO2],
-    demand = zeros(length(all_timedata[CO2].timesteps)),
+    demand = zeros(length(all_timedata[CO2].time_interval)),
     rhs_policy = Dict(CO2CapConstraint => 1e6*sum(df_co2[z,Symbol("CO_2_Max_Mtons_$i")] for z in findall(collect(df_co2[:,Symbol("CO_2_Cap_Zone_$i")]).==1))),
     constraints = [CO2CapConstraint()]
     )

@@ -86,14 +86,14 @@ function add_operation_variables!(e::AbstractEdge, model::Model)
     if e.unidirectional
         e.operation_vars[:flow] = @variable(
             model,
-            [t in timesteps(e)],
+            [t in time_interval(e)],
             lower_bound = 0.0,
             base_name = "vFLOW_$(start_node_id(e))_$(end_node_id(e))"
         )
     else
         e.operation_vars[:flow] = @variable(
             model,
-            [t in timesteps(e)],
+            [t in time_interval(e)],
             base_name = "vFLOW_$(start_node_id(e))_$(end_node_id(e))"
         )
     end

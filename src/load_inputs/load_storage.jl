@@ -2,7 +2,7 @@ function load_storage(
     filepath::AbstractString,
     nodes::Dict{Symbol,Node},
     commodity,
-    timesteps::StepRange{Int64,Int64},
+    time_interval::StepRange{Int64,Int64},
     subperiods::Vector{StepRange{Int64,Int64}},
 )
 
@@ -26,7 +26,7 @@ function load_storage(
         sym_storage[i] = SymmetricStorage{commodity}(;
             id = storage_id[i],
             node = nodes[node_id[i]],
-            timesteps = timesteps,
+            time_interval = time_interval,
             subperiods = subperiods,
             row...,
         )
@@ -35,7 +35,7 @@ function load_storage(
         asym_storage[i] = AsymmetricStorage{commodity}(;
             id = storage_id[i],
             node = nodes[node_id[i]],
-            timesteps = timesteps,
+            time_interval = time_interval,
             subperiods = subperiods,
             row...,
         )

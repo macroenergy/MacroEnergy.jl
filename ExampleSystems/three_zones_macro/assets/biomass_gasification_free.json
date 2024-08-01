@@ -2,7 +2,7 @@
     "ng": {
         "type": "BiomassToH2",
         "global": {
-            "timesteps": "Biomass",
+            "time_interval": "Biomass",
             "stoichiometry_balance_names": [
                 "h2production",
                 "carbon_removal"

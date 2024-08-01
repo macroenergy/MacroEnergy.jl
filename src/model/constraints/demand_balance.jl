@@ -8,7 +8,7 @@ function add_model_constraint!(ct::DemandBalanceConstraint, n::AbstractNode, mod
 
     ct.constraint_ref = @constraint(
         model,
-        [t in timesteps(n)],
+        [t in time_interval(n)],
         net_balance(n,t)  == demand(n,t)
     )
 

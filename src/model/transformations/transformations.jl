@@ -234,7 +234,7 @@ end
 function add_operation_variables!(g::AbstractTransform,model::Model)
 
     if !isempty(stoichiometry_balance_names(g))
-        g.operation_expr[:stoichiometry_balance] = @expression(model, [i in stoichiometry_balance_names(g), t in timesteps(g)], 0 * model[:vREF])
+        g.operation_expr[:stoichiometry_balance] = @expression(model, [i in stoichiometry_balance_names(g), t in time_interval(g)], 0 * model[:vREF])
     end
 
     edges_vec = collect(values(edges(g)))
@@ -243,11 +243,11 @@ function add_operation_variables!(g::AbstractTransform,model::Model)
     if has_storage(g)
         g.operation_vars[:storage_level] = @variable(
             model,
-            [t in timesteps(g)],
+            [t in time_interval(g)],
             lower_bound = 0.0,
             base_name = "vSTOR_$(g.id)"
         )
-        for t in timesteps(g)
+        for t in time_interval(g)
             add_to_expression!(
             stoichiometry_balance(g,:storage,t),
             storage_level(g,t) - (1 - storage_loss_fraction(g)) * storage_level(g,timestepbefore(t,1,subperiods(g))),
@@ -257,7 +257,7 @@ function add_operation_variables!(g::AbstractTransform,model::Model)
         e_discharge = g.TEdges[g.discharge_edge]
         @constraint(
             model,
-            [t in timesteps(g)], 
+            [t in time_interval(g)], 
             st_coeff(e_discharge)[:storage]*flow(e_discharge,t) <= storage_level(g,timestepbefore(t,1,subperiods(g))))
     end
 
@@ -314,7 +314,7 @@ function add_operation_variables!(e::AbstractTransformationEdge, model::Model)
 
     e.operation_vars[:flow] = @variable(
         model,
-        [t in timesteps(e)],
+        [t in time_interval(e)],
         lower_bound = 0.0,
         base_name = "vFLOW_$(get_transformation_id(e))_$(get_id(e))"
     )
@@ -329,7 +329,7 @@ function add_operation_variables!(e::AbstractTransformationEdge, model::Model)
 
     add_to_expression!.(net_balance(e_node),directional_flow)
 
-    for t in timesteps(e)
+    for t in time_interval(e)
         transform_time = ceil(Int,(hours_per_timestep(e) * t)/hours_per_timestep(e.transformation));
         for i in stoichiometry_balance_names(e)
             add_to_expression!(stoichiometry_balance(e,i,transform_time), e_st_coeff[i], directional_flow[t])
@@ -350,17 +350,17 @@ function add_operation_variables!(e::AbstractTransformationEdge, model::Model)
 
         e.operation_vars[:flow_segments] = @variable(
             model,
-            [s in eachindex(supply_segments(e)) ,t in timesteps(e)],
+            [s in eachindex(supply_segments(e)) ,t in time_interval(e)],
             lower_bound = 0.0,
             upper_bound = supply_segments(e,s),
             base_name = "vFLOW_SGM_$(get_id(e))"
         )
         @constraint(
             model,
-            [t in timesteps(e)],
+            [t in time_interval(e)],
             flow(e,t) == sum(flow_segments(e,s,t) for s in eachindex(supply_segments(e)))
             )
-        for t in timesteps(e)
+        for t in time_interval(e)
             w = current_subperiod(e,t);
             for s in eachindex(supply_segments(e))
                 add_to_expression!(model[:eVariableCost], subperiod_weight(e,w)*price_segments(e,s), flow_segments(e,s,t))

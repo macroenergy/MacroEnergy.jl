@@ -12,7 +12,7 @@ function add_model_constraint!(
     if haskey(n.operation_vars,:non_served_demand)
         ct.constraint_ref = @constraint(
             model,
-            [t in timesteps(n)],
+            [t in time_interval(n)],
             sum(non_served_demand(n,s,t) for s in segments_non_served_demand(n)) <= demand(n,t)
         )
     else

@@ -2,7 +2,7 @@
     "elec_stor": {
         "type": "Battery",
         "global": {
-            "timesteps": "Electricity",
+            "time_interval": "Electricity",
             "can_expand": true,
             "can_retire": false,
             "existing_capacity_storage": 0,
@@ -73,7 +73,7 @@
     "h2_stor": {
         "type": "H2Storage",
         "global": {
-            "timesteps": "Hydrogen",
+            "time_interval": "Hydrogen",
             "can_expand": true,
             "can_retire": false,
             "existing_capacity_storage": 0,

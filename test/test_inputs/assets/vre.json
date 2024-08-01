@@ -2,7 +2,7 @@
     "vre": {
         "type": "SolarPV",
         "global": {
-            "timesteps": "Electricity",
+            "time_interval": "Electricity",
             "edges": {
                 "elec": {
                     "type": "Electricity",

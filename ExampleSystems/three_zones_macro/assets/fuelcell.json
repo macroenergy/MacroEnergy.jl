@@ -2,7 +2,7 @@
     "FuelCell": {
         "type": "FuelCell",
         "global": {
-            "timesteps": "Electricity",
+            "time_interval": "Electricity",
             "stoichiometry_balance_names": [
                 "energy"
             ],

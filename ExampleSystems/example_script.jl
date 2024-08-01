@@ -18,9 +18,9 @@ macro_settings = (Commodities = Dict(Electricity=>Dict(:HoursPerTimeStep=>1,:Hou
                 
 hours_per_timestep(c) = macro_settings.Commodities[c][:HoursPerTimeStep];
 hours_per_subperiod(c) = macro_settings.Commodities[c][:HoursPerSubperiod]
-timesteps(c)= 1:hours_per_timestep(c):macro_settings.NumberOfPeriods*macro_settings.PeriodLength
+time_interval(c)= 1:hours_per_timestep(c):macro_settings.NumberOfPeriods*macro_settings.PeriodLength
 
-subperiods(c) = collect(Iterators.partition(timesteps(c), Int(hours_per_subperiod(c) / hours_per_timestep(c))),)
+subperiods(c) = collect(Iterators.partition(time_interval(c), Int(hours_per_subperiod(c) / hours_per_timestep(c))),)
 
 
 H2_MWh = 33.33 # MWh per tonne of H2
@@ -66,7 +66,7 @@ electrolyzer_vom_cost = 0.0;
 e_node = Node{Electricity}(;
     id = Symbol("E_node"),
     demand = electricity_demand,
-    timesteps = timesteps(Electricity),
+    time_interval = time_interval(Electricity),
     subperiods = subperiods(Electricity),
     max_nsd = [0.0],
     price_nsd = [0.0],
@@ -75,7 +75,7 @@ e_node = Node{Electricity}(;
 
 solar_pv = Transformation{SolarPV}(;
 id = :solar_pv,
-timesteps = timesteps(Electricity),
+time_interval = time_interval(Electricity),
 )
 
 solar_pv.TEdges[:E] = TEdge{Electricity}(;
@@ -87,7 +87,7 @@ has_planning_variables = true,
 can_expand = true,
 can_retire = false,
 capacity_factor = solar_capacity_factor,
-timesteps = timesteps(Electricity),
+time_interval = time_interval(Electricity),
 subperiods = subperiods(Electricity),
 existing_capacity = 0.0,
 investment_cost = solar_inv_cost,
@@ -98,7 +98,7 @@ constraints = [Macro.CapacityConstraint()]
 battery = Transformation{Storage}(;
 id = :battery,
 stoichiometry_balance_names = [:storage],
-timesteps = timesteps(Electricity),
+time_interval = time_interval(Electricity),
 subperiods = subperiods(Electricity),
 can_expand = true,
 can_retire = false,
@@ -115,7 +115,7 @@ battery.TEdges[:discharge] = TEdge{Electricity}(;
 id = :discharge,
 node = e_node,
 transformation = battery,
-timesteps = timesteps(Electricity),
+time_interval = time_interval(Electricity),
 subperiods = subperiods(Electricity),
 direction = :output,
 has_planning_variables = true,
@@ -132,7 +132,7 @@ constraints = [Macro.CapacityConstraint()]
 battery.TEdges[:charge] = TEdge{Electricity}(;
 id = :charge,
 node = e_node,
-timesteps = timesteps(Electricity),
+time_interval = time_interval(Electricity),
 subperiods = subperiods(Electricity),
 transformation = battery,
 direction = :input,
@@ -145,24 +145,24 @@ st_coeff = Dict(:storage=>battery_eff_up),
 
 ng_node = Node{NaturalGas}(;
     id = Symbol("NG_node"),
-    timesteps = timesteps(NaturalGas),
+    time_interval = time_interval(NaturalGas),
     subperiods = subperiods(NaturalGas),
-    demand = zeros(length(timesteps(NaturalGas))),
+    demand = zeros(length(time_interval(NaturalGas))),
      #### Note that this node does not have a demand balance because we are modeling exogenous inflow of NG
 )
 
 co2_node = Node{CO2}(;
 id = Symbol("CO2_node"),
-timesteps = timesteps(CO2),
+time_interval = time_interval(CO2),
 subperiods = subperiods(CO2),
-demand = zeros(length(timesteps(CO2))),
+demand = zeros(length(time_interval(CO2))),
 max_nsd = [0.0],
 price_nsd = [0.0],
 )
 
 ngcc = Transformation{NaturalGasPower}(;
 id = :NGCC,
-timesteps = timesteps(Electricity),
+time_interval = time_interval(Electricity),
 stoichiometry_balance_names = [:energy,:emissions],
 constraints = [Macro.StoichiometryBalanceConstraint()]
 )
@@ -176,7 +176,7 @@ has_planning_variables = true,
 can_expand = true,
 can_retire = false,
 capacity_size = ngcc_capsize,
-timesteps = timesteps(Electricity),
+time_interval = time_interval(Electricity),
 subperiods = subperiods(Electricity),
 st_coeff = Dict(:energy=>ngcc_heatrate,:emissions=>0.0),
 existing_capacity = 0.0,
@@ -205,7 +205,7 @@ node = ng_node,
 transformation = ngcc,
 direction = :input,
 has_planning_variables = false,
-timesteps = timesteps(NaturalGas),
+time_interval = time_interval(NaturalGas),
 subperiods = subperiods(NaturalGas),
 st_coeff = Dict(:energy=>1.0,:emissions=>ngcc_fuel_CO2),
 price = ng_fuel_price,
@@ -217,7 +217,7 @@ ngcc.TEdges[:CO2] = TEdge{CO2}(;
     transformation = ngcc,
     direction = :output,
     has_planning_variables = false,
-    timesteps = timesteps(CO2),
+    time_interval = time_interval(CO2),
     subperiods = subperiods(CO2),
     st_coeff = Dict(:energy=>0.0,:emissions=>1.0)
     )
@@ -236,7 +236,7 @@ Macro.set_optimizer(model,Gurobi.Optimizer)
 
 Macro.optimize!(model)
 base_cost = Macro.objective_value(model);
-base_emissions  = Macro.value(sum(Macro.net_balance(co2_node)[t] for t in timesteps(CO2)))
+base_emissions  = Macro.value(sum(Macro.net_balance(co2_node)[t] for t in time_interval(CO2)))
 
 merge!(co2_node.rhs_policy,Dict(Macro.CO2CapConstraint => 0.5*base_emissions))
 append!(co2_node.constraints,[Macro.CO2CapConstraint()])
@@ -244,7 +244,7 @@ Macro.add_model_constraint!(co2_node.constraints[1],co2_node,model)
 
 Macro.optimize!(model)
 
-capped_emissions = Macro.value(sum(Macro.net_balance(co2_node)[t] for t in timesteps(CO2)))
+capped_emissions = Macro.value(sum(Macro.net_balance(co2_node)[t] for t in time_interval(CO2)))
 capped_emissions_cost = Macro.objective_value(model);
 println("Base emissions: $base_emissions, with system cost: $base_cost")
 println("Capped emissions: $capped_emissions, with system cost: $capped_emissions_cost")
