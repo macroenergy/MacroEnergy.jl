@@ -2,6 +2,8 @@
     "commodities": [
         "Electricity",
         "NaturalGas",
-        "CO2"
+        "CO2",
+        "Hydrogen",
+        "Biomass"
     ]
 }

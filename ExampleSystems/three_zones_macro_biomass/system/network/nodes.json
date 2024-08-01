@@ -11,6 +11,29 @@
             }
         ]
     },
+    "h2":{
+        "type": "Hydrogen",
+        "global": {
+            "time_interval": "Hydrogen",
+            "constraints": {
+                "demand_balance": true
+            }
+        },
+        "instance": [
+            {
+                "id": "h2_MA",
+                "demand_header": "Demand_H2_z1"
+            },
+            {
+                "id": "h2_CT",
+                "demand_header": "Demand_H2_z2"
+            },
+            {
+                "id": "h2_ME",
+                "demand_header": "Demand_H2_z3"
+            }
+        ]
+    },
     "elec": {
         "type": "Electricity",
         "global": {
@@ -24,15 +47,15 @@
         "instance": [
             {
                 "id": "elec_MA",
-                "demand_header": "Demand_MW_z1"
+                "demand_header": "Demand_E_z1"
             },
             {
                 "id": "elec_CT",
-                "demand_header": "Demand_MW_z2"
+                "demand_header": "Demand_E_z2"
             },
             {
                 "id": "elec_ME",
-                "demand_header": "Demand_MW_z3"
+                "demand_header": "Demand_E_z3"
             }
         ]
     },
@@ -49,20 +72,31 @@
                 "id": "co2_MA",
                 "demand_header": "co2_MA",
                 "rhs_policy":
-                    {"CO2CapConstraint": 18000.0}
+                    {"CO2CapConstraint": 0}
             },
             {
                 "id": "co2_CT",
                 "demand_header": "co2_CT",
                 "rhs_policy":
-                    {"CO2CapConstraint": 25000.0}
+                    {"CO2CapConstraint": 0}
             },
             {
                 "id": "co2_ME",
                 "demand_header": "co2_ME",
                 "rhs_policy":
-                    {"CO2CapConstraint": 25000.0}
+                    {"CO2CapConstraint": 0}
             }
         ]
+    },
+    "biomass":{
+        "type": "Biomass",
+        "global": {
+            "time_interval": "Biomass"
+        },
+        "instance": [
+            {
+                "id": "biomass_NE",
+                "demand_header": "biomass_NE"
+            }]
     }
 }
