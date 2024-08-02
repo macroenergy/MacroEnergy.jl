@@ -54,6 +54,8 @@ abstract type PolicyConstraint <: OperationConstraint end
 abstract type PlanningConstraint <: AbstractTypeConstraint end
 
 # global constants
+const AbstractTEdge = AbstractTransformationEdge{T} where T <: Commodity    # alias for AbstractTransformationEdge{T}
+const AbstractTEdgeWithUC = AbstractTransformationEdgeWithUC{T} where T <: Commodity    # alias for AbstractTransformationEdgeWithUC{T}
 const H2_MWh = 33.33 # MWh per tonne of H2
 const NG_MWh = 0.29307107 # MWh per MMBTU of NG 
 
