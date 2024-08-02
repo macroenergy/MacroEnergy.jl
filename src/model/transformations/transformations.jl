@@ -98,6 +98,29 @@ Base.@kwdef mutable struct Transformation <: AbstractTransform
     discharge_edge::Symbol = :discharge
     charge_edge::Symbol = :charge
 end
+function make_transformation(data::Dict{Symbol,Any}, time_data::Dict{Symbol})
+    time_interval_id = Symbol(data[:time_interval])
+    _transformation = Transformation(;
+        id = get(data, :id, Symbol("")),
+        timedata = deepcopy(time_data[time_interval_id]),
+        stoichiometry_balance_names = get(data, :stoichiometry_balance_names, Vector{Symbol}()),
+        min_capacity_storage = get(data, :min_capacity_storage, 0.0),
+        max_capacity_storage = get(data, :max_capacity_storage, Inf),
+        existing_capacity_storage = get(data, :existing_capacity_storage, 0.0),
+        can_expand = get(data, :can_expand, false),
+        can_retire = get(data, :can_retire, false),
+        investment_cost_storage = get(data, :investment_cost_storage, 0.0),
+        fixed_om_cost_storage = get(data, :fixed_om_cost_storage, 0.0),
+        min_storage_level = get(data, :min_storage_level, 0.0),
+        min_duration = get(data, :min_duration, 0.0),
+        max_duration = get(data, :max_duration, 0.0),
+        storage_loss_fraction = get(data, :storage_loss_fraction, 0.0),
+        discharge_edge = get(data, :discharge_edge, :discharge),
+        charge_edge = get(data, :charge_edge, :charge),
+    )
+    add_constraints!(_transformation, data)
+    return _transformation
+end
 
 #### Transformation interface
 stoichiometry_balance_names(g::AbstractTransform) = g.stoichiometry_balance_names;
@@ -123,6 +146,7 @@ storage_loss_fraction(g::AbstractTransform) = g.storage_loss_fraction;
 
 #### Transformation Edge interface
 commodity_type(e::AbstractTransformationEdge{T}) where {T} = T;
+commodity_type(::Type{<:AbstractTransformationEdge{T}}) where {T} = T;
 
 has_planning_variables(e::AbstractTransformationEdge) = e.has_planning_variables;
 direction(e::AbstractTransformationEdge) = e.direction;
