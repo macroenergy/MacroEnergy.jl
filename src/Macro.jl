@@ -33,16 +33,6 @@ abstract type AbstractTransformationEdgeWithUC{T} <: AbstractTransformationEdge{
 
 ## Transformation types
 abstract type AbstractTransform end
-abstract type TransformationType end  # Note: this is only used to improved readability
-abstract type NaturalGasPowerTransform <: TransformationType  end
-abstract type NaturalGasPowerCCSTransform <: NaturalGasPowerTransform  end
-abstract type NaturalGasH2Transform <: TransformationType  end
-abstract type NaturalGasH2CCSTransform <: NaturalGasH2Transform  end
-abstract type FuelCellTransform <: TransformationType end
-abstract type ElectrolyzerTransform <: TransformationType  end
-abstract type DacElectricTransform <: TransformationType  end
-abstract type SyntheticNGTransform <: TransformationType  end
-abstract type Storage <: TransformationType end
 
 ## Assets types
 abstract type AbstractAsset end
@@ -109,7 +99,7 @@ include("load_inputs/load_capacity_factor.jl")
 # include("load_inputs/load_resources.jl")
 # include("load_inputs/load_storage.jl")
 # include("load_inputs/load_variability.jl")
-include("input_translation/dolphyn_to_macro.jl")
+# include("input_translation/dolphyn_to_macro.jl")
 # include("generate_model.jl")
 # include("prepare_inputs.jl")
 # include("transformations/ElectrolyzerTransform.jl")
@@ -140,12 +130,6 @@ export Electricity,
     SolarPVTransform,
     Storage,
     TransformationType,
-    #Resource,
-    #Sink,
-    #AbstractStorage,
-    #SymmetricStorage,
-    #AsymmetricStorage,
-    #InputFilesNames,
     Node,
     Edge,
     Transformation,
@@ -157,23 +141,6 @@ export Electricity,
     WindTurbine,
     Battery,
     ElectrolyzerTransform,
-    #CapacityConstraint,
-    #configure_settings,
-    #add_planning_variables!,
-    #add_operation_variables!,
-    #add_model_constraint!,
-    #add_all_model_constraints!,
-    #generate_model,
-    #prepare_inputs!,
-    #loadresources,
-    #makeresource,
-    #settings,
-    # nodes,
-    # networks,
-    #resources,
-    #storage,
-    #dolphyn_to_macro,
-    #apply_unit_conversion,
     MaxNonServedDemandPerSegmentConstraint,
     MaxNonServedDemandConstraint,
     PlanningConstraint,
@@ -193,6 +160,3 @@ export Electricity,
     load_inputs
 
 end # module Macro
-
-# using Macro 
-# q = Macro.get_transformation_types(Macro)
