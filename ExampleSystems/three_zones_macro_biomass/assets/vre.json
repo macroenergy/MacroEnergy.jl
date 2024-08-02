@@ -4,7 +4,7 @@
         "global": {
             "time_interval": "Electricity",
             "edges": {
-                "elec": {
+                "elec_tedge": {
                     "type": "Electricity",
                     "direction": "output",
                     "can_expand": true,
@@ -21,7 +21,7 @@
             {
                 "id": "solar_pv_MA",
                 "edges":{
-                    "elec": {
+                    "elec_tedge": {
                         "investment_cost": 85300.0,
                         "fixed_om_cost": 18760.0,
                         "variable_om_cost": 0
@@ -34,7 +34,7 @@
             {
                 "id": "solar_pv_CT",
                 "edges":{
-                    "elec": {
+                    "elec_tedge": {
                         "investment_cost": 85300.0,
                         "fixed_om_cost": 18760.0,
                         "variable_om_cost": 0
@@ -51,7 +51,7 @@
         "global": {
             "time_interval": "Electricity",
             "edges": {
-                "elec": {
+                "elec_tedge": {
                     "type": "Electricity",
                     "direction": "output",
                     "can_expand": true,
@@ -68,7 +68,7 @@
             {
                 "id": "onshore_wind_CT",
                 "edges":{
-                    "elec": {
+                    "elec_tedge": {
                         "investment_cost": 97200.0,
                         "fixed_om_cost": 43205.0,
                         "variable_om_cost": 0.1
@@ -81,7 +81,7 @@
             {
                 "id": "onshore_wind_ME",
                 "edges":{
-                    "elec": {
+                    "elec_tedge": {
                         "investment_cost": 97200.0,
                         "fixed_om_cost": 43205.0,
                         "variable_om_cost": 0.1

@@ -127,7 +127,7 @@
                         "capacity": true
                     }
                 },
-                "elec": {
+                "elec_tedge": {
                     "type": "Electricity",
                     "direction": "input",
                     "has_planning_vars": false,

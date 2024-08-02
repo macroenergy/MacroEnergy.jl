@@ -11,7 +11,7 @@
                 "stoichiometry_balance": true
             },
             "edges": {
-                "biomass": {
+                "biomass_tedge": {
                     "uc": false,
                     "type": "Biomass",
                     "direction": "input",
@@ -31,7 +31,7 @@
                         "capacity": true
                     }
                 },
-                "captured_co2": {
+                "co2_tedge": {
                     "direction": "input",
                     "type": "CO2",
                     "has_planning_vars": false,
@@ -40,7 +40,7 @@
                         "carbon_removal": 1
                     }
                 },
-                "h2": {
+                "h2_tedge": {
                     "direction": "output",
                     "type": "Hydrogen",
                     "has_planning_vars": false,
@@ -60,8 +60,9 @@
                     "CO2": "co2_MA"
                 },
                 "edges": {
-                    "biomass": {
-                        "capacity_size":100,                    "investment_cost": 312708.04,
+                    "biomass_tedge": {
+                        "capacity_size":100,                    
+                        "investment_cost": 312708.04,
                         "fixed_om_cost": 147503.79,
                         "variable_om_cost": 5.60
                     }
@@ -75,8 +76,9 @@
                     "CO2": "co2_ME"
                 },
                 "edges": {
-                    "biomass": {
-                        "capacity_size":100,                    "investment_cost": 312708.04,
+                    "biomass_tedge": {
+                        "capacity_size":100,                    
+                        "investment_cost": 312708.04,
                         "fixed_om_cost": 147503.79,
                         "variable_om_cost": 5.60
                     }
@@ -90,8 +92,9 @@
                     "CO2": "co2_CT"
                 },
                 "edges": {
-                    "biomass": {
-                        "capacity_size":100,                    "investment_cost": 312708.04,
+                    "biomass_tedge": {
+                        "capacity_size":100,                    
+                        "investment_cost": 312708.04,
                         "fixed_om_cost": 147503.79,
                         "variable_om_cost": 5.60
                     }
@@ -105,7 +108,7 @@
                     "CO2": "co2_MA"
                 },
                 "edges": {
-                    "biomass": {
+                    "biomass_tedge": {
                         "capacity_size": 400,
                         "investment_cost": 182110.78,
                         "fixed_om_cost": 85901.31,
@@ -121,7 +124,7 @@
                     "CO2": "co2_ME"
                 },
                 "edges": {
-                    "biomass": {
+                    "biomass_tedge": {
                         "capacity_size": 400,                 
                         "investment_cost": 182110.78,
                         "fixed_om_cost": 85901.31,
@@ -137,7 +140,7 @@
                     "CO2": "co2_CT"
                 },
                 "edges": {
-                    "biomass": {
+                    "biomass_tedge": {
                         "capacity_size": 400,                 
                         "investment_cost": 182110.78,
                         "fixed_om_cost": 85901.31,
@@ -153,7 +156,7 @@
                     "CO2": "co2_MA"
                 },
                 "edges": {
-                    "biomass": {
+                    "biomass_tedge": {
                         "capacity_size": 700,                 
                         "investment_cost": 146403.28,
                         "fixed_om_cost": 69058.151,
@@ -169,7 +172,7 @@
                     "CO2": "co2_ME"
                 },
                 "edges": {
-                    "biomass": {
+                    "biomass_tedge": {
                         "capacity_size": 700,                 
                         "investment_cost": 146403.28,
                         "fixed_om_cost": 69058.151,
@@ -185,7 +188,7 @@
                     "CO2": "co2_CT"
                 },
                 "edges": {
-                    "biomass": {
+                    "biomass_tedge": {
                         "capacity_size": 700,                 
                         "investment_cost": 146403.28,
                         "fixed_om_cost": 69058.151,

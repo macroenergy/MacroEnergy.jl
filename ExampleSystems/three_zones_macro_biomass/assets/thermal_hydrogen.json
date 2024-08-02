@@ -11,7 +11,7 @@
                 "stoichiometry_balance": true
             },
             "edges": {
-                "h2": {
+                "h2_tedge": {
                     "uc": true,
                     "type": "Hydrogen",
                     "direction": "output",
@@ -43,7 +43,7 @@
                         "min_down_time": true
                     }
                 },
-                "natgas": {
+                "ng_tedge": {
                     "direction": "input",
                     "type": "NaturalGas",
                     "has_planning_vars": false,
@@ -51,7 +51,7 @@
                         "energy": 1
                     }
                 },
-                "co2": {
+                "co2_tedge": {
                     "direction": "output",
                     "type": "CO2",
                     "has_planning_vars": false,
@@ -71,7 +71,7 @@
                     "CO2": "co2_MA"
                 },
                 "edges": {
-                    "natgas": {
+                    "ng_tedge": {
                         "price_header": "natgas_MA"
                     }
                 }
@@ -84,7 +84,7 @@
                     "CO2": "co2_CT"
                 },
                 "edges": {
-                    "natgas": {
+                    "ng_tedge": {
                         "price_header": "natgas_CT"
                     }
                 }
@@ -97,7 +97,7 @@
                     "CO2": "co2_ME"
                 },
                 "edges": {
-                    "natgas": {
+                    "ng_tedge": {
                         "price_header": "natgas_ME"
                     }
                 }

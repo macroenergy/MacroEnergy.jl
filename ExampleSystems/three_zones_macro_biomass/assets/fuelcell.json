@@ -10,7 +10,7 @@
                 "stoichiometry_balance": true
             },
             "edges": {
-                "elec": {
+                "elec_tedge": {
                     "uc": false,
                     "type": "Electricity",
                     "direction": "output",
@@ -29,7 +29,7 @@
                         "capacity": true
                     }
                 },
-                "h2": {
+                "h2_tedge": {
                     "direction": "input",
                     "type": "Hydrogen",
                     "has_planning_vars": false,

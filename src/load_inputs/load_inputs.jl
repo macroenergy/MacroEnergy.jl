@@ -149,9 +149,9 @@ end
 
 function get_tedge_data(data::Dict{Symbol,Any}, id::Symbol, immutable::Bool=false)
     for (edge_id, edge_data) in data[:edges]
-        if edge_id == id || edge_data[:type] == string(id)
-            immutable && return edge_data
-            return copy(edge_data)
+        if edge_id == id #|| edge_data[:type] == string(id)
+            immutable && return (edge_id,edge_data)
+            return (edge_id,copy(edge_data))
         end
     end
     return nothing

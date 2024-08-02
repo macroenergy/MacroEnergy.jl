@@ -11,7 +11,7 @@
                 "stoichiometry_balance": true
             },
             "edges": {
-                "elec": {
+                "elec_tedge": {
                     "uc": true,
                     "type": "Electricity",
                     "direction": "output",
@@ -36,7 +36,7 @@
                         "min_down_time": true
                     }
                 },
-                "natgas": {
+                "ng_tedge": {
                     "direction": "input",
                     "type": "NaturalGas",
                     "has_planning_vars": false,
@@ -44,7 +44,7 @@
                         "energy": 1
                     }
                 },
-                "co2": {
+                "co2_tedge": {
                     "direction": "output",
                     "type": "CO2",
                     "has_planning_vars": false,
@@ -64,7 +64,7 @@
                     "CO2": "co2_MA"
                 },
                 "edges": {
-                    "elec": {
+                    "elec_tedge": {
                         "stoichiometry_coefficients": {
                             "energy": 2.1775180500999998,
                             "emissions": 0
@@ -73,7 +73,7 @@
                         "variable_om_cost": 3.55,
                         "min_flow_fraction": 0.468
                     },
-                    "natgas": {
+                    "ng_tedge": {
                         "price_header": "natgas_MA"
                     }
                 }
@@ -86,7 +86,7 @@
                     "CO2": "co2_CT"
                 },
                 "edges": {
-                    "elec": {
+                    "elec_tedge": {
                         "fixed_om_cost": 9698,
                         "variable_om_cost": 3.57,
                         "min_flow_fraction": 0.338,
@@ -95,7 +95,7 @@
                             "emissions": 0
                         }
                     },
-                    "natgas": {
+                    "ng_tedge": {
                         "price_header": "natgas_CT"
                     }
                 }
@@ -108,7 +108,7 @@
                     "CO2": "co2_ME"
                 },
                 "edges": {
-                    "elec": {
+                    "elec_tedge": {
                         "fixed_om_cost": 16291,
                         "variable_om_cost": 4.5,
                         "min_flow_fraction": 0.474,
@@ -117,7 +117,7 @@
                             "emissions": 0
                         }
                     },
-                    "natgas": {
+                    "ng_tedge": {
                         "price_header": "natgas_ME"
                     }
                 }
