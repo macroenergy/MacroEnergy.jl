@@ -1,24 +1,35 @@
 struct SolarPV <: AbstractAsset
     energy_transform::Transformation
-    tedge::TEdge{Electricity}
-end
-
-function make_solarpv(data::Dict{Symbol,Any}, time_data::Dict{Symbol,TimeData}, node_out::Node)
-    _energy_transform, _tedge = make_vre(data, time_data, node_out)
-    return SolarPV(_energy_transform, _tedge)
+    elec_tedge::TEdge{Electricity}
 end
 
 struct WindTurbine <: AbstractAsset
     energy_transform::Transformation
-    tedge::TEdge{Electricity}
-end
-
-function make_windturbine(data::Dict{Symbol,Any}, time_data::Dict{Symbol,TimeData}, node_out::Node)
-    _energy_transform, _tedge = make_vre(data, time_data, node_out)
-    return WindTurbine(_energy_transform, _tedge)
+    elec_tedge::TEdge{Electricity}
 end
 
 const VRE = Union{SolarPV, WindTurbine}
+
+function make_asset(::Type{SolarPV}, data::Dict{Symbol,Any}, time_data::Dict{Symbol,TimeData}, nodes::Dict{Symbol,Node})
+    node_out_id = Symbol(data[:nodes][:Electricity])
+    node_out = nodes[node_out_id]
+    energy_transform, tedge = make_vre(data, time_data, node_out)
+    return SolarPV(energy_transform, tedge)
+end
+
+function make_asset(::Type{WindTurbine}, data::Dict{Symbol,Any}, time_data::Dict{Symbol,TimeData}, nodes::Dict{Symbol,Node})
+    node_out_id = Symbol(data[:nodes][:Electricity])
+    node_out = nodes[node_out_id]
+    energy_transform, tedge = make_vre(data, time_data, node_out)
+    return WindTurbine(energy_transform, tedge)
+    end
+
+make_solarpv(data::Dict{Symbol,Any}, time_data::Dict{Symbol,TimeData}, nodes::Dict{Symbol,Node}) = make_asset(SolarPV, data, time_data, nodes)
+make_windturbine(data::Dict{Symbol,Any}, time_data::Dict{Symbol,TimeData}, nodes::Dict{Symbol,Node}) = make_asset(WindTurbine, data, time_data, nodes)
+
+function add_capacity_factor!(s::VRE, capacity_factor::Vector{Float64})
+    s.elec_tedge.capacity_factor = capacity_factor
+end
 
 function make_vre(data::Dict{Symbol,Any}, time_data::Dict{Symbol,TimeData}, node_out::Node)
     #============================================================
@@ -38,10 +49,10 @@ function make_vre(data::Dict{Symbol,Any}, time_data::Dict{Symbol,TimeData}, node
 
     ## electricity edge
     # get electricity edge data
-    _tedge_data = get_tedge_data(data, :Electricity)
+    _tedge_id,_tedge_data = get_tedge_data(data, :elec_tedge)
     isnothing(_tedge_data) && error("No electricity edge data found for VRE")
     # set the id
-    _tedge_data[:id] = :E
+    _tedge_data[:id] = _tedge_id
     # make the edge
     _tedge = make_tedge(_tedge_data, time_data, _energy_transform, node_out)
 
@@ -50,8 +61,4 @@ function make_vre(data::Dict{Symbol,Any}, time_data::Dict{Symbol,TimeData}, node
     _energy_transform.TEdges = _TEdges
 
     return _energy_transform, _tedge
-end
-
-function add_capacity_factor!(s::VRE, capacity_factor::Vector{Float64})
-    s.tedge.capacity_factor = capacity_factor
 end

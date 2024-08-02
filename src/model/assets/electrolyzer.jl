@@ -4,34 +4,17 @@ struct Electrolyzer <: AbstractAsset
     elec_tedge::TEdge{Electricity}
 end
 
-function make_electrolyzer(data::Dict{Symbol,Any}, time_data::Dict{Symbol,TimeData}, nodes::Dict{Symbol,Node})
-    ## conversion process (node)
-    _electrolyzer_transform = Transformation(;
-        id=get(data,:id,Symbol("")),
-        timedata=deepcopy(time_data[:Hydrogen]),
-        stoichiometry_balance_names=get(data, :stoichiometry_balance_names, [:energy])
+function process_asset_data(::Type{Electrolyzer}, data::Dict{Symbol,Any})
+    asset_data = Dict(
+        :time_interval => :Hydrogen,
+        :transform_id => :Electrolyzer,
+        :stoichiometry_balance_names => [:energy],
+        :constraints => Dict{Symbol,Any}(
+            :stoichiometry_balance => true
+        ),
     )
-    add_constraints!(_electrolyzer_transform, data)
-
-    ## hydrogen edge
-    _h2_tedge_data = get_tedge_data(data, :Hydrogen)
-    isnothing(_h2_tedge_data) && error("No hydrogen edge data found for Electrolyzer")
-    _h2_tedge_data[:id] = :H2
-    _h2_node_id = Symbol(data[:nodes][:Hydrogen])
-    _h2_node = nodes[_h2_node_id]
-    _h2_tedge = make_tedge(_h2_tedge_data, time_data, _electrolyzer_transform, _h2_node)
-
-    ## electricity edge
-    _elec_tedge_data = get_tedge_data(data, :Electricity)
-    isnothing(_elec_tedge_data) && error("No electricity edge data found for Electrolyzer")
-    _elec_tedge_data[:id] = :E
-    _elec_node_id = Symbol(data[:nodes][:Electricity])
-    _elec_node = nodes[_elec_node_id]
-    _elec_tedge = make_tedge(_elec_tedge_data, time_data, _electrolyzer_transform, _elec_node)
-
-    ## add reference to tedges in transformation
-    _TEdges = Dict(:H2=>_h2_tedge, :E=>_elec_tedge)
-    _electrolyzer_transform.TEdges = _TEdges
-    
-    return Electrolyzer(_electrolyzer_transform, _h2_tedge, _elec_tedge)
+    merge!(asset_data, data)
+    return asset_data
 end
+
+make_electrolyzer(data::Dict{Symbol,Any}, time_data::Dict{Symbol,TimeData}, nodes::Dict{Symbol,Node}) = make_asset(Electrolyzer, data, time_data, nodes)
