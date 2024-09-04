@@ -1,0 +1,51 @@
+{
+    "line":{
+        "type": "PowerLine",
+        "global_data": {
+            "edges":{
+                "line":{
+                "id": "line",
+                "type": "Electricity",
+                "has_planning_variables":true,
+                "unidirectional": false,
+                "can_expand": true,
+                "can_retire": false,
+                "constraints":{
+                    "capacity": true,
+                    "max_capacity": true
+                }
+                }
+            }
+        },
+        "instance_data": [
+            {
+                "edges": {
+                        "line": {
+                            "id": "MA_to_CT",
+                            "start_vertex": "elec_MA",
+                            "end_vertex": "elec_CT",
+                             "distance": 123.0584,
+                            "existing_capacity": 2950.0,
+                            "max_capacity": 5900,
+                            "investment_cost": 12060                  
+                        }
+                    }
+            },
+            {
+                "edges": {
+                        "line": {
+                                "id": "MA_to_ME",
+                                "start_vertex": "elec_MA",
+                                "end_vertex": "elec_ME",
+                                "distance": 196.5385,
+                                "existing_capacity": 2000,
+                                "max_capacity": 4000,
+                                "investment_cost": 19261
+                            }
+                        }
+            }
+        ]
+    
+    }
+
+}

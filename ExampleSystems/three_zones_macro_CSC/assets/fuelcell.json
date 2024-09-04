@@ -1,0 +1,84 @@
+{
+    "fuelcell": {
+        "type": "FuelCell",
+        "global_data": {
+            "nodes": {},
+            "transforms": {
+                "id": "fuelcell",
+                "time_commodity": "Hydrogen",
+                "efficiency_rate": 0.6,
+                "constraints": {
+                    "balance" : true
+                }
+            },
+            "edges": {
+                "h2": {
+                    "id": "H2",
+                    "type": "Hydrogen",
+                    "unidirectional": true,
+                    "has_planning_variables": false
+                },
+                "elec": {
+                    "id": "E",
+                    "type": "Electricity",
+                    "unidirectional": true,
+                    "has_planning_variables": true,
+                    "can_retire": true,
+                    "can_expand": true,
+                    "existing_capacity": 0,
+                    "capacity_size": 10,
+                    "investment_cost": 1170000,
+                    "fixed_om_cost": 11000,
+                    "variable_om_cost": 1.67,
+                    "constraints": {
+                        "capacity": true
+                    }
+                }
+            },
+            "storage": {}
+        },
+        "instance_data": [
+            {
+                "nodes": {},
+                "transforms": {"id": "fuelcell_MA"},
+                "edges": {
+                    "h2": {
+                        "start_vertex": "h2_MA"
+                    },
+                    "elec": {
+                        "end_vertex": "elec_MA"
+                    }
+                },
+                "storage": {}
+            },
+            {
+                "id": "fuelcell_CT",
+                "nodes": {},
+                "transforms": {"id": "fuelcell_CT"},
+                "edges": {
+                    "h2": {
+                        "start_vertex": "h2_CT"
+                    },
+                    "elec": {
+                        "end_vertex": "elec_CT"
+                    }
+                },
+                "storage": {}
+            },
+            {
+                "id": "fuelcell_ME",
+                "nodes": {},
+                "transforms": {"id": "fuelcell_ME"},
+                "edges": {
+                    "h2": {
+                        "start_vertex": "h2_ME"
+                    },
+                    "elec": {
+                        "end_vertex": "elec_ME"
+                    }
+                },
+                "storage": {}
+            }
+        ]
+    }
+}

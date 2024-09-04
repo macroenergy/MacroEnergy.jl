@@ -1,0 +1,143 @@
+{
+    "smr_ccs": {
+        "type": "NaturalGasHydrogenCCS",
+        "global_data": {
+            "nodes": {},
+            "transforms": {
+                "id": "natgasccs_hydrogen",
+                "time_commodity": "Hydrogen",
+                "constraints": {
+                    "balance" : true
+                }
+            },
+            "edges": {
+                "h2": {
+                    "id": "H2",
+                    "type": "Hydrogen",
+                    "uc": true,
+                    "unidirectional": true,
+                    "has_planning_variables": true,
+                    "can_retire": true,
+                    "can_expand": true,
+                    "min_up_time": 3,
+                    "min_down_time": 3,
+                    "ramp_up_fraction": 0.5,
+                    "ramp_down_fraction": 0.5,
+                    "startup_cost": 0.15,
+                    "startup_fuel": 0.0,
+                    "min_flow_fraction": 0.9,
+                    "existing_capacity": 0,
+                    "capacity_size": 305.53611,
+                    "investment_cost": 90987.60864,
+                    "fixed_om_cost": 4276.417606,
+                    "constraints": {
+                        "capacity": true,
+                        "ramping_limit": true,
+                        "min_flow": true,
+                        "min_up_time": true,
+                        "min_down_time": true
+                    }
+                },
+                "natgas": {
+                    "id": "NG",
+                    "type": "NaturalGas",
+                    "unidirectional": true,
+                    "has_planning_variables": false
+                },
+                "co2": {
+                    "id": "CO2",
+                    "type": "CO2",
+                    "unidirectional": true,
+                    "has_planning_variables": false
+                },
+                "captured_co2": {
+                    "id": "Captured_CO2",
+                    "type": "Captured_CO2",
+                    "unidirectional": true,
+                    "has_planning_variables": false
+                }
+            },
+            "storage": {}
+        },
+        "instance_data": [
+            {
+                "nodes": {},
+                "transforms": {
+                    "id": "smr_ccs_MA",
+                    "efficiency_rate": 0.668437978290351,
+                    "emission_rate": 0.006427212,
+                    "capture_rate": 0.174621023
+                },
+
+                "edges": {
+                    "h2": {
+                        "end_vertex": "h2_MA"
+                    },
+                    "natgas": {
+                        "price_header": "natgas_MA",
+                        "start_vertex": "ng_source"
+                    },
+                    "co2": {
+                        "end_vertex": "co2_MA"
+                    },
+                    "captured_co2": {
+                        "end_vertex": "captured_co2_MA"
+                    }
+                },
+                "storage": {}
+            },
+            {
+                "nodes": {},
+                "transforms": {
+                    "id": "smr_ccs_CT",
+                    "efficiency_rate": 0.668437978290351,
+                    "emission_rate": 0.006427212,
+                    "capture_rate": 0.174621023
+                },
+
+                "edges": {
+                    "h2": {
+                        "end_vertex": "h2_CT"
+                    },
+                    "natgas": {
+                        "price_header": "natgas_CT",
+                        "start_vertex": "ng_source"
+                    },
+                    "co2": {
+                        "end_vertex": "co2_CT"
+                    },
+                    "captured_co2": {
+                        "end_vertex": "captured_co2_CT"
+                    }
+                },
+                "storage": {}
+            },
+            {
+                "nodes": {},
+                "transforms": {
+                    "id": "smr_ccs_ME",
+                    "efficiency_rate": 0.668437978290351,
+                    "emission_rate": 0.006427212,
+                    "capture_rate": 0.174621023
+                },
+
+                "edges": {
+                    "h2": {
+                        "end_vertex": "h2_ME"
+                    },
+                    "natgas": {
+                        "price_header": "natgas_ME",
+                        "start_vertex": "ng_source"
+                    },
+                    "co2": {
+                        "end_vertex": "co2_ME"
+                    },
+                    "captured_co2": {
+                        "end_vertex": "captured_co2_ME"
+                    }
+                },
+                "storage": {}
+            }
+        ]
+    }
+}

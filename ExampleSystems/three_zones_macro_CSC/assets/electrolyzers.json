@@ -1,0 +1,81 @@
+{
+    "electrolyzer": {
+        "type": "Electrolyzer",
+        "global_data": {
+            "nodes": {},
+            "transforms": {
+                "id": "electrolyzer",
+                "time_commodity": "Hydrogen",
+                "efficiency_rate": 0.7406666666666667,
+                "constraints": {
+                    "balance" : true
+                }
+            },
+            "edges": {
+                "h2": {
+                    "id": "H2",
+                    "type": "Hydrogen",
+                    "unidirectional": true,
+                    "has_planning_variables": true,
+                    "can_retire": true,
+                    "can_expand": true,
+                    "existing_capacity": 0,
+                    "capacity_size": 66.66,
+                    "investment_cost": 61006.09061,
+                    "fixed_om_cost": 915.0915092,
+                    "constraints": {
+                        "capacity": true
+                    }
+                },
+                "elec": {
+                    "id": "E",
+                    "type": "Electricity",
+                    "unidirectional": true,
+                    "has_planning_variables": false
+                }
+            },
+            "storage": {}
+        },
+        "instance_data": [
+            {
+                "nodes": {},
+                "transforms": {"id": "electrolyzer_MA"},
+                "edges": {
+                    "h2": {
+                        "end_vertex": "h2_MA"
+                    },
+                    "elec": {
+                        "start_vertex": "elec_MA"
+                    }
+                },
+                "storage": {}
+            },
+            {
+                "nodes": {},
+                "transforms": {"id": "electrolyzer_CT"},
+                "edges": {
+                    "h2": {
+                        "end_vertex": "h2_CT"
+                    },
+                    "elec": {
+                        "start_vertex": "elec_CT"
+                    }
+                },
+                "storage": {}
+            },
+            {
+                "nodes": {},
+                "transforms": {"id": "electrolyzer_ME"},
+                "edges": {
+                    "h2": {
+                        "end_vertex": "h2_ME"
+                    },
+                    "elec": {
+                        "start_vertex": "elec_ME"
+                    }
+                },
+                "storage": {}
+            }
+        ]
+    }
+}

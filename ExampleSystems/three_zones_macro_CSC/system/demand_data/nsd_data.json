@@ -1,0 +1,31 @@
+{
+    "Electricity": {
+        "voll": 50000,
+        "nsd_data": [
+            {
+                "demand_segment": 1,
+                "cost_of_demand_curtailment_per_mw": 1,
+                "cost_of_electricity": 2000,
+                "max_demand_curtailment": 1
+            },
+            {
+                "demand_segment": 2,
+                "cost_of_demand_curtailment_per_mw": 0.9,
+                "cost_of_electricity": 1800,
+                "max_demand_curtailment": 0.04
+            },
+            {
+                "demand_segment": 3,
+                "cost_of_demand_curtailment_per_mw": 0.55,
+                "cost_of_electricity": 1100,
+                "max_demand_curtailment": 0.024
+            },
+            {
+                "demand_segment": 4,
+                "cost_of_demand_curtailment_per_mw": 0.2,
+                "cost_of_electricity": 400,
+                "max_demand_curtailment": 0.003
+            }
+        ]
+    }
+}

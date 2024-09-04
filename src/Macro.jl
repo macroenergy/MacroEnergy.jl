@@ -19,7 +19,7 @@ abstract type Electricity <: Commodity end
 abstract type Hydrogen <: Commodity end
 abstract type NaturalGas <: Commodity end
 abstract type CO2 <: Commodity end
-abstract type CO2Captured <: CO2 end
+abstract type Captured_CO2 <: Commodity end
 
 ## Time data types
 abstract type AbstractTimeData{T<:Commodity} end
@@ -87,12 +87,16 @@ include("model/networks/edge.jl")
 include("model/system.jl")
 include("model/assets/battery.jl")
 include("model/assets/natgaspower.jl")
+include("model/assets/natgaspowerccs.jl")
 include("model/assets/vre.jl")
 include("model/assets/powerline.jl")
 include("model/assets/natgashydrogen.jl")
+include("model/assets/natgashydrogenccs.jl")
 include("model/assets/electrolyzer.jl")
+include("model/assets/electricdac.jl")
 include("model/assets/fuelcell.jl")
 include("model/assets/h2storage.jl")
+include("model/assets/natgasdac.jl")
 
 include_all_in_folder("model/constraints")
 
@@ -109,6 +113,7 @@ include("load_inputs/load_fuel.jl")
 include("load_inputs/load_capacity_factor.jl")
 
 include("write_outputs/assets_capacity.jl")
+include("write_outputs/get_assets.jl")
 
 include("benders/benders_utility.jl")
 include("benders/benders_planning_problem.jl")
@@ -117,14 +122,18 @@ export Electricity,
     Hydrogen,
     NaturalGas,
     CO2,
-    CO2Captured,
+    Captured_CO2,
     Battery,
     H2Storage,
     PowerLine,
     NaturalGasPower,
+    NaturalGasPowerCCS,      
     NaturalGasHydrogen,
+    NaturalGasHydrogenCCS,
     Electrolyzer,
+    ElectricDAC,
     FuelCell,
+    DirectAirCaptureNG,
     VRE,
     SolarPV,
     WindTurbine,

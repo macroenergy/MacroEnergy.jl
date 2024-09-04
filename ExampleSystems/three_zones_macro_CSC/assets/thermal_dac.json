@@ -1,0 +1,146 @@
+{
+    "ng_dac": {
+        "type": "DirectAirCaptureNG",
+        "global_data": {
+            "nodes": {},
+            "transforms": {
+                "id": "natgas_dac",
+                "time_commodity": "CO2",
+                "constraints": {
+                    "balance" : true
+                }
+            },
+            "edges": {
+                "co2": {
+                    "id": "CO2",
+                    "type": "CO2",
+                    "unidirectional": true,
+                    "has_planning_variables": true,
+                    "can_retire": true,
+                    "can_expand": true,
+                    "investment_cost": 873821,
+                    "constraints": {
+                        "capacity": true
+                    }
+                },
+
+                "natgas": {
+                    "id": "NG",
+                    "type": "NaturalGas",
+                    "unidirectional": true,
+                    "has_planning_variables": false
+                },
+                
+                "elec": {
+                    "id": "E",
+                    "type": "Electricity",
+                    "unidirectional": true,
+                    "has_planning_variables": false
+                },
+
+                "captured_co2": {
+                    "id": "Captured_CO2",
+                    "type": "Captured_CO2",
+                    "unidirectional": true,
+                    "has_planning_variables": false
+                }
+            },
+            "storage": {}
+        },
+        "instance_data": [
+            {
+                "nodes": {},
+                "transforms": {
+                    "id": "ng_dac_MA",
+                    "heat_rate":3.064,
+                    "elec_out": 0.126,
+                    "capture_rate": 1.555
+                },
+                "edges": {
+                    
+                    "co2": {
+                        "fixed_om_cost": 386130,
+                        "variable_om_cost": 58.73,
+                        "start_vertex": "co2_MA"
+                    },
+
+                    "natgas": {
+                        "price_header": "natgas_MA",
+                        "start_vertex": "ng_source"
+                    },
+
+                    "elec": {
+                        "end_vertex": "elec_MA"
+                    },
+
+                    "captured_co2": {
+                        "end_vertex": "captured_co2_MA"
+                    }
+                },
+                "storage": {}
+            },
+            {
+                "nodes": {},
+                "transforms": {
+                    "id": "ng_dac_CT",
+                    "heat_rate":3.064,
+                    "elec_out": 0.126,
+                    "capture_rate": 1.555
+                },
+                "edges": {
+                    
+                    "co2": {
+                        "fixed_om_cost": 386130,
+                        "variable_om_cost": 58.73,
+                        "start_vertex": "co2_CT"
+                    },
+
+                    "natgas": {
+                        "price_header": "natgas_CT",
+                        "start_vertex": "ng_source"
+                    },
+
+                    "elec": {
+                        "end_vertex": "elec_CT"
+                    },
+
+                    "captured_co2": {
+                        "end_vertex": "captured_co2_CT"
+                    }
+                },
+                "storage": {}
+            },
+            {
+                "nodes": {},
+                "transforms": {
+                    "id": "ng_dac_ME",
+                    "heat_rate":3.064,
+                    "elec_out": 0.126,
+                    "capture_rate": 1.555
+                },
+                "edges": {
+                    
+                    "co2": {
+                        "fixed_om_cost": 386130,
+                        "variable_om_cost": 58.73,
+                        "start_vertex": "co2_ME"
+                    },
+
+                    "natgas": {
+                        "price_header": "natgas_ME",
+                        "start_vertex": "ng_source"
+                    },
+
+                    "elec": {
+                        "end_vertex": "elec_ME"
+                    },
+
+                    "captured_co2": {
+                        "end_vertex": "captured_co2_ME"
+                    }
+                },
+                "storage": {}
+            }
+        ]
+    }
+}
