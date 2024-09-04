@@ -43,6 +43,7 @@ abstract type PlanningConstraint <: AbstractTypeConstraint end
 # global constants
 const H2_MWh = 33.33 # MWh per tonne of H2
 const NG_MWh = 0.29307107 # MWh per MMBTU of NG 
+const AssetId = Symbol
 const JuMPConstraint = Union{Array,Containers.DenseAxisArray,Containers.SparseAxisArray,ConstraintRef}
 
 function include_all_in_folder(folder)
@@ -72,6 +73,10 @@ function all_subtypes!(types::Dict{Symbol,DataType}, type::DataType)
         end
     end
     return nothing
+end
+
+function fieldnames(type::T) where T <: Type{<:AbstractAsset}
+    return filter(x -> x != :id, Base.fieldnames(type))
 end
 
 # include files
@@ -108,10 +113,6 @@ include("load_inputs/load_tools/load_dataframe.jl")
 include("load_inputs/load_tools/load_timeseries.jl")
 include("load_inputs/load_commodities.jl")
 include("load_inputs/load_time_data.jl")
-include("load_inputs/load_demand.jl")
-include("load_inputs/load_fuel.jl")
-include("load_inputs/load_capacity_factor.jl")
-
 include("write_outputs/assets_capacity.jl")
 include("write_outputs/get_assets.jl")
 
@@ -144,10 +145,13 @@ export Electricity,
     EdgeWithUC,
     namedtuple,
     AbstractAsset,
+    AbstractTypeConstraint,
     PlanningConstraint,
     OperationConstraint,
     CapacityConstraint,
     CO2CapConstraint,
+    StorageMinDurationConstraint,
+    StorageMaxDurationConstraint,
     PolicyConstraint,
     BalanceConstraint,
     MaxNonServedDemandPerSegmentConstraint,

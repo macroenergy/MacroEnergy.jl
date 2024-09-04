@@ -6,7 +6,7 @@
         "path": "locations"
     },
     "settings": {
-        "path": "settings/macro_settings.yml"
+        "path": "settings/macro_settings.json"
     },
     "assets": {
         "path": "assets"

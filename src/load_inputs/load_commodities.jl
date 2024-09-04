@@ -21,17 +21,20 @@ function load_commodities(data::AbstractDict{Symbol, Any}, rel_path::AbstractStr
     end
 end
 
-function load_commodities(data::Vector{<:AbstractString}, rel_path::AbstractString)
+function load_commodities(data::AbstractVector{<:AbstractString}, rel_path::AbstractString)
     # Probably means we have a vector of commdity types
     return load_commodities(Symbol.(data))
 end
 
 function load_commodities(data::AbstractDict{Symbol, Any})
     # make sure the commodities are valid
-    @assert haskey(data, :commodities)
-    commodities = Symbol.(data[:commodities])
-    return load_commodities(commodities)
+    if haskey(data, :commodities)
+        return load_commodities(data[:commodities])
+    end
+    return load_commodities(data[:commodities])
 end
+
+load_commodities(commodities::AbstractVector{<:AbstractString}) = load_commodities(Symbol.(commodities))
 
 function load_commodities(commodities::Vector{Symbol})
     # get the list of all commodities available

@@ -32,6 +32,25 @@ storage_loss_fraction(g::Storage) = g.storage_loss_fraction;
 discharge_edge(g::Storage) = g.discharge_edge;
 charge_edge(g::Storage) = g.charge_edge;
 
+function make_storage(id::Symbol, data::Dict{Symbol,Any}, time_data::TimeData, commodity::DataType)
+    _storage = Storage{commodity}(;
+        id = id,
+        timedata = time_data,
+        can_retire = get(data, :can_retire, false),
+        can_expand = get(data, :can_expand, false),
+        existing_capacity_storage = get(data, :existing_capacity_storage, 0.0),
+        investment_cost_storage = get(data, :investment_cost_storage, 0.0),
+        fixed_om_cost_storage = get(data, :fixed_om_cost_storage, 0.0),
+        storage_loss_fraction = get(data, :storage_loss_fraction, 0.0),
+        min_duration = get(data, :min_duration, 0.0),
+        max_duration = get(data, :max_duration, 0.0),
+        min_storage_level = get(data, :min_storage_level, 0.0),
+        min_capacity_storage = get(data, :min_capacity_storage, 0.0),
+        max_capacity_storage = get(data, :max_capacity_storage, Inf)
+    )
+    return _storage
+end
+Storage(id::Symbol, data::Dict{Symbol,Any}, time_data::TimeData, commodity::DataType) = make_storage(id, data, time_data, commodity)
 
 function add_planning_variables!(g::Storage,model::Model)
     g.planning_vars[:new_capacity_storage] = @variable(

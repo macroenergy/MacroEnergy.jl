@@ -6,7 +6,7 @@ Base.@kwdef mutable struct TimeData{T} <: AbstractTimeData{T}
     hours_per_timestep::Int64 = 1;
 end
 
-
+commodity_type(n::TimeData{T}) where {T} = T;
 
 @doc raw"""
     timestepbefore(t::Int, h::Int,subperiods::Vector{StepRange{Int64,Int64})

@@ -1,9 +1,11 @@
 struct SolarPV <: AbstractAsset
+    id::AssetId
     energy_transform::Transformation
     edge::Edge{Electricity}
 end
 
 struct WindTurbine <: AbstractAsset
+    id::AssetId
     energy_transform::Transformation
     edge::Edge{Electricity}
 end
@@ -13,11 +15,8 @@ const VRE = Union{
     SolarPV, WindTurbine
 }
 
-id(g::VRE) = g.energy_transform.id
+id(g::VRE) = g.id
 
-function add_capacity_factor!(s::VRE, capacity_factor::Vector{Float64})
-    s.edge.capacity_factor = capacity_factor
-end
 
 """
     make(::Type{<:VRE}, data::AbstractDict{Symbol, Any}, system::System) -> VRE
@@ -27,7 +26,7 @@ end
     Necessary data fields:
      - transforms: Dict{Symbol, Any}
         - id: String
-        - time_commodity: String
+        - timedata: String
     - edges: Dict{Symbol, Any}
         - id: String
         - end_vertex: String
@@ -38,13 +37,15 @@ end
         - constraints: Vector{AbstractTypeConstraint}
 """
 function make(asset_type::Type{<:VRE}, data::AbstractDict{Symbol, Any}, system::System)
-    transform_data = validate_data(data[:transforms])
+    id = AssetId(data[:id])
+
+    transform_data = process_data(data[:transforms])
     vre_transform = Transformation(;
         id = Symbol(transform_data[:id]),
-        timedata = system.time_data[Symbol(transform_data[:time_commodity])],
+        timedata = system.time_data[Symbol(transform_data[:timedata])],
     )
 
-    elec_edge_data = validate_data(data[:edges])
+    elec_edge_data = process_data(data[:edges][:edge])
     elec_start_node = vre_transform
     elec_end_node = find_node(system.locations, Symbol(elec_edge_data[:end_vertex]))
 
@@ -52,5 +53,5 @@ function make(asset_type::Type{<:VRE}, data::AbstractDict{Symbol, Any}, system::
     elec_edge.constraints = get(elec_edge_data, :constraints, [CapacityConstraint()])
     elec_edge.unidirectional = get(elec_edge_data, :unidirectional, true);
 
-    return asset_type(vre_transform, elec_edge)
+    return asset_type(id, vre_transform, elec_edge)
 end

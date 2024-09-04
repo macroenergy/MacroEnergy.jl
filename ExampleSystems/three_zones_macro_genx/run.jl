@@ -24,4 +24,4 @@ println("The relative error between Macro and GenX is $(abs(df_genx_status.Objva
 println("The runtime for Macro was $(Macro.solve_time(model))")
 println("The runtime for GenX was $(df_genx_status.Solve[1])")
 
-println()
+println() 

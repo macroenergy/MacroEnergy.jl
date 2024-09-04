@@ -5,7 +5,7 @@
             "nodes": {},
             "transforms": {
                 "id": "natgas_power",
-                "time_commodity": "Electricity",
+                "timedata": "Electricity",
                 "constraints": {
                     "balance" : true
                 }

@@ -5,12 +5,12 @@ function default_settings()
     )
 end
 
-namedtuple(d::Dict) = (; (Symbol(k) => v for (k, v) in d)...)
+namedtuple(d::T) where T <: AbstractDict = (; (Symbol(k) => v for (k, v) in d)...)
 
 function configure_settings(path::AbstractString, rel_path::AbstractString)
     path = rel_or_abs_path(path, rel_path)
     if isdir(path)
-        path = joinpath(path, "macro_settings.yml")
+        path = joinpath(path, "macro_settings.json")
     end
     if !isfile(path)
         error("Settings file not found: $path")

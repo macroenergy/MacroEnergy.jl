@@ -5,7 +5,7 @@
             "nodes": {},
             "transforms": {
                 "id": "solar_pv",
-                "time_commodity": "Electricity"
+                "timedata": "Electricity"
             },
             "edges": {
                 "id": "elec",
@@ -56,7 +56,7 @@
             "nodes": {},
             "transforms": {
                 "id": "wind_turbine",
-                "time_commodity": "Electricity"
+                "timedata": "Electricity"
             },
             "edges": {
                 "id": "elec",

@@ -1,15 +1,12 @@
 struct NaturalGasHydrogen <: AbstractAsset
+    id::AssetId
     natgashydrogen_transform::Transformation
     h2_edge::Union{Edge{Hydrogen},EdgeWithUC{Hydrogen}}
     ng_edge::Edge{NaturalGas}
     co2_edge::Edge{CO2}
 end
 
-id(smr::NaturalGasHydrogen) = smr.natgashydrogen_transform.id
-
-function add_capacity_factor!(smr::NaturalGasHydrogen, capacity_factor::Vector{Float64})
-    smr.h2_edge.capacity_factor = capacity_factor
-end
+id(smr::NaturalGasHydrogen) = smr.id
 
 """
     make(::Type{NaturalGasHydrogen}, data::AbstractDict{Symbol, Any}, system::System) -> NaturalGasHydrogen
@@ -17,7 +14,7 @@ end
     Necessary data fields:
      - transforms: Dict{Symbol, Any}
         - id: String
-        - time_commodity: String
+        - timedata: String
         - efficiency_rate: Float64
         - emission_rate: Float64
         - constraints: Vector{AbstractTypeConstraint}
@@ -53,15 +50,16 @@ end
             - constraints: Vector{AbstractTypeConstraint}
 """
 function make(::Type{NaturalGasHydrogen}, data::AbstractDict{Symbol, Any}, system::System)
+    id = AssetId(data[:id])
 
-    transform_data = validate_data(data[:transforms])
+    transform_data = process_data(data[:transforms])
     natgashydrogen_transform = Transformation(;
         id = Symbol(transform_data[:id]),
-        timedata = system.time_data[Symbol(transform_data[:time_commodity])],
+        timedata = system.time_data[Symbol(transform_data[:timedata])],
         constraints = get(transform_data, :constraints, [BalanceConstraint()])
     )
 
-    h2_edge_data = validate_data(data[:edges][:h2])
+    h2_edge_data = process_data(data[:edges][:h2_edge])
     h2_start_node = natgashydrogen_transform
     h2_end_node = find_node(system.locations, Symbol(h2_edge_data[:end_vertex]))
     h2_edge = EdgeWithUC(Symbol(h2_edge_data[:id]),h2_edge_data, system.time_data[:Hydrogen],Hydrogen, h2_start_node,  h2_end_node );
@@ -69,14 +67,14 @@ function make(::Type{NaturalGasHydrogen}, data::AbstractDict{Symbol, Any}, syste
     h2_edge.unidirectional = get(h2_edge_data, :unidirectional, true);
     h2_edge.startup_fuel_balance_id = :energy;
 
-    ng_edge_data = validate_data(data[:edges][:natgas])
+    ng_edge_data = process_data(data[:edges][:ng_edge])
     ng_start_node = find_node(system.locations, Symbol(ng_edge_data[:start_vertex]))
     ng_end_node = natgashydrogen_transform
     ng_edge = Edge(Symbol(ng_edge_data[:id]),ng_edge_data, system.time_data[:NaturalGas],NaturalGas, ng_start_node,  ng_end_node);
     ng_edge.constraints = get(ng_edge_data, :constraints,  Vector{AbstractTypeConstraint}())
     ng_edge.unidirectional = get(ng_edge_data, :unidirectional, true);
 
-    co2_edge_data = validate_data(data[:edges][:co2])
+    co2_edge_data = process_data(data[:edges][:co2_edge])
     co2_start_node = natgashydrogen_transform
     co2_end_node = find_node(system.locations, Symbol(co2_edge_data[:end_vertex]))
     co2_edge = Edge(Symbol(co2_edge_data[:id]),co2_edge_data, system.time_data[:CO2],CO2, co2_start_node,  co2_end_node);
@@ -91,5 +89,5 @@ function make(::Type{NaturalGasHydrogen}, data::AbstractDict{Symbol, Any}, syste
                                                             h2_edge.id=>0.0))
 
 
-    return NaturalGasHydrogen(natgashydrogen_transform, h2_edge, ng_edge, co2_edge)
+    return NaturalGasHydrogen(id, natgashydrogen_transform, h2_edge, ng_edge, co2_edge)
 end

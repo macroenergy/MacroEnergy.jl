@@ -9,7 +9,7 @@ macro AbstractEdgeBaseAttributes()
         can_retire::Bool = false
         can_expand::Bool = false 
         capacity_size::Float64 = 1.0
-        capacity_factor::Vector{Float64} = Float64[]
+        availability::Vector{Float64} = Float64[]
         min_capacity::Float64 = 0.0
         max_capacity::Float64 = Inf
         existing_capacity::Float64 = 0.0
@@ -31,7 +31,7 @@ Base.@kwdef mutable struct Edge{T} <: AbstractEdge{T}
     @AbstractEdgeBaseAttributes()
 end
 
-function make_edge(id::Symbol,data::Dict{Symbol,Any}, time_data::TimeData, commodity::DataType, start_vertex::AbstractVertex, end_vertex::AbstractVertex)
+function make_edge(id::Symbol,data::AbstractDict{Symbol,Any}, time_data::TimeData, commodity::DataType, start_vertex::AbstractVertex, end_vertex::AbstractVertex)
     _edge = Edge{commodity}(;
         id = id,
         timedata = time_data,
@@ -42,7 +42,7 @@ function make_edge(id::Symbol,data::Dict{Symbol,Any}, time_data::TimeData, commo
         can_retire = get(data,:can_retire,false),
         can_expand = get(data,:can_expand,false), 
         capacity_size = get(data,:capacity_size,1.0),
-        capacity_factor = get(data,:capacity_factor,Float64[]),
+        availability = get(data,:availability,Float64[]),
         min_capacity = get(data,:min_capacity,0.0),
         max_capacity = get(data,:max_capacity,Inf),
         existing_capacity = get(data,:existing_capacity,0.0),
@@ -68,8 +68,8 @@ get_id(e::AbstractEdge) = e.id;
 has_planning_variables(e::AbstractEdge) = e.has_planning_variables;
 existing_capacity(e::AbstractEdge) = e.existing_capacity;
 capacity_size(e::AbstractEdge) = e.capacity_size;
-capacity_factor(e::AbstractEdge) = e.capacity_factor;
-capacity_factor(e::AbstractEdge,t::Int64) = (isempty(capacity_factor(e)) == true) ? 1.0 : capacity_factor(e)[t];
+availability(e::AbstractEdge) = e.availability;
+availability(e::AbstractEdge,t::Int64) = (isempty(availability(e)) == true) ? 1.0 : availability(e)[t];
 investment_cost(e::AbstractEdge) = e.investment_cost;
 fixed_om_cost(e::AbstractEdge) = e.fixed_om_cost;
 variable_om_cost(e::AbstractEdge) = e.variable_om_cost;
@@ -207,7 +207,7 @@ function make_edge_UC(id::Symbol,data::Dict{Symbol,Any}, time_data::TimeData, co
         can_retire = get(data,:can_retire,false),
         can_expand = get(data,:can_expand,false), 
         capacity_size = get(data,:capacity_size,1.0),
-        capacity_factor = get(data,:capacity_factor,Float64[]),
+        availability = get(data,:availability,Float64[]),
         min_capacity = get(data,:min_capacity,0.0),
         max_capacity = get(data,:max_capacity,Inf),
         existing_capacity = get(data,:existing_capacity,0.0),

@@ -9,7 +9,7 @@
          "path": "system/nodes.json"
     },
     "settings": {
-        "path": "settings/macro_settings.yml"
+        "path": "settings/macro_settings.json"
     },
     "commodities": {
         "path": "system/commodities.json"

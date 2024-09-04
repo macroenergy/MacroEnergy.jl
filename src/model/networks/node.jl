@@ -9,7 +9,7 @@ Base.@kwdef mutable struct Node{T} <: AbstractVertex
 end
 
 
-function make_node(data::Dict{Symbol,Any}, time_data::TimeData, commodity::DataType)
+function make_node(data::AbstractDict{Symbol,Any}, time_data::TimeData, commodity::DataType)
     _node = Node{commodity}(;
         id = Symbol(data[:id]),
         demand = get(data, :demand, Vector{Float64}()),
@@ -24,7 +24,7 @@ function make_node(data::Dict{Symbol,Any}, time_data::TimeData, commodity::DataT
     return _node
 end
 
-Node(data::Dict{Symbol,Any}, time_data::TimeData, commodity::DataType) = make_node(data, time_data, commodity)
+Node(data::AbstractDict{Symbol,Any}, time_data::TimeData, commodity::DataType) = make_node(data, time_data, commodity)
 
 commodity_type(n::Node{T}) where {T} = T;
 demand(n::Node) = n.demand;
