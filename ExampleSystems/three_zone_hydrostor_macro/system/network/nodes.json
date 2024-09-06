@@ -36,6 +36,31 @@
             }
         ]
     },
+    "water": {
+        "type": "Water",
+        "global": {
+            "time_interval": "Water",
+            "constraints": {
+                "demand_balance": true,
+                "max_non_served_demand": true,
+                "max_non_served_demand_per_segment": true
+            }
+        },
+        "instance": [
+            {
+                "id": "water_MA",
+                "demand_header": "MA"
+            },
+            {
+                "id": "water_CT",
+                "demand_header": "CT"
+            },
+            {
+                "id": "water_ME",
+                "demand_header": "ME"
+            }
+        ]
+    },
     "emiss": {
         "type": "CO2",
         "global": {

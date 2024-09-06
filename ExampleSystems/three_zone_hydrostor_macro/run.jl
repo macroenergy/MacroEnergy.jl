@@ -1,7 +1,7 @@
 using Macro
 using Gurobi
 
-test_case_path = joinpath(dirname(dirname(@__DIR__)), "ExampleSystems", "three_zones_macro")
+test_case_path = joinpath(dirname(dirname(@__DIR__)), "ExampleSystems", "three_zone_hydrostor_macro")
 
 macro_settings = Macro.configure_settings(joinpath(test_case_path, "settings", "macro_settings.yml"))
 

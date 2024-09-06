@@ -106,6 +106,7 @@ include("input_translation/dolphyn_to_macro.jl")
 # exports
 export Electricity,
     Hydrogen,
+    Water,
     NaturalGas,
     CO2,
     CO2Captured,

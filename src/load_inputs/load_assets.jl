@@ -211,6 +211,16 @@ function make_asset(::Type{Battery}, data::Dict{Symbol,Any}, time_data::Dict{Sym
     return battery
 end
 
+function make_asset(::Type{HydroStor}, data::Dict{Symbol,Any}, time_data::Dict{Symbol,TimeData}, nodes::Dict{Symbol,Node})
+    #=============================================
+    This function makes a HydroStor from the data Dict.
+    It is a helper function for load_assets!.
+    =============================================#
+    # Make the HydroStor
+    hydrostor = make_hydrostor(data, time_data, nodes)
+    return hydrostor
+end
+
 function make_asset(::Type{Electrolyzer}, data::Dict{Symbol,Any}, time_data::Dict{Symbol,TimeData}, nodes::Dict{Symbol,Node})
     #=============================================
     This function makes a Electrolyzer from the data Dict.
