@@ -24,7 +24,7 @@
                     "investment_cost": 1000,
                     "fixed_om_cost": 10,
                     "variable_om_cost": 0,
-                    "has_planning_vars": true,
+                    "has_planning_variables": true,
                     "stoichiometry_coefficients": {
                         "storage": 1
                     },

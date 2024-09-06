@@ -1,4 +1,0 @@
-H2_Resource,Zone,Commit,New_Build,etaG2P_MWh_p_tonne,Inv_Cost_p_MW_p_yr,Fixed_OM_p_MW_yr,Var_OM_Cost_p_MWh,Max_Cap_MW,Min_Cap_MW,Existing_Cap_MW,Cap_Size_MW,Ramp_Up_fraction,Ramp_Down_fraction,G2P_min_output,Start_Cost_per_MW,Up_Time,Down_Time
-G2P_1,1,0,1,1,5,0,0,10000000,0,0,10,1,1,0,50,0,0
-G2P_2,2,0,1,0.6,1170000,11000,1.67,10000000,0,0,10,1,1,0,50,2,2
-G2P_3,3,0,1,0.6,1170000,11000,1.67,10000000,0,0,10,1,1,0,50,2,2

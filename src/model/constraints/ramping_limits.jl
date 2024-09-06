@@ -6,7 +6,7 @@ end
 
 function add_model_constraint!(
     ct::RampingLimitConstraint,
-    e::AbstractTransformationEdge,
+    e::Edge,
     model::Model,
     )
     
@@ -38,7 +38,7 @@ end
 
 function add_model_constraint!(
     ct::RampingLimitConstraint,
-    e::AbstractTransformationEdgeWithUC,
+    e::EdgeWithUC,
     model::Model,
     )
     
@@ -50,7 +50,7 @@ function add_model_constraint!(
         [t in time_interval(e)],
         flow(e,t) - flow(e,timestepbefore(t,1,subperiods(e))) + regulation_term[t] + reserves_term[t] 
         -(ramp_up_fraction(e)*capacity_size(e)*(ucommit(e,t)-ustart(e,t))
-        + min(capacity_factor(e,t),max(min_flow_fraction(e),ramp_up_fraction(e)))*capacity_size(e)*ustart(e,t)
+        + min(availability(e,t),max(min_flow_fraction(e),ramp_up_fraction(e)))*capacity_size(e)*ustart(e,t)
         - min_flow_fraction(e)*capacity_size(e)*ushut(e,t))
         )
 
@@ -59,7 +59,7 @@ function add_model_constraint!(
         flow(e,timestepbefore(t,1,subperiods(e))) - flow(e,t) - regulation_term[t] + reserves_term[timestepbefore(t,1,subperiods(e))]
         -(ramp_down_fraction(e)*capacity_size(e)*(ucommit(e,t)-ustart(e,t))
             - min_flow_fraction(e)*capacity_size(e)*ustart(e,t)
-            + min(capacity_factor(e,t),max(min_flow_fraction(e),ramp_down_fraction(e)))*capacity_size(e)*ushut(e,t)
+            + min(availability(e,t),max(min_flow_fraction(e),ramp_down_fraction(e)))*capacity_size(e)*ushut(e,t)
             )
         )
     

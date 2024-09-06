@@ -1,56 +1,93 @@
 struct NaturalGasPower <: AbstractAsset
+    id::AssetId
     natgaspower_transform::Transformation
-    e_tedge::Union{TEdge{Electricity},TEdgeWithUC{Electricity}}
-    ng_tedge::TEdge{NaturalGas}
-    co2_tedge::TEdge{CO2}
+    e_edge::Union{Edge{Electricity},EdgeWithUC{Electricity}}
+    ng_edge::Edge{NaturalGas}
+    co2_edge::Edge{CO2}
 end
 
-function make_natgaspower(data::Dict{Symbol,Any}, time_data::Dict{Symbol,TimeData}, nodes::Dict{Symbol,Node})
-    ## conversion process (node)
-    _ngcc_transform = Transformation(;
-        id=:NaturalGasPower,
-        timedata=time_data[:Electricity],
-        stoichiometry_balance_names=get(data, :stoichiometry_balance_names, [:energy, :emissions])
+id(ng::NaturalGasPower) = ng.id
+
+"""
+    make(::Type{NaturalGasPower}, data::AbstractDict{Symbol, Any}, system::System) -> NaturalGasPower
+
+    Necessary data fields:
+     - transforms: Dict{Symbol, Any}
+        - id: String
+        - timedata: String
+        - heat_rate: Float64
+        - emission_rate: Float64
+        - constraints: Vector{AbstractTypeConstraint}
+    - edges: Dict{Symbol, Any}
+        - elec: Dict{Symbol, Any}
+            - id: String
+            - end_vertex: String
+            - unidirectional: Bool
+            - has_planning_variables: Bool
+            - can_retire: Bool
+            - can_expand: Bool
+            - min_up_time: Int
+            - min_down_time: Int
+            - startup_cost: Float64
+            - startup_fuel: Float64
+            - startup_fuel_balance_id: Symbol
+            - constraints: Vector{AbstractTypeConstraint}
+        - natgas: Dict{Symbol, Any}
+            - id: String
+            - start_vertex: String
+            - unidirectional: Bool
+            - has_planning_variables: Bool
+            - can_retire: Bool
+            - can_expand: Bool
+            - constraints: Vector{AbstractTypeConstraint}
+        - co2: Dict{Symbol, Any}
+            - id: String
+            - end_vertex: String
+            - unidirectional: Bool
+            - has_planning_variables: Bool
+            - can_retire: Bool
+            - can_expand: Bool
+            - constraints: Vector{AbstractTypeConstraint}
+"""
+function make(::Type{NaturalGasPower}, data::AbstractDict{Symbol, Any}, system::System)
+    id = AssetId(data[:id])
+
+    transform_data = process_data(data[:transforms])
+    natgas_transform = Transformation(;
+        id = Symbol(transform_data[:id]),
+        timedata = system.time_data[Symbol(transform_data[:timedata])],
+        constraints = get(transform_data, :constraints, [BalanceConstraint()])
     )
-    add_constraints!(_ngcc_transform, data)
 
-    ## tedges
-    # step 1: get the edge data
-    # step 2: set the id
-    # step 3: get the correct node
-    # step 4: make the edge
+    elec_edge_data = process_data(data[:edges][:e_edge])
+    elec_start_node = natgas_transform
+    elec_end_node = find_node(system.locations, Symbol(elec_edge_data[:end_vertex]))
+    elec_edge = EdgeWithUC(Symbol(String(id)*"_"*elec_edge_data[:id]),elec_edge_data, system.time_data[:Electricity],Electricity, elec_start_node,  elec_end_node );
+    elec_edge.constraints = get(elec_edge_data, :constraints, [CapacityConstraint(), RampingLimitConstraint(), MinUpTimeConstraint(), MinDownTimeConstraint()])
+    elec_edge.unidirectional = get(elec_edge_data, :unidirectional, true);
+    elec_edge.startup_fuel_balance_id = :energy;
 
-    ## electricity edge
-    _e_tedge_data = get_tedge_data(data, :Electricity)
-    isnothing(_e_tedge_data) && error("No electricity edge data found for NaturalGasPower")
-    _e_tedge_data[:id] = :E
-    _e_node_id = Symbol(data[:nodes][:Electricity])
-    _e_node = nodes[_e_node_id]
-    _e_tedge = make_tedge(_e_tedge_data, time_data, _ngcc_transform, _e_node)
+    ng_edge_data = process_data(data[:edges][:ng_edge])
+    ng_start_node = find_node(system.locations, Symbol(ng_edge_data[:start_vertex]))
+    ng_end_node = natgas_transform
+    ng_edge = Edge(Symbol(String(id)*"_"*ng_edge_data[:id]),ng_edge_data, system.time_data[:NaturalGas],NaturalGas, ng_start_node,  ng_end_node);
+    ng_edge.constraints = get(ng_edge_data, :constraints,  Vector{AbstractTypeConstraint}())
+    ng_edge.unidirectional = get(ng_edge_data, :unidirectional, true);
 
-    ## natural gas edge
-    _ng_tedge_data = get_tedge_data(data, :NaturalGas)
-    isnothing(_ng_tedge_data) && error("No natural gas edge data found for NaturalGasPower")
-    _ng_tedge_data[:id] = :NG
-    _ng_node_id = Symbol(data[:nodes][:NaturalGas])
-    _ng_node = nodes[_ng_node_id]
-    _ng_tedge = make_tedge(_ng_tedge_data, time_data, _ngcc_transform, _ng_node)
+    co2_edge_data = process_data(data[:edges][:co2_edge])
+    co2_start_node = natgas_transform
+    co2_end_node = find_node(system.locations, Symbol(co2_edge_data[:end_vertex]))
+    co2_edge = Edge(Symbol(String(id)*"_"*co2_edge_data[:id]),co2_edge_data, system.time_data[:CO2],CO2, co2_start_node,  co2_end_node);
+    co2_edge.constraints = get(co2_edge_data, :constraints,  Vector{AbstractTypeConstraint}())
+    co2_edge.unidirectional = get(co2_edge_data, :unidirectional, true);
 
-    ## co2 edge
-    _co2_tedge_data = get_tedge_data(data, :CO2)
-    isnothing(_co2_tedge_data) && error("No CO2 edge data found for NaturalGasPower")
-    _co2_tedge_data[:id] = :CO2
-    _co2_node_id = Symbol(data[:nodes][:CO2])
-    _co2_node = nodes[_co2_node_id]
-    _co2_tedge = make_tedge(_co2_tedge_data, time_data, _ngcc_transform, _co2_node)
+    natgas_transform.balance_data =  Dict(:energy=>Dict(elec_edge.id=>get(transform_data,:heat_rate,1.0),
+                                                        ng_edge.id=>1.0,
+                                                        co2_edge.id=>0.0),
+                                          :emissions=>Dict(ng_edge.id=>get(transform_data,:emission_rate,0.0),
+                                                            co2_edge.id=>1.0,
+                                                            elec_edge.id=>0.0))
 
-    ## add reference to tedges in transformation
-    _TEdges = Dict(:E=>_e_tedge, :NG=>_ng_tedge, :CO2=>_co2_tedge)
-    _ngcc_transform.TEdges = _TEdges
 
-    return NaturalGasPower(_ngcc_transform, _e_tedge, _ng_tedge, _co2_tedge)
-end
-
-function add_capacity_factor!(ng::NaturalGasPower, capacity_factor::Vector{Float64})
-    ng.e_tedge.capacity_factor = capacity_factor
+    return NaturalGasPower(id, natgas_transform, elec_edge, ng_edge, co2_edge)
 end

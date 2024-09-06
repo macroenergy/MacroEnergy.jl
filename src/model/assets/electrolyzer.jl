@@ -1,37 +1,65 @@
 struct Electrolyzer <: AbstractAsset
+    id::AssetId
     electrolyzer_transform::Transformation
-    h2_tedge::TEdge{Hydrogen}
-    elec_tedge::TEdge{Electricity}
+    h2_edge::Edge{Hydrogen}
+    e_edge::Edge{Electricity}
 end
 
-function make_electrolyzer(data::Dict{Symbol,Any}, time_data::Dict{Symbol,TimeData}, nodes::Dict{Symbol,Node})
-    ## conversion process (node)
-    _electrolyzer_transform = Transformation(;
-        id=:Electrolyzer,
-        timedata=time_data[:Hydrogen],
-        stoichiometry_balance_names=get(data, :stoichiometry_balance_names, [:energy])
+id(b::Electrolyzer) = b.id
+
+"""
+    make(::Type{Electrolyzer}, data::AbstractDict{Symbol, Any}, system::System) -> Electrolyzer
+
+    Necessary data fields:
+     - transforms: Dict{Symbol, Any}
+        - id: String
+        - timedata: String
+        - efficiency_rate: Float64
+        - constraints: Vector{AbstractTypeConstraint}
+    - edges: Dict{Symbol, Any}
+        - h2: Dict{Symbol, Any}
+            - id: String
+            - end_vertex: String
+            - unidirectional: Bool
+            - has_planning_variables: Bool
+            - can_retire: Bool
+            - can_expand: Bool
+            - constraints: Vector{AbstractTypeConstraint}
+        - elec: Dict{Symbol, Any}
+            - id: String
+            - start_vertex: String
+            - unidirectional: Bool
+            - has_planning_variables: Bool
+            - can_retire: Bool
+            - can_expand: Bool
+            - constraints: Vector{AbstractTypeConstraint}
+"""
+function make(::Type{Electrolyzer}, data::AbstractDict{Symbol,Any}, system::System)
+    id = AssetId(data[:id])
+
+    transform_data = process_data(data[:transforms])
+
+    electrolyzer = Transformation(;
+        id=id,
+        timedata=system.time_data[Symbol(transform_data[:timedata])],
+        constraints=get(transform_data, :constraints, [BalanceConstraint()])
     )
-    add_constraints!(_electrolyzer_transform, data)
 
-    ## hydrogen edge
-    _h2_tedge_data = get_tedge_data(data, :Hydrogen)
-    isnothing(_h2_tedge_data) && error("No hydrogen edge data found for Electrolyzer")
-    _h2_tedge_data[:id] = :H2
-    _h2_node_id = Symbol(data[:nodes][:Hydrogen])
-    _h2_node = nodes[_h2_node_id]
-    _h2_tedge = make_tedge(_h2_tedge_data, time_data, _electrolyzer_transform, _h2_node)
+    elec_edge_data = process_data(data[:edges][:e_edge])
+    elec_start_node = find_node(system.locations, Symbol(elec_edge_data[:start_vertex]))
+    elec_end_node = electrolyzer
+    elec_edge = Edge(Symbol(String(id)*"_"*elec_edge_data[:id]), elec_edge_data, system.time_data[:Electricity], Electricity, elec_start_node, elec_end_node)
+    elec_edge.unidirectional = get(elec_edge_data, :unidirectional, true)
 
-    ## electricity edge
-    _elec_tedge_data = get_tedge_data(data, :Electricity)
-    isnothing(_elec_tedge_data) && error("No electricity edge data found for Electrolyzer")
-    _elec_tedge_data[:id] = :E
-    _elec_node_id = Symbol(data[:nodes][:Electricity])
-    _elec_node = nodes[_elec_node_id]
-    _elec_tedge = make_tedge(_elec_tedge_data, time_data, _electrolyzer_transform, _elec_node)
+    h2_edge_data = process_data(data[:edges][:h2_edge])
+    h2_start_node = electrolyzer
+    h2_end_node = find_node(system.locations, Symbol(h2_edge_data[:end_vertex]))
+    h2_edge = Edge(Symbol(String(id)*"_"*h2_edge_data[:id]), h2_edge_data, system.time_data[:Hydrogen], Hydrogen, h2_start_node, h2_end_node)
+    h2_edge.constraints = get(h2_edge_data, :constraints, [CapacityConstraint()])
+    h2_edge.unidirectional = get(h2_edge_data, :unidirectional, true)
 
-    ## add reference to tedges in transformation
-    _TEdges = Dict(:H2=>_h2_tedge, :E=>_elec_tedge)
-    _electrolyzer_transform.TEdges = _TEdges
-    
-    return Electrolyzer(_electrolyzer_transform, _h2_tedge, _elec_tedge)
+    electrolyzer.balance_data = Dict(:energy => Dict(h2_edge.id => 1.0,
+        elec_edge.id => get(transform_data, :efficiency_rate, 1.0)))
+
+    return Electrolyzer(id, electrolyzer, h2_edge, elec_edge)
 end

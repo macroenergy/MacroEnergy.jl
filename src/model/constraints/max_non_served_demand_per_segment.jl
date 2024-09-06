@@ -6,10 +6,10 @@ end
 
 function add_model_constraint!(
     ct::MaxNonServedDemandPerSegmentConstraint,
-    n::AbstractNode,
+    n::Node,
     model::Model,
 )
-    if haskey(n.operation_vars,:non_served_demand)
+    if !isempty(non_served_demand(n))
         ct.constraint_ref = @constraint(
             model,
             [s in segments_non_served_demand(n), t in time_interval(n)],

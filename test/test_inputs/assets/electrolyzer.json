@@ -1,6 +1,6 @@
 {
     "stor": {
-        "type": "Electrolyzer",
+        "type": "ElectrolyzerTransform",
         "global": {
             "time_interval": "Electricity",
             "stoichiometry_balance_names": [
@@ -10,7 +10,7 @@
                 "elec": {
                     "direction": "input",
                     "type": "Electricity",
-                    "has_planning_vars": false,
+                    "has_planning_variables": false,
                     "time_interval": "Electricity",
                     "stoichiometry_coefficients": {
                         "energy": 0.74
@@ -19,7 +19,7 @@
                 "h2": {
                     "direction": "output",
                     "type": "Hydrogen",
-                    "has_planning_vars": true,
+                    "has_planning_variables": true,
                     "capacity_size": 66.7,
                     "time_interval": "Hydrogen",
                     "can_expand": true,

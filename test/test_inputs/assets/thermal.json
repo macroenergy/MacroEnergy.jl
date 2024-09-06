@@ -17,7 +17,7 @@
                     "direction": "output",
                     "can_expand": true,
                     "can_retire": false,
-                    "has_planning_vars": true,
+                    "has_planning_variables": true,
                     "existing_capacity": 0,
                     "investment_cost": 1000,
                     "fixed_om_cost": 10,
@@ -27,8 +27,8 @@
                     "min_flow_fraction": 0,
                     "min_up_time": 0,
                     "min_down_time": 0,
-                    "start_cost": 0,
-                    "start_fuel_mmbtu_per_mwh": 0,
+                    "startup_cost": 0,
+                    "startup_fuel_mmbtu_per_mwh": 0,
                     "fuel_stoichiometry_name": "energy",
                     "stoichiometry_coefficients": {
                         "energy": 2.1775,
@@ -45,7 +45,7 @@
                 "natgas": {
                     "direction": "input",
                     "type": "NaturalGas",
-                    "has_planning_vars": false,
+                    "has_planning_variables": false,
                     "stoichiometry_coefficients": {
                         "energy": 1,
                         "emissions": 0.2
@@ -54,7 +54,7 @@
                 "co2": {
                     "direction": "output",
                     "type": "CO2",
-                    "has_planning_vars": false,
+                    "has_planning_variables": false,
                     "stoichiometry_coefficients": {
                         "energy": 0,
                         "emissions": 1
@@ -134,7 +134,7 @@
                         "can_expand": true,
                         "can_retire": true,
                         "capacity_size": 1000,
-                        "has_planning_vars": true,
+                        "has_planning_variables": true,
                         "existing_capacity": 20,
                         "investment_cost": 1000,
                         "fixed_om_cost": 10,
@@ -146,8 +146,8 @@
                         "min_down_time": 50,
                         "min_capacity": 5,
                         "max_capacity": 2000,
-                        "start_cost": 10,
-                        "start_fuel": 10,
+                        "startup_cost": 10,
+                        "startup_fuel": 10,
                         "fuel_stoichiometry_name": "energy",
                         "stoichiometry_coefficients": {
                             "energy": 2.1775,
@@ -164,7 +164,7 @@
                     "natgas": {
                         "type": "NaturalGas",
                         "direction": "input",
-                        "has_planning_vars": true,
+                        "has_planning_variables": true,
                         "can_retire": true,
                         "can_expand": true,
                         "capacity_size": 1000,
@@ -186,7 +186,7 @@
                     "co2": {
                         "direction": "output",
                         "type": "CO2",
-                        "has_planning_vars": false,
+                        "has_planning_variables": false,
                         "stoichiometry_coefficients": {
                             "energy": 0,
                             "emissions": 1

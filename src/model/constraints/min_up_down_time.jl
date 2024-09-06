@@ -12,12 +12,12 @@ end
 
 function add_model_constraint!(
     ct::MinDownTimeConstraint,
-    e::AbstractTransformationEdgeWithUC,
+    e::EdgeWithUC,
     model::Model,
     )
 
     if min_down_time(e) > minimum(length.(subperiods(e)))
-        error("The minimum down time for $(get_transformation_id(e))_$(get_id(e)) is longer than the length of one subperiod")
+        error("The minimum down time for $(get_id(e)) is longer than the length of one subperiod")
     else
         
         ct.constraint_ref = @constraint(model,
@@ -34,11 +34,11 @@ end
 
 function add_model_constraint!(
     ct::MinUpTimeConstraint,
-    e::AbstractTransformationEdgeWithUC,
+    e::EdgeWithUC,
     model::Model,
     )
     if min_up_time(e)>minimum(length.(subperiods(e)))
-        error("The minimum up time for $(get_transformation_id(e))_$(get_id(e)) is longer than the length of one subperiod")
+        error("The minimum up time for $(get_id(e)) is longer than the length of one subperiod")
     else
         ct.constraint_ref = @constraint(model,
         [t in time_interval(e)],

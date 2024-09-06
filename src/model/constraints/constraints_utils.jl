@@ -7,7 +7,7 @@ constraint_ref(c::AbstractTypeConstraint) = c.contraint_dict[:constraint_ref];
 
 
 function add_all_model_constraints!(
-    y::Union{AbstractEdge,AbstractNode,AbstractTransformationEdge},
+    y::Union{AbstractEdge,AbstractVertex},
     model::Model,
 )
 
@@ -19,12 +19,18 @@ function add_all_model_constraints!(
     return nothing
 end
 
-function add_all_model_constraints!(y::AbstractTransform, model::Model)
 
-    for ct in all_constraints(y)
-        add_model_constraint!(ct, y, model)
-    end
+function add_all_model_constraints!(system::System,model::Model)
 
-    return nothing
+    add_all_model_constraints!.(system.locations, Ref(model))
+
+    add_all_model_constraints!.(system.assets, Ref(model))
+
 end
 
+function add_all_model_constraints!(a::AbstractAsset, model::Model)
+    for t in fieldnames(typeof(a))
+        add_all_model_constraints!(getfield(a,t), model)
+    end
+    return nothing
+end

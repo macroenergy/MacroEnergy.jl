@@ -1,0 +1,86 @@
+{
+    "electrolyzer": [
+        {
+            "type": "Electrolyzer",
+            "global_data": {
+                "nodes": {},
+                "transforms": {
+                    "id": "electrolyzer",
+                    "timedata": "Hydrogen",
+                    "efficiency_rate": 0.7406666666666667,
+                    "constraints": {
+                        "BalanceConstraint": true
+                    }
+                },
+                "edges": {
+                    "h2_edge": {
+                        "id": "H2",
+                        "type": "Hydrogen",
+                        "unidirectional": true,
+                        "has_planning_variables": true,
+                        "can_retire": true,
+                        "can_expand": true,
+                        "existing_capacity": 0,
+                        "capacity_size": 66.66,
+                        "investment_cost": 61006.09061,
+                        "fixed_om_cost": 915.0915092,
+                        "constraints": {
+                            "CapacityConstraint": true
+                        }
+                    },
+                    "e_edge": {
+                        "id": "E",
+                        "type": "Electricity",
+                        "unidirectional": true,
+                        "has_planning_variables": false
+                    }
+                },
+                "storage": {}
+            },
+            "instance_data": [
+                {
+                    "id": "electrolyzer_MA",
+                    "nodes": {},
+                    "transforms": {},
+                    "edges": {
+                        "h2_edge": {
+                            "end_vertex": "h2_MA"
+                        },
+                        "e_edge": {
+                            "start_vertex": "elec_MA"
+                        }
+                    },
+                    "storage": {}
+                },
+                {
+                    "id": "electrolyzer_CT",
+                    "nodes": {},
+                    "transforms": {},
+                    "edges": {
+                        "h2_edge": {
+                            "end_vertex": "h2_CT"
+                        },
+                        "e_edge": {
+                            "start_vertex": "elec_CT"
+                        }
+                    },
+                    "storage": {}
+                },
+                {
+                    "id": "electrolyzer_ME",
+                    "nodes": {},
+                    "transforms": {},
+                    "edges": {
+                        "h2_edge": {
+                            "end_vertex": "h2_ME"
+                        },
+                        "e_edge": {
+                            "start_vertex": "elec_ME"
+                        }
+                    },
+                    "storage": {}
+                }
+            ]
+        }
+    ]
+}

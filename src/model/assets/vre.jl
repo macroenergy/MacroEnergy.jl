@@ -1,57 +1,57 @@
 struct SolarPV <: AbstractAsset
+    id::AssetId
     energy_transform::Transformation
-    tedge::TEdge{Electricity}
-end
-
-function make_solarpv(data::Dict{Symbol,Any}, time_data::Dict{Symbol,TimeData}, node_out::Node)
-    _energy_transform, _tedge = make_vre(data, time_data, node_out)
-    return SolarPV(_energy_transform, _tedge)
+    edge::Edge{Electricity}
 end
 
 struct WindTurbine <: AbstractAsset
+    id::AssetId
     energy_transform::Transformation
-    tedge::TEdge{Electricity}
+    edge::Edge{Electricity}
 end
 
-function make_windturbine(data::Dict{Symbol,Any}, time_data::Dict{Symbol,TimeData}, node_out::Node)
-    _energy_transform, _tedge = make_vre(data, time_data, node_out)
-    return WindTurbine(_energy_transform, _tedge)
-end
 
-const VRE = Union{SolarPV, WindTurbine}
+const VRE = Union{
+    SolarPV, WindTurbine
+}
 
-function make_vre(data::Dict{Symbol,Any}, time_data::Dict{Symbol,TimeData}, node_out::Node)
-    #============================================================
-    This function makes a VRE (SolarPV or WindTurbine) from the 
-    data Dict. It is a helper function for load_transformations!.
-    ============================================================#
+id(g::VRE) = g.id
 
-    ## conversion process (node)
-    _energy_transform = Transformation(;
-        id=:EnergyTransform,
-        timedata=time_data[:Electricity],
-        # Note that this transformation does not 
-        # have a stoichiometry balance because the 
-        # sunshine is exogenous
+
+"""
+    make(::Type{<:VRE}, data::AbstractDict{Symbol, Any}, system::System) -> VRE
+    
+    VRE is an alias for Union{SolarPV, WindTurbine}
+
+    Necessary data fields:
+     - transforms: Dict{Symbol, Any}
+        - id: String
+        - timedata: String
+    - edges: Dict{Symbol, Any}
+        - id: String
+        - end_vertex: String
+        - unidirectional: Bool
+        - has_planning_variables: Bool
+        - can_retire: Bool
+        - can_expand: Bool
+        - constraints: Vector{AbstractTypeConstraint}
+"""
+function make(asset_type::Type{<:VRE}, data::AbstractDict{Symbol, Any}, system::System)
+    id = AssetId(data[:id])
+
+    transform_data = process_data(data[:transforms])
+    vre_transform = Transformation(;
+        id = Symbol(transform_data[:id]),
+        timedata = system.time_data[Symbol(transform_data[:timedata])],
     )
-    add_constraints!(_energy_transform, data)
 
-    ## electricity edge
-    # get electricity edge data
-    _tedge_data = get_tedge_data(data, :Electricity)
-    isnothing(_tedge_data) && error("No electricity edge data found for VRE")
-    # set the id
-    _tedge_data[:id] = :E
-    # make the edge
-    _tedge = make_tedge(_tedge_data, time_data, _energy_transform, node_out)
+    elec_edge_data = process_data(data[:edges][:edge])
+    elec_start_node = vre_transform
+    elec_end_node = find_node(system.locations, Symbol(elec_edge_data[:end_vertex]))
 
-    ## add reference to tedges in transformation
-    _TEdges = Dict(:E=>_tedge)
-    _energy_transform.TEdges = _TEdges
+    elec_edge = Edge(Symbol(String(id)*"_"*elec_edge_data[:id]),elec_edge_data, system.time_data[:Electricity],Electricity, elec_start_node,  elec_end_node );
+    elec_edge.constraints = get(elec_edge_data, :constraints, [CapacityConstraint()])
+    elec_edge.unidirectional = get(elec_edge_data, :unidirectional, true);
 
-    return _energy_transform, _tedge
-end
-
-function add_capacity_factor!(s::VRE, capacity_factor::Vector{Float64})
-    s.tedge.capacity_factor = capacity_factor
+    return asset_type(id, vre_transform, elec_edge)
 end

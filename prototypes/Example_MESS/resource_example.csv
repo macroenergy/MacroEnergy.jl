@@ -1,4 +1,0 @@
-﻿Name,Type,Zone,Fixed_Cost,Variable_Cost
-ngcc,ngcc,zone_1,20,3
-fission,fission,zone_1,40,1
-ocgt,ocgt,zone_1,10,4

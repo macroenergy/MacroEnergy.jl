@@ -1,4 +1,0 @@
-H2_Pipelines,z1,z2,z3,Max_No_Pipe,Existing_No_Pipe,Max_Flow_Tonne_p_Hr_Per_Pipe,H2Pipe_Inv_Cost_per_mile_yr,Pipe_length_miles,H2PipeCap_tonne_per_mile,Min_pipecap_stor_frac,len_bw_comp_mile,BoosterCompCapex_per_tonne_p_hr_yr,BoosterCompEnergy_MWh_per_tonne,H2PipeCompCapex,H2PipeCompEnergy
-1,1,-1,0,20,0,38.8,254652.74,123.0584,1.18,0.1,100,50000,0.8,50804.11,1
-2,1,0,-1,20,0,38.8,254652.74,196.5385,1.18,0.1,100,50000,0.8,50804.11,1
-3,0,1,-1,20,0,38.8,254652.74,196.5385,1.18,0.1,100,50000,0.8,50804.11,1

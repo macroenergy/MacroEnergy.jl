@@ -1,4 +1,0 @@
-Name,Type,Zone,Fixed_Cost,Variable_Cost,Mwhe_per_tonne,gas_per_tonne
-smr,smr,zone_1,20,3,0,2
-smr_ccs,smr_ccs,zone_1,40,1,0,2
-pem,pem,zone_1,10,4,40,0

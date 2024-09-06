@@ -1,7 +1,0 @@
-[deps]
-CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
-DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
-Gurobi = "2e9cd046-0924-5485-92f1-d5272153d98b"
-HiGHS = "87dc4568-4c63-4d18-b0c0-bb2238e4078b"
-IJulia = "7073ff75-c697-5162-941a-fcdaad2a7d2a"
-Macro = "260b7737-bf0e-4e84-9335-3af14438b1f5"

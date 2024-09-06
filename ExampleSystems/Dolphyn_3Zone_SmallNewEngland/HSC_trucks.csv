@@ -1,4 +1,0 @@
-H2TruckType,LDS,New_Build,Existing_Number,Existing_Energy_Cap_tonne,Inv_Cost_p_unit_p_yr,Existing_Energy_Cap_tonne_z1,Existing_Energy_Cap_tonne_z2,Existing_Energy_Cap_tonne_z3,TruckCap_tonne_per_unit,Inv_Cost_Energy_p_tonne_yr,Fixed_OM_Cost_Energy_p_tonne_yr,H2TruckCompressionEnergy,H2TruckCompressionUnitOpex,Max_Energy_Cap_tonne,Min_Energy_Cap_tonne,Full_weight_tonne_per_unit,Empty_weight_tonne_per_unit,AvgTruckSpeed_mile_per_hour,H2TruckUnitOpex_per_mile_full,H2TruckUnitOpex_per_mile_empty,H2TLoss_per_mile,H2TLoss_per_mile,lifetime,Fuel,Fuel_MMBTU_per_mile,Power_MW_per_mile,H2_tonne_per_mile
-Gas,0,1,0,0,840000,0,0,0,0.67,1500000,0,1,0,-1,-1,10.67,10,35,1.38,1.38,0,0.0015,12,CT_NG,0,0,0
-Liquid,0,1,0,0,1200000,0,0,0,4.3,32000000,0,11,0,-1,-1,14.3,10,35,1.38,1.38,0.03,0.0015,12,CT_NG,0,0,0
-LOHC,0,1,0,0,480000,0,0,0,1.8,40000000,0,10000,0,-1,-1,11.8,10,35,1.38,1.38,0.1,0.0015,12,CT_NG,0,0,0

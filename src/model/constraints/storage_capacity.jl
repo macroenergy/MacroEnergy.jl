@@ -7,19 +7,15 @@ end
 
 function add_model_constraint!(
     ct::StorageCapacityConstraint,
-    g::AbstractTransform,
+    g::Storage,
     model::Model,
 )
-
-    if has_storage(g)
-        ct.constraint_ref = @constraint(
+    
+    ct.constraint_ref = @constraint(
             model,
             [t in time_interval(g)],
             storage_level(g,t) <= capacity_storage(g)
         )
-    else
-        @warn "StorageCapacityConstraint required for a transformation that does not have storage so MACRO will not create this constraint"
-    end
 
     return nothing
 end
