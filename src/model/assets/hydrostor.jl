@@ -1,13 +1,82 @@
 struct HydroStor <: AbstractAsset
-	hydrostor_transform::Transformation
-	discharge_tedge::TEdge{Electricity}
-	spillage_tedge::TEdge{Water}
-	charge_tedge_electricity::TEdge{Electricity}
-	charge_tedge_water::TEdge{Water}
+	id::AssetId
+	hydrostor_reservoir::Storage{Water}
+	generator_transform::Transformation
+	spillage_edge::Edge{Water}
+	charge_edge_water::Edge{Water}
+	discharge_edge_elec::Edge{Electricity}
+	charge_edge_elec::Edge{Electricity}
 end
     
-function make_hydrostor(data::Dict{Symbol,Any}, time_data::Dict{Symbol,TimeData}, nodes::Dict{Symbol,Node})
-	## conversion process (node)
+id(hs::HydroStor) = hs.id
+
+"""
+    make(::Type{HydroStor}, data::AbstractDict{Symbol, Any}, system::System) -> HydroStor
+
+    Necessary data fields:
+     - storage: Dict{Symbol, Any}
+        - id: String
+        - commodity: String
+        - can_retire: Bool
+        - can_expand: Bool
+        - existing_capacity_storage: Float64
+        - investment_cost_storage: Float64
+        - fixed_om_cost_storage: Float64
+        - storage_loss_fraction: Float64
+        - min_duration: Float64
+        - max_duration: Float64
+        - min_storage_level: Float64
+        - min_capacity_storage: Float64
+        - max_capacity_storage: Float64
+        - constraints: Vector{AbstractTypeConstraint}
+     - edges: Dict{Symbol, Any}
+        - charge: Dict{Symbol, Any}
+            - id: String
+            - start_vertex: String
+            - unidirectional: Bool
+            - has_planning_variables: Bool
+            - efficiency: Float64
+        - discharge: Dict{Symbol, Any}
+            - id: String
+            - end_vertex: String
+            - unidirectional: Bool
+            - has_planning_variables: Bool
+            - can_retire: Bool
+            - can_expand: Bool
+            - efficiency
+            - constraints: Vector{AbstractTypeConstraint}
+"""
+
+function make(::Type{HydroStor}, data::AbstractDict{Symbol,Any}, system::System)
+	id = AssetId(data[:id])
+
+	storage_data = process_data(data[:storage])
+	commodity_symbol = Symbol(storage_data[:commodity])
+	commodity = commodity_types()[commodity_symbol]
+	battery_storage = Storage(id, storage_data, system.time_data[commodity_symbol], commodity)
+	battery_storage.constraints = get(storage_data, :constraints, [BalanceConstraint(), StorageCapacityConstraint(), StorageMaxDurationConstraint(), StorageMinDurationConstraint(), StorageSymmetricCapacityConstraint()])
+    
+	charge_edge_data = process_data(data[:edges][:charge_edge])
+	charge_start_node = find_node(system.locations, Symbol(charge_edge_data[:start_vertex]))
+	charge_end_node = battery_storage
+	battery_charge = Edge(Symbol(String(id)*"_"*charge_edge_data[:id]), charge_edge_data, system.time_data[commodity_symbol], commodity, charge_start_node, charge_end_node)
+	battery_charge.unidirectional = get(charge_edge_data, :unidirectional, true)
+    
+	discharge_edge_data = process_data(data[:edges][:discharge_edge])
+	discharge_start_node = battery_storage
+	discharge_end_node = find_node(system.locations, Symbol(discharge_edge_data[:end_vertex]))
+	battery_discharge = Edge(Symbol(String(id)*"_"*discharge_edge_data[:id]), discharge_edge_data, system.time_data[commodity_symbol], commodity, discharge_start_node, discharge_end_node)
+	battery_discharge.constraints = get(discharge_edge_data, :constraints, [CapacityConstraint(), RampingLimitConstraint()])
+	battery_discharge.unidirectional = get(discharge_edge_data, :unidirectional, true)
+    
+	battery_storage.discharge_edge = battery_discharge
+	battery_storage.charge_edge = battery_charge
+	battery_storage.balance_data = Dict(:storage => Dict(battery_discharge.id => 1 / get(discharge_edge_data, :efficiency, 0.9),
+	    battery_charge.id => get(charge_edge_data, :efficiency, 0.9)))
+    
+	return Battery(id, battery_storage, battery_discharge, battery_charge)
+
+
 	_hydrostor_transform = Transformation(;
 	    id=:Hydrostor,
 	    timedata=time_data[:Electricity],
@@ -62,5 +131,5 @@ function make_hydrostor(data::Dict{Symbol,Any}, time_data::Dict{Symbol,TimeData}
 	_TEdges = Dict(:discharge=>_discharge_tedge, :charge=>_charge_tedge_electricity, :discharge_spill=>_spillage_tedge, :charge_water=>_charge_tedge_water)
 	_hydrostor_transform.TEdges = _TEdges
     
-	return HydroStor(_hydrostor_transform, _discharge_tedge, _spillage_tedge, _charge_tedge_electricity, _charge_tedge_water)
-    end
+	return HydroStor(id, hydrostor_storage, hydrostor_discharge_elec, hydrostor_spillage, hydrostor_charge_elec, hydrostor_charge_water)
+end
