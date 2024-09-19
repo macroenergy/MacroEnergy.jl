@@ -7,6 +7,9 @@ mutable struct System
     locations::Vector{Node}
 end
 
+asset_ids(system::System) = map(x -> x.id, system.assets)
+location_ids(system::System) = map(x -> x.id, system.locations)
+
 function set_data_dirpath!(system::System, data_dirpath::String)
     system.data_dirpath = data_dirpath
 end
