@@ -77,6 +77,7 @@ include("model/networks/edge.jl")
 include("model/networks/asset.jl")
 
 include("model/system.jl")
+include("model/networks/macroobject.jl")
 
 include("model/assets/battery.jl")
 include("model/assets/electrolyzer.jl")
