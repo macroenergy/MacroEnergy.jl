@@ -5,9 +5,17 @@ id(asset::AbstractAsset) = asset.id
 
     Return a vector of tuples with the field names and types of a struct.
 """
-function struct_info(::Type{T}) where T
-    names = Base.fieldnames(T)
+function struct_info(::Type{T}, include_id::Bool=false) where T
+    if include_id
+        names = Base.fieldnames(T)
+    else
+        names = fieldnames(T)
+    end
     return [(names[idx], x) for (idx, x) in enumerate(T.types)]
+end
+
+function struct_info(asset::T) where T
+    return struct_info(typeof(asset))
 end
 
 function print_struct_info(asset::AbstractAsset)
