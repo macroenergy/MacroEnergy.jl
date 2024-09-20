@@ -11,7 +11,7 @@ system = Macro.load_system(case_path)
 
 model = Macro.generate_model(system)
 
-Macro.set_optimizer(model,Gurobi.Optimizer);
+Macro.set_optimizer(model, Gurobi.Optimizer);
 Macro.optimize!(model)
 macro_objval = Macro.objective_value(model)
 

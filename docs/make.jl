@@ -8,7 +8,8 @@ makedocs(;
     authors = "",
     sitename = "Macro",
     format = Documenter.HTML(; prettyurls = get(ENV, "CI", "false") == "true"),
-    pages = ["Home" => "index.md",
+    pages = [
+        "Home" => "index.md",
         "Types" => "type_hierarchy.md",
         "Data model" => "data_model.md",
     ],

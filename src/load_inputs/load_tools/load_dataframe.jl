@@ -4,7 +4,6 @@ struct InputFileNotFound <: Exception
 end
 Base.showerror(io::IO, e::InputFileNotFound) = print(io, e.filefullpath, " not found")
 
-
 function load_dataframe(filepath::AbstractString)
     if isfile(filepath)
         validate_columns(filepath)
@@ -12,13 +11,6 @@ function load_dataframe(filepath::AbstractString)
     else
         throw(InputFileNotFound(filepath))
     end
-end
-
-function csv_header(path::AbstractString)
-    f = open(path, "r")
-    header = readline(f)
-    close(f)
-    header
 end
 
 function keep_duplicated_entries!(s, uniques)

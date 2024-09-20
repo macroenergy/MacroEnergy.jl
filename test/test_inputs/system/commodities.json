@@ -1,7 +1,6 @@
 {
     "commodities": [
         "Electricity",
-        "Hydrogen",
         "NaturalGas",
         "CO2",
         "Water"

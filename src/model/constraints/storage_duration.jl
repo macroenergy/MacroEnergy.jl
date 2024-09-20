@@ -4,15 +4,12 @@ Base.@kwdef mutable struct StorageMaxDurationConstraint <: PlanningConstraint
     constraint_ref::Union{Missing,JuMPConstraint} = missing
 end
 
-function add_model_constraint!(
-    ct::StorageMaxDurationConstraint,
-    g::Storage,
-    model::Model,
-)
-    e = discharge_edge(g);
+function add_model_constraint!(ct::StorageMaxDurationConstraint, g::Storage, model::Model)
+    e = discharge_edge(g)
 
     if max_duration(g) > 0
-        ct.constraint_ref = @constraint(model, capacity_storage(g) <= max_duration(g) * capacity(e))
+        ct.constraint_ref =
+            @constraint(model, capacity_storage(g) <= max_duration(g) * capacity(e))
     end
 
 
@@ -26,15 +23,12 @@ Base.@kwdef mutable struct StorageMinDurationConstraint <: PlanningConstraint
     constraint_ref::Union{Missing,JuMPConstraint} = missing
 end
 
-function add_model_constraint!(
-    ct::StorageMinDurationConstraint,
-    g::Storage,
-    model::Model,
-)
-    e = discharge_edge(g);
+function add_model_constraint!(ct::StorageMinDurationConstraint, g::Storage, model::Model)
+    e = discharge_edge(g)
 
     if max_duration(g) > 0
-        ct.constraint_ref = @constraint(model, capacity_storage(g) >= min_duration(g) * capacity(e))
+        ct.constraint_ref =
+            @constraint(model, capacity_storage(g) >= min_duration(g) * capacity(e))
     end
 
 

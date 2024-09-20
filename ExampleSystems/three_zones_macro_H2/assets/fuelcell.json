@@ -5,7 +5,6 @@
             "global_data": {
                 "nodes": {},
                 "transforms": {
-                    "id": "fuelcell",
                     "timedata": "Hydrogen",
                     "efficiency_rate": 0.6,
                     "constraints": {
@@ -14,13 +13,11 @@
                 },
                 "edges": {
                     "h2_edge": {
-                        "id": "H2",
                         "type": "Hydrogen",
                         "unidirectional": true,
                         "has_planning_variables": false
                     },
                     "e_edge": {
-                        "id": "E",
                         "type": "Electricity",
                         "unidirectional": true,
                         "has_planning_variables": true,

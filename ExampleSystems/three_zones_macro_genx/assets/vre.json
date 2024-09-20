@@ -72,12 +72,10 @@
             "global_data": {
                 "nodes": {},
                 "transforms": {
-                    "id": "wind_turbine",
                     "timedata": "Electricity"
                 },
                 "edges": {
                     "edge": {
-                        "id": "elec",
                         "type": "Electricity",
                         "unidirectional": true,
                         "can_expand": true,

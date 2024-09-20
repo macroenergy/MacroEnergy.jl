@@ -8,11 +8,11 @@ function generate_model(system::System)
 
     model[:eVariableCost] = AffExpr(0.0)
 
-    add_planning_variables!(system, model)
+    add_linking_variables!(system, model)
 
-    add_operation_variables!(system,model)
+    planning_model!(system, model)
 
-    add_all_model_constraints!(system,model)
+    operation_model!(system, model)
 
     @objective(model, Min, model[:eFixedCost] + model[:eVariableCost])
 
@@ -21,49 +21,51 @@ function generate_model(system::System)
 end
 
 
-function add_planning_variables!(system::System, model::Model)
+function planning_model!(system::System, model::Model)
 
-    add_planning_variables!.(system.locations, Ref(model))
+    planning_model!.(system.locations, Ref(model))
 
-    add_planning_variables!.(system.assets, Ref(model))
-    
+    planning_model!.(system.assets, Ref(model))
+
+    add_constraints_by_type!(system, model, PlanningConstraint)
+
 end
 
-function add_operation_variables!(system::System,model::Model)
 
-    add_operation_variables!.(system.locations, Ref(model))
+function operation_model!(system::System, model::Model)
 
-    add_operation_variables!.(system.assets, Ref(model))
-    
+    operation_model!.(system.locations, Ref(model))
+
+    operation_model!.(system.assets, Ref(model))
+
+    add_constraints_by_type!(system, model, OperationConstraint)
+
 end
 
-function add_planning_variables!(a::AbstractAsset, model::Model)
+function planning_model!(a::AbstractAsset, model::Model)
     for t in fieldnames(typeof(a))
-        add_planning_variables!(getfield(a,t), model)
+        planning_model!(getfield(a, t), model)
     end
     return nothing
 end
 
-function add_operation_variables!(a::AbstractAsset, model::Model)
+function operation_model!(a::AbstractAsset, model::Model)
     for t in fieldnames(typeof(a))
-        add_operation_variables!(getfield(a,t), model)
+        operation_model!(getfield(a, t), model)
     end
     return nothing
 end
 
+function add_linking_variables!(system::System, model::Model)
 
+    add_linking_variables!.(system.locations, model)
 
-# function generate_model(system::System)
-#     # objects = [system.locations..., system.assets...]
-#     objects = MacroObject[]
-#     for node in system.locations
-#         push!(objects, node)
-#     end
-#     for asset in system.assets
-#         component_names = fieldnames(typeof(asset))
-#         for name in component_names
-#             push!(objects, getfield(asset, name))
-#         end
-#     end
-#     return generate_model(objects)
-# end
+    add_linking_variables!.(system.assets, model)
+
+end
+
+function add_linking_variables!(a::AbstractAsset, model::Model)
+    for t in fieldnames(typeof(a))
+        add_linking_variables!(getfield(a, t), model)
+    end
+end

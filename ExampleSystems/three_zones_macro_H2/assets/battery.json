@@ -7,7 +7,6 @@
                 "transforms": {},
                 "edges": {
                     "discharge_edge": {
-                        "id": "discharge",
                         "unidirectional": true,
                         "can_expand": true,
                         "can_retire": false,
@@ -22,7 +21,6 @@
                         }
                     },
                     "charge_edge": {
-                        "id": "charge",
                         "unidirectional": true,
                         "can_expand": true,
                         "can_retire": false,
@@ -31,7 +29,6 @@
                     }
                 },
                 "storage": {
-                    "id": "battery",
                     "commodity": "Electricity",
                     "can_expand": true,
                     "can_retire": false,

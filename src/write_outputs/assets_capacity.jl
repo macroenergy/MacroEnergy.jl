@@ -13,7 +13,7 @@ function get_optimal_asset_capacity(system::System)
             end
         end
     end
-    return DataFrame(asset=asset_ids, type=asset_type, capacity=asset_vcap)
+    return DataFrame(asset = asset_ids, type = asset_type, capacity = asset_vcap)
 end
 
 # 27% increase in performance

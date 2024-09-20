@@ -5,7 +5,6 @@
             "global_data": {
                 "nodes": {},
                 "transforms": {
-                    "id": "electrolyzer",
                     "timedata": "Hydrogen",
                     "efficiency_rate": 0.7406666666666667,
                     "constraints": {
@@ -14,7 +13,6 @@
                 },
                 "edges": {
                     "h2_edge": {
-                        "id": "H2",
                         "type": "Hydrogen",
                         "unidirectional": true,
                         "has_planning_variables": true,
@@ -29,7 +27,6 @@
                         }
                     },
                     "e_edge": {
-                        "id": "E",
                         "type": "Electricity",
                         "unidirectional": true,
                         "has_planning_variables": false

@@ -5,7 +5,6 @@
             "global_data": {
                 "nodes": {},
                 "transforms": {
-                    "id": "compressor",
                     "timedata": "Hydrogen",
                     "electricity_consumption": 0.06000600060006001,
                     "constraints": {
@@ -14,7 +13,6 @@
                 },
                 "edges": {
                     "discharge_edge": {
-                        "id": "discharge",
                         "unidirectional": true,
                         "can_expand": true,
                         "can_retire": false,
@@ -29,7 +27,6 @@
                         }
                     },
                     "charge_edge": {
-                        "id": "charge",
                         "unidirectional": true,
                         "has_planning_variables": true,
                         "can_expand": true,
@@ -44,20 +41,17 @@
                         }
                     },
                     "compressor_elec_edge": {
-                        "id": "E",
                         "type": "Electricity",
                         "unidirectional": true,
                         "has_planning_variables": false
                     },
                     "compressor_h2_edge": {
-                        "id": "H2",
                         "type": "Hydrogen",
                         "unidirectional": true,
                         "has_planning_variables": false
                     }
                 },
                 "storage": {
-                    "id": "h2storage",
                     "commodity": "Hydrogen",
                     "can_expand": true,
                     "can_retire": false,

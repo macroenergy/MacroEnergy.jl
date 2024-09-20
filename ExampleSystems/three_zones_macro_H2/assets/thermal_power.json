@@ -5,7 +5,6 @@
             "global_data": {
                 "nodes": {},
                 "transforms": {
-                    "id": "natgas_power",
                     "timedata": "Electricity",
                     "constraints": {
                         "BalanceConstraint": true
@@ -13,7 +12,6 @@
                 },
                 "edges": {
                     "e_edge": {
-                        "id": "E",
                         "type": "Electricity",
                         "uc": true,
                         "unidirectional": true,
@@ -38,13 +36,11 @@
                         }
                     },
                     "ng_edge": {
-                        "id": "NG",
                         "type": "NaturalGas",
                         "unidirectional": true,
                         "has_planning_variables": false
                     },
                     "co2_edge": {
-                        "id": "CO2",
                         "type": "CO2",
                         "unidirectional": true,
                         "has_planning_variables": false

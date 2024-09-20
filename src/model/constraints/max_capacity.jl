@@ -7,11 +7,8 @@ end
 
 function add_model_constraint!(ct::MaxCapacityConstraint, e::Edge, model::Model)
 
-    ct.constraint_ref = @constraint(
-                model,
-                capacity(e) <= max_capacity(e)
-            )
-            
+    ct.constraint_ref = @constraint(model, capacity(e) <= max_capacity(e))
+
     return nothing
 
 end

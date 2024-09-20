@@ -12,13 +12,13 @@ function add_model_constraint!(
 )
     e_discharge = g.discharge_edge
     e_charge = g.charge_edge
-    
+
     ct.constraint_ref = @constraint(
         model,
         [t in time_interval(g)],
-        flow(e_discharge,t) + flow(e_charge,t) <= capacity(e_discharge)
+        flow(e_discharge, t) + flow(e_charge, t) <= capacity(e_discharge)
     )
-    
+
 
     return nothing
 end

@@ -19,9 +19,9 @@
             },
             "instance_data": [
                 {
+                    "id": "MA_to_CT",
                     "edges": {
                         "elec_edge": {
-                            "id": "MA_to_CT",
                             "start_vertex": "elec_MA",
                             "end_vertex": "elec_CT",
                             "distance": 123.0584,
@@ -32,9 +32,9 @@
                     }
                 },
                 {
+                    "id": "MA_to_ME",
                     "edges": {
                         "elec_edge": {
-                            "id": "MA_to_CT",
                             "start_vertex": "elec_MA",
                             "end_vertex": "elec_ME",
                             "distance": 196.5385,

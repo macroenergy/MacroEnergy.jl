@@ -4,11 +4,10 @@ using YAML
 using CSV
 using DataFrames
 using JuMP
-using Distributed
-using DistributedArrays
 using Revise
 using JSON3
 using InteractiveUtils
+using Printf: @printf
 
 
 # Type parameter for Macro data structures
@@ -46,17 +45,13 @@ abstract type PlanningConstraint <: AbstractTypeConstraint end
 const H2_MWh = 33.33 # MWh per tonne of H2
 const NG_MWh = 0.29307107 # MWh per MMBTU of NG 
 const AssetId = Symbol
-const JuMPConstraint = Union{Array,Containers.DenseAxisArray,Containers.SparseAxisArray,ConstraintRef}
+const JuMPConstraint =
+    Union{Array,Containers.DenseAxisArray,Containers.SparseAxisArray,ConstraintRef}
+const JuMPVariable =
+    Union{Array,Containers.DenseAxisArray,Containers.SparseAxisArray,VariableRef}
 
-# globals
-
-# const Containers = JuMP.Containers
-# const VariableRef = JuMP.VariableRef
-const JuMPConstraint = Union{Array,Containers.DenseAxisArray,Containers.SparseAxisArray}
-# const DataFrameRow = DataFrames.DataFrameRow;
-# const DataFrame = DataFrames.DataFrame;
-function include_all_in_folder(folder)
-    base_path = joinpath(@__DIR__, folder)
+function include_all_in_folder(folder::AbstractString, root_path::AbstractString=@__DIR__)
+    base_path = joinpath(root_path, folder)
     for (root, dirs, files) in Base.Filesystem.walkdir(base_path)
         for file in files
             if endswith(file, ".jl")
@@ -64,63 +59,47 @@ function include_all_in_folder(folder)
             end
         end
     end
-end
-
-function all_subtypes(m::Module, type::Symbol)::Dict{Symbol,DataType}
-    types = Dict{Symbol,DataType}()
-    for subtype in subtypes(getfield(m, type))
-        all_subtypes!(types, subtype)
-    end
-    return types
-end
-
-function all_subtypes!(types::Dict{Symbol,DataType}, type::DataType)
-    types[Symbol(type)] = type
-    if !isempty(subtypes(type))
-        for subtype in subtypes(type)
-            all_subtypes!(types, subtype)
-        end
-    end
     return nothing
 end
 
-function fieldnames(type::T) where T <: Type{<:AbstractAsset}
-    return filter(x -> x != :id, Base.fieldnames(type))
-end
+include_all_in_folder("utilities")
 
 # include files
-
-include("time_management.jl")
-
+include("model/time_management.jl")
 include("model/networks/vertex.jl")
 include("model/networks/node.jl")
 include("model/networks/storage.jl")
 include("model/networks/transformation.jl")
 include("model/networks/location.jl")
 include("model/networks/edge.jl")
+include("model/networks/asset.jl")
+
 include("model/system.jl")
+
 include("model/assets/battery.jl")
-include("model/assets/natgaspower.jl")
-include("model/assets/vre.jl")
-include("model/assets/powerline.jl")
-include("model/assets/natgashydrogen.jl")
 include("model/assets/electrolyzer.jl")
 include("model/assets/fuelcell.jl")
 include("model/assets/h2storage.jl")
+include("model/assets/natgashydrogen.jl")
+include("model/assets/natgaspower.jl")
+include("model/assets/powerline.jl")
+include("model/assets/vre.jl")
 
 include_all_in_folder("model/constraints")
 
+include("config/configure_settings.jl")
+
+include_all_in_folder("load_inputs")
+
 include("generate_model.jl")
 
-include("load_inputs/load_tools/loading_json.jl")
-include("config/configure_settings.jl")
-include("load_inputs/load_tools/load_dataframe.jl")
-include("load_inputs/load_tools/load_timeseries.jl")
-include("load_inputs/load_commodities.jl")
-include("load_inputs/load_time_data.jl")
+include("benders_utilities.jl")
+
 include("write_outputs/assets_capacity.jl")
 include("write_outputs/utilities.jl")
+include("write_outputs/write_system_data.jl")
 
+<<<<<<< HEAD
 include("benders/benders_utility.jl")
 include("benders/benders_planning_problem.jl")
 
@@ -130,13 +109,23 @@ export Electricity,
     NaturalGas,
     CO2,
     CO2Captured,
+=======
+export AbstractAsset,
+    AbstractTypeConstraint,
+    BalanceConstraint,
+>>>>>>> origin/core_structure
     Battery,
-    H2Storage,
-    PowerLine,
-    NaturalGasPower,
-    NaturalGasHydrogen,
+    CO2,
+    CO2CapConstraint,
+    CO2Captured,
+    CapacityConstraint,
+    Commodity,
+    Edge,
+    EdgeWithUC,
+    Electricity,
     Electrolyzer,
     FuelCell,
+<<<<<<< HEAD
     VRE,
     SolarPV,
     WindTurbine,
@@ -164,7 +153,33 @@ export Electricity,
     StorageSymmetricCapacityConstraint,
     MinUpTimeConstraint,
     MinDownTimeConstraint,
+=======
+    H2Storage,
+    Hydrogen,
+>>>>>>> origin/core_structure
     MaxCapacityConstraint,
+    MaxNonServedDemandConstraint,
+    MaxNonServedDemandPerSegmentConstraint,
+    MinDownTimeConstraint,
     MinFlowConstraint,
-    MinStorageLevelConstraint
+    MinStorageLevelConstraint,
+    MinUpTimeConstraint,
+    NaturalGas,
+    NaturalGasHydrogen,
+    NaturalGasPower,
+    Node,
+    OperationConstraint,
+    PlanningConstraint,
+    PolicyConstraint,
+    PowerLine,
+    RampingLimitConstraint,
+    SolarPV,
+    Storage,
+    StorageCapacityConstraint,
+    StorageMaxDurationConstraint,
+    StorageMinDurationConstraint,
+    StorageSymmetricCapacityConstraint,
+    Transformation,
+    VRE,
+    WindTurbine
 end # module Macro

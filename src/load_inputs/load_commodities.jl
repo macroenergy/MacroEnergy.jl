@@ -1,7 +1,7 @@
-function commodity_types(m::Module=Macro)
+function commodity_types(m::Module = Macro)
     return all_subtypes(m, :Commodity)
 end
-  
+
 function load_commodities(path::AbstractString, rel_path::AbstractString)
     path = rel_or_abs_path(path, rel_path)
     if isdir(path)
@@ -12,7 +12,7 @@ function load_commodities(path::AbstractString, rel_path::AbstractString)
     return load_commodities(JSON3.read(path))
 end
 
-function load_commodities(data::AbstractDict{Symbol, Any}, rel_path::AbstractString)
+function load_commodities(data::AbstractDict{Symbol,Any}, rel_path::AbstractString)
     if haskey(data, :path)
         path = rel_or_abs_path(data[:path], rel_path)
         return load_commodities(path, rel_path)
@@ -26,7 +26,7 @@ function load_commodities(data::AbstractVector{<:AbstractString}, rel_path::Abst
     return load_commodities(Symbol.(data))
 end
 
-function load_commodities(data::AbstractDict{Symbol, Any})
+function load_commodities(data::AbstractDict{Symbol,Any})
     # make sure the commodities are valid
     if haskey(data, :commodities)
         return load_commodities(data[:commodities])
@@ -34,7 +34,8 @@ function load_commodities(data::AbstractDict{Symbol, Any})
     return load_commodities(data[:commodities])
 end
 
-load_commodities(commodities::AbstractVector{<:AbstractString}) = load_commodities(Symbol.(commodities))
+load_commodities(commodities::AbstractVector{<:AbstractString}) =
+    load_commodities(Symbol.(commodities))
 
 function load_commodities(commodities::Vector{Symbol})
     # get the list of all commodities available
@@ -43,12 +44,15 @@ function load_commodities(commodities::Vector{Symbol})
     validate_commodities(commodities)
 
     # return a dictionary of commodities Dict{Symbol, DataType}
-    filter!(((key,_),) -> key in commodities, macro_commodities)
+    filter!(((key, _),) -> key in commodities, macro_commodities)
     return macro_commodities
 end
 
 
-function validate_commodities(commodities, macro_commodities::Dict{Symbol,DataType}=commodity_types(Macro))
+function validate_commodities(
+    commodities,
+    macro_commodities::Dict{Symbol,DataType} = commodity_types(Macro),
+)
     if any(commodity -> commodity ∉ keys(macro_commodities), commodities)
         error("Unknown commodities: $(setdiff(commodities, keys(macro_commodities)))")
     end
