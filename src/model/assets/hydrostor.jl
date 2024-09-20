@@ -50,9 +50,24 @@ id(hs::HydroStor) = hs.id
 function make(::Type{HydroStor}, data::AbstractDict{Symbol,Any}, system::System)
 	id = AssetId(data[:id])
 
-	storage_data = process_data(data[:storage])
+	hydrostor_key = :storage
+
+	storage_data = process_data(data[:hydrostor_key])
 	commodity_symbol = Symbol(storage_data[:commodity])
 	commodity = commodity_types()[commodity_symbol]
+
+	hydrostor = Storage(
+        	Symbol(id, "_", h2storage_key),
+        	storage_data,
+        	system.time_data[:Water],
+        	Water,
+    	)
+
+	hydrostor.constraints = get(
+		storage_data,
+		:constraints,
+		[BalanceConstraint(), StorageCapacityConstraint(), MinStorageLevelConstraint()],
+	)
 	battery_storage = Storage(id, storage_data, system.time_data[commodity_symbol], commodity)
 	battery_storage.constraints = get(storage_data, :constraints, [BalanceConstraint(), StorageCapacityConstraint(), StorageMaxDurationConstraint(), StorageMinDurationConstraint(), StorageSymmetricCapacityConstraint()])
     
@@ -131,5 +146,13 @@ function make(::Type{HydroStor}, data::AbstractDict{Symbol,Any}, system::System)
 	_TEdges = Dict(:discharge=>_discharge_tedge, :charge=>_charge_tedge_electricity, :discharge_spill=>_spillage_tedge, :charge_water=>_charge_tedge_water)
 	_hydrostor_transform.TEdges = _TEdges
     
-	return HydroStor(id, hydrostor_storage, hydrostor_discharge_elec, hydrostor_spillage, hydrostor_charge_elec, hydrostor_charge_water)
+	return HydroStor(
+		id, 
+		hydrostor, 
+		generator_transform
+		hydrostor_discharge_elec, 
+		hydrostor_spillage, 
+		hydrostor_charge_elec, 
+		hydrostor_charge_water
+	)
 end
