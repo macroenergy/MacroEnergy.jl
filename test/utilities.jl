@@ -19,7 +19,7 @@ function is_gurobi_available()
         @warn_error_logger Gurobi.Env()
         return true
     catch e
-        if isa(e, Gurobi.GurobiError)
+        if isa(e, ErrorException) && occursin("Gurobi Error", string(e))
             return false
         else
             rethrow()

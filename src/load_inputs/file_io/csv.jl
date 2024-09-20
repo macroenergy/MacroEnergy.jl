@@ -2,19 +2,17 @@
 # CSV file handling
 ###### ###### ###### ###### ###### ######
 
-function read_csv(
-    file_path::AbstractString,
-    sink::T = DataFrame;
-    select::Vector{Symbol} = Symbol[],
-) where {T}
+function read_csv(file_path::AbstractString; select::Vector{Symbol} = Symbol[])::DataFrame
+    data = DataFrame(duckdb_read(file_path))
     if length(select) > 0
         @info("Loading columns $select from CSV data from $file_path")
-        csv_data = CSV.read(file_path, sink, select = select)
-        isempty(csv_data) && error("Columns $select not found in $file_path")
-        return csv_data
+        select!(data, select)
+        isempty(data) && error("Columns $select not found in $file_path")
+    else
+        @info("Loading CSV data from $file_path")
     end
     @info("Loading CSV data from $file_path")
-    return CSV.read(file_path, sink)
+    return data
 end
 
 function csv_header(path::AbstractString)
@@ -23,3 +21,7 @@ function csv_header(path::AbstractString)
     close(f)
     header
 end
+
+const CSV_EXT = (".csv", ".csv.gz")
+
+iscsv(path::AbstractString) = any(endswith.(path, CSV_EXT))

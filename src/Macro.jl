@@ -1,11 +1,10 @@
 module Macro
 
-using YAML
-using CSV
+using CSV, JSON3, GZip
+using DuckDB
 using DataFrames
 using JuMP
 using Revise
-using JSON3
 using InteractiveUtils
 using Printf: @printf
 

@@ -8,7 +8,7 @@ function load!(system::System, file_path::AbstractString)::Nothing
     if isfile(file_path)
         load!(system, load_json(file_path))
     elseif isdir(file_path)
-        for file in filter(x -> endswith(x, ".json"), readdir(file_path))
+        for file in get_json_files(file_path)
             load!(system, joinpath(file_path, file))
         end
     end
@@ -192,14 +192,11 @@ function fetch_data(path::AbstractString, root_path::AbstractString, lazy_load::
     # Load data from a JSON file and merge it into the existing data dict
     # overwriting any existing keys
     path = rel_or_abs_path(path, root_path)
-    if isfile(path)
-        if endswith(path, ".json")
-            return load_json(path; lazy_load = lazy_load)
-        else
-            return path
-        end
-    elseif isdir(path)
-        json_files = filter(x -> endswith(x, ".json"), readdir(path))
+    if isfile(path) && isjson(path)
+        return load_json(path; lazy_load = lazy_load)
+    end
+    if isdir(path)
+        json_files = get_json_files(path)
         if length(json_files) > 1
             for file in json_files
                 return load_json(joinpath(path, file); lazy_load = lazy_load)
@@ -207,10 +204,9 @@ function fetch_data(path::AbstractString, root_path::AbstractString, lazy_load::
         else
             return path
         end
-    else
-        @warn "Could not find: \"$(path)\", full path: $(abspath(path))"
-        return path
     end
+    @warn "Could not find: \"$(path)\", full path: $(abspath(path))"
+    return path
 end
 
 ###### ###### ###### ###### ###### ######
@@ -218,15 +214,14 @@ end
 ###### ###### ###### ###### ###### ######
 
 function load_csv(
-    file_path::AbstractString,
-    sink::T = DataFrame;
+    file_path::AbstractString;
     select::S = Symbol[],
     lazy_load::Bool = true,
-) where {T,S<:Union{Symbol,Vector{Symbol}}}
+) where {S<:Union{Symbol,Vector{Symbol}}}
     if isa(select, Symbol)
         select = [select]
     end
-    csv_data = read_csv(file_path, sink, select = select)
+    csv_data = read_csv(file_path, select = select)
     return csv_data
     #TODO check how to use lazy_load with CSV files
 end

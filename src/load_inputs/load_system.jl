@@ -9,7 +9,7 @@ function load_system(path::AbstractString = pwd())::System
     # We'll check the absolute path first, then the path relative to the working directory
 
     # If path ends with ".json", we assume it's a file
-    if endswith(path, ".json")
+    if isjson(path)
         path = rel_or_abs_path(path)
     else
         # Assume it's a dir, ignoring other possible suffixes

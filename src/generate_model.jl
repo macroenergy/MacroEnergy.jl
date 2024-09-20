@@ -1,5 +1,6 @@
 function generate_model(system::System)
 
+    @info("Starting model generation")
     model = Model()
 
     @variable(model, vREF == 1)
@@ -8,14 +9,18 @@ function generate_model(system::System)
 
     model[:eVariableCost] = AffExpr(0.0)
 
-    add_linking_variables!(system, model)
+    @info("Adding linking variables")
+    add_linking_variables!(system, model) 
 
+    @info("Generating planning model")
     planning_model!(system, model)
 
+    @info("Generating operational model")
     operation_model!(system, model)
 
     @objective(model, Min, model[:eFixedCost] + model[:eVariableCost])
 
+    @info("Model generation complete")
     return model
 
 end

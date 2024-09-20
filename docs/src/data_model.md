@@ -1,3 +1,5 @@
+# Structure of the data model of Macro
+
 ```
 MyCase
 │ 
@@ -9,23 +11,23 @@ MyCase
 ├── 📁 system
 │   ├── commodities.json 
 │   ├── time_data.json
-│   ├── 📁 network
-│   │   ├── nodes.json
-│   │   └── edges.json
-│   ├── 📁 demand_data
-│   │   ├── electricity_demand.csv
-│   │   ├── h2_demand_data.csv
-│   │   └── nsd_data.json
-│   └── 📁 fuel_data
-│       ├── naturalgas_prices.csv
-│       └── co2_emission.json
+│   ├── nodes.json
+│   └── demand.csv
 │ 
-└── 📁 assets
-    ├── storage.json
-    ├── thermal.json
-    ├── vre.json
-    └── 📁 capacity_factor_data
-        ├── thermal.csv
-        └── vre.csv
+├── 📁 assets
+│   ├──battery.json
+│   ├──electrolyzers.json
+│   ├──fuel_prices.csv
+│   ├──fuelcell.json
+│   ├──h2storage.json
+│   ├──power_lines.json
+│   ├──thermal_h2.json
+│   ├──thermal_power.json
+│   ├──vre.json
+| [...other asset types...]
+│   ├──availability.csv
+│   └── fuel_prices.csv
+│ 
+└── system_data.json
 ```
 

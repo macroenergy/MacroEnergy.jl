@@ -12,7 +12,7 @@ function configure_settings(path::AbstractString, rel_path::AbstractString)
     if !isfile(path)
         error("Settings file not found: $path")
     end
-    model_settings = namedtuple(YAML.load_file(path))
+    model_settings = namedtuple(read_file(path))
     return configure_settings(model_settings)
 end
 

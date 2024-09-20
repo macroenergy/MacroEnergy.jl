@@ -15,6 +15,6 @@
         "path": "system/time_data.json"
     },
     "nodes": {
-        "path": "system/nodes.json"
+        "path": "system/nodes.json.gz"
     }
 }

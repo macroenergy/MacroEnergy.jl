@@ -8,9 +8,6 @@ println("###### ###### ######")
 println("Running case at $(case_path)")
 
 system = Macro.load_system(case_path)
-Macro.print_to_json(system)
-
-system_1 = Macro.load_system("printed_system_data.json")
 
 model = Macro.generate_model(system)
 
