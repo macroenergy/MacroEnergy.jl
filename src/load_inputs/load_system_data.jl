@@ -19,7 +19,7 @@ function load_system_data(
     prep_system_data(file_path, default_file_path)
 
     # Load the system data from the JSON file(s)
-    return load_json(file_path; lazy_load = lazy_load)
+    return load_json_inputs(file_path; lazy_load = lazy_load)
 end
 
 """

@@ -6,7 +6,7 @@
 function load!(system::System, file_path::AbstractString)::Nothing
     file_path = rel_or_abs_path(file_path, system.data_dirpath)
     if isfile(file_path)
-        load!(system, load_json(file_path))
+        load!(system, load_json_inputs(file_path))
     elseif isdir(file_path)
         for file in get_json_files(file_path)
             load!(system, joinpath(file_path, file))
@@ -131,7 +131,7 @@ end
 # JSON data handling
 ###### ###### ###### ###### ###### ######
 
-function load_json(file_path::AbstractString; lazy_load::Bool = true)::Dict{Symbol,Any}
+function load_json_inputs(file_path::AbstractString; lazy_load::Bool = true)::Dict{Symbol,Any}
     @info("Loading JSON data from $file_path")
     json_data = read_json(file_path)
     if !lazy_load
@@ -193,13 +193,13 @@ function fetch_data(path::AbstractString, root_path::AbstractString, lazy_load::
     # overwriting any existing keys
     path = rel_or_abs_path(path, root_path)
     if isfile(path) && isjson(path)
-        return load_json(path; lazy_load = lazy_load)
+        return load_json_inputs(path; lazy_load = lazy_load)
     end
     if isdir(path)
         json_files = get_json_files(path)
         if length(json_files) > 1
             for file in json_files
-                return load_json(joinpath(path, file); lazy_load = lazy_load)
+                return load_json_inputs(joinpath(path, file); lazy_load = lazy_load)
             end
         else
             return path
