@@ -48,8 +48,8 @@ Load the system data (currently only from a JSON file) given a file path and exi
 All other file names defined in the system data file are assumed to be relative to the data_dirpath field of the System.
 """
 function load_system_data(
+    file_path::AbstractString,
     system::System, 
-    file_path::AbstractString
 )::Dict{Symbol,Any}
     return load_system_data(file_path, system.data_dirpath)
 end
