@@ -1,7 +1,7 @@
 struct HydroStor <: AbstractAsset
 	id::AssetId
 	hydrostor_reservoir::Storage{Water}
-	generator_transform::Transformation
+	genmotor_transform::Transformation
 	spillage_edge::Edge{Water}
 	charge_edge_water::Edge{Water}
 	discharge_edge_elec::Edge{Electricity}
@@ -69,13 +69,106 @@ function make(::Type{HydroStor}, data::AbstractDict{Symbol,Any}, system::System)
 		[BalanceConstraint(), StorageCapacityConstraint(), MinStorageLevelConstraint()],
 	)
 
-	generator_key = :transforms
-    	transform_data = process_data(data[generator_key])
-    	generator_transform = Transformation(;
-        	id = Symbol(id, "_", generator_key),
+	genmotor_key = :transforms
+    	transform_data = process_data(data[genmotor_key])
+    	genmotor_transform = Transformation(;
+        	id = Symbol(id, "_", genmotor_key),
         	timedata = system.time_data[Symbol(transform_data[:timedata])],
         	constraints = get(transform_data, :constraints, [BalanceConstraint()]),
     	)
+
+	genmotor_elec_edge_key = :genmotor_elec_edge
+	genmotor_elec_edge_data = process_data(data[:edges][genmotor_elec_edge_key])
+	elec_start_node =
+		find_node(system.locations, Symbol(genmotor_elec_edge_data[:start_vertex]))
+	elec_end_node = genmotor_transform
+	genmotor_elec_edge = Edge(
+		Symbol(id, "_", genmotor_elec_edge_key),
+		genmotor_elec_edge_data,
+		system.time_data[:Electricity],
+		Electricity,
+		elec_start_node,
+		elec_end_node,
+	)
+	genmotor_elec_edge.unidirectional =
+		get(genmotor_elec_edge_data, :unidirectional, true)
+	##Should I create another unidirectional edge for discharge or make this bidirectional?
+	
+	genmotor_water_edge_key = :genmotor_water_edge
+	genmotor_water_edge_data = process_data(data[:edges][genmotor_water_edge_key])
+	water_start_node =
+		find_node(system.locations, Symbol(genmotor_water_edge_data[:start_vertex]))
+	water_end_node = genmotor_transform
+	genmotor_water_edge = Edge(
+		Symbol(id, "_", genmotor_water_edge_key),
+		genmotor_water_edge_data,
+		system.time_data[:Water],
+		Water,
+		water_start_node,
+		water_end_node,
+	)
+	genmotor_water_edge.unidirectional = get(genmotor_water_edge_data, :unidirectional, true)
+	##Should I create another unidirectional edge for discharge or make this bidirectional?
+	
+	    charge_edge_key = :charge_edge
+	    charge_edge_data = process_data(data[:edges][charge_edge_key])
+	    charge_start_node = compressor_transform
+	    charge_end_node = h2storage
+	    h2storage_charge = Edge(
+		Symbol(id, "_", charge_edge_key),
+		charge_edge_data,
+		system.time_data[:Hydrogen],
+		Hydrogen,
+		charge_start_node,
+		charge_end_node,
+	    )
+	    h2storage_charge.unidirectional = get(charge_edge_data, :unidirectional, true)
+	    h2storage_charge.constraints =
+		get(charge_edge_data, :constraints, [CapacityConstraint()])
+	
+	    discharge_edge_key = :discharge_edge
+	    discharge_edge_data = process_data(data[:edges][discharge_edge_key])
+	    discharge_start_node = h2storage
+	    discharge_end_node =
+		find_node(system.locations, Symbol(discharge_edge_data[:end_vertex]))
+	    h2storage_discharge = Edge(
+		Symbol(id, "_", discharge_edge_key),
+		discharge_edge_data,
+		system.time_data[:Hydrogen],
+		Hydrogen,
+		discharge_start_node,
+		discharge_end_node,
+	    )
+	    h2storage_discharge.constraints = get(
+		discharge_edge_data,
+		:constraints,
+		[CapacityConstraint(), RampingLimitConstraint()],
+	    )
+	    h2storage_discharge.unidirectional = get(discharge_edge_data, :unidirectional, true)
+	
+	    h2storage.discharge_edge = h2storage_discharge
+	    h2storage.charge_edge = h2storage_charge
+	
+	    h2storage.balance_data = Dict(
+		:storage => Dict(
+		    h2storage_discharge.id => 1 / get(discharge_edge_data, :efficiency, 1.0),
+		    h2storage_charge.id => get(charge_edge_data, :efficiency, 1.0),
+		),
+	    )
+	
+	    compressor_transform.balance_data = Dict(
+		:electricity => Dict(
+		    compressor_h2_edge.id => get(transform_data, :electricity_consumption, 0.0),
+		    compressor_elec_edge.id => 1.0,
+		    h2storage_charge.id => 0.0,
+		),
+		:hydrogen => Dict(
+		    h2storage_charge.id => 1.0,
+		    compressor_h2_edge.id => 1.0,
+		    compressor_elec_edge.id => 0.0,
+		),
+	    )
+
 
 	### Lines of code between the two comments need further modification
 	battery_storage = Storage(id, storage_data, system.time_data[commodity_symbol], commodity)
