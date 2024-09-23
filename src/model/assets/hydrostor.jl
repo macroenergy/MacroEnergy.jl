@@ -68,6 +68,16 @@ function make(::Type{HydroStor}, data::AbstractDict{Symbol,Any}, system::System)
 		:constraints,
 		[BalanceConstraint(), StorageCapacityConstraint(), MinStorageLevelConstraint()],
 	)
+
+	generator_key = :transforms
+    	transform_data = process_data(data[generator_key])
+    	generator_transform = Transformation(;
+        	id = Symbol(id, "_", generator_key),
+        	timedata = system.time_data[Symbol(transform_data[:timedata])],
+        	constraints = get(transform_data, :constraints, [BalanceConstraint()]),
+    	)
+
+	### Lines of code between the two comments need further modification
 	battery_storage = Storage(id, storage_data, system.time_data[commodity_symbol], commodity)
 	battery_storage.constraints = get(storage_data, :constraints, [BalanceConstraint(), StorageCapacityConstraint(), StorageMaxDurationConstraint(), StorageMinDurationConstraint(), StorageSymmetricCapacityConstraint()])
     
@@ -145,6 +155,7 @@ function make(::Type{HydroStor}, data::AbstractDict{Symbol,Any}, system::System)
 	## add reference to tedges in transformation
 	_TEdges = Dict(:discharge=>_discharge_tedge, :charge=>_charge_tedge_electricity, :discharge_spill=>_spillage_tedge, :charge_water=>_charge_tedge_water)
 	_hydrostor_transform.TEdges = _TEdges
+	### Lines of code between the two comments need further modification
     
 	return HydroStor(
 		id, 
