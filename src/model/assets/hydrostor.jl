@@ -57,7 +57,7 @@ function make(::Type{HydroStor}, data::AbstractDict{Symbol,Any}, system::System)
 	commodity = commodity_types()[commodity_symbol]
 
 	hydrostor = Storage(
-        	Symbol(id, "_", h2storage_key),
+        	Symbol(id, "_", hydrostor_key),
         	storage_data,
         	system.time_data[:Water],
         	Water,
@@ -109,52 +109,52 @@ function make(::Type{HydroStor}, data::AbstractDict{Symbol,Any}, system::System)
 	)
 	genmotor_water_edge.unidirectional = get(genmotor_water_edge_data, :unidirectional, true)
 	##Should I create another unidirectional edge for discharge or make this bidirectional?
-	
-	    charge_edge_key = :charge_edge
-	    charge_edge_data = process_data(data[:edges][charge_edge_key])
-	    charge_start_node = compressor_transform
-	    charge_end_node = h2storage
-	    h2storage_charge = Edge(
+
+	charge_edge_key = :charge_edge
+	charge_edge_data = process_data(data[:edges][charge_edge_key])
+	charge_start_node = genmotor_transform
+	charge_end_node = hydrostor_reservoir
+	hydrostor_charge = Edge(
 		Symbol(id, "_", charge_edge_key),
 		charge_edge_data,
-		system.time_data[:Hydrogen],
-		Hydrogen,
+		system.time_data[:Water],
+		Water,
 		charge_start_node,
 		charge_end_node,
-	    )
-	    h2storage_charge.unidirectional = get(charge_edge_data, :unidirectional, true)
-	    h2storage_charge.constraints =
+	)
+	hydrostor_charge.unidirectional = get(charge_edge_data, :unidirectional, true)
+	hydrostor_charge.constraints =
 		get(charge_edge_data, :constraints, [CapacityConstraint()])
 	
-	    discharge_edge_key = :discharge_edge
-	    discharge_edge_data = process_data(data[:edges][discharge_edge_key])
-	    discharge_start_node = h2storage
-	    discharge_end_node =
+	discharge_edge_key = :discharge_edge
+	discharge_edge_data = process_data(data[:edges][discharge_edge_key]) #or should it be genmotor_transform?
+	discharge_start_node = hydrostor_reservoir
+	discharge_end_node =
 		find_node(system.locations, Symbol(discharge_edge_data[:end_vertex]))
-	    h2storage_discharge = Edge(
+	hydrostor_discharge = Edge(
 		Symbol(id, "_", discharge_edge_key),
 		discharge_edge_data,
-		system.time_data[:Hydrogen],
-		Hydrogen,
+		system.time_data[:Water],
+		Water,
 		discharge_start_node,
 		discharge_end_node,
-	    )
-	    h2storage_discharge.constraints = get(
+	)
+	hydrostor_discharge.constraints = get(
 		discharge_edge_data,
 		:constraints,
 		[CapacityConstraint(), RampingLimitConstraint()],
-	    )
-	    h2storage_discharge.unidirectional = get(discharge_edge_data, :unidirectional, true)
+	)
+	hydrostor_discharge.unidirectional = get(discharge_edge_data, :unidirectional, true)
 	
-	    h2storage.discharge_edge = h2storage_discharge
-	    h2storage.charge_edge = h2storage_charge
+	hydrostor.discharge_edge = hydrostor_discharge
+	hydrostor.charge_edge = hydrostor_charge
 	
-	    h2storage.balance_data = Dict(
+	hydrostor.balance_data = Dict(
 		:storage => Dict(
-		    h2storage_discharge.id => 1 / get(discharge_edge_data, :efficiency, 1.0),
-		    h2storage_charge.id => get(charge_edge_data, :efficiency, 1.0),
+			hydrostor_discharge.id => 1 / get(discharge_edge_data, :efficiency, 1.0),
+			hydrostor_charge.id => get(charge_edge_data, :efficiency, 1.0),
 		),
-	    )
+	)
 	
 	    compressor_transform.balance_data = Dict(
 		:electricity => Dict(
