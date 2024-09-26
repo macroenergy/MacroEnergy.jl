@@ -82,6 +82,12 @@ include("model/assets/natgaspower.jl")
 include("model/assets/powerline.jl")
 include("model/assets/vre.jl")
 
+include("model/assets/natgashydrogenccs.jl")
+include("model/assets/natgaspowerccs.jl")
+
+include("model/assets/natgasdac.jl")
+include("model/assets/electricdac.jl")
+
 include_all_in_folder("model/constraints")
 
 include("config/configure_settings.jl")
@@ -109,6 +115,7 @@ export AbstractAsset,
     EdgeWithUC,
     Electricity,
     Electrolyzer,
+    ElectricDAC,
     FuelCell,
     H2Storage,
     Hydrogen,
@@ -122,6 +129,9 @@ export AbstractAsset,
     NaturalGas,
     NaturalGasHydrogen,
     NaturalGasPower,
+    NaturalGasHydrogenCCS,
+    NaturalGasPowerCCS,
+    NaturalGasDAC,
     Node,
     OperationConstraint,
     PlanningConstraint,
