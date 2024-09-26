@@ -1,0 +1,108 @@
+{
+    "ng_dac": [
+        {
+            "type": "ElectricDAC",
+            "global_data": {
+                "nodes": {},
+                "transforms": {
+                    "timedata": "CO2",
+                    "constraints": {
+                        "BalanceConstraint": true
+                    }
+                },
+                "edges": {
+                    "co2_edge": {
+                        "type": "CO2",
+                        "unidirectional": true,
+                        "has_planning_variables": true,
+                        "can_retire": true,
+                        "can_expand": true,
+                        "investment_cost": 939000,
+                        "constraints": {
+                            "CapacityConstraint": true
+                        }
+                    },
+                    "e_edge": {
+                        "type": "Electricity",
+                        "unidirectional": true,
+                        "has_planning_variables": false
+                    },
+                    "co2_captured_edge": {
+                        "type": "CO2Captured",
+                        "unidirectional": true,
+                        "has_planning_variables": false
+                    }
+                },
+                "storage": {}
+            },
+            "instance_data": [
+                {
+                    "id": "electric_dac_MA",
+                    "nodes": {},
+                    "transforms": {
+                        "elec_in": 4.38,
+                        "capture_rate": 1
+                    },
+                    "edges": {
+                        "co2_edge": {
+                            "fixed_om_cost": 747000,
+                            "variable_om_cost": 22,
+                            "start_vertex": "co2_MA"
+                        },
+                        "e_edge": {
+                            "start_vertex": "elec_MA"
+                        },
+                        "co2_captured_edge": {
+                            "end_vertex": "co2_captured_MA"
+                        }
+                    },
+                    "storage": {}
+                },
+                {
+                    "id": "electric_dac_CT",
+                    "nodes": {},
+                    "transforms": {
+                        "elec_in": 4.38,
+                        "capture_rate": 1
+                    },
+                    "edges": {
+                        "co2_edge": {
+                            "fixed_om_cost": 747000,
+                            "variable_om_cost": 22,
+                            "start_vertex": "co2_CT"
+                        },
+                        "e_edge": {
+                            "start_vertex": "elec_CT"
+                        },
+                        "co2_captured_edge": {
+                            "end_vertex": "co2_captured_CT"
+                        }
+                    },
+                    "storage": {}
+                },
+                {
+                    "id": "electric_dac_ME",
+                    "nodes": {},
+                    "transforms": {
+                        "elec_in": 4.38,
+                        "capture_rate": 1
+                    },
+                    "edges": {
+                        "co2_edge": {
+                            "fixed_om_cost": 747000,
+                            "variable_om_cost": 22,
+                            "start_vertex": "co2_ME"
+                        },
+                        "e_edge": {
+                            "start_vertex": "elec_ME"
+                        },
+                        "co2_captured_edge": {
+                            "end_vertex": "co2_captured_ME"
+                        }
+                    },
+                    "storage": {}
+                }
+            ]
+        }
+    ]
+}
