@@ -83,6 +83,7 @@ include("model/assets/natgashydrogen.jl")
 include("model/assets/natgaspower.jl")
 include("model/assets/powerline.jl")
 include("model/assets/vre.jl")
+include("model/assets/hydrostor.jl")
 
 include_all_in_folder("model/constraints")
 
@@ -98,9 +99,8 @@ include("write_outputs/assets_capacity.jl")
 include("write_outputs/utilities.jl")
 include("write_outputs/write_system_data.jl")
 
-<<<<<<< HEAD
-include("benders/benders_utility.jl")
-include("benders/benders_planning_problem.jl")
+include("benders_utilities.jl")
+#include("benders/benders_planning_problem.jl")
 
 export Electricity,
     Hydrogen,
@@ -108,11 +108,9 @@ export Electricity,
     NaturalGas,
     CO2,
     CO2Captured,
-=======
-export AbstractAsset,
+    AbstractAsset,
     AbstractTypeConstraint,
     BalanceConstraint,
->>>>>>> origin/core_structure
     Battery,
     CO2,
     CO2CapConstraint,
@@ -124,7 +122,6 @@ export AbstractAsset,
     Electricity,
     Electrolyzer,
     FuelCell,
-<<<<<<< HEAD
     VRE,
     SolarPV,
     WindTurbine,
@@ -152,10 +149,8 @@ export AbstractAsset,
     StorageSymmetricCapacityConstraint,
     MinUpTimeConstraint,
     MinDownTimeConstraint,
-=======
     H2Storage,
     Hydrogen,
->>>>>>> origin/core_structure
     MaxCapacityConstraint,
     MaxNonServedDemandConstraint,
     MaxNonServedDemandPerSegmentConstraint,
