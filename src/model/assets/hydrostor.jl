@@ -100,8 +100,6 @@ function make(::Type{HydroStor}, data::AbstractDict{Symbol,Any}, system::System)
 		elec_start_node,
 		elec_end_node,
 	)
-	generator_elec_edge.constraints =
-		get(generator_elec_edge_data, :constraints, [CapacityConstraint()])
 	generator_elec_edge.unidirectional =
 		get(generator_elec_edge_data, :unidirectional, true)
 ###############################WATER DISCHARGE EDGE#############################################	
@@ -145,8 +143,6 @@ function make(::Type{HydroStor}, data::AbstractDict{Symbol,Any}, system::System)
 		inflow_start_node,
 		inflow_end_node,
 	)
-	inflow_edge.constraints =
-		get(inflow_edge_data, :constraints, [CapacityConstraint()])
 	inflow_edge.unidirectional = get(inflow_edge_data, :unidirectional, true)
 ##################################CHARGE EDGE WATER#################################################	
 	charge_water_edge_key = :charge_edge_water
@@ -175,8 +171,6 @@ function make(::Type{HydroStor}, data::AbstractDict{Symbol,Any}, system::System)
 		charge_elec_start_node,
 		charge_elec_end_node,
 	)
-	motor_elec_edge.constraints =
-		get(motor_elec_edge_data, :constraints, [CapacityConstraint()])
 	motor_elec_edge.unidirectional =
 		get(motor_elec_edge_data, :unidirectional, true)
 ##################################END ALL EDGES#################################################			
