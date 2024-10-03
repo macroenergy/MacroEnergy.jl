@@ -2,26 +2,30 @@
 # Function to load time series data
 ###### ###### ###### ###### ###### ######
 
-function load_time_series_data!(system::System, data::AbstractDict{Symbol,Any})
-    # get list of paths to time series data
-    time_series_paths = get_value_and_keys(data, :timeseries)
-
-    # load each time series data and update the data dictionary
-    for (value, keys) in time_series_paths
-        file_path = rel_or_abs_path(value[:path], system.data_dirpath)
-        time_series = load_time_series_data(file_path, value[:header])
-        update_data!(data, keys[1:end-1], time_series) # end-1 to exclude the :timeseries key itself and replace it with the actual data
+function load_time_series_data!(data::AbstractDict{Symbol,Any}, data_dirpath::AbstractString, timeseries::Dict{String, DataFrame})::Nothing
+    # Retrieve list of paths to time series data
+    timeseries_paths = get_value_and_keys(data, :timeseries)
+    # Process each time series data path
+    for (value, keys) in timeseries_paths
+        file_path = rel_or_abs_path(value[:path], data_dirpath)
+        header = value[:header]
+        update_data!(data, keys[1:end-1], get_time_series(file_path, header, timeseries)) # end-1 to exclude the :timeseries key itself and replace it with the actual data
     end
-
     return nothing
 end
 
-function load_time_series_data(
-    file_path::AbstractString,
-    header::T,
-)::Vector{Float64} where {T<:Union{Symbol,String}}
-    time_series = load_csv(file_path, select = Symbol(header))
-    return time_series[!, header]
+function get_time_series(file_path::AbstractString, header::T, timeseries::Dict{String, DataFrame})::Vector{Float64} where {T<:Union{Symbol, String}}
+    # Check if the file_path data is already loaded in ts_dict
+    if haskey(timeseries, file_path)
+        # Return the requested time series column
+        @debug "Time series data already loaded for $file_path"
+        return timeseries[file_path][!, header]
+    else
+        # Load the CSV data and store in dictionary
+        time_series_df = load_csv(file_path)
+        timeseries[file_path] = time_series_df  # cache the data for future use
+        return time_series_df[!, header]
+    end
 end
 
 """

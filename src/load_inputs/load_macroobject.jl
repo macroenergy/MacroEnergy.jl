@@ -24,12 +24,11 @@ function load!(system::System, data::AbstractDict{Symbol,Any})::Nothing
         # Check that data has only :type and :instance_data fields
     elseif data_is_single_instance(data)
         data_type = check_and_convert_type(data)
-        load_time_series_data!(system, data) # substritute ts file paths with actual vectors of data
         add!(system, make(data_type, data[:instance_data], system))
 
     elseif data_has_global_data(data)
         # println("Expanding global data")
-        load!(system, expand_instances(data))
+        load!(system, expand_instances(system.data_dirpath, data))
 
     elseif data_is_filepath(data)
         # println("Loading data from file")
@@ -37,7 +36,6 @@ function load!(system::System, data::AbstractDict{Symbol,Any})::Nothing
 
     else
         for (key, value) in data
-            # println("Loading $key")
             load!(system, value)
         end
 
@@ -58,8 +56,9 @@ recursive_merge(x::AbstractDict...) = merge(recursive_merge, x...)
 recursive_merge(x::AbstractVector...) = cat(x...; dims = 1)
 recursive_merge(x...) = x[end]
 
-function expand_instances(data::AbstractDict{Symbol,Any})
+function expand_instances(data_dirpath::AbstractString, data::AbstractDict{Symbol,Any})
     instances = Vector{Dict{Symbol,Any}}()
+    timeseries = Dict{String, DataFrame}()
     type = data[:type]
     global_data = data[:global_data]
     for (instance_idx, instance_data) in enumerate(data[:instance_data])
@@ -67,6 +66,7 @@ function expand_instances(data::AbstractDict{Symbol,Any})
         # haskey(instance_data, :id) ? instance_id = Symbol(instance_data[:id]) : instance_id = default_asset_name(instance_idx, a_name)
         # instance_data[:id], _ = make_asset_id(instance_id, asset_data)
         # asset_data[instance_data[:id]] = make_asset(a_type, instance_data, time_data, nodes)
+        load_time_series_data!(instance_data, data_dirpath, timeseries) # substritute ts file paths with actual vectors of data
         push!(instances, Dict{Symbol,Any}(:type => type, :instance_data => instance_data))
     end
     return instances
