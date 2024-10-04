@@ -17,6 +17,7 @@ macro AbstractEdgeBaseAttributes()
         flow::Union{JuMPVariable,Vector{Float64}} = Vector{VariableRef}()
         has_capacity::Bool = false
         investment_cost::Float64 = 0.0
+        loss_fraction::Float64 = 0.0
         max_capacity::Float64 = Inf
         min_capacity::Float64 = 0.0
         min_flow_fraction::Float64 = 0.0
@@ -55,6 +56,7 @@ function make_edge(
         fixed_om_cost = get(data, :fixed_om_cost, 0.0),
         has_capacity = get(data, :has_capacity, false),
         investment_cost = get(data, :investment_cost, 0.0),
+        loss_fraction = get(data,:loss_fraction,0.0),
         max_capacity = get(data, :max_capacity, Inf),
         min_capacity = get(data, :min_capacity, 0.0),
         min_flow_fraction = get(data, :min_flow_fraction, 0.0),
@@ -93,6 +95,7 @@ flow(e::AbstractEdge, t::Int64) = flow(e)[t];
 has_capacity(e::AbstractEdge) = e.has_capacity;
 id(e::AbstractEdge) = e.id;
 investment_cost(e::AbstractEdge) = e.investment_cost;
+loss_fraction(e::AbstractEdge) = e.loss_fraction;
 max_capacity(e::AbstractEdge) = e.max_capacity;
 min_capacity(e::AbstractEdge) = e.min_capacity;
 min_flow_fraction(e::AbstractEdge) = e.min_flow_fraction;
@@ -169,7 +172,7 @@ function operation_model!(e::Edge, model::Model)
         e.flow = @variable(model, [t in time_interval(e)], base_name = "vFLOW_$(id(e))")
     end
 
-    update_balances!(e)
+    update_balances!(e, model)
 
     for t in time_interval(e)
 
@@ -317,7 +320,7 @@ function operation_model!(e::EdgeWithUC, model::Model)
         base_name = "vSHUT_$(id(e))"
     )
 
-    update_balances!(e)
+    update_balances!(e, model)
 
     update_startup_fuel_balances!(e)
 
@@ -397,40 +400,82 @@ function balance_data(e::AbstractEdge, v::AbstractVertex, i::Symbol)
 
 end
 
-function update_balances!(e::AbstractEdge)
+function update_balances!(e::AbstractEdge, model::Model)
 
-    update_balance!(e, :start)
-    update_balance!(e, :end)
+    update_balance!(e, model, :start)
+
+    update_balance!(e, model, :end)
 
 end
 
 function update_startup_fuel_balances!(e::EdgeWithUC)
 
     update_startup_fuel_balance!(e, :start)
+
     update_startup_fuel_balance!(e, :end)
 
 end
 
 
-function update_balance!(e::AbstractEdge,vdir::Symbol)
+function update_balance!(e::AbstractEdge, model::Model, vdir::Symbol)
 
     if vdir==:start
         v = start_vertex(e);
         s = -1;
+        if loss_fraction(e) == 0
+            effective_flow = flow(e)
+        else
+            if e.unidirectional
+                effective_flow = flow(e)
+            else
+                flow_pos = @variable(model, [t in time_interval(e)], lower_bound = 0.0, base_name = "vFLOWPOS_$(id(e))")
+                flow_neg = @variable(model, [t in time_interval(e)], lower_bound = 0.0, base_name = "vFLOWNEG_$(id(e))")
+
+                @constraint(model, [t in time_interval(e)], flow_pos[t] - flow_neg[t] == flow(e, t))
+
+                if isa(e,EdgeWithUC)
+                    @constraint(model, [t in time_interval(e)], flow_pos[t] + flow_neg[t] <= availability(e, t) * capacity_size(e) * ucommit(e, t))
+                else
+                    @constraint(model, [t in time_interval(e)], flow_pos[t] + flow_neg[t] <= availability(e, t) * capacity(e))
+                end
+
+                effective_flow = flow_pos - (1 - loss_fraction(e)) * flow_neg;
+            end
+        end
     else vdir==:end
         v = end_vertex(e);
         s = 1;
+        if loss_fraction(e) == 0
+            effective_flow = flow(e)
+        else
+            if e.unidirectional
+                effective_flow = (1 - loss_fraction(e)) * flow(e)
+            else
+                flow_pos = @variable(model, [t in time_interval(e)], lower_bound = 0.0, base_name = "vFLOWPOS_$(id(e))")
+                flow_neg = @variable(model, [t in time_interval(e)], lower_bound = 0.0, base_name = "vFLOWNEG_$(id(e))")
+
+                @constraint(model, [t in time_interval(e)], flow_pos[t] - flow_neg[t] == flow(e, t))
+
+                if isa(e,EdgeWithUC)
+                    @constraint(model, [t in time_interval(e)], flow_pos[t] + flow_neg[t] <= availability(e, t) * capacity_size(e) * ucommit(e, t))
+                else
+                    @constraint(model, [t in time_interval(e)], flow_pos[t] + flow_neg[t] <= availability(e, t) * capacity(e))
+                end
+
+                effective_flow = (1 - loss_fraction(e)) * flow_pos - flow_neg;
+            end
+        end
     end
 
     if hours_per_timestep(e) == hours_per_timestep(v)
         for i in balance_ids(v)
-            add_to_expression!.(get_balance(v, i),  s * balance_data(e, v, i) * flow(e))
+            add_to_expression!.(get_balance(v, i),  s * balance_data(e, v, i) * effective_flow)
         end
     else
         for t in time_interval(e)
             transform_time = ceil(Int, (hours_per_timestep(e) * t) / hours_per_timestep(v))
             for i in balance_ids(v)
-                add_to_expression!(get_balance(v, i, transform_time), s * balance_data(e, v, i) * flow(e, t))
+                add_to_expression!(get_balance(v, i, transform_time), s * balance_data(e, v, i) * effective_flow[t])
             end
         end
     end

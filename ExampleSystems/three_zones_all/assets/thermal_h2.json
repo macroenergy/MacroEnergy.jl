@@ -1,0 +1,129 @@
+{
+    "smr": [
+        {
+            "type": "NaturalGasHydrogen",
+            "global_data": {
+                "nodes": {},
+                "transforms": {
+                    "timedata": "Hydrogen",
+                    "efficiency_rate": 0.668437978290351,
+                    "emission_rate": 0.181048235160161,
+                    "constraints": {
+                        "BalanceConstraint": true
+                    }
+                },
+                "edges": {
+                    "h2_edge": {
+                        "id": "H2",
+                        "type": "Hydrogen",
+                        "uc": true,
+                        "unidirectional": true,
+                        "has_capacity": true,
+                        "can_retire": true,
+                        "can_expand": true,
+                        "min_up_time": 3,
+                        "min_down_time": 3,
+                        "ramp_up_fraction": 0.5,
+                        "ramp_down_fraction": 0.5,
+                        "startup_cost": 0.15,
+                        "startup_fuel": 0.0,
+                        "min_flow_fraction": 0.9,
+                        "existing_capacity": 0,
+                        "capacity_size": 305.53611,
+                        "investment_cost": 90987.60864,
+                        "fixed_om_cost": 4276.417606,
+                        "constraints": {
+                            "CapacityConstraint": true,
+                            "RampingLimitConstraint": true,
+                            "MinFlowConstraint": true,
+                            "MinUpTimeConstraint": true,
+                            "MinDownTimeConstraint": true
+                        }
+                    },
+                    "ng_edge": {
+                        "type": "NaturalGas",
+                        "unidirectional": true,
+                        "has_capacity": false
+                    },
+                    "co2_edge": {
+                        "type": "CO2",
+                        "unidirectional": true,
+                        "has_capacity": false
+                    }
+                },
+                "storage": {}
+            },
+            "instance_data": [
+                {
+                    "id": "smr_MA",
+                    "nodes": {},
+                    "transforms": {},
+                    "edges": {
+                        "h2_edge": {
+                            "end_vertex": "h2_MA"
+                        },
+                        "ng_edge": {
+                            "price": {
+                                "timeseries": {
+                                    "path": "assets/fuel_prices.csv",
+                                    "header": "natgas_MA"
+                                }
+                            },
+                            "start_vertex": "ng_source"
+                        },
+                        "co2_edge": {
+                            "end_vertex": "co2_MA"
+                        }
+                    },
+                    "storage": {}
+                },
+                {
+                    "id": "smr_CT",
+                    "nodes": {},
+                    "transforms": {},
+                    "edges": {
+                        "h2_edge": {
+                            "end_vertex": "h2_CT"
+                        },
+                        "ng_edge": {
+                            "price": {
+                                "timeseries": {
+                                    "path": "assets/fuel_prices.csv",
+                                    "header": "natgas_CT"
+                                }
+                            },
+                            "start_vertex": "ng_source"
+                        },
+                        "co2_edge": {
+                            "end_vertex": "co2_CT"
+                        }
+                    },
+                    "storage": {}
+                },
+                {
+                    "id": "smr_ME",
+                    "nodes": {},
+                    "transforms": {},
+                    "edges": {
+                        "h2_edge": {
+                            "end_vertex": "h2_ME"
+                        },
+                        "ng_edge": {
+                            "price": {
+                                "timeseries": {
+                                    "path": "assets/fuel_prices.csv",
+                                    "header": "natgas_ME"
+                                }
+                            },
+                            "start_vertex": "ng_source"
+                        },
+                        "co2_edge": {
+                            "end_vertex": "co2_ME"
+                        }
+                    },
+                    "storage": {}
+                }
+            ]
+        }
+    ]
+}
