@@ -15,7 +15,7 @@
                     "h2_edge": {
                         "type": "Hydrogen",
                         "unidirectional": true,
-                        "has_planning_variables": true,
+                        "has_capacity": true,
                         "can_retire": true,
                         "can_expand": true,
                         "existing_capacity": 0,
@@ -29,7 +29,7 @@
                     "e_edge": {
                         "type": "Electricity",
                         "unidirectional": true,
-                        "has_planning_variables": false
+                        "has_capacity": false
                     }
                 },
                 "storage": {}

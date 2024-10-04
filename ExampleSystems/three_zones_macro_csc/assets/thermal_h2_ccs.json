@@ -19,7 +19,7 @@
                         "type": "Hydrogen",
                         "uc": true,
                         "unidirectional": true,
-                        "has_planning_variables": true,
+                        "has_capacity": true,
                         "can_retire": true,
                         "can_expand": true,
                         "min_up_time": 3,
@@ -44,17 +44,17 @@
                     "ng_edge": {
                         "type": "NaturalGas",
                         "unidirectional": true,
-                        "has_planning_variables": false
+                        "has_capacity": false
                     },
                     "co2_edge": {
                         "type": "CO2",
                         "unidirectional": true,
-                        "has_planning_variables": false
+                        "has_capacity": false
                     },
                     "co2_captured_edge": {
                         "type": "CO2Captured",
                         "unidirectional": true,
-                        "has_planning_variables": false
+                        "has_capacity": false
                     }
                 },
                 "storage": {}

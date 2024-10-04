@@ -14,7 +14,7 @@
                     "co2_edge": {
                         "type": "CO2",
                         "unidirectional": true,
-                        "has_planning_variables": true,
+                        "has_capacity": true,
                         "can_retire": true,
                         "can_expand": true,
                         "investment_cost": 939000,
@@ -25,12 +25,12 @@
                     "e_edge": {
                         "type": "Electricity",
                         "unidirectional": true,
-                        "has_planning_variables": false
+                        "has_capacity": false
                     },
                     "co2_captured_edge": {
                         "type": "CO2Captured",
                         "unidirectional": true,
-                        "has_planning_variables": false
+                        "has_capacity": false
                     }
                 },
                 "storage": {}
