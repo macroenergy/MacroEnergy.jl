@@ -15,7 +15,7 @@ macro AbstractEdgeBaseAttributes()
         existing_capacity::Float64 = 0.0
         fixed_om_cost::Float64 = 0.0
         flow::Union{JuMPVariable,Vector{Float64}} = Vector{VariableRef}()
-        has_planning_variables::Bool = false
+        has_capacity::Bool = false
         investment_cost::Float64 = 0.0
         max_capacity::Float64 = Inf
         min_capacity::Float64 = 0.0
@@ -53,7 +53,7 @@ function make_edge(
         distance = get(data, :distance, 0.0),
         existing_capacity = get(data, :existing_capacity, 0.0),
         fixed_om_cost = get(data, :fixed_om_cost, 0.0),
-        has_planning_variables = get(data, :has_planning_variables, false),
+        has_capacity = get(data, :has_capacity, false),
         investment_cost = get(data, :investment_cost, 0.0),
         max_capacity = get(data, :max_capacity, Inf),
         min_capacity = get(data, :min_capacity, 0.0),
@@ -92,7 +92,7 @@ existing_capacity(e::AbstractEdge) = e.existing_capacity;
 fixed_om_cost(e::AbstractEdge) = e.fixed_om_cost;
 flow(e::AbstractEdge) = e.flow;
 flow(e::AbstractEdge, t::Int64) = flow(e)[t];
-has_planning_variables(e::AbstractEdge) = e.has_planning_variables;
+has_capacity(e::AbstractEdge) = e.has_capacity;
 id(e::AbstractEdge) = e.id;
 investment_cost(e::AbstractEdge) = e.investment_cost;
 max_capacity(e::AbstractEdge) = e.max_capacity;
@@ -111,7 +111,7 @@ variable_om_cost(e::AbstractEdge) = e.variable_om_cost;
 
 function add_linking_variables!(e::AbstractEdge, model::Model)
 
-    if has_planning_variables(e)
+    if has_capacity(e)
         e.capacity = @variable(model, lower_bound = 0.0, base_name = "vCAP_$(id(e))")
     end
 
@@ -119,7 +119,7 @@ end
 
 function planning_model!(e::AbstractEdge, model::Model)
 
-    if has_planning_variables(e)
+    if has_capacity(e)
 
         e.new_capacity = @variable(model, lower_bound = 0.0, base_name = "vNEWCAP_$(id(e))")
 
@@ -143,15 +143,15 @@ function planning_model!(e::AbstractEdge, model::Model)
             add_to_expression!(model[:eFixedCost], fixed_om_cost(e), capacity(e))
         end
 
+        ### DEFAULT CONSTRAINTS ###
+
+        @constraint(
+            model,
+            capacity(e) ==
+            capacity_size(e) * (new_capacity(e) - ret_capacity(e)) + existing_capacity(e)
+        )
     end
 
-    ### DEFAULT CONSTRAINTS ###
-
-    @constraint(
-        model,
-        capacity(e) ==
-        capacity_size(e) * (new_capacity(e) - ret_capacity(e)) + existing_capacity(e)
-    )
 
     return nothing
 
@@ -242,7 +242,7 @@ function make_edge_UC(
         distance = get(data, :distance, 0.0),
         existing_capacity = get(data, :existing_capacity, 0.0),
         fixed_om_cost = get(data, :fixed_om_cost, 0.0),
-        has_planning_variables = get(data, :has_planning_variables, false),
+        has_capacity = get(data, :has_capacity, false),
         investment_cost = get(data, :investment_cost, 0.0),
         max_capacity = get(data, :max_capacity, Inf),
         min_capacity = get(data, :min_capacity, 0.0),

@@ -6,7 +6,7 @@ function get_optimal_asset_capacity(system::System)
     for i in eachindex(system.assets)
         a = system.assets[i]
         for y in getfield.(Ref(a), fieldnames(typeof(a)))
-            if isa(y, AbstractEdge) && has_planning_variables(y)
+            if isa(y, AbstractEdge) && has_capacity(y)
                 asset_ids[i] = id(a)
                 asset_type[i] = Symbol(typeof(a))
                 asset_vcap[i] = value(capacity(y))
@@ -22,7 +22,7 @@ end
 #     asset_capacity = [(id(a), Symbol(typeof(a)), value(capacity(y)))
 #                       for a in system.assets
 #                       for y in getfield.(Ref(a), fieldnames(typeof(a)))
-#                       if isa(y, AbstractEdge) && has_planning_variables(y)]
+#                       if isa(y, AbstractEdge) && has_capacity(y)]
 
 #     # create DataFrame from vector of tuples
 #     DataFrame((; id, type, cap) for (id, type, cap) in asset_capacity)

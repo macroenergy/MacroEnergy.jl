@@ -15,7 +15,7 @@
                         "fixed_om_cost": 4895,
                         "variable_om_cost": 0.15,
                         "efficiency": 0.92,
-                        "has_planning_variables": true,
+                        "has_capacity": true,
                         "constraints": {
                             "CapacityConstraint": true
                         }

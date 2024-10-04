@@ -29,13 +29,13 @@ end
             - id: String
             - start_vertex: String
             - unidirectional: Bool
-            - has_planning_variables: Bool
+            - has_capacity: Bool
             - efficiency: Float64
         - discharge_edge: Dict{Symbol, Any}
             - id: String
             - end_vertex: String
             - unidirectional: Bool
-            - has_planning_variables: Bool
+            - has_capacity: Bool
             - can_retire: Bool
             - can_expand: Bool
             - efficiency

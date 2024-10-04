@@ -13,7 +13,7 @@
                         "unidirectional": true,
                         "can_expand": true,
                         "can_retire": false,
-                        "has_planning_variables": true,
+                        "has_capacity": true,
                         "existing_capacity": 0,
                         "constraints": {
                             "CapacityConstraint": true
@@ -78,7 +78,7 @@
                         "unidirectional": true,
                         "can_expand": true,
                         "can_retire": false,
-                        "has_planning_variables": true,
+                        "has_capacity": true,
                         "existing_capacity": 0,
                         "constraints": {
                             "CapacityConstraint": true

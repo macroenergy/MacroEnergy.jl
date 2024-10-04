@@ -21,7 +21,7 @@ end
             - id: String
             - end_vertex: String
             - unidirectional: Bool
-            - has_planning_variables: Bool
+            - has_capacity: Bool
             - can_retire: Bool
             - can_expand: Bool
             - min_up_time: Int
@@ -34,7 +34,7 @@ end
             - id: String
             - start_vertex: String
             - unidirectional: Bool
-            - has_planning_variables: Bool
+            - has_capacity: Bool
             - can_retire: Bool
             - can_expand: Bool
             - constraints: Vector{AbstractTypeConstraint}
@@ -42,7 +42,7 @@ end
             - id: String
             - end_vertex: String
             - unidirectional: Bool
-            - has_planning_variables: Bool
+            - has_capacity: Bool
             - can_retire: Bool
             - can_expand: Bool
             - constraints: Vector{AbstractTypeConstraint}

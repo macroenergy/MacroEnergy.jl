@@ -6,7 +6,7 @@
                 "edges": {
                     "elec_edge": {
                         "type": "Electricity",
-                        "has_planning_variables": true,
+                        "has_capacity": true,
                         "unidirectional": false,
                         "can_expand": true,
                         "can_retire": false,

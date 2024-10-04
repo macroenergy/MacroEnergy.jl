@@ -89,7 +89,7 @@ function test_load(e_in::AbstractEdge{T}, e_true::S) where {T<:Commodity,S<:JSON
     @test e_in.end_vertex.id == Symbol(e_true.end_vertex)
     @test Symbol(commodity_type(e_in.timedata)) == Symbol(e_true.timedata)
     @test e_in.unidirectional == get(e_true, :unidirectional, true)
-    @test e_in.has_planning_variables == get(e_true, :has_planning_variables, false)
+    @test e_in.has_capacity == get(e_true, :has_capacity, false)
     @test e_in.can_retire == get(e_true, :can_retire, false)
     @test e_in.can_expand == get(e_true, :can_expand, false)
     @test e_in.capacity_size == get(e_true, :capacity_size, 1.0)
