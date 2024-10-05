@@ -423,10 +423,10 @@ function update_balance!(e::AbstractEdge, model::Model, vdir::Symbol)
         v = start_vertex(e);
         s = -1;
         if loss_fraction(e) == 0
-            effective_flow = flow(e)
+            effective_flow = @expression(model,[t in time_interval(e)], flow(e,t))
         else
             if e.unidirectional
-                effective_flow = flow(e)
+                effective_flow = @expression(model,[t in time_interval(e)], flow(e,t))
             else
                 flow_pos = @variable(model, [t in time_interval(e)], lower_bound = 0.0, base_name = "vFLOWPOS_$(id(e))")
                 flow_neg = @variable(model, [t in time_interval(e)], lower_bound = 0.0, base_name = "vFLOWNEG_$(id(e))")
@@ -439,17 +439,18 @@ function update_balance!(e::AbstractEdge, model::Model, vdir::Symbol)
                     @constraint(model, [t in time_interval(e)], flow_pos[t] + flow_neg[t] <= availability(e, t) * capacity(e))
                 end
 
-                effective_flow = flow_pos - (1 - loss_fraction(e)) * flow_neg;
+                effective_flow = @expression(model, [t in time_interval(e)], flow_pos[t] - (1 - loss_fraction(e)) * flow_neg[t])
+
             end
         end
     else vdir==:end
         v = end_vertex(e);
         s = 1;
         if loss_fraction(e) == 0
-            effective_flow = flow(e)
+            effective_flow = @expression(model, [t in time_interval(e)], flow(e,t))
         else
-            if e.unidirectional
-                effective_flow = (1 - loss_fraction(e)) * flow(e)
+            if e.unidirectional   
+                effective_flow = @expression(model, [t in time_interval(e)], (1 - loss_fraction(e)) * flow(e,t))
             else
                 flow_pos = @variable(model, [t in time_interval(e)], lower_bound = 0.0, base_name = "vFLOWPOS_$(id(e))")
                 flow_neg = @variable(model, [t in time_interval(e)], lower_bound = 0.0, base_name = "vFLOWNEG_$(id(e))")
@@ -462,7 +463,8 @@ function update_balance!(e::AbstractEdge, model::Model, vdir::Symbol)
                     @constraint(model, [t in time_interval(e)], flow_pos[t] + flow_neg[t] <= availability(e, t) * capacity(e))
                 end
 
-                effective_flow = (1 - loss_fraction(e)) * flow_pos - flow_neg;
+                effective_flow = @expression(model, [t in time_interval(e)], (1 - loss_fraction(e)) * flow_pos[t] - flow_neg[t])
+
             end
         end
     end
