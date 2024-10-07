@@ -1,35 +1,32 @@
-struct HydroStor <: AbstractAsset
+struct HydroElectric <: AbstractAsset
 	id::AssetId
-	hydrostor_reservoir::Storage{Water}
+	hydroelectric_reservoir::Storage{Water}
 	generator_transform::Transformation
-	motor_transform::Transformation
 	spillage_edge::Edge{Water}
-	charge_edge_water::Edge{Water}
 	discharge_edge_water::Edge{Water}
 	discharge_edge_elec::Edge{Electricity}
-	charge_edge_elec::Edge{Electricity}
 	inflow_edge_water::Edge{Water}
 end
     
-id(hs::HydroStor) = hs.id
+id(hs::HydroElectric) = he.id
 
-function make(::Type{HydroStor}, data::AbstractDict{Symbol,Any}, system::System)
+function make(::Type{HydroElectric}, data::AbstractDict{Symbol,Any}, system::System)
 	id = AssetId(data[:id])
 
-	hydrostor_reservoir_key = :storage
+	hydroelectric_reservoir_key = :storage
 
-	storage_data = process_data(data[hydrostor_reservoir_key])
+	storage_data = process_data(data[hydroelectric_reservoir_key])
 	commodity_symbol = Symbol(storage_data[:commodity])
 	commodity = commodity_types()[commodity_symbol]
 
-	hydrostor_reservoir = Storage(
-        	Symbol(id, "_", hydrostor_reservoir_key),
+	hydroelectric_reservoir = Storage(
+        	Symbol(id, "_", hydroelectric_reservoir_key),
         	storage_data,
         	system.time_data[:Water],
         	Water,
     	)
 
-	hydrostor_reservoir.constraints = get(
+	hydroelectric_reservoir.constraints = get(
 		storage_data,
 		:constraints,
 		[BalanceConstraint(), StorageCapacityConstraint(), MinStorageLevelConstraint()],
@@ -39,14 +36,6 @@ function make(::Type{HydroStor}, data::AbstractDict{Symbol,Any}, system::System)
     	transform_data = process_data(data[:transforms][generator_key])
     	generator_transform = Transformation(;
         	id = Symbol(id, "_", generator_key),
-        	timedata = system.time_data[Symbol(transform_data[:timedata])],
-        	constraints = get(transform_data, :constraints, [BalanceConstraint()]),
-    	)
-
-	motor_key = :motor_transform
-    	transform_data = process_data(data[:transforms][motor_key])
-    	motor_transform = Transformation(;
-        	id = Symbol(id, "_", motor_key),
         	timedata = system.time_data[Symbol(transform_data[:timedata])],
         	constraints = get(transform_data, :constraints, [BalanceConstraint()]),
     	)
@@ -65,8 +54,6 @@ function make(::Type{HydroStor}, data::AbstractDict{Symbol,Any}, system::System)
 	)
 	generator_elec_edge.unidirectional =
 		get(generator_elec_edge_data, :unidirectional, true)
-	generator_elec_edge.constraints =
-		get(generator_elec_edge_data, :constraints, [CapacityConstraint()])
 ###############################WATER DISCHARGE EDGE#############################################	
 	generator_water_edge_key = :discharge_edge_water
 	generator_water_edge_data = process_data(data[:edges][generator_water_edge_key])
@@ -94,13 +81,12 @@ function make(::Type{HydroStor}, data::AbstractDict{Symbol,Any}, system::System)
 		spillage_start_node,
 		spillage_end_node,
 	)
-	spillage_edge.unidirectional = get(spillage_edge_data, :unidirectional, true)
-
+	spillage_edge.unidirectional = get(generator_water_edge_data, :unidirectional, true)
 ##################################INFLOW EDGE WATER#################################################	
 	inflow_edge_key = :inflow_edge_water
 	inflow_edge_data = process_data(data[:edges][inflow_edge_key])
 	inflow_start_node = find_node(system.locations, Symbol(inflow_edge_data[:start_vertex]))
-	inflow_end_node = hydrostor_reservoir
+	inflow_end_node = motor_transform
 	inflow_edge_water = Edge(
 		Symbol(id, "_", inflow_edge_key),
 		inflow_edge_data,
@@ -109,21 +95,7 @@ function make(::Type{HydroStor}, data::AbstractDict{Symbol,Any}, system::System)
 		inflow_start_node,
 		inflow_end_node,
 	)
-	inflow_edge.unidirectional = get(inflow_edge_data, :unidirectional, true)	
-##################################PUMP EDGE WATER#################################################	
-	pump_edge_key = :pump_edge_water
-	pump_edge_data = process_data(data[:edges][pump_edge_key])
-	pump_start_node = find_node(system.locations, Symbol(spillage_edge_data[:end_vertex]))
-	pump_end_node = motor_transform
-	pump_edge_water = Edge(
-		Symbol(id, "_", pump_edge_key),
-		pump_edge_data,
-		system.time_data[:Water],
-		Water,
-		pump_start_node,
-		pump_end_node,
-	)
-	pump_edge.unidirectional = get(pump_edge_data, :unidirectional, true)
+	inflow_edge.unidirectional = get(inflow_edge_data, :unidirectional, true)
 ##################################CHARGE EDGE WATER#################################################	
 	charge_water_edge_key = :charge_edge_water
 	charge_water_edge_data = process_data(data[:edges][charge_water_edge_key])
@@ -153,20 +125,12 @@ function make(::Type{HydroStor}, data::AbstractDict{Symbol,Any}, system::System)
 	)
 	motor_elec_edge.unidirectional =
 		get(motor_elec_edge_data, :unidirectional, true)
-	motor_elec_edge.constraints = get(
-		discharge_edge_data,
-		:constraints,
-		[CapacityConstraint(), RampingLimitConstraint()],
-	)
 ##################################END ALL EDGES#################################################
-	hydrostor_reservoir.discharge_edge = generator_water_edge
-	hydrostor_reservoir.charge_edge = charge_water_edge
 
-
-	hydrostor_reservoir.balance_data = Dict(
+	hydrostor_reservoire.balance_data = Dict(
         	:storage => Dict(
-			generator_water_edge.id => 1 / get(generator_water_edge_data, :efficiency, 1.0),
-			charge_water_edge.id => get(charge_water_edge_data, :efficiency, 1.0),
+			hydrostor_reservoir_discharge.id => 1 / get(discharge_edge_data, :efficiency, 1.0),
+			hydrostor_reservoir_charge.id => get(charge_edge_data, :efficiency, 1.0),
         	),
     	)
 

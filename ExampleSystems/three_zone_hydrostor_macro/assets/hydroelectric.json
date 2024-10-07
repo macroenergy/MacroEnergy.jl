@@ -1,0 +1,169 @@
+{
+	"hydrelectric": [
+	  {
+	    "type": "HydroElectric",
+	    "global_data": {
+	      "nodes": {},
+	      "transforms": {
+		"generator_transform": {
+		  "timedata": "Water",
+		  "electricity_consumption": 0.06000600060006001,
+		  "constraints": {
+		    "BalanceConstraint": true
+		  }
+		}
+	      },
+	      "edges": {
+		"spillage_edge": {
+		  "type": "Water",
+		  "direction": "output",
+		  "can_expand": true,
+		  "can_retire": false,
+		  "existing_capacity": 0,
+		  "investment_cost": 1000,
+		  "fixed_om_cost": 10,
+		  "variable_om_cost": 0,
+		  "has_planning_vars": true,
+		  "constraints": {
+		    "capacity": true,
+		    "ramping_limit": true
+		  }
+		},
+		"discharge_edge_water": {
+		  "type": "Water",
+		  "direction": "output",
+		  "can_expand": true,
+		  "can_retire": false,
+		  "existing_capacity": 0,
+		  "investment_cost": 1000,
+		  "fixed_om_cost": 10,
+		  "variable_om_cost": 0,
+		  "has_planning_vars": true,
+		  "constraints": {
+		    "capacity": true,
+		    "ramping_limit": true
+		  }
+		},
+		"inflow_edge_water": {
+		  "type": "Water",
+		  "direction": "input",
+		  "can_expand": true,
+		  "can_retire": false,
+		  "existing_capacity": 0,
+		  "investment_cost": 1000,
+		  "fixed_om_cost": 10,
+		  "variable_om_cost": 0,
+		  "has_planning_vars": true,
+		  "constraints": {
+		    "capacity": true,
+		    "ramping_limit": true
+		  }
+		},
+		"charge_edge_water": {
+		  "type": "Water",
+		  "direction": "input",
+		  "can_expand": true,
+		  "can_retire": false,
+		  "existing_capacity": 0,
+		  "investment_cost": 1000,
+		  "fixed_om_cost": 10,
+		  "variable_om_cost": 0
+		},
+		"discharge_edge_elec": {
+		  "type": "Electricity",
+		  "direction": "output",
+		  "can_expand": true,
+		  "can_retire": false,
+		  "existing_capacity": 0,
+		  "investment_cost": 1000,
+		  "fixed_om_cost": 10,
+		  "variable_om_cost": 0,
+		  "has_planning_vars": true,
+		  "constraints": {
+		    "capacity": true,
+		    "ramping_limit": true
+		  }
+		},
+		"charge_edge_elec": {
+		  "type": "Electricity",
+		  "direction": "input",
+		  "can_expand": true,
+		  "can_retire": false,
+		  "existing_capacity": 0,
+		  "investment_cost": 1000,
+		  "fixed_om_cost": 10,
+		  "variable_om_cost": 0
+		}
+	      },
+	      "storage": {
+		"commodity": "Water",
+		"can_expand": true,
+		"can_retire": false,
+		"investment_cost_storage": 1050.105011,
+		"fixed_om_cost_storage": 105.0105011,
+		"storage_loss_fraction": 0.1,
+		"min_storage_level": 0.3,
+		"constraints": {
+		  "StorageCapacityConstraint": true,
+		  "BalanceConstraint": true,
+		  "MinStorageLevelConstraint": true
+		}
+	      }
+	    },
+	    "instance_data": [
+	      {
+		"id": "hydrostor_MA",
+		"edges": {
+		  "discharge_edge_elec": {
+		    "end_vertex": "elec_MA"
+		  },
+		  "spillage_edge": {
+		    "end_vertex": "water_MA"
+		  },
+		  "inflow_edge_water": {
+		    "start_vertex": "water_MA"
+		  },
+		  "charge_edge_elec": {
+		    "start_vertex": "elec_MA"
+		  }
+		}
+	      },
+	      {
+		"id": "hydrostor_CT",
+		"edges": {
+		  "discharge_edge_elec": {
+		    "end_vertex": "elec_CT"
+		  },
+		  "spillage_edge": {
+		    "end_vertex": "water_CT"
+		  },
+		  "inflow_edge_water": {
+		    "start_vertex": "water_CT"
+		  },
+		  "charge_edge_elec": {
+		    "start_vertex": "elec_CT"
+		  }
+		}
+	      },
+	      {
+		"id": "hydrostor_ME",
+		"edges": {
+		  "discharge_edge_elec": {
+		    "end_vertex": "elec_ME"
+		  },
+		  "spillage_edge": {
+		    "end_vertex": "water_ME"
+		  },
+		  "inflow_edge_water": {
+		    "start_vertex": "water_ME"
+		  },
+		  "charge_edge_elec": {
+		    "start_vertex": "elec_ME"
+		  }
+		}
+	      }
+	    ]
+	  }
+	]
+      }
+      

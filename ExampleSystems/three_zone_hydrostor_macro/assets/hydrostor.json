@@ -6,7 +6,6 @@
         "nodes": {},
         "transforms": {
           "generator_transform": {
-            "id": "hydro_generator",
             "timedata": "Water",
             "electricity_consumption": 0.06000600060006001,
             "constraints": {
@@ -14,7 +13,6 @@
             }
           },
           "motor_transform": {
-            "id": "hydro_motor",
             "timedata": "Electricity",
             "electricity_consumption": 0.06000600060006001,
             "constraints": {
@@ -33,9 +31,6 @@
             "fixed_om_cost": 10,
             "variable_om_cost": 0,
             "has_planning_vars": true,
-            "stoichiometry_coefficients": {
-              "storage": 1
-            },
             "constraints": {
               "capacity": true,
               "ramping_limit": true
@@ -51,9 +46,6 @@
             "fixed_om_cost": 10,
             "variable_om_cost": 0,
             "has_planning_vars": true,
-            "stoichiometry_coefficients": {
-              "storage": 1
-            },
             "constraints": {
               "capacity": true,
               "ramping_limit": true
@@ -61,7 +53,7 @@
           },
           "inflow_edge_water": {
             "type": "Water",
-            "direction": "output",
+            "direction": "input",
             "can_expand": true,
             "can_retire": false,
             "existing_capacity": 0,
@@ -69,9 +61,6 @@
             "fixed_om_cost": 10,
             "variable_om_cost": 0,
             "has_planning_vars": true,
-            "stoichiometry_coefficients": {
-              "storage": 1
-            },
             "constraints": {
               "capacity": true,
               "ramping_limit": true
@@ -97,9 +86,6 @@
             "fixed_om_cost": 10,
             "variable_om_cost": 0,
             "has_planning_vars": true,
-            "stoichiometry_coefficients": {
-              "storage": 1
-            },
             "constraints": {
               "capacity": true,
               "ramping_limit": true
@@ -117,7 +103,6 @@
           }
         },
         "storage": {
-          "id": "hydrostor_reservoir",
           "commodity": "Water",
           "can_expand": true,
           "can_retire": false,
@@ -132,7 +117,7 @@
           }
         }
       },
-      "instance": [
+      "instance_data": [
         {
           "id": "hydrostor_MA",
           "edges": {
