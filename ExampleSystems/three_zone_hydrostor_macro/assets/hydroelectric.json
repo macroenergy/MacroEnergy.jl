@@ -59,16 +59,6 @@
 		    "ramping_limit": true
 		  }
 		},
-		"charge_edge_water": {
-		  "type": "Water",
-		  "direction": "input",
-		  "can_expand": true,
-		  "can_retire": false,
-		  "existing_capacity": 0,
-		  "investment_cost": 1000,
-		  "fixed_om_cost": 10,
-		  "variable_om_cost": 0
-		},
 		"discharge_edge_elec": {
 		  "type": "Electricity",
 		  "direction": "output",
@@ -83,16 +73,6 @@
 		    "capacity": true,
 		    "ramping_limit": true
 		  }
-		},
-		"charge_edge_elec": {
-		  "type": "Electricity",
-		  "direction": "input",
-		  "can_expand": true,
-		  "can_retire": false,
-		  "existing_capacity": 0,
-		  "investment_cost": 1000,
-		  "fixed_om_cost": 10,
-		  "variable_om_cost": 0
 		}
 	      },
 	      "storage": {
@@ -112,7 +92,7 @@
 	    },
 	    "instance_data": [
 	      {
-		"id": "hydrostor_MA",
+		"id": "hydroelectric_MA",
 		"edges": {
 		  "discharge_edge_elec": {
 		    "end_vertex": "elec_MA"
@@ -122,14 +102,11 @@
 		  },
 		  "inflow_edge_water": {
 		    "start_vertex": "water_MA"
-		  },
-		  "charge_edge_elec": {
-		    "start_vertex": "elec_MA"
 		  }
 		}
 	      },
 	      {
-		"id": "hydrostor_CT",
+		"id": "hydroelectric_CT",
 		"edges": {
 		  "discharge_edge_elec": {
 		    "end_vertex": "elec_CT"
@@ -139,14 +116,11 @@
 		  },
 		  "inflow_edge_water": {
 		    "start_vertex": "water_CT"
-		  },
-		  "charge_edge_elec": {
-		    "start_vertex": "elec_CT"
 		  }
 		}
 	      },
 	      {
-		"id": "hydrostor_ME",
+		"id": "hydroelectric_ME",
 		"edges": {
 		  "discharge_edge_elec": {
 		    "end_vertex": "elec_ME"
@@ -156,9 +130,6 @@
 		  },
 		  "inflow_edge_water": {
 		    "start_vertex": "water_ME"
-		  },
-		  "charge_edge_elec": {
-		    "start_vertex": "elec_ME"
 		  }
 		}
 	      }
