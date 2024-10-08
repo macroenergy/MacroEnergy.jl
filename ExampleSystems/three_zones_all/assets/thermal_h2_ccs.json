@@ -69,13 +69,7 @@
                             "end_vertex": "h2_MA"
                         },
                         "ng_edge": {
-                            "price": {
-                                "timeseries": {
-                                    "path": "assets/fuel_prices.csv",
-                                    "header": "natgas_MA"
-                                }
-                            },
-                            "start_vertex": "ng_source"
+                            "start_vertex": "natgas_MA"
                         },
                         "co2_edge": {
                             "end_vertex": "co2_MA"
@@ -95,13 +89,7 @@
                             "end_vertex": "h2_CT"
                         },
                         "ng_edge": {
-                            "price": {
-                                "timeseries": {
-                                    "path": "assets/fuel_prices.csv",
-                                    "header": "natgas_CT"
-                                }
-                            },
-                            "start_vertex": "ng_source"
+                            "start_vertex": "natgas_CT"
                         },
                         "co2_edge": {
                             "end_vertex": "co2_CT"
@@ -121,13 +109,7 @@
                             "end_vertex": "h2_ME"
                         },
                         "ng_edge": {
-                            "price": {
-                                "timeseries": {
-                                    "path": "assets/fuel_prices.csv",
-                                    "header": "natgas_ME"
-                                }
-                            },
-                            "start_vertex": "ng_source"
+                            "start_vertex": "natgas_ME"
                         },
                         "co2_edge": {
                             "end_vertex": "co2_ME"

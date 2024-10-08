@@ -22,7 +22,6 @@ macro AbstractEdgeBaseAttributes()
         min_capacity::Float64 = 0.0
         min_flow_fraction::Float64 = 0.0
         new_capacity::Union{JuMPVariable,Float64} = 0.0
-        price::Vector{Float64} = Float64[]
         ramp_down_fraction::Float64 = 1.0
         ramp_up_fraction::Float64 = 1.0
         ret_capacity::Union{JuMPVariable,Float64} = 0.0
@@ -60,7 +59,6 @@ function make_edge(
         max_capacity = get(data, :max_capacity, Inf),
         min_capacity = get(data, :min_capacity, 0.0),
         min_flow_fraction = get(data, :min_flow_fraction, 0.0),
-        price = get(data, :price, Float64[]),
         ramp_down_fraction = get(data, :ramp_down_fraction, 1.0),
         ramp_up_fraction = get(data, :ramp_up_fraction, 1.0),
         unidirectional = get(data, :unidirectional, false),
@@ -103,8 +101,6 @@ new_capacity(e::AbstractEdge) = e.new_capacity;
 ramp_down_fraction(e::AbstractEdge) = e.ramp_down_fraction;
 ramp_up_fraction(e::AbstractEdge) = e.ramp_up_fraction;
 ret_capacity(e::AbstractEdge) = e.ret_capacity;
-price(e::AbstractEdge) = e.price;
-price(e::AbstractEdge, t::Int64) = price(e)[t];
 start_vertex(e::AbstractEdge)::AbstractVertex = e.start_vertex;
 variable_om_cost(e::AbstractEdge) = e.variable_om_cost;
 
@@ -185,13 +181,14 @@ function operation_model!(e::Edge, model::Model)
                 flow(e, t),
             )
         end
-
-        if !isempty(price(e))
-            add_to_expression!(
-                model[:eVariableCost],
-                subperiod_weight(e, w) * price(e, t),
-                flow(e, t),
-            )
+        if isa(start_vertex(e),Node)
+            if !isempty(price(start_vertex(e)))
+                add_to_expression!(
+                    model[:eVariableCost],
+                    subperiod_weight(e, w) * price(start_vertex(e), t),
+                    flow(e, t),
+                )
+            end
         end
 
     end
@@ -247,7 +244,6 @@ function make_edge_UC(
         max_capacity = get(data, :max_capacity, Inf),
         min_capacity = get(data, :min_capacity, 0.0),
         min_flow_fraction = get(data, :min_flow_fraction, 0.0),
-        price = get(data, :price, Float64[]),
         ramp_down_fraction = get(data, :ramp_down_fraction, 1.0),
         ramp_up_fraction = get(data, :ramp_up_fraction, 1.0),
         unidirectional = get(data, :unidirectional, false),
@@ -336,12 +332,14 @@ function operation_model!(e::EdgeWithUC, model::Model)
             )
         end
 
-        if !isempty(price(e))
-            add_to_expression!(
-                model[:eVariableCost],
-                subperiod_weight(e, w) * price(e, t),
-                flow(e, t),
-            )
+        if isa(start_vertex(e),Node)
+            if !isempty(price(start_vertex(e)))
+                add_to_expression!(
+                    model[:eVariableCost],
+                    subperiod_weight(e, w) * price(start_vertex(e), t),
+                    flow(e, t),
+                )
+            end
         end
 
         if startup_cost(e) > 0

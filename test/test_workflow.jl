@@ -102,7 +102,6 @@ function test_load(e_in::AbstractEdge{T}, e_true::S) where {T<:Commodity,S<:JSON
     @test e_in.investment_cost == get(e_true, :investment_cost, 0.0)
     @test e_in.fixed_om_cost == get(e_true, :fixed_om_cost, 0.0)
     @test e_in.variable_om_cost == get(e_true, :variable_om_cost, 0.0)
-    @test e_in.price == get(e_true, :price, Float64[])
     @test e_in.ramp_up_fraction == get(e_true, :ramp_up_fraction, 1.0)
     @test e_in.ramp_down_fraction == get(e_true, :ramp_down_fraction, 1.0)
     @test e_in.min_flow_fraction == get(e_true, :min_flow_fraction, 0.0)
@@ -136,6 +135,7 @@ function test_load(n_in::Node{T}, n_true::S) where {T<:Commodity,S<:JSON3.Object
     @test Symbol(commodity_type(n_in.timedata)) == Symbol(n_true_instance_data.timedata)
     @test n_in.demand == get(n_true_instance_data, :demand, Vector{Float64}())
     @test n_in.max_nsd == get(n_true_instance_data, :max_nsd, [0.0])
+    @test n_in.price == get(n_true, :price, Float64[])
     @test n_in.price_nsd == get(n_true_instance_data, :price_nsd, [0.0])
     @test n_in.price_unmet_policy ==
           get(n_true_instance_data, :price_unmet_policy, Dict{DataType,Float64}())

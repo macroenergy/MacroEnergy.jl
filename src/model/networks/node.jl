@@ -6,6 +6,7 @@ Base.@kwdef mutable struct Node{T} <: AbstractVertex
         Matrix{VariableRef}(undef, 0, 0)
     policy_budgeting_vars::Dict = Dict()
     policy_slack_vars::Dict = Dict()
+    price::Vector{Float64} = Float64[]
     price_nsd::Vector{Float64} = [0.0]
     price_unmet_policy::Dict{DataType,Float64} = Dict{DataType,Float64}()
     rhs_policy::Dict{DataType,Float64} = Dict{DataType,Float64}()
@@ -17,9 +18,10 @@ function make_node(data::AbstractDict{Symbol,Any}, time_data::TimeData, commodit
         timedata = time_data,
         demand = get(data, :demand, Vector{Float64}()),
         max_nsd = get(data, :max_nsd, [0.0]),
+        price = get(data, :price, Float64[]),
         price_nsd = get(data, :price_nsd, [0.0]),
         price_unmet_policy = get(data, :price_unmet_policy, Dict{DataType,Float64}()),
-        rhs_policy = get(data, :rhs_policy, Dict{DataType,Float64}()),
+        rhs_policy = get(data, :rhs_policy, Dict{DataType,Float64}())
     )
     # add_constraints!(_node, data)
     return _node
@@ -38,6 +40,8 @@ non_served_demand(n::Node) = n.non_served_demand;
 non_served_demand(n::Node, s::Int64, t::Int64) = non_served_demand(n)[s, t];
 policy_budgeting_vars(n::Node) = n.policy_budgeting_vars;
 policy_slack_vars(n::Node) = n.policy_slack_vars;
+price(n::Node) = n.price;
+price(n::Node, t::Int64) = price(n)[t];
 price_non_served_demand(n::Node) = n.price_nsd;
 price_non_served_demand(n::Node, s::Int64) = price_non_served_demand(n)[s];
 price_unmet_policy(n::Node) = n.price_unmet_policy;

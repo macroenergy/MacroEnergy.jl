@@ -7,7 +7,31 @@
             },
             "instance_data": [
                 {
-                    "id": "ng_source"
+                    "id": "natgas_MA",
+                    "price": {
+                        "timeseries": {
+                            "path": "system/fuel_prices.csv",
+                            "header": "natgas_MA"
+                        }
+                    }
+                },
+                {
+                    "id": "natgas_CT",
+                    "price": {
+                        "timeseries": {
+                            "path": "system/fuel_prices.csv",
+                            "header": "natgas_CT"
+                        }
+                    }
+                },
+                {
+                    "id": "natgas_ME",
+                    "price": {
+                        "timeseries": {
+                            "path": "system/fuel_prices.csv",
+                            "header": "natgas_ME"
+                        }
+                    }
                 }
             ]
         },
