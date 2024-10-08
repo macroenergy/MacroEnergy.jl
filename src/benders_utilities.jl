@@ -1,3 +1,9 @@
+function get_subperiod_index(system::System)
+
+    return system.time_data[:Electricity].subperiod_indices[1]
+
+end
+
 function generate_decomposed_system(system_full::System)
 
     subperiod_indices = collect(eachindex(system_full.time_data[:Electricity].subperiods))
