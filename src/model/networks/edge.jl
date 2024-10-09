@@ -193,17 +193,6 @@ function operation_model!(e::Edge, model::Model)
 
     end
 
-    ### DEFAULT CONSTRAINTS ###
-
-    if isa(start_vertex(e), Storage)
-        @constraint(
-            model,
-            [t in time_interval(e)],
-            balance_data(e, start_vertex(e), :storage) * flow(e, t) <=
-            storage_level(start_vertex(e), timestepbefore(t, 1, subperiods(e)))
-        )
-    end
-
     return nothing
 end
 

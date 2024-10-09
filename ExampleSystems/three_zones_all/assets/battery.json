@@ -17,7 +17,8 @@
                         "efficiency": 0.92,
                         "has_capacity": true,
                         "constraints": {
-                            "CapacityConstraint": true
+                            "CapacityConstraint": true,
+                            "StorageDischargeLimitConstraint": true
                         }
                     },
                     "charge_edge": {
