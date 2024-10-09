@@ -87,6 +87,7 @@ include("model/assets/natgaspowerccs.jl")
 
 include("model/assets/natgasdac.jl")
 include("model/assets/electricdac.jl")
+include("model/assets/gaspipeline.jl")
 
 include_all_in_folder("model/constraints")
 
@@ -118,14 +119,18 @@ export AbstractAsset,
     ElectricDAC,
     FuelCell,
     H2Storage,
+    GasPipeline,
     Hydrogen,
     MaxCapacityConstraint,
     MaxNonServedDemandConstraint,
     MaxNonServedDemandPerSegmentConstraint,
+    MaxStorageLevelConstraint,
+    MinCapacityConstraint,
     MinDownTimeConstraint,
     MinFlowConstraint,
     MinStorageLevelConstraint,
     MinUpTimeConstraint,
+    MustRunConstraint,
     NaturalGas,
     NaturalGasHydrogen,
     NaturalGasPower,
@@ -144,6 +149,7 @@ export AbstractAsset,
     StorageMaxDurationConstraint,
     StorageMinDurationConstraint,
     StorageSymmetricCapacityConstraint,
+    StorageDischargeLimitConstraint,
     Transformation,
     VRE,
     WindTurbine
