@@ -17,6 +17,7 @@ abstract type Electricity <: Commodity end
 abstract type Hydrogen <: Commodity end
 abstract type NaturalGas <: Commodity end
 abstract type CO2 <: Commodity end
+abstract type Water <: Commodity end
 abstract type CO2Captured <: CO2 end
 
 ## Time data types
@@ -28,6 +29,7 @@ abstract type AbstractVertex <: MacroObject end
 
 ## Network types
 abstract type AbstractEdge{T<:Commodity} <: MacroObject end
+
 
 ## Assets types
 abstract type AbstractAsset <: MacroObject end
@@ -81,6 +83,8 @@ include("model/assets/natgashydrogen.jl")
 include("model/assets/natgaspower.jl")
 include("model/assets/powerline.jl")
 include("model/assets/vre.jl")
+include("model/assets/hydrostor.jl")
+include("model/assets/hydroelectric.jl")
 
 include_all_in_folder("model/constraints")
 
@@ -96,7 +100,16 @@ include("write_outputs/assets_capacity.jl")
 include("write_outputs/utilities.jl")
 include("write_outputs/write_system_data.jl")
 
-export AbstractAsset,
+include("benders_utilities.jl")
+#include("benders/benders_planning_problem.jl")
+
+export Electricity,
+    Hydrogen,
+    Water,
+    NaturalGas,
+    CO2,
+    CO2Captured,
+    AbstractAsset,
     AbstractTypeConstraint,
     BalanceConstraint,
     Battery,
@@ -110,6 +123,34 @@ export AbstractAsset,
     Electricity,
     Electrolyzer,
     FuelCell,
+    VRE,
+    SolarPV,
+    WindTurbine,
+    Storage,
+    HydroStor,
+    HydroElectric,
+    Node,
+    Edge,
+    Transformation,
+    EdgeWithUC,
+    namedtuple,
+    AbstractAsset,
+    AbstractTypeConstraint,
+    PlanningConstraint,
+    OperationConstraint,
+    CapacityConstraint,
+    CO2CapConstraint,
+    StorageMinDurationConstraint,
+    StorageMaxDurationConstraint,
+    PolicyConstraint,
+    BalanceConstraint,
+    MaxNonServedDemandPerSegmentConstraint,
+    MaxNonServedDemandConstraint,
+    RampingLimitConstraint,
+    StorageCapacityConstraint,
+    StorageSymmetricCapacityConstraint,
+    MinUpTimeConstraint,
+    MinDownTimeConstraint,
     H2Storage,
     Hydrogen,
     MaxCapacityConstraint,

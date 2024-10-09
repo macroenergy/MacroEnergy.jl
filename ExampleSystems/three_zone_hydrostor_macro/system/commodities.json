@@ -3,6 +3,7 @@
         "Electricity",
         "NaturalGas",
         "CO2",
+        "Hydrogen",
         "Water"
     ]
 }
