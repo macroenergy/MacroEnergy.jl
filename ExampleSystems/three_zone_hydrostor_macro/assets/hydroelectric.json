@@ -25,8 +25,8 @@
 		  "variable_om_cost": 0,
 		  "has_planning_vars": true,
 		  "constraints": {
-		    "capacity": true,
-		    "ramping_limit": true
+		    "CapacityConstraint": true,
+		    "RampingLimitConstraint": true
 		  }
 		},
 		"discharge_edge_water": {
@@ -40,8 +40,8 @@
 		  "variable_om_cost": 0,
 		  "has_planning_vars": true,
 		  "constraints": {
-		    "capacity": true,
-		    "ramping_limit": true
+		    "CapacityConstraint": true,
+		    "RampingLimitConstraint": true
 		  }
 		},
 		"inflow_edge_water": {
@@ -55,8 +55,8 @@
 		  "variable_om_cost": 0,
 		  "has_planning_vars": true,
 		  "constraints": {
-		    "capacity": true,
-		    "ramping_limit": true
+		    "CapacityConstraint": true,
+		    "RampingLimitConstraint": true
 		  }
 		},
 		"discharge_edge_elec": {
@@ -70,8 +70,8 @@
 		  "variable_om_cost": 0,
 		  "has_planning_vars": true,
 		  "constraints": {
-		    "capacity": true,
-		    "ramping_limit": true
+		    "CapacityConstraint": true,
+		    "RampingLimitConstraint": true
 		  }
 		}
 	      },

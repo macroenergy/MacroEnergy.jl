@@ -84,6 +84,7 @@ include("model/assets/natgaspower.jl")
 include("model/assets/powerline.jl")
 include("model/assets/vre.jl")
 include("model/assets/hydrostor.jl")
+include("model/assets/hydroelectric.jl")
 
 include_all_in_folder("model/constraints")
 
