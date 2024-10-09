@@ -14,6 +14,7 @@ Base.@kwdef mutable struct Storage{T} <: AbstractVertex
     min_capacity_storage::Float64 = 0.0
     min_duration::Float64 = 0.0
     min_storage_level::Float64 = 0.0
+    max_storage_level::Float64 = 0.0
     new_capacity_storage::Union{JuMPVariable,Float64} = 0.0
     ret_capacity_storage::Union{JuMPVariable,Float64} = 0.0
     storage_level::Union{JuMPVariable,Vector{Float64}} = Vector{VariableRef}()
@@ -38,6 +39,7 @@ function make_storage(
         min_duration = get(data, :min_duration, 0.0),
         max_duration = get(data, :max_duration, 0.0),
         min_storage_level = get(data, :min_storage_level, 0.0),
+        max_storage_level = get(data, :max_storage_level, 0.0),
         min_capacity_storage = get(data, :min_capacity_storage, 0.0),
         max_capacity_storage = get(data, :max_capacity_storage, Inf),
     )
@@ -56,9 +58,12 @@ discharge_edge(g::Storage) = g.discharge_edge;
 existing_capacity_storage(g::Storage) = g.existing_capacity_storage;
 fixed_om_cost_storage(g::Storage) = g.fixed_om_cost_storage;
 investment_cost_storage(g::Storage) = g.investment_cost_storage;
+min_capacity_storage(g::Storage) = g.min_capacity_storage;
+max_capacity_storage(g::Storage) = g.max_capacity_storage;
 max_duration(g::Storage) = g.max_duration;
 min_duration(g::Storage) = g.min_duration;
 min_storage_level(g::Storage) = g.min_storage_level;
+max_storage_level(g::Storage) = g.max_storage_level;
 new_capacity_storage(g::Storage) = g.new_capacity_storage;
 ret_capacity_storage(g::Storage) = g.ret_capacity_storage;
 storage_level(g::Storage) = g.storage_level;
