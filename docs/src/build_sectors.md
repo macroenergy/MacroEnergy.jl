@@ -5,18 +5,18 @@ The steps to build a sector in Macro are as follows:
 
 1. Create new sectors/commodity types by defining new subtypes of `Commodity` in the `MacroEnergy.jl` file.
 
-2. Create new assets. Each asset type should be a subtype of `AbstractAsset` and be defined in a `.jl` file in the `src/assets` folder. A `make` function should be defined for each asset type to create an instance of the asset.
+2. Create new assets. Each asset type should be a subtype of `AbstractAsset` and be defined in a Julia (`.jl`) file located in the `src/assets` folder. A `make` function should be defined for each asset type to create an instance of the asset.
 
 !!! note "Note"
     Remember to include the new files in the `MacroEnergy.jl` file, so that they are available when the package is loaded.
 
 During the creation of the assets, you will need to provide (check the following sections for an example):
-- **Asset structure**: list of fields that define the asset in the form of transformations, edges, and storage units.
-- **Default constraints** for the transformations, edges, and storage units.
-- **Stoichiometric equations/coefficients** for the transformation processes.
+1. **Asset structure**: list of fields that define the asset in the form of transformations, edges, and storage units.
+2. **Default constraints** for the transformations, edges, and storage units.
+3. **Stoichiometric equations/coefficients** for the transformation processes.
 
 ```@raw html
-<ol start="3">
+<ol start="4">
     <li>(Optional) Create a new JSON data file to test the new assets.</li>
 </ol>
 ```
