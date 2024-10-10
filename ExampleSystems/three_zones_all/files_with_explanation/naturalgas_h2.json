@@ -1,13 +1,14 @@
 {
-    "smr": [
+    "NaturalGasH2": [
         {
-            "type": "NaturalGasHydrogen",
+            "type": "NaturalGasHydrogen - these are the natural gas to hydrogen generation resources, which correspond to those resources with <HSC_generation.csv/H2_GEN_TYPE>==2 that do not have CCS ",
             "global_data": {
                 "nodes": {},
                 "transforms": {
                     "timedata": "Hydrogen",
-                    "efficiency_rate": 0.668437978290351,
-                    "emission_rate": 0.181048235160161,
+                    "efficiency_rate": "1/(<HSC_generation/etaFuel_MMBtu_p_tonne> * NG_MWH / H2_MWH)",
+                    "emission_rate": "0.05306 / NG_MWH #### NOTE the value 0.05306 comes from the first line in Fuels_data.csv",
+                    "electricity_consumption": "<HSC_generation.csv/etaP2G_MWh_p_tonne> / H2_MWH",
                     "constraints": {
                         "BalanceConstraint": true
                     }
@@ -19,19 +20,21 @@
                         "uc": true,
                         "unidirectional": true,
                         "has_capacity": true,
-                        "can_retire": true,
-                        "can_expand": true,
-                        "min_up_time": 3,
-                        "min_down_time": 3,
-                        "ramp_up_fraction": 0.5,
-                        "ramp_down_fraction": 0.5,
-                        "startup_cost": 0.15,
-                        "startup_fuel": 0.0,
-                        "min_flow_fraction": 0.9,
-                        "existing_capacity": 0,
-                        "capacity_size": 305.53611,
-                        "investment_cost": 90987.60864,
-                        "fixed_om_cost": 4276.417606,
+                        "existing_capacity":"<HSC_generation/Existing_Cap_tonne_p_hr> * H2_MWh",
+                        "capacity_size": "<HSC_generation/Cap_Size_tonne_p_hr> * H2_MWh",
+                        "investment_cost": "<HSC_generation/Inv_Cost_p_tonne_p_hr_yr> / H2_MWh",
+                        "fixed_om_cost": "<HSC_generation/Fixed_OM_Cost_p_tonne_p_hr_yr> / H2_Mwh",
+                        "variable_om_cost":"<HSC_generation/Var_OM_Cost_p_tonne> / H2_Mwh",
+                        "can_expand": "<HSC_generation/New_Build>==1",
+                        "can_retire": "<HSC_generation/New_Build>==0",
+                        "min_up_time": "<HSC_generation/Up_Time>",
+                        "min_down_time": "<HSC_generation/Down_Time>",
+                        "ramp_up_fraction": "<HSC_generation/Ramp_Up_Percentage>",
+                        "ramp_down_fraction": "<HSC_generation/Ramp_Down_Percentage>",
+                        "startup_cost": "<HSC_generation/Start_Cost_per_tonne_p_hr> / H2_Mwh",
+                        "min_flow_fraction": "<HSC_generation/H2Gen_min_output>",
+                        "max_capacity":"<HSC_generation/Max_Cap_tonne_p_hr> * H2_MWh #### NOTE: IF THIS IS NOTZERO, THEN MAXIMUM CAPACITY CONSTRAINT HAS TO BE ADDED IN THE CONSTRAINTS LIST BELOW",
+                        "min_capacity": "<HSC_generation/Min_Cap_tonne_p_hr> * H2_MWh #### NOTE: IF THIS IS NOTZERO, THEN MINIMUM CAPACITY CONSTRAINT HAS TO BE ADDED IN THE CONSTRAINTS LIST BELOW",
                         "constraints": {
                             "CapacityConstraint": true,
                             "RampingLimitConstraint": true,
@@ -39,6 +42,11 @@
                             "MinUpTimeConstraint": true,
                             "MinDownTimeConstraint": true
                         }
+                    },
+                    "elec_edge":{
+                        "type": "Electricity",
+                        "unidirectional": true,
+                        "has_capacity": false
                     },
                     "ng_edge": {
                         "type": "NaturalGas",
@@ -55,12 +63,15 @@
             },
             "instance_data": [
                 {
-                    "id": "smr_MA",
+                    "id": "NatGasH2_MA",
                     "nodes": {},
                     "transforms": {},
                     "edges": {
                         "h2_edge": {
                             "end_vertex": "h2_MA"
+                        },
+                        "elec_edge": {
+                            "start_vertex": "elec_MA"
                         },
                         "ng_edge": {
                             "start_vertex": "natgas_MA"
@@ -72,12 +83,15 @@
                     "storage": {}
                 },
                 {
-                    "id": "smr_CT",
+                    "id": "NatGasH2_CT",
                     "nodes": {},
                     "transforms": {},
                     "edges": {
                         "h2_edge": {
                             "end_vertex": "h2_CT"
+                        },
+                        "elec_edge": {
+                            "start_vertex": "elec_CT"
                         },
                         "ng_edge": {
                             "start_vertex": "natgas_CT"
@@ -89,12 +103,15 @@
                     "storage": {}
                 },
                 {
-                    "id": "smr_ME",
+                    "id": "NatGasH2_ME",
                     "nodes": {},
                     "transforms": {},
                     "edges": {
                         "h2_edge": {
                             "end_vertex": "h2_ME"
+                        },
+                        "elec_edge": {
+                            "start_vertex": "elec_ME"
                         },
                         "ng_edge": {
                             "start_vertex": "natgas_ME"

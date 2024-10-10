@@ -14,7 +14,7 @@ end
      - transforms: Dict{Symbol, Any}
         - id: String
         - timedata: String
-        - heat_rate: Float64
+        - efficiency_rate: Float64
         - emission_rate: Float64
         - constraints: Vector{AbstractTypeConstraint}
     - edges: Dict{Symbol, Any}
@@ -67,7 +67,7 @@ function make(::Type{NaturalGasPowerCCS}, data::AbstractDict{Symbol,Any}, system
         constraints = get(transform_data, :constraints, [BalanceConstraint()]),
     )
 
-    elec_edge_key = :e_edge
+    elec_edge_key = :elec_edge
     elec_edge_data = process_data(data[:edges][elec_edge_key])
     elec_start_node = natgasccs_transform
     elec_end_node = find_node(system.locations, Symbol(elec_edge_data[:end_vertex]))
@@ -89,7 +89,7 @@ function make(::Type{NaturalGasPowerCCS}, data::AbstractDict{Symbol,Any}, system
             MinDownTimeConstraint(),
         ],
     )
-    elec_edge.unidirectional = get(elec_edge_data, :unidirectional, true)
+    elec_edge.unidirectional = true;
     elec_edge.startup_fuel_balance_id = :energy
 
     ng_edge_key = :ng_edge
@@ -104,8 +104,9 @@ function make(::Type{NaturalGasPowerCCS}, data::AbstractDict{Symbol,Any}, system
         ng_start_node,
         ng_end_node,
     )
-    ng_edge.constraints = get(ng_edge_data, :constraints, Vector{AbstractTypeConstraint}())
-    ng_edge.unidirectional = get(ng_edge_data, :unidirectional, true)
+    ng_edge.constraints = Vector{AbstractTypeConstraint}();
+    ng_edge.unidirectional = true;
+    ng_edge.has_capacity = false;
 
     co2_edge_key = :co2_edge
     co2_edge_data = process_data(data[:edges][co2_edge_key])
@@ -119,9 +120,9 @@ function make(::Type{NaturalGasPowerCCS}, data::AbstractDict{Symbol,Any}, system
         co2_start_node,
         co2_end_node,
     )
-    co2_edge.constraints =
-        get(co2_edge_data, :constraints, Vector{AbstractTypeConstraint}())
-    co2_edge.unidirectional = get(co2_edge_data, :unidirectional, true)
+    co2_edge.constraints = Vector{AbstractTypeConstraint}()
+    co2_edge.unidirectional = true;
+    co2_edge.has_capacity = false;
     
     co2_captured_edge_key = :co2_captured_edge
     co2_captured_edge_data = process_data(data[:edges][co2_captured_edge_key])
@@ -135,14 +136,14 @@ function make(::Type{NaturalGasPowerCCS}, data::AbstractDict{Symbol,Any}, system
         co2_captured_start_node,
         co2_captured_end_node,
     )
-    co2_captured_edge.constraints =
-        get(co2_captured_edge_data, :constraints, Vector{AbstractTypeConstraint}())
-    co2_captured_edge.unidirectional = get(co2_captured_edge_data, :unidirectional, true)
+    co2_captured_edge.constraints = Vector{AbstractTypeConstraint}()
+    co2_captured_edge.unidirectional = true;
+    co2_captured_edge.has_capacity = false;
 
     natgasccs_transform.balance_data = Dict(
         :energy => Dict(
-            elec_edge.id => get(transform_data, :heat_rate, 1.0),
-            ng_edge.id => 1.0,
+            elec_edge.id => 1.0,
+            ng_edge.id => get(transform_data, :efficiency_rate, 1.0),
             co2_edge.id => 0.0,
             co2_captured_edge.id => 0.0,
         ),

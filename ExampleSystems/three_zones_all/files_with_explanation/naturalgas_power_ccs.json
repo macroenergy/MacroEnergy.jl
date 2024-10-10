@@ -1,38 +1,40 @@
 {
-    "smr_ccs": [
+    "NaturalGasPowerCCS": [
         {
-            "type": "NaturalGasHydrogenCCS",
+            "type": "NaturalGasPowerCCS - these are the natural gas to electricity generation resources, which correspond to those resources that burn Natural Gas and have CCS ",
             "global_data": {
                 "nodes": {},
                 "transforms": {
-                    "timedata": "Hydrogen",
-                    "efficiency_rate": 0.668437978290351,
-                    "emission_rate": 0.006427212,
-                    "capture_rate": 0.174621023,
+                    "timedata": "Electricity",
+                    "efficiency_rate": "1/(<Generators_data/Heat_Rate_MMBTU_per_MWh> * NG_MWH)",
+                    "emission_rate": "(0.05306 / NG_MWH) * (1 - <Generators_data/CCS_Rate>) #### NOTE the value 0.05306 comes from the first line in Fuels_data.csv",
+                    "capture_rate": "(0.05306 / NG_MWH) * <Generators_data/CCS_Rate> #### NOTE the value 0.05306 comes from the first line in Fuels_data.csv",
                     "constraints": {
                         "BalanceConstraint": true
                     }
                 },
                 "edges": {
-                    "h2_edge": {
-                        "id": "H2",
-                        "type": "Hydrogen",
+                    "elec_edge": {
+                        "type": "Electricity",
                         "uc": true,
                         "unidirectional": true,
                         "has_capacity": true,
-                        "can_retire": true,
-                        "can_expand": true,
-                        "min_up_time": 3,
-                        "min_down_time": 3,
-                        "ramp_up_fraction": 0.5,
-                        "ramp_down_fraction": 0.5,
-                        "startup_cost": 0.15,
-                        "startup_fuel": 0.0,
-                        "min_flow_fraction": 0.9,
-                        "existing_capacity": 0,
-                        "capacity_size": 305.53611,
-                        "investment_cost": 90987.60864,
-                        "fixed_om_cost": 4276.417606,
+                        "existing_capacity":"<Generators_data/Existing_Cap_MW>",
+                        "capacity_size": "<Generators_data/Cap_Size>",
+                        "investment_cost": "<Generators_data/Inv_Cost_per_MWyr>",
+                        "fixed_om_cost": "<Generators_data/Fixed_OM_Cost_per_MWyr>",
+                        "variable_om_cost":"<Generators_data/Var_OM_Cost_per_MWh>",
+                        "can_expand": "<Generators_data/New_Build>==1",
+                        "can_retire": "<Generators_data/New_Build>==0",
+                        "min_up_time": "<Generators_data/Up_Time>",
+                        "min_down_time": "<Generators_data/Down_Time>",
+                        "ramp_up_fraction": "<Generators_data/Ramp_Up_Percentage>",
+                        "ramp_down_fraction": "<Generators_data/Ramp_Dn_Percentage>",
+                        "startup_cost": "<Generators_data/Start_Cost_per_MW>",
+                        "startup_fuel": "<Generators_data/Start_Fuel_MMBTU_per_MW>*NG_MWh",
+                        "min_flow_fraction": "<Generators_data/Min_Power>",
+                        "max_capacity":"<Generators_data/Max_Cap_MW> #### NOTE: IF THIS IS NOTZERO, THEN MAXIMUM CAPACITY CONSTRAINT HAS TO BE ADDED IN THE CONSTRAINTS LIST BELOW",
+                        "min_capacity": "<HSC_generation/Max_Cap_MW> #### NOTE: IF THIS IS NOTZERO, THEN MINIMUM CAPACITY CONSTRAINT HAS TO BE ADDED IN THE CONSTRAINTS LIST BELOW",
                         "constraints": {
                             "CapacityConstraint": true,
                             "RampingLimitConstraint": true,
@@ -61,12 +63,12 @@
             },
             "instance_data": [
                 {
-                    "id": "smr_ccs_MA",
+                    "id": "NatGasPowerCCS_MA",
                     "nodes": {},
                     "transforms": {},
                     "edges": {
-                        "h2_edge": {
-                            "end_vertex": "h2_MA"
+                        "elec_edge": {
+                            "end_vertex": "elec_MA"
                         },
                         "ng_edge": {
                             "start_vertex": "natgas_MA"
@@ -81,12 +83,12 @@
                     "storage": {}
                 },
                 {
-                    "id": "smr_ccs_CT",
+                    "id": "NatGasPowerCCS_CT",
                     "nodes": {},
                     "transforms": {},
                     "edges": {
-                        "h2_edge": {
-                            "end_vertex": "h2_CT"
+                        "elec_edge": {
+                            "end_vertex": "elec_CT"
                         },
                         "ng_edge": {
                             "start_vertex": "natgas_CT"
@@ -101,12 +103,12 @@
                     "storage": {}
                 },
                 {
-                    "id": "smr_ccs_ME",
+                    "id": "NatGasPowerCCS_ME",
                     "nodes": {},
                     "transforms": {},
                     "edges": {
-                        "h2_edge": {
-                            "end_vertex": "h2_ME"
+                        "elec_edge": {
+                            "end_vertex": "elec_ME"
                         },
                         "ng_edge": {
                             "start_vertex": "natgas_ME"
