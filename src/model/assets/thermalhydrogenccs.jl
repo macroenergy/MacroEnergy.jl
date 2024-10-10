@@ -1,15 +1,18 @@
-struct NaturalGasHydrogenCCS <: AbstractAsset
+struct ThermalHydrogenCCS{T} <: AbstractAsset
     id::AssetId
-    natgashydrogenccs_transform::Transformation
+    thermalhydrogenccs_transform::Transformation
     h2_edge::Union{Edge{Hydrogen},EdgeWithUC{Hydrogen}}
     elec_edge::Edge{Electricity}
-    ng_edge::Edge{NaturalGas}
+    fuel_edge::Edge{T}
     co2_edge::Edge{CO2}
     co2_captured_edge::Edge{CO2Captured}
 end
+ThermalHydrogenCCS(id::AssetId, thermalhydrogenccs_transform::Transformation,h2_edge::Union{Edge{Hydrogen},EdgeWithUC{Hydrogen}}, elec_edge::Edge{Electricity},
+fuel_edge::Edge{T},co2_edge::Edge{CO2},co2_captured_edge::Edge{CO2Captured})where T<:Commodity =
+    ThermalHydrogenCCS{T}(id, thermalhydrogenccs_transform, h2_edge, elec_edge, fuel_edge, co2_edge,co2_captured_edge)
 
 """
-    make(::Type{NaturalGasHydrogenCCS}, data::AbstractDict{Symbol, Any}, system::System) -> NaturalGasHydrogenCCS
+    make(::Type{ThermalHydrogenCCS}, data::AbstractDict{Symbol, Any}, system::System) -> ThermalHydrogenCCS
 
     Necessary data fields:
      - transforms: Dict{Symbol, Any}
@@ -37,7 +40,7 @@ end
             - startup_fuel: Float64
             - startup_fuel_balance_id: Symbol
             - constraints: Vector{AbstractTypeConstraint}
-        - ng_edge: Dict{Symbol, Any}
+        - fuel_edge: Dict{Symbol, Any}
             - id: String
             - start_vertex: String
             - unidirectional: Bool
@@ -62,13 +65,13 @@ end
             - can_expand: Bool
             - constraints: Vector{AbstractTypeConstraint}
 """
-function make(::Type{NaturalGasHydrogenCCS}, data::AbstractDict{Symbol,Any}, system::System)
+function make(::Type{ThermalHydrogenCCS}, data::AbstractDict{Symbol,Any}, system::System)
     id = AssetId(data[:id])
 
-    natgashydrogenccs_key = :transforms
-    transform_data = process_data(data[natgashydrogenccs_key])
-    natgashydrogenccs_transform = Transformation(;
-        id = Symbol(id, "_", natgashydrogenccs_key),
+    thermalhydrogenccs_key = :transforms
+    transform_data = process_data(data[thermalhydrogenccs_key])
+    thermalhydrogenccs_transform = Transformation(;
+        id = Symbol(id, "_", thermalhydrogenccs_key),
         timedata = system.time_data[Symbol(transform_data[:timedata])],
         constraints = get(transform_data, :constraints, [BalanceConstraint()]),
     )
@@ -76,7 +79,7 @@ function make(::Type{NaturalGasHydrogenCCS}, data::AbstractDict{Symbol,Any}, sys
     elec_edge_key = :elec_edge
     elec_edge_data = process_data(data[:edges][elec_edge_key]);
     elec_start_node = find_node(system.locations, Symbol(elec_edge_data[:start_vertex]))
-    elec_end_node = natgashydrogenccs_transform
+    elec_end_node = thermalhydrogenccs_transform
     elec_edge = Edge(
         Symbol(id, "_", elec_edge_key),
         elec_edge_data,
@@ -91,7 +94,7 @@ function make(::Type{NaturalGasHydrogenCCS}, data::AbstractDict{Symbol,Any}, sys
 
     h2_edge_key = :h2_edge
     h2_edge_data = process_data(data[:edges][h2_edge_key])
-    h2_start_node = natgashydrogenccs_transform
+    h2_start_node = thermalhydrogenccs_transform
     h2_end_node = find_node(system.locations, Symbol(h2_edge_data[:end_vertex]))
     h2_edge = EdgeWithUC(
         Symbol(id, "_", h2_edge_key),
@@ -114,25 +117,26 @@ function make(::Type{NaturalGasHydrogenCCS}, data::AbstractDict{Symbol,Any}, sys
     h2_edge.unidirectional = true;
     h2_edge.startup_fuel_balance_id = :energy
 
-    ng_edge_key = :ng_edge
-    ng_edge_data = process_data(data[:edges][ng_edge_key])
-    ng_start_node = find_node(system.locations, Symbol(ng_edge_data[:start_vertex]))
-    ng_end_node = natgashydrogenccs_transform
-    ng_edge = Edge(
-        Symbol(id, "_", ng_edge_key),
-        ng_edge_data,
-        system.time_data[:NaturalGas],
-        NaturalGas,
-        ng_start_node,
-        ng_end_node,
+    fuel_edge_key = :fuel_edge
+    fuel_edge_data = process_data(data[:edges][fuel_edge_key])
+    T = commodity_types()[Symbol(fuel_edge_data[:type])];
+    fuel_start_node = find_node(system.locations, Symbol(fuel_edge_data[:start_vertex]))
+    fuel_end_node = thermalhydrogenccs_transform
+    fuel_edge = Edge(
+        Symbol(id, "_", fuel_edge_key),
+        fuel_edge_data,
+        system.time_data[Symbol(T)],
+        T,
+        fuel_start_node,
+        fuel_end_node,
     )
-    ng_edge.has_capacity = false;
-    ng_edge.constraints =Vector{AbstractTypeConstraint}();
-    ng_edge.unidirectional = true;
+    fuel_edge.has_capacity = false;
+    fuel_edge.constraints =Vector{AbstractTypeConstraint}();
+    fuel_edge.unidirectional = true;
 
     co2_edge_key = :co2_edge
     co2_edge_data = process_data(data[:edges][co2_edge_key])
-    co2_start_node = natgashydrogenccs_transform
+    co2_start_node = thermalhydrogenccs_transform
     co2_end_node = find_node(system.locations, Symbol(co2_edge_data[:end_vertex]))
     co2_edge = Edge(
         Symbol(id, "_", co2_edge_key),
@@ -148,7 +152,7 @@ function make(::Type{NaturalGasHydrogenCCS}, data::AbstractDict{Symbol,Any}, sys
 
     co2_captured_edge_key = :co2_captured_edge
     co2_captured_edge_data = process_data(data[:edges][co2_captured_edge_key])
-    co2_captured_start_node = natgashydrogenccs_transform
+    co2_captured_start_node = thermalhydrogenccs_transform
     co2_captured_end_node = find_node(system.locations, Symbol(co2_captured_edge_data[:end_vertex]))
     co2_captured_edge = Edge(
         Symbol(id, "_", co2_captured_edge_key),
@@ -162,25 +166,25 @@ function make(::Type{NaturalGasHydrogenCCS}, data::AbstractDict{Symbol,Any}, sys
     co2_captured_edge.unidirectional = true;
     co2_captured_edge.has_capacity = false;
 
-    natgashydrogenccs_transform.balance_data = Dict(
+    thermalhydrogenccs_transform.balance_data = Dict(
         :energy => Dict(
             h2_edge.id => 1.0,
-            ng_edge.id => get(transform_data, :efficiency_rate, 1.0),
+            fuel_edge.id => get(transform_data, :efficiency_rate, 1.0),
         ),
         :electricity => Dict(
             h2_edge.id => get(transform_data, :electricity_consumption, 0.0),
             elec_edge.id => 1.0
         ),
         :emissions => Dict(
-            ng_edge.id => get(transform_data, :emission_rate, 0.0),
+            fuel_edge.id => get(transform_data, :emission_rate, 0.0),
             co2_edge.id => 1.0,
         ),
         :capture => Dict(
-            ng_edge.id => get(transform_data, :capture_rate, 0.0),
+            fuel_edge.id => get(transform_data, :capture_rate, 0.0),
             co2_captured_edge.id => 1.0,
         ),
     )
 
 
-    return NaturalGasHydrogenCCS(id, natgashydrogenccs_transform, h2_edge, elec_edge,ng_edge, co2_edge, co2_captured_edge)
+    return ThermalHydrogenCCS(id, thermalhydrogenccs_transform, h2_edge, elec_edge,fuel_edge, co2_edge, co2_captured_edge)
 end

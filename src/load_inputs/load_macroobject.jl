@@ -76,7 +76,7 @@ end
 # Checks on the kind of data
 ###### ###### ###### ###### ###### ######
 
-function check_and_convert_type(data::AbstractDict{Symbol,Any}, m::Module = Macro)::DataType
+function check_and_convert_type(data::AbstractDict{Symbol,Any}, m::Module = Macro)
     if !haskey(data, :type)
         throw(ArgumentError("Instance data does not have a :type field"))
     end

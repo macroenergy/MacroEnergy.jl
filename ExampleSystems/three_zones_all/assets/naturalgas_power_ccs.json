@@ -1,7 +1,7 @@
 {
     "NaturalGasPowerCCS": [
         {
-            "type": "NaturalGasPowerCCS",
+            "type": "ThermalPowerCCS",
             "global_data": {
                 "nodes": {},
                 "transforms": {
@@ -41,7 +41,7 @@
                             "MinDownTimeConstraint": true
                         }
                     },
-                    "ng_edge": {
+                    "fuel_edge": {
                         "type": "NaturalGas",
                         "unidirectional": true,
                         "has_capacity": false
@@ -68,7 +68,7 @@
                         "elec_edge": {
                             "end_vertex": "elec_MA"
                         },
-                        "ng_edge": {
+                        "fuel_edge": {
                             "start_vertex": "natgas_MA"
                         },
                         "co2_edge": {
@@ -88,7 +88,7 @@
                         "elec_edge": {
                             "end_vertex": "elec_CT"
                         },
-                        "ng_edge": {
+                        "fuel_edge": {
                             "start_vertex": "natgas_CT"
                         },
                         "co2_edge": {
@@ -108,7 +108,7 @@
                         "elec_edge": {
                             "end_vertex": "elec_ME"
                         },
-                        "ng_edge": {
+                        "fuel_edge": {
                             "start_vertex": "natgas_ME"
                         },
                         "co2_edge": {

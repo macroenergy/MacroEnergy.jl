@@ -1,7 +1,7 @@
 {
     "NaturalGasH2": [
         {
-            "type": "NaturalGasHydrogen - these are the natural gas to hydrogen generation resources, which correspond to those resources with <HSC_generation.csv/H2_GEN_TYPE>==2 that do not have CCS ",
+            "type": "ThermalHydrogen - these are the natural gas to hydrogen generation resources, which correspond to those resources with <HSC_generation.csv/H2_GEN_TYPE>==2 that do not have CCS ",
             "global_data": {
                 "nodes": {},
                 "transforms": {
@@ -48,7 +48,7 @@
                         "unidirectional": true,
                         "has_capacity": false
                     },
-                    "ng_edge": {
+                    "fuel_edge": {
                         "type": "NaturalGas",
                         "unidirectional": true,
                         "has_capacity": false
@@ -73,7 +73,7 @@
                         "elec_edge": {
                             "start_vertex": "elec_MA"
                         },
-                        "ng_edge": {
+                        "fuel_edge": {
                             "start_vertex": "natgas_MA"
                         },
                         "co2_edge": {
@@ -93,7 +93,7 @@
                         "elec_edge": {
                             "start_vertex": "elec_CT"
                         },
-                        "ng_edge": {
+                        "fuel_edge": {
                             "start_vertex": "natgas_CT"
                         },
                         "co2_edge": {
@@ -113,7 +113,7 @@
                         "elec_edge": {
                             "start_vertex": "elec_ME"
                         },
-                        "ng_edge": {
+                        "fuel_edge": {
                             "start_vertex": "natgas_ME"
                         },
                         "co2_edge": {

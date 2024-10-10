@@ -18,6 +18,9 @@ abstract type Hydrogen <: Commodity end
 abstract type NaturalGas <: Commodity end
 abstract type CO2 <: Commodity end
 abstract type CO2Captured <: CO2 end
+abstract type Coal <: Commodity end
+abstract type Biomass <: Commodity end
+abstract type Uranium <: Commodity end
 
 ## Time data types
 abstract type AbstractTimeData{T<:Commodity} end
@@ -77,13 +80,13 @@ include("model/assets/battery.jl")
 include("model/assets/electrolyzer.jl")
 include("model/assets/fuelcell.jl")
 include("model/assets/h2storage.jl")
-include("model/assets/natgashydrogen.jl")
-include("model/assets/natgaspower.jl")
+include("model/assets/thermalhydrogen.jl")
+include("model/assets/thermalpower.jl")
 include("model/assets/powerline.jl")
 include("model/assets/vre.jl")
 
-include("model/assets/natgashydrogenccs.jl")
-include("model/assets/natgaspowerccs.jl")
+include("model/assets/thermalhydrogenccs.jl")
+include("model/assets/thermalpowerccs.jl")
 
 include("model/assets/natgasdac.jl")
 include("model/assets/electricdac.jl")
@@ -132,10 +135,10 @@ export AbstractAsset,
     MinUpTimeConstraint,
     MustRunConstraint,
     NaturalGas,
-    NaturalGasHydrogen,
-    NaturalGasPower,
-    NaturalGasHydrogenCCS,
-    NaturalGasPowerCCS,
+    ThermalPowerHydrogen,
+    ThermalPower,
+    ThermalHydrogenCCS,
+    ThermalPowerCCS,
     NaturalGasDAC,
     Node,
     OperationConstraint,
