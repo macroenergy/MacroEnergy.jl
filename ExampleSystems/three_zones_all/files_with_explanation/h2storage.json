@@ -1,0 +1,100 @@
+{
+    "h2stor": [
+        {
+            "type": "H2Storage #### NOTE: THESE ARE THE RESOURCES IN HSC_generation.csv with H2_STOR=1",
+            "global_data": {
+                "nodes": {},
+                "transforms": {
+                    "timedata": "Hydrogen",
+                    "electricity_consumption": "<HSC_generation/H2Stor_Charge_MWh_p_tonne> / H2_MWh",
+                    "constraints": {
+                        "BalanceConstraint": true
+                    }
+                },
+                "edges": {
+                    "discharge_edge": {
+                        "type": "Hydrogen",
+                        "unidirectional": true,
+                        "has_capacity": true,
+                        "can_expand": "<HSC_generation/New_Build>==1",
+                        "can_retire": "<HSC_generation/New_Build>==0",
+                        "capacity_size": "Set it by default to 1",
+                        "existing_capacity": "HSC_generation/Existing_Cap_tonne> * H2_MWh",
+                        "investment_cost": "HSC_generation/Inv_Cost_p_tonne_p_hr_yr> / H2_MWh",
+                        "fixed_om_cost": "HSC_generation/Fixed_OM_Cost_p_tonne_p_hr_yr> / H2_MWh",
+                        "variable_om_cost": "HSC_generation/Var_OM_Cost_p_tonne> / H2_MWh",
+                        "efficiency": "HSC_generation/H2Stor_eff_discharge",
+                        "max_capacity":"<HSC_generation/Max_Cap_tonne_p_hr> * H2_MWh #### NOTE: IF THIS IS NOTZERO, THEN MAXIMUM CAPACITY CONSTRAINT HAS TO BE ADDED IN THE CONSTRAINTS LIST BELOW",
+                        "min_capacity": "<HSC_generation/Min_Cap_tonne_p_hr> * H2_MWh #### NOTE: IF THIS IS NOTZERO, THEN MINIMUM CAPACITY CONSTRAINT HAS TO BE ADDED IN THE CONSTRAINTS LIST BELOW",
+                        "min_flow_fraction": "<HSC_generation/H2Gen_min_output>  #### NOTE: IF THIS IS NOTZERO, THEN MINIMUM FLOW CONSTRAINT HAS TO BE ADDED IN THE CONSTRAINTS LIST BELOW",
+                        "constraints": {
+                            "CapacityConstraint": true
+                        }
+                    },
+                    "charge_edge": {
+                        "type": "Hydrogen",
+                        "unidirectional": true,
+                        "has_capacity": true,
+                        "can_expand": "<HSC_generation/New_Build>==1",
+                        "can_retire": "<HSC_generation/New_Build>==0",
+                        "capacity_size": "Set it by default to 1",
+                        "existing_capacity": "HSC_generation/Existing_Charge_Cap_tonne> * H2_MWh",
+                        "investment_cost": "HSC_generation/Inv_Cost_Charge_p_tonne_p_hr_yr> / H2_MWh",
+                        "fixed_om_cost": "HSC_generation/Fixed_OM_Cost_Charge_p_tonne_p_hr_yr> / H2_MWh",
+                        "variable_om_cost": "HSC_generation/Var_OM_Cost_Charge_p_tonne> / H2_MWh",
+                        "efficiency": "HSC_generation/H2Stor_eff_charge",
+                        "max_capacity":"<HSC_generation/Max_Charge_Cap_tonne_p_hr> * H2_MWh #### NOTE: IF THIS IS NOTZERO, THEN MAXIMUM CAPACITY CONSTRAINT HAS TO BE ADDED IN THE CONSTRAINTS LIST BELOW",
+                        "min_capacity": "<HSC_generation/Min_Charge_Cap_tonne_p_hr> * H2_MWh #### NOTE: IF THIS IS NOTZERO, THEN MINIMUM CAPACITY CONSTRAINT HAS TO BE ADDED IN THE CONSTRAINTS LIST BELOW",
+                        "constraints": {
+                            "CapacityConstraint": true
+                        }
+                    },
+                    "compressor_elec_edge": {
+                        "type": "Electricity",
+                        "unidirectional": true,
+                        "has_capacity": false
+                    },
+                    "compressor_h2_edge": {
+                        "type": "Hydrogen",
+                        "unidirectional": true,
+                        "has_capacity": false
+                    }
+                },
+                "storage": {
+                    "commodity": "Hydrogen",
+                    "can_expand": "<HSC_generation/New_Build>==1",
+                    "can_retire": "<HSC_generation/New_Build>==0",
+                    "existing_capacity_storage:": "HSC_generation/Existing_Energy_Cap_tonne> * H2_MWh",
+                    "investment_cost_storage": "HSC_generation/Inv_Cost_Energy_p_tonne_yr> / H2_MWh",
+                    "fixed_om_cost_storage": "HSC_generation/Fixed_OM_Cost_Energy_p_tonne_yr> / H2_MWh",
+                    "variable_om_cost_storage": "HSC_generation/Var_OM_Cost_Energy_p_tonne> / H2_MWh",
+                    "storage_loss_fraction": "HSC_generation/H2Stor_self_discharge_rate_p_hour",
+                    "max_capacity_storage":"<HSC_generation/Max_Energy_Cap_tonne> * H2_MWh #### NOTE: IF THIS IS NOT ZERO, THEN MAXIMUM CAPACITY CONSTRAINT HAS TO BE ADDED IN THE CONSTRAINTS LIST BELOW",
+                    "min_capacity_storage": "<HSC_generation/Min_Energy_Cap_tonne> * H2_MWh #### NOTE: IF THIS IS NOT ZERO, THEN MINIMUM CAPACITY CONSTRAINT HAS TO BE ADDED IN THE CONSTRAINTS LIST BELOW",
+                    "min_storage_level": "<HSC_generation/H2Stor_min_level> #### NOTE: IF THIS IS NOT ZERO, THEN MINIMUM STORAGE LEVEL CONSTRAINT HAS TO BE ADDED IN THE CONSTRAINTS LIST BELOW",
+                    "max_storage_level": "<HSC_generation/H2Stor_max_level> #### NOTE: IF THIS IS NOT ZERO, THEN MAXIMUM STORAGE LEVEL CONSTRAINT HAS TO BE ADDED IN THE CONSTRAINTS LIST BELOW",
+                    "constraints": {
+                        "StorageCapacityConstraint": true,
+                        "BalanceConstraint": true
+                    }
+                }
+            },
+            "instance_data": [
+                {
+                    "id": "h2storage_MA",
+                    "edges": {
+                        "discharge_edge": {
+                            "end_vertex": "h2_MA"
+                        },
+                        "compressor_h2_edge": {
+                            "start_vertex": "h2_MA"
+                        },
+                        "compressor_elec_edge": {
+                            "start_vertex": "elec_MA"
+                        }
+                    }
+                }
+            ]
+        }
+    ]
+}
