@@ -87,7 +87,7 @@ include("model/assets/natgaspowerccs.jl")
 
 include("model/assets/natgasdac.jl")
 include("model/assets/electricdac.jl")
-include("model/assets/gaspipeline.jl")
+
 
 include_all_in_folder("model/constraints")
 
