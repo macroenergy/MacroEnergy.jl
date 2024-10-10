@@ -1,20 +1,32 @@
 # Installation
 
-To install the Macro package in Julia, please follow these steps:
+To install the Macro package in Julia, we recommend following these steps:
 
-- **Start Julia**: You can start Julia by typing `julia` on your command line.
+1. **Create a new folder**: Before starting Julia, create a new folder for your Macro installation. You can do this in your terminal:
 
-- **Open the Julia package manager (Pkg REPL)**: Once Julia has started, you can open the package manager by typing `]`. Your command line should display something like `(v1.x) pkg>`.
+```bash
+mkdir MyMacroFolder
+cd MyMacroFolder
+```
+Replace "MyMacroFolder" with your preferred name.
 
-- **(Optional) Activate the Environment**: If you want to install the Macro package in a specific environment, you can activate it by typing `activate` followed by the path to the environment. For instance, if your environment `MyEnv` is located in the directory `/path/to/environment`, your command should look like this:
+2. **Start Julia**: Start Julia in this new folder by typing `julia` in your terminal.
+
+3. **Open the Julia package manager (Pkg REPL)**: Once Julia has started, open the package manager by typing `]`. Your command line should display something like `(v1.x) pkg>`.
+
+4. **Create and activate a new environment**: Create a new environment in your current folder:
+
 ```julia
-(v1.x) pkg> activate /path/to/environment
-(MyEnv) pkg>
+(v1.x) pkg> activate .
+(MyMacroFolder) pkg>
 ```
 
-- **Add Macro to the environment**: you can install Macro using the Git URL (you might need to provide your GitHub username and password):
+This creates and activates a new environment in the current folder. The prompt will change to show the name of your folder.
+
+5. **Add Macro to the environment**: Now you can install Macro using the Git URL (you might need to provide your GitHub username and password):
+
 ```julia
-(MyEnv) pkg> add https://github.com/macroenergy/MacroEnergy.jl.git
+(MyMacroFolder) pkg> add https://github.com/macroenergy/MacroEnergy.jl.git
 ```
 
 !!! tip "SSH key pair"
