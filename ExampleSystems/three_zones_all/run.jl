@@ -1,7 +1,7 @@
 using Pkg
 Pkg.activate(dirname(dirname(@__DIR__)))
 using Macro
-using Gurobi
+using CPLEX
 
 case_path = @__DIR__
 println("###### ###### ######")
@@ -11,9 +11,9 @@ system = Macro.load_system(case_path)
 
 model = Macro.generate_model(system)
 
-Macro.set_optimizer(model, Gurobi.Optimizer);
+Macro.set_optimizer(model, CPLEX.Optimizer);
 
-Macro.set_optimizer_attributes(model, "BarConvTol"=>1e-6,"Crossover" => 0, "Method" => 2)
+Macro.set_optimizer_attributes(model, "CPX_PARAM_BAREPCOMP"=>1e-6, "CPX_PARAM_LPMETHOD" => 4)
 
 Macro.optimize!(model)
 
