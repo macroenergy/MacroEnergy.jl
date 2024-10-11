@@ -1,7 +1,7 @@
 {
     "h2stor": [
         {
-            "type": "H2Storage",
+            "type": "GasStorage",
             "global_data": {
                 "nodes": {},
                 "transforms": {
@@ -45,7 +45,7 @@
                         "unidirectional": true,
                         "has_capacity": false
                     },
-                    "compressor_h2_edge": {
+                    "compressor_gas_edge": {
                         "type": "Hydrogen",
                         "unidirectional": true,
                         "has_capacity": false
@@ -75,7 +75,7 @@
                         "discharge_edge": {
                             "end_vertex": "h2_MA"
                         },
-                        "compressor_h2_edge": {
+                        "compressor_gas_edge": {
                             "start_vertex": "h2_MA"
                         },
                         "compressor_elec_edge": {
@@ -89,7 +89,7 @@
                         "discharge_edge": {
                             "end_vertex": "h2_CT"
                         },
-                        "compressor_h2_edge": {
+                        "compressor_gas_edge": {
                             "start_vertex": "h2_CT"
                         },
                         "compressor_elec_edge": {
@@ -103,7 +103,7 @@
                         "discharge_edge": {
                             "end_vertex": "h2_ME"
                         },
-                        "compressor_h2_edge": {
+                        "compressor_gas_edge": {
                             "start_vertex": "h2_ME"
                         },
                         "compressor_elec_edge": {

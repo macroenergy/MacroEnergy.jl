@@ -79,7 +79,7 @@ include("model/system.jl")
 include("model/assets/battery.jl")
 include("model/assets/electrolyzer.jl")
 include("model/assets/fuelcell.jl")
-include("model/assets/h2storage.jl")
+include("model/assets/gasstorage.jl")
 include("model/assets/thermalhydrogen.jl")
 include("model/assets/thermalpower.jl")
 include("model/assets/powerline.jl")
@@ -121,7 +121,7 @@ export AbstractAsset,
     Electrolyzer,
     ElectricDAC,
     FuelCell,
-    H2Storage,
+    GasStorage,
     GasPipeline,
     Hydrogen,
     MaxCapacityConstraint,
