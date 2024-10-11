@@ -130,8 +130,6 @@ function make(::Type{ThermalHydrogenCCS}, data::AbstractDict{Symbol,Any}, system
         fuel_start_node,
         fuel_end_node,
     )
-    fuel_edge.has_capacity = false;
-    fuel_edge.constraints =Vector{AbstractTypeConstraint}();
     fuel_edge.unidirectional = true;
 
     co2_edge_key = :co2_edge

@@ -60,9 +60,7 @@ function make(::Type{ThermalPowerCCS}, data::AbstractDict{Symbol,Any}, system::S
         fuel_start_node,
         fuel_end_node,
     )
-    fuel_edge.constraints = Vector{AbstractTypeConstraint}();
     fuel_edge.unidirectional = true;
-    fuel_edge.has_capacity = false;
 
     co2_edge_key = :co2_edge
     co2_edge_data = process_data(data[:edges][co2_edge_key])
