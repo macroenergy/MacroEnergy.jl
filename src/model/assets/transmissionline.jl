@@ -27,5 +27,5 @@ function make(::Type{<:TransmissionLine}, data::AbstractDict{Symbol,Any}, system
 
     t_edge.loss_fraction = get(t_edge_data,:line_loss_percentage,0.0)
 
-    return HydrogenLine(id, t_edge)
+    return TransmissionLine(id, t_edge)
 end
