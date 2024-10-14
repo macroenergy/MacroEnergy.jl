@@ -1,6 +1,6 @@
 struct GasStorage{T} <: AbstractAsset
     id::AssetId
-    gasstorage_transform::Storage{T}
+    gas_storage::Storage{T}
     compressor_transform::Transformation
     discharge_edge::Edge{T}
     charge_edge::Edge{T}
@@ -8,25 +8,25 @@ struct GasStorage{T} <: AbstractAsset
     compressor_gas_edge::Edge{T}
 end
 
-GasStorage(id::AssetId,gasstorage_transform::Storage{T},compressor_transform::Transformation,discharge_edge::Edge{T},charge_edge::Edge{T},compressor_elec_edge::Edge{Electricity},
+GasStorage(id::AssetId,gas_storage::Storage{T},compressor_transform::Transformation,discharge_edge::Edge{T},charge_edge::Edge{T},compressor_elec_edge::Edge{Electricity},
 compressor_gas_edge::Edge{T})where T<:Commodity =
-    GasStorage{T}(id,gasstorage_transform,compressor_transform,discharge_edge,charge_edge,compressor_elec_edge,
+    GasStorage{T}(id,gas_storage,compressor_transform,discharge_edge,charge_edge,compressor_elec_edge,
     compressor_gas_edge)
 
 function make(::Type{GasStorage}, data::AbstractDict{Symbol,Any}, system::System)
     id = AssetId(data[:id])
 
-    gasstorage_key = :storage
-    storage_data = process_data(data[gasstorage_key])
+    gas_storage_key = :storage
+    storage_data = process_data(data[gas_storage_key])
     T = commodity_types()[Symbol(storage_data[:commodity])];
 
-    gasstorage = Storage(
-        Symbol(id, "_", gasstorage_key),
+    gas_storage = Storage(
+        Symbol(id, "_", gas_storage_key),
         storage_data,
         system.time_data[Symbol(T)],
         T,
     )
-    gasstorage.constraints = get(
+    gas_storage.constraints = get(
         storage_data,
         :constraints,
         [BalanceConstraint(), StorageCapacityConstraint()],
@@ -73,8 +73,8 @@ function make(::Type{GasStorage}, data::AbstractDict{Symbol,Any}, system::System
     charge_edge_key = :charge_edge
     charge_edge_data = process_data(data[:edges][charge_edge_key])
     charge_start_node = compressor_transform
-    charge_end_node = gasstorage
-    gasstorage_charge = Edge(
+    charge_end_node = gas_storage
+    gas_storage_charge = Edge(
         Symbol(id, "_", charge_edge_key),
         charge_edge_data,
         system.time_data[Symbol(T)],
@@ -82,16 +82,16 @@ function make(::Type{GasStorage}, data::AbstractDict{Symbol,Any}, system::System
         charge_start_node,
         charge_end_node,
     )
-    gasstorage_charge.unidirectional = true;
-    gasstorage_charge.constraints =
+    gas_storage_charge.unidirectional = true;
+    gas_storage_charge.constraints =
         get(charge_edge_data, :constraints, [CapacityConstraint()])
 
     discharge_edge_key = :discharge_edge
     discharge_edge_data = process_data(data[:edges][discharge_edge_key])
-    discharge_start_node = gasstorage
+    discharge_start_node = gas_storage
     discharge_end_node =
         find_node(system.locations, Symbol(discharge_edge_data[:end_vertex]))
-    gasstorage_discharge = Edge(
+    gas_storage_discharge = Edge(
         Symbol(id, "_", discharge_edge_key),
         discharge_edge_data,
         system.time_data[Symbol(T)],
@@ -99,20 +99,20 @@ function make(::Type{GasStorage}, data::AbstractDict{Symbol,Any}, system::System
         discharge_start_node,
         discharge_end_node,
     )
-    gasstorage_discharge.constraints = get(
+    gas_storage_discharge.constraints = get(
         discharge_edge_data,
         :constraints,
         [CapacityConstraint()],
     )
-    gasstorage_discharge.unidirectional = true;
+    gas_storage_discharge.unidirectional = true;
 
-    gasstorage.discharge_edge = gasstorage_discharge
-    gasstorage.charge_edge = gasstorage_charge
+    gas_storage.discharge_edge = gas_storage_discharge
+    gas_storage.charge_edge = gas_storage_charge
 
-    gasstorage.balance_data = Dict(
+    gas_storage.balance_data = Dict(
         :storage => Dict(
-            gasstorage_discharge.id => 1 / get(discharge_edge_data, :efficiency, 1.0),
-            gasstorage_charge.id => get(charge_edge_data, :efficiency, 1.0),
+            gas_storage_discharge.id => 1 / get(discharge_edge_data, :efficiency, 1.0),
+            gas_storage_charge.id => get(charge_edge_data, :efficiency, 1.0),
         ),
     )
 
@@ -120,10 +120,10 @@ function make(::Type{GasStorage}, data::AbstractDict{Symbol,Any}, system::System
         :electricity => Dict(
             compressor_gas_edge.id => get(transform_data, :electricity_consumption, 0.0),
             compressor_elec_edge.id => 1.0,
-            gasstorage_charge.id => 0.0,
+            gas_storage_charge.id => 0.0,
         ),
         :hydrogen => Dict(
-            gasstorage_charge.id => 1.0,
+            gas_storage_charge.id => 1.0,
             compressor_gas_edge.id => 1.0,
             compressor_elec_edge.id => 0.0,
         ),
@@ -131,10 +131,10 @@ function make(::Type{GasStorage}, data::AbstractDict{Symbol,Any}, system::System
 
     return GasStorage(
         id,
-        gasstorage,
+        gas_storage,
         compressor_transform,
-        gasstorage_discharge,
-        gasstorage_charge,
+        gas_storage_discharge,
+        gas_storage_charge,
         compressor_elec_edge,
         compressor_gas_edge,
     )
