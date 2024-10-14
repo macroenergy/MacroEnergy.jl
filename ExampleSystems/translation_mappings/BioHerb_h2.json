@@ -1,0 +1,120 @@
+{
+  "BioHerbH2": [
+    {
+      "type": "ThermalHydrogen - these are the biomass to hydrogen generation resources, which correspond to those resources that burn herb-biomass and produce H2 without CCS ",
+      "global_data": {
+        "nodes": {},
+        "transforms": {
+          "timedata": "Hydrogen",
+          "efficiency_rate": "<BESC_Biorefinery/BioH2_yield_tonne_per_tonne> * H2_MWH (LHV of H2 per ton in MWh)",
+          "emission_rate": "<BESC_Biorefinery/CO2_emissions_tonne_per_tonne>",
+          "electricity_consumption": 0,
+          "constraints": {
+            "BalanceConstraint": true
+          }
+        },
+        "edges": {
+          "h2_edge": {
+            "id": "H2",
+            "type": "Hydrogen",
+            "unidirectional": true,
+            "has_capacity": false
+            },
+          "elec_edge": {
+            "type": "Electricity",
+            "unidirectional": true,
+            "has_capacity": false
+          },
+          "fuel_edge": {
+            "type": "BioHerb",
+            "unidirectional": true,
+            "has_capacity": true,
+            "uc": false,
+            "existing_capacity": 0,
+            "capacity_size": 1,
+            "investment_cost": "<BESC_Biorefinery/Inv_Cost_per_tonne_per_hr_yr>",
+            "fixed_om_cost": "<BESC_Biorefinery/Fixed_OM_Cost_per_tonne_per_hr_yr>",
+            "variable_om_cost": "<BESC_Biorefinery/Var_OM_per_tonne>",
+            "can_expand": "true",
+            "can_retire": "true",
+            "min_flow_fraction": "<BESC_Biorefinery/Biomass_min_consumption>",
+            "max_capacity": "<BESC_Herb_Linear_Supply/<Zone>/Max_tonne_per_hr> #### NOTE: IF THIS IS NOTZERO, THEN MAXIMUM CAPACITY CONSTRAINT HAS TO BE ADDED IN THE CONSTRAINTS LIST BELOW",
+            "min_capacity": "<BESC_Biorefinery/Min_capacity_tonne_per_hr> #### NOTE: IF THIS IS NOTZERO, THEN MINIMUM CAPACITY CONSTRAINT HAS TO BE ADDED IN THE CONSTRAINTS LIST BELOW",
+            "constraints": {
+              "CapacityConstraint": true,
+              "MinFlowConstraint": true
+            },
+            "co2_edge": {
+              "type": "CO2",
+              "unidirectional": true,
+              "has_capacity": false
+            }
+          }
+        },
+        "storage": {}
+      },
+      "instance_data": [
+        {
+          "id": "BioHerbH2_MA",
+          "nodes": {},
+          "transforms": {},
+          "edges": {
+            "h2_edge": {
+              "end_vertex": "h2_MA"
+            },
+            "elec_edge": {
+              "start_vertex": "elec_MA"
+            },
+            "fuel_edge": {
+              "start_vertex": "bioherb_MA"
+            },
+            "co2_edge": {
+              "end_vertex": "co2_MA"
+            }
+          },
+          "storage": {}
+        },
+        {
+          "id": "BioHerbH2_CT",
+          "nodes": {},
+          "transforms": {},
+          "edges": {
+            "h2_edge": {
+              "end_vertex": "h2_CT"
+            },
+            "elec_edge": {
+              "start_vertex": "elec_CT"
+            },
+            "fuel_edge": {
+              "start_vertex": "bioherb_CT"
+            },
+            "co2_edge": {
+              "end_vertex": "co2_CT"
+            }
+          },
+          "storage": {}
+        },
+        {
+          "id": "BioHerbH2_ME",
+          "nodes": {},
+          "transforms": {},
+          "edges": {
+            "h2_edge": {
+              "end_vertex": "h2_ME"
+            },
+            "elec_edge": {
+              "start_vertex": "elec_ME"
+            },
+            "fuel_edge": {
+              "start_vertex": "bioherb_ME"
+            },
+            "co2_edge": {
+              "end_vertex": "co2_ME"
+            }
+          },
+          "storage": {}
+        }
+      ]
+    }
+  ]
+}

@@ -1,7 +1,7 @@
 {
     "h2stor": [
         {
-            "type": "H2Storage #### NOTE: THESE ARE THE RESOURCES IN HSC_generation.csv with H2_STOR=1",
+            "type": "GasStorage #### NOTE: THESE ARE THE RESOURCES IN HSC_generation.csv with H2_STOR=1",
             "global_data": {
                 "nodes": {},
                 "transforms": {
@@ -54,7 +54,7 @@
                         "unidirectional": true,
                         "has_capacity": false
                     },
-                    "compressor_h2_edge": {
+                    "compressor_gas_edge": {
                         "type": "Hydrogen",
                         "unidirectional": true,
                         "has_capacity": false
@@ -86,7 +86,7 @@
                         "discharge_edge": {
                             "end_vertex": "h2_MA"
                         },
-                        "compressor_h2_edge": {
+                        "compressor_gas_edge": {
                             "start_vertex": "h2_MA"
                         },
                         "compressor_elec_edge": {

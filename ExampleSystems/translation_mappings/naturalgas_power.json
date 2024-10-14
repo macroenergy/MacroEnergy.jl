@@ -1,0 +1,112 @@
+{
+    "NaturalGasPower": [
+        {
+            "type": "ThermalPower - these are the natural gas to electricity generation resources, which correspond to those resources that burn Natural Gas and do not have CCS ",
+            "global_data": {
+                "nodes": {},
+                "transforms": {
+                    "timedata": "Electricity",
+                    "efficiency_rate": "1/(<Generators_data/Heat_Rate_MMBTU_per_MWh> * NG_MWH)",
+                    "emission_rate": "(0.05306 / NG_MWH) #### NOTE the value 0.05306 comes from the first line in Fuels_data.csv",
+                    "constraints": {
+                        "BalanceConstraint": true
+                    }
+                },
+                "edges": {
+                    "elec_edge": {
+                        "type": "Electricity",
+                        "uc": true,
+                        "unidirectional": true,
+                        "has_capacity": true,
+                        "existing_capacity":"<Generators_data/Existing_Cap_MW>",
+                        "capacity_size": "<Generators_data/Cap_Size>",
+                        "investment_cost": "<Generators_data/Inv_Cost_per_MWyr>",
+                        "fixed_om_cost": "<Generators_data/Fixed_OM_Cost_per_MWyr>",
+                        "variable_om_cost":"<Generators_data/Var_OM_Cost_per_MWh>",
+                        "can_expand": "<Generators_data/New_Build>==1",
+                        "can_retire": "<Generators_data/New_Build>==0",
+                        "min_up_time": "<Generators_data/Up_Time>",
+                        "min_down_time": "<Generators_data/Down_Time>",
+                        "ramp_up_fraction": "<Generators_data/Ramp_Up_Percentage>",
+                        "ramp_down_fraction": "<Generators_data/Ramp_Dn_Percentage>",
+                        "startup_cost": "<Generators_data/Start_Cost_per_MW>",
+                        "min_flow_fraction": "<Generators_data/Min_Power>",
+                        "max_capacity":"<Generators_data/Max_Cap_MW> #### NOTE: IF THIS IS NOTZERO, THEN MAXIMUM CAPACITY CONSTRAINT HAS TO BE ADDED IN THE CONSTRAINTS LIST BELOW",
+                        "min_capacity": "<HSC_generation/Max_Cap_MW> #### NOTE: IF THIS IS NOTZERO, THEN MINIMUM CAPACITY CONSTRAINT HAS TO BE ADDED IN THE CONSTRAINTS LIST BELOW",
+                        "constraints": {
+                            "CapacityConstraint": true,
+                            "RampingLimitConstraint": true,
+                            "MinFlowConstraint": true,
+                            "MinUpTimeConstraint": true,
+                            "MinDownTimeConstraint": true
+                        }
+                    },
+                    "fuel_edge": {
+                        "type": "NaturalGas",
+                        "unidirectional": true,
+                        "has_capacity": false
+                    },
+                    "co2_edge": {
+                        "type": "CO2",
+                        "unidirectional": true,
+                        "has_capacity": false
+                    }
+                },
+                "storage": {}
+            },
+            "instance_data": [
+                {
+                    "id": "NatGasPowerCCS_MA",
+                    "nodes": {},
+                    "transforms": {},
+                    "edges": {
+                        "elec_edge": {
+                            "end_vertex": "elec_MA"
+                        },
+                        "fuel_edge": {
+                            "start_vertex": "natgas_MA"
+                        },
+                        "co2_edge": {
+                            "end_vertex": "co2_MA"
+                        }
+                    },
+                    "storage": {}
+                },
+                {
+                    "id": "NatGasPowerCCS_CT",
+                    "nodes": {},
+                    "transforms": {},
+                    "edges": {
+                        "elec_edge": {
+                            "end_vertex": "elec_CT"
+                        },
+                        "fuel_edge": {
+                            "start_vertex": "natgas_CT"
+                        },
+                        "co2_edge": {
+                            "end_vertex": "co2_CT"
+                        }
+                    },
+                    "storage": {}
+                },
+                {
+                    "id": "NatGasPowerCCS_ME",
+                    "nodes": {},
+                    "transforms": {},
+                    "edges": {
+                        "elec_edge": {
+                            "end_vertex": "elec_ME"
+                        },
+                        "fuel_edge": {
+                            "start_vertex": "natgas_ME"
+                        },
+                        "co2_edge": {
+                            "end_vertex": "co2_ME"
+                        }
+                    },
+                    "storage": {}
+                }
+            ]
+        }
+    ]
+}

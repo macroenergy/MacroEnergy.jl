@@ -1,0 +1,144 @@
+{
+    "ng_dac": [
+        {
+            "type": "NaturalGasDAC",
+            "global_data": {
+                "nodes": {},
+                "transforms": {
+                    "timedata": "CO2",
+                    "constraints": {
+                        "BalanceConstraint": true
+                    }
+                },
+                "edges": {
+                  "co2_edge": {
+                    "type": "CO2",
+                    "unidirectional": true,
+                    "has_capacity": true,
+                    "can_retire": true,
+                    "can_expand": true,
+                    "investment_cost":  "<CSC_capture/Inv_Cost_per_tonne_per_hr_yr>",
+                    "constraints": {
+                      "CapacityConstraint": true
+                    }
+                  },
+                    "ng_edge": {
+                        "type": "NaturalGas",
+                        "unidirectional": true,
+                        "has_capacity": false
+                    },
+                    "e_edge": {
+                        "type": "Electricity",
+                        "unidirectional": true,
+                        "has_capacity": false
+                    },
+                    "co2_captured_edge": {
+                        "type": "CO2Captured",
+                        "unidirectional": true,
+                        "has_capacity": false
+                    }
+                },
+                "storage": {}
+            },
+            "instance_data": [
+                {
+                    "id": "ng_dac_MA",
+                    "nodes": {},
+                  "transforms": {
+                    "heat_rate": "<CSC_capture/etaFuel_MMBtu_per_tonne*MMBtu_to_MWh(0.2930)>",
+                    "elec_out": "<CSC_capture/Power_Production_MWh_per_tonne>",
+                    "capture_rate": "<CSC_capture/Fuel_CCS_Rate>"
+                    
+                  },
+                    "edges": {
+                        "co2_edge": {
+                            "fixed_om_cost": "<CSC_capture/Fixed_OM_Cost_per_tonne_per_hr_yr>",
+                            "variable_om_cost": "<CSC_capture/Var_OM_Cost_per_tonne>",
+                            "start_vertex": "co2_MA"
+                        },
+                        "ng_edge": {
+                            "price": {
+                                "timeseries": {
+                                    "path": "assets/fuel_prices.csv",
+                                    "header": "natgas_MA"
+                                }
+                            },
+                            "start_vertex": "ng_source"
+                        },
+                        "e_edge": {
+                            "end_vertex": "elec_MA"
+                        },
+                        "co2_captured_edge": {
+                            "end_vertex": "co2_captured_MA"
+                        }
+                    },
+                    "storage": {}
+                },
+                {
+                    "id": "ng_dac_CT",
+                    "nodes": {},
+                    "transforms": {
+                      "heat_rate": "<CSC_capture/etaFuel_MMBtu_per_tonne*MMBtu_to_MWh(0.2930)>",
+                      "elec_out": "<CSC_capture/Power_Production_MWh_per_tonne",
+                      "capture_rate": "<CSC_capture/Fuel_CCS_Rate>"
+                    },
+                    "edges": {
+                        "co2_edge": {
+                           "fixed_om_cost": "<CSC_capture/Fixed_OM_Cost_per_tonne_per_hr_yr>",
+                            "variable_om_cost": "<CSC_capture/Var_OM_Cost_per_tonne>",
+                            "start_vertex": "co2_CT"
+                        },
+                        "ng_edge": {
+                            "price": {
+                                "timeseries": {
+                                    "path": "assets/fuel_prices.csv",
+                                    "header": "natgas_CT"
+                                }
+                            },
+                            "start_vertex": "ng_source"
+                        },
+                        "e_edge": {
+                            "end_vertex": "elec_CT"
+                        },
+                        "co2_captured_edge": {
+                            "end_vertex": "co2_captured_CT"
+                        }
+                    },
+                    "storage": {}
+                },
+                {
+                    "id": "ng_dac_ME",
+                    "nodes": {},
+                    "transforms": {
+                         "heat_rate": "<CSC_capture/etaFuel_MMBtu_per_tonne*MMBtu_to_MWh(0.2930)>",
+                         "elec_out": "<CSC_capture/Power_Production_MWh_per_tonne>",
+                         "capture_rate": "<CSC_capture/Fuel_CCS_Rate>"
+                    },
+                    "edges": {
+                        "co2_edge": {
+                            "fixed_om_cost": "<CSC_capture/Fixed_OM_Cost_per_tonne_per_hr_yr>",
+                            "variable_om_cost": "<CSC_capture/Var_OM_Cost_per_tonne>",
+                            "start_vertex": "co2_ME"
+                        },
+                        "ng_edge": {
+                            "price": {
+                                "timeseries": {
+                                    "path": "assets/fuel_prices.csv",
+                                    "header": "natgas_ME"
+                                }
+                            },
+                            "start_vertex": "ng_source"
+                        },
+                        "e_edge": {
+                            "end_vertex": "elec_ME"
+                        },
+                        "co2_captured_edge": {
+                            "end_vertex": "co2_captured_ME"
+                        }
+                    },
+                    "storage": {}
+                }
+            ]
+        }
+    ]
+}

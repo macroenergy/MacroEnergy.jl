@@ -1,0 +1,119 @@
+{
+    "BioWoodPowerCCS": [
+        {
+            "type": "ThermalPowerCCS - these are the wood biomass to electricity generation, which correspond to those resources that burn biomass and with CCS ",
+            "global_data": {
+                "nodes": {},
+                "transforms": {
+                    "timedata": "Electricity",
+                    "efficiency_rate": "<BESC_Biorefinery/BioElectricity_yield_MWh_per_tonne> ",
+                    "emission_rate": "<BESC_Biorefinery/CO2_emissions_tonne_per_tonne>" ,
+                    "capture_rate": "<BESC_Biorefinery/CO2_capture_tonne_per_tonne>" ,
+                    "constraints": {
+                        "BalanceConstraint": true
+                    }
+                },
+                "edges": {
+                    "elec_edge": {
+                        "type": "Electricity",
+                        "unidirectional": true,
+                        "has_capacity": false
+                    },
+                    "fuel_edge": {
+                        "type": "BioWood",
+                        "uc": false,
+                        "unidirectional": true,
+                        "has_capacity": true,
+                        "existing_capacity":0,
+                        "capacity_size":1 ,
+                        "investment_cost": "<BESC_Biorefinery/Inv_Cost_per_tonne_per_hr_yr>",
+                        "fixed_om_cost": "<BESC_Biorefinery/Fixed_OM_Cost_per_tonne_per_hr_yr>",
+                        "variable_om_cost":"<BESC_Biorefinery/Var_OM_per_tonne>",
+                        "can_expand": "true",
+                        "can_retire": "true",
+                        "min_flow_fraction": "<BESC_Biorefinery/Biomass_min_consumption>",
+                        "max_capacity":"<BESC_Wood_Linear_Supply/<Zone>/Max_tonne_per_hr> #### NOTE: IF THIS IS NOTZERO, THEN MAXIMUM CAPACITY CONSTRAINT HAS TO BE ADDED IN THE CONSTRAINTS LIST BELOW",
+                        "min_capacity": "<BESC_Biorefinery/Min_capacity_tonne_per_hr> #### NOTE: IF THIS IS NOTZERO, THEN MINIMUM CAPACITY CONSTRAINT HAS TO BE ADDED IN THE CONSTRAINTS LIST BELOW",
+                        "constraints": {
+                            "CapacityConstraint": true,
+                            "MinFlowConstraint": true
+                        }
+                    },
+                    "co2_edge": {
+                        "type": "CO2",
+                        "unidirectional": true,
+                        "has_capacity": false
+                    },
+                    "co2_captured_edge": {
+                        "type": "CO2Captured",
+                        "unidirectional": true,
+                        "has_capacity": false
+                    }
+                },
+                "storage": {}
+            },
+            "instance_data": [
+                {
+                    "id": "BioWoodPowerCCS_MA",
+                    "nodes": {},
+                    "transforms": {},
+                    "edges": {
+                        "elec_edge": {
+                            "end_vertex": "elec_MA"
+                        },
+                        "fuel_edge": {
+                            "start_vertex": "biowood_MA"
+                        },
+                        "co2_edge": {
+                            "end_vertex": "co2_MA"
+                        },
+                        "co2_captured_edge": {
+                            "end_vertex": "co2_captured_MA"
+                        }
+                    },
+                    "storage": {}
+                },
+                {
+                    "id": "BioWoodPowerCCS_CT",
+                    "nodes": {},
+                    "transforms": {},
+                    "edges": {
+                        "elec_edge": {
+                            "end_vertex": "elec_CT"
+                        },
+                        "fuel_edge": {
+                            "start_vertex": "biowood_CT"
+                        },
+                        "co2_edge": {
+                            "end_vertex": "co2_CT"
+                        },
+                        "co2_captured_edge": {
+                            "end_vertex": "co2_captured_CT"
+                        }
+                    },
+                    "storage": {}
+                },
+                {
+                    "id": "BioWoodPowerCCS_ME",
+                    "nodes": {},
+                    "transforms": {},
+                    "edges": {
+                        "elec_edge": {
+                            "end_vertex": "elec_ME"
+                        },
+                        "fuel_edge": {
+                            "start_vertex": "biowood_ME"
+                        },
+                        "co2_edge": {
+                            "end_vertex": "co2_ME"
+                        },
+                        "co2_captured_edge": {
+                            "end_vertex": "co2_captured_ME"
+                        }
+                    },
+                    "storage": {}
+                }
+            ]
+        }
+    ]
+}

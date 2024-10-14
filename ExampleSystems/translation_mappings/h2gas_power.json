@@ -1,0 +1,112 @@
+{
+    "H2GasPower": [
+        {
+            "type": "ThermalPower - these are the H2 to electricity, which correspond to those use H2 to gas turbine and generate electricity",
+            "global_data": {
+                "nodes": {},
+              "transforms": {
+                "timedata": "Electricity",
+                "efficiency_rate": "1/(<HSC_g2p/    {etaG2P_MWh_p_tonne>/ H2_HHV (39.39)}) ###warning HHV of H2 taken", 
+                "emission_rate": "Set to 0 since its H2 does not produce CO2 emissions",
+                "constraints": {
+                  "BalanceConstraint": true
+                }
+              },
+                "edges": {
+                  "elec_edge": {
+                    "type": "Electricity",
+                    "uc": true,
+                    "unidirectional": true,
+                    "has_capacity": true,
+                    "existing_capacity": "\"<HSC_g2p/Existing_Cap_MW>\"",
+                    "capacity_size": "\"<HSC_g2p/Cap_Size_MW>\"",
+                    "investment_cost": "\"<HSC_g2p/Inv_Cost_p_MW_p_yr>\"",
+                    "fixed_om_cost": "\"<HSC_g2p/Fixed_OM_p_MW_yr>\"",
+                    "variable_om_cost": "\"<HSC_g2p/Var_OM_Cost_p_MWh>\"",
+                    "can_expand": "1, New_Build=1 for all of them",
+                    "can_retire": "0, Existing Capacity is set to 0 for all of them",
+                    "min_up_time": "\"<HSC_g2p/Up_Time>\"",
+                    "min_down_time": "\"<HSC_g2p/Down_Time>\"",
+                    "ramp_up_fraction": "\"<HSC_g2p/Ramp_Up_Percentage>\"",
+                    "ramp_down_fraction": "\"<HSC_g2p/Ramp_Down_Percentage>\"",
+                    "startup_cost": "\"<HSC_g2p/Start_Cost_per_MW>\"",
+                    "min_flow_fraction": "\"<HSC_g2p/min_flow_fraction>\"",
+                    "max_capacity": "\"<HSC_g2p/Max_Cap_MW> #### NOTE: IF THIS IS NOTZERO, THEN MAXIMUM CAPACITY CONSTRAINT HAS TO BE ADDED IN THE CONSTRAINTS LIST BELOW\"",
+                    "min_capacity": "\"<HSC_g2p/Min_Cap_MW> #### NOTE: IF THIS IS NOTZERO, THEN MINIMUM CAPACITY CONSTRAINT HAS TO BE ADDED IN THE CONSTRAINTS LIST BELOW\"",
+                    "constraints": {
+                      "CapacityConstraint": true,
+                      "RampingLimitConstraint": true,
+                      "MinFlowConstraint": true,
+                      "MinUpTimeConstraint": true,
+                      "MinDownTimeConstraint": true
+                    }
+                  },
+                    "fuel_edge": {
+                        "type": "Hydrogen",
+                        "unidirectional": true,
+                        "has_capacity": false
+                    },
+                    "co2_edge": {
+                        "type": "CO2",
+                        "unidirectional": true,
+                        "has_capacity": false
+                    }
+                },
+                "storage": {}
+            },
+            "instance_data": [
+                {
+                    "id": "H2GasPower_MA",
+                    "nodes": {},
+                    "transforms": {},
+                    "edges": {
+                        "elec_edge": {
+                            "end_vertex": "elec_MA"
+                        },
+                        "fuel_edge": {
+                            "start_vertex": "h2_MA"
+                        },
+                        "co2_edge": {
+                            "end_vertex": "co2_MA"
+                        }
+                    },
+                    "storage": {}
+                },
+                {
+                    "id": "H2GasPower_CT",
+                    "nodes": {},
+                    "transforms": {},
+                    "edges": {
+                        "elec_edge": {
+                            "end_vertex": "elec_CT"
+                        },
+                        "fuel_edge": {
+                            "start_vertex": "h2_CT"
+                        },
+                        "co2_edge": {
+                            "end_vertex": "co2_CT"
+                        }
+                    },
+                    "storage": {}
+                },
+                {
+                    "id": "H2GasPower_ME",
+                    "nodes": {},
+                    "transforms": {},
+                    "edges": {
+                        "elec_edge": {
+                            "end_vertex": "elec_ME"
+                        },
+                        "fuel_edge": {
+                            "start_vertex": "h2_ME"
+                        },
+                        "co2_edge": {
+                            "end_vertex": "co2_ME"
+                        }
+                    },
+                    "storage": {}
+                }
+            ]
+        }
+    ]
+}
