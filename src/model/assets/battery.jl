@@ -97,7 +97,7 @@ function make(::Type{Battery}, data::AbstractDict{Symbol,Any}, system::System)
     battery_discharge.constraints = get(
         discharge_edge_data,
         :constraints,
-        [CapacityConstraint(), RampingLimitConstraint()],
+        [CapacityConstraint(), StorageDischargeLimitConstraint(),RampingLimitConstraint()],
     )
     battery_discharge.unidirectional = get(discharge_edge_data, :unidirectional, true)
 
