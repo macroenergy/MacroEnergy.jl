@@ -25,24 +25,42 @@ function make(::Type{ThermalPowerCCS}, data::AbstractDict{Symbol,Any}, system::S
     elec_edge_data = process_data(data[:edges][elec_edge_key])
     elec_start_node = thermalccs_transform
     elec_end_node = find_node(system.locations, Symbol(elec_edge_data[:end_vertex]))
-    elec_edge = EdgeWithUC(
-        Symbol(id, "_", elec_edge_key),
-        elec_edge_data,
-        system.time_data[:Electricity],
-        Electricity,
-        elec_start_node,
-        elec_end_node,
-    )
-    elec_edge.constraints = get(
-        elec_edge_data,
-        :constraints,
-        [
-            CapacityConstraint(),
-            RampingLimitConstraint(),
-            MinUpTimeConstraint(),
-            MinDownTimeConstraint(),
-        ],
-    )
+    if elec_edge_data[:uc]==true
+        elec_edge = EdgeWithUC(
+            Symbol(id, "_", elec_edge_key),
+            elec_edge_data,
+            system.time_data[:Electricity],
+            Electricity,
+            elec_start_node,
+            elec_end_node,
+        )
+        elec_edge.constraints = get(
+            elec_edge_data,
+            :constraints,
+            [
+                CapacityConstraint(),
+                RampingLimitConstraint(),
+                MinUpTimeConstraint(),
+                MinDownTimeConstraint(),
+            ],
+        )
+    else
+        elec_edge = Edge(
+            Symbol(id, "_", elec_edge_key),
+            elec_edge_data,
+            system.time_data[:Electricity],
+            Electricity,
+            elec_start_node,
+            elec_end_node,
+        )
+        elec_edge.constraints = get(
+            elec_edge_data,
+            :constraints,
+            [
+                ßCapacityConstraint()
+            ],
+        )
+    end
     elec_edge.unidirectional = true;
     elec_edge.startup_fuel_balance_id = :energy
 

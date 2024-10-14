@@ -88,24 +88,44 @@ function make(::Type{ThermalHydrogen}, data::AbstractDict{Symbol,Any}, system::S
     h2_edge_data = process_data(data[:edges][h2_edge_key])
     h2_start_node = thermalhydrogen_transform
     h2_end_node = find_node(system.locations, Symbol(h2_edge_data[:end_vertex]))
-    h2_edge = EdgeWithUC(
-        Symbol(id, "_", h2_edge_key),
-        h2_edge_data,
-        system.time_data[:Hydrogen],
-        Hydrogen,
-        h2_start_node,
-        h2_end_node,
-    )
-    h2_edge.constraints = get(
-        h2_edge_data,
-        :constraints,
-        [
-            CapacityConstraint(),
-            RampingLimitConstraint(),
-            MinUpTimeConstraint(),
-            MinDownTimeConstraint(),
-        ],
-    )
+    
+    if h2_edge_data[:uc]==true
+        h2_edge = EdgeWithUC(
+            Symbol(id, "_", h2_edge_key),
+            h2_edge_data,
+            system.time_data[:Hydrogen],
+            Hydrogen,
+            h2_start_node,
+            h2_end_node,
+        )
+        h2_edge.constraints = get(
+            h2_edge_data,
+            :constraints,
+            [
+                CapacityConstraint(),
+                RampingLimitConstraint(),
+                MinUpTimeConstraint(),
+                MinDownTimeConstraint(),
+            ],
+        )
+    else
+        h2_edge = Edge(
+            Symbol(id, "_", h2_edge_key),
+            h2_edge_data,
+            system.time_data[:Hydrogen],
+            Hydrogen,
+            h2_start_node,
+            h2_end_node,
+        )
+        h2_edge.constraints = get(
+            h2_edge_data,
+            :constraints,
+            [
+                CapacityConstraint()
+            ],
+        )
+    end
+
     h2_edge.unidirectional = true;
     h2_edge.startup_fuel_balance_id = :energy
 
