@@ -3,7 +3,7 @@ struct HydroRes <: AbstractAsset
     hydrostor::Storage{Electricity}
     discharge_edge::Edge{Electricity}
     inflow_edge::Edge{Electricity}
-    spill_edge::Edge{Electricty}
+    spill_edge::Edge{Electricity}
 end
 
 function make(::Type{HydroRes}, data::AbstractDict{Symbol,Any}, system::System)
