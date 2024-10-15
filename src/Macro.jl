@@ -85,12 +85,14 @@ include("model/assets/thermalpower.jl")
 include("model/assets/powerline.jl")
 include("model/assets/vre.jl")
 
+include("model/assets/hydrogenpipeline.jl")
 include("model/assets/thermalhydrogenccs.jl")
 include("model/assets/thermalpowerccs.jl")
 
 include("model/assets/natgasdac.jl")
 include("model/assets/electricdac.jl")
 
+include("model/assets/hydrores.jl")
 
 include_all_in_folder("model/constraints")
 
@@ -122,8 +124,11 @@ export AbstractAsset,
     ElectricDAC,
     FuelCell,
     GasStorage,
-    GasPipeline,
+    HydroRes,
+    HydrogenLine,
     Hydrogen,
+    HydroMinFlowConstraint,
+    HydroSymmetricCapacityConstraint
     MaxCapacityConstraint,
     MaxNonServedDemandConstraint,
     MaxNonServedDemandPerSegmentConstraint,
