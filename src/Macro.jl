@@ -13,14 +13,14 @@ using Printf: @printf
 
 ## Commodity types
 abstract type Commodity end
-abstract type Electricity <: Commodity end
-abstract type Hydrogen <: Commodity end
-abstract type NaturalGas <: Commodity end
-abstract type CO2 <: Commodity end
-abstract type CO2Captured <: CO2 end
-abstract type Coal <: Commodity end
-abstract type Biomass <: Commodity end
-abstract type Uranium <: Commodity end
+abstract type Electricity <: Commodity end ## MWh
+abstract type Hydrogen <: Commodity end ## MWh
+abstract type NaturalGas <: Commodity end ## MWh
+abstract type CO2 <: Commodity end ## tonnes
+abstract type CO2Captured <: CO2 end ## tonnes
+abstract type Coal <: Commodity end ## MWh
+abstract type Biomass <: Commodity end ## tonnes
+abstract type Uranium <: Commodity end ## MWh
 
 ## Time data types
 abstract type AbstractTimeData{T<:Commodity} end
@@ -112,6 +112,8 @@ export AbstractAsset,
     AbstractTypeConstraint,
     BalanceConstraint,
     Battery,
+    Biomass,
+    Coal,
     CO2,
     CO2CapConstraint,
     CO2Captured,
@@ -128,7 +130,7 @@ export AbstractAsset,
     HydrogenLine,
     Hydrogen,
     HydroMinFlowConstraint,
-    HydroSymmetricCapacityConstraint
+    HydroSymmetricCapacityConstraint,
     MaxCapacityConstraint,
     MaxNonServedDemandConstraint,
     MaxNonServedDemandPerSegmentConstraint,
@@ -159,6 +161,7 @@ export AbstractAsset,
     StorageSymmetricCapacityConstraint,
     StorageDischargeLimitConstraint,
     Transformation,
+    Uranium,
     VRE,
     WindTurbine
 end # module Macro

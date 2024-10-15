@@ -1,0 +1,217 @@
+{
+    "nodes": [
+        {
+            "type": "NaturalGas",
+            "global_data": {
+                "time_interval": "NaturalGas"
+            },
+            "instance_data": [
+                {
+                    "id": "natgas_SE",
+                    "price": {
+                        "timeseries": {
+                            "path": "system/fuel_prices.csv",
+                            "header": "natgas_SE"
+                        }
+                    }
+                },
+                {
+                    "id": "natgas_MIDAT",
+                    "price": {
+                        "timeseries": {
+                            "path": "system/fuel_prices.csv",
+                            "header": "natgas_MIDAT"
+                        }
+                    }
+                },
+                {
+                    "id": "natgas_NE",
+                    "price": {
+                        "timeseries": {
+                            "path": "system/fuel_prices.csv",
+                            "header": "natgas_NE"
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "type": "Uranium",
+            "global_data": {
+                "time_interval": "Uranium"
+            },
+            "instance_data": [
+                {
+                    "id": "uranium_source",
+                    "price": {
+                        "timeseries": {
+                            "path": "system/fuel_prices.csv",
+                            "header": "uranium_source"
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "type": "Biomass",
+            "global_data": {
+                "time_interval": "Biomass"
+            },
+            "instance_data": [
+                {
+                    "id": "biomass_40",
+                    "price": {
+                        "timeseries": {
+                            "path": "system/fuel_prices.csv",
+                            "header": "biomass_40"
+                        }
+                    }
+                },
+                {
+                    "id": "biomass_60",
+                    "price": {
+                        "timeseries": {
+                            "path": "system/fuel_prices.csv",
+                            "header": "biomass_60"
+                        }
+                    }
+                },
+                {
+                    "id": "biomass_80",
+                    "price": {
+                        "timeseries": {
+                            "path": "system/fuel_prices.csv",
+                            "header": "biomass_80"
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "type": "Electricity",
+            "global_data": {
+                "time_interval": "Electricity",
+                "max_nsd": [
+                    1
+                ],
+                "price_nsd": [
+                    50000.0
+                ],
+                "constraints": {
+                    "BalanceConstraint": true,
+                    "MaxNonServedDemandConstraint": true,
+                    "MaxNonServedDemandPerSegmentConstraint": true
+                }
+            },
+            "instance_data": [
+                {
+                    "id": "elec_SE",
+                    "demand": {
+                        "timeseries": {
+                            "path": "system/demand.csv",
+                            "header": "Demand_MW_z1"
+                        }
+                    }
+                },
+                {
+                    "id": "elec_MIDAT",
+                    "demand": {
+                        "timeseries": {
+                            "path": "system/demand.csv",
+                            "header": "Demand_MW_z2"
+                        }
+                    }
+                },
+                {
+                    "id": "elec_NE",
+                    "demand": {
+                        "timeseries": {
+                            "path": "system/demand.csv",
+                            "header": "Demand_MW_z3"
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "type": "Hydrogen",
+            "global_data": {
+                "time_interval": "Hydrogen",
+                "max_nsd": [
+                    1
+                ],
+                "price_nsd": [
+                    50000.0
+                ],
+                "constraints": {
+                    "BalanceConstraint": true,
+                    "MaxNonServedDemandConstraint": true,
+                    "MaxNonServedDemandPerSegmentConstraint": true
+                }
+            },
+            "instance_data": [
+                {
+                    "id": "h2_SE",
+                    "demand": {
+                        "timeseries": {
+                            "path": "system/demand.csv",
+                            "header": "Demand_H2_z1"
+                        }
+                    }
+                },
+                {
+                    "id": "h2_MIDAT",
+                    "demand": {
+                        "timeseries": {
+                            "path": "system/demand.csv",
+                            "header": "Demand_H2_z2"
+                        }
+                    }
+                },
+                {
+                    "id": "h2_NE",
+                    "demand": {
+                        "timeseries": {
+                            "path": "system/demand.csv",
+                            "header": "Demand_H2_z3"
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "type": "CO2",
+            "global_data": {
+                "time_interval": "CO2"
+            },
+            "instance_data": [
+                {
+                    "id": "co2_sink"
+                }
+            ]
+        },
+        {
+            "type": "CO2Captured",
+            "global_data": {
+                "time_interval": "CO2Captured"
+            },
+            "instance_data": [
+                {
+                    "id": "co2_captured_sink"
+                }
+            ]
+        },
+        {
+            "type": "Electricity",
+            "global_data": {
+                "time_interval": "Electricity"
+            },
+            "instance_data": [
+                {
+                    "id": "hydro_source"
+                }
+            ]
+        }
+
+    ]
+}

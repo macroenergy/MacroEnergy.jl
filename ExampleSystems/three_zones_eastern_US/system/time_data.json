@@ -1,0 +1,21 @@
+{
+    "PeriodLength": 8736,
+    "HoursPerTimeStep": {
+        "Electricity": 1,
+        "Hydrogen": 1,
+        "NaturalGas": 168,
+        "CO2": 168,
+        "CO2Captured": 168,
+        "Biomass": 168,
+        "Uranium": 168
+    },
+    "HoursPerSubperiod": {
+        "Electricity": 8736,
+        "NaturalGas": 8736,
+        "CO2": 8736,
+        "Hydrogen": 8736,
+        "CO2Captured": 8736,
+        "Biomass": 8736,
+        "Uranium": 8736
+    }
+}

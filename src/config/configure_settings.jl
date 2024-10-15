@@ -1,5 +1,5 @@
 function default_settings()
-    return (UCommit = false, NetworkExpansion = false)
+    return (Scaling = false,)
 end
 
 namedtuple(d::T) where {T<:AbstractDict} = (; (Symbol(k) => v for (k, v) in d)...)
@@ -39,8 +39,7 @@ function configure_settings(model_settings::NamedTuple)
 end
 
 function validate_settings(settings::NamedTuple)
-    @assert settings[:NetworkExpansion] ∈ (0, 1)
-    @assert settings[:UCommit] ∈ (0, 1)
+    @assert settings[:Scaling] ∈ (0, 1)
 end
 
 function validate_names(settings::NamedTuple)
