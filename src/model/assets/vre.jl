@@ -1,17 +1,17 @@
-struct SolarPV <: AbstractAsset
+struct VRE <: AbstractAsset
     id::AssetId
     energy_transform::Transformation
     edge::Edge{Electricity}
 end
 
-struct WindTurbine <: AbstractAsset
-    id::AssetId
-    energy_transform::Transformation
-    edge::Edge{Electricity}
-end
+# struct WindTurbine <: AbstractAsset
+#     id::AssetId
+#     energy_transform::Transformation
+#     edge::Edge{Electricity}
+# end
 
 
-const VRE = Union{SolarPV,WindTurbine}
+# const VRE = Union{SolarPV,WindTurbine}
 
 """
     make(::Type{<:VRE}, data::AbstractDict{Symbol, Any}, system::System) -> VRE

@@ -1,0 +1,22 @@
+{
+    "type": "Biomass",
+    "global_data": {
+        "time_interval": "Biomass",
+        "constraints": {
+            "BalanceConstraint": true
+        }
+    },
+    "instance_data": [
+        {
+            "id": "bioherb_MA",
+            "max_supply": ["<BESC/Herb_Linear_Supply/Max_tonne_per_hr>"],
+            "price_supply": ["<BESC_Herb_Linear_Supply/Cost_per_tonne_per_hr"],
+            "demand": {
+                "timeseries": {
+                    "path": "system/demand.csv",
+                    "header": "Demand_BioHerb_MA ### where the Demand_BioHerb_MA is a vector of all zeros"
+                }
+            }
+        }
+    ]
+}
