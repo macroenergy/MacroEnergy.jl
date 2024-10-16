@@ -10,11 +10,19 @@ function add_model_constraint!(
     model::Model,
 )
     if !isempty(non_served_demand(n))
-        ct.constraint_ref = @constraint(
+        if sum(demand(n,t) for t in time_interval(n))==0
+            ct.constraint_ref = @constraint(
+            model,
+            [s in segments_non_served_demand(n), t in time_interval(n)],
+            non_served_demand(n, s, t) <= max_non_served_demand(n, s)
+            )
+        else
+            ct.constraint_ref = @constraint(
             model,
             [s in segments_non_served_demand(n), t in time_interval(n)],
             non_served_demand(n, s, t) <= max_non_served_demand(n, s) * demand(n, t)
-        )
+            )
+        end
     else
         @warn "MaxNonServedDemandPerSegmentConstraint required for a node that does not have a non-served demand variable so MACRO will not create this constraint"
     end

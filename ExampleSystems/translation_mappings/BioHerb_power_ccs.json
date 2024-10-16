@@ -32,7 +32,7 @@
                         "can_expand": "true",
                         "can_retire": "true",
                         "min_flow_fraction": "<BESC_Biorefinery/Biomass_min_consumption>",
-                        "max_capacity":"<BESC_Herb_Linear_Supply/<Zone>/Max_tonne_per_hr> #### NOTE: IF THIS IS NOTZERO, THEN MAXIMUM CAPACITY CONSTRAINT HAS TO BE ADDED IN THE CONSTRAINTS LIST BELOW",
+                        "max_capacity":"<BESC_Biorefinery/Max_capacity_tonne_per_hr> #### NOTE: IF THIS IS NOTZERO, THEN MAXIMUM CAPACITY CONSTRAINT HAS TO BE ADDED IN THE CONSTRAINTS LIST BELOW",
                         "min_capacity": "<BESC_Biorefinery/Min_capacity_tonne_per_hr> #### NOTE: IF THIS IS NOTZERO, THEN MINIMUM CAPACITY CONSTRAINT HAS TO BE ADDED IN THE CONSTRAINTS LIST BELOW",
                         "constraints": {
                             "CapacityConstraint": true,
