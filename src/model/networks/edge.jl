@@ -462,7 +462,7 @@ function update_balance!(e::AbstractEdge, model::Model, vdir::Symbol)
         end
     else
         for t in time_interval(e)
-            transform_time = ceil(Int, (hours_per_timestep(e) * t) / hours_per_timestep(v))
+            transform_time = time_interval(v)[ceil(Int, (hours_per_timestep(e) * t) / hours_per_timestep(v))]
             for i in balance_ids(v)
                 add_to_expression!(get_balance(v, i, transform_time), s * balance_data(e, v, i) * effective_flow[t])
             end
@@ -492,7 +492,7 @@ function update_startup_fuel_balance!(e::EdgeWithUC,vdir::Symbol)
         else
             for t in time_interval(e)
             
-                transform_time = ceil(Int, (hours_per_timestep(e) * t) / hours_per_timestep(v))
+                transform_time = time_interval(v)[ceil(Int, (hours_per_timestep(e) * t) / hours_per_timestep(v))]
                 
                 add_to_expression!(get_balance(v, i,transform_time), s * startup_fuel(e) * capacity_size(e) * ustart(e,t))
             

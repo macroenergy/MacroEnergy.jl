@@ -55,36 +55,79 @@
         {
             "type": "Biomass",
             "global_data": {
-                "time_interval": "Biomass"
+                "time_interval": "Biomass",
+                "constraints": {
+                "BalanceConstraint": true
+            }
             },
             "instance_data": [
                 {
-                    "id": "biomass_40",
-                    "price": {
+                    "id" : "bioherb_SE",
+                    "demand": {
                         "timeseries": {
-                            "path": "system/fuel_prices.csv",
-                            "header": "biomass_40"
+                            "path": "system/demand.csv",
+                            "header": "Demand_Zero"
                         }
-                    }
+                    },
+                    "max_supply":[10000,20000,30000],                    
+                    "price_supply":[40,60,80]
                 },
                 {
-                    "id": "biomass_60",
-                    "price": {
+                    "id" : "bioherb_MIDAT",
+                    "demand": {
                         "timeseries": {
-                            "path": "system/fuel_prices.csv",
-                            "header": "biomass_60"
+                            "path": "system/demand.csv",
+                            "header": "Demand_Zero"
                         }
-                    }
+                    },
+                    "max_supply":[80000,160000,240000],                    
+                    "price_supply":[40,60,80]
                 },
                 {
-                    "id": "biomass_80",
-                    "price": {
+                    "id" : "bioherb_NE",
+                    "demand": {
                         "timeseries": {
-                            "path": "system/fuel_prices.csv",
-                            "header": "biomass_80"
+                            "path": "system/demand.csv",
+                            "header": "Demand_Zero"
                         }
-                    }
+                    },
+                    "max_supply":[400,800,1200],                    
+                    "price_supply":[40,60,80]
+                },
+                {
+                    "id" : "biowood_SE",
+                    "demand": {
+                        "timeseries": {
+                            "path": "system/demand.csv",
+                            "header": "Demand_Zero"
+                        }
+                    },
+                    "max_supply":[8000,16000,24000],                    
+                    "price_supply":[40,60,80]
+                },
+                {
+                    "id" : "biowood_MIDAT",
+                    "demand": {
+                        "timeseries": {
+                            "path": "system/demand.csv",
+                            "header": "Demand_Zero"
+                        }
+                    },
+                    "max_supply":[15000,30000,45000],                    
+                    "price_supply":[40,60,80]
+                },
+                {
+                    "id" : "biowood_NE",
+                    "demand": {
+                        "timeseries": {
+                            "path": "system/demand.csv",
+                            "header": "Demand_Zero"
+                        }
+                    },
+                    "max_supply":[4000,8000,12000],                    
+                    "price_supply":[40,60,80]
                 }
+                
             ]
         },
         {

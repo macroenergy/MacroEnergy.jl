@@ -7,7 +7,7 @@ Base.@kwdef mutable struct Node{T} <: AbstractVertex
         Matrix{VariableRef}(undef, 0, 0)
     policy_budgeting_vars::Dict = Dict()
     policy_slack_vars::Dict = Dict()
-    price::Vector{Float64} = Float64[]
+    price::Union{Vector{Float64},Dict{Int64,Float64}} = Vector{Float64}()
     price_nsd::Vector{Float64} = [0.0]
     price_supply::Vector{Float64} = [0.0]
     price_unmet_policy::Dict{DataType,Float64} = Dict{DataType,Float64}()

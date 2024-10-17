@@ -13,7 +13,7 @@ function make(asset_type::Type{MustRun}, data::AbstractDict{Symbol,Any}, system:
         timedata = system.time_data[Symbol(transform_data[:timedata])],
     )
 
-    elec_edge_key = :edge
+    elec_edge_key = :elec_edge
     elec_edge_data = process_data(data[:edges][elec_edge_key])
     elec_start_node = mustrun_transform
     elec_end_node = find_node(system.locations, Symbol(elec_edge_data[:end_vertex]))
@@ -25,7 +25,7 @@ function make(asset_type::Type{MustRun}, data::AbstractDict{Symbol,Any}, system:
         elec_start_node,
         elec_end_node,
     )
-    elec_edge.constraints = get(elec_edge_data, :constraints, [CapacityConstraint(),MustRunConstraint(),MinFlowConstraint()])
+    elec_edge.constraints = get(elec_edge_data, :constraints, [MustRunConstraint()])
     elec_edge.unidirectional = get(elec_edge_data, :unidirectional, true)
 
     return asset_type(id, mustrun_transform, elec_edge)
