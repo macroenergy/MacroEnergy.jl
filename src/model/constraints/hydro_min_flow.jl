@@ -13,7 +13,7 @@ function add_model_constraint!(ct::HydroMinFlowConstraint, e::Edge, model::Model
         ct.constraint_ref = @constraint(
             model,
             [t in time_interval(e)],
-            flow(e, t) + flow(discharge_edge) >= min_flow_fraction(e) * capacity(discharge_edge)
+            flow(e, t) + flow(discharge_edge,t) >= min_flow_fraction(e) * capacity(discharge_edge)
         )
     else
         warning("Min Hydro flow constraints are available only for unidirectional spill edges")

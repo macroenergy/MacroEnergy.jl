@@ -18,11 +18,9 @@ function make(::Type{HydroRes}, data::AbstractDict{Symbol,Any}, system::System)
         system.time_data[:Electricity],
         Electricity,
     )
-    # hydrostor.constraints = get(
-    #     storage_data,
-    #     :constraints,
-    #     [BalanceConstraint(), StorageCapacityConstraint(),StorageMinDurationConstraint(),StorageMaxDurationConstraint(),HydroSymmetricCapacityConstraint()],
-    # )
+    hydrostor.constraints = get(
+        storage_data,
+        :constraints,[BalanceConstraint()])
 
     discharge_edge_key = :discharge_edge
     discharge_edge_data = process_data(data[:edges][discharge_edge_key])
@@ -38,9 +36,7 @@ function make(::Type{HydroRes}, data::AbstractDict{Symbol,Any}, system::System)
     )
     discharge_edge.unidirectional = true;
     discharge_edge.has_capacity = true;
-    # discharge_edge.constraints = get(discharge_edge_data, :constraints, [CapacityConstraint(),
-    # RampingLimitConstraint(),StorageDischargeLimitConstraint()])
-
+    discharge_edge.constraints = get(discharge_edge_data, :constraints,Vector{AbstractTypeConstraint}());
     inflow_edge_key = :inflow_edge
     inflow_edge_data = process_data(data[:edges][inflow_edge_key])
     inflow_start_node = find_node(system.locations, Symbol(inflow_edge_data[:start_vertex]))
@@ -55,8 +51,11 @@ function make(::Type{HydroRes}, data::AbstractDict{Symbol,Any}, system::System)
     )
     inflow_edge.unidirectional = true;
     inflow_edge.has_capacity = true;
-    # inflow_edge.constraints =
-    #     get(inflow_edge_data, :constraints, [MustRunConstraint()])
+    inflow_edge.can_retire = discharge_edge.can_retire;
+    inflow_edge.can_expand = discharge_edge.can_expand;
+    inflow_edge.existing_capacity = discharge_edge.existing_capacity;
+    inflow_edge.capacity_size = discharge_edge.capacity_size;
+    inflow_edge.constraints = [MustRunConstraint()]
 
     hydrostor.discharge_edge = discharge_edge
     hydrostor.charge_edge = inflow_edge
@@ -75,7 +74,7 @@ function make(::Type{HydroRes}, data::AbstractDict{Symbol,Any}, system::System)
     )
     spill_edge.unidirectional = true;
     spill_edge.has_capacity = false;
-    # spill_edge.constraints = get(discharge_edge_data, :constraints, [HydroMinFlowConstraint()])
+    spill_edge.constraints = get(spill_edge_data, :constraints,Vector{AbstractTypeConstraint}());
 
     hydrostor.balance_data = Dict(
         :storage => Dict(

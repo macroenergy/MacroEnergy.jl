@@ -18,6 +18,8 @@ end
 
 function scaling!(system::System)
 
+    @info("Scaling system data to GWh | ktons | M\$")
+
     scaling!.(system.locations)
 
     scaling!.(system.assets)

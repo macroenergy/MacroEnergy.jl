@@ -1,47 +1,11 @@
 struct ElectricDAC <: AbstractAsset
     id::AssetId
-    electricpowerdac_transform::Transformation
+    electricdac_transform::Transformation
     co2_edge::Edge{CO2}
-    e_edge::Edge{Electricity}
+    elec_edge::Edge{Electricity}
     co2_captured_edge::Edge{CO2Captured}
 end
 
-"""
-    make(::Type{ElectricDAC}, data::AbstractDict{Symbol, Any}, system::System) -> ElectricDAC
-
-    Necessary data fields:
-     - transforms: Dict{Symbol, Any}
-        - id: String
-        - timedata: String
-        - heat_rate: Float64
-        - emission_rate: Float64
-        - constraints: Vector{AbstractTypeConstraint}
-    - edges: Dict{Symbol, Any}
-        - co2_edge: Dict{Symbol, Any}
-            - id: String
-            - end_vertex: String
-            - unidirectional: Bool
-            - has_capacity: Bool
-            - can_retire: Bool
-            - can_expand: Bool
-            - constraints: Vector{AbstractTypeConstraint}
-        - e_edge: Dict{Symbol, Any}
-            - id: String
-            - end_vertex: String
-            - unidirectional: Bool
-            - has_capacity: Bool
-            - can_retire: Bool
-            - can_expand: Bool
-            - constraints: Vector{AbstractTypeConstraint}
-        - co2_captured_edge: Dict{Symbol, Any}
-            - id: String
-            - end_vertex: String
-            - unidirectional: Bool
-            - has_capacity: Bool
-            - can_retire: Bool
-            - can_expand: Bool
-            - constraints: Vector{AbstractTypeConstraint}
-"""
 function make(::Type{ElectricDAC}, data::AbstractDict{Symbol,Any}, system::System)
     id = AssetId(data[:id])
 
@@ -68,7 +32,7 @@ function make(::Type{ElectricDAC}, data::AbstractDict{Symbol,Any}, system::Syste
     co2_edge.constraints = get(co2_edge_data, :constraints, [CapacityConstraint()])
     co2_edge.unidirectional = get(co2_edge_data, :unidirectional, true)
 
-    elec_edge_key = :e_edge
+    elec_edge_key = :elec_edge
     elec_edge_data = process_data(data[:edges][elec_edge_key])
     elec_start_node = find_node(system.locations, Symbol(elec_edge_data[:start_vertex]))
     elec_end_node = electricdac_transform
@@ -101,13 +65,11 @@ function make(::Type{ElectricDAC}, data::AbstractDict{Symbol,Any}, system::Syste
 
     electricdac_transform.balance_data = Dict(
         :energy => Dict(
-            co2_edge.id => get(transform_data, :elec_in, 1.0),
+            co2_edge.id => get(transform_data, :electricity_consumption, 1.0),
             elec_edge.id => -1.0,
-            co2_captured_edge.id => 0.0,
         ),
         :capture => Dict(
-            co2_edge.id => get(transform_data, :capture_rate, 1.0),
-            elec_edge.id => 0.0,
+            co2_edge.id => 1.0,
             co2_captured_edge.id => 1.0,
         ),
     )

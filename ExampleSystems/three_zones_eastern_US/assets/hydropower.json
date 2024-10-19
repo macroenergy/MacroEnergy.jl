@@ -13,7 +13,9 @@
                         "can_expand": false,
                         "can_retire": false,
                         "constraints": {
-                            "CapacityConstraint": true
+                            "CapacityConstraint": true,
+                            "StorageDischargeLimitConstraint": true,
+                            "RampingLimitConstraint": true
                         }
                     },
                     "inflow_edge": {
@@ -33,7 +35,10 @@
                         "end_vertex": "hydro_source",
                         "can_expand": false,
                         "can_retire": false,
-                        "has_capacity": false
+                        "has_capacity": false,
+                        "constraints": {
+                            "HydroMinFlowConstraint": true
+                        }
                     }
                 },
                 "storage": {
