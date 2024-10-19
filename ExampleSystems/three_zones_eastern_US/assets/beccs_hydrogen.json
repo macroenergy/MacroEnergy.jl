@@ -30,7 +30,7 @@
                         "has_capacity": true,
                         "can_expand": true,
                         "can_retire": true,
-                        "integer_decisions": true,
+                        "integer_decisions": false,
                         "investment_cost": 532452.9904,
                         "fixed_om_cost": 60067.41573,
                         "variable_om_cost": 38.44314607,
