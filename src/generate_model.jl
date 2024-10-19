@@ -1,6 +1,9 @@
 function generate_model(system::System)
 
     @info("Starting model generation")
+
+    start_time = time();
+
     model = Model()
 
     @variable(model, vREF == 1)
@@ -20,7 +23,8 @@ function generate_model(system::System)
 
     @objective(model, Min, model[:eFixedCost] + model[:eVariableCost])
 
-    @info("Model generation complete")
+    @info("Model generation complete, it took $(time() - start_time) seconds")
+
     return model
 
 end
