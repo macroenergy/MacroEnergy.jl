@@ -92,6 +92,8 @@ include("model/assets/thermalpowerccs.jl")
 
 include("model/assets/natgasdac.jl")
 include("model/assets/electricdac.jl")
+include("model/assets/beccselectricity.jl")
+include("model/assets/beccshydrogen.jl")
 
 include("model/assets/hydrores.jl")
 include("model/assets/mustrun.jl")
@@ -117,6 +119,8 @@ export AbstractAsset,
     AbstractTypeConstraint,
     BalanceConstraint,
     Battery,
+    BECCSElectricity,
+    BECCSHydrogen,
     Biomass,
     Coal,
     CO2,

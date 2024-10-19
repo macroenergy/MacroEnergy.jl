@@ -9,9 +9,7 @@ println("Running case at $(case_path)")
 
 system = Macro.load_system(case_path)
 
-start_time = time();
 model = Macro.generate_model(system)
-println("The model generation required $(time() - start_time)")
 
 Macro.set_optimizer(model, Gurobi.Optimizer);
 
