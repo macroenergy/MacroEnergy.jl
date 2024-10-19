@@ -10,7 +10,7 @@
                         "unidirectional": false,
                         "can_expand": true,
                         "can_retire": false,
-                        "integer_decisions": false,
+                        "integer_decisions": true,
                         "constraints": {
                             "CapacityConstraint": true,
                             "MaxCapacityConstraint": true

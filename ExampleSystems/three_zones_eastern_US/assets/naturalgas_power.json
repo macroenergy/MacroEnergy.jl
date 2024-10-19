@@ -16,7 +16,7 @@
                             "unidirectional": true,
                             "has_capacity": true,
                             "uc": true,
-                            "integer_decisions": false,
+                            "integer_decisions": true,
                             "constraints": {
                                 "CapacityConstraint": true,
                                 "RampingLimitConstraint": true,

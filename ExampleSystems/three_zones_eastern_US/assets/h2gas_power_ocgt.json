@@ -27,7 +27,7 @@
                         },
                         "existing_capacity": 0.0,
                         "investment_cost": 59900,
-                        "integer_decisions": false,
+                        "integer_decisions": true,
                         "fixed_om_cost": 20900,
                         "variable_om_cost": 4.94,
                         "capacity_size": 237,

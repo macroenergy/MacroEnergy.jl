@@ -20,6 +20,7 @@ function load_system(path::AbstractString = pwd())::System
         system = empty_system(dirname(path))
         system_data = load_system_data(path)
         generate_system!(system, system_data)
+        @show system.settings.Scaling
         if system.settings.Scaling
             scaling!(system)
         end

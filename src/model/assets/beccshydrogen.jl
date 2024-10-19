@@ -126,7 +126,7 @@ function make(::Type{BECCSHydrogen}, data::AbstractDict{Symbol,Any}, system::Sys
         ),
         :negative_emissions => Dict(
             biomass_edge.id => get(transform_data, :negative_emission_rate, 0.0),
-            co2_edge.id => 1.0
+            co2_edge.id => -1.0
         ),
         :emissions => Dict(
             biomass_edge.id => get(transform_data, :emission_rate, 1.0),

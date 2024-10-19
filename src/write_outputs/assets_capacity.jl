@@ -18,7 +18,7 @@ function get_optimal_asset_capacity(system::System)
             if isa(y, AbstractEdge) && has_capacity(y)
                 asset_ids[i] = id(a)
                 asset_type[i] = Symbol(typeof(a))
-                asset_vcap[i] = value(capacity(y))/scaling_factor                
+                asset_vcap[i] = value(capacity(y))*scaling_factor                
                 asset_new_units[i] = value(new_capacity(y));
                 asset_ret_units[i] = value(ret_capacity(y)); 
             end
