@@ -134,16 +134,8 @@
             "type": "Electricity",
             "global_data": {
                 "time_interval": "Electricity",
-                "max_nsd": [
-                    1
-                ],
-                "price_nsd": [
-                    50000.0
-                ],
                 "constraints": {
-                    "BalanceConstraint": true,
-                    "MaxNonServedDemandConstraint": true,
-                    "MaxNonServedDemandPerSegmentConstraint": true
+                    "BalanceConstraint": true
                 }
             },
             "instance_data": [
@@ -180,16 +172,8 @@
             "type": "Hydrogen",
             "global_data": {
                 "time_interval": "Hydrogen",
-                "max_nsd": [
-                    1
-                ],
-                "price_nsd": [
-                    50000.0
-                ],
                 "constraints": {
-                    "BalanceConstraint": true,
-                    "MaxNonServedDemandConstraint": true,
-                    "MaxNonServedDemandPerSegmentConstraint": true
+                    "BalanceConstraint": true
                 }
             },
             "instance_data": [

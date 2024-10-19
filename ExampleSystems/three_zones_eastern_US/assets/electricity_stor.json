@@ -176,9 +176,7 @@
                         }
                     },
                     "storage":{
-                        "existing_capacity_storage": 0.0,
-                        "max_duration": 200,
-                        "min_duration": 0
+                        "existing_capacity_storage": 97060.752
                     }
                 },
                 {
@@ -201,9 +199,7 @@
                         }
                     },
                     "storage":{
-                        "existing_capacity_storage": 0.0,
-                        "max_duration": 200,
-                        "min_duration": 0
+                        "existing_capacity_storage": 81282
                     }
                 },
                 {
@@ -226,9 +222,7 @@
                         }
                     },
                     "storage":{
-                        "existing_capacity_storage": 0.0,
-                        "max_duration": 200,
-                        "min_duration": 0
+                        "existing_capacity_storage": 49706.95
                     }
                 }
             ]
