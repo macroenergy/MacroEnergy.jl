@@ -21,6 +21,7 @@
                         "has_capacity": true,
                         "can_retire": true,
                         "can_expand": true,
+                        "integer_decisions": false,
                         "uc": true,
                         "constraints": {
                             "CapacityConstraint": true,
