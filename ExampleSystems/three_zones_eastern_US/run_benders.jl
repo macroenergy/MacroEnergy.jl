@@ -9,10 +9,10 @@ println("###### ###### ######")
 println("Running case at $(case_path)")
 
 setup = Dict(
-    "MaxIter"=> 20,
-    "MaxCpuTime" => 3600,
+    "MaxIter"=> 300,
+    "MaxCpuTime" => 7200,
     "ConvTol" => 1e-3,
-    "StabParam" => 0.0,
+    "StabParam" => 0.5,
     "IntegerInvestment" => false
 )
 
