@@ -8,7 +8,15 @@ case_path = @__DIR__
 println("###### ###### ######")
 println("Running case at $(case_path)")
 
-results = solve_model_with_benders(case_path, Macro);
+setup = Dict(
+    "MaxIter"=> 20,
+    "MaxCpuTime" => 3600,
+    "ConvTol" => 1e-3,
+    "StabParam" => 0.0,
+    "IntegerInvestment" => false
+)
+
+results = solve_model_with_benders(case_path, setup, Macro);
 
 # capacity_results = Macro.get_optimal_asset_capacity(system)
 

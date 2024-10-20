@@ -65,7 +65,7 @@ function make(::Type{ElectricDAC}, data::AbstractDict{Symbol,Any}, system::Syste
 
     electricdac_transform.balance_data = Dict(
         :energy => Dict(
-            co2_captured_edge.id => get(transform_data, :electricity_consumption, 1.0),
+            co2_captured_edge.id => get(transform_data, :electricity_consumption, 0.0),
             elec_edge.id => 1.0,
         ),
         :capture => Dict(

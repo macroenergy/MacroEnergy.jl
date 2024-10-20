@@ -37,8 +37,7 @@
                         "capacity_size": 400,
                         "min_flow_fraction": 0.85,
                         "constraints": {
-                            "CapacityConstraint": true,
-                            "MinFlowConstraint": true
+                            "CapacityConstraint": true
                         }
                     },
                     "co2_edge":{
