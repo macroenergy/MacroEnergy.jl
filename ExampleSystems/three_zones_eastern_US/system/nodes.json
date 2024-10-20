@@ -134,8 +134,16 @@
             "type": "Electricity",
             "global_data": {
                 "time_interval": "Electricity",
+                "max_nsd": [
+                    1
+                ],
+                "price_nsd": [
+                    50000.0
+                ],
                 "constraints": {
-                    "BalanceConstraint": true
+                    "BalanceConstraint": true,
+                    "MaxNonServedDemandConstraint": true,
+                    "MaxNonServedDemandPerSegmentConstraint": true
                 }
             },
             "instance_data": [
@@ -172,8 +180,16 @@
             "type": "Hydrogen",
             "global_data": {
                 "time_interval": "Hydrogen",
+                "max_nsd": [
+                    1
+                ],
+                "price_nsd": [
+                    50000.0
+                ],
                 "constraints": {
-                    "BalanceConstraint": true
+                    "BalanceConstraint": true,
+                    "MaxNonServedDemandConstraint": true,
+                    "MaxNonServedDemandPerSegmentConstraint": true
                 }
             },
             "instance_data": [
@@ -219,7 +235,10 @@
                     },
                     "rhs_policy": {
                             "CO2CapConstraint": 0
-                        }
+                        },
+                    "price_unmet_policy":{
+                        "CO2CapConstraint": 250.0
+                    }
                 }
             ]
         },

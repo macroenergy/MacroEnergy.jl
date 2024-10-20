@@ -118,13 +118,12 @@ function make(::Type{GasStorage}, data::AbstractDict{Symbol,Any}, system::System
 
     compressor_transform.balance_data = Dict(
         :electricity => Dict(
-            compressor_gas_edge.id => get(transform_data, :electricity_consumption, 0.0),
-            gas_storage_charge.id => 1.0,
+            compressor_elec_edge.id => 1.0,
+            gas_storage_charge.id => get(transform_data, :electricity_consumption, 0.0),
         ),
         :hydrogen => Dict(
             gas_storage_charge.id => 1.0,
-            compressor_gas_edge.id => 1.0,
-            compressor_elec_edge.id => 0.0,
+            compressor_gas_edge.id => 1.0
         ),
     )
 

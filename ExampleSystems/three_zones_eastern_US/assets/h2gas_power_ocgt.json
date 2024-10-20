@@ -7,7 +7,7 @@
                 "transforms": {
                     "timedata": "NaturalGas",
                     "emission_rate": 0,
-                    "efficiency": 0.296861039,
+                    "efficiency_rate": 0.296861039,
                     "constraints": {
                             "BalanceConstraint": true
                     }

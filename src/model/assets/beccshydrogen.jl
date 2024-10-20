@@ -121,7 +121,7 @@ function make(::Type{BECCSHydrogen}, data::AbstractDict{Symbol,Any}, system::Sys
             biomass_edge.id => get(transform_data, :hydrogen_production, 0.0)
         ),
         :elec_consumption => Dict(
-            elec_edge.id => 1.0,
+            elec_edge.id => -1.0,
             biomass_edge.id => get(transform_data, :electricity_consumption, 0.0)
         ),
         :negative_emissions => Dict(

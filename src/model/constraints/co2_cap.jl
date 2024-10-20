@@ -7,18 +7,16 @@ end
 function add_model_constraint!(ct::CO2CapConstraint, n::Node{CO2}, model::Model)
     ct_type = typeof(ct)
 
-    subperiod_balance = @expression(model, [w in subperiod_indices(n)], sum(subperiod_weight(n, w)*get_balance(n,:emissions,t) for t in subperiods(n)[w]) )
+    subperiod_balance = @expression(model, [w in subperiod_indices(n)], 0 * model[:vREF])
 
-    # subperiod_balance = @expression(model, [w in subperiod_indices(n)], 0 * model[:vREF])
-
-    # for t in time_interval(n)
-    #     w = current_subperiod(n, t)
-    #     add_to_expression!(
-    #         subperiod_balance[w],
-    #         subperiod_weight(n, w),
-    #         get_balance(n, :emissions, t),
-    #     )
-    # end
+    for t in time_interval(n)
+        w = current_subperiod(n, t)
+        add_to_expression!(
+            subperiod_balance[w],
+            subperiod_weight(n, w),
+            get_balance(n, :emissions, t),
+        )
+    end
 
     if haskey(price_unmet_policy(n), ct_type)
         n.policy_slack_vars[Symbol(string(ct_type) * "_Slack")] = @variable(
