@@ -12,8 +12,13 @@ function generate_model(system::System)
 
     model[:eVariableCost] = AffExpr(0.0)
 
+    model[:eTotalCapacity] = Dict{Symbol, AffExpr}();
+
     @info("Adding linking variables")
     add_linking_variables!(system, model) 
+
+    @info("Defining available capacity")
+    define_available_capacity!(system, model)
 
     @info("Generating planning model")
     planning_model!(system, model)
@@ -76,5 +81,19 @@ end
 function add_linking_variables!(a::AbstractAsset, model::Model)
     for t in fieldnames(typeof(a))
         add_linking_variables!(getfield(a, t), model)
+    end
+end
+
+function define_available_capacity!(system::System, model::Model)
+
+    define_available_capacity!.(system.locations, model)
+
+    define_available_capacity!.(system.assets, model)
+
+end
+
+function define_available_capacity!(a::AbstractAsset, model::Model)
+    for t in fieldnames(typeof(a))
+        define_available_capacity!(getfield(a, t), model)
     end
 end

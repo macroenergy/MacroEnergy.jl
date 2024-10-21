@@ -36,9 +36,13 @@ function generate_planning_problem(system::System)
 
     model[:eFixedCost] = AffExpr(0.0)
 
+    model[:eTotalCapacity] = Dict{Symbol, AffExpr}();
+
     add_linking_variables!(system, model)
 
     linking_variables = name.(setdiff(all_variables(model), model[:vREF]))
+
+    define_available_capacity!(system, model)
 
     planning_model!(system, model)
 
@@ -47,7 +51,6 @@ function generate_planning_problem(system::System)
     @objective(model, Min, model[:eFixedCost] + sum(vTHETA))
 
     return model, linking_variables
-
 
 end
 
@@ -59,10 +62,14 @@ function generate_operation_subproblem(system::System)
     @variable(model, vREF == 1)
 
     model[:eVariableCost] = AffExpr(0.0)
+    
+    model[:eTotalCapacity] = Dict{Symbol, AffExpr}();
 
     add_linking_variables!(system, model)
 
     linking_variables = name.(setdiff(all_variables(model), model[:vREF]))
+
+    define_available_capacity!(system, model)
 
     operation_model!(system, model)
 

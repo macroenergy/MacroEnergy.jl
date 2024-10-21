@@ -8,7 +8,7 @@ macro AbstractEdgeBaseAttributes()
         availability::Vector{Float64} = Float64[]
         can_expand::Bool = false
         can_retire::Bool = false
-        capacity::Union{JuMPVariable,Float64} = 0.0
+        capacity::Union{AffExpr,Float64} = 0.0
         capacity_size::Float64 = 1.0
         constraints::Vector{AbstractTypeConstraint} = Vector{AbstractTypeConstraint}()
         distance::Float64 = 0.0
@@ -113,18 +113,32 @@ variable_om_cost(e::AbstractEdge) = e.variable_om_cost;
 function add_linking_variables!(e::AbstractEdge, model::Model)
 
     if has_capacity(e)
-        e.capacity = @variable(model, lower_bound = 0.0, base_name = "vCAP_$(id(e))")
+        e.new_capacity = @variable(model, lower_bound = 0.0, base_name = "vNEWCAP_$(id(e))")
+
+        e.ret_capacity = @variable(model, lower_bound = 0.0, base_name = "vRETCAP_$(id(e))")
     end
+
+    return nothing
+
+end
+
+function define_available_capacity!(e::AbstractEdge,model::Model)
+
+    if has_capacity(e)
+        e.capacity = @expression(
+            model,
+            capacity_size(e) * (new_capacity(e) - ret_capacity(e)) + existing_capacity(e)
+        )
+        model[:eTotalCapacity][id(e)] = e.capacity
+    end
+
+    return nothing
 
 end
 
 function planning_model!(e::AbstractEdge, model::Model)
 
     if has_capacity(e)
-
-        e.new_capacity = @variable(model, lower_bound = 0.0, base_name = "vNEWCAP_$(id(e))")
-
-        e.ret_capacity = @variable(model, lower_bound = 0.0, base_name = "vRETCAP_$(id(e))")
 
         if !can_expand(e)
             fix(new_capacity(e), 0.0; force = true)
@@ -151,13 +165,8 @@ function planning_model!(e::AbstractEdge, model::Model)
             add_to_expression!(model[:eFixedCost], fixed_om_cost(e), capacity(e))
         end
 
-        ### DEFAULT CONSTRAINTS ###
+        @constraint(model, capacity_size(e) * ret_capacity(e) <= existing_capacity(e))
 
-        @constraint(
-            model,
-            capacity(e) ==
-            capacity_size(e) * (new_capacity(e) - ret_capacity(e)) + existing_capacity(e)
-        )
     end
 
 

@@ -3,7 +3,7 @@ Base.@kwdef mutable struct Storage{T} <: AbstractVertex
     @AbstractVertexBaseAttributes()
     can_expand::Bool = false
     can_retire::Bool = false
-    capacity_storage::Union{JuMPVariable,Float64} = 0.0
+    capacity_storage::Union{AffExpr,Float64} = 0.0
     charge_edge::Union{Nothing,AbstractEdge} = nothing
     discharge_edge::Union{Nothing,AbstractEdge} = nothing
     existing_capacity_storage::Float64 = 0.0
@@ -74,17 +74,27 @@ storage_loss_fraction(g::Storage) = g.storage_loss_fraction;
 
 function add_linking_variables!(g::Storage, model::Model)
 
-    g.capacity_storage = @variable(model, lower_bound = 0.0, base_name = "vCAPSTOR_$(g.id)")
+    g.new_capacity_storage =
+    @variable(model, lower_bound = 0.0, base_name = "vNEWCAPSTOR_$(g.id)")
+
+    g.ret_capacity_storage =
+    @variable(model, lower_bound = 0.0, base_name = "vRETCAPSTOR_$(g.id)")
+
+
+end
+
+function define_available_capacity!(g::Storage, model::Model)
+
+    g.capacity_storage = @expression(
+        model,
+        new_capacity_storage(g) - ret_capacity_storage(g) + existing_capacity_storage(g)
+    )
+
+    model[:eTotalCapacity][g.id] = g.capacity_storage;
 
 end
 
 function planning_model!(g::Storage, model::Model)
-
-    g.new_capacity_storage =
-        @variable(model, lower_bound = 0.0, base_name = "vNEWCAPSTOR_$(g.id)")
-
-    g.ret_capacity_storage =
-        @variable(model, lower_bound = 0.0, base_name = "vRETCAPSTOR_$(g.id)")
 
     if !g.can_expand
         fix(new_capacity_storage(g), 0.0; force = true)
@@ -108,14 +118,6 @@ function planning_model!(g::Storage, model::Model)
             capacity_storage(g),
         )
     end
-
-    ### DEFAULT CONSTRAINTS ###
-
-    @constraint(
-        model,
-        capacity_storage(g) ==
-        new_capacity_storage(g) - ret_capacity_storage(g) + existing_capacity_storage(g)
-    )
 
     @constraint(model, ret_capacity_storage(g) <= existing_capacity_storage(g))
 

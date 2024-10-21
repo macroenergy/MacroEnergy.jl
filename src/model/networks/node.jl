@@ -81,6 +81,10 @@ function add_linking_variables!(n::Node, model::Model)
 
 end
 
+function define_available_capacity!(n::Node, model::Model)
+    return nothing
+end
+
 function planning_model!(n::Node, model::Model)
 
     ### DEFAULT CONSTRAINTS ###

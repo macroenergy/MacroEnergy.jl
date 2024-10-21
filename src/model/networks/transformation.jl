@@ -12,6 +12,10 @@ function planning_model!(g::Transformation, model::Model)
     return nothing
 end
 
+function define_available_capacity!(g::Transformation, model::Model)
+    return nothing
+end
+
 function operation_model!(g::Transformation, model::Model)
     if !isempty(balance_ids(g))
         for i in balance_ids(g)
