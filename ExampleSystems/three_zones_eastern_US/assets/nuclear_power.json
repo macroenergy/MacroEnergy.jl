@@ -17,7 +17,7 @@
                             "unidirectional": true,
                             "has_capacity": true,
                             "uc": true,
-                            "integer_deicions": false,
+                            "integer_decisions": true,
                             "startup_cost": 1000,
                             "min_up_time": 36,
                             "min_down_time": 36,

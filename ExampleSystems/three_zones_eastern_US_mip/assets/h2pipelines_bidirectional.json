@@ -1,0 +1,49 @@
+{
+    "h2pipeline": [
+        {
+            "type": "HydrogenLine",
+            "global_data": {
+                "edges": {
+                    "h2_edge": {
+                        "type": "Hydrogen",
+                        "unidirectional": false,
+                        "can_expand": true,
+                        "can_retire": false,
+                        "has_capacity": true,
+                        "integer_decisions": true,
+                        "line_loss_percentage": 0.04,
+                        "constraints": {
+                            "CapacityConstraint": true
+                        }
+                    }
+                }
+            },
+            "instance_data": [
+                {
+                    "id": "h2_SE_to_h2_MIDAT",
+                    "edges": {
+                        "h2_edge": {
+                            "start_vertex": "h2_SE",
+                            "end_vertex": "h2_MIDAT",
+                            "distance":491.4512001,
+                            "capacity_size": 1293.204,
+                            "investment_cost": 91255.07
+                        }
+                    }
+                },
+                {
+                    "id": "h2_NE_to_h2_SE",
+                    "edges": {
+                        "h2_edge": {
+                            "start_vertex": "h2_NE",
+                            "end_vertex": "h2_SE",
+                            "distance":473.6625536,
+                            "capacity_size": 1293.204,
+                            "investment_cost": 87964.25
+                        }
+                    }
+                }
+            ]
+        }
+    ]
+}

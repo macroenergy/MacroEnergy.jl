@@ -21,6 +21,7 @@
                         "start_vertex": "co2_sink",
                         "can_retire": true,
                         "can_expand": true,
+                        "integer_decisions": true,
                         "uc": false,
                         "constraints": {
                             "CapacityConstraint": true,

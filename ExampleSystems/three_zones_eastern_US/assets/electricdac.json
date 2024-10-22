@@ -23,6 +23,7 @@
                             "CapacityConstraint": true,
                             "RampingLimitConstraint": true
                         },
+                        "integer_decisions": true,
                         "existing_capacity": 0.0,
                         "investment_cost": 939000.00,
                         "fixed_om_cost": 747000.00,

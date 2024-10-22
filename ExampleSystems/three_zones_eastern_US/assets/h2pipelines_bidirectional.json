@@ -10,11 +10,10 @@
                         "can_expand": true,
                         "can_retire": false,
                         "has_capacity": true,
-                        "integer_decisions": false,
+                        "integer_decisions": true,
                         "line_loss_percentage": 0.04,
                         "constraints": {
-                            "CapacityConstraint": true,
-                            "MaxCapacityConstraint": true
+                            "CapacityConstraint": true
                         }
                     }
                 }
@@ -27,8 +26,7 @@
                             "start_vertex": "h2_SE",
                             "end_vertex": "h2_MIDAT",
                             "distance":491.4512001,
-                            "capacity_size": 666.6,
-                            "max_capacity": 666600,
+                            "capacity_size": 1293.204,
                             "investment_cost": 91255.07
                         }
                     }
@@ -40,8 +38,7 @@
                             "start_vertex": "h2_NE",
                             "end_vertex": "h2_SE",
                             "distance":473.6625536,
-                            "capacity_size": 666.6,
-                            "max_capacity": 666600,
+                            "capacity_size": 1293.204,
                             "investment_cost": 87964.25
                         }
                     }

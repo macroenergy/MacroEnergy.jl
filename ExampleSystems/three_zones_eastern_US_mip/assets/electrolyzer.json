@@ -1,0 +1,80 @@
+{
+   "electrolyzer": [
+        {   
+            "type": "Electrolyzer",
+            "global_data":{
+                "nodes": {},
+                "transforms": {
+                    "timedata": "Electricity",
+                    "efficiency_rate": 0.740666667,
+                    "constraints": {
+                            "BalanceConstraint": true
+                    }
+                },
+                "edges": {
+                    "h2_edge": {
+                        "type": "Hydrogen",
+                        "unidirectional": true,
+                        "has_capacity": true,
+                        "can_retire": true,
+                        "can_expand": true,
+                        "existing_capacity": 0,
+                        "investment_cost": 48575.20549,
+                        "fixed_om_cost": 1243.525261,
+                        "variable_om_cost": 0.0,
+                        "capacity_size": 1.3332,
+                        "ramp_up_fraction": 1,
+                        "ramp_down_fraction": 1,
+                        "min_flow_fraction":0.1,
+                        "constraints": {
+                                "CapacityConstraint": true,
+                                "RampingLimitConstraint": true,
+                                "MinFlowConstraint": true
+                            }
+                    },
+                    "elec_edge": {
+                        "type": "Electricity",
+                        "unidirectional": true,
+                        "has_capacity": false
+                    }
+                }
+            },
+            "instance_data":[
+                {
+                    "id": "SE_Electrolyzer",
+                    "edges":{
+                            "elec_edge": {
+                                "start_vertex": "elec_SE"
+                            },
+                            "h2_edge": {
+                                "end_vertex": "h2_SE"
+                            }
+                        }
+                },
+                {
+                    "id": "MIDAT_Electrolyzer",
+                    "edges":{
+                            "elec_edge": {
+                                "start_vertex": "elec_MIDAT"
+                            },
+                            "h2_edge": {
+                                "end_vertex": "h2_MIDAT"
+                            }
+                        }
+                },
+                {
+                    "id": "NE_Electrolyzer",
+                    "edges":{
+                            "elec_edge": {
+                                "start_vertex": "elec_NE"
+                            },
+                            "h2_edge": {
+                                "end_vertex": "h2_NE"
+                            }
+                        }
+                }
+            ]
+
+        }
+    ]
+}

@@ -1,0 +1,107 @@
+{
+    "NaturalGasH2SMR": [
+        {
+            "type": "ThermalHydrogen",
+            "global_data":{
+                "nodes": {},
+                "transforms": {
+                    "timedata": "NaturalGas",
+                    "emission_rate": 0.181048235160161,
+                    "efficiency_rate": 0.650569362,
+                    "electricity_consumption": 0.019381938,
+                    "constraints": {
+                            "BalanceConstraint": true
+                    }
+                },
+                "edges":{
+                    "h2_edge": {
+                        "type": "Hydrogen",
+                        "unidirectional": true,
+                        "has_capacity": true,
+                        "can_retire": true,
+                        "can_expand": true,
+                        "integer_decisions": true,
+                        "uc": true,
+                        "constraints": {
+                            "CapacityConstraint": true,
+                            "RampingLimitConstraint": true,
+                            "MinFlowConstraint": true,
+                            "MinUpTimeConstraint": true,
+                            "MinDownTimeConstraint": true
+                        },
+                        "existing_capacity": 0.0,
+                        "investment_cost": 35329.87672,
+                        "fixed_om_cost": 16169.80517,
+                        "variable_om_cost": 2.659405941,
+                        "capacity_size": 669.933,
+                        "startup_cost": 0.150015002,
+                        "min_up_time": 3,
+                        "min_down_time": 3,
+                        "ramp_up_fraction": 0.5,
+                        "ramp_down_fraction": 0.5,
+                        "min_flow_fraction":0.85
+                    },
+                    "fuel_edge": {
+                        "type": "NaturalGas",
+                        "unidirectional": true,
+                        "has_capacity": false
+                    },
+                    "co2_edge": {
+                        "type": "CO2",
+                        "unidirectional": true,
+                        "has_capacity": false,
+                        "end_vertex": "co2_sink"
+                    },
+                    "elec_edge":{
+                        "type": "Electricity",
+                        "unidirectional": true,
+                        "has_capacity": false
+                    }
+                }
+            },
+            "instance_data":[
+                {
+                    "id": "MIDAT_Large_SMR_Non_CCS",
+                    "edges":{
+                            "h2_edge": {
+                                "end_vertex": "h2_MIDAT",
+                                "availability": {
+                                "timeseries": {
+                                    "path": "assets/availability.csv",
+                                    "header": "MIDAT_Large_SMR_Non_CCS"
+                                    }
+                                }
+                            },
+                            "fuel_edge": {
+                                "start_vertex": "natgas_MIDAT"
+                            },
+                            "elec_edge":{
+                                "start_vertex": "elec_MIDAT"
+                            }
+                        }
+                },
+                {
+                    "id": "NE_Large_SMR_Non_CCS",
+                    "edges":{
+                            "h2_edge": {
+                                "end_vertex": "h2_NE",
+                                "availability": {
+                                "timeseries": {
+                                    "path": "assets/availability.csv",
+                                    "header": "NE_Large_SMR_Non_CCS"
+                                    }
+                                }
+                            },
+                            "fuel_edge": {
+                                "start_vertex": "natgas_NE"
+                            },
+                            "elec_edge":{
+                                "start_vertex": "elec_NE"
+                            }
+                        }
+                }
+
+            ]
+        }
+    ]
+}

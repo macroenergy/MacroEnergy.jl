@@ -20,13 +20,12 @@ setup = Dict(
 results = solve_model_with_benders(case_path, setup, Macro);
 
 benders_iter = Macro.DataFrame(:iter=>1:length(results.LB_hist),:LB=>results.LB_hist,:UB=>results.UB_hist,:runtime=>results.cpu_time)
-
-# capacity_results = Macro.get_optimal_asset_capacity(system)
+capacity_results = Macro.get_optimal_asset_capacity(results.system)
 
 results_dir = joinpath(case_path, "results")
 mkpath(results_dir)
 Macro.write_csv(joinpath(results_dir, "benders_iter.csv"), benders_iter)
-#Macro.write_csv(joinpath(results_dir, "capacity.csv"), capacity_results)
+Macro.write_csv(joinpath(results_dir, "capacity.csv"), capacity_results)
 println()
 
 # results_dir = joinpath(case_path, "results")
