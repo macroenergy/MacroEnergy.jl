@@ -14,14 +14,14 @@ setup = Dict(
     "ConvTol" => 1e-3,
     "StabParam" => 0.5,
     "StabDynamic" => false,
-    "IntegerInvestment" => true
+    "IntegerInvestment" => false
 )
 
 results = solve_model_with_benders(case_path, setup, Macro);
 
 Macro.unset_silent(results.planning_problem)
+Macro.set_optimizer_attribute(results.planning_problem, "Crossover", 1)
 Macro.optimize!(results.planning_problem)
-
 
 benders_iter = Macro.DataFrame(:iter=>1:length(results.LB_hist),:LB=>results.LB_hist,:UB=>results.UB_hist,:runtime=>results.cpu_time)
 capacity_results = Macro.get_optimal_asset_capacity(results.system)

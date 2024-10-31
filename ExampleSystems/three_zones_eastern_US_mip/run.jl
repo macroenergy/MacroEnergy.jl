@@ -13,7 +13,7 @@ model = Macro.generate_model(system)
 
 Macro.set_optimizer(model, Gurobi.Optimizer);
 
-Macro.set_optimizer_attributes(model, "BarConvTol"=>1e-3,"Crossover" => 0, "Method" => 2)
+Macro.set_optimizer_attributes(model, "BarConvTol"=>1e-3,"Crossover" => 0, "Method" => 2, "NodeMethod"=>2,"MIPGap"=>1e-4)
 
 Macro.optimize!(model)
 

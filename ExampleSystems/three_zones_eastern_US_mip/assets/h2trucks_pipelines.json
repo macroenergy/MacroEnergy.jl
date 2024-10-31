@@ -26,7 +26,6 @@
                             "start_vertex": "h2_SE",
                             "end_vertex": "h2_MIDAT",
                             "distance":491.4512001,
-                            "capacity_size":  0.0238,
                             "investment_cost": 182510.14
                         }
                     }
@@ -38,7 +37,6 @@
                             "start_vertex": "h2_NE",
                             "end_vertex": "h2_SE",
                             "distance":473.6625536,
-                            "capacity_size":  0.0247,
                             "investment_cost": 175928.5
                         }
                     }
