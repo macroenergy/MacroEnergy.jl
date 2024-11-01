@@ -153,7 +153,6 @@ export AbstractAsset,
     PowerLine,
     RampingLimitConstraint,
     SameChargeDischargeCapacityConstraint,
-    SolarPV,
     Storage,
     StorageCapacityConstraint,
     StorageMaxDurationConstraint,
@@ -166,6 +165,5 @@ export AbstractAsset,
     ThermalPowerCCS,
     Transformation,
     Uranium,
-    VRE,
-    WindTurbine
+    VRE
 end # module Macro
