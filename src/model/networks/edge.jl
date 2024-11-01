@@ -16,6 +16,7 @@ macro AbstractEdgeBaseAttributes()
         fixed_om_cost::Float64 = 0.0
         flow::Union{JuMPVariable,Vector{Float64}} = Vector{VariableRef}()
         has_capacity::Bool = false
+        integer_decisions::Bool = false
         investment_cost::Float64 = 0.0
         loss_fraction::Float64 = 0.0
         max_capacity::Float64 = Inf
@@ -54,6 +55,7 @@ function make_edge(
         existing_capacity = get(data, :existing_capacity, 0.0),
         fixed_om_cost = get(data, :fixed_om_cost, 0.0),
         has_capacity = get(data, :has_capacity, false),
+        integer_decisions = get(data, :integer_decisions, false),
         investment_cost = get(data, :investment_cost, 0.0),
         loss_fraction = get(data,:loss_fraction,0.0),
         max_capacity = get(data, :max_capacity, Inf),
@@ -92,6 +94,7 @@ flow(e::AbstractEdge) = e.flow;
 flow(e::AbstractEdge, t::Int64) = flow(e)[t];
 has_capacity(e::AbstractEdge) = e.has_capacity;
 id(e::AbstractEdge) = e.id;
+integer_decisions(e::AbstractEdge) = e.integer_decisions;
 investment_cost(e::AbstractEdge) = e.investment_cost;
 loss_fraction(e::AbstractEdge) = e.loss_fraction;
 max_capacity(e::AbstractEdge) = e.max_capacity;
@@ -139,6 +142,9 @@ function planning_model!(e::AbstractEdge, model::Model)
         if !can_expand(e)
             fix(new_capacity(e), 0.0; force = true)
         else
+            if integer_decisions(e)
+                set_integer(new_capacity(e))
+            end
             add_to_expression!(
                 model[:eFixedCost],
                 investment_cost(e) * capacity_size(e),
@@ -148,6 +154,10 @@ function planning_model!(e::AbstractEdge, model::Model)
 
         if !can_retire(e)
             fix(ret_capacity(e), 0.0; force = true)
+        else
+            if integer_decisions(e)
+                set_integer(ret_capacity(e))
+            end
         end
 
         if fixed_om_cost(e) > 0
