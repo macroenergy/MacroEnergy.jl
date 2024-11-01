@@ -14,11 +14,14 @@ import Base: /
 
 ## Commodity types
 abstract type Commodity end
-abstract type Electricity <: Commodity end
-abstract type Hydrogen <: Commodity end
-abstract type NaturalGas <: Commodity end
-abstract type CO2 <: Commodity end
-abstract type CO2Captured <: CO2 end
+abstract type Electricity <: Commodity end ## MWh
+abstract type Hydrogen <: Commodity end ## MWh
+abstract type NaturalGas <: Commodity end ## MWh
+abstract type CO2 <: Commodity end ## tonnes
+abstract type CO2Captured <: CO2 end ## tonnes
+abstract type Coal <: Commodity end ## MWh
+abstract type Biomass <: Commodity end ## tonnes
+abstract type Uranium <: Commodity end ## MWh
 
 ## Time data types
 abstract type AbstractTimeData{T<:Commodity} end
@@ -77,14 +80,15 @@ include("model/system.jl")
 include("model/assets/battery.jl")
 include("model/assets/electrolyzer.jl")
 include("model/assets/fuelcell.jl")
-include("model/assets/h2storage.jl")
-include("model/assets/natgashydrogen.jl")
-include("model/assets/natgaspower.jl")
+include("model/assets/gasstorage.jl")
+include("model/assets/thermalhydrogen.jl")
+include("model/assets/thermalpower.jl")
 include("model/assets/powerline.jl")
 include("model/assets/vre.jl")
 
-include("model/assets/natgashydrogenccs.jl")
-include("model/assets/natgaspowerccs.jl")
+include("model/assets/hydrogenline.jl")
+include("model/assets/thermalhydrogenccs.jl")
+include("model/assets/thermalpowerccs.jl")
 
 include("model/assets/natgasdac.jl")
 include("model/assets/electricdac.jl")
@@ -109,6 +113,8 @@ export AbstractAsset,
     AbstractTypeConstraint,
     BalanceConstraint,
     Battery,
+    Biomass,
+    Coal,
     CO2,
     CO2CapConstraint,
     CO2Captured,
@@ -120,8 +126,9 @@ export AbstractAsset,
     Electrolyzer,
     ElectricDAC,
     FuelCell,
-    H2Storage,
+    GasStorage,
     Hydrogen,
+    HydrogenLine,
     HydroMinFlowConstraint,
     MaxCapacityConstraint,
     MaxNonServedDemandConstraint,
@@ -134,10 +141,6 @@ export AbstractAsset,
     MinUpTimeConstraint,
     MustRunConstraint,
     NaturalGas,
-    NaturalGasHydrogen,
-    NaturalGasPower,
-    NaturalGasHydrogenCCS,
-    NaturalGasPowerCCS,
     NaturalGasDAC,
     Node,
     OperationConstraint,
@@ -153,7 +156,12 @@ export AbstractAsset,
     StorageMinDurationConstraint,
     StorageSymmetricCapacityConstraint,
     StorageDischargeLimitConstraint,
+    ThermalHydrogen,
+    ThermalPower,
+    ThermalHydrogenCCS,
+    ThermalPowerCCS,
     Transformation,
+    Uranium,
     VRE,
     WindTurbine
 end # module Macro
