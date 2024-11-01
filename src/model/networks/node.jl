@@ -2,13 +2,18 @@ Base.@kwdef mutable struct Node{T} <: AbstractVertex
     @AbstractVertexBaseAttributes()
     demand::Union{Vector{Float64},Dict{Int64,Float64}} = Vector{Float64}()
     max_nsd::Vector{Float64} = [0.0]
+    max_supply::Vector{Float64} = [0.0]
     non_served_demand::Union{JuMPVariable,Matrix{Float64}} =
         Matrix{VariableRef}(undef, 0, 0)
     policy_budgeting_vars::Dict = Dict()
     policy_slack_vars::Dict = Dict()
+    price::Union{Vector{Float64},Dict{Int64,Float64}} = Vector{Float64}()
     price_nsd::Vector{Float64} = [0.0]
+    price_supply::Vector{Float64} = [0.0]
     price_unmet_policy::Dict{DataType,Float64} = Dict{DataType,Float64}()
     rhs_policy::Dict{DataType,Float64} = Dict{DataType,Float64}()
+    supply_flow::Union{JuMPVariable,Matrix{Float64}} =
+    Matrix{VariableRef}(undef, 0, 0)
 end
 
 function make_node(data::AbstractDict{Symbol,Any}, time_data::TimeData, commodity::DataType)
@@ -17,9 +22,12 @@ function make_node(data::AbstractDict{Symbol,Any}, time_data::TimeData, commodit
         timedata = time_data,
         demand = get(data, :demand, Vector{Float64}()),
         max_nsd = get(data, :max_nsd, [0.0]),
+        max_supply = get(data, :max_supply, [0.0]),
+        price = get(data, :price, Float64[]),
         price_nsd = get(data, :price_nsd, [0.0]),
+        price_supply = get(data, :price_supply, [0.0]),
         price_unmet_policy = get(data, :price_unmet_policy, Dict{DataType,Float64}()),
-        rhs_policy = get(data, :rhs_policy, Dict{DataType,Float64}()),
+        rhs_policy = get(data, :rhs_policy, Dict{DataType,Float64}())
     )
     # add_constraints!(_node, data)
     return _node
@@ -38,6 +46,8 @@ non_served_demand(n::Node) = n.non_served_demand;
 non_served_demand(n::Node, s::Int64, t::Int64) = non_served_demand(n)[s, t];
 policy_budgeting_vars(n::Node) = n.policy_budgeting_vars;
 policy_slack_vars(n::Node) = n.policy_slack_vars;
+price(n::Node) = n.price;
+price(n::Node, t::Int64) = price(n)[t];
 price_non_served_demand(n::Node) = n.price_nsd;
 price_non_served_demand(n::Node, s::Int64) = price_non_served_demand(n)[s];
 price_unmet_policy(n::Node) = n.price_unmet_policy;
@@ -45,6 +55,12 @@ price_unmet_policy(n::Node, c::DataType) = price_unmet_policy(n)[c];
 rhs_policy(n::Node) = n.rhs_policy;
 rhs_policy(n::Node, c::DataType) = rhs_policy(n)[c];
 segments_non_served_demand(n::Node) = 1:length(n.max_nsd);
+supply_flow(n::Node) = n.supply_flow;
+supply_flow(n::Node, s::Int64, t::Int64) = supply_flow(n)[s, t];
+supply_segments(n::Node) = eachindex(n.max_supply);
+max_supply(n::Node) = n.max_supply;
+max_supply(n::Node,s::Int64) = n.max_supply[s];
+price_supply(n::Node,s::Int64) = n.price_supply[s];
 ######### Node interface #########
 
 
@@ -122,6 +138,28 @@ function operation_model!(n::Node, model::Model)
                 add_to_expression!(get_balance(n, :demand, t), non_served_demand(n, s, t))
             end
         end
+    end
+
+    if !all(max_supply(n) .== 0)
+
+        n.supply_flow = @variable(
+            model,
+            [s in supply_segments(n) ,t in time_interval(n)],
+            lower_bound = 0.0,
+            upper_bound = max_supply(n,s),
+            base_name = "vSUPPLY_$(id(n))"
+        )
+
+        for t in time_interval(n)
+            w = current_subperiod(n,t);
+            for s in supply_segments(n)
+
+                add_to_expression!(model[:eVariableCost], subperiod_weight(n,w)*price_supply(n,s), supply_flow(n,s,t))
+
+                add_to_expression!(get_balance(n, :demand, t), supply_flow(n, s, t))
+            end
+        end
+
     end
 
     return nothing
