@@ -43,7 +43,7 @@ function make(::Type{Electrolyzer}, data::AbstractDict{Symbol,Any}, system::Syst
         constraints = get(transform_data, :constraints, [BalanceConstraint()]),
     )
 
-    elec_edge_key = :e_edge
+    elec_edge_key = :elec_edge
     elec_edge_data = process_data(data[:edges][elec_edge_key])
     elec_start_node = find_node(system.locations, Symbol(elec_edge_data[:start_vertex]))
     elec_end_node = electrolyzer
