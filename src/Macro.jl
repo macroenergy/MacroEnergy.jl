@@ -137,6 +137,7 @@ export AbstractAsset,
     StorageMaxDurationConstraint,
     StorageMinDurationConstraint,
     StorageSymmetricCapacityConstraint,
+    StorageDischargeLimitConstraint,
     Transformation,
     VRE,
     WindTurbine
