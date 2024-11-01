@@ -95,6 +95,8 @@ include("model/assets/electricdac.jl")
 include("model/assets/beccselectricity.jl")
 include("model/assets/beccshydrogen.jl")
 include("model/assets/hydrores.jl")
+include("model/assets/mustrun.jl")
+
 
 include_all_in_folder("model/constraints")
 
@@ -145,6 +147,7 @@ export AbstractAsset,
     MinFlowConstraint,
     MinStorageLevelConstraint,
     MinUpTimeConstraint,
+    MustRun,
     MustRunConstraint,
     NaturalGas,
     NaturalGasDAC,
