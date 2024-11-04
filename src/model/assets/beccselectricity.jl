@@ -104,7 +104,7 @@ function make(::Type{BECCSElectricity}, data::AbstractDict{Symbol,Any}, system::
             biomass_edge.id => get(transform_data, :electricity_production, 0.0)
         ),
         :negative_emissions => Dict(
-            biomass_edge.id => get(transform_data, :negative_emission_rate, 0.0),
+            biomass_edge.id => get(transform_data, :co2_content, 0.0),
             co2_edge.id => -1.0
         ),
         :emissions => Dict(
