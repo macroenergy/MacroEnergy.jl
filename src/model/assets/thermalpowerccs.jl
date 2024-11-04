@@ -57,7 +57,7 @@ function make(::Type{ThermalPowerCCS}, data::AbstractDict{Symbol,Any}, system::S
             elec_edge_data,
             :constraints,
             [
-                ßCapacityConstraint()
+                CapacityConstraint()
             ],
         )
     end

@@ -25,7 +25,7 @@ time_interval(y::Union{AbstractVertex,AbstractEdge}) = y.timedata.time_interval;
 @doc raw"""
 timestepbefore(t::Int, h::Int,subperiods::Vector{StepRange{Int64,Int64})
 
-Determines the time step that is h steps bßefore index t in
+Determines the time step that is h steps before index t in
 subperiod p with circular indexing.
 
 """
