@@ -1,0 +1,4 @@
+CO2_Storage,Zone,etaPCO2_MWh_per_tonne,Inv_Cost_per_tonne_per_yr_yr,Fixed_OM_Cost_per_tonne_per_yr_yr,Var_OM_Cost_per_tonne,Min_capacity_tonne_per_yr,Max_capacity_tonne_per_yr,Max_injection_rate_tonne_per_hr,CO2_Injection_Min_Output,CO2_Injection_Max_Output
+SE_GEO_SEQ,1,0,0,0,9.01,0,2154200000,31124.8,0,1
+MIDAT_GEO_SEQ,2,0,0,0,8.5,0,3366000,1155,0,1
+NE_GEO_SEQ,3,0,0,0,0,0,0,0,0,1

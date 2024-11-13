@@ -1,0 +1,3 @@
+CO2_Pipelines,z1,z2,z3,Max_No_Pipe,Existing_No_Pipe,Max_Flow_Tonne_p_hr_Per_Pipe,Pipe_length_miles,CO2PipeLoss_tonne_per_mile_per_tonne,CO2PipeCap_tonne_per_mile,Min_pipecap_stor_frac,CO2_len_bw_comp_mile,BoosterCompCapex_per_tonne_p_hr_yr,BoosterCompEnergy_MWh_per_tonne,CO2Pipe_Inv_Cost_per_mile_yr,CO2Pipe_Fixed_OM_Cost_per_mile_yr,CO2Pipe_Energy_MWh_per_mile_per_tonne
+1,1,-1,0,1000,0,1141.552511,196.5385,0,0,0,3.3,0,0,162687.5887,21200,0
+2,0,1,-1,1000,0,1141.552511,196.5385,0,0,0,3.3,0,0,162687.5887,21200,0
