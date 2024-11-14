@@ -1,6 +1,6 @@
 struct GasStorage{T} <: AbstractAsset
     id::AssetId
-    gas_storage::Storage{T}
+    gas_storage::AbstractStorage{T}
     compressor_transform::Transformation
     discharge_edge::Edge{T}
     charge_edge::Edge{T}
@@ -8,7 +8,7 @@ struct GasStorage{T} <: AbstractAsset
     compressor_gas_edge::Edge{T}
 end
 
-GasStorage(id::AssetId,gas_storage::Storage{T},compressor_transform::Transformation,discharge_edge::Edge{T},charge_edge::Edge{T},compressor_elec_edge::Edge{Electricity},
+GasStorage(id::AssetId,gas_storage::AbstractStorage{T},compressor_transform::Transformation,discharge_edge::Edge{T},charge_edge::Edge{T},compressor_elec_edge::Edge{Electricity},
 compressor_gas_edge::Edge{T}) where T<:Commodity =
     GasStorage{T}(id,gas_storage,compressor_transform,discharge_edge,charge_edge,compressor_elec_edge,
     compressor_gas_edge)
@@ -19,13 +19,23 @@ function make(::Type{GasStorage}, data::AbstractDict{Symbol,Any}, system::System
     gas_storage_key = :storage
     storage_data = process_data(data[gas_storage_key])
     T = commodity_types()[Symbol(storage_data[:commodity])];
+    long_duration = get(storage_data, :long_duration, false)
+    if long_duration==true
+        gas_storage = LongDurationStorage(
+            Symbol(id, "_", gas_storage_key),
+            storage_data,
+            system.time_data[Symbol(T)],
+            T,
+        )
+    else
+        gas_storage = Storage(
+            Symbol(id, "_", gas_storage_key),
+            storage_data,
+            system.time_data[Symbol(T)],
+            T,
+        )
+    end
 
-    gas_storage = Storage(
-        Symbol(id, "_", gas_storage_key),
-        storage_data,
-        system.time_data[Symbol(T)],
-        T,
-    )
     gas_storage.constraints = get(
         storage_data,
         :constraints,

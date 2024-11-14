@@ -4,7 +4,7 @@ Base.@kwdef mutable struct MinStorageLevelConstraint <: OperationConstraint
     constraint_ref::Union{Missing,JuMPConstraint} = missing
 end
 
-function add_model_constraint!(ct::MinStorageLevelConstraint, g::Storage, model::Model)
+function add_model_constraint!(ct::MinStorageLevelConstraint, g::AbstractStorage, model::Model)
 
     ct.constraint_ref = @constraint(
         model,

@@ -4,7 +4,7 @@ Base.@kwdef mutable struct MaxStorageLevelConstraint <: OperationConstraint
     constraint_ref::Union{Missing,JuMPConstraint} = missing
 end
 
-function add_model_constraint!(ct::MaxStorageLevelConstraint, g::Storage, model::Model)
+function add_model_constraint!(ct::MaxStorageLevelConstraint, g::AbstractStorage, model::Model)
 
     ct.constraint_ref = @constraint(
         model,

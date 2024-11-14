@@ -9,7 +9,12 @@ function load_time_data(
     end
     # read in the list of commodities from the data directory
     isfile(path) || error("Time data not found at $(abspath(path))")
-    return load_time_data(JSON3.read(path), commodities)
+    data = JSON3.read(path)
+    time_data = load_time_data(data, commodities);
+    if haskey(data,:period_maps_path)
+        ### to be completed
+    end
+    return time_data;
 end
 
 function load_time_data(
@@ -83,6 +88,9 @@ function create_time_data(
             ),
             subperiod_indices = eachindex(subperiods),
             hours_per_timestep = time_data[:HoursPerTimeStep][sym],
+            period_map = Dict(
+                eachindex(subperiods) .=> eachindex(subperiods)
+            )
         )
     end
     return all_timedata

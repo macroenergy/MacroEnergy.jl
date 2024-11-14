@@ -44,6 +44,7 @@
                     "commodity": "Electricity",
                     "can_expand": false,
                     "can_retire": false,
+                    "long_duration":true,
                     "constraints": {
                         "SameChargeDischargeCapacityConstraint": true,
                         "BalanceConstraint": true

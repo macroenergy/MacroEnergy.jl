@@ -13,7 +13,7 @@ function add_model_constraint!(ct::MaxCapacityConstraint, e::Edge, model::Model)
 
 end
 
-function add_model_constraint!(ct::MaxCapacityConstraint, g::Storage, model::Model)
+function add_model_constraint!(ct::MaxCapacityConstraint, g::AbstractStorage, model::Model)
 
     ct.constraint_ref = @constraint(model, capacity_storage(g) <= max_capacity_storage(g))
 

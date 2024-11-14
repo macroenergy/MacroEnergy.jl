@@ -7,7 +7,7 @@ end
 
 function add_model_constraint!(
     ct::StorageSymmetricCapacityConstraint,
-    g::Storage,
+    g::AbstractStorage,
     model::Model,
 )
     e_discharge = g.discharge_edge

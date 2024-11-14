@@ -5,7 +5,7 @@ Base.@kwdef mutable struct StorageCapacityConstraint <: OperationConstraint
     constraint_ref::Union{Missing,JuMPConstraint} = missing
 end
 
-function add_model_constraint!(ct::StorageCapacityConstraint, g::Storage, model::Model)
+function add_model_constraint!(ct::StorageCapacityConstraint, g::AbstractStorage, model::Model)
 
     ct.constraint_ref = @constraint(
         model,

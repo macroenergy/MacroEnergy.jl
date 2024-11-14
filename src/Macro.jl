@@ -35,7 +35,7 @@ abstract type AbstractEdge{T<:Commodity} <: MacroObject end
 
 ## Assets types
 abstract type AbstractAsset <: MacroObject end
-
+abstract type AbstractStorage{T<:Commodity} <: AbstractVertex end
 ## Constraints types
 abstract type AbstractTypeConstraint end
 abstract type OperationConstraint <: AbstractTypeConstraint end
@@ -138,6 +138,7 @@ export AbstractAsset,
     Hydrogen,
     HydrogenLine,
     HydroMinFlowConstraint,
+    LongDurationStorage,
     MaxCapacityConstraint,
     MaxNonServedDemandConstraint,
     MaxNonServedDemandPerSegmentConstraint,
