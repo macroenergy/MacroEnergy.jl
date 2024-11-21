@@ -51,7 +51,8 @@
                     "constraints": {
                         "StorageCapacityConstraint": true,
                         "BalanceConstraint": true,
-                        "MinStorageLevelConstraint": true
+                        "MinStorageLevelConstraint": true,
+                        "LongDurationStorageImplicitMinMaxConstraint": true
                     }
                 }
             },

@@ -27,6 +27,11 @@ function make(::Type{GasStorage}, data::AbstractDict{Symbol,Any}, system::System
             system.time_data[Symbol(T)],
             T,
         )
+        gas_storage.constraints = get(
+        storage_data,
+        :constraints,
+        [BalanceConstraint(), StorageCapacityConstraint(),LongDurationStorageImplicitMinMaxConstraint()],
+    )
     else
         gas_storage = Storage(
             Symbol(id, "_", gas_storage_key),
@@ -34,13 +39,13 @@ function make(::Type{GasStorage}, data::AbstractDict{Symbol,Any}, system::System
             system.time_data[Symbol(T)],
             T,
         )
-    end
-
-    gas_storage.constraints = get(
+        gas_storage.constraints = get(
         storage_data,
         :constraints,
         [BalanceConstraint(), StorageCapacityConstraint()],
     )
+    end
+    
 
     compressor_key = :transforms
     transform_data = process_data(data[compressor_key])

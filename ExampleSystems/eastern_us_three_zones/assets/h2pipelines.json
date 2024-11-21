@@ -52,7 +52,8 @@
                         "StorageCapacityConstraint": true,
                         "BalanceConstraint": true,
                         "StorageMaxDurationConstraint": true,
-                        "SameChargeDischargeCapacityConstraint": true
+                        "SameChargeDischargeCapacityConstraint": true,
+                        "LongDurationStorageImplicitMinMaxConstraint": true
                     }
                 }
             },
