@@ -60,8 +60,8 @@
                             "CO2CapConstraint": 0
                         },
                     "price_unmet_policy":{
-                        "CO2CapConstraint": 250.0
-                    }
+                        "CO2CapConstraint": 200
+                    }    
                 }
             ]
         }
