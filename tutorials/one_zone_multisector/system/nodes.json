@@ -38,6 +38,26 @@
             ]
         },
         {
+            "type": "Hydrogen",
+            "global_data": {
+                "time_interval": "Hydrogen",
+                "constraints": {
+                    "BalanceConstraint": true
+                }
+            },
+            "instance_data": [
+                {
+                    "id": "h2_SE",
+                    "demand": {
+                        "timeseries": {
+                            "path": "system/hydrogen_demand.csv",
+                            "header": "Demand_H2_z1"
+                        }
+                    }
+                }
+            ]
+        },
+        {
             "type": "CO2",
             "global_data": {
                 "time_interval": "CO2"
