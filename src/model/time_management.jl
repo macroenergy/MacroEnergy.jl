@@ -29,8 +29,7 @@ period_map(y::Union{AbstractVertex,AbstractEdge}, n::Int64) = period_map(y)[n];
 @doc raw"""
     timestepbefore(t::Int, h::Int,subperiods::Vector{StepRange{Int64,Int64})
 
-Determines the time step that is h steps before index t in
-subperiod p with circular indexing.
+Determines the time step that is `h` steps before index `t` in subperiod `p` with circular indexing.
 
 """
 function timestepbefore(t::Int, h::Int, subperiods::Vector{StepRange{Int64,Int64}})::Int
