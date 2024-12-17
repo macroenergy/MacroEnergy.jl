@@ -17,14 +17,14 @@ configuration
 │   ├── commodities.json 
 │   ├── time_data.json
 │   ├── nodes.json
+│   ├── fuel_prices.csv
 │   └── demand.csv
 │ 
 ├── 📁 assets
 │   ├── MyAsset1.json
 │   ├── MyAsset2.json
 | [...other asset types...]
-│   ├── availability.csv
-│   └── fuel_prices.csv
+│   └── availability.csv
 │ 
 └── system_data.json
 ```
