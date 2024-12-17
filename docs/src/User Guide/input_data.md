@@ -28,6 +28,10 @@ Before be dive into the input data, let's define the units of the input data:
 | **Time** | hours |
 | **Price** | USD |
 
+Commodities that require only an energy representation (e.g., Hydrogen) have units of MWh.
+Commodities that require a physical representation (e.g., Biomass, where regional supply curve is important) have units of metric tonnes.
+The recommended convention is MWh on a higher heating value basis for transformations where hydrogen is involved, and tonnes on a dry basis for transformations where biomass is involved.
+
 ## Settings folder
 The `settings` folder currently contains only one file, `macro_settings.yml`, which contains the settings for the run.
 
