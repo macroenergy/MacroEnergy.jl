@@ -17,9 +17,7 @@ The current library includes the following assets:
 
 - **Battery**
 
-```@raw html
-<img src="assets/battery.png" alt="drawing" width="150"/>
-```
+![Battery](../images/battery.png)
 
 - **Electrolyzer**
 - **Fuel Cell**
@@ -28,11 +26,8 @@ The current library includes the following assets:
 - **Thermal Hydrogen Plant**
 - **Thermal Power Plant**
 
-```@raw html
-<img src="assets/natgas.png" alt="drawing" width="220"/>
-```
+![Natural Gas Power Plant](../images/natgas.png)
 
 - **Variable Renewable Energy resources (VRE)**
-```@raw html
-<img src="assets/solar_pv.png" alt="drawing" width="180"/>
-```
+
+![Solar PV](../images/solar_pv.png)
