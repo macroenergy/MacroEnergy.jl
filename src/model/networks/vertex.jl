@@ -1,3 +1,17 @@
+"""
+    @AbstractVertexBaseAttributes()
+
+    A macro that defines the base attributes for all vertex types in the network model.
+
+    # Generated Fields
+    - id::Symbol: Unique identifier for the vertex
+    - timedata::TimeData: Time-related data for the vertex
+    - balance_data::Dict{Symbol,Dict{Symbol,Float64}}: Dictionary mapping balance equation IDs to coefficients
+    - constraints::Vector{AbstractTypeConstraint}: List of constraints applied to the vertex
+    - operation_expr::Dict: Dictionary storing operational JuMP expressions for the vertex
+
+    This macro is used to ensure consistent base attributes across all vertex types in the network.
+"""
 macro AbstractVertexBaseAttributes()
     esc(
         quote
