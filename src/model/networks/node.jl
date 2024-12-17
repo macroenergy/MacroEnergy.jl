@@ -1,3 +1,31 @@
+"""
+    Node{T} <: AbstractVertex
+
+    A mutable struct representing a node in a network, parameterized by commodity type T.
+
+    # Inherited Attributes
+    - id::Symbol: Unique identifier for the node
+    - timedata::TimeData: Time-related data for the node
+    - balance_data::Dict{Symbol,Dict{Symbol,Float64}}: Balance equations data
+    - constraints::Vector{AbstractTypeConstraint}: List of constraints applied to the node
+    - operation_expr::Dict: Operational JuMP expressions for the node
+
+    # Fields
+    - demand::Union{Vector{Float64},Dict{Int64,Float64}}: Time series of demand values
+    - max_nsd::Vector{Float64}: Maximum allowed non-served demand for each segment
+    - max_supply::Vector{Float64}: Maximum supply for each segment
+    - non_served_demand::Union{JuMPVariable,Matrix{Float64}}: JuMP variables or matrix representing unmet demand
+    - policy_budgeting_vars::Dict: Policy budgeting variables for constraints
+    - policy_slack_vars::Dict: Policy slack variables for constraints
+    - price::Union{Vector{Float64},Dict{Int64,Float64}}: Time series of prices
+    - price_nsd::Vector{Float64}: Penalties for non-served demand by segment
+    - price_supply::Vector{Float64}: Supply costs by segment
+    - price_unmet_policy::Dict{DataType,Float64}: Mapping of policy types to penalty costs
+    - rhs_policy::Dict{DataType,Float64}: Mapping of policy types to right-hand side values
+    - supply_flow::Union{JuMPVariable,Matrix{Float64}}: JuMP variables or matrix representing supply flows
+
+    Note: Base attributes are inherited from AbstractVertex via @AbstractVertexBaseAttributes macro.
+"""
 Base.@kwdef mutable struct Node{T} <: AbstractVertex
     @AbstractVertexBaseAttributes()
     demand::Vector{Float64} = Vector{Float64}()
