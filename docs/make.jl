@@ -9,25 +9,42 @@ makedocs(;
     modules = [MacroEnergy],
     authors = "",
     sitename = "Macro",
-    format = Documenter.HTML(; prettyurls = get(ENV, "CI", "false") == "true"),
+    format = Documenter.HTML(
+        canonical = "https://macroenergy.github.io/Macro/stable/",
+        collapselevel = 1,
+    ),
     pages = [
-        "Home" => "index.md",
-        "Installation" => "installation.md",
-        "Macro Components" => [
-            "Sectors" => "sectors.md",
-            "Assets" => "assets.md",
-            "Constraints" => "constraints.md"
+        "Welcome to Macro" => [
+            "Introduction" => "index.md"
         ],
-        "Output" => "output.md",
-        "Modeling with Macro" => [
-            "How to build a sector" => "build_sectors.md",
-            "How to create an example case" => "create_example_case.md",
+        "Getting Started" => [
+            "Installation" => "Getting Started/installation.md",
         ],
-        "Developer docs" => [
-            "Type hierarchy" => "type_hierarchy.md",
-            "Data model" => "data_model.md",
+        "Tutorials" => [
+            "Getting Started" => "Tutorials/tutorial_0_getting_started.md",
+            "Input Files" => "Tutorials/tutorial_1_input_files.md",
+            "Running Macro" => "Tutorials/tutorial_2_running_macro.md",
+            "Multisector Modelling" => "Tutorials/tutorial_3_multisector_modelling.md",
         ],
-        "References" => "references.md",
+        "User Guide" => [
+            "Sectors" => "User Guide/sectors.md",
+            "Assets" => "User Guide/assets.md",
+            "Constraints" => "User Guide/constraints.md",
+            "Input Data" => "User Guide/input_data.md",
+            "Output" => "User Guide/output.md",
+        ],
+        "Modeler Guide" => [
+            "How to build a sector" => "Modeler Guide/build_sectors.md",
+            "How to create an example case" => "Modeler Guide/create_example_case.md",
+        ],
+        "Developer Guide" => [
+            "Type hierarchy" => "Developer Guide/type_hierarchy.md"
+        ],
+        "References" => [
+            "Macro Objects" => "References/macro_objects.md",
+            "Asset Library" => "References/assets.md",
+            "Utilities" => "References/utilities.md",
+        ],
     ],
 )
 

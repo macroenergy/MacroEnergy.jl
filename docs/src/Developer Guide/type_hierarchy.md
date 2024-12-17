@@ -1,4 +1,6 @@
-# Macro type hierarchy
+# Developer Guide
+
+## Macro type hierarchy
 
 ```@meta
 CurrentModule = MacroEnergy

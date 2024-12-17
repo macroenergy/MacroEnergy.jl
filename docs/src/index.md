@@ -4,9 +4,10 @@ CurrentModule = MacroEnergy
 
 # Macro
 
-Welcome to the [Macro](https://github.com/macroenergy/MacroEnergy.jl.git) documentation!
+### Welcome to the [Macro](https://github.com/macroenergy/MacroEnergy.jl.git) documentation!
 
 ## What is Macro?
+
 MAcro-Energy System Capacity Expansion & Resource Optimization Model (MACRO) is a bottom-up, electricity-centric, macro-energy systems optimization model. It is designed to capture capacity investments, operations, and energy flows across and between multiple energy sectors and can be used to explore the impacts of different energy policies, technology costs, and other exogenous factors on the energy system. 
 
 The main features of MACRO include:
@@ -16,19 +17,36 @@ The main features of MACRO include:
 - Technologically rich, **granular temporal resolution** for detailed analysis.
 - **Open-source** built using Julia and JuMP.
 
-## Software Manual
+## Macro development strategy
+
+Macro has been designed and developed with three layers of abstractions in mind, each serving a different kind of user:
+
+![Macro architecture](./images/macro_abstr_layers.png)
+
+The sections:
+- [User Guide](@ref)
+- [Modeler Guide](@ref)
+- [Developer Guide](@ref)
+
+are designed to serve the different needs of the different users.
+
+## Index
 
 ```@contents
 Pages = [
-    "installation.md",
-    "sectors.md",
-    "assets.md",
-    "constraints.md",
-    "build_sectors.md",
-    "create_example_case.md",
-    "type_hierarchy.md",
-    "data_model.md",
-    "references.md"
+    "Getting Started/installation.md",
+    "Tutorials/tutorial_0_getting_started.md",
+    "Tutorials/tutorial_1_input_file.md",
+    "Tutorials/tutorial_2_running_macro.md",
+    "Tutorials/tutorial_3_multisector_modelling.md",
+    "User Guide/sectors.md",
+    "User Guide/assets.md",
+    "User Guide/constraints.md",
+    "User Guide/input_data.md",
+    "Modeler Guide/build_sectors.md",
+    "Modeler Guide/create_example_case.md",
+    "Developer Guide/type_hierarchy.md",
+    "References/references.md"
 ]
 Depth = 2
 ```
