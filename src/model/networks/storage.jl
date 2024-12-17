@@ -29,6 +29,48 @@ macro AbstractStorageBaseAttributes()
     end)
 end
 
+"""
+    Storage{T} <: AbstractVertex
+
+    A mutable struct representing a storage vertex in a network model, parameterized by commodity type T.
+
+    # Inherited Attributes
+    - id::Symbol: Unique identifier for the storage
+    - timedata::TimeData: Time-related data for the storage
+    - balance_data::Dict{Symbol,Dict{Symbol,Float64}}: Dictionary mapping balance equation IDs to coefficients
+    - constraints::Vector{AbstractTypeConstraint}: List of constraints applied to the storage
+    - operation_expr::Dict: Dictionary storing operational JuMP expressions for the storage
+
+    # Fields
+    - can_expand::Bool: Whether storage capacity can be expanded
+    - can_retire::Bool: Whether storage capacity can be retired
+    - capacity::AffExpr: Total available storage capacity
+    - capacity_size::Float64: Size of each storage unit
+    - charge_edge::Union{Nothing,AbstractEdge}: `Edge` representing charging flow
+    - charge_discharge_ratio::Float64: Ratio between charging and discharging rates
+    - discharge_edge::Union{Nothing,AbstractEdge}: `Edge` representing discharging flow
+    - existing_capacity::Float64: Initial installed storage capacity
+    - fixed_om_cost::Float64: Fixed operation and maintenance costs
+    - investment_cost::Float64: Cost per unit of new storage capacity
+    - loss_fraction::Float64: Fraction of stored commodity lost at each timestep
+    - max_capacity::Float64: Maximum allowed storage capacity
+    - max_duration::Float64: Maximum storage duration in hours
+    - max_storage_level::Float64: Maximum storage level as fraction of capacity
+    - min_capacity::Float64: Minimum required storage capacity
+    - min_duration::Float64: Minimum storage duration in hours
+    - min_outflow_fraction::Float64: Minimum discharge rate as fraction of capacity
+    - min_storage_level::Float64: Minimum storage level as fraction of capacity
+    - new_capacity::AffExpr: New storage capacity to be built
+    - new_units::Union{Missing, JuMPVariable}: New storage units to be built
+    - retired_capacity::AffExpr: Storage capacity to be retired
+    - retired_units::Union{Missing, JuMPVariable}: Storage units to be retired
+    - spillage_edge::Union{Nothing,AbstractEdge}: Edge representing spillage/losses (e.g. hydro reservoirs)
+    - storage_level::Vector{VariableRef}: Storage level at each timestep
+
+    Storage vertices represent facilities that can store commodities over time, such as batteries, 
+    pumped hydro, or gas storage. They can charge (store) and discharge (release) commodities, 
+    subject to capacity and operational constraints.
+"""
 Base.@kwdef mutable struct Storage{T} <: AbstractStorage{T}
     @AbstractVertexBaseAttributes()
     @AbstractStorageBaseAttributes()

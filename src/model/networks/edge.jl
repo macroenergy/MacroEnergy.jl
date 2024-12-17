@@ -37,6 +37,45 @@ macro AbstractEdgeBaseAttributes()
         startup_fuel_balance_id::Symbol = $edge_defaults[:startup_fuel_balance_id]
     end)
 end
+
+"""
+    Edge{T} <: AbstractEdge{T}
+
+    A mutable struct representing an edge in a network model, parameterized by commodity type T.
+
+    # Fields
+    - id::Symbol: Unique identifier for the edge
+    - timedata::TimeData: Time-related data for the edge
+    - start_vertex::AbstractVertex: Starting vertex of the edge
+    - end_vertex::AbstractVertex: Ending vertex of the edge
+    - availability::Vector{Float64}: Time series of availability factors
+    - can_expand::Bool: Whether edge capacity can be expanded
+    - can_retire::Bool: Whether edge capacity can be retired
+    - capacity::Union{AffExpr,Float64}: Total available capacity
+    - capacity_size::Float64: Size factor for resource cluster
+    - constraints::Vector{AbstractTypeConstraint}: List of constraints applied to the edge
+    - distance::Float64: Physical distance of the edge
+    - existing_capacity::Float64: Initial installed capacity
+    - fixed_om_cost::Float64: Fixed operation and maintenance costs
+    - flow::Union{JuMPVariable,Vector{Float64}}: Flow of commodity `T` through the edge at each timestep
+    - has_capacity::Bool: Whether the edge has capacity variables
+    - integer_decisions::Bool: Whether capacity decisions must be integer
+    - investment_cost::Float64: Cost per unit of new capacity
+    - loss_fraction::Float64: Fraction of flow lost during transmission
+    - max_capacity::Float64: Maximum allowed capacity
+    - min_capacity::Float64: Minimum required capacity
+    - min_flow_fraction::Float64: Minimum flow as fraction of capacity
+    - new_capacity::Union{JuMPVariable,Float64}: JuMP variable representing new capacity built
+    - ramp_down_fraction::Float64: Maximum ramp-down rate as fraction of capacity
+    - ramp_up_fraction::Float64: Maximum ramp-up rate as fraction of capacity
+    - ret_capacity::Union{JuMPVariable,Float64}: JuMP variable representing capacity to be retired
+    - unidirectional::Bool: Whether flow is restricted to one direction
+    - variable_om_cost::Float64: Variable operation and maintenance costs per unit flow
+
+    Edges represent connections between vertices that allow commodities to flow between them. 
+    They can model physical infrastructure like pipelines, transmission lines, or logical 
+    connections with associated costs, capacities, and operational constraints.
+"""
 Base.@kwdef mutable struct Edge{T} <: AbstractEdge{T}
     @AbstractEdgeBaseAttributes()
 end
@@ -161,7 +200,7 @@ function add_linking_variables!(e::AbstractEdge, model::Model)
 
 end
 
-function define_available_capacity!(e::AbstractEdge,model::Model)
+function define_available_capacity!(e::AbstractEdge, model::Model)
 
     if has_capacity(e)
         e.capacity = @expression(
@@ -236,7 +275,7 @@ function operation_model!(e::Edge, model::Model)
                 flow(e, t),
             )
         end
-        if isa(start_vertex(e),Node)
+        if isa(start_vertex(e), Node)
             if !isempty(price(start_vertex(e)))
                 add_to_expression!(
                     model[:eVariableCost],
@@ -251,6 +290,53 @@ function operation_model!(e::Edge, model::Model)
     return nothing
 end
 
+"""
+    EdgeWithUC{T} <: AbstractEdge{T}
+
+    A mutable struct representing an edge with unit commitment constraints in a network model, parameterized by commodity type T.
+
+    # Inherited Attributes from Edge
+    - id::Symbol: Unique identifier for the edge
+    - timedata::TimeData: Time-related data for the edge
+    - start_vertex::AbstractVertex: Starting vertex of the edge
+    - end_vertex::AbstractVertex: Ending vertex of the edge
+    - availability::Vector{Float64}: Time series of availability factors
+    - can_expand::Bool: Whether edge capacity can be expanded
+    - can_retire::Bool: Whether edge capacity can be retired
+    - capacity::Union{AffExpr,Float64}: Total available capacity
+    - capacity_size::Float64: Size factor for resource cluster
+    - constraints::Vector{AbstractTypeConstraint}: List of constraints applied to the edge
+    - distance::Float64: Physical distance of the edge
+    - existing_capacity::Float64: Initial installed capacity
+    - fixed_om_cost::Float64: Fixed operation and maintenance costs
+    - flow::Union{JuMPVariable,Vector{Float64}}: Flow of commodity through the edge at each timestep
+    - has_capacity::Bool: Whether the edge has capacity variables
+    - integer_decisions::Bool: Whether capacity decisions must be integer
+    - investment_cost::Float64: Cost per unit of new capacity
+    - loss_fraction::Float64: Fraction of flow lost during transmission
+    - max_capacity::Float64: Maximum allowed capacity
+    - min_capacity::Float64: Minimum required capacity
+    - min_flow_fraction::Float64: Minimum flow as fraction of capacity
+    - new_capacity::Union{JuMPVariable,Float64}: JuMP variable representing new capacity built
+    - ramp_down_fraction::Float64: Maximum ramp-down rate as fraction of capacity
+    - ramp_up_fraction::Float64: Maximum ramp-up rate as fraction of capacity
+    - ret_capacity::Union{JuMPVariable,Float64}: JuMP variable representing capacity to be retired
+    - unidirectional::Bool: Whether flow is restricted to one direction
+    - variable_om_cost::Float64: Variable operation and maintenance costs per unit flow
+
+    # Fields specific to EdgeWithUC
+    - min_down_time::Int64: Minimum time units that must elapse between shutting down and starting up
+    - min_up_time::Int64: Minimum time units that must elapse between starting up and shutting down
+    - startup_cost::Float64: Cost incurred when starting up the unit
+    - startup_fuel::Float64: Amount of fuel consumed during startup
+    - startup_fuel_balance_id::Symbol: Identifier for the balance constraint tracking startup fuel
+    - ucommit::Union{JuMPVariable,Vector{Float64}}: Binary commitment state variables
+    - ushut::Union{JuMPVariable,Vector{Float64}}: Binary shutdown decision variables
+    - ustart::Union{JuMPVariable,Vector{Float64}}: Binary startup decision variables
+
+    EdgeWithUC extends Edge to model units that have operational constraints related to their on/off status. It includes variables and parameters
+    for tracking unit commitment decisions and associated costs/constraints.
+"""
 Base.@kwdef mutable struct EdgeWithUC{T} <: AbstractEdge{T}
     @AbstractEdgeBaseAttributes()
     ucommit::JuMPVariable = Vector{VariableRef}()
@@ -367,7 +453,7 @@ function operation_model!(e::EdgeWithUC, model::Model)
             )
         end
 
-        if isa(start_vertex(e),Node)
+        if isa(start_vertex(e), Node)
             if !isempty(price(start_vertex(e)))
                 add_to_expression!(
                     model[:eVariableCost],
@@ -421,12 +507,12 @@ function edges(assets::Vector{AbstractAsset})
     return edges
 end
 
-function balance_data(e::AbstractEdge, v::AbstractVertex, i::Symbol)   
+function balance_data(e::AbstractEdge, v::AbstractVertex, i::Symbol)
 
-    if isempty(balance_data(v,i))
+    if isempty(balance_data(v, i))
         return 1.0
-    elseif id(e) ∈ keys(balance_data(v,i))
-        return balance_data(v,i)[id(e)]
+    elseif id(e) ∈ keys(balance_data(v, i))
+        return balance_data(v, i)[id(e)]
     else
         return 0.0
     end
@@ -459,19 +545,19 @@ end
 
 function update_balance_start!(e::AbstractEdge, model::Model)
 
-    v = start_vertex(e);
+    v = start_vertex(e)
 
     if loss_fraction(e) == 0 || e.unidirectional == true
 
-        effective_flow = @expression(model,[t in time_interval(e)], flow(e,t))
-        
+        effective_flow = @expression(model, [t in time_interval(e)], flow(e, t))
+
     else
         flow_pos = @variable(model, [t in time_interval(e)], lower_bound = 0.0, base_name = "vFLOWPOS_$(id(e))")
         flow_neg = @variable(model, [t in time_interval(e)], lower_bound = 0.0, base_name = "vFLOWNEG_$(id(e))")
 
         @constraint(model, [t in time_interval(e)], flow_pos[t] - flow_neg[t] == flow(e, t))
 
-        if isa(e,EdgeWithUC)
+        if isa(e, EdgeWithUC)
             @constraint(model, [t in time_interval(e)], flow_pos[t] + flow_neg[t] <= availability(e, t) * capacity_size(e) * ucommit(e, t))
         else
             @constraint(model, [t in time_interval(e)], flow_pos[t] + flow_neg[t] <= availability(e, t) * capacity(e))
@@ -488,19 +574,19 @@ function update_balance_start!(e::AbstractEdge, model::Model)
 end
 
 function update_balance_end!(e::AbstractEdge, model::Model)
-    
-    v = end_vertex(e);
+
+    v = end_vertex(e)
 
     if loss_fraction(e) == 0 || e.unidirectional == true
-        effective_flow = @expression(model, [t in time_interval(e)], flow(e,t))
+        effective_flow = @expression(model, [t in time_interval(e)], flow(e, t))
     else
-    
+
         flow_pos = @variable(model, [t in time_interval(e)], lower_bound = 0.0, base_name = "vFLOWPOS_$(id(e))")
         flow_neg = @variable(model, [t in time_interval(e)], lower_bound = 0.0, base_name = "vFLOWNEG_$(id(e))")
 
         @constraint(model, [t in time_interval(e)], flow_pos[t] - flow_neg[t] == flow(e, t))
 
-        if isa(e,EdgeWithUC)
+        if isa(e, EdgeWithUC)
             @constraint(model, [t in time_interval(e)], flow_pos[t] + flow_neg[t] <= availability(e, t) * capacity_size(e) * ucommit(e, t))
         else
             @constraint(model, [t in time_interval(e)], flow_pos[t] + flow_neg[t] <= availability(e, t) * capacity(e))
