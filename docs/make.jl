@@ -10,7 +10,9 @@ makedocs(;
     authors = "",
     sitename = "Macro",
     format = Documenter.HTML(
+        prettyurls = get(ENV, "CI", "false") == "true",
         canonical = "https://macroenergy.github.io/Macro/stable/",
+        # sidebar_sitename = false,
         collapselevel = 1,
     ),
     pages = [
