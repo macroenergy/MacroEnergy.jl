@@ -34,6 +34,7 @@ are designed to serve the different needs of the different users.
 
 ```@contents
 Pages = [
+    "Getting Started/overview.md",
     "Getting Started/installation.md",
     "Tutorials/tutorial_0_getting_started.md",
     "Tutorials/tutorial_1_input_file.md",

@@ -18,6 +18,7 @@ makedocs(;
             "Introduction" => "index.md"
         ],
         "Getting Started" => [
+            "Overview" => "Getting Started/overview.md",
             "Installation" => "Getting Started/installation.md",
         ],
         "Tutorials" => [
