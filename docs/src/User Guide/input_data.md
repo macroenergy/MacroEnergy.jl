@@ -432,103 +432,110 @@ The definition of the transformation object can be found here `Macro.Transformat
 
 The following are the equations that define the conversion processes currently supported by Macro:
 
-!!! note "Flow equations"
-    In the following equations, $\phi$ is the flow of the commodity and $\epsilon$ is the stoichiometric coefficient defined in the table below.
+#### Flow equations
+In the following equations, $\phi$ is the flow of the commodity and $\epsilon$ is the stoichiometric coefficient defined in the table below.
 
-#### ThermalPower
-**Note**: Fuel is the type of the fuel being converted.
-```math
-\begin{aligned}
-\phi_{elec} &= \phi_{fuel} \cdot \epsilon_{efficiency} \\
-\phi_{co2} &= \phi_{fuel} \cdot \epsilon_{emission\_rate} \\
-\phi_{co2\_captured} &= \phi_{fuel} \cdot \epsilon_{capture\_rate} \quad \text{(if CCS)} \\
-\end{aligned}
-```
+!!! note "ThermalPower"
+    **Note**: Fuel is the type of the fuel being converted.
+    ```math
+    \begin{aligned}
+    \phi_{elec} &= \phi_{fuel} \cdot \epsilon_{efficiency} \\
+    \phi_{co2} &= \phi_{fuel} \cdot \epsilon_{emission\_rate} \\
+    \phi_{co2\_captured} &= \phi_{fuel} \cdot \epsilon_{co2\_capture\_rate} \quad \text{(if CCS)} \\
+    \end{aligned}
+    ```
 
-#### ThermalHydrogen
-**Note**: Fuel is the type of the fuel being converted.
-```math
-\begin{aligned}
-\phi_{h2} &= \phi_{fuel} \cdot \epsilon_{efficiency} \\
-\phi_{elec} &= \phi_{fuel} \cdot \epsilon_{elec\_consumption} \\
-\phi_{co2} &= \phi_{fuel} \cdot \epsilon_{emission\_rate} \\
-\phi_{co2\_captured} &= \phi_{fuel} \cdot \epsilon_{capture\_rate} \quad \text{(if CCS)} \\
-\end{aligned}
-```
+!!! note "ThermalHydrogen"
+    **Note**: Fuel is the type of the fuel being converted.
+    ```math
+    \begin{aligned}
+    \phi_{h2} &= \phi_{fuel} \cdot \epsilon_{efficiency} \\
+    \phi_{elec} &= \phi_{h2} \cdot \epsilon_{elec\_consumption} \\
+    \phi_{co2} &= \phi_{fuel} \cdot \epsilon_{emission\_rate} \\
+    \phi_{co2\_captured} &= \phi_{fuel} \cdot \epsilon_{co2\_capture\_rate} \quad \text{(if CCS)} \\
+    \end{aligned}
+    ```
 
-#### Electrolyzer
-```math
-\begin{aligned}
-\phi_{h2} &= \phi_{elec} \cdot \epsilon_{efficiency} \\
-\end{aligned}
-```
+!!! note "Electrolyzer"
+    ```math
+    \begin{aligned}
+    \phi_{h2} &= \phi_{elec} \cdot \epsilon_{efficiency} \\
+    \end{aligned}
+    ```
 
-#### FuelCell
-```math
-\begin{aligned}
-\phi_{elec} &= \phi_{h2} \cdot \epsilon_{efficiency} \\
-\end{aligned}
-```
+!!! note "HydroRes"
+    ```math
+    \begin{aligned}
+    \phi_{in} &= \phi_{out} + \phi_{spill} \\
+    \end{aligned}
+    ```
 
-#### GasStorage 
-**Note**: `c` is the type of the commodity being stored.
-```math
-\begin{aligned}
-\phi_{elec} &= \phi_{c} \cdot \epsilon_{elec\_consumption} \\
-\end{aligned}
-```
+!!! note "FuelCell"
+    ```math
+    \begin{aligned}
+    \phi_{elec} &= \phi_{h2} \cdot \epsilon_{efficiency} \\
+    \end{aligned}
+    ```
 
-#### NaturalGasDAC
-```math
-\begin{aligned}
-\phi_{elec} &= \phi_{co2} \cdot \epsilon_{elec\_prod} \\
-\phi_{ng} &= -\phi_{co2} \cdot \epsilon_{fuel\_consumption} \\
-\phi_{co2} &= \phi_{ng} \cdot \epsilon_{emission\_rate} \\
-\phi_{co2\_captured} &= \phi_{ng} \cdot \epsilon_{capture\_rate} + \phi_{co2} \\
-\end{aligned}
-```
+!!! note "GasStorage"
+    **Note**: `c` is the type of the commodity being stored.
+    The following equation is related to the compressor.
+    ```math
+    \begin{aligned}
+    \phi_{elec} &= \phi_{c} \cdot \epsilon_{elec\_consumption} \\
+    \end{aligned}
+    ```
 
-#### ElectricDAC
-```math
-\begin{aligned}
-\phi_{elec} &= \phi_{co2\_captured} \cdot \epsilon_{elec\_consumption} \\
-\phi_{co2} &= \phi_{co2\_captured} \\
-\end{aligned}
-```
+!!! note "NaturalGasDAC"
+    ```math
+    \begin{aligned}
+    \phi_{elec} &= \phi_{co2} \cdot \epsilon_{elec\_prod} \\
+    \phi_{ng} &= -\phi_{co2} \cdot \epsilon_{fuel\_consumption} \\
+    \phi_{co2} &= \phi_{ng} \cdot \epsilon_{emission\_rate} \\
+    \phi_{co2\_captured} + \phi_{co2} &= \phi_{ng} \cdot \epsilon_{co2\_capture\_rate} \\
+    \end{aligned}
+    ```
 
-#### BECCSElectricity
-```math
-\begin{aligned}
-\phi_{elec} &= \phi_{biomass} \cdot \epsilon_{elec_prod} \\
-\phi_{co2} &= -\phi_{biomass} \cdot \epsilon_{co2} \\
-\phi_{co2} &= \phi_{biomass} \cdot \epsilon_{co2\_emission} \\
-\phi_{co2\_captured} &= \phi_{biomass} \cdot \epsilon_{co2\_capture} \\
-\end{aligned}
-```
-where $\phi$ is the flow of the commodity and $\epsilon$ is the stoichiometric coefficient defined in the table below.
+!!! note "ElectricDAC"
+    ```math
+    \begin{aligned}
+    \phi_{elec} &= \phi_{co2\_captured} \cdot \epsilon_{elec\_consumption} \\
+    \phi_{co2} &= \phi_{co2\_captured} \\
+    \end{aligned}
+    ```
 
-#### BECCSHydrogen
-```math
-\begin{aligned}
-\phi_{h2} &= \phi_{biomass} \cdot \epsilon_{h2\_prod} \\
-\phi_{elec} &= -\phi_{biomass} \cdot \epsilon_{elec\_consumption} \\
-\phi_{co2} &= -\phi_{biomass} \cdot \epsilon_{co2} \\
-\phi_{co2} &= \phi_{biomass} \cdot \epsilon_{co2\_emission} \\
-\phi_{co2\_captured} &= \phi_{biomass} \cdot \epsilon_{co2\_capture} \\
-\end{aligned}
-```
+!!! note "BECCSElectricity"
+    ```math
+    \begin{aligned}
+    \phi_{elec} &= \phi_{biomass} \cdot \epsilon_{elec\_prod} \\
+    \phi_{co2} &= -\phi_{biomass} \cdot \epsilon_{co2} \\
+    \phi_{co2} &= \phi_{biomass} \cdot \epsilon_{emission\_rate} \\
+    \phi_{co2\_captured} &= \phi_{biomass} \cdot \epsilon_{co2\_capture\_rate} \\
+    \end{aligned}
+    ```
+
+!!! note "BECCSHydrogen"
+    ```math
+    \begin{aligned}
+    \phi_{h2} &= \phi_{biomass} \cdot \epsilon_{h2\_prod} \\
+    \phi_{elec} &= -\phi_{biomass} \cdot \epsilon_{elec\_consumption} \\
+    \phi_{co2} &= -\phi_{biomass} \cdot \epsilon_{co2} \\
+    \phi_{co2} &= \phi_{biomass} \cdot \epsilon_{emission\_rate} \\
+    \phi_{co2\_captured} &= \phi_{biomass} \cdot \epsilon_{co2\_capture\_rate} \\
+    \end{aligned}
+    ```
 
 ##### Stoichiometric coefficients:
-| **Attribute** | **Asset** | **Symbol** | **Type** | **Values** | **Default** | **Units** |
-|:--------------| :------: |:------: | :------: | :------: | :------: |:-------|
-| **capture_rate** | `BECCSElectricity`, `BECCSHydrogen`, `NaturalGasDAC`, `ThermalHydrogenCCS`, `ThermalPowerCCS` | $\epsilon_{capture\_rate}$ | `Float64` | `Float64` | 1.0 |  |
-| **co2_content** | `BECCSElectricity`, `BECCSHydrogen` | $\epsilon_{co2}$ | `Float64` | `Float64` | 0.0 | #TODO |
-| **electricity_consumption** | `BECCSHydrogen`, `ElectricDAC`, `GasStorage`, `ThermalHydrogen`, `ThermalHydrogenCCS` | $\epsilon_{elec\_consumption}$ | `Float64` | `Float64` | 0.0 | #TODO |
-| **electricity_production** | `BECCSElectricity`, `NaturalGasDAC` | $\epsilon_{elec\_prod}$ | `Float64` | `Float64` | 0.0 | #TODO |
-| **efficiency_rate** | `Electrolyzer`, `FuelCell`, `ThermalHydrogen`, `ThermalHydrogenCCS`, `ThermalPower`, `ThermalPowerCCS` | $\epsilon_{efficiency}$ | `Float64` | `Float64` | 1.0 | #TODO |
-| **emission_rate** | `BECCSElectricity`, `BECCSHydrogen`, `NaturalGasDAC`, `ThermalHydrogen`, `ThermalHydrogenCCS`, `ThermalPower`, `ThermalPowerCCS` | $\epsilon_{emission\_rate}$ | `Float64` | `Float64` | 1.0 | $t_{CO2}/MWh_{fuel}$ |
-| **fuel_consumption** | `NaturalGasDAC` | $\epsilon_{fuel\_consumption}$ | `Float64` | `Float64` | 0.0 | #TODO |
-| **hydrogen_production** | `BECCSHydrogen` | $\epsilon_{h2\_prod}$ | `Float64` | `Float64` | 0.0 | #TODO |
+| **Attribute** | **Asset** | **Symbol** | **Type** | **Values** | **Units** |
+|:--------------| :------: |:------: | :------: | :------: | :-------|
+| **capture_rate** | `BECCSElectricity`, `BECCSHydrogen`, `NaturalGasDAC`, `ThermalHydrogenCCS`, `ThermalPowerCCS` | $\epsilon_{co2\_capture\_rate}$ | `Float64` | `Float64` | $t_{CO2}/MWh_{fuel}$ |
+| **co2_content** | `BECCSElectricity`, `BECCSHydrogen` | $\epsilon_{co2}$ | `Float64` | `Float64` | $t_{CO2}/MWh_{fuel}$ |
+| **electricity_consumption** | `BECCSHydrogen`, `ElectricDAC`, `GasStorage`, `ThermalHydrogen`, `ThermalHydrogenCCS` | $\epsilon_{elec\_consumption}$ | `Float64` | `Float64` | $MWh_{elec}/MWh_{fuel}$ or $MWh_{elec}/t_{CO2}$ |
+| **electricity_production** | `BECCSElectricity`, `NaturalGasDAC` | $\epsilon_{elec\_prod}$ | `Float64` | `Float64` | $MWh_{elec}/MWh_{fuel}$ |
+| **efficiency_rate** | `Electrolyzer`, `FuelCell`, `ThermalHydrogen`, `ThermalHydrogenCCS`, `ThermalPower`, `ThermalPowerCCS` | $\epsilon_{efficiency}$ | `Float64` | `Float64` | $MWh_{elec,h2}/MWh_{fuel}$ or $MWh_{h2}/MWh_{elec}$ |
+| **emission_rate** | `BECCSElectricity`, `BECCSHydrogen`, `NaturalGasDAC`, `ThermalHydrogen`, `ThermalHydrogenCCS`, `ThermalPower`, `ThermalPowerCCS` | $\epsilon_{emission\_rate}$ | `Float64` | `Float64` | $t_{CO2}/MWh_{fuel}$ |
+| **fuel_consumption** | `NaturalGasDAC` | $\epsilon_{fuel\_consumption}$ | `Float64` | `Float64` | $MWh_{fuel}/t_{CO2}$ |
+| **hydrogen_production** | `BECCSHydrogen` | $\epsilon_{h2\_prod}$ | `Float64` | `Float64` | $MWh_{h2}/MWh_{fuel}$ |
 
 ### Edge
 The definition of the `Edge` object can be found here `Macro.Edge`(@ref).
