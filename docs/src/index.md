@@ -8,7 +8,7 @@ CurrentModule = MacroEnergy
 
 ## What is Macro?
 
-MAcro-Energy System Capacity Expansion & Resource Optimization Model (MACRO) is a bottom-up, electricity-centric, macro-energy systems optimization model. It is designed to capture capacity investments, operations, and energy flows across and between multiple energy sectors and can be used to explore the impacts of different energy policies, technology costs, and other exogenous factors on the energy system. 
+**MA**cro-Energy System **C**apacity Expansion & **R**esource **O**ptimization Model (MACRO) is a bottom-up, electricity-centric, macro-energy systems optimization model. It is designed to capture capacity investments, operations, and energy flows across and between multiple energy sectors and can be used to explore the impacts of different energy policies, technology costs, and other exogenous factors on the energy system. 
 
 The main features of MACRO include:
 - Tailored **Benders decomposition** framework for optimization.
@@ -23,12 +23,10 @@ Macro has been designed and developed with three layers of abstractions in mind,
 
 ![Macro architecture](./images/macro_abstr_layers.png)
 
-The sections:
+The following sections of the documentation are designed to serve the different needs of the different users:
 - [User Guide](@ref)
 - [Modeler Guide](@ref)
 - [Developer Guide](@ref)
-
-are designed to serve the different needs of the different users.
 
 ## Index
 

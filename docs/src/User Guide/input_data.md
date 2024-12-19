@@ -138,7 +138,7 @@ A more complex example is the following:
 
 ```json
 {
-    "PeriodLength": 504,  // one year
+    "PeriodLength": 504,  // 3 weeks
     "HoursPerTimeStep": {
         "Electricity": 1,
         "Hydrogen": 1,
@@ -148,7 +148,7 @@ A more complex example is the following:
         "Coal": 1
     },
     "HoursPerSubperiod": {
-        "Electricity": 168,
+        "Electricity": 168,  // 1 week
         "Hydrogen": 168,
         "NaturalGas": 168,
         "CO2": 168,
@@ -173,7 +173,7 @@ Each dictionary (network) has three main attributes:
 This structure for the network has the advantage of **grouping the common attributes** for all the nodes in a single dictionary, avoiding to repeat the same attribute for each node.
 
 #### Node attributes
-The `Node` object is defined in the file `nodes.jl` and can be found here `Macro.Node`(@ref).
+The `Node` object is defined in the file `nodes.jl` and can be found here [Macro.Node](@ref).
 
 | **Attribute** | **Type** | **Values** | **Default** | **Description** |
 |:--------------| :------: | :------: | :------: |:-------|
@@ -183,12 +183,12 @@ The `Node` object is defined in the file `nodes.jl` and can be found here `Macro
 | **constraints** | `Dict{String,Bool}` | Any Macro constraint type | Empty | List of constraints applied to the node. E.g. `{"BalanceConstraint": true, "MaxNonServedDemandConstraint": true}`.|
 | **demand** | `Dict` | Demand file path and header | Empty | Path to the demand file and column name for the demand time series to link to the node. E.g. `{"timeseries": {"path": "system/demand.csv", "header": "Demand_MW_z1"}}`.|
 | **price** | `Dict` | Price file path and header | Empty | Path to the price file and column name for the price time series to link to the node. E.g. `{"timeseries": {"path": "system/fuel_prices.csv", "header": "natgas_SE"}}`.|
-| **max_nsd** | `Vector{Float64}` | Vector of numbers \in [0,1] | [0.0] | Maximum allowed non-served demand for each demand segment as a fraction of the total demand. E.g. `[1.0]` for a single segment. |
+| **max_nsd** | `Vector{Float64}` | Vector of numbers $\in$ [0,1] | [0.0] | Maximum allowed non-served demand for each demand segment as a fraction of the total demand. E.g. `[1.0]` for a single segment. |
 | **price_nsd** | `Vector{Float64}` | Vector of numbers | [0.0] | Price/penalty for non-served demand by segment. E.g. `[5000.0]` for a single segment. |
 | **price_supply** | `Vector{Float64}` | Vector of numbers | [0.0] | Piecewise linear price for supply curves. E.g. `[0.0, 100.0, 200.0]`. |
 | **max_supply** | `Vector{Float64}` | Vector of numbers | [0.0] | Maximum allowed supply for each supply segment. E.g. `[1000.0]` for a single segment. |
-| **rhs_policy** | `Dict{DataType,Float64}` | Dict of Macro constraint types and numbers | Empty | Right hand side of the policy constraints. E.g. `{"CO2CapConstraint": 200}`, carbon price of 200 USD/ton. |
-| **price_unmet_policy** | `Dict{DataType,Float64}` | Dict of Macro policy types and numbers | Empty | Price/penalty for unmet policy constraints. |
+| **rhs\_policy** | `Dict{DataType,Float64}` | Dict of Macro constraint types and numbers | Empty | Right hand side of the policy constraints. E.g. `{"CO2CapConstraint": 200}`, carbon price of 200 USD/ton. |
+| **price\_unmet\_policy** | `Dict{DataType,Float64}` | Dict of Macro policy types and numbers | Empty | Price/penalty for unmet policy constraints. |
 
 Here is an example of a `nodes.json` file with both electricity, natural gas, CO2 and biomass sectors covering most of the attributes present above. The (multiplex)-network in the system is made of the following networks:
 - NaturalGas
@@ -420,7 +420,7 @@ Depending on the graph structure of the asset, both `global_data` and `instance_
 In the following sections, we will go through each Macro object (transformation, edge, storage) and show the attributes that can be defined for each asset type.
 
 ### Transformation
-The definition of the transformation object can be found here `Macro.Transformation`(@ref).
+The definition of the transformation object can be found here [Macro.Transformation](@ref).
 
 !!! note "Transformation attributes - Stoichiometric coefficients"
     Most of the transformation attributes are the coefficients of the **stoichiometric equations** that regulate the conversion processes.
@@ -538,7 +538,7 @@ In the following equations, $\phi$ is the flow of the commodity and $\epsilon$ i
 | **hydrogen_production** | `BECCSHydrogen` | $\epsilon_{h2\_prod}$ | `Float64` | `Float64` | $MWh_{h2}/MWh_{fuel}$ |
 
 ### Edge
-The definition of the `Edge` object can be found here `Macro.Edge`(@ref).
+The definition of the `Edge` object can be found here [Macro.Edge](@ref).
 
 | **Attribute** | **Type** | **Values** | **Default** | **Description** |
 |:--------------| :------: |:------: | :------: |:-------|
@@ -553,57 +553,57 @@ The definition of the `Edge` object can be found here `Macro.Edge`(@ref).
 | **capacity_size** | `Float64` | `Float64` | `1.0` | Size of the edge capacity. |
 | **distance** | `Float64` | `Float64` | `0.0` | Distance between the start and end vertex of the edge. |
 | **existing_capacity** | `Float64` | `Float64` | `0.0` | Existing capacity of the edge in MW. |
-| **fixed_om_cost** | `Float64` | `Float64` | `0.0` | Fixed operations and maintenance cost (USD/MW-year). |
+| **fixed\_om\_cost** | `Float64` | `Float64` | `0.0` | Fixed operations and maintenance cost (USD/MW-year). |
 | **flow** | `Vector{Float64}` | `Vector{Float64}` | `0.0` | Flow of the edge in MWh. |
-| **has_capacity** | `Bool` | `Bool` | `false` | Whether capacity variables are created for the edge. |
-| **integer_decisions** | `Bool` | `Bool` | `false` | Whether capacity variables are integers. |
-| **investment_cost** | `Float64` | `Float64` | `0.0` | Annualized capacity investment cost (USD/MW-year) |
-| **loss_fraction** | `Float64` | Number \in [0,1] | `0.0` | Fraction of transmission loss. |
-| **max_capacity** | `Float64` | `Float64` | `Inf` | Maximum allowed capacity of the edge (MW). |
-| **min_capacity** | `Float64` | `Float64` | `0.0` | Minimum allowed capacity of the edge (MW). |
-| **min_flow_fraction** | `Float64` | Number \in [0,1] | `0.0` | Minimum flow of the edge as a fraction of the total capacity. |
-| **ramp_down_fraction** | `Float64` | Number \in [0,1] | `1.0` | Maximum decrease in flow between two time steps, reported as a fraction of the capacity. |
-| **ramp_up_fraction** | `Float64` | Number \in [0,1] | `1.0` | Maximum increase in flow between two time steps, reported as a fraction of the capacity. |
+| **has\_capacity** | `Bool` | `Bool` | `false` | Whether capacity variables are created for the edge. |
+| **integer\_decisions** | `Bool` | `Bool` | `false` | Whether capacity variables are integers. |
+| **investment\_cost** | `Float64` | `Float64` | `0.0` | Annualized capacity investment cost (USD/MW-year) |
+| **loss\_fraction** | `Float64` | Number $\in$ [0,1] | `0.0` | Fraction of transmission loss. |
+| **max\_capacity** | `Float64` | `Float64` | `Inf` | Maximum allowed capacity of the edge (MW). |
+| **min\_capacity** | `Float64` | `Float64` | `0.0` | Minimum allowed capacity of the edge (MW). |
+| **min\_flow\_fraction** | `Float64` | Number $\in$ [0,1] | `0.0` | Minimum flow of the edge as a fraction of the total capacity. |
+| **ramp\_down\_fraction** | `Float64` | Number $\in$ [0,1] | `1.0` | Maximum decrease in flow between two time steps, reported as a fraction of the capacity. |
+| **ramp\_up\_fraction** | `Float64` | Number $\in$ [0,1] | `1.0` | Maximum increase in flow between two time steps, reported as a fraction of the capacity. |
 | **unidirectional** | `Bool` | `Bool` | `false` | Whether the edge is unidirectional. |
-| **variable_om_cost** | `Float64` | `Float64` | `0.0` | Variable operation and maintenance cost (USD/MWh). |
+| **variable\_om\_cost** | `Float64` | `Float64` | `0.0` | Variable operation and maintenance cost (USD/MWh). |
 
 ### Additional attributes for edges with unit commitment (EdgeWithUC)
-The definition of the `EdgeWithUC` object can be found here `Macro.EdgeWithUC`(@ref).
+The definition of the `EdgeWithUC` object can be found here [Macro.EdgeWithUC](@ref).
 
 | **Attribute** | **Type** | **Values** | **Default** | **Description** |
 |:--------------| :------: |:------: | :------: |:-------|
-| **min_down_time** | `Int64` | `Int64` | `0` | Minimum amount of time the edge has to remain in the shutdown state before starting up again. |
-| **min_up_time** | `Int64` | `Int64` | `0` | Minimum amount of time the edge has to remain in the committed state. |
-| **startup_cost** | `Float64` | `Float64` | `0.0` | Cost per MW of capacity to start a generator (USD/MW per start). |
-| **startup_fuel** | `Float64` | `Float64` | `0.0` | Startup fuel use per MW of capacity (MWh/MW per start). |
+| **min\_down\_time** | `Int64` | `Int64` | `0` | Minimum amount of time the edge has to remain in the shutdown state before starting up again. |
+| **min\_up\_time** | `Int64` | `Int64` | `0` | Minimum amount of time the edge has to remain in the committed state. |
+| **startup\_cost** | `Float64` | `Float64` | `0.0` | Cost per MW of capacity to start a generator (USD/MW per start). |
+| **startup\_fuel** | `Float64` | `Float64` | `0.0` | Startup fuel use per MW of capacity (MWh/MW per start). |
 
 
 ##### Additional attributes that enter the balance equation (Storage technologies)
 | **Attribute** | **Type** | **Values** | **Default** | **Description** |
 |:--------------| :------: |:------: | :------: |:-------|
-| **efficiency** | `Float64` | Number \in [0,1] | `1.0` | Efficiency of the charging/discharging process. |
+| **efficiency** | `Float64` | Number $\in$ [0,1] | `1.0` | Efficiency of the charging/discharging process. |
 
 ### Storage
-The definition of the `Storage` object can be found here `Macro.Storage`(@ref).
+The definition of the `Storage` object can be found here [Macro.Storage](@ref).
 
 | **Attribute** | **Type** | **Values** | **Default** | **Description** |
 |:--------------| :------: |:------: | :------: |:-------|
 | **timedata** | `String` | Required | Time resolution for the time series data linked to the storage. E.g. "NaturalGas". |
 | **constraints** | `Dict{String,Bool}` | Required | List of constraints applied to the storage. E.g. `{"BalanceConstraint": true}`. |
 | **can_expand** | `Bool` | `Bool` | `false` | Whether the storage is eligible for capacity expansion. |
-| **can_retire** | `Bool` | `Bool` | `false` | Whether the storage is eligible for capacity retirement. |
-| **charge_discharge_ratio** | `Float64` | `Float64` | `1.0` | Ratio between charging and discharging rates. |
-| **existing_capacity_storage** | `Float64` | `Float64` | `0.0` | Initial installed storage capacity (MWh). |
-| **fixed_om_cost_storage** | `Float64` | `Float64` | `0.0` | Fixed operations and maintenance cost (USD/MWh-year). |
-| **investment_cost_storage** | `Float64` | `Float64` | `0.0` | Annualized investment cost of the energy capacity for a storage technology (USD/MWh-year). |
-| **max_capacity_storage** | `Float64` | `Float64` | `Inf` | Maximum allowed storage capacity (MWh). |
-| **max_duration** | `Float64` | `Float64` | `Inf` | Maximum ratio of installed energy to discharged capacity that can be installed (hours). #TODO check this |
-| **min_capacity_storage** | `Float64` | `Float64` | `0.0` | Minimum allowed storage capacity (MWh). |
-| **min_duration** | `Float64` | `Float64` | `0.0` | Minimum ratio of installed energy to discharged capacity that can be installed (hours). #TODO check this |
-| **min_outflow_fraction** | `Float64` | `Float64` | `0.0` | Minimum outflow as a fraction of capacity. |
-| **min_storage_level** | `Float64` | `Float64` | `0.0` | Minimum storage level as a fraction of capacity. |
-| **max_storage_level** | `Float64` | `Float64` | `1.0` | Maximum storage level as a fraction of capacity. |
-| **storage_loss_fraction** | `Float64` | Number \in [0,1] | `0.0` | Fraction of stored commodity lost per timestep. |
+| **can\_retire** | `Bool` | `Bool` | `false` | Whether the storage is eligible for capacity retirement. |
+| **charge\_discharge\_ratio** | `Float64` | `Float64` | `1.0` | Ratio between charging and discharging rates. |
+| **existing\_capacity\_storage** | `Float64` | `Float64` | `0.0` | Initial installed storage capacity (MWh). |
+| **fixed\_om\_cost\_storage** | `Float64` | `Float64` | `0.0` | Fixed operations and maintenance cost (USD/MWh-year). |
+| **investment\_cost\_storage** | `Float64` | `Float64` | `0.0` | Annualized investment cost of the energy capacity for a storage technology (USD/MWh-year). |
+| **max\_capacity\_storage** | `Float64` | `Float64` | `Inf` | Maximum allowed storage capacity (MWh). |
+| **max\_duration** | `Float64` | `Float64` | `Inf` | Maximum ratio of installed energy to discharged capacity that can be installed (hours). #TODO check this |
+| **min\_capacity\_storage** | `Float64` | `Float64` | `0.0` | Minimum allowed storage capacity (MWh). |
+| **min\_duration** | `Float64` | `Float64` | `0.0` | Minimum ratio of installed energy to discharged capacity that can be installed (hours). #TODO check this |
+| **min\_outflow\_fraction** | `Float64` | `Float64` | `0.0` | Minimum outflow as a fraction of capacity. |
+| **min\_storage\_level** | `Float64` | `Float64` | `0.0` | Minimum storage level as a fraction of capacity. |
+| **max\_storage\_level** | `Float64` | `Float64` | `1.0` | Maximum storage level as a fraction of capacity. |
+| **storage\_loss\_fraction** | `Float64` | Number $\in$ [0,1] | `0.0` | Fraction of stored commodity lost per timestep. |
 #TODO: check all default values!
 
 # Example of the folder structure for the input data
