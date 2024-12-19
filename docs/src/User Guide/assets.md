@@ -17,17 +17,90 @@ The current library includes the following assets:
 
 - **Battery**
 
-![Battery](../images/battery.png)
+```@raw html
+<img width="270" src="../images/battery.png" />
+```
 
 - **Electrolyzer**
+
+```@raw html
+<img width="360" src="../images/electrolyzer_asset.png" />
+```
+
 - **Fuel Cell**
-- **Hydrogen Storage**
-- **Power Line**
+
+```@raw html
+<img width="320" src="../images/fuelcell.png" />
+```
+
+- **Gas Storage**
+
+```@raw html
+<img width="400" src="../images/hydrogen_storage.png" />
+```
+
 - **Thermal Hydrogen Plant**
+
+```@raw html
+<img width="360" src="../images/smr.png" />
+```
+
 - **Thermal Power Plant**
 
-![Natural Gas Power Plant](../images/natgas.png)
+```@raw html
+<img width="380" src="../images/natgas.png" />
+```
 
 - **Variable Renewable Energy resources (VRE)**
 
-![Solar PV](../images/solar_pv.png)
+```@raw html
+<img width="300" src="../images/vre.png" />
+```
+
+- **BECCS Electricity**
+
+```@raw html
+<img width="400" src="../images/beccselec.png" />
+```
+
+- **BECCS Hydrogen**
+
+```@raw html
+<img width="400" src="../images/beccsh2.png" />
+```
+
+- **Electric DAC**
+
+```@raw html
+<img width="360" src="../images/elecdac.png" />
+```
+
+- **Hydro Res**
+
+```@raw html
+<img width="360" src="../images/hydrores.png" />
+```
+
+- **Natural Gas DAC**
+
+```@raw html
+<img width="450" src="../images/natgasdac.png" />
+```
+
+- **Power Line**
+
+```@raw html
+<img width="220" src="../images/powerline.png" />
+```
+
+- **Hydrogen Line**
+
+```@raw html
+<img width="220" src="../images/h2line.png" />
+```
+
+- **Must Run**
+
+```@raw html
+<img width="250" src="../images/vre.png" />
+```

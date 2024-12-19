@@ -443,7 +443,7 @@ For example, the following is a complete example of the `naturalgas_power.json` 
 Since the solar photovoltaic pannel and the wind turbine are very similar, the type that defines them is called `Vre` and can be found in `src/model/assets/vre.jl`. 
 Here is a schematic representation of the type:
 
-![Vre](../images/solar_pv.png)
+![Vre](../images/vre.png)
 
 As can be seen, a solar photovoltaic pannel and a wind turbine are made of the following components:
 - **solar/wind energy → electricity transformation**: a transformation object that defines the conversion of the energy to electricity
