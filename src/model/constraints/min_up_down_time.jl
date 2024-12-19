@@ -10,6 +10,21 @@ Base.@kwdef mutable struct MinDownTimeConstraint <: OperationConstraint
     constraint_ref::Union{Missing,JuMPConstraint} = missing
 end
 
+@doc raw"""
+    add_model_constraint!(ct::MinDownTimeConstraint, e::EdgeWithUC, model::Model)
+
+Add a min down time constraint to the edge `e` with unit commitment. The functional form of the constraint is:
+
+```math
+\begin{aligned}
+    \frac{\text{capacity(e)}}{\text{capacity\_size(e)}} - \text{ucommit(e, t)} \geq \sum_{h=0}^{\text{min\_down\_time(e)}-1} \text{ushut(e, t-h)}
+\end{aligned}
+```
+for each time `t` in `time_interval(e)` for the edge `e`. The function [`timestepbefore`](@ref) is used to perform the time wrapping within the subperiods and get the correct time step before `t`.
+
+!!! note "Min down time duration"
+    This constraint will throw an error if the minimum down time is longer than the length of one subperiod.
+"""
 function add_model_constraint!(ct::MinDownTimeConstraint, e::EdgeWithUC, model::Model)
 
     if min_down_time(e) > minimum(length.(subperiods(e)))
@@ -34,7 +49,21 @@ function add_model_constraint!(ct::MinDownTimeConstraint, e::EdgeWithUC, model::
     return nothing
 end
 
+@doc raw"""
+    add_model_constraint!(ct::MinUpTimeConstraint, e::EdgeWithUC, model::Model)
 
+Add a min up time constraint to the edge `e` with unit commitment. The functional form of the constraint is:
+
+```math
+\begin{aligned}
+    \text{ucommit(e, t)} \geq \sum_{h=0}^{\text{min\_up\_time(e)}-1} \text{ustart(e, t-h)}
+\end{aligned}
+```
+for each time `t` in `time_interval(e)` for the edge `e`. The function [`timestepbefore`](@ref) is used to perform the time wrapping within the subperiods and get the correct time step before `t`.
+
+!!! note "Min up time duration"
+    This constraint will throw an error if the minimum up time is longer than the length of one subperiod.
+"""
 function add_model_constraint!(ct::MinUpTimeConstraint, e::EdgeWithUC, model::Model)
     if min_up_time(e) > minimum(length.(subperiods(e)))
         error("The minimum up time for $(id(e)) is longer than the length of one subperiod")
