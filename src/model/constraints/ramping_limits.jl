@@ -4,6 +4,25 @@ Base.@kwdef mutable struct RampingLimitConstraint <: OperationConstraint
     constraint_ref::Union{Missing,JuMPConstraint} = missing
 end
 
+@doc raw"""
+    add_model_constraint!(ct::RampingLimitConstraint, e::Edge, model::Model)
+
+Add a ramping limit constraint to the edge `e`. The functional form of the ramping up limit constraint is:
+
+```math
+\begin{aligned}
+    \text{flow(e, t)} - \text{flow(e, t-1)} + \text{regulation\_term(e, t)} + \text{reserves\_term(e, t)} - \text{ramp\_up\_fraction(e)} \times \text{capacity(e)} \leq 0
+\end{aligned}
+```
+On the other hand, the ramping down limit constraint is:
+
+```math
+\begin{aligned}
+    \text{flow(e, t-1)} - \text{flow(e, t)} + \text{regulation\_term(e, t)} + \text{reserves\_term(e, t)} - \text{ramp\_down\_fraction(e)} \times \text{capacity(e)} \leq 0
+\end{aligned}
+```
+for each time `t` in `time_interval(e)` for the edge `e`. The function [`timestepbefore`](@ref) is used to perform the time wrapping within the subperiods and get the correct time step before `t`.
+"""
 function add_model_constraint!(ct::RampingLimitConstraint, e::Edge, model::Model)
 
     #### For now these are set to zero because we are not modeling reserves
@@ -37,7 +56,27 @@ function add_model_constraint!(ct::RampingLimitConstraint, e::Edge, model::Model
     return nothing
 end
 
+@doc raw"""
+    add_model_constraint!(ct::RampingLimitConstraint, e::EdgeWithUC, model::Model)
 
+Add a ramping limit constraint to the edge `e` with unit commitment. The functional form of the ramping up limit constraint is:
+
+```math
+\begin{aligned}
+    \text{flow(e, t)} - \text{flow(e, t-1)} + \text{regulation\_term(e, t)} + \text{reserves\_term(e, t)} - \text{ramp\_up\_fraction(e)} \times \text{capacity\_size(e)} \times (\text{ucommit(e, t)} - \text{ustart(e, t)}) + \text{min(availability(e, t), max(min\_flow\_fraction(e), ramp\_up\_fraction(e)))} \times \text{capacity\_size(e)} \times \text{ustart(e, t)} - \text{min\_flow\_fraction(e)} \times \text{capacity\_size(e)} \times \text{ushut(e, t)} \leq 0
+\end{aligned}
+```
+
+On the other hand, the ramping down limit constraint is:
+
+```math
+\begin{aligned}
+    \text{flow(e, t-1)} - \text{flow(e, t)} + \text{regulation\_term(e, t)} + \text{reserves\_term(e, t)} - \text{ramp\_down\_fraction(e)} \times \text{capacity\_size(e)} \times (\text{ucommit(e, t)} - \text{ustart(e, t)}) - \text{min\_flow\_fraction(e)} \times \text{capacity\_size(e)} \times \text{ustart(e, t)} + \text{min(availability(e, t), max(min\_flow\_fraction(e), ramp\_down\_fraction(e)))} \times \text{capacity\_size(e)} \times \text{ushut(e, t)} \leq 0
+\end{aligned}
+```
+
+for each time `t` in `time_interval(e)` for the edge `e`. The function [`timestepbefore`](@ref) is used to perform the time wrapping within the subperiods and get the correct time step before `t`.
+"""
 function add_model_constraint!(ct::RampingLimitConstraint, e::EdgeWithUC, model::Model)
 
     #### For now these are set to zero because we are not modeling reserves
