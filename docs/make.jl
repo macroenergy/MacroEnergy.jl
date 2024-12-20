@@ -1,21 +1,21 @@
 using MacroEnergy
 using Documenter
 
-DocMeta.setdocmeta!(MacroEnergy, :DocTestSetup, :(using MacroEnergy); recursive = true)
+DocMeta.setdocmeta!(MacroEnergy, :DocTestSetup, :(using MacroEnergy); recursive=true)
 
 # Build documentation.
 # ====================
 makedocs(;
-    modules = [MacroEnergy],
-    authors = "",
-    sitename = "Macro",
-    format = Documenter.HTML(
-        prettyurls = get(ENV, "CI", "false") == "true",
-        canonical = "https://macroenergy.github.io/Macro/stable/",
+    modules=[MacroEnergy],
+    authors="",
+    sitename="Macro",
+    format=Documenter.HTML(
+        prettyurls=get(ENV, "CI", "false") == "true",
+        canonical="https://macroenergy.github.io/Macro/stable/",
         # sidebar_sitename = false,
-        collapselevel = 1,
+        collapselevel=1,
     ),
-    pages = [
+    pages=[
         "Welcome to Macro" => [
             "Introduction" => "index.md"
         ],
@@ -31,9 +31,24 @@ makedocs(;
         ],
         "User Guide" => [
             "Sectors" => "User Guide/sectors.md",
-            "Assets" => "User Guide/assets.md",
-            "Constraints" => "User Guide/constraints.md",
             "Input Data" => "User Guide/input_data.md",
+            "Assets" => ["User Guide/assets/introduction.md",
+                "User Guide/assets/battery.md",
+                "User Guide/assets/beccselectricity.md",
+                "User Guide/assets/beccshydrogen.md",
+                "User Guide/assets/electricdac.md",
+                "User Guide/assets/electrolyzer.md",
+                "User Guide/assets/fuelcell.md",
+                "User Guide/assets/gasstorage.md",
+                "User Guide/assets/hydrogenline.md",
+                "User Guide/assets/hydropower.md",
+                "User Guide/assets/mustrun.md",
+                "User Guide/assets/natgasdaq.md",
+                "User Guide/assets/powerline.md",
+                "User Guide/assets/thermalhydrogen.md",
+                "User Guide/assets/thermalpower.md",
+                "User Guide/assets/vre.md"],
+            "Constraints" => "User Guide/constraints.md",
             "Output" => "User Guide/output.md",
         ],
         "Modeler Guide" => [
@@ -55,10 +70,10 @@ makedocs(;
 # ===========================
 deploydocs(;
     repo="https://github.com/macroenergy/MacroEnergy.jl.git",
-    target = "build",
-    branch = "gh-pages",
-    devbranch = "develop",
-    devurl = "dev",
+    target="build",
+    branch="gh-pages",
+    devbranch="develop",
+    devurl="dev",
     push_preview=true,
 )
 
