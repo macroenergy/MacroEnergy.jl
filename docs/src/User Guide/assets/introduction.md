@@ -23,19 +23,19 @@ The current library includes the following assets:
 - [BECCS Electricity](@ref)
 
 ```@raw html
-<a href="beccselec.html"><img width="400" src="../../images/beccselec.png" /></a>
+<a href="beccselectricity.html"><img width="400" src="../../images/beccselec.png" /></a>
 ```
 
 - [BECCS Hydrogen](@ref)
 
 ```@raw html
-<a href="beccsh2.html"><img width="400" src="../../images/beccsh2.png" /></a>
+<a href="beccshydrogen.html"><img width="400" src="../../images/beccsh2.png" /></a>
 ```
 
 - [Electric DAC](@ref)
 
 ```@raw html
-<a href="elecdac.html"><img width="360" src="../../images/elecdac.png" /></a>
+<a href="electricdac.html"><img width="360" src="../../images/elecdac.png" /></a>
 ```
 
 - [Electrolyzer](@ref)
@@ -53,19 +53,19 @@ The current library includes the following assets:
 - [Gas Storage](@ref)
 
 ```@raw html
-<a href="hydrogen_storage.html"><img width="400" src="../../images/hydrogen_storage.png" /></a>
+<a href="gasstorage.html"><img width="400" src="../../images/hydrogen_storage.png" /></a>
 ```
 
 - [Hydrogen Line](@ref)
 
 ```@raw html
-<a href="h2line.html"><img width="220" src="../../images/h2line.png" /></a>
+<a href="hydrogenline.html"><img width="220" src="../../images/h2line.png" /></a>
 ```
 
 - [Hydro Reservoir](@ref)
 
 ```@raw html
-<a href="hydrores.html"><img width="360" src="../../images/hydrores.png" /></a>
+<a href="hydropower.html"><img width="360" src="../../images/hydrores.png" /></a>
 ```
 
 - [Must Run](@ref)
@@ -77,7 +77,7 @@ The current library includes the following assets:
 - [Natural Gas DAC](@ref)
 
 ```@raw html
-<a href="natgasdac.html"><img width="450" src="../../images/natgasdac.png" /></a>
+<a href="natgasdaq.html"><img width="450" src="../../images/natgasdac.png" /></a>
 ```
 
 - [Power Line](@ref)
@@ -89,7 +89,7 @@ The current library includes the following assets:
 - [Thermal Hydrogen Plant (with and without CCS)](@ref)
 
 ```@raw html
-<a href="smr.html"><img width="360" src="../../images/smr.png" /></a>
+<a href="thermalhydrogen.html"><img width="360" src="../../images/smr.png" /></a>
 ```
 
 - [Thermal Power Plant (with and without CCS)](@ref)
