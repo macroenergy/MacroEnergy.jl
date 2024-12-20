@@ -10,8 +10,7 @@ An example case is a folder that contains all the necessary data files to run th
 MyCase
 │ 
 ├── 📁 settings
-│   └── macro_settings.yml      
-configuration
+│   └── macro_settings.yml
 │ 
 ├── 📁 system
 │   ├── commodities.json 

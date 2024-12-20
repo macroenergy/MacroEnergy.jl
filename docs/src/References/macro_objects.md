@@ -1,4 +1,4 @@
-# Macro Objects
+# MACRO Objects
 
 ## Vertex
 ```@docs
