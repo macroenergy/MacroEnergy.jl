@@ -1,6 +1,9 @@
 
 # MACRO input files
 
+!!! note "Interactive Notebook"
+    The interactive version of this tutorial can be found [here](https://github.com/macroenergy/Macro/tree/main/tutorials/tutorial_1_input_files.ipynb).
+
 To configure a MACRO case, the user needs to provide a set of input files describing at least the following components:
 - **System configuration**
 - **Assets/technologies**
