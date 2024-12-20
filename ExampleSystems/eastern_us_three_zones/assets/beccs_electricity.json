@@ -2,11 +2,11 @@
     "BECCS_Electricity": [
         {
             "type": "BECCSElectricity",
-            "global_data":{
+            "global_data": {
                 "transforms": {
                     "timedata": "Biomass",
                     "constraints": {
-                            "BalanceConstraint": true
+                        "BalanceConstraint": true
                     }
                 },
                 "edges":{
@@ -46,7 +46,7 @@
                     }
                 }
             },
-            "instance_data":[
+            "instance_data": [
                 {
                     "id": "SE_BECCS_Electricity_Herb",
                     "transforms": {

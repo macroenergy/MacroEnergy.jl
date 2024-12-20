@@ -68,7 +68,7 @@
                             "min_down_time": 4,
                             "ramp_up_fraction": 1,
                             "ramp_down_fraction": 1,
-                            "min_flow_fraction":0.5
+                            "min_flow_fraction": 0.5
                         },
                         "fuel_edge": {
                             "start_vertex": "natgas_SE"
@@ -99,7 +99,7 @@
                             "min_down_time": 4,
                             "ramp_up_fraction": 1,
                             "ramp_down_fraction": 1,
-                            "min_flow_fraction":0.5
+                            "min_flow_fraction": 0.5
                         },
                         "fuel_edge": {
                             "start_vertex": "natgas_MIDAT"
@@ -130,7 +130,7 @@
                             "min_down_time": 4,
                             "ramp_up_fraction": 1,
                             "ramp_down_fraction": 1,
-                            "min_flow_fraction":0.5
+                            "min_flow_fraction": 0.5
                         },
                         "fuel_edge": {
                             "start_vertex": "natgas_NE"

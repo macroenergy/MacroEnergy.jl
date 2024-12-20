@@ -2,14 +2,14 @@
     "ElectricDAC": [
         {
             "type": "ElectricDAC",
-            "global_data":{
+            "global_data": {
                 "transforms": {
                     "timedata": "Electricity",
                     "constraints": {
-                            "BalanceConstraint": true
+                        "BalanceConstraint": true
                     }
                 },
-                "edges" :{
+                "edges": {
                     "co2_edge": {
                         "commodity": "CO2",
                         "unidirectional": true,
@@ -36,96 +36,92 @@
                     }
                 }
             },
-            "instance_data":[
+            "instance_data": [
                 {
                     "id": "SE_Sorbent_DAC",
-                    "transforms":{
+                    "transforms": {
                         "electricity_consumption": 4.38
                     },
-                    "edges":{
-                            "co2_edge": {
-                                "availability": {
+                    "edges": {
+                        "co2_edge": {
+                            "availability": {
                                 "timeseries": {
                                     "path": "system/availability.csv",
                                     "header": "SE_Sorbent_DAC"
-                                    }
-                                },
-                                "existing_capacity": 0.0,
-                                "investment_cost": 1050000,
-                                "fixed_om_cost": 837000,
-                                "variable_om_cost": 24.64,
-                                "ramp_up_fraction": 1.0,
-                                "ramp_down_fraction": 1.0
+                                }
                             },
-                            "elec_edge":{
-                                "start_vertex": "elec_SE"
-                            },
-                            "co2_captured_edge": {
-                                "end_vertex": "co2_captured_SE"
-                            }
+                            "existing_capacity": 0.0,
+                            "investment_cost": 1050000,
+                            "fixed_om_cost": 837000,
+                            "variable_om_cost": 24.64,
+                            "ramp_up_fraction": 1.0,
+                            "ramp_down_fraction": 1.0
+                        },
+                        "elec_edge": {
+                            "start_vertex": "elec_SE"
+                        },
+                        "co2_captured_edge": {
+                            "end_vertex": "co2_captured_SE"
                         }
-
+                    }
                 },
                 {
                     "id": "MIDAT_Sorbent_DAC",
-                    "transforms":{
+                    "transforms": {
                         "electricity_consumption": 4.38
                     },
-                    "edges":{
-                            "co2_edge": {
-                                "availability": {
+                    "edges": {
+                        "co2_edge": {
+                            "availability": {
                                 "timeseries": {
                                     "path": "system/availability.csv",
                                     "header": "MIDAT_Sorbent_DAC"
-                                    }
-                                },
-                                "existing_capacity": 0.0,
-                                "investment_cost": 1050000,
-                                "fixed_om_cost": 837000,
-                                "variable_om_cost": 24.64,
-                                "ramp_up_fraction": 1.0,
-                                "ramp_down_fraction": 1.0
+                                }
                             },
-                            "elec_edge":{
-                                "start_vertex": "elec_MIDAT"
-                            },
-                            "co2_captured_edge": {
-                                "end_vertex": "co2_captured_MIDAT"
-                            }
+                            "existing_capacity": 0.0,
+                            "investment_cost": 1050000,
+                            "fixed_om_cost": 837000,
+                            "variable_om_cost": 24.64,
+                            "ramp_up_fraction": 1.0,
+                            "ramp_down_fraction": 1.0
+                        },
+                        "elec_edge": {
+                            "start_vertex": "elec_MIDAT"
+                        },
+                        "co2_captured_edge": {
+                            "end_vertex": "co2_captured_MIDAT"
                         }
-
+                    }
                 },
                 {
                     "id": "NE_Sorbent_DAC",
-                    "transforms":{
+                    "transforms": {
                         "electricity_consumption": 4.38
                     },
-                    "edges":{
-                            "co2_edge": {
-                                "availability": {
+                    "edges": {
+                        "co2_edge": {
+                            "availability": {
                                 "timeseries": {
                                     "path": "system/availability.csv",
                                     "header": "NE_Sorbent_DAC"
-                                    }
-                                },
-                                "existing_capacity": 0.0,
-                                "investment_cost": 1050000,
-                                "fixed_om_cost": 837000,
-                                "variable_om_cost": 24.64,
-                                "ramp_up_fraction": 1.0,
-                                "ramp_down_fraction": 1.0
+                                }
                             },
-                            "elec_edge":{
-                                "start_vertex": "elec_NE"
-                            },
-                            "co2_captured_edge": {
-                                "end_vertex": "co2_captured_NE"
-                            }
+                            "existing_capacity": 0.0,
+                            "investment_cost": 1050000,
+                            "fixed_om_cost": 837000,
+                            "variable_om_cost": 24.64,
+                            "ramp_up_fraction": 1.0,
+                            "ramp_down_fraction": 1.0
+                        },
+                        "elec_edge": {
+                            "start_vertex": "elec_NE"
+                        },
+                        "co2_captured_edge": {
+                            "end_vertex": "co2_captured_NE"
                         }
-
+                    }
                 }
             ]
         }
     ]
-
 }

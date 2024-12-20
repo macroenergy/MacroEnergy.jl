@@ -57,8 +57,8 @@
                         "discharge_edge": {
                             "end_vertex": "elec_MIDAT",
                             "capacity_size": 29.853,
-                            "existing_capacity" : 2806.182,
-                            "fixed_om_cost" : 45648,
+                            "existing_capacity": 2806.182,
+                            "fixed_om_cost": 45648,
                             "ramp_down_fraction": 0.83,
                             "ramp_up_fraction": 0.83,
                             "efficiency": 1.0
@@ -84,8 +84,8 @@
                         "discharge_edge": {
                             "end_vertex": "elec_NE",
                             "capacity_size": 24.13,
-                            "existing_capacity" : 4729.48,
-                            "fixed_om_cost" : 45648,
+                            "existing_capacity": 4729.48,
+                            "fixed_om_cost": 45648,
                             "ramp_down_fraction": 0.083,
                             "ramp_up_fraction": 0.083,
                             "efficiency": 1.0
@@ -111,8 +111,8 @@
                         "discharge_edge": {
                             "end_vertex": "elec_SE",
                             "capacity_size": 31.333,
-                            "existing_capacity" : 11123.215,
-                            "fixed_om_cost" : 45648,
+                            "existing_capacity": 11123.215,
+                            "fixed_om_cost": 45648,
                             "ramp_down_fraction": 0.083,
                             "ramp_up_fraction": 0.083,
                             "efficiency": 1.0
@@ -136,4 +136,3 @@
         }
     ]
 }
-
