@@ -6,7 +6,7 @@
                 "nodes": {},
                 "transforms": {
                     "timedata": "Electricity"
-                    },
+                },
                 "edges": {
                     "elec_edge": {
                         "unidirectional": true,
@@ -71,10 +71,7 @@
                         }
                     }
                 }
-                
             ]
         }
     ]
-
-
 }

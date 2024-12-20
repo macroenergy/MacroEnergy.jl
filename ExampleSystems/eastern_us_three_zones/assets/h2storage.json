@@ -73,7 +73,7 @@
                             "ramp_up_fraction": 1,
                             "ramp_down_fraction": 1
                         },
-                        "charge_edge":{
+                        "charge_edge": {
                             "existing_capacity": 0,
                             "investment_cost": 3219.236569,
                             "fixed_om_cost": 0.0,
@@ -110,7 +110,7 @@
                             "ramp_up_fraction": 1,
                             "ramp_down_fraction": 1
                         },
-                        "charge_edge":{
+                        "charge_edge": {
                             "existing_capacity": 0,
                             "investment_cost": 3219.236569,
                             "fixed_om_cost": 0.0,
@@ -147,7 +147,7 @@
                             "ramp_up_fraction": 1,
                             "ramp_down_fraction": 1
                         },
-                        "charge_edge":{
+                        "charge_edge": {
                             "existing_capacity": 0,
                             "investment_cost": 3219.236569,
                             "fixed_om_cost": 0.0,

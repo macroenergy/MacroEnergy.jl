@@ -85,8 +85,8 @@ function make(::Type{BECCSHydrogen}, data::AbstractDict{Symbol,Any}, system::Sys
 
     elec_edge_key = :elec_edge
     elec_edge_data = process_data(data[:edges][elec_edge_key])
-    elec_end_node = beccs_transform
     elec_start_node = find_node(system.locations, Symbol(elec_edge_data[:start_vertex]))
+    elec_end_node = beccs_transform
     elec_edge = Edge(
         Symbol(id, "_", elec_edge_key),
         elec_edge_data,

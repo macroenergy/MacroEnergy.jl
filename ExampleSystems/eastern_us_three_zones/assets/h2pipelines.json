@@ -61,16 +61,16 @@
                 {
                     "id": "h2pipe_SE_to_MIDAT",
                     "transforms": {
-                    "electricity_consumption": 0.067724471
+                        "electricity_consumption": 0.067724471
                     },
-                    "storage":{
+                    "storage": {
                         "max_duration": 8.846121602,
                         "charge_discharge_ratio": 1.0
                     },
                     "edges": {
                         "discharge_edge": {
                             "end_vertex": "h2_MIDAT",
-                            "distance":491.4512001,
+                            "distance": 491.4512001,
                             "capacity_size": 787.6,
                             "investment_cost": 82682.23402
                         },
@@ -85,16 +85,16 @@
                 {
                     "id": "h2pipe_MIDAT_to_SE",
                     "transforms": {
-                    "electricity_consumption": 0.067724471
+                        "electricity_consumption": 0.067724471
                     },
-                    "storage":{
+                    "storage": {
                         "max_duration": 8.846121602,
                         "charge_discharge_ratio": 1.0
                     },
                     "edges": {
                         "discharge_edge": {
                             "end_vertex": "h2_SE",
-                            "distance":491.4512001,
+                            "distance": 491.4512001,
                             "capacity_size": 787.6,
                             "investment_cost": 82682.23402
                         },
@@ -109,16 +109,16 @@
                 {
                     "id": "h2pipe_NE_to_SE",
                     "transforms": {
-                    "electricity_consumption": 0.06553874
+                        "electricity_consumption": 0.06553874
                     },
-                    "storage":{
+                    "storage": {
                         "max_duration": 8.525925965,
                         "charge_discharge_ratio": 1.0
                     },
                     "edges": {
                         "discharge_edge": {
                             "end_vertex": "h2_SE",
-                            "distance":473.6625536,
+                            "distance": 473.6625536,
                             "capacity_size": 787.6,
                             "investment_cost": 79896.9841
                         },
@@ -133,16 +133,16 @@
                 {
                     "id": "h2pipe_SE_to_NE",
                     "transforms": {
-                    "electricity_consumption": 0.06553874
+                        "electricity_consumption": 0.06553874
                     },
-                    "storage":{
+                    "storage": {
                         "max_duration": 8.525925965,
                         "charge_discharge_ratio": 1.0
                     },
                     "edges": {
                         "discharge_edge": {
                             "end_vertex": "h2_NE",
-                            "distance":473.6625536,
+                            "distance": 473.6625536,
                             "capacity_size": 787.6,
                             "investment_cost": 79896.9841
                         },

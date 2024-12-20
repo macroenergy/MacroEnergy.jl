@@ -2,14 +2,14 @@
     "ElectricDAC": [
         {
             "type": "ElectricDAC",
-            "global_data":{
+            "global_data": {
                 "transforms": {
                     "timedata": "Electricity",
                     "constraints": {
-                            "BalanceConstraint": true
+                        "BalanceConstraint": true
                     }
                 },
-                "edges" :{
+                "edges": {
                     "co2_edge": {
                         "type": "CO2",
                         "unidirectional": true,
@@ -37,87 +37,83 @@
                     }
                 }
             },
-            "instance_data":[
+            "instance_data": [
                 {
                     "id": "SE_Solvent_DAC",
-                    "transforms":{
+                    "transforms": {
                         "electricity_consumption": 4.38
                     },
-                    "edges":{
-                            "co2_edge": {
-                                "availability": {
+                    "edges": {
+                        "co2_edge": {
+                            "availability": {
                                 "timeseries": {
                                     "path": "system/availability.csv",
                                     "header": "SE_Solvent_DAC"
-                                    }
-                                },
-                                "existing_capacity": 0.0,
-                                "investment_cost": 939000.00,
-                                "fixed_om_cost": 747000.00,
-                                "variable_om_cost": 22.00,
-                                "ramp_up_fraction": 1.0,
-                                "ramp_down_fraction": 1.0
+                                }
                             },
-                            "elec_edge":{
-                                "start_vertex": "elec_SE"
-                            }
+                            "existing_capacity": 0.0,
+                            "investment_cost": 939000.00,
+                            "fixed_om_cost": 747000.00,
+                            "variable_om_cost": 22.00,
+                            "ramp_up_fraction": 1.0,
+                            "ramp_down_fraction": 1.0
+                        },
+                        "elec_edge": {
+                            "start_vertex": "elec_SE"
                         }
-
+                    }
                 },
                 {
                     "id": "MIDAT_Solvent_DAC",
-                    "transforms":{
+                    "transforms": {
                         "electricity_consumption": 4.38
                     },
-                    "edges":{
-                            "co2_edge": {
-                                "availability": {
+                    "edges": {
+                        "co2_edge": {
+                            "availability": {
                                 "timeseries": {
                                     "path": "system/availability.csv",
                                     "header": "MIDAT_Solvent_DAC"
-                                    }
-                                },
-                                "existing_capacity": 0.0,
-                                "investment_cost": 939000.00,
-                                "fixed_om_cost": 747000.00,
-                                "variable_om_cost": 22.00,
-                                "ramp_up_fraction": 1.0,
-                                "ramp_down_fraction": 1.0
+                                }
                             },
-                            "elec_edge":{
-                                "start_vertex": "elec_MIDAT"
-                            }
+                            "existing_capacity": 0.0,
+                            "investment_cost": 939000.00,
+                            "fixed_om_cost": 747000.00,
+                            "variable_om_cost": 22.00,
+                            "ramp_up_fraction": 1.0,
+                            "ramp_down_fraction": 1.0
+                        },
+                        "elec_edge": {
+                            "start_vertex": "elec_MIDAT"
                         }
-
+                    }
                 },
                 {
                     "id": "NE_Solvent_DAC",
-                    "transforms":{
+                    "transforms": {
                         "electricity_consumption": 4.38
                     },
-                    "edges":{
-                            "co2_edge": {
-                                "availability": {
+                    "edges": {
+                        "co2_edge": {
+                            "availability": {
                                 "timeseries": {
                                     "path": "system/availability.csv",
                                     "header": "NE_Solvent_DAC"
-                                    }
-                                },
-                                "existing_capacity": 0.0,
-                                "investment_cost": 939000.00,
-                                "fixed_om_cost": 747000.00,
-                                "variable_om_cost": 22.00,
-                                "ramp_up_fraction": 1.0,
-                                "ramp_down_fraction": 1.0
+                                }
                             },
-                            "elec_edge":{
-                                "start_vertex": "elec_NE"
-                            }
+                            "existing_capacity": 0.0,
+                            "investment_cost": 939000.00,
+                            "fixed_om_cost": 747000.00,
+                            "variable_om_cost": 22.00,
+                            "ramp_up_fraction": 1.0,
+                            "ramp_down_fraction": 1.0
+                        },
+                        "elec_edge": {
+                            "start_vertex": "elec_NE"
                         }
-
+                    }
                 }
             ]
         }
     ]
-
 }
