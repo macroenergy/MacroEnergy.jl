@@ -1,6 +1,9 @@
 
 # Running MACRO
 
+!!! note "Interactive Notebook"
+    The interactive version of this tutorial can be found [here](https://github.com/macroenergy/Macro/tree/main/tutorials/tutorial_2_running_macro.ipynb).
+
 In this tutorial, we start from a single zone electricity system with four resource clusters: utility scale solar PV, land-based wind power generation, natural gas combined cycle power plants, and electricity storage. 
 
 We consider three commodities: electricity, natural gas, and $\text{CO}_2$. 

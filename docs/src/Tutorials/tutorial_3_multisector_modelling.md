@@ -1,6 +1,9 @@
 
 # Multisector modelling with MACRO
 
+!!! note "Interactive Notebook"
+    The interactive version of this tutorial can be found [here](https://github.com/macroenergy/Macro/tree/main/tutorials/tutorial_3_multisector_modelling.ipynb).
+
 In this tutorial, we extend the electricity-only model considered in Tutorial 2 to build a multisector model for joint capacity expansion in electricity and hydrogen sectors. 
 
 To do this, we scorporate hydrogen and electricity demand from Tutorial 2, and endogeneously model hydrogen production and storage in MACRO.
