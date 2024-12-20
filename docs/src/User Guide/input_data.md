@@ -1,5 +1,5 @@
-# Macro Input Data
-*Macro version 0.1.0*
+# MACRO Input Data
+*MACRO version 0.1.0*
 
 !!! tip "Tutorial 1"
     We recommend to check the [Tutorial 1](../Tutorials/tutorial_1_input_files.md) for a step-by-step guide on how to create the input data.
@@ -178,17 +178,17 @@ The `Node` object is defined in the file `nodes.jl` and can be found here [Macro
 | **Attribute** | **Type** | **Values** | **Default** | **Description** |
 |:--------------| :------: | :------: | :------: |:-------|
 | **id** | `String` | `String` | Required | Unique identifier for the node. E.g. "elec\_node\_1". |
-| **type** | `String` | Any Macro commodity type | Required | Commodity type. E.g. "Electricity".|
-| **time_interval** | `String` | Any Macro commodity type | Required | Time resolution for the time series data linked to the node. E.g. "Electricity".|
-| **constraints** | `Dict{String,Bool}` | Any Macro constraint type | Empty | List of constraints applied to the node. E.g. `{"BalanceConstraint": true, "MaxNonServedDemandConstraint": true}`.|
+| **type** | `String` | Any MACRO commodity type | Required | Commodity type. E.g. "Electricity".|
+| **time_interval** | `String` | Any MACRO commodity type | Required | Time resolution for the time series data linked to the node. E.g. "Electricity".|
+| **constraints** | `Dict{String,Bool}` | Any MACRO constraint type | Empty | List of constraints applied to the node. E.g. `{"BalanceConstraint": true, "MaxNonServedDemandConstraint": true}`.|
 | **demand** | `Dict` | Demand file path and header | Empty | Path to the demand file and column name for the demand time series to link to the node. E.g. `{"timeseries": {"path": "system/demand.csv", "header": "Demand_MW_z1"}}`.|
 | **price** | `Dict` | Price file path and header | Empty | Path to the price file and column name for the price time series to link to the node. E.g. `{"timeseries": {"path": "system/fuel_prices.csv", "header": "natgas_SE"}}`.|
 | **max_nsd** | `Vector{Float64}` | Vector of numbers $\in$ [0,1] | [0.0] | Maximum allowed non-served demand for each demand segment as a fraction of the total demand. E.g. `[1.0]` for a single segment. |
 | **price_nsd** | `Vector{Float64}` | Vector of numbers | [0.0] | Price/penalty for non-served demand by segment. E.g. `[5000.0]` for a single segment. |
 | **price_supply** | `Vector{Float64}` | Vector of numbers | [0.0] | Piecewise linear price for supply curves. E.g. `[0.0, 100.0, 200.0]`. |
 | **max_supply** | `Vector{Float64}` | Vector of numbers | [0.0] | Maximum allowed supply for each supply segment. E.g. `[1000.0]` for a single segment. |
-| **rhs\_policy** | `Dict{DataType,Float64}` | Dict of Macro constraint types and numbers | Empty | Right hand side of the policy constraints. E.g. `{"CO2CapConstraint": 200}`, carbon price of 200 USD/ton. |
-| **price\_unmet\_policy** | `Dict{DataType,Float64}` | Dict of Macro policy types and numbers | Empty | Price/penalty for unmet policy constraints. |
+| **rhs\_policy** | `Dict{DataType,Float64}` | Dict of MACRO constraint types and numbers | Empty | Right hand side of the policy constraints. E.g. `{"CO2CapConstraint": 200}`, carbon price of 200 USD/ton. |
+| **price\_unmet\_policy** | `Dict{DataType,Float64}` | Dict of MACRO policy types and numbers | Empty | Price/penalty for unmet policy constraints. |
 
 Here is an example of a `nodes.json` file with both electricity, natural gas, CO2 and biomass sectors covering most of the attributes present above. The (multiplex)-network in the system is made of the following networks:
 - NaturalGas

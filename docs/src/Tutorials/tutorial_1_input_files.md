@@ -1,13 +1,13 @@
 
-# Macro input files
+# MACRO input files
 
-To configure a Macro case, the user needs to provide a set of input files describing at least the following components:
+To configure a MACRO case, the user needs to provide a set of input files describing at least the following components:
 - **System configuration**
 - **Assets/technologies**
 - **Model settings**
 
 !!! warning "Remove comments from JSON files"
-    The comments in the JSON files below are only for the user's reference and should be removed before using them as input for a Macro case.
+    The comments in the JSON files below are only for the user's reference and should be removed before using them as input for a MACRO case.
 
 ## System configuration
 
@@ -57,7 +57,7 @@ For example, the following is a complete example of the `time_data.json` file:
 In the example above, the simulation will run for 8760 hours (one year), with one hour per time step and one hour per subperiod for each commodity (single subperiod).
 
 ### Units
-In Macro, everything that is transformed into electricity is expressed in MWh, and all the other commodities are expressed in metric tons:
+In MACRO, everything that is transformed into electricity is expressed in MWh, and all the other commodities are expressed in metric tons:
 - **Time**: hours
 - **Electricity**: MWh
 - **NaturalGas**: MWh
@@ -169,7 +169,7 @@ first(demand_data, 10)
 ```
 
 #### Constraints
-One of the main features of Macro is the ability to include constraints on the system from a pre-defined library of constraints. To include a constraint to a node, the user needs to add the constraint name to the `constraints` dictionary in the node's `global_data` or `instance_data` field.
+One of the main features of MACRO is the ability to include constraints on the system from a pre-defined library of constraints. To include a constraint to a node, the user needs to add the constraint name to the `constraints` dictionary in the node's `global_data` or `instance_data` field.
 
 For example, to include the `BalanceConstraint` to the node `elec_SE`, the user needs to add the following to the `nodes.json` file:
 ```json
@@ -190,7 +190,7 @@ Another example is the `MaxNonServedDemandConstraint`, which limits the maximum 
 ```
 This will add the `MaxNonServedDemandConstraint` and the `MaxNonServedDemandPerSegmentConstraint` to the node `elec_SE` with a maximum non-served demand equal to the demand in each period, and a price of 5000.0 \$/MWh for the unmet demand ("max_nds" is the fraction of the demand that can be unmet). 
 
-A complete list of the constraints available in Macro can be found in the [Macro Constraint Library](@ref) section.
+A complete list of the constraints available in MACRO can be found in the [MACRO Constraint Library](@ref) section.
 
 Therefore, a complete example of the `nodes.json` file for the electricity system is the following:
 ```json
@@ -280,7 +280,7 @@ Each asset or technology is defined in a separate file, and all files share a si
 
 Similarly to the nodes, all the fields defined in the `global_data` will be shared by all the instances of the asset/technology, and the fields defined in `instance_data` can be different for each instance.
 
-**Note:** To understand the structure of the attributes in both `global_data` and `instance_data`, the user can refer to the asset definitions in the [Macro Asset Library](@ref) section. 
+**Note:** To understand the structure of the attributes in both `global_data` and `instance_data`, the user can refer to the asset definitions in the [MACRO Asset Library](@ref) section. 
 
 To familiarize with the structure of the asset/technology input files, let's now see an example of a **system** with:
 - a natural gas power plant, 
@@ -294,7 +294,7 @@ To familiarize with the structure of the asset/technology input files, let's now
 The type that defines the natural gas power plant is `ThermalPower` and can be found in `src/model/assets/thermalpower.jl`. 
 Here is a schematic representation of the type:
 
-![ThermalPower](../images/natgas.png)
+![ThermalPower](../images/thermalpower.png)
 
 As expected, a natural gas power plant is made of the followning components:
 - **ng → elec transformation**: a transformation object that defines the conversion of the fuel to electricity
@@ -437,7 +437,7 @@ For example, the following is a complete example of the `naturalgas_power.json` 
 ```
 
 !!! error "Remove comments from JSON files"
-    The comments in the JSON file above are only for the user's reference and should be removed before using them as input for a Macro case.
+    The comments in the JSON file above are only for the user's reference and should be removed before using them as input for a MACRO case.
 
 ### Solar photovoltaic pannel and wind turbine
 Since the solar photovoltaic pannel and the wind turbine are very similar, the type that defines them is called `Vre` and can be found in `src/model/assets/vre.jl`. 
@@ -556,8 +556,8 @@ p = Plots.plot(availability_data[:,1], availability_data[:,2], label="Solar PV",
 Plots.plot!(p, availability_data[:,1], availability_data[:,3], label="Wind")
 ```
 
-### Battery
-Finally, let's see how storage technologies are defined in Macro and how to include them in the system.
+### Battery (Electricity)
+Finally, let's see how storage technologies are defined in MACRO and how to include them in the system.
 
 A battery is defined by the following components:
 - `battery_storage`
@@ -649,7 +649,7 @@ This folder contains the `macro_settings.json` file, which is used to set the mo
 - `ScalingFactor = true/false`: if true, the model will scale the input data to the following units: MWh → GWh, tons → ktons, \$\/MWh → M\$\/GWh, \$\/ton → M\$\/kton
 
 ## Summary
-In this tutorial, we have seen how to define a system in Macro by providing the input files in the `system` and `assets` folders. 
+In this tutorial, we have seen how to define a system in MACRO by providing the input files in the `system` and `assets` folders. 
 - Almost all the files except for time series data are JSON files, which allow for a high degree of customization of the system. 
 - Time series data are provided in CSV files, where the first column is the time step and the following columns are the time series for each node/asset.
 - Both nodes and assets have a similar structure:
@@ -660,6 +660,6 @@ In this tutorial, we have seen how to define a system in Macro by providing the 
   which allows to define multiple instances of the same node/asset type while sharing common settings through the `global_data` field.
 - Each asset is defined by a set of edges, transformations, and storage objects, which are defined in the `edges`, `transforms`, and `storage` fields respectively.
 - All the fields in the `global_data` and `instance_data` fields can be customized, and the complete list of fields that can be included in each of the fields `transforms`, `edges`, and `storage` can be found in the definition of the `Edge`, `Transformation`, and `Storage` types in the `Macro.Edge`(@ref), `Macro.Transformation`(@ref), and `Macro.Storage`(@ref) files.
-- All the constraints available in Macro can be found in the [Macro Constraint Library](@ref) section.
-- All the assets available in Macro can be found in the [Macro Asset Library](@ref) section, where each file contains the definition of the asset type. 
+- All the constraints available in MACRO can be found in the [MACRO Constraint Library](@ref) section.
+- All the assets available in MACRO can be found in the [MACRO Asset Library](@ref) section, where each file contains the definition of the asset type. 
 
