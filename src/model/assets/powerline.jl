@@ -21,7 +21,7 @@ function make(::Type{<:PowerLine}, data::AbstractDict{Symbol,Any}, system::Syste
     )
     elec_edge.constraints = get(elec_edge_data, :constraints, [CapacityConstraint()])
 
-    elec_edge.loss_fraction = get(elec_edge_data,:line_loss_percentage,0.0)
+    elec_edge.loss_fraction = get(elec_edge_data,:loss_fraction,0.0)
 
     return PowerLine(id, elec_edge)
 end

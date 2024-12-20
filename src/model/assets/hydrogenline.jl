@@ -21,7 +21,7 @@ function make(::Type{<:HydrogenLine}, data::AbstractDict{Symbol,Any}, system::Sy
     )
     h2_edge.constraints = get(h2_edge_data, :constraints, [CapacityConstraint()])
 
-    h2_edge.loss_fraction = get(h2_edge_data,:line_loss_percentage,0.0)
+    h2_edge.loss_fraction = get(h2_edge_data,:loss_fraction,0.0)
 
     return HydrogenLine(id, h2_edge)
 end

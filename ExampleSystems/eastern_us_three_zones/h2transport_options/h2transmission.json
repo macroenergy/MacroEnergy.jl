@@ -24,7 +24,7 @@
                         "h2_edge": {
                             "start_vertex": "h2_SE",
                             "end_vertex": "h2_MIDAT",
-                            "line_loss_percentage": 0.067724471,
+                            "loss_fraction": 0.067724471,
                             "distance":491.4512001,
                             "capacity_size": 787.6,
                             "investment_cost": 82682.23402
@@ -37,7 +37,7 @@
                         "h2_edge": {
                             "start_vertex": "h2_NE",
                             "end_vertex": "h2_SE",
-                            "line_loss_percentage": 0.06553874,
+                            "loss_fraction": 0.06553874,
                             "distance":473.6625536,
                             "capacity_size": 787.6,
                             "investment_cost": 79896.9841
