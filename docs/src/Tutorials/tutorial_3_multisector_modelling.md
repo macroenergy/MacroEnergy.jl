@@ -119,9 +119,9 @@ The definition of the new Hydrogen node in `one_zone_multisector/system/nodes.js
     },
 ```
 
-Next, add an electrolyzer asset represented in Macro as a transformation connecting electricity and hydrogen nodes:
+Next, add an electrolyzer asset represented in MACRO as a transformation connecting electricity and hydrogen nodes:
 
-![electrolyzer](../images/electrolyzer_asset.png)
+![electrolyzer](../images/electrolyzer.png)
 
 To include the electrolyzer, create a file `one_zone_multisector/assets/electrolyzer.json` based on the asset definition in `src/model/assets/electrolyzer.jl`:
 

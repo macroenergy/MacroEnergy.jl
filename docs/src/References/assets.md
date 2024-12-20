@@ -1,36 +1,36 @@
-# Macro Asset Library Reference
+# MACRO Asset Library Reference
 
-## VRE
+## VRE (make function)
 ```@autodocs
 Modules = [Macro]
 Pages = ["vre.jl"]
 ```
 
-## Battery
+## Battery (make function)
 ```@autodocs
 Modules = [Macro]
 Pages = ["battery.jl"]
 ```
 
-## Electrolyzer
+## Electrolyzer (make function)
 ```@autodocs
 Modules = [Macro]
 Pages = ["electrolyzer.jl"]
 ```
 
-## ThermalHydrogen
+## ThermalHydrogen (make function)
 ```@autodocs
 Modules = [Macro]
 Pages = ["thermalhydrogen.jl"]
 ```
 
-## ThermalHydrogenCCS
+## ThermalHydrogenCCS (make function)
 ```@autodocs
 Modules = [Macro]
 Pages = ["thermalhydrogenccs.jl"]
 ```
 
-## FuelCell
+## FuelCell (make function)
 ```@autodocs
 Modules = [Macro]
 Pages = ["fuelcell.jl"]

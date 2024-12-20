@@ -1,9 +1,9 @@
 # Modeler Guide
 
-## How to build new sectors in Macro
+## How to build new sectors in MACRO
 
 ### Overview
-The steps to build a sector in Macro are as follows:
+The steps to build a sector in MACRO are as follows:
 
 1. Create new sectors/commodity types by defining new subtypes of `Commodity` in the `MacroEnergy.jl` file.
 
@@ -22,7 +22,7 @@ During the creation of the assets, you will need to provide (check the following
     <li>(Optional) Create a new JSON data file to test the new assets.</li>
 </ol>
 ```
-The following section provides an example of how to create a new sector and assets in Macro.
+The following section provides an example of how to create a new sector and assets in MACRO.
 
 ### Example
 For example, let's create a new sector called `MyNewSector` with two assets: `MyAsset1`, and `MyAsset2`. 
@@ -39,6 +39,7 @@ abstract type MyNewSector <: Commodity end
 - Create a new file called `MyAsset1.jl` in the `src/assets` folder with the following content:
 
 ```julia
+# Structure of the asset
 struct MyAsset1 <: AbstractAsset
     id::AssetId
     myasset1_transform::Transformation
@@ -47,6 +48,9 @@ struct MyAsset1 <: AbstractAsset
     co2_edge::Edge{CO2}
 end
 
+# Make function to create an instance of the asset
+# The function takes as input the data and the system, and returns an instance of the asset
+# The data is a dictionary with the asset data, and the system is the system object containing the locations, time data, and other relevant information
 function make(::Type{MyAsset1}, data::AbstractDict{Symbol,Any}, system::System)
 
     # asset id
