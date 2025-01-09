@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>How to build a sector · Macro</title><meta name="title" content="How to build a sector · Macro"/><meta property="og:title" content="How to build a sector · Macro"/><meta property="twitter:title" content="How to build a sector · Macro"/><meta name="description" content="Documentation for Macro."/><meta property="og:description" content="Documentation for Macro."/><meta property="twitter:description" content="Documentation for Macro."/><script data-outdated-warner src="assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="assets/documenter.js"></script><script src="search_index.js"></script><script src="siteinfo.js"></script><script src="../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="index.html">Macro</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="index.html">Home</a></li><li><a class="tocitem" href="installation.html">Installation</a></li><li><span class="tocitem">Macro Components</span><ul><li><a class="tocitem" href="sectors.html">Sectors</a></li><li><a class="tocitem" href="assets.html">Assets</a></li><li><a class="tocitem" href="constraints.html">Constraints</a></li></ul></li><li><span class="tocitem">Modeling with Macro</span><ul><li class="is-active"><a class="tocitem" href="build_sectors.html">How to build a sector</a><ul class="internal"><li><a class="tocitem" href="#Overview"><span>Overview</span></a></li><li><a class="tocitem" href="#Example"><span>Example</span></a></li></ul></li><li><a class="tocitem" href="create_example_case.html">How to create an example case</a></li></ul></li><li><span class="tocitem">Developer docs</span><ul><li><a class="tocitem" href="type_hierarchy.html">Type hierarchy</a></li><li><a class="tocitem" href="data_model.html">Data model</a></li></ul></li><li><a class="tocitem" href="references.html">References</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Modeling with Macro</a></li><li class="is-active"><a href="build_sectors.html">How to build a sector</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href="build_sectors.html">How to build a sector</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/macroenergy/Macro" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/macroenergy/Macro/blob/main/docs/src/build_sectors.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="How-to-build-new-sectors-in-Macro"><a class="docs-heading-anchor" href="#How-to-build-new-sectors-in-Macro">How to build new sectors in Macro</a><a id="How-to-build-new-sectors-in-Macro-1"></a><a class="docs-heading-anchor-permalink" href="#How-to-build-new-sectors-in-Macro" title="Permalink"></a></h1><h2 id="Overview"><a class="docs-heading-anchor" href="#Overview">Overview</a><a id="Overview-1"></a><a class="docs-heading-anchor-permalink" href="#Overview" title="Permalink"></a></h2><p>The steps to build a sector in Macro are as follows:</p><ol><li><p>Create new sectors/commodity types by defining new subtypes of <code>Commodity</code> in the <code>Macro.jl</code> file.</p></li><li><p>Create new assets. Each asset type should be a subtype of <code>AbstractAsset</code> and be defined in a Julia (<code>.jl</code>) file located in the <code>src/assets</code> folder. A <code>make</code> function should be defined for each asset type to create an instance of the asset.</p></li></ol><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>Remember to include the new files in the <code>Macro.jl</code> file, so that they are available when the package is loaded.</p></div></div><p>During the creation of the assets, you will need to provide (check the following sections for an example):</p><ol><li><strong>Asset structure</strong>: list of fields that define the asset in the form of transformations, edges, and storage units.</li><li><strong>Default constraints</strong> for the transformations, edges, and storage units.</li><li><strong>Stoichiometric equations/coefficients</strong> for the transformation processes.</li></ol><ol start="4">
+    <li>(Optional) Create a new JSON data file to test the new assets.</li>
+</ol><p>The following section provides an example of how to create a new sector and assets in Macro.</p><h2 id="Example"><a class="docs-heading-anchor" href="#Example">Example</a><a id="Example-1"></a><a class="docs-heading-anchor-permalink" href="#Example" title="Permalink"></a></h2><p>For example, let&#39;s create a new sector called <code>MyNewSector</code> with two assets: <code>MyAsset1</code>, and <code>MyAsset2</code>. </p><p>The first asset will be a technology that converts a commodity <code>MyNewSector</code>, into two other commodities, <code>Electricity</code> and <code>CO2</code>, while the second asset will be a technology with a <code>storage unit</code> that stores the commodity <code>MyNewSector</code>.</p><p>As seen in the previous section, the steps to create a new sector and assets are as follows:</p><ul><li>Add the following line to the Macro.jl file:</li></ul><pre><code class="language-julia hljs">abstract type MyNewSector &lt;: Commodity end</code></pre><p>(try to add this line right after the definition of the <code>Commodity</code> type). </p><ul><li>Create a new file called <code>MyAsset1.jl</code> in the <code>src/assets</code> folder with the following content:</li></ul><pre><code class="language-julia hljs">struct MyAsset1 &lt;: AbstractAsset
+    id::AssetId
+    myasset1_transform::Transformation
+    mynewsector_edge::Edge{MyNewSector}
+    e_edge::Edge{Electricity}
+    co2_edge::Edge{CO2}
+end
+
+function make(::Type{MyAsset1}, data::AbstractDict{Symbol,Any}, system::System)
+
+    # asset id
+    id = AssetId(data[:id])
+
+    # transformation
+    transform_data = process_data(data[:transforms])
+    myasset1_transform_default_constraints = [BalanceConstraint()]
+    myasset1_transform = Transformation(;
+        id = Symbol(transform_data[:id]),
+        timedata = system.time_data[Symbol(transform_data[:timedata])],
+        constraints = get(transform_data, :constraints, myasset1_transform_default_constraints),
+    )
+
+    # edges
+    mynewsector_edge_data = process_data(data[:edges][:mynewsector_edge])
+    mynewsector_edge_default_constraints = Vector{AbstractTypeConstraint}()
+    mynewsector_start_node = find_node(system.locations, Symbol(mynewsector_edge_data[:start_vertex]))
+    mynewsector_end_node = myasset1_transform
+    mynewsector_edge = Edge(
+        Symbol(String(id) * &quot;_&quot; * mynewsector_edge_data[:id]),
+        mynewsector_edge_data,
+        system.time_data[:MyNewSector],
+        MyNewSector,
+        mynewsector_start_node,
+        mynewsector_end_node,
+    )
+    mynewsector_edge.constraints = get(mynewsector_edge_data, :constraints, mynewsector_edge_default_constraints)
+    mynewsector_edge.unidirectional = get(mynewsector_edge_data, :unidirectional, true)
+
+    elec_edge_data = process_data(data[:edges][:e_edge])
+    elec_start_node = myasset1_transform
+    elec_end_node = find_node(system.locations, Symbol(elec_edge_data[:end_vertex]))
+    elec_edge = EdgeWithUC(
+        Symbol(String(id) * &quot;_&quot; * elec_edge_data[:id]),
+        elec_edge_data,
+        system.time_data[:Electricity],
+        Electricity,
+        elec_start_node,
+        elec_end_node,
+    )
+    elec_edge.constraints = get(
+        elec_edge_data,
+        :constraints,
+        [
+            CapacityConstraint(),
+            RampingLimitConstraint(),
+            MinUpTimeConstraint(),
+            MinDownTimeConstraint(),
+        ],
+    )
+    elec_edge.unidirectional = get(elec_edge_data, :unidirectional, true)
+    elec_edge.startup_fuel_balance_id = :energy
+
+    co2_edge_data = process_data(data[:edges][:co2_edge])
+    co2_start_node = myasset1_transform
+    co2_end_node = find_node(system.locations, Symbol(co2_edge_data[:end_vertex]))
+    co2_edge = Edge(
+        Symbol(String(id) * &quot;_&quot; * co2_edge_data[:id]),
+        co2_edge_data,
+        system.time_data[:CO2],
+        CO2,
+        co2_start_node,
+        co2_end_node,
+    )
+    co2_edge.constraints =
+        get(co2_edge_data, :constraints, Vector{AbstractTypeConstraint}())
+    co2_edge.unidirectional = get(co2_edge_data, :unidirectional, true)
+
+    myasset1_transform.balance_data = Dict(
+        # Edit this part to include the stoichiometric equations for the transformation process 
+        ),
+    )
+
+    return MyAsset1(id, myasset1_transform, mynewsector_edge, elec_edge, co2_edge)
+end</code></pre><p>From the code above, you can see that the modeler needs to provide the asset structure as a Julia <code>struct</code>, along with the default constraints for transformations and edges (<code>myasset1_transform_default_constraints</code>, <code>mynewsector_edge_default_constraints</code>), and the stoichiometric coefficients for the transformation process being modeled (<code>myasset1_transform.balance_data</code>).</p><div class="admonition is-success"><header class="admonition-header">Tip</header><div class="admonition-body"><p>Checking out other asset files in the <code>src/assets</code> folder is a good place to start adding new assets. </p></div></div><p>The creation of the second asset, <code>MyAsset2</code>, follows very similar steps to the creation of <code>MyAsset1</code>. The main difference is that <code>MyAsset2</code> has a storage unit:</p><pre><code class="language-julia hljs">struct MyAsset2 &lt;: AbstractAsset
+    id::AssetId
+    myasset2_storage::Storage{MyNewSector}  # &lt;--- Storage unit
+    discharge_edge::Edge{MyNewSector}
+    charge_edge::Edge{MyNewSector}
+end
+
+function make(::Type{MyAsset2}, data::AbstractDict{Symbol,Any}, system::System)
+
+    # asset id
+    id = AssetId(data[:id])
+
+    # storage
+    storage_data = process_data(data[:storage])
+    myasset2_storage_default_constraints = [
+            BalanceConstraint(),
+            StorageCapacityConstraint(),
+            StorageMaxDurationConstraint(),
+            StorageMinDurationConstraint(),
+            StorageSymmetricCapacityConstraint(),
+        ]
+    myasset2_storage = Storage(id, 
+        storage_data, 
+        system.time_data[Symbol(storage_data[:commodity])], 
+        MyNewSector, 
+        myasset2_storage_default_constraints
+    )
+
+    # edges
+    discharge_edge_data = process_data(data[:edges][:discharge_edge])
+    discharge_edge_default_constraints = [CapacityConstraint()]
+    discharge_start_node = myasset2_storage
+    discharge_end_node = find_node(system.locations, Symbol(discharge_edge_data[:end_vertex]))
+    discharge_edge = Edge(
+        Symbol(String(id) * &quot;_&quot; * discharge_edge_data[:id]),
+        discharge_edge_data,
+        system.time_data[:MyNewSector],
+        MyNewSector,
+        discharge_start_node,
+        discharge_end_node,
+    )
+    discharge_edge.constraints = get(discharge_edge_data, :constraints, discharge_edge_default_constraints)
+    discharge_edge.unidirectional = get(discharge_edge_data, :unidirectional, true)
+
+    charge_edge_data = process_data(data[:edges][:charge_edge])
+    charge_start_node = find_node(system.locations, Symbol(charge_edge_data[:start_vertex]))
+    charge_end_node = myasset2_storage
+    charge_edge = Edge(
+        Symbol(String(id) * &quot;_&quot; * charge_edge_data[:id]),
+        charge_edge_data,
+        system.time_data[:MyNewSector],
+        MyNewSector,
+        charge_start_node,
+        charge_end_node,
+    )
+    charge_edge.constraints = get(charge_edge_data, :constraints, Vector{AbstractTypeConstraint}())
+    charge_edge.unidirectional = get(charge_edge_data, :unidirectional, true)
+
+    myasset2_storage.discharge_edge = discharge_edge
+    myasset2_storage.charge_edge = charge_edge
+
+    myasset2_storage.balance_data = Dict(
+        # Edit this part to include the energy efficiency of the storage unit or any other stoiometric equations
+        ),
+    )
+
+    return MyAsset2(id, myasset2_storage, discharge_edge, charge_edge)
+end</code></pre></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="constraints.html">« Constraints</a><a class="docs-footer-nextpage" href="create_example_case.html">How to create an example case »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.8.0 on <span class="colophon-date" title="Thursday 9 January 2025 17:15">Thursday 9 January 2025</span>. Using Julia version 1.11.2.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
