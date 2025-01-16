@@ -62,6 +62,7 @@ Storage(id::Symbol, data::Dict{Symbol,Any}, time_data::TimeData, commodity::Data
 all_constraints(g::AbstractStorage) = g.constraints;
 capacity_storage(g::AbstractStorage) = g.capacity_storage;
 charge_edge(g::AbstractStorage) = g.charge_edge;
+charge_discharge_ratio(g::AbstractStorage) = g.charge_discharge_ratio;
 commodity_type(g::AbstractStorage{T}) where {T} = T;
 discharge_edge(g::AbstractStorage) = g.discharge_edge;
 existing_capacity_storage(g::AbstractStorage) = g.existing_capacity_storage;
@@ -178,6 +179,7 @@ function make_long_duration_storage(
         timedata = time_data,
         can_retire = get(data, :can_retire, false),
         can_expand = get(data, :can_expand, false),
+        charge_discharge_ratio = get(data, :charge_discharge_ratio, false),
         existing_capacity_storage = get(data, :existing_capacity_storage, 0.0),
         investment_cost_storage = get(data, :investment_cost_storage, 0.0),
         fixed_om_cost_storage = get(data, :fixed_om_cost_storage, 0.0),

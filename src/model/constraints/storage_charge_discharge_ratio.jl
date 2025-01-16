@@ -6,7 +6,7 @@ end
 
 function add_model_constraint!(
     ct::StorageChargeDischargeRatioConstraint,
-    g::Storage,
+    g::AbstractStorage,
     model::Model,
 )
 

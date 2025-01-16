@@ -4,7 +4,7 @@ Base.@kwdef mutable struct MinStorageOutflowConstraint <: OperationConstraint
     constraint_ref::Union{Missing,JuMPConstraint} = missing
 end
 
-function add_model_constraint!(ct::MinStorageOutflowConstraint, g::Storage, model::Model)
+function add_model_constraint!(ct::MinStorageOutflowConstraint, g::AbstractStorage, model::Model)
     discharge_edge = g.discharge_edge;
     spillage_edge = g.spillage_edge;
     
