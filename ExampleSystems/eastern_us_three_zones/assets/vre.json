@@ -33,7 +33,7 @@
                             "end_vertex": "elec_MIDAT",
                             "availability": {
                                 "timeseries": {
-                                    "path": "assets/availability.csv",
+                                    "path": "system/availability.csv",
                                     "header": "MIDAT_solar_photovoltaic_1"
                                 }
                             }
@@ -52,7 +52,7 @@
                             "end_vertex": "elec_SE",
                             "availability": {
                                 "timeseries": {
-                                    "path": "assets/availability.csv",
+                                    "path": "system/availability.csv",
                                     "header": "SE_solar_photovoltaic_1"
                                 }
                             }
@@ -71,7 +71,7 @@
                             "end_vertex": "elec_NE",
                             "availability": {
                                 "timeseries": {
-                                    "path": "assets/availability.csv",
+                                    "path": "system/availability.csv",
                                     "header": "NE_solar_photovoltaic_1"
                                 }
                             }
@@ -90,7 +90,7 @@
                             "end_vertex": "elec_NE",
                             "availability": {
                                 "timeseries": {
-                                    "path": "assets/availability.csv",
+                                    "path": "system/availability.csv",
                                     "header": "NE_onshore_wind_turbine_1"
                                 }
                             }
@@ -109,7 +109,7 @@
                             "end_vertex": "elec_MIDAT",
                             "availability": {
                                 "timeseries": {
-                                    "path": "assets/availability.csv",
+                                    "path": "system/availability.csv",
                                     "header": "MIDAT_onshore_wind_turbine_1"
                                 }
                             }
@@ -155,7 +155,7 @@
                             "end_vertex": "elec_NE",
                             "availability": {
                                 "timeseries": {
-                                    "path": "assets/availability.csv",
+                                    "path": "system/availability.csv",
                                     "header": "NE_offshorewind_class10_moderate_floating_1_1"
                                 }
                             }
@@ -174,7 +174,7 @@
                             "end_vertex": "elec_SE",
                             "availability": {
                                 "timeseries": {
-                                    "path": "assets/availability.csv",
+                                    "path": "system/availability.csv",
                                     "header": "SE_utilitypv_class1_moderate_70_0_2_1"
                                 }
                             }
@@ -193,7 +193,7 @@
                             "end_vertex": "elec_SE",
                             "availability": {
                                 "timeseries": {
-                                    "path": "assets/availability.csv",
+                                    "path": "system/availability.csv",
                                     "header": "SE_utilitypv_class1_moderate_70_0_2_2"
                                 }
                             }
@@ -212,7 +212,7 @@
                             "end_vertex": "elec_SE",
                             "availability": {
                                 "timeseries": {
-                                    "path": "assets/availability.csv",
+                                    "path": "system/availability.csv",
                                     "header": "SE_utilitypv_class1_moderate_70_0_2_3"
                                 }
                             }
@@ -231,7 +231,7 @@
                             "end_vertex": "elec_SE",
                             "availability": {
                                 "timeseries": {
-                                    "path": "assets/availability.csv",
+                                    "path": "system/availability.csv",
                                     "header": "SE_utilitypv_class1_moderate_70_0_2_4"
                                 }
                             }
@@ -250,7 +250,7 @@
                             "end_vertex": "elec_SE",
                             "availability": {
                                 "timeseries": {
-                                    "path": "assets/availability.csv",
+                                    "path": "system/availability.csv",
                                     "header": "SE_utilitypv_class1_moderate_70_0_2_5"
                                 }
                             }
@@ -269,7 +269,7 @@
                             "end_vertex": "elec_SE",
                             "availability": {
                                 "timeseries": {
-                                    "path": "assets/availability.csv",
+                                    "path": "system/availability.csv",
                                     "header": "SE_utilitypv_class1_moderate_70_0_2_6"
                                 }
                             }
@@ -288,7 +288,7 @@
                             "end_vertex": "elec_SE",
                             "availability": {
                                 "timeseries": {
-                                    "path": "assets/availability.csv",
+                                    "path": "system/availability.csv",
                                     "header": "SE_utilitypv_class1_moderate_70_0_2_7"
                                 }
                             }
@@ -307,7 +307,7 @@
                             "end_vertex": "elec_SE",
                             "availability": {
                                 "timeseries": {
-                                    "path": "assets/availability.csv",
+                                    "path": "system/availability.csv",
                                     "header": "SE_utilitypv_class1_moderate_70_0_2_8"
                                 }
                             }
@@ -326,7 +326,7 @@
                             "end_vertex": "elec_MIDAT",
                             "availability": {
                                 "timeseries": {
-                                    "path": "assets/availability.csv",
+                                    "path": "system/availability.csv",
                                     "header": "MIDAT_utilitypv_class1_moderate_70_0_2_1"
                                 }
                             }
@@ -345,7 +345,7 @@
                             "end_vertex": "elec_MIDAT",
                             "availability": {
                                 "timeseries": {
-                                    "path": "assets/availability.csv",
+                                    "path": "system/availability.csv",
                                     "header": "MIDAT_utilitypv_class1_moderate_70_0_2_2"
                                 }
                             }
@@ -364,7 +364,7 @@
                             "end_vertex": "elec_MIDAT",
                             "availability": {
                                 "timeseries": {
-                                    "path": "assets/availability.csv",
+                                    "path": "system/availability.csv",
                                     "header": "MIDAT_utilitypv_class1_moderate_70_0_2_3"
                                 }
                             }
@@ -383,7 +383,7 @@
                             "end_vertex": "elec_MIDAT",
                             "availability": {
                                 "timeseries": {
-                                    "path": "assets/availability.csv",
+                                    "path": "system/availability.csv",
                                     "header": "MIDAT_utilitypv_class1_moderate_70_0_2_4"
                                 }
                             }
@@ -402,7 +402,7 @@
                             "end_vertex": "elec_MIDAT",
                             "availability": {
                                 "timeseries": {
-                                    "path": "assets/availability.csv",
+                                    "path": "system/availability.csv",
                                     "header": "MIDAT_utilitypv_class1_moderate_70_0_2_5"
                                 }
                             }
@@ -421,7 +421,7 @@
                             "end_vertex": "elec_MIDAT",
                             "availability": {
                                 "timeseries": {
-                                    "path": "assets/availability.csv",
+                                    "path": "system/availability.csv",
                                     "header": "MIDAT_utilitypv_class1_moderate_70_0_2_6"
                                 }
                             }
@@ -440,7 +440,7 @@
                             "end_vertex": "elec_MIDAT",
                             "availability": {
                                 "timeseries": {
-                                    "path": "assets/availability.csv",
+                                    "path": "system/availability.csv",
                                     "header": "MIDAT_utilitypv_class1_moderate_70_0_2_7"
                                 }
                             }
@@ -459,7 +459,7 @@
                             "end_vertex": "elec_NE",
                             "availability": {
                                 "timeseries": {
-                                    "path": "assets/availability.csv",
+                                    "path": "system/availability.csv",
                                     "header": "NE_utilitypv_class1_moderate_70_0_2_1"
                                 }
                             }
@@ -478,7 +478,7 @@
                             "end_vertex": "elec_NE",
                             "availability": {
                                 "timeseries": {
-                                    "path": "assets/availability.csv",
+                                    "path": "system/availability.csv",
                                     "header": "NE_utilitypv_class1_moderate_70_0_2_2"
                                 }
                             }
@@ -497,7 +497,7 @@
                             "end_vertex": "elec_NE",
                             "availability": {
                                 "timeseries": {
-                                    "path": "assets/availability.csv",
+                                    "path": "system/availability.csv",
                                     "header": "NE_utilitypv_class1_moderate_70_0_2_3"
                                 }
                             }
@@ -516,7 +516,7 @@
                             "end_vertex": "elec_NE",
                             "availability": {
                                 "timeseries": {
-                                    "path": "assets/availability.csv",
+                                    "path": "system/availability.csv",
                                     "header": "NE_utilitypv_class1_moderate_70_0_2_4"
                                 }
                             }
@@ -535,7 +535,7 @@
                             "end_vertex": "elec_NE",
                             "availability": {
                                 "timeseries": {
-                                    "path": "assets/availability.csv",
+                                    "path": "system/availability.csv",
                                     "header": "NE_utilitypv_class1_moderate_70_0_2_5"
                                 }
                             }
@@ -554,7 +554,7 @@
                             "end_vertex": "elec_NE",
                             "availability": {
                                 "timeseries": {
-                                    "path": "assets/availability.csv",
+                                    "path": "system/availability.csv",
                                     "header": "NE_utilitypv_class1_moderate_70_0_2_6"
                                 }
                             }
@@ -573,7 +573,7 @@
                             "end_vertex": "elec_NE",
                             "availability": {
                                 "timeseries": {
-                                    "path": "assets/availability.csv",
+                                    "path": "system/availability.csv",
                                     "header": "NE_utilitypv_class1_moderate_70_0_2_7"
                                 }
                             }
@@ -592,7 +592,7 @@
                             "end_vertex": "elec_SE",
                             "availability": {
                                 "timeseries": {
-                                    "path": "assets/availability.csv",
+                                    "path": "system/availability.csv",
                                     "header": "SE_landbasedwind_class4_moderate_70_1"
                                 }
                             }
@@ -611,7 +611,7 @@
                             "end_vertex": "elec_SE",
                             "availability": {
                                 "timeseries": {
-                                    "path": "assets/availability.csv",
+                                    "path": "system/availability.csv",
                                     "header": "SE_landbasedwind_class4_moderate_70_2"
                                 }
                             }
@@ -630,7 +630,7 @@
                             "end_vertex": "elec_SE",
                             "availability": {
                                 "timeseries": {
-                                    "path": "assets/availability.csv",
+                                    "path": "system/availability.csv",
                                     "header": "SE_landbasedwind_class4_moderate_70_3"
                                 }
                             }
@@ -649,7 +649,7 @@
                             "end_vertex": "elec_SE",
                             "availability": {
                                 "timeseries": {
-                                    "path": "assets/availability.csv",
+                                    "path": "system/availability.csv",
                                     "header": "SE_landbasedwind_class4_moderate_70_4"
                                 }
                             }
@@ -668,7 +668,7 @@
                             "end_vertex": "elec_SE",
                             "availability": {
                                 "timeseries": {
-                                    "path": "assets/availability.csv",
+                                    "path": "system/availability.csv",
                                     "header": "SE_landbasedwind_class4_moderate_70_5"
                                 }
                             }
@@ -687,7 +687,7 @@
                             "end_vertex": "elec_SE",
                             "availability": {
                                 "timeseries": {
-                                    "path": "assets/availability.csv",
+                                    "path": "system/availability.csv",
                                     "header": "SE_landbasedwind_class4_moderate_70_6"
                                 }
                             }
@@ -706,7 +706,7 @@
                             "end_vertex": "elec_SE",
                             "availability": {
                                 "timeseries": {
-                                    "path": "assets/availability.csv",
+                                    "path": "system/availability.csv",
                                     "header": "SE_landbasedwind_class4_moderate_70_7"
                                 }
                             }
@@ -725,7 +725,7 @@
                             "end_vertex": "elec_SE",
                             "availability": {
                                 "timeseries": {
-                                    "path": "assets/availability.csv",
+                                    "path": "system/availability.csv",
                                     "header": "SE_landbasedwind_class4_moderate_70_8"
                                 }
                             }
@@ -744,7 +744,7 @@
                             "end_vertex": "elec_MIDAT",
                             "availability": {
                                 "timeseries": {
-                                    "path": "assets/availability.csv",
+                                    "path": "system/availability.csv",
                                     "header": "MIDAT_landbasedwind_class4_moderate_70_1"
                                 }
                             }
@@ -763,7 +763,7 @@
                             "end_vertex": "elec_MIDAT",
                             "availability": {
                                 "timeseries": {
-                                    "path": "assets/availability.csv",
+                                    "path": "system/availability.csv",
                                     "header": "MIDAT_landbasedwind_class4_moderate_70_2"
                                 }
                             }
@@ -782,7 +782,7 @@
                             "end_vertex": "elec_MIDAT",
                             "availability": {
                                 "timeseries": {
-                                    "path": "assets/availability.csv",
+                                    "path": "system/availability.csv",
                                     "header": "MIDAT_landbasedwind_class4_moderate_70_3"
                                 }
                             }
@@ -801,7 +801,7 @@
                             "end_vertex": "elec_MIDAT",
                             "availability": {
                                 "timeseries": {
-                                    "path": "assets/availability.csv",
+                                    "path": "system/availability.csv",
                                     "header": "MIDAT_landbasedwind_class4_moderate_70_4"
                                 }
                             }
@@ -820,7 +820,7 @@
                             "end_vertex": "elec_MIDAT",
                             "availability": {
                                 "timeseries": {
-                                    "path": "assets/availability.csv",
+                                    "path": "system/availability.csv",
                                     "header": "MIDAT_landbasedwind_class4_moderate_70_5"
                                 }
                             }
@@ -839,7 +839,7 @@
                             "end_vertex": "elec_MIDAT",
                             "availability": {
                                 "timeseries": {
-                                    "path": "assets/availability.csv",
+                                    "path": "system/availability.csv",
                                     "header": "MIDAT_landbasedwind_class4_moderate_70_6"
                                 }
                             }
@@ -858,7 +858,7 @@
                             "end_vertex": "elec_MIDAT",
                             "availability": {
                                 "timeseries": {
-                                    "path": "assets/availability.csv",
+                                    "path": "system/availability.csv",
                                     "header": "MIDAT_landbasedwind_class4_moderate_70_7"
                                 }
                             }
@@ -877,7 +877,7 @@
                             "end_vertex": "elec_NE",
                             "availability": {
                                 "timeseries": {
-                                    "path": "assets/availability.csv",
+                                    "path": "system/availability.csv",
                                     "header": "NE_landbasedwind_class4_moderate_70_1"
                                 }
                             }
@@ -896,7 +896,7 @@
                             "end_vertex": "elec_NE",
                             "availability": {
                                 "timeseries": {
-                                    "path": "assets/availability.csv",
+                                    "path": "system/availability.csv",
                                     "header": "NE_landbasedwind_class4_moderate_70_2"
                                 }
                             }
@@ -915,7 +915,7 @@
                             "end_vertex": "elec_NE",
                             "availability": {
                                 "timeseries": {
-                                    "path": "assets/availability.csv",
+                                    "path": "system/availability.csv",
                                     "header": "NE_landbasedwind_class4_moderate_70_3"
                                 }
                             }
@@ -934,7 +934,7 @@
                             "end_vertex": "elec_NE",
                             "availability": {
                                 "timeseries": {
-                                    "path": "assets/availability.csv",
+                                    "path": "system/availability.csv",
                                     "header": "NE_landbasedwind_class4_moderate_70_4"
                                 }
                             }
@@ -953,7 +953,7 @@
                             "end_vertex": "elec_NE",
                             "availability": {
                                 "timeseries": {
-                                    "path": "assets/availability.csv",
+                                    "path": "system/availability.csv",
                                     "header": "NE_landbasedwind_class4_moderate_70_5"
                                 }
                             }
@@ -972,7 +972,7 @@
                             "end_vertex": "elec_NE",
                             "availability": {
                                 "timeseries": {
-                                    "path": "assets/availability.csv",
+                                    "path": "system/availability.csv",
                                     "header": "NE_landbasedwind_class4_moderate_70_6"
                                 }
                             }
@@ -991,7 +991,7 @@
                             "end_vertex": "elec_NE",
                             "availability": {
                                 "timeseries": {
-                                    "path": "assets/availability.csv",
+                                    "path": "system/availability.csv",
                                     "header": "NE_landbasedwind_class4_moderate_70_7"
                                 }
                             }

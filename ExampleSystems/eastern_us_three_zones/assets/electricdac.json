@@ -47,7 +47,7 @@
                             "co2_edge": {
                                 "availability": {
                                 "timeseries": {
-                                    "path": "assets/availability.csv",
+                                    "path": "system/availability.csv",
                                     "header": "SE_Solvent_DAC"
                                     }
                                 },
@@ -73,7 +73,7 @@
                             "co2_edge": {
                                 "availability": {
                                 "timeseries": {
-                                    "path": "assets/availability.csv",
+                                    "path": "system/availability.csv",
                                     "header": "MIDAT_Solvent_DAC"
                                     }
                                 },
@@ -99,7 +99,7 @@
                             "co2_edge": {
                                 "availability": {
                                 "timeseries": {
-                                    "path": "assets/availability.csv",
+                                    "path": "system/availability.csv",
                                     "header": "NE_Solvent_DAC"
                                     }
                                 },

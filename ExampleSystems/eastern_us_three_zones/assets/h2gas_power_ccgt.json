@@ -51,7 +51,7 @@
                                 "end_vertex": "elec_SE",
                                 "availability": {
                                 "timeseries": {
-                                    "path": "assets/availability.csv",
+                                    "path": "system/availability.csv",
                                     "header": "SE_CCGT-H2"
                                     }
                                 },
@@ -84,7 +84,7 @@
                                 "end_vertex": "elec_MIDAT",
                                 "availability": {
                                 "timeseries": {
-                                    "path": "assets/availability.csv",
+                                    "path": "system/availability.csv",
                                     "header": "MIDAT_CCGT-H2"
                                     }
                                 },
@@ -117,7 +117,7 @@
                                 "end_vertex": "elec_NE",
                                 "availability": {
                                 "timeseries": {
-                                    "path": "assets/availability.csv",
+                                    "path": "system/availability.csv",
                                     "header": "NE_CCGT-H2"
                                     }
                                 },

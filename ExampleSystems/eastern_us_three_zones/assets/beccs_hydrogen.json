@@ -67,7 +67,7 @@
                             "start_vertex": "bioherb_SE",
                             "availability": {
                                 "timeseries": {
-                                    "path": "assets/availability.csv",
+                                    "path": "system/availability.csv",
                                     "header": "SE_BECCS_H2_Herb"
                                     }
                                 },
@@ -99,7 +99,7 @@
                             "start_vertex": "bioherb_MIDAT",
                             "availability": {
                                 "timeseries": {
-                                    "path": "assets/availability.csv",
+                                    "path": "system/availability.csv",
                                     "header": "MIDAT_BECCS_H2_Herb"
                                     }
                                 },
@@ -131,7 +131,7 @@
                             "start_vertex": "bioherb_NE",
                             "availability": {
                                 "timeseries": {
-                                    "path": "assets/availability.csv",
+                                    "path": "system/availability.csv",
                                     "header": "NE_BECCS_H2_Herb"
                                     }
                                 },
@@ -163,7 +163,7 @@
                             "start_vertex": "biowood_SE",
                             "availability": {
                                 "timeseries": {
-                                    "path": "assets/availability.csv",
+                                    "path": "system/availability.csv",
                                     "header": "SE_BECCS_H2_Wood"
                                     }
                                 },
@@ -195,7 +195,7 @@
                             "start_vertex": "biowood_MIDAT",
                             "availability": {
                                 "timeseries": {
-                                    "path": "assets/availability.csv",
+                                    "path": "system/availability.csv",
                                     "header": "MIDAT_BECCS_H2_Wood"
                                     }
                                 },
@@ -227,7 +227,7 @@
                             "start_vertex": "biowood_NE",
                             "availability": {
                                 "timeseries": {
-                                    "path": "assets/availability.csv",
+                                    "path": "system/availability.csv",
                                     "header": "NE_BECCS_H2_Wood"
                                     }
                                 },

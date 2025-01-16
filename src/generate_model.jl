@@ -12,8 +12,6 @@ function generate_model(system::System)
 
     model[:eVariableCost] = AffExpr(0.0)
 
-    model[:eAvailableCapacity] = Dict{Symbol, AffExpr}();
-
     @info("Adding linking variables")
     add_linking_variables!(system, model) 
 

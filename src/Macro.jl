@@ -43,6 +43,7 @@ abstract type PolicyConstraint <: OperationConstraint end
 abstract type PlanningConstraint <: AbstractTypeConstraint end
 
 # global constants
+const ScalingFactor = 1e3;     # When equal to 1e3: MWh--> GWh, tons --> ktons, $/MWh --> M$/GWh, $/ton --> M$/kton
 const H2_MWh = 33.33 # MWh per tonne of H2
 const NG_MWh = 0.29307107 # MWh per MMBTU of NG 
 const AssetId = Symbol
@@ -137,7 +138,6 @@ export AbstractAsset,
     HydroRes,
     Hydrogen,
     HydrogenLine,
-    HydroMinFlowConstraint,
     LongDurationStorage,
     LongDurationStorageImplicitMinMaxConstraint,
     MaxCapacityConstraint,
@@ -147,6 +147,7 @@ export AbstractAsset,
     MinCapacityConstraint,
     MinDownTimeConstraint,
     MinFlowConstraint,
+    MinStorageOutflowConstraint,
     MinStorageLevelConstraint,
     MinUpTimeConstraint,
     MustRun,
@@ -159,9 +160,9 @@ export AbstractAsset,
     PolicyConstraint,
     PowerLine,
     RampingLimitConstraint,
-    SameChargeDischargeCapacityConstraint,
     Storage,
     StorageCapacityConstraint,
+    StorageChargeDischargeRatioConstraint,
     StorageMaxDurationConstraint,
     StorageMinDurationConstraint,
     StorageSymmetricCapacityConstraint,

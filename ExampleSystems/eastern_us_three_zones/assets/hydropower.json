@@ -34,10 +34,7 @@
                         "end_vertex": "hydro_source",
                         "can_expand": false,
                         "can_retire": false,
-                        "has_capacity": false,
-                        "constraints": {
-                            "HydroMinFlowConstraint": true
-                        }
+                        "has_capacity": false
                     }
                 },
                 "storage": {
@@ -46,7 +43,8 @@
                     "can_retire": false,
                     "long_duration":true,
                     "constraints": {
-                        "SameChargeDischargeCapacityConstraint": true,
+                        "MinStorageOutflowConstraint": true,
+                        "StorageChargeDischargeRatioConstraint": true,
                         "BalanceConstraint": true
                     }
                 }
@@ -68,14 +66,15 @@
                             "efficiency": 1.0,
                             "availability": {
                                 "timeseries": {
-                                    "path": "assets/availability.csv",
+                                    "path": "system/availability.csv",
                                     "header": "MIDAT_conventional_hydroelectric_1"
                                 }
                             }
-                        },
-                        "spill_edge":{
-                            "min_flow_fraction": 0.109311313
                         }
+                    },
+                    "storage": {
+                        "min_outflow_fraction": 0.109311313,
+                        "charge_discharge_ratio": 1.0
                     }
                 },
                 {
@@ -94,14 +93,15 @@
                             "efficiency": 1.0,
                             "availability": {
                                 "timeseries": {
-                                    "path": "assets/availability.csv",
+                                    "path": "system/availability.csv",
                                     "header": "NE_conventional_hydroelectric_1"
                                 }
                             }
-                        },
-                        "spill_edge":{
-                            "min_flow_fraction": 0.095
                         }
+                    },
+                    "storage": {
+                        "min_outflow_fraction": 0.095,
+                        "charge_discharge_ratio": 1.0
                     }
                 },
                 {
@@ -120,14 +120,15 @@
                             "efficiency": 1.0,
                             "availability": {
                                 "timeseries": {
-                                    "path": "assets/availability.csv",
+                                    "path": "system/availability.csv",
                                     "header": "SE_conventional_hydroelectric_1"
                                 }
                             }
-                        },
-                        "spill_edge":{
-                            "min_flow_fraction": 0.135129141
                         }
+                    },
+                    "storage": {
+                        "min_outflow_fraction": 0.135129141,
+                        "charge_discharge_ratio": 1.0
                     }
                 }
             ]

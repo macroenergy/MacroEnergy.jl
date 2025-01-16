@@ -67,18 +67,22 @@ function create_time_data(
 )
     period_length = time_data[:PeriodLength]
     all_timedata = Dict{Symbol,TimeData}()
-    for (sym, type) in commodities
+    for (sym, type) in commodities 
         hours_per_timestep = time_data[:HoursPerTimeStep][sym]
-        time_interval = 1:hours_per_timestep:period_length
+        if hours_per_timestep > 1
+            error("MACRO does not support different temporal resolutions yet. Please use hourly resolution for all comoodities.")
+        else
+            time_interval = 1:period_length
 
-        hours_per_subperiod = time_data[:HoursPerSubperiod][sym]
-        subperiods = collect(
-            Iterators.partition(
-                time_interval,
-                Int(hours_per_subperiod / hours_per_timestep),
-            ),
-        )
-        weights_per_subperiod = hours_per_subperiod # TODO: Implement this
+            hours_per_subperiod = time_data[:HoursPerSubperiod][sym]
+            subperiods = collect(
+                Iterators.partition(
+                    time_interval,
+                    hours_per_subperiod,
+                ),
+            )
+            weights_per_subperiod = hours_per_subperiod 
+        end
 
         all_timedata[sym] = Macro.TimeData{type}(;
             time_interval = time_interval,

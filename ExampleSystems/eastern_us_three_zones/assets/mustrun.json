@@ -30,7 +30,7 @@
                             "fixed_om_cost": 45648,
                             "availability": {
                                 "timeseries": {
-                                    "path": "assets/availability.csv",
+                                    "path": "system/availability.csv",
                                     "header": "SE_small_hydroelectric_1"
                                 }
                             }
@@ -47,7 +47,7 @@
                             "fixed_om_cost": 45648,
                             "availability": {
                                 "timeseries": {
-                                    "path": "assets/availability.csv",
+                                    "path": "system/availability.csv",
                                     "header": "MIDAT_small_hydroelectric_1"
                                 }
                             }
@@ -64,7 +64,7 @@
                             "fixed_om_cost": 45648,
                             "availability": {
                                 "timeseries": {
-                                    "path": "assets/availability.csv",
+                                    "path": "system/availability.csv",
                                     "header": "NE_small_hydroelectric_1"
                                 }
                             }

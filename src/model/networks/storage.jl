@@ -4,6 +4,7 @@ macro AbstractStorageBaseAttributes()
     can_retire::Bool = false
     capacity_storage::Union{AffExpr,Float64} = 0.0
     charge_edge::Union{Nothing,AbstractEdge} = nothing
+    charge_discharge_ratio::Float64 = 1.0
     discharge_edge::Union{Nothing,AbstractEdge} = nothing
     existing_capacity_storage::Float64 = 0.0
     fixed_om_cost_storage::Float64 = 0.0
@@ -12,10 +13,12 @@ macro AbstractStorageBaseAttributes()
     max_duration::Float64 = 0.0
     min_capacity_storage::Float64 = 0.0
     min_duration::Float64 = 0.0
+    min_outflow_fraction::Float64 = 0.0
     min_storage_level::Float64 = 0.0
     max_storage_level::Float64 = 0.0
     new_capacity_storage::Union{JuMPVariable,Float64} = 0.0
     ret_capacity_storage::Union{JuMPVariable,Float64} = 0.0
+    spillage_edge::Union{Nothing,AbstractEdge} = nothing
     storage_level::Union{JuMPVariable,Vector{Float64}} = Vector{VariableRef}()
     storage_loss_fraction::Float64 = 0.0
     end)
@@ -36,12 +39,14 @@ function make_storage(
         timedata = time_data,
         can_retire = get(data, :can_retire, false),
         can_expand = get(data, :can_expand, false),
+        charge_discharge_ratio = get(data, :charge_discharge_ratio, false),
         existing_capacity_storage = get(data, :existing_capacity_storage, 0.0),
         investment_cost_storage = get(data, :investment_cost_storage, 0.0),
         fixed_om_cost_storage = get(data, :fixed_om_cost_storage, 0.0),
         storage_loss_fraction = get(data, :storage_loss_fraction, 0.0),
         min_duration = get(data, :min_duration, 0.0),
         max_duration = get(data, :max_duration, 0.0),
+        min_outflow_fraction = get(data, :min_outflow_fraction, 0.0),
         min_storage_level = get(data, :min_storage_level, 0.0),
         max_storage_level = get(data, :max_storage_level, 0.0),
         min_capacity_storage = get(data, :min_capacity_storage, 0.0),
@@ -94,7 +99,6 @@ function define_available_capacity!(g::AbstractStorage, model::Model)
         new_capacity_storage(g) - ret_capacity_storage(g) + existing_capacity_storage(g)
     )
 
-    model[:eAvailableCapacity][g.id] = g.capacity_storage;
 
 end
 

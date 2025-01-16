@@ -52,8 +52,8 @@
                         "StorageCapacityConstraint": true,
                         "BalanceConstraint": true,
                         "StorageMaxDurationConstraint": true,
-                        "SameChargeDischargeCapacityConstraint": true,
-                        "LongDurationStorageImplicitMinMaxConstraint": true
+                        "LongDurationStorageImplicitMinMaxConstraint": true,
+                        "StorageChargeDischargeRatioConstraint": true
                     }
                 }
             },
@@ -64,7 +64,8 @@
                     "electricity_consumption": 0.067724471
                     },
                     "storage":{
-                        "max_duration": 8.846121602
+                        "max_duration": 8.846121602,
+                        "charge_discharge_ratio": 1.0
                     },
                     "edges": {
                         "discharge_edge": {
@@ -87,7 +88,8 @@
                     "electricity_consumption": 0.067724471
                     },
                     "storage":{
-                        "max_duration": 8.846121602
+                        "max_duration": 8.846121602,
+                        "charge_discharge_ratio": 1.0
                     },
                     "edges": {
                         "discharge_edge": {
@@ -110,7 +112,8 @@
                     "electricity_consumption": 0.06553874
                     },
                     "storage":{
-                        "max_duration": 8.525925965
+                        "max_duration": 8.525925965,
+                        "charge_discharge_ratio": 1.0
                     },
                     "edges": {
                         "discharge_edge": {
@@ -133,7 +136,8 @@
                     "electricity_consumption": 0.06553874
                     },
                     "storage":{
-                        "max_duration": 8.525925965
+                        "max_duration": 8.525925965,
+                        "charge_discharge_ratio": 1.0
                     },
                     "edges": {
                         "discharge_edge": {

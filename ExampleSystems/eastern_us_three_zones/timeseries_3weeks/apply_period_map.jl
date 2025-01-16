@@ -6,7 +6,7 @@ using DataFrames
 using YAML
 using JSON3
 
-period_map = CSV.read(joinpath(@__DIR__, "period_map.csv"),DataFrame)
+period_map = CSV.read(joinpath(@__DIR__, "Period_map.csv"),DataFrame)
 path_to_full_timeseries = joinpath(dirname(@__DIR__), "timeseries_7years/")
 
 rep_periods = unique(sort(period_map,3).Rep_Period);

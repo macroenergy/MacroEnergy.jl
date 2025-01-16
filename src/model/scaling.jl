@@ -1,10 +1,8 @@
 function scaling!(y::Union{AbstractVertex,AbstractEdge})
     atts_vec = attributes_to_scale(y);
 
-    # Scaling: MWh--> GWh, tons --> ktons, $/MWh --> M$/GWh, $/ton --> M$/kton
-
     for f in atts_vec
-        setfield!(y, f, getfield(y, f) / 1e3)
+        setfield!(y, f, getfield(y, f) / ScalingFactor)
     end
 
 end
@@ -48,9 +46,9 @@ function attributes_to_scale(t::Transformation)
 end
 
 
-function /(d::Dict,a::Float64)
+function /(d::Dict,factor::Float64)
     for (k,v) in d
-        d[k] = v / a
+        d[k] = v / factor
     end
     return d
 end

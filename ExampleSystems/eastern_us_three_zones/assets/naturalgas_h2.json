@@ -58,7 +58,7 @@
                                 "end_vertex": "h2_SE",
                                 "availability": {
                                 "timeseries": {
-                                    "path": "assets/availability.csv",
+                                    "path": "system/availability.csv",
                                     "header": "SE_Large_SMR_Non_CCS"
                                     }
                                 },
@@ -89,7 +89,7 @@
                                 "end_vertex": "h2_MIDAT",
                                 "availability": {
                                 "timeseries": {
-                                    "path": "assets/availability.csv",
+                                    "path": "system/availability.csv",
                                     "header": "MIDAT_Large_SMR_Non_CCS"
                                     }
                                 }
@@ -109,7 +109,7 @@
                                 "end_vertex": "h2_NE",
                                 "availability": {
                                 "timeseries": {
-                                    "path": "assets/availability.csv",
+                                    "path": "system/availability.csv",
                                     "header": "NE_Large_SMR_Non_CCS"
                                     }
                                 }
