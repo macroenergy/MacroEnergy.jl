@@ -50,7 +50,7 @@
                         "StorageCapacityConstraint": true,
                         "BalanceConstraint": true,
                         "StorageMaxDurationConstraint": true,
-                        "SameChargeDischargeCapacityConstraint": true
+                        "StorageChargeDischargeRatioConstraint": true
                     }
                 }
             },
