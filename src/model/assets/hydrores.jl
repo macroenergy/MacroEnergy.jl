@@ -87,7 +87,8 @@ function make(::Type{HydroRes}, data::AbstractDict{Symbol,Any}, system::System)
     spill_edge.unidirectional = true;
     spill_edge.has_capacity = false;
     spill_edge.constraints = get(spill_edge_data, :constraints,Vector{AbstractTypeConstraint}());
-
+    hydrostor.spillage_edge = spill_edge
+    
     hydrostor.balance_data = Dict(
         :storage => Dict(
             discharge_edge.id => 1.0,

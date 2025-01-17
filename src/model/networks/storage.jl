@@ -72,6 +72,7 @@ min_capacity_storage(g::AbstractStorage) = g.min_capacity_storage;
 max_capacity_storage(g::AbstractStorage) = g.max_capacity_storage;
 max_duration(g::AbstractStorage) = g.max_duration;
 min_duration(g::AbstractStorage) = g.min_duration;
+min_outflow_fraction(g::AbstractStorage) = g.min_outflow_fraction;
 min_storage_level(g::AbstractStorage) = g.min_storage_level;
 max_storage_level(g::AbstractStorage) = g.max_storage_level;
 new_capacity_storage(g::AbstractStorage) = g.new_capacity_storage;
