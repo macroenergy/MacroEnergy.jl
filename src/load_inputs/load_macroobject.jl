@@ -24,7 +24,7 @@ function load!(system::System, data::AbstractDict{Symbol,Any})::Nothing
         # Check that data has only :type and :instance_data fields
     elseif data_is_single_instance(data)
         data_type = check_and_convert_type(data)
-        load_time_series_data!(system, data) # substritute ts file paths with actual vectors of data
+        load_time_series_data!(system, data) # substitute ts file paths with actual vectors of data
         add!(system, make(data_type, data[:instance_data], system))
 
     elseif data_has_global_data(data)
@@ -131,12 +131,14 @@ end
 # JSON data handling
 ###### ###### ###### ###### ###### ######
 
-function load_json_inputs(file_path::AbstractString; lazy_load::Bool = true)::Dict{Symbol,Any}
+function load_json_inputs(file_path::AbstractString; rel_path::AbstractString=dirname(file_path), lazy_load::Bool = true)::Dict{Symbol,Any}
     @info("Loading JSON data from $file_path")
     json_data = read_json(file_path)
     if !lazy_load
         # Recursively check if any of the fields are paths to other JSON files
-        json_data = load_paths(json_data, :path, dirname(file_path), lazy_load)
+        println("load_json_inputs, file_path: $file_path")
+
+        json_data = load_paths(json_data, :path, rel_path, lazy_load)
         json_data = clean_up_keys(json_data)
     end
     return json_data
@@ -153,7 +155,7 @@ function load_paths(
     end
     for (key, value) in dict
         if key == path_key
-            dict = fetch_data(value, root_path, lazy_load)
+            dict = fetch_data(value, dict, root_path, lazy_load)
         elseif isa(value, AbstractDict{Symbol,Any})
             dict[key] = load_paths(value, path_key, root_path, lazy_load)
         elseif isa(value, AbstractVector{<:AbstractDict{Symbol,Any}})
@@ -188,18 +190,22 @@ function clean_up_keys(dict::AbstractDict{Symbol,Any})
     return dict
 end
 
-function fetch_data(path::AbstractString, root_path::AbstractString, lazy_load::Bool = true)
+function fetch_data(path::AbstractString, dict::AbstractDict{Symbol, Any}, root_path::AbstractString, lazy_load::Bool = true)
     # Load data from a JSON file and merge it into the existing data dict
     # overwriting any existing keys
     path = rel_or_abs_path(path, root_path)
+
     if isfile(path) && isjson(path)
-        return load_json_inputs(path; lazy_load = lazy_load)
+        return load_json_inputs(path; rel_path=root_path, lazy_load=lazy_load)
+    end
+    if isfile(path) && iscsv(path)
+        return load_time_series_data(path, dict[:header])
     end
     if isdir(path)
         json_files = get_json_files(path)
         if length(json_files) > 1
             for file in json_files
-                return load_json_inputs(joinpath(path, file); lazy_load = lazy_load)
+                return load_json_inputs(joinpath(path, file); rel_path=root_path, lazy_load=lazy_load)
             end
         else
             return path

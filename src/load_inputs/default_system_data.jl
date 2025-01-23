@@ -1,0 +1,60 @@
+"""
+    load_default_system_data(default_file_path::String)::Dict{Symbol,Any}
+
+Load the default system data from a JSON file. 
+This describes the default locations for the system data files.
+"""
+function load_default_system_data(
+    default_file_path::String = joinpath(@__DIR__, "default_system_data.json"),
+)::Dict{Symbol,Any}
+    if isfile(default_file_path)
+        default_system_data = read_json(default_file_path)
+    else
+        @warn("No default system data file found at $default_file_path")
+    end
+    return default_system_data
+end
+
+"""
+    add_default_system_data!(system_data::AbstractDict{Symbol,Any}, default_file_path::String)::Nothing
+
+Add the default system data to the system data dictionary. This adds any required fields that are missing.
+"""
+function add_default_system_data!(
+    system_data::AbstractDict{Symbol,Any},
+    default_file_path::String = joinpath(@__DIR__, "default_system_data.json"),
+)::Nothing
+    # Load a hard-coded set of default locations for the system data
+    # This could be moved to the settings defaults later
+    default_system_data = load_default_system_data(default_file_path)
+    merge!(default_system_data, system_data)
+    return nothing
+end
+
+"""
+    prep_system_data(file_path::AbstractString, default_file_path::String)::Nothing
+
+This attempts to load the system data from the file at file_path, adds any missing fields from the default system data, and writes the updated system data back to the file.
+In the future, we may change this to not write to the file, but for now, it's a quick way to ensure the system data is up-to-date.
+"""
+function prep_system_data(
+    file_path::AbstractString,
+    default_file_path::String = joinpath(@__DIR__, "default_system_data.json"),
+)::Nothing
+    if isfile(file_path)
+        system_data = read_json(file_path)
+    else
+        error("No system data file found at $file_path")
+    end
+
+    # Load a hard-coded set of default locations for the system data
+    # This could be moved to the settings defaults later
+    add_default_system_data!(system_data, default_file_path)
+
+    # FIXME currently overwriting and then re-reading the system_data
+    # This is a little janky, but lets us quickly use the JSON parsing functions
+    open(file_path, "w") do io
+        JSON3.pretty(io, system_data)
+    end
+    return nothing
+end
