@@ -3,8 +3,58 @@ using Documenter
 
 DocMeta.setdocmeta!(MacroEnergy, :DocTestSetup, :(using MacroEnergy); recursive=true)
 
+const pages = [
+    "Welcome to Macro" => [
+        "Introduction" => "index.md"
+    ],
+    "Getting Started" => [
+        "Overview" => "Getting Started/overview.md",
+        "Installation" => "Getting Started/installation.md",
+    ],
+    "Tutorials" => [
+        "Getting Started" => "Tutorials/tutorial_0_getting_started.md",
+        "Input Files" => "Tutorials/tutorial_1_input_files.md",
+        "Running Macro" => "Tutorials/tutorial_2_running_macro.md",
+        "Multisector Modelling" => "Tutorials/tutorial_3_multisector_modelling.md",
+    ],
+    "User Guide" => [
+        "Sectors" => "User Guide/sectors.md",
+        "Input Data" => "User Guide/input_data.md",
+        "Assets" => ["User Guide/assets/introduction.md",
+            "User Guide/assets/battery.md",
+            "User Guide/assets/beccselectricity.md",
+            "User Guide/assets/beccshydrogen.md",
+            "User Guide/assets/electricdac.md",
+            "User Guide/assets/electrolyzer.md",
+            "User Guide/assets/fuelcell.md",
+            "User Guide/assets/gasstorage.md",
+            "User Guide/assets/hydrogenline.md",
+            "User Guide/assets/hydropower.md",
+            "User Guide/assets/mustrun.md",
+            "User Guide/assets/natgasdaq.md",
+            "User Guide/assets/powerline.md",
+            "User Guide/assets/thermalhydrogen.md",
+            "User Guide/assets/thermalpower.md",
+            "User Guide/assets/vre.md"],
+        "Constraints" => "User Guide/constraints.md",
+    ],
+    "Modeler Guide" => [
+        "How to build a sector" => "Modeler Guide/build_sectors.md",
+        "How to create an example case" => "Modeler Guide/create_example_case.md",
+    ],
+    "Developer Guide" => [
+        "Type hierarchy" => "Developer Guide/type_hierarchy.md"
+    ],
+    "References" => [
+        "Macro Objects" => "References/macro_objects.md",
+        "Asset Library" => "References/assets.md",
+        "Utilities" => "References/utilities.md",
+    ],
+]
+
 # Build documentation.
 # ====================
+# HTML documentation
 makedocs(;
     modules=[MacroEnergy],
     authors="",
@@ -15,55 +65,18 @@ makedocs(;
         # sidebar_sitename = false,
         collapselevel=1,
     ),
-    pages=[
-        "Welcome to Macro" => [
-            "Introduction" => "index.md"
-        ],
-        "Getting Started" => [
-            "Overview" => "Getting Started/overview.md",
-            "Installation" => "Getting Started/installation.md",
-        ],
-        "Tutorials" => [
-            "Getting Started" => "Tutorials/tutorial_0_getting_started.md",
-            "Input Files" => "Tutorials/tutorial_1_input_files.md",
-            "Running Macro" => "Tutorials/tutorial_2_running_macro.md",
-            "Multisector Modelling" => "Tutorials/tutorial_3_multisector_modelling.md",
-        ],
-        "User Guide" => [
-            "Sectors" => "User Guide/sectors.md",
-            "Input Data" => "User Guide/input_data.md",
-            "Assets" => ["User Guide/assets/introduction.md",
-                "User Guide/assets/battery.md",
-                "User Guide/assets/beccselectricity.md",
-                "User Guide/assets/beccshydrogen.md",
-                "User Guide/assets/electricdac.md",
-                "User Guide/assets/electrolyzer.md",
-                "User Guide/assets/fuelcell.md",
-                "User Guide/assets/gasstorage.md",
-                "User Guide/assets/hydrogenline.md",
-                "User Guide/assets/hydropower.md",
-                "User Guide/assets/mustrun.md",
-                "User Guide/assets/natgasdaq.md",
-                "User Guide/assets/powerline.md",
-                "User Guide/assets/thermalhydrogen.md",
-                "User Guide/assets/thermalpower.md",
-                "User Guide/assets/vre.md"],
-            "Constraints" => "User Guide/constraints.md",
-            "Output" => "User Guide/output.md",
-        ],
-        "Modeler Guide" => [
-            "How to build a sector" => "Modeler Guide/build_sectors.md",
-            "How to create an example case" => "Modeler Guide/create_example_case.md",
-        ],
-        "Developer Guide" => [
-            "Type hierarchy" => "Developer Guide/type_hierarchy.md"
-        ],
-        "References" => [
-            "Macro Objects" => "References/macro_objects.md",
-            "Asset Library" => "References/assets.md",
-            "Utilities" => "References/utilities.md",
-        ],
-    ],
+    build = "build_html",
+    pages=pages,
+)
+
+# PDF documentation
+Documenter.makedocs(
+    modules = [Macro],
+    authors = "Macro Energy Team",
+    sitename = "Macro",
+    format = Documenter.LaTeX(),
+    build = "build_pdf",
+    pages = pages,
 )
 
 # Deploy built documentation.
