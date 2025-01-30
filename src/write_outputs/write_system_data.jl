@@ -51,10 +51,13 @@ end
 # This function prepares Node objects for being printed to a JSON file
 function prepare_to_json(node::Node)
     fields_to_exclude = [:policy_budgeting_vars, :policy_slack_vars]
-    return Dict{Symbol,Any}(
+    json_output = Dict{Symbol,Any}(
         :type => Symbol(commodity_type(node)),
         :instance_data => prepare_to_json(node, fields_to_exclude),
     )
+    merge!(json_output[:instance_data], Dict{Symbol,Any}(key => node[:key] for key in keys(node.policy_budgeting_vars)))
+    merge!(json_output[:instance_data], Dict{Symbol,Any}(key => node[:key] for key in keys(node.policy_slack_vars)))
+    return json_output
 end
 
 function prepare_to_json(asset::AbstractAsset)
@@ -122,7 +125,7 @@ end
 
 # If DataTypes are used as keys in a dictionary, we convert them to symbols
 function prepare_to_json(data::Dict{DataType,Any})
-    return Dict(Symbol(k) => v for (k, v) in data)
+    return Dict(Symbol(k) => prepare_to_json(v) for (k, v) in data)
 end
 
 # TimeData field of MacroObjects are written as the commodity type
@@ -137,12 +140,20 @@ function prepare_to_json(data::Dict{Symbol,TimeData})
         :HoursPerSubperiod => Dict{Symbol,Int}(),
     )
     for (k, v) in data
-        time_data[:PeriodLength] = v.time_interval[end]
-        time_data[:HoursPerTimeStep][k] = v.hours_per_timestep
-        time_data[:HoursPerSubperiod][k] = v.time_interval[end] # TODO: Implement this
+        time_data[:PeriodLength] = length(v.time_interval)
+        time_data[:HoursPerTimeStep][k] = step.(v.subperiods)[1]
+        time_data[:HoursPerSubperiod][k] = length.(v.subperiods)[1]
     end
 
     return time_data
+end
+
+function prepare_to_json(data::JuMP.AbstractJuMPScalar)
+    return value(data)
+end
+
+function prepare_to_json(data::AbstractArray{<:JuMP.AbstractJuMPScalar})
+    return value.(data)
 end
 
 # In general, for all attributes (Floats, Strings, etc), `prepare_to_json` simply returns the data as it is

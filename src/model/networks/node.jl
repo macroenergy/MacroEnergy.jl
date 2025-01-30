@@ -197,3 +197,25 @@ function make(commodity::Type{<:Commodity}, data::AbstractDict{Symbol,Any}, syst
 
     return node
 end
+
+function write_2_json(n::Node)
+    json_output =  Dict{Symbol,Any}(
+        :type => string(commodity_type(n)),
+        :instance_data => Dict{Symbol,Any}(
+            :id => string(n.id),
+            :demand => n.demand,
+            :max_nsd => n.max_nsd,
+            :max_supply => n.max_supply,
+            :price => n.price,
+            :price_nsd => n.price_nsd,
+            :price_supply => n.price_supply,
+            :price_unmet_policy => n.price_unmet_policy,
+            :rhs_policy => n.rhs_policy,
+            :non_served_demand => n[:non_served_demand],
+            :supply_flow => n[:supply_flow]
+        )
+    )
+    merge!(json_output, Dict{Symbol,Any}(key => n[:key] for key in keys(n.policy_budgeting_vars)))
+    merge!(json_output, Dict{Symbol,Any}(key => n[:key] for key in keys(n.policy_slack_vars)))
+    return json_output
+end

@@ -154,3 +154,30 @@ function operation_model!(g::Storage, model::Model)
     end
 
 end
+
+function write_2_json(s::Storage)
+    json_output =  Dict{Symbol,Any}(
+        :type => string(commodity_type(s)),
+        :instance_data => Dict{Symbol,Any}(
+            :id => s.id,
+            :can_expand => s.can_expand,
+            :can_retire => s.can_retire,
+            :charge_discharge_ratio => s.charge_discharge_ratio,
+            :existing_capacity_storage => s.existing_capacity_storage,
+            :investment_cost_storage => s.investment_cost_storage,
+            :fixed_om_cost_storage => s.fixed_om_cost_storage,
+            :storage_loss_fraction => s.storage_loss_fraction,
+            :min_duration => s.min_duration,
+            :max_duration => s.max_duration,
+            :min_outflow_fraction => s.min_outflow_fraction,
+            :min_storage_level => s.min_storage_level,
+            :max_storage_level => s.max_storage_level,
+            :min_capacity_storage => s.min_capacity_storage,
+            :max_capacity_storage => s.max_capacity_storage,
+            :new_capacity_storage => s[:new_capacity_storage],
+            :ret_capacity_storage => s[:ret_capacity_storage],
+            :storage_level => s[:storage_level],
+        )
+    )
+    return json_output
+end

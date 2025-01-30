@@ -7,7 +7,7 @@ case_path = @__DIR__
 println("###### ###### ######")
 println("Running case at $(case_path)")
 
-system = Macro.load_system(case_path)
+system = Macro.load_system(case_path; lazy_load=true)
 
 model = Macro.generate_model(system)
 

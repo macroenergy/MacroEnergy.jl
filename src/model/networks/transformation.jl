@@ -25,3 +25,10 @@ function operation_model!(g::Transformation, model::Model)
     end
     return nothing
 end
+
+# function write_2_json(g::Transformation)
+#     json_output =  Dict{Symbol,Any}(
+#         :type => string(commodity_type(s)),
+#         :instance_data => Dict{Symbol,Any}(
+
+

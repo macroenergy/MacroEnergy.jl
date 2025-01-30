@@ -38,3 +38,35 @@ function timestepbefore(t::Int, h::Int, subperiods::Vector{StepRange{Int64,Int64
     return wc[findfirst(w .== t)]
 
 end
+
+function write_2_json(time_data::TimeData)
+    return Dict(
+        :PeriodLength => length(time_data.time_interval),
+        :HoursPerTimeStep => step.(time_data.subperiods)[1],
+        :HoursPerSubperiod => length.(time_data.subperiods)[1]
+    )
+end
+
+function write_2_json(time_data::Dict{Symbol, TimeData})
+    json_output = Dict{Symbol, Any}(
+        :PeriodLength => Dict{Symbol, Int64}(),
+        :HoursPerTimeStep => Dict{Symbol, Int64}(),
+        :HoursPerSubperiod => Dict{Symbol, Int64}()
+    )
+    for (k, v) in time_data
+        json_data = write_2_json(v)
+        json_output[:PeriodLength][k] = json_data[:PeriodLength]
+        json_output[:HoursPerTimeStep][k] = json_data[:HoursPerTimeStep]
+        json_output[:HoursPerSubperiod][k] = json_data[:HoursPerSubperiod]
+    end
+    keys_to_collapse = [:PeriodLength]
+    # If all entries in PeriodLength are the same, we can write it as a single value
+    for key in keys_to_collapse
+        if all(x -> x == first(values(json_output[key])), values(json_output[key]))
+            single_value = first(values(json_output[key]))
+            delete!(json_output, key)
+            json_output[:key] = single_value
+        end
+    end
+    return json_output
+end
