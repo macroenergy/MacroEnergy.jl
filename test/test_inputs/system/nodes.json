@@ -201,8 +201,7 @@
             "instance_data": [
                 {
                     "id": "bioherb_MA",
-                    "demand": [0.0]
-                    },
+                    "demand": [0.0],
                     "max_supply": [
                         10000,
                         20000,
@@ -216,8 +215,7 @@
                 },
                 {
                     "id": "bioherb_CT",
-                    "demand": [0.0]
-                    },
+                    "demand": [0.0],
                     "max_supply": [
                         80000,
                         160000,
@@ -231,7 +229,10 @@
                 },
                 {
                     "id": "bioherb_ME",
-                    "demand": [0.0][0.0]00,
+                    "demand": [0.0],
+                    "max_supply": [
+                        400,
+                        800,
                         1200
                     ],
                     "price_supply": [
@@ -242,8 +243,7 @@
                 },
                 {
                     "id": "biowood_MA",
-                    "demand": [0.0]
-                    },
+                    "demand": [0.0],
                     "max_supply": [
                         8000,
                         16000,
@@ -257,8 +257,7 @@
                 },
                 {
                     "id": "biowood_CT",
-                    "demand": [0.0]
-                    },
+                    "demand": [0.0],
                     "max_supply": [
                         15000,
                         30000,
@@ -272,8 +271,7 @@
                 },
                 {
                     "id": "biowood_ME",
-                    "demand": [0.0]
-                    },
+                    "demand": [0.0],
                     "max_supply": [
                         4000,
                         8000,
