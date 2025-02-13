@@ -4,17 +4,16 @@ macro AbstractEdgeBaseAttributes()
         timedata::TimeData{T}
         start_vertex::AbstractVertex
         end_vertex::AbstractVertex
-
         availability::Vector{Float64} = Float64[]
         can_expand::Bool = false
         can_retire::Bool = false
-        capacity::Union{AffExpr,Float64} = 0.0
+        capacity::AffExpr = AffExpr(0.0)
         capacity_size::Float64 = 1.0
         constraints::Vector{AbstractTypeConstraint} = Vector{AbstractTypeConstraint}()
         distance::Float64 = 0.0
         existing_capacity::Float64 = 0.0
         fixed_om_cost::Float64 = 0.0
-        flow::Union{JuMPVariable,Vector{Float64}} = Vector{VariableRef}()
+        flow::JuMPVariable = Vector{VariableRef}()
         has_capacity::Bool = false
         integer_decisions::Bool = false
         investment_cost::Float64 = 0.0
@@ -22,11 +21,11 @@ macro AbstractEdgeBaseAttributes()
         max_capacity::Float64 = Inf
         min_capacity::Float64 = 0.0
         min_flow_fraction::Float64 = 0.0
-        new_capacity::Union{AffExpr,Float64} = 0.0
+        new_capacity::AffExpr = AffExpr(0.0)
         new_units::Union{JuMPVariable,Float64} = 0.0
         ramp_down_fraction::Float64 = 1.0
         ramp_up_fraction::Float64 = 1.0
-        retired_capacity::Union{AffExpr,Float64} = 0.0
+        retired_capacity::AffExpr = AffExpr(0.0)
         retired_units::Union{JuMPVariable,Float64} = 0.0
         unidirectional::Bool = false
         variable_om_cost::Float64 = 0.0
@@ -239,9 +238,9 @@ Base.@kwdef mutable struct EdgeWithUC{T} <: AbstractEdge{T}
     startup_cost::Float64 = 0.0
     startup_fuel_consumption::Float64 = 0.0
     startup_fuel_balance_id::Symbol = :none
-    ucommit::Union{JuMPVariable,Vector{Float64}} = Vector{VariableRef}()
-    ushut::Union{JuMPVariable,Vector{Float64}} = Vector{VariableRef}()
-    ustart::Union{JuMPVariable,Vector{Float64}} = Vector{VariableRef}()
+    ucommit::JuMPVariable = Vector{VariableRef}()
+    ushut::JuMPVariable = Vector{VariableRef}()
+    ustart::JuMPVariable = Vector{VariableRef}()
 end
 
 function make_edge_UC(

@@ -3,8 +3,7 @@ Base.@kwdef mutable struct Node{T} <: AbstractVertex
     demand::Vector{Float64} = Vector{Float64}()
     max_nsd::Vector{Float64} = [0.0]
     max_supply::Vector{Float64} = [0.0]
-    non_served_demand::Union{JuMPVariable,Matrix{Float64}} =
-        Matrix{VariableRef}(undef, 0, 0)
+    non_served_demand::JuMPVariable = Matrix{VariableRef}(undef, 0, 0)
     policy_budgeting_vars::Dict = Dict()
     policy_slack_vars::Dict = Dict()
     price::Vector{Float64} = Vector{Float64}()
@@ -12,8 +11,7 @@ Base.@kwdef mutable struct Node{T} <: AbstractVertex
     price_supply::Vector{Float64} = [0.0]
     price_unmet_policy::Dict{DataType,Float64} = Dict{DataType,Float64}()
     rhs_policy::Dict{DataType,Float64} = Dict{DataType,Float64}()
-    supply_flow::Union{JuMPVariable,Matrix{Float64}} =
-    Matrix{VariableRef}(undef, 0, 0)
+    supply_flow::JuMPVariable = Matrix{VariableRef}(undef, 0, 0)
 end
 
 function make_node(data::AbstractDict{Symbol,Any}, time_data::TimeData, commodity::DataType)

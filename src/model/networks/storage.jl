@@ -1,7 +1,7 @@
 macro AbstractStorageBaseAttributes()
     esc(quote
     can_expand::Bool = false
-    capacity::Union{AffExpr,Float64} = 0.0
+    capacity::AffExpr = AffExpr(0.0)
     capacity_size::Float64 = 1.0
     can_retire::Bool = false
     charge_edge::Union{Nothing,AbstractEdge} = nothing
@@ -18,12 +18,12 @@ macro AbstractStorageBaseAttributes()
     min_duration::Float64 = 0.0
     min_outflow_fraction::Float64 = 0.0
     min_storage_level::Float64 = 0.0
-    new_capacity::Union{AffExpr,Float64} = 0.0
-    new_units::Union{JuMPVariable,Float64} = 0.0
-    retired_capacity::Union{AffExpr,Float64} = 0.0
-    retired_units::Union{JuMPVariable,Float64} = 0.0
-    spillage_edge::Union{Nothing,AbstractEdge} = nothing
-    storage_level::Union{JuMPVariable,Vector{Float64}} = Vector{VariableRef}()
+    new_capacity::AffExpr = AffExpr(0.0)
+    new_units::Union{Missing, JuMPVariable} = missing
+    retired_capacity::AffExpr = AffExpr(0.0)
+    retired_units::Union{Missing, JuMPVariable} = missing
+    spillage_edge::Union{Nothing, AbstractEdge} = nothing
+    storage_level::JuMPVariable = Vector{VariableRef}()
     end)
 end
 
@@ -173,8 +173,8 @@ end
 Base.@kwdef mutable struct LongDurationStorage{T} <: AbstractStorage{T}
     @AbstractVertexBaseAttributes()
     @AbstractStorageBaseAttributes()
-    storage_initial::Union{JuMPVariable,Vector{Float64}} = Vector{VariableRef}()
-    storage_change::Union{JuMPVariable,Vector{Float64}} = Vector{VariableRef}()
+    storage_initial::JuMPVariable = Vector{VariableRef}()
+    storage_change::JuMPVariable = Vector{VariableRef}()
 end
 storage_initial(g::LongDurationStorage) = g.storage_initial;
 storage_initial(g::LongDurationStorage, r::Int64) = g.storage_initial[r];
