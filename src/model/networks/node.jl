@@ -38,7 +38,15 @@ Node(data::AbstractDict{Symbol,Any}, time_data::TimeData, commodity::DataType) =
 ######### Node interface #########
 commodity_type(n::Node{T}) where {T} = T;
 demand(n::Node) = n.demand;
-demand(n::Node, t::Int64) = demand(n)[t];
+# demand(n::Node, t::Int64) = length(demand(n)) == 1 ? demand(n)[1] : demand(n)[t];
+function demand(n::Node, t::Int64)
+    d = demand(n)::Vector{Float64}
+    if length(d) == 1 
+        return d[1]
+    else
+        return d[t]
+    end
+end
 max_non_served_demand(n::Node) = n.max_nsd;
 max_non_served_demand(n::Node, s::Int64) = max_non_served_demand(n)[s];
 non_served_demand(n::Node) = n.non_served_demand;
@@ -46,7 +54,15 @@ non_served_demand(n::Node, s::Int64, t::Int64) = non_served_demand(n)[s, t];
 policy_budgeting_vars(n::Node) = n.policy_budgeting_vars;
 policy_slack_vars(n::Node) = n.policy_slack_vars;
 price(n::Node) = n.price;
-price(n::Node, t::Int64) = price(n)[t];
+# price(n::Node, t::Int64) = length(price(n)) == 1 ? price(n)[t] : price(n)[t];
+function price(n::Node, t::Int64)
+    p = price(n)::Vector{Float64}
+    if length(p) == 1 
+        return p[1]
+    else
+        return p[t]
+    end
+end
 price_non_served_demand(n::Node) = n.price_nsd;
 price_non_served_demand(n::Node, s::Int64) = price_non_served_demand(n)[s];
 price_unmet_policy(n::Node) = n.price_unmet_policy;
