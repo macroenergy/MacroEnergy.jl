@@ -1,13 +1,13 @@
 Base.@kwdef mutable struct Node{T} <: AbstractVertex
     @AbstractVertexBaseAttributes()
-    demand::Union{Vector{Float64},Dict{Int64,Float64}} = Vector{Float64}()
+    demand::Vector{Float64} = Vector{Float64}()
     max_nsd::Vector{Float64} = [0.0]
     max_supply::Vector{Float64} = [0.0]
     non_served_demand::Union{JuMPVariable,Matrix{Float64}} =
         Matrix{VariableRef}(undef, 0, 0)
     policy_budgeting_vars::Dict = Dict()
     policy_slack_vars::Dict = Dict()
-    price::Union{Vector{Float64},Dict{Int64,Float64}} = Vector{Float64}()
+    price::Vector{Float64} = Vector{Float64}()
     price_nsd::Vector{Float64} = [0.0]
     price_supply::Vector{Float64} = [0.0]
     price_unmet_policy::Dict{DataType,Float64} = Dict{DataType,Float64}()
@@ -23,7 +23,7 @@ function make_node(data::AbstractDict{Symbol,Any}, time_data::TimeData, commodit
         demand = get(data, :demand, Vector{Float64}()),
         max_nsd = get(data, :max_nsd, [0.0]),
         max_supply = get(data, :max_supply, [0.0]),
-        price = get(data, :price, Float64[]),
+        price = get(data, :price, Vector{Float64}()),
         price_nsd = get(data, :price_nsd, [0.0]),
         price_supply = get(data, :price_supply, [0.0]),
         price_unmet_policy = get(data, :price_unmet_policy, Dict{DataType,Float64}()),
@@ -40,8 +40,10 @@ commodity_type(n::Node{T}) where {T} = T;
 demand(n::Node) = n.demand;
 # demand(n::Node, t::Int64) = length(demand(n)) == 1 ? demand(n)[1] : demand(n)[t];
 function demand(n::Node, t::Int64)
-    d = demand(n)::Vector{Float64}
-    if length(d) == 1 
+    d = demand(n)
+    if isempty(d)
+        return 0.0
+    elseif length(d) == 1 
         return d[1]
     else
         return d[t]
@@ -54,15 +56,7 @@ non_served_demand(n::Node, s::Int64, t::Int64) = non_served_demand(n)[s, t];
 policy_budgeting_vars(n::Node) = n.policy_budgeting_vars;
 policy_slack_vars(n::Node) = n.policy_slack_vars;
 price(n::Node) = n.price;
-# price(n::Node, t::Int64) = length(price(n)) == 1 ? price(n)[t] : price(n)[t];
-function price(n::Node, t::Int64)
-    p = price(n)::Vector{Float64}
-    if length(p) == 1 
-        return p[1]
-    else
-        return p[t]
-    end
-end
+price(n::Node, t::Int64) = length(price(n)) == 1 ? price(n)[1] : price(n)[t];
 price_non_served_demand(n::Node) = n.price_nsd;
 price_non_served_demand(n::Node, s::Int64) = price_non_served_demand(n)[s];
 price_unmet_policy(n::Node) = n.price_unmet_policy;

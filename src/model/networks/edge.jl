@@ -87,8 +87,16 @@ edges_with_capacity_variables(edges::Vector{<:AbstractEdge}) =
 ######### Edge interface #########
 all_constraints(e::AbstractEdge) = e.constraints;
 availability(e::AbstractEdge) = e.availability;
-availability(e::AbstractEdge, t::Int64) =
-    (isempty(availability(e)) == true) ? 1.0 : availability(e)[t];
+function availability(e::AbstractEdge, t::Int64)
+    a = availability(e)
+    if isempty(a)
+        return 1.0
+    elseif length(a) == 1
+        return a[1]
+    else
+        return a[t]
+    end
+end
 can_expand(e::AbstractEdge) = e.can_expand;
 can_retire(e::AbstractEdge) = e.can_retire;
 capacity(e::AbstractEdge) = e.capacity;
