@@ -8,30 +8,15 @@
             "instance_data": [
                 {
                     "id": "natgas_SE",
-                    "price": {
-                        "timeseries": {
-                            "path": "system/fuel_prices.csv",
-                            "header": "natgas_fossil_SE"
-                        }
-                    }
+                    "price": [12.55668122]
                 },
                 {
                     "id": "natgas_MIDAT",
-                    "price": {
-                        "timeseries": {
-                            "path": "system/fuel_prices.csv",
-                            "header": "natgas_fossil_SE"
-                        }
-                    }
+                    "price": [12.21546705]
                 },
                 {
                     "id": "natgas_NE",
-                    "price": {
-                        "timeseries": {
-                            "path": "system/fuel_prices.csv",
-                            "header": "natgas_fossil_SE"
-                        }
-                    }
+                    "price": [15.01342319]
                 }
             ]
         },
@@ -43,12 +28,7 @@
             "instance_data": [
                 {
                     "id": "uranium_source",
-                    "price": {
-                        "timeseries": {
-                            "path": "system/fuel_prices.csv",
-                            "header": "uranium_source"
-                        }
-                    }
+                    "price": [2.490863394]
                 }
             ]
         },
@@ -63,36 +43,21 @@
             "instance_data": [
                 {
                     "id" : "biowood_SE",
-                    "demand": {
-                        "timeseries": {
-                            "path": "system/demand.csv",
-                            "header": "Demand_Zero"
-                        }
-                    },
-                    "max_supply":[820.85, 1202.51, 1255.77, 3370.4, 4511.23],                    
-                    "price_supply":[49.38, 61.73, 66.66, 86.42, 86.55]
+                    "demand": [0.0],
+                    "max_supply":[8000,16000,24000],                    
+                    "price_supply":[40,60,80]
                 },
                 {
                     "id" : "biowood_MIDAT",
-                    "demand": {
-                        "timeseries": {
-                            "path": "system/demand.csv",
-                            "header": "Demand_Zero"
-                        }
-                    },
-                    "max_supply":[199.74, 326.74, 337.74, 2236.41, 3010.19],                    
-                    "price_supply":[49.38, 61.73, 66.66, 86.42, 86.55]
+                    "demand": [0.0],
+                    "max_supply":[15000,30000,45000],                    
+                    "price_supply":[40,60,80]
                 },
                 {
                     "id" : "biowood_NE",
-                    "demand": {
-                        "timeseries": {
-                            "path": "system/demand.csv",
-                            "header": "Demand_Zero"
-                        }
-                    },
-                    "max_supply":[106.89, 152.14, 152.38, 406.3, 1088.03],                    
-                    "price_supply":[49.38, 61.73, 66.66, 86.42, 86.55]
+                    "demand": [0.0],
+                    "max_supply":[4000,8000,12000],                    
+                    "price_supply":[40,60,80]
                 }
                 
             ]
@@ -108,36 +73,21 @@
             "instance_data": [
                 {
                     "id" : "bioherb_SE",
-                    "demand": {
-                        "timeseries": {
-                            "path": "system/demand.csv",
-                            "header": "Demand_Zero"
-                        }
-                    },
-                    "max_supply":[7963.12],                    
-                    "price_supply":[86.4192]
+                    "demand": [0.0],
+                    "max_supply":[10000,20000,30000],                    
+                    "price_supply":[40,60,80]
                 },
                 {
                     "id" : "bioherb_MIDAT",
-                    "demand": {
-                        "timeseries": {
-                            "path": "system/demand.csv",
-                            "header": "Demand_Zero"
-                        }
-                    },
-                    "max_supply":[1364.89],                    
-                    "price_supply":[86.4192]
+                    "demand": [0.0],
+                    "max_supply":[80000,160000,240000],                    
+                    "price_supply":[40,60,80]
                 },
                 {
                     "id" : "bioherb_NE",
-                    "demand": {
-                        "timeseries": {
-                            "path": "system/demand.csv",
-                            "header": "Demand_Zero"
-                        }
-                    },
-                    "max_supply":[297.76],                    
-                    "price_supply":[86.4192]
+                    "demand": [0.0],
+                    "max_supply":[400,800,1200],                    
+                    "price_supply":[40,60,80]
                 }
             ]
         },
