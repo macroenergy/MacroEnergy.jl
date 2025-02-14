@@ -26,3 +26,6 @@ function print_struct_info(info::Vector{Tuple{Symbol, DataType}})
     end    
 end
 
+function get_assets_sametype(assets::Vector{AbstractAsset}, asset_type::T) where T<:Type{<:AbstractAsset}
+    return filter(a -> typeof(a) == asset_type, assets)
+end

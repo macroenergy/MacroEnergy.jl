@@ -22,6 +22,8 @@ abstract type CO2Captured <: CO2 end ## tonnes
 abstract type Coal <: Commodity end ## MWh
 abstract type Biomass <: Commodity end ## tonnes
 abstract type Uranium <: Commodity end ## MWh
+abstract type Cement <: Commodity end ## tonnes
+abstract type CementMaterials <: Commodity end ## tonnes
 
 ## Time data types
 abstract type AbstractTimeData{T<:Commodity} end
@@ -94,6 +96,8 @@ include("model/assets/natgasdac.jl")
 include("model/assets/electricdac.jl")
 include("model/assets/beccselectricity.jl")
 include("model/assets/beccshydrogen.jl")
+include("model/assets/cementplant.jl")
+include("model/assets/electrochemcementplant.jl")
 
 include("model/assets/hydrores.jl")
 include("model/assets/mustrun.jl")
@@ -175,5 +179,7 @@ export AbstractAsset,
     Transformation,
     Uranium,
     VRE,
-    WindTurbine
+    WindTurbine,
+    Cement,
+    CementMaterials
 end # module Macro

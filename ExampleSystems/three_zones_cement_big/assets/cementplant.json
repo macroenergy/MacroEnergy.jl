@@ -1,0 +1,685 @@
+{
+    "CementPlant": [
+        {"type": "CementPlant",
+            "global_data": {
+            "nodes": {},
+            "transforms": {
+                "timedata": "Cement",
+                "emission_rate": 0.181048235160161,
+                "constraints": {
+                        "BalanceConstraint": true
+                }
+            },
+            "edges" : {
+                "elec_edge":{
+                            "type": "Electricity",
+                            "unidirectional": true,
+                            "has_capacity": true,
+                            "uc": true,
+                            "integer_decisions": false,
+                            "constraints": {
+                                "CapacityConstraint": true
+                            }
+                        },
+                "fuel_edge": {
+                            "type": "NaturalGas",
+                            "unidirectional": true,
+                            "has_capacity": false
+                        },
+                "cement_edge": {
+                        "type": "Cement",
+                        "unidirectional": true,
+                        "has_capacity": false,
+                        "end_vertex": "cement_production"
+                    }
+                }
+            },
+            "instance_data": [
+                {
+                    "id": "MIDAT_natural_gas_fired_combined_cycle_1",
+                    "transforms":{
+                        "efficiency_rate": 0.444520797
+                    },
+                    "edges":{
+                        "elec_edge": {
+                            "start_vertex": "elec_MIDAT",
+                            "can_retire": true,
+                            "can_expand": false,
+                            "existing_capacity":4026.4,
+                            "investment_cost": 0.0,
+                            "fixed_om_cost": 16001,
+                            "variable_om_cost": 4.415,
+                            "capacity_size": 125.825,
+                            "startup_cost": 89.34,
+                            "startup_fuel": 0.58614214,                            
+                            "min_up_time": 6,
+                            "min_down_time": 6,
+                            "ramp_up_fraction": 0.64,
+                            "ramp_down_fraction": 0.64,
+                            "min_flow_fraction":0.444
+                        },
+                        "fuel_edge": {
+                            "start_vertex": "natgas_MIDAT"
+                        }
+                    }
+                },
+                {
+                    "id": "MIDAT_natural_gas_fired_combined_cycle_2",
+                    "transforms":{
+                        "efficiency_rate": 0.499362159
+                    },
+                    "edges":{
+                        "elec_edge": {
+                            "start_vertex": "elec_MIDAT",
+                            "can_retire": true,
+                            "can_expand": false,
+                            "existing_capacity": 31802.922,
+                            "investment_cost": 0.0,
+                            "fixed_om_cost": 11965,
+                            "variable_om_cost": 3.452,
+                            "capacity_size": 588.943,
+                            "startup_cost": 89.34,
+                            "startup_fuel": 0.58614214,                            
+                            "min_up_time": 6,
+                            "min_down_time": 6,
+                            "ramp_up_fraction": 0.64,
+                            "ramp_down_fraction": 0.64,
+                            "min_flow_fraction":0.38
+                        },
+                        "fuel_edge": {
+                            "start_vertex": "natgas_MIDAT"
+                        }
+                    }
+                },
+                {
+                    "id": "MIDAT_natural_gas_fired_combined_cycle_3",
+                    "transforms":{
+                        "efficiency_rate": 0.277884326
+                    },
+                    "edges":{
+                        "elec_edge": {
+                            "start_vertex": "elec_MIDAT",
+                            "can_retire": true,
+                            "can_expand": false,
+                            "existing_capacity": 1697.696,
+                            "investment_cost": 0.0,
+                            "fixed_om_cost": 11069.135,
+                            "variable_om_cost": 3.505,
+                            "capacity_size": 212.212,
+                            "startup_cost": 89.34,
+                            "startup_fuel": 0.58614214,                            
+                            "min_up_time": 6,
+                            "min_down_time": 6,
+                            "ramp_up_fraction": 0.64,
+                            "ramp_down_fraction": 0.64,
+                            "min_flow_fraction":0.217
+                        },
+                        "fuel_edge": {
+                            "start_vertex": "natgas_MIDAT"
+                        }
+                    }
+                },
+                {
+                    "id": "MIDAT_natural_gas_fired_combined_cycle_4",
+                    "transforms":{
+                        "efficiency_rate": 0.475891441
+                    },
+                    "edges":{
+                        "elec_edge": {
+                            "start_vertex": "elec_MIDAT",
+                            "can_retire": true,
+                            "can_expand": false,
+                            "existing_capacity": 20288.499,
+                            "investment_cost": 0.0,
+                            "fixed_om_cost": 9496,
+                            "variable_om_cost": 3.504,
+                            "capacity_size": 614.803,
+                            "startup_cost": 89.34,
+                            "startup_fuel": 0.58614214,                            
+                            "min_up_time": 6,
+                            "min_down_time": 6,
+                            "ramp_up_fraction": 0.64,
+                            "ramp_down_fraction": 0.64,
+                            "min_flow_fraction":0.39
+                        },
+                        "fuel_edge": {
+                            "start_vertex": "natgas_MIDAT"
+                        }
+                    }
+                },
+                {
+                    "id": "MIDAT_natural_gas_fired_combustion_turbine_1",
+                    "transforms":{
+                        "efficiency_rate": 0.29037032
+                    },
+                    "edges":{
+                        "elec_edge": {
+                            "start_vertex": "elec_MIDAT",
+                            "can_retire": true,
+                            "can_expand": false,
+                            "existing_capacity": 14508.75,
+                            "investment_cost": 0.0,
+                            "fixed_om_cost": 9573.46,
+                            "variable_om_cost": 5.071,
+                            "capacity_size": 116.07,
+                            "startup_cost": 115.842,
+                            "startup_fuel": 1.025748745,                            
+                            "min_up_time": 1,
+                            "min_down_time": 1,
+                            "ramp_up_fraction": 0.64,
+                            "ramp_down_fraction": 0.64,
+                            "min_flow_fraction":0.505
+                        },
+                        "fuel_edge": {
+                            "start_vertex": "natgas_MIDAT"
+                        }
+                    }
+                },
+                {
+                    "id": "MIDAT_natural_gas_fired_combustion_turbine_2",
+                    "transforms":{
+                        "efficiency_rate": 0.332859393
+                    },
+                    "edges":{
+                        "elec_edge": {
+                            "start_vertex": "elec_MIDAT",
+                            "can_retire": true,
+                            "can_expand": false,
+                            "existing_capacity": 704.718,
+                            "investment_cost": 0.0,
+                            "fixed_om_cost": 13548,
+                            "variable_om_cost": 5.071,
+                            "capacity_size": 14.994,
+                            "startup_cost": 115.842,
+                            "startup_fuel": 1.025748745,                            
+                            "min_up_time": 1,
+                            "min_down_time": 1,
+                            "ramp_up_fraction": 0.64,
+                            "ramp_down_fraction": 0.64,
+                            "min_flow_fraction":0.403
+                        },
+                        "fuel_edge": {
+                            "start_vertex": "natgas_MIDAT"
+                        }
+                    }
+                },
+                {
+                    "id": "NE_natural_gas_fired_combined_cycle_1",
+                    "transforms":{
+                        "efficiency_rate": 0.398103096
+                    },
+                    "edges":{
+                        "elec_edge": {
+                            "start_vertex": "elec_NE",
+                            "can_retire": true,
+                            "can_expand": false,
+                            "existing_capacity": 6119.616,
+                            "investment_cost": 0.0,
+                            "fixed_om_cost": 16001,
+                            "variable_om_cost": 4.415,
+                            "capacity_size": 127.492,
+                            "startup_cost": 89.34,
+                            "startup_fuel": 0.58614214,                            
+                            "min_up_time": 6,
+                            "min_down_time": 6,
+                            "ramp_up_fraction": 0.64,
+                            "ramp_down_fraction": 0.64,
+                            "min_flow_fraction": 0.526
+                        },
+                        "fuel_edge": {
+                            "start_vertex": "natgas_NE"
+                        }
+                    }
+                },
+                {
+                    "id": "NE_natural_gas_fired_combined_cycle_2",
+                    "transforms":{
+                        "efficiency_rate": 0.44527491
+                    },
+                    "edges":{
+                        "elec_edge": {
+                            "start_vertex": "elec_NE",
+                            "can_retire": true,
+                            "can_expand": false,
+                            "existing_capacity": 21225.12,
+                            "investment_cost": 0.0,
+                            "fixed_om_cost": 10223.482,
+                            "variable_om_cost": 3.488,
+                            "capacity_size": 442.19,
+                            "startup_cost": 89.34,
+                            "startup_fuel": 0.58614214,                            
+                            "min_up_time": 6,
+                            "min_down_time": 6,
+                            "ramp_up_fraction": 0.64,
+                            "ramp_down_fraction": 0.64,
+                            "min_flow_fraction": 0.409
+                        },
+                        "fuel_edge": {
+                            "start_vertex": "natgas_NE"
+                        }
+                    }
+                },
+                {
+                    "id": "NE_natural_gas_fired_combined_cycle_3",
+                    "transforms":{
+                        "efficiency_rate": 0.17162827
+                    },
+                    "edges":{
+                        "elec_edge": {
+                            "start_vertex": "elec_NE",
+                            "can_retire": true,
+                            "can_expand": false,
+                            "existing_capacity": 19.5,
+                            "investment_cost": 0.0,
+                            "fixed_om_cost": 16001,
+                            "variable_om_cost": 4.415,
+                            "capacity_size": 19.5,
+                            "startup_cost": 89.34,
+                            "startup_fuel": 0.58614214,                            
+                            "min_up_time": 6,
+                            "min_down_time": 6,
+                            "ramp_up_fraction": 0.64,
+                            "ramp_down_fraction": 0.64,
+                            "min_flow_fraction": 0.472
+                        },
+                        "fuel_edge": {
+                            "start_vertex": "natgas_NE"
+                        }
+                    }
+                },
+                {
+                    "id": "NE_natural_gas_fired_combustion_turbine_1",
+                    "transforms":{
+                        "efficiency_rate": 0.301106745
+                    },
+                    "edges":{
+                        "elec_edge": {
+                            "start_vertex": "elec_NE",
+                            "can_retire": true,
+                            "can_expand": false,
+                            "existing_capacity": 1413.201,
+                            "investment_cost": 0.0,
+                            "fixed_om_cost": 13548,
+                            "variable_om_cost": 5.071,
+                            "capacity_size": 24.793,
+                            "startup_cost": 115.842,
+                            "startup_fuel": 1.025748745,                            
+                            "min_up_time": 1,
+                            "min_down_time": 1,
+                            "ramp_up_fraction": 0.64,
+                            "ramp_down_fraction": 0.64,
+                            "min_flow_fraction": 0.39
+                        },
+                        "fuel_edge": {
+                            "start_vertex": "natgas_NE"
+                        }
+                    }
+                },
+                {
+                    "id": "NE_natural_gas_fired_combustion_turbine_2",
+                    "transforms":{
+                        "efficiency_rate": 0.338204147
+                    },
+                    "edges":{
+                        "elec_edge": {
+                            "start_vertex": "elec_NE",
+                            "can_retire": true,
+                            "can_expand": false,
+                            "existing_capacity": 2341.199,
+                            "investment_cost": 0.0,
+                            "fixed_om_cost": 9896.045,
+                            "variable_om_cost": 5.071,
+                            "capacity_size": 80.731,
+                            "startup_cost": 115.842,
+                            "startup_fuel": 1.025748745,                            
+                            "min_up_time": 1,
+                            "min_down_time": 1,
+                            "ramp_up_fraction": 0.64,
+                            "ramp_down_fraction": 0.64,
+                            "min_flow_fraction": 0.367
+                        },
+                        "fuel_edge": {
+                            "start_vertex": "natgas_NE"
+                        }
+                    }
+                },
+                {
+                    "id": "SE_natural_gas_fired_combined_cycle_1",
+                    "transforms":{
+                        "efficiency_rate": 0.469022905
+                    },
+                    "edges":{
+                        "elec_edge": {
+                            "start_vertex": "elec_SE",
+                            "can_retire": true,
+                            "can_expand": false,
+                            "existing_capacity": 26218.712,
+                            "investment_cost": 0.0,
+                            "fixed_om_cost": 9496,
+                            "variable_om_cost": 3.504,
+                            "capacity_size": 504.206,
+                            "startup_cost": 89.34,
+                            "startup_fuel": 0.58614214,                            
+                            "min_up_time": 6,
+                            "min_down_time": 6,
+                            "ramp_up_fraction": 0.64,
+                            "ramp_down_fraction": 0.64,
+                            "min_flow_fraction": 0.41
+                        },
+                        "fuel_edge": {
+                            "start_vertex": "natgas_SE"
+                        }
+                    }
+                },
+                {
+                    "id": "SE_natural_gas_fired_combined_cycle_2",
+                    "transforms":{
+                        "efficiency_rate": 0.44113014
+                    },
+                    "edges":{
+                        "elec_edge": {
+                            "start_vertex": "elec_SE",
+                            "can_retire": true,
+                            "can_expand": false,
+                            "existing_capacity": 4637.5,
+                            "investment_cost": 0.0,
+                            "fixed_om_cost": 16001,
+                            "variable_om_cost": 4.415,
+                            "capacity_size": 185.5,
+                            "startup_cost": 89.34,
+                            "startup_fuel": 0.58614214,                            
+                            "min_up_time": 6,
+                            "min_down_time": 6,
+                            "ramp_up_fraction": 0.64,
+                            "ramp_down_fraction": 0.64,
+                            "min_flow_fraction": 0.586
+                        },
+                        "fuel_edge": {
+                            "start_vertex": "natgas_SE"
+                        }
+                    }
+                },
+                {
+                    "id": "SE_natural_gas_fired_combined_cycle_3",
+                    "transforms":{
+                        "efficiency_rate": 0.489617109
+                    },
+                    "edges":{
+                        "elec_edge": {
+                            "start_vertex": "elec_SE",
+                            "can_retire": true,
+                            "can_expand": false,
+                            "existing_capacity": 42679.32,
+                            "investment_cost": 0.0,
+                            "fixed_om_cost": 11977.294,
+                            "variable_om_cost": 3.455,
+                            "capacity_size": 711.322,
+                            "startup_cost": 89.34,
+                            "startup_fuel": 0.58614214,                            
+                            "min_up_time": 6,
+                            "min_down_time": 6,
+                            "ramp_up_fraction": 0.64,
+                            "ramp_down_fraction": 0.64,
+                            "min_flow_fraction": 0.596
+                        },
+                        "fuel_edge": {
+                            "start_vertex": "natgas_SE"
+                        }
+                    }
+                },
+                {
+                    "id": "SE_natural_gas_fired_combined_cycle_4",
+                    "transforms":{
+                        "efficiency_rate": 0.33337974
+                    },
+                    "edges":{
+                        "elec_edge": {
+                            "start_vertex": "elec_SE",
+                            "can_retire": true,
+                            "can_expand": false,
+                            "existing_capacity": 6088.5,
+                            "investment_cost": 0.0,
+                            "fixed_om_cost": 11733.808,
+                            "variable_om_cost": 3.493,
+                            "capacity_size": 507.375,
+                            "startup_cost": 89.34,
+                            "startup_fuel": 0.58614214,                            
+                            "min_up_time": 6,
+                            "min_down_time": 6,
+                            "ramp_up_fraction": 0.64,
+                            "ramp_down_fraction": 0.64,
+                            "min_flow_fraction": 0.561
+                        },
+                        "fuel_edge": {
+                            "start_vertex": "natgas_SE"
+                        }
+                    }
+                },
+                {
+                    "id": "SE_natural_gas_fired_combustion_turbine_1",
+                    "transforms":{
+                        "efficiency_rate": 0.306488964
+                    },
+                    "edges":{
+                        "elec_edge": {
+                            "start_vertex": "elec_SE",
+                            "can_retire": true,
+                            "can_expand": false,
+                            "existing_capacity": 24934.14,
+                            "investment_cost": 0.0,
+                            "fixed_om_cost": 9518.439,
+                            "variable_om_cost": 5.071,
+                            "capacity_size": 138.523,
+                            "startup_cost": 115.842,
+                            "startup_fuel": 1.025748745,                            
+                            "min_up_time": 1,
+                            "min_down_time": 1,
+                            "ramp_up_fraction": 0.64,
+                            "ramp_down_fraction": 0.64,
+                            "min_flow_fraction": 0.472
+                        },
+                        "fuel_edge": {
+                            "start_vertex": "natgas_SE"
+                        }
+                    }
+                },
+                {
+                    "id": "SE_natural_gas_fired_combustion_turbine_2",
+                    "transforms":{
+                        "efficiency_rate": 0.331083023
+                    },
+                    "edges":{
+                        "elec_edge": {
+                            "start_vertex": "elec_SE",
+                            "can_retire": true,
+                            "can_expand": false,
+                            "existing_capacity": 683.209,
+                            "investment_cost": 0.0,
+                            "fixed_om_cost": 13548,
+                            "variable_om_cost": 5.071,
+                            "capacity_size": 22.039,
+                            "startup_cost": 115.842,
+                            "startup_fuel": 1.025748745,                            
+                            "min_up_time": 1,
+                            "min_down_time": 1,
+                            "ramp_up_fraction": 0.64,
+                            "ramp_down_fraction": 0.64,
+                            "min_flow_fraction": 0.326
+                        },
+                        "fuel_edge": {
+                            "start_vertex": "natgas_SE"
+                        }
+                    }
+                },
+                {
+                    "id": "SE_naturalgas_ccavgcf_moderate_0",
+                    "transforms":{
+                        "efficiency_rate": 0.53624731
+                    },
+                    "edges":{
+                        "elec_edge": {
+                            "start_vertex": "elec_SE",
+                            "can_retire": true,
+                            "can_expand": true,
+                            "existing_capacity": 0.0,
+                            "investment_cost": 80677.84294,
+                            "fixed_om_cost": 27300,
+                            "variable_om_cost": 1.74,
+                            "capacity_size": 573,
+                            "startup_cost": 61,
+                            "startup_fuel": 0.058614214,                            
+                            "min_up_time": 4,
+                            "min_down_time": 4,
+                            "ramp_up_fraction": 1,
+                            "ramp_down_fraction": 1,
+                            "min_flow_fraction": 0.3
+                        },
+                        "fuel_edge": {
+                            "start_vertex": "natgas_SE"
+                        }
+                    }
+                },
+                {
+                    "id": "SE_naturalgas_ctavgcf_moderate_0",
+                    "transforms":{
+                        "efficiency_rate": 0.351151758
+                    },
+                    "edges":{
+                        "elec_edge": {
+                            "start_vertex": "elec_SE",
+                            "can_retire": true,
+                            "can_expand": true,
+                            "existing_capacity": 0.0,
+                            "investment_cost": 67261.81732,
+                            "fixed_om_cost": 20900,
+                            "variable_om_cost": 4.94,
+                            "capacity_size": 237,
+                            "startup_cost": 140,
+                            "startup_fuel": 0.055683503,                            
+                            "min_up_time": 0,
+                            "min_down_time": 0,
+                            "ramp_up_fraction": 1,
+                            "ramp_down_fraction": 1,
+                            "min_flow_fraction": 0.25
+                        },
+                        "fuel_edge": {
+                            "start_vertex": "natgas_SE"
+                        }
+                    }
+                },
+                {
+                    "id": "MIDAT_naturalgas_ccavgcf_moderate_0",
+                    "transforms":{
+                        "efficiency_rate": 0.53624731
+                    },
+                    "edges":{
+                        "elec_edge": {
+                            "start_vertex": "elec_MIDAT",
+                            "can_retire": true,
+                            "can_expand": true,
+                            "existing_capacity": 0.0,
+                            "investment_cost": 94925.35493,
+                            "fixed_om_cost": 27300,
+                            "variable_om_cost": 1.74,
+                            "capacity_size": 573,
+                            "startup_cost": 61,
+                            "startup_fuel": 0.058614214,                            
+                            "min_up_time": 4,
+                            "min_down_time": 4,
+                            "ramp_up_fraction": 1,
+                            "ramp_down_fraction": 1,
+                            "min_flow_fraction": 0.3
+                        },
+                        "fuel_edge": {
+                            "start_vertex": "natgas_MIDAT"
+                        }
+                    }
+                },
+                {
+                    "id": "NE_naturalgas_ccavgcf_moderate_0",
+                    "transforms":{
+                        "efficiency_rate": 0.53624731
+                    },
+                    "edges":{
+                        "elec_edge": {
+                            "start_vertex": "elec_NE",
+                            "can_retire": true,
+                            "can_expand": true,
+                            "existing_capacity": 0.0,
+                            "investment_cost": 115419.9423,
+                            "fixed_om_cost": 27300,
+                            "variable_om_cost": 1.74,
+                            "capacity_size": 573,
+                            "startup_cost": 61,
+                            "startup_fuel": 0.058614214,                            
+                            "min_up_time": 4,
+                            "min_down_time": 4,
+                            "ramp_up_fraction": 1,
+                            "ramp_down_fraction": 1,
+                            "min_flow_fraction": 0.3
+                        },
+                        "fuel_edge": {
+                            "start_vertex": "natgas_NE"
+                        }
+                    }
+                },
+                {
+                    "id": "MIDAT_naturalgas_ctavgcf_moderate_0",
+                    "transforms":{
+                        "efficiency_rate": 0.351151758
+                    },
+                    "edges":{
+                        "elec_edge": {
+                            "start_vertex": "elec_MIDAT",
+                            "can_retire": true,
+                            "can_expand": true,
+                            "existing_capacity": 0.0,
+                            "investment_cost": 74985.38451,
+                            "fixed_om_cost": 20900,
+                            "variable_om_cost": 4.94,
+                            "capacity_size": 237,
+                            "startup_cost": 140,
+                            "startup_fuel": 0.055683503,                            
+                            "min_up_time": 0,
+                            "min_down_time": 0,
+                            "ramp_up_fraction": 1,
+                            "ramp_down_fraction": 1,
+                            "min_flow_fraction": 0.25
+                        },
+                        "fuel_edge": {
+                            "start_vertex": "natgas_MIDAT"
+                        }
+                    }
+                },
+                {
+                    "id": "NE_naturalgas_ctavgcf_moderate_0",
+                    "transforms":{
+                        "efficiency_rate": 0.351151758
+                    },
+                    "edges":{
+                        "elec_edge": {
+                            "start_vertex": "elec_NE",
+                            "can_retire": true,
+                            "can_expand": true,
+                            "existing_capacity": 0.0,
+                            "investment_cost": 88825.86206,
+                            "fixed_om_cost": 20900,
+                            "variable_om_cost": 4.94,
+                            "capacity_size": 237,
+                            "startup_cost": 140,
+                            "startup_fuel": 0.055683503,                            
+                            "min_up_time": 0,
+                            "min_down_time": 0,
+                            "ramp_up_fraction": 1,
+                            "ramp_down_fraction": 1,
+                            "min_flow_fraction": 0.25
+                        },
+                        "fuel_edge": {
+                            "start_vertex": "natgas_NE"
+                        }
+                    }
+                }
+            ]
+        }
+    ]
+}

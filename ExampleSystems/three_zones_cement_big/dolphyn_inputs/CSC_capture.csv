@@ -1,0 +1,10 @@
+CO2_Resource,Zone,etaPCO2_MWh_per_tonne,etaFuel_MMBtu_per_tonne,Fuel,Inv_Cost_per_tonne_per_hr_yr,Fixed_OM_Cost_per_tonne_per_hr_yr,Var_OM_Cost_per_tonne,Power_Production_MWh_per_tonne,Fuel_CCS_Rate,Min_capacity_tonne_per_hr,Max_capacity_tonne_per_hr,Ramp_Up_Percentage,Ramp_Down_Percentage,CO2_Capture_Min_Output
+SE_Solvent_wNGCC_DAC,1,0,10.397,SE_reference_naturalgas,8.69E+05,3.84E+05,58.41,0.125,0.99,0,10000000,1,1,0
+MIDAT_Solvent_wNGCC_DAC,2,0,10.397,MIDAT_reference_naturalgas,8.69E+05,3.84E+05,58.41,0.125,0.99,0,10000000,1,1,0
+NE_Solvent_wNGCC_DAC,3,0,10.397,NE_reference_naturalgas,8.69E+05,3.84E+05,58.41,0.125,0.99,0,10000000,1,1,0
+SE_Sorbent_wNGCC_DAC,1,0,22.643,SE_reference_naturalgas,2.14E+06,1.18E+06,61,0,0.9,0,10000000,1,1,0
+MIDAT_Sorbent_wNGCC_DAC,2,0,22.643,MIDAT_reference_naturalgas,2.14E+06,1.18E+06,61,0,0.9,0,10000000,1,1,0
+NE_Sorbent_wNGCC_DAC,3,0,22.643,NE_reference_naturalgas,2.14E+06,1.18E+06,61,0,0.9,0,10000000,1,1,0
+SE_Sorbent_DAC,1,4.38,0,SE_reference_naturalgas,9.39E+05,7.47E+05,22,0,0,0,10000000,1,1,0
+MIDAT_Sorbent_DAC,2,4.38,0,MIDAT_reference_naturalgas,9.39E+05,7.47E+05,22,0,0,0,10000000,1,1,0
+NE_Sorbent_DAC,3,4.38,0,NE_reference_naturalgas,9.39E+05,7.47E+05,22,0,0,0,10000000,1,1,0

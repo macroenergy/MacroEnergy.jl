@@ -3,7 +3,7 @@ struct TransmissionLine{T} <: AbstractAsset
     t_edge::Edge{T}
 end
 
-TransmissionLine(id::AssetId, t_edge::Edge{T})where T<:Commodity =
+TransmissionLine(id::AssetId, t_edge::Edge{T}) where T<:Commodity =
 TransmissionLine{T}(id,t_edge)
 
 function make(::Type{<:TransmissionLine}, data::AbstractDict{Symbol,Any}, system::System)

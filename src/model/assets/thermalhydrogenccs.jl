@@ -8,7 +8,7 @@ struct ThermalHydrogenCCS{T} <: AbstractAsset
     co2_captured_edge::Edge{CO2Captured}
 end
 ThermalHydrogenCCS(id::AssetId, thermalhydrogenccs_transform::Transformation,h2_edge::Union{Edge{Hydrogen},EdgeWithUC{Hydrogen}}, elec_edge::Edge{Electricity},
-fuel_edge::Edge{T},co2_edge::Edge{CO2},co2_captured_edge::Edge{CO2Captured})where T<:Commodity =
+fuel_edge::Edge{T},co2_edge::Edge{CO2},co2_captured_edge::Edge{CO2Captured}) where T<:Commodity =
     ThermalHydrogenCCS{T}(id, thermalhydrogenccs_transform, h2_edge, elec_edge, fuel_edge, co2_edge,co2_captured_edge)
 
 """

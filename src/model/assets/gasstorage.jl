@@ -9,7 +9,7 @@ struct GasStorage{T} <: AbstractAsset
 end
 
 GasStorage(id::AssetId,gas_storage::Storage{T},compressor_transform::Transformation,discharge_edge::Edge{T},charge_edge::Edge{T},compressor_elec_edge::Edge{Electricity},
-compressor_gas_edge::Edge{T})where T<:Commodity =
+compressor_gas_edge::Edge{T}) where T<:Commodity =
     GasStorage{T}(id,gas_storage,compressor_transform,discharge_edge,charge_edge,compressor_elec_edge,
     compressor_gas_edge)
 
