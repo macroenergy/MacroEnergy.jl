@@ -14,10 +14,12 @@ jobs:
       fail-fast: false
       matrix:
         version:
-          - "1.10" # LTS (64-bit Linux)
+          # - "1.10" # LTS (64-bit Linux)
           - "1.9" 
           - '1'  # latest stable Julia release (Linux)
           # - 'nightly'
+        os:
+          - ubuntu-latest
         arch:
           - x64
         # include:
