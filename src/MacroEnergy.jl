@@ -30,6 +30,8 @@ abstract type Biomass <: Commodity end ## tonnes
 abstract type Uranium <: Commodity end ## MWh
 abstract type LiquidFuels <: Commodity end ## MWh
 abstract type Cement <: Commodity end ## tonnes
+abstract type CementMaterials <: Commodity end ## tonnes
+abstract type Cement <: Commodity end ## tonnes
 
 ## Time data types
 abstract type AbstractTimeData{T<:Commodity} end

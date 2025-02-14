@@ -1,0 +1,110 @@
+{
+    "NaturalGasPowerCCS": [
+        {
+            "type": "ThermalPowerCCS",
+            "global_data": {
+                "nodes": {},
+                "transforms": {
+                    "timedata": "NaturalGas",
+                    "efficiency_rate": 0.476622662,
+                    "emission_rate": 0.018104824,
+                    "capture_rate": 0.162943412,
+                    "constraints": {
+                        "BalanceConstraint": true
+                    }
+                },
+                "edges": {
+                    "elec_edge": {
+                        "type": "Electricity",
+                        "uc": true,
+                        "unidirectional": true,
+                        "has_capacity": true,
+                        "can_expand": true,
+                        "can_retire": true,
+                        "integer_decisions": false,
+                        "existing_capacity": 0.0,
+                        "fixed_om_cost": 65100,
+                        "variable_om_cost": 5.73,
+                        "capacity_size": 377,
+                        "startup_cost": 97,
+                        "startup_fuel": 0.058614214,                            
+                        "min_up_time": 4,
+                        "min_down_time": 4,
+                        "ramp_up_fraction": 1,
+                        "ramp_down_fraction": 1,
+                        "min_flow_fraction":0.5,
+                        "constraints": {
+                            "CapacityConstraint": true,
+                            "RampingLimitConstraint": true,
+                            "MinFlowConstraint": true,
+                            "MinUpTimeConstraint": true,
+                            "MinDownTimeConstraint": true
+                        }
+                    },
+                    "fuel_edge": {
+                        "type": "NaturalGas",
+                        "unidirectional": true,
+                        "has_capacity": false
+                    },
+                    "co2_edge": {
+                        "type": "CO2",
+                        "unidirectional": true,
+                        "has_capacity": false,
+                        "end_vertex": "co2_sink"
+                    },
+                    "co2_captured_edge": {
+                        "type": "CO2Captured",
+                        "unidirectional": true,
+                        "has_capacity": false,
+                        "end_vertex": "co2_captured_sink"
+                    }
+                },
+                "storage": {}
+            },
+            "instance_data": [
+                {
+                    "id": "SE_naturalgas_ccccsavgcf_conservative_0",
+                    "nodes": {},
+                    "transforms": {},
+                    "edges": {
+                        "elec_edge": {
+                            "end_vertex": "elec_SE",
+                            "investment_cost": 159189.8789
+                        },
+                        "fuel_edge": {
+                            "start_vertex": "natgas_SE"
+                        }
+                    }
+                },
+                {
+                    "id": "MIDAT_naturalgas_ccccsavgcf_conservative_0",
+                    "nodes": {},
+                    "transforms": {},
+                    "edges": {
+                        "elec_edge": {
+                            "end_vertex": "elec_MIDAT",
+                            "investment_cost": 168225.7679
+                        },
+                        "fuel_edge": {
+                            "start_vertex": "natgas_MIDAT"
+                        }
+                    }
+                },
+                {
+                    "id": "NE_naturalgas_ccccsavgcf_conservative_0",
+                    "nodes": {},
+                    "transforms": {},
+                    "edges": {
+                        "elec_edge": {
+                            "end_vertex": "elec_NE",
+                            "investment_cost": 183382.7431
+                        },
+                        "fuel_edge": {
+                            "start_vertex": "natgas_NE"
+                        }
+                    }
+                }
+            ]
+        }
+    ]
+}

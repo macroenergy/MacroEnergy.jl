@@ -1,0 +1,100 @@
+{
+    "CementPlant": [
+        {
+            "type": "CementPlant",
+            "global_data": {
+                "nodes": {},
+                "transforms": {
+                    "timedata": "Cement",
+                    "constraints": {
+                        "BalanceConstraint": true
+                    },
+                    "fuel_cement_rate": 0.9156,
+                    "elec_cement_rate": 0.128,
+                    "fuel_emission_rate": 0.3104,
+                    "process_emission_rate": 0.4656
+                },
+                "edges": {
+                    "elec_edge": {
+                        "type": "Electricity",
+                        "unidirectional": true,
+                        "has_capacity": false
+                    },
+                    "fuel_edge": {
+                        "start_vertex": "ng_source",
+                        "type": "NaturalGas",
+                        "unidirectional": true,
+                        "has_capacity": false
+                    },
+                    "cement_materials_edge": {
+                        "start_vertex": "cement_input_materials_source",
+                        "type": "CementMaterials",
+                        "unidirectional": true,
+                        "has_capacity": false
+                    },
+                    "cement_edge": {
+                        "type": "Cement",
+                        "unidirectional": true,
+                        "has_capacity": true,
+                        "can_retire": true,
+                        "can_expand": true,
+                        "capacity_size": 1,
+                        "investment_cost": 187000,
+                        "fixed_om_cost": 21.45,
+                        "variable_om_cost": 0
+                    },
+                    "co2_edge": {
+                        "type": "CO2",
+                        "unidirectional": true,
+                        "has_capacity": false,
+                        "end_vertex": "co2_sink"
+                    }
+                }
+            },
+            "instance_data": [
+                {
+                    "id": "cement_MA",
+                    "nodes": {},
+                    "edges": {
+                        "elec_edge": {
+                            "start_vertex": "elec_MA"
+                        },
+                        "fuel_edge": {
+                            "price": {
+                                "timeseries": {
+                                    "path": "assets/fuel_prices.csv",
+                                    "header": "natgas_MA"
+                                }
+                            }
+                        },
+                        "cement_edge":{
+                            "existing_capacity": 0,
+                            "end_vertex": "cement_produced"
+                        }
+                    }
+                },
+                {
+                    "id": "cement_CT",
+                    "nodes": {},
+                    "edges": {
+                        "elec_edge": {
+                            "start_vertex": "elec_CT"
+                        },
+                        "fuel_edge": {
+                            "price": {
+                                "timeseries": {
+                                    "path": "assets/fuel_prices.csv",
+                                    "header": "natgas_CT"
+                                }
+                            }
+                        },
+                        "cement_edge":{
+                            "existing_capacity": 0,
+                            "end_vertex": "cement_produced"
+                        }
+                    }
+                }
+            ]
+        }
+    ]
+}
