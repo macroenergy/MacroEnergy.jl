@@ -103,7 +103,7 @@
                 {
                     "id": "co2_sink",
                     "constraints": {
-                        "CO2CapConstraint": true
+                        "CO2CapConstraint": false
                     },
                     "rhs_policy": {
                             "CO2CapConstraint": 0
