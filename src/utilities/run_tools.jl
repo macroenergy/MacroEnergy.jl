@@ -17,7 +17,7 @@ function run_case(case_path::AbstractString=@__DIR__; lazy_load::Bool=true, opti
     end
 
     try
-        set_optimizer_attributes(model, "BarConvTol"=>1e-3,"Crossover" => 0, "Method" => 2)
+        set_optimizer_attributes(model, "BarConvTol"=>1e-8,"Crossover" => 1, "Method" => 2)
     catch
         @warn("Error setting optimizer attributes. Check that the optimizer is valid.")
     end
@@ -38,6 +38,9 @@ function run_case(case_path::AbstractString=@__DIR__; lazy_load::Bool=true, opti
     
     # Cost results
     write_costs(joinpath(results_dir, "costs.csv"), model)
+
+    # Flow results
+    write_flow_results(joinpath(results_dir, "flow.csv"), system)
 
     return system, model
 end

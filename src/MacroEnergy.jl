@@ -103,6 +103,9 @@ include("model/assets/hydrores.jl")
 include("model/assets/mustrun.jl")
 
 
+include("model/assets/natgasenduse.jl")
+
+
 include_all_in_folder("model/constraints")
 
 include("config/configure_settings.jl")
@@ -166,6 +169,7 @@ export AbstractAsset,
     MustRunConstraint,
     NaturalGas,
     NaturalGasDAC,
+    NaturalGasEndUse,
     Node,
     OperationConstraint,
     PlanningConstraint,
