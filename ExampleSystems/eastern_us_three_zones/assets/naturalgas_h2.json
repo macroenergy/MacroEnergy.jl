@@ -49,7 +49,7 @@
                 {
                     "id": "SE_Large_SMR_Non_CCS",
                     "transforms":{
-                        "emission_rate": 0.069029264,
+                        "emission_rate": 0.181048235160161,
                         "efficiency_rate": 0.76865951,
                         "electricity_consumption": 0.016404
                     },
@@ -84,6 +84,11 @@
                 },
                 {
                     "id": "MIDAT_Large_SMR_Non_CCS",
+                    "transforms":{
+                        "emission_rate": 0.181048235160161,
+                        "efficiency_rate": 0.76865951,
+                        "electricity_consumption": 0.016404
+                    },
                     "edges":{
                             "h2_edge": {
                                 "end_vertex": "h2_MIDAT",
@@ -92,7 +97,18 @@
                                     "path": "system/availability.csv",
                                     "header": "MIDAT_Large_SMR_Non_CCS"
                                     }
-                                }
+                                },
+                                "existing_capacity": 0.0,
+                                "investment_cost": 29902.10236,
+                                "fixed_om_cost": 13685.61723,
+                                "variable_om_cost": 2.250837989,
+                                "capacity_size": 1082.95,
+                                "startup_cost": 0.126968004,
+                                "min_up_time": 3,
+                                "min_down_time": 3,
+                                "ramp_up_fraction": 0.5,
+                                "ramp_down_fraction": 0.5,
+                                "min_flow_fraction":0.85
                             },
                             "fuel_edge": {
                                 "start_vertex": "natgas_MIDAT"
@@ -104,6 +120,11 @@
                 },
                 {
                     "id": "NE_Large_SMR_Non_CCS",
+                    "transforms":{
+                        "emission_rate": 0.181048235160161,
+                        "efficiency_rate": 0.76865951,
+                        "electricity_consumption": 0.016404
+                    },
                     "edges":{
                             "h2_edge": {
                                 "end_vertex": "h2_NE",
@@ -112,7 +133,18 @@
                                     "path": "system/availability.csv",
                                     "header": "NE_Large_SMR_Non_CCS"
                                     }
-                                }
+                                },
+                                "existing_capacity": 0.0,
+                                "investment_cost": 29902.10236,
+                                "fixed_om_cost": 13685.61723,
+                                "variable_om_cost": 2.250837989,
+                                "capacity_size": 1082.95,
+                                "startup_cost": 0.126968004,
+                                "min_up_time": 3,
+                                "min_down_time": 3,
+                                "ramp_up_fraction": 0.5,
+                                "ramp_down_fraction": 0.5,
+                                "min_flow_fraction":0.85
                             },
                             "fuel_edge": {
                                 "start_vertex": "natgas_NE"
