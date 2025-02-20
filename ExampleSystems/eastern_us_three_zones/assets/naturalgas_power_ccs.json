@@ -41,8 +41,7 @@
                     "co2_captured_edge": {
                         "type": "CO2Captured",
                         "unidirectional": true,
-                        "has_capacity": false,
-                        "end_vertex": "co2_captured_sink"
+                        "has_capacity": false
                     }
                 },
                 "storage": {}
@@ -73,6 +72,9 @@
                         },
                         "fuel_edge": {
                             "start_vertex": "natgas_SE"
+                        },
+                        "co2_captured_edge": {
+                            "end_vertex": "co2_captured_SE"
                         }
                     }
                 },
@@ -101,6 +103,9 @@
                         },
                         "fuel_edge": {
                             "start_vertex": "natgas_MIDAT"
+                        },
+                        "co2_captured_edge": {
+                            "end_vertex": "co2_captured_MIDAT"
                         }
                     }
                 },
@@ -129,6 +134,9 @@
                         },
                         "fuel_edge": {
                             "start_vertex": "natgas_NE"
+                        },
+                        "co2_captured_edge": {
+                            "end_vertex": "co2_captured_NE"
                         }
                     }
                 }

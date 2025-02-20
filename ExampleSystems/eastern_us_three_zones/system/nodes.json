@@ -295,7 +295,13 @@
             },
             "instance_data": [
                 {
-                    "id": "co2_captured_sink"
+                    "id": "co2_captured_SE"
+                },
+                {
+                    "id": "co2_captured_MIDAT"
+                },
+                {
+                    "id": "co2_captured_NE"
                 }
             ]
         },

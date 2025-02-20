@@ -47,8 +47,7 @@
                     "co2_captured_edge": {
                         "type": "CO2Captured",
                         "unidirectional": true,
-                        "has_capacity": false,
-                        "end_vertex": "co2_captured_sink"
+                        "has_capacity": false
                     }
                 }
             },
@@ -82,6 +81,9 @@
                         },
                         "h2_edge":{
                             "end_vertex": "h2_SE"
+                        },
+                        "co2_captured_edge": {
+                            "end_vertex": "co2_captured_SE"
                         }
                     }
                 },
@@ -114,6 +116,9 @@
                         },
                         "h2_edge":{
                             "end_vertex": "h2_MIDAT"
+                        },
+                        "co2_captured_edge": {
+                            "end_vertex": "co2_captured_MIDAT"
                         }
                     }
                 },
@@ -146,6 +151,9 @@
                         },
                         "h2_edge":{
                             "end_vertex": "h2_NE"
+                        },
+                        "co2_captured_edge": {
+                            "end_vertex": "co2_captured_NE"
                         }
                     }
                 },
@@ -178,6 +186,9 @@
                         },
                         "h2_edge":{
                             "end_vertex": "h2_SE"
+                        },
+                        "co2_captured_edge": {
+                            "end_vertex": "co2_captured_SE"
                         }
                     }
                 },
@@ -210,6 +221,9 @@
                         },
                         "h2_edge":{
                             "end_vertex": "h2_MIDAT"
+                        },
+                        "co2_captured_edge": {
+                            "end_vertex": "co2_captured_MIDAT"
                         }
                     }
                 },
@@ -242,6 +256,9 @@
                         },
                         "h2_edge":{
                             "end_vertex": "h2_NE"
+                        },
+                        "co2_captured_edge": {
+                            "end_vertex": "co2_captured_NE"
                         }
                     }
                 }

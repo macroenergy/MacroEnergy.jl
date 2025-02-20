@@ -41,8 +41,7 @@
                     "co2_captured_edge": {
                         "type": "CO2Captured",
                         "unidirectional": true,
-                        "has_capacity": false,
-                        "end_vertex": "co2_captured_sink"
+                        "has_capacity": false
                     },
                     "elec_edge":{
                         "type": "Electricity",
@@ -86,6 +85,9 @@
                             },
                             "elec_edge":{
                                 "start_vertex": "elec_SE"
+                            },
+                            "co2_captured_edge": {
+                                "end_vertex": "co2_captured_SE"
                             }
                         }
                 },
@@ -123,6 +125,9 @@
                             },
                             "elec_edge":{
                                 "start_vertex": "elec_MIDAT"
+                            },
+                            "co2_captured_edge": {
+                                "end_vertex": "co2_captured_MIDAT"
                             }
                         }
                 },
@@ -160,6 +165,9 @@
                             },
                             "elec_edge":{
                                 "start_vertex": "elec_NE"
+                            },
+                            "co2_captured_edge": {
+                                "end_vertex": "co2_captured_NE"
                             }
                         }
                 },
@@ -197,6 +205,9 @@
                             },
                             "elec_edge":{
                                 "start_vertex": "elec_SE"
+                            },
+                            "co2_captured_edge": {
+                                "end_vertex": "co2_captured_SE"
                             }
                         }
                 },
@@ -228,6 +239,9 @@
                             },
                             "elec_edge":{
                                 "start_vertex": "elec_MIDAT"
+                            },
+                            "co2_captured_edge": {
+                                "end_vertex": "co2_captured_MIDAT"
                             }
                         }
                 },
@@ -259,6 +273,9 @@
                             },
                             "elec_edge":{
                                 "start_vertex": "elec_NE"
+                            },
+                            "co2_captured_edge": {
+                                "end_vertex": "co2_captured_NE"
                             }
                         }
                 }
