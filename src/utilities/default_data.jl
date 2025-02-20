@@ -32,7 +32,11 @@ function edge_default_data()
         :startup_cost => 0.0,
         :startup_fuel => 0.0,
         :startup_fuel_consumption => 0.0,
-        :startup_fuel_balance_id => :none
+        :startup_fuel_balance_id => :none,
+        :lifetime => 20,
+        :capital_recovery_period => 20,
+        :wacc => 0.02,
+        :retirement_stage => 0
     )
 end
 
@@ -72,6 +76,10 @@ function storage_default_data()
         :investment_cost => 0.0,
         :fixed_om_cost => 0.0,
         :variable_om_cost => 0.0,
+        :capital_recovery_period => 20,
+        :lifetime => 20,
+        :wacc => 0.02,
+        :retirement_stage => 0
     )
 end
 

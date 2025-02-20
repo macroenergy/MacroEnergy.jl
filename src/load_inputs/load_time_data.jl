@@ -158,6 +158,7 @@ function create_commodity_timedata(
     return TimeData{type}(;
         time_interval = time_interval,
         hours_per_timestep = hours_per_timestep,
+        stage_index = get(time_data,:StageIndex,1),
         subperiods = subperiods,
         subperiod_indices = unique_rep_periods,
         subperiod_weights = Dict(unique_rep_periods .=> weights),

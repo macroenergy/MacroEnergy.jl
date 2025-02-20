@@ -72,8 +72,6 @@ function include_all_in_folder(folder::AbstractString, root_path::AbstractString
     return nothing
 end
 
-include_all_in_folder("utilities")
-
 # include files
 include("model/units.jl")
 include("model/time_management.jl")
@@ -125,8 +123,6 @@ include_all_in_folder("load_inputs/")
 
 include("generate_model.jl")
 
-include("benders_utilities.jl")
-
 include("model/scaling.jl")
 
 include("write_outputs/capacity.jl")
@@ -134,6 +130,9 @@ include("write_outputs/flow.jl")
 include("write_outputs/write_output_utilities.jl")
 include("write_outputs/costs.jl")
 include("write_outputs/write_system_data.jl")
+
+
+include_all_in_folder("utilities")
 
 export AbstractAsset,
     AbstractTypeConstraint,
@@ -195,6 +194,7 @@ export AbstractAsset,
     PowerLine,
     RampingLimitConstraint,
     run_case,
+    run_multistage_case,
     Storage,
     StorageCapacityConstraint,
     StorageChargeDischargeRatioConstraint,

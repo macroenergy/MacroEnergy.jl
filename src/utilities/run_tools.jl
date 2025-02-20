@@ -44,3 +44,71 @@ function run_case(case_path::AbstractString=@__DIR__; lazy_load::Bool=true, opti
 
     return system, model
 end
+
+function run_multistage_case(case_path::AbstractString=@__DIR__; num_stages::Int64=1, perfect_foresight::Bool = false, lazy_load::Bool=true, optimizer::DataType=HiGHS.Optimizer, optimizer_env::Any=missing)
+    
+    println("###### ###### ######")
+    println("Running multistage case at $(case_path)")
+
+    case_path_vec = [case_path*"/stage$i/" for i in 1:num_stages]
+
+    @show case_path_vec
+
+    system_vec = load_system.(case_path_vec; lazy_load=lazy_load)
+
+    if perfect_foresight
+
+        @info("*** Running with perfect foresight ***")
+
+        @info("Discounting all fixed costs")
+
+        discount_fixed_costs!.(system_vec)
+    
+        @info("Computing retirement stages for age based retirements")
+
+        compute_retirement_stage!.(system_vec)
+        
+        model = generate_multistage_model_foresight(system_vec);
+
+        if !ismissing(optimizer_env)
+            try 
+                set_optimizer(model, () -> optimizer(optimizer_env));
+            catch
+                error("Error creating optimizer with environment. Check that the environment is valid.")
+            end
+        else
+            set_optimizer(model, optimizer);
+        end
+
+        try
+            set_optimizer_attributes(model, "BarConvTol"=>1e-3,"Crossover" => 0, "Method" => 2)
+        catch
+            @warn("Error setting optimizer attributes. Check that the optimizer is valid.")
+        end
+
+        if system_vec[1].settings.ConstraintScaling
+            @info "Scaling constraints and RHS"
+            scale_constraints!(model)
+        end
+
+        optimize!(model)
+
+    else
+        @info("Running myopic simulation")
+
+    end
+
+    for s in eachindex(system_vec)
+        # Output results
+        results_dir = joinpath(case_path, "results_stage$s")
+        mkpath(results_dir)
+        
+        # Capacity results
+        write_capacity_results(joinpath(results_dir, "capacity.csv"), system_vec[s])
+        
+        # Cost results
+        # write_costs(joinpath(results_dir, "costs.csv"), model)
+    end
+
+    return system_vec, model
+end
