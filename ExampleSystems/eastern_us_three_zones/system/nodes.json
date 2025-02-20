@@ -36,6 +36,44 @@
             ]
         },
         {
+            "type": "NaturalGas",
+            "global_data": {
+                "time_interval": "NaturalGas",
+                "constraints": {
+                    "BalanceConstraint": true
+                }
+            },
+            "instance_data": [
+                {
+                    "id": "natgas_demand_SE",
+                    "demand": {
+                        "timeseries": {
+                            "path": "system/demand.csv",
+                            "header": "Demand_NG_z1"
+                        }
+                    }
+                },
+                {
+                    "id": "natgas_demand_MIDAT",
+                    "demand": {
+                        "timeseries": {
+                            "path": "system/demand.csv",
+                            "header": "Demand_NG_z2"
+                        }
+                    }
+                },
+                {
+                    "id": "natgas_demand_NE",
+                    "demand": {
+                        "timeseries": {
+                            "path": "system/demand.csv",
+                            "header": "Demand_NG_z3"
+                        }
+                    }
+                }
+            ]
+        },
+        {
             "type": "Uranium",
             "global_data": {
                 "time_interval": "Uranium"
@@ -242,7 +280,7 @@
                 {
                     "id": "co2_sink",
                     "constraints": {
-                        "CO2CapConstraint": true
+                        "CO2CapConstraint": false
                     },
                     "rhs_policy": {
                             "CO2CapConstraint": 0
@@ -273,38 +311,73 @@
             ]
         },
         {
-            "type": "NaturalGas",
+            "type": "Gasoline",
             "global_data": {
-                "time_interval": "NaturalGas",
+                "time_interval": "Gasoline"
+            },
+            "instance_data": [
+                {
+                    "id": "gasoline_SE",
+                    "price": {
+                        "timeseries": {
+                            "path": "system/fuel_prices.csv",
+                            "header": "gasoline_price_SE"
+                        }
+                    }
+                },
+                {
+                    "id": "gasoline_MIDAT",
+                    "price": {
+                        "timeseries": {
+                            "path": "system/fuel_prices.csv",
+                            "header": "gasoline_price_MIDAT"
+                        }
+                    }
+                },
+                {
+                    "id": "gasoline_NE",
+                    "price": {
+                        "timeseries": {
+                            "path": "system/fuel_prices.csv",
+                            "header": "gasoline_price_NE"
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "type": "Gasoline",
+            "global_data": {
+                "time_interval": "Gasoline",
                 "constraints": {
                     "BalanceConstraint": true
                 }
             },
             "instance_data": [
                 {
-                    "id": "natgas_demand_SE",
+                    "id": "gasoline_demand_SE",
                     "demand": {
                         "timeseries": {
                             "path": "system/demand.csv",
-                            "header": "Demand_NG_z1"
+                            "header": "Demand_Gasoline_z1"
                         }
                     }
                 },
                 {
-                    "id": "natgas_demand_MIDAT",
+                    "id": "gasoline_demand_MIDAT",
                     "demand": {
                         "timeseries": {
                             "path": "system/demand.csv",
-                            "header": "Demand_NG_z2"
+                            "header": "Demand_Gasoline_z2"
                         }
                     }
                 },
                 {
-                    "id": "natgas_demand_NE",
+                    "id": "gasoline_demand_NE",
                     "demand": {
                         "timeseries": {
                             "path": "system/demand.csv",
-                            "header": "Demand_NG_z3"
+                            "header": "Demand_Gasoline_z3"
                         }
                     }
                 }

@@ -9,10 +9,10 @@ end
 function make(::Type{NaturalGasEndUse}, data::AbstractDict{Symbol,Any}, system::System)
     id = AssetId(data[:id])
 
-    natgasdac_key = :transforms
-    transform_data = process_data(data[natgasdac_key])
+    natgasenduse_key = :transforms
+    transform_data = process_data(data[natgasenduse_key])
     natgasenduse_transform = Transformation(;
-        id = Symbol(id, "_", natgasdac_key),
+        id = Symbol(id, "_", natgasenduse_key),
         timedata = system.time_data[Symbol(transform_data[:timedata])],
         constraints = get(transform_data, :constraints, [BalanceConstraint()]),
     )

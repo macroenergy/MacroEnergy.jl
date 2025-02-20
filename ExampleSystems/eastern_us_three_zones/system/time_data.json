@@ -6,6 +6,7 @@
         "CO2": 168,
         "Electricity": 168,
         "Uranium": 168,
+        "Gasoline": 168,
         "CO2Captured": 168
     },
     "HoursPerTimeStep": {
@@ -15,6 +16,7 @@
         "CO2": 1,
         "Electricity": 1,
         "Uranium": 1,
+        "Gasoline": 1,
         "CO2Captured": 1
     },
     "PeriodLength": 504,

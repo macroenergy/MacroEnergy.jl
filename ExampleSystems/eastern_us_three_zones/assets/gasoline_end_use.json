@@ -1,0 +1,81 @@
+{
+    "GasolineEndUse": [
+        {
+            "type": "GasolineEndUse",
+            "global_data":{
+                "transforms": {
+                    "timedata": "Gasoline",
+                    "constraints": {
+                            "BalanceConstraint": true
+                    }
+                },
+                "edges" :{
+                    "gasoline_edge": {
+                        "type": "Gasoline",
+                        "unidirectional": true,
+                        "has_capacity": false
+                    },
+                    "co2_edge": {
+                        "type": "CO2",
+                        "unidirectional": true,
+                        "has_capacity": false,
+                        "end_vertex": "co2_sink"
+                    },
+                    "gasoline_demand_edge": {
+                        "type": "Gasoline",
+                        "unidirectional": true,
+                        "has_capacity": false
+                    }
+                }
+            },
+            "instance_data":[
+                {
+                    "id": "SE_Gasoline_End_Use",
+                    "transforms":{
+                        "emission_rate": 0.020721
+                    },
+                    "edges":{
+                            "gasoline_edge": {
+                                "start_vertex": "gasoline_SE"
+                            },
+                            "gasoline_demand_edge": {
+                                "end_vertex": "gasoline_demand_SE"
+                            }
+                        }
+
+                },
+                {
+                    "id": "MIDAT_Gasoline_End_Use",
+                    "transforms":{
+                        "emission_rate": 0.020721
+                    },
+                    "edges":{
+                            "gasoline_edge": {
+                                "start_vertex": "gasoline_MIDAT"
+                            },
+                            "gasoline_demand_edge": {
+                                "end_vertex": "gasoline_demand_MIDAT"
+                            }
+                        }
+
+                },
+                {
+                    "id": "NE_Gasoline_End_Use",
+                    "transforms":{
+                        "emission_rate": 0.020721
+                    },
+                    "edges":{
+                            "gasoline_edge": {
+                                "start_vertex": "gasoline_NE"
+                            },
+                            "gasoline_demand_edge": {
+                                "end_vertex": "gasoline_demand_NE"
+                            }
+                        }
+
+                }
+            ]
+        }
+    ]
+
+}

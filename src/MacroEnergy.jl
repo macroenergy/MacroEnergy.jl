@@ -25,6 +25,7 @@ abstract type CO2Captured <: CO2 end ## tonnes
 abstract type Coal <: Commodity end ## MWh
 abstract type Biomass <: Commodity end ## tonnes
 abstract type Uranium <: Commodity end ## MWh
+abstract type Gasoline <: Commodity end ## MWh
 
 ## Time data types
 abstract type AbstractTimeData{T<:Commodity} end
@@ -104,7 +105,7 @@ include("model/assets/mustrun.jl")
 
 
 include("model/assets/natgasenduse.jl")
-
+include("model/assets/gasolineenduse.jl")
 
 include_all_in_folder("model/constraints")
 
@@ -145,6 +146,8 @@ export AbstractAsset,
     ElectricDAC,
     FuelCell,
     GasStorage,
+    Gasoline,
+    GasolineEndUse,
     get_optimal_capacity, 
     get_optimal_costs,
     get_optimal_flow,
