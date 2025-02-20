@@ -291,17 +291,55 @@
         {
             "type": "CO2Captured",
             "global_data": {
+                "time_interval": "CO2Captured",
+                "constraints": {
+                    "BalanceConstraint": true
+                }
+            },
+            "instance_data": [
+                {
+                    "id": "co2_captured_SE",
+                    "demand": {
+                        "timeseries": {
+                            "path": "system/demand.csv",
+                            "header": "Demand_Zero"
+                        }
+                    }
+                },
+                {
+                    "id": "co2_captured_MIDAT",
+                    "demand": {
+                        "timeseries": {
+                            "path": "system/demand.csv",
+                            "header": "Demand_Zero"
+                        }
+                    }
+                },
+                {
+                    "id": "co2_captured_NE",
+                    "demand": {
+                        "timeseries": {
+                            "path": "system/demand.csv",
+                            "header": "Demand_Zero"
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "type": "CO2Captured",
+            "global_data": {
                 "time_interval": "CO2Captured"
             },
             "instance_data": [
                 {
-                    "id": "co2_captured_SE"
+                    "id": "co2_storage_SE"
                 },
                 {
-                    "id": "co2_captured_MIDAT"
+                    "id": "co2_storage_MIDAT"
                 },
                 {
-                    "id": "co2_captured_NE"
+                    "id": "co2_storage_NE"
                 }
             ]
         },

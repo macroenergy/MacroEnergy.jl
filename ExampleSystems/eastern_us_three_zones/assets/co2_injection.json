@@ -1,0 +1,66 @@
+{
+    "CO2Injection": [
+        {
+            "type": "CO2Injection",
+            "global_data":{
+                "transforms": {
+                    "timedata": "CO2Captured",
+                    "constraints": {
+                            "BalanceConstraint": true
+                    }
+                },
+                "edges" :{
+                    "co2_captured_edge": {
+                        "type": "CO2Captured",
+                        "unidirectional": true,
+                        "has_capacity": false
+                    },
+                    "co2_storage_edge": {
+                        "type": "CO2Captured",
+                        "unidirectional": true,
+                        "has_capacity": false
+                    }
+                }
+            },
+            "instance_data":[
+                {
+                    "id": "SE_CO2_Injection",
+                    "edges":{
+                            "co2_captured_edge": {
+                                "start_vertex": "co2_captured_SE"
+                            },
+                            "co2_storage_edge": {
+                                "end_vertex": "co2_storage_SE"
+                            }
+                        }
+
+                },
+                {
+                    "id": "MIDAT_CO2_Injection",
+                    "edges":{
+                            "co2_captured_edge": {
+                                "start_vertex": "co2_captured_MIDAT"
+                            },
+                            "co2_storage_edge": {
+                                "end_vertex": "co2_storage_MIDAT"
+                            }
+                        }
+
+                },
+                {
+                    "id": "NE_CO2_Injection",
+                    "edges":{
+                            "co2_captured_edge": {
+                                "start_vertex": "co2_captured_NE"
+                            },
+                            "co2_storage_edge": {
+                                "end_vertex": "co2_storage_NE"
+                            }
+                        }
+
+                }
+            ]
+        }
+    ]
+
+}

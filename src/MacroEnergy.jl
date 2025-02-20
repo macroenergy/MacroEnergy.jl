@@ -111,6 +111,8 @@ include("model/assets/gasolineenduse.jl")
 include("model/assets/jetfuelenduse.jl")
 include("model/assets/dieselenduse.jl")
 
+include("model/assets/co2injection.jl")
+
 include_all_in_folder("model/constraints")
 
 include("config/configure_settings.jl")
@@ -140,6 +142,7 @@ export AbstractAsset,
     CO2,
     CO2CapConstraint,
     CO2Captured,
+    CO2Injection,
     CapacityConstraint,
     collect_results,
     Commodity,
