@@ -280,7 +280,7 @@
                 {
                     "id": "co2_sink",
                     "constraints": {
-                        "CO2CapConstraint": false
+                        "CO2CapConstraint": true
                     },
                     "rhs_policy": {
                             "CO2CapConstraint": 0
@@ -451,6 +451,79 @@
                         "timeseries": {
                             "path": "system/demand.csv",
                             "header": "Demand_JetFuel_z3"
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "type": "Diesel",
+            "global_data": {
+                "time_interval": "Diesel"
+            },
+            "instance_data": [
+                {
+                    "id": "diesel_SE",
+                    "price": {
+                        "timeseries": {
+                            "path": "system/fuel_prices.csv",
+                            "header": "diesel_price_SE"
+                        }
+                    }
+                },
+                {
+                    "id": "diesel_MIDAT",
+                    "price": {
+                        "timeseries": {
+                            "path": "system/fuel_prices.csv",
+                            "header": "diesel_price_MIDAT"
+                        }
+                    }
+                },
+                {
+                    "id": "diesel_NE",
+                    "price": {
+                        "timeseries": {
+                            "path": "system/fuel_prices.csv",
+                            "header": "diesel_price_NE"
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "type": "Diesel",
+            "global_data": {
+                "time_interval": "Diesel",
+                "constraints": {
+                    "BalanceConstraint": true
+                }
+            },
+            "instance_data": [
+                {
+                    "id": "diesel_demand_SE",
+                    "demand": {
+                        "timeseries": {
+                            "path": "system/demand.csv",
+                            "header": "Demand_Diesel_z1"
+                        }
+                    }
+                },
+                {
+                    "id": "diesel_demand_MIDAT",
+                    "demand": {
+                        "timeseries": {
+                            "path": "system/demand.csv",
+                            "header": "Demand_Diesel_z2"
+                        }
+                    }
+                },
+                {
+                    "id": "diesel_demand_NE",
+                    "demand": {
+                        "timeseries": {
+                            "path": "system/demand.csv",
+                            "header": "Demand_Diesel_z3"
                         }
                     }
                 }

@@ -10,6 +10,7 @@
         {"name": "Biomass_Herb", "acts_like": "Biomass"},
         "Uranium",
         "Gasoline",
-        "JetFuel"
+        "JetFuel",
+        "Diesel"
     ]
 }

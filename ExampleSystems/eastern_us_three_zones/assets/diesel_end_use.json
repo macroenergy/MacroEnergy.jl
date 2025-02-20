@@ -1,0 +1,81 @@
+{
+    "DieselEndUse": [
+        {
+            "type": "DieselEndUse",
+            "global_data":{
+                "transforms": {
+                    "timedata": "Diesel",
+                    "constraints": {
+                            "BalanceConstraint": true
+                    }
+                },
+                "edges" :{
+                    "diesel_edge": {
+                        "type": "Diesel",
+                        "unidirectional": true,
+                        "has_capacity": false
+                    },
+                    "co2_edge": {
+                        "type": "CO2",
+                        "unidirectional": true,
+                        "has_capacity": false,
+                        "end_vertex": "co2_sink"
+                    },
+                    "diesel_demand_edge": {
+                        "type": "Diesel",
+                        "unidirectional": true,
+                        "has_capacity": false
+                    }
+                }
+            },
+            "instance_data":[
+                {
+                    "id": "SE_Diesel_End_Use",
+                    "transforms":{
+                        "emission_rate": 0.021717
+                    },
+                    "edges":{
+                            "diesel_edge": {
+                                "start_vertex": "diesel_SE"
+                            },
+                            "diesel_demand_edge": {
+                                "end_vertex": "diesel_demand_SE"
+                            }
+                        }
+
+                },
+                {
+                    "id": "MIDAT_Diesel_End_Use",
+                    "transforms":{
+                        "emission_rate": 0.021717
+                    },
+                    "edges":{
+                            "diesel_edge": {
+                                "start_vertex": "diesel_MIDAT"
+                            },
+                            "diesel_demand_edge": {
+                                "end_vertex": "diesel_demand_MIDAT"
+                            }
+                        }
+
+                },
+                {
+                    "id": "NE_Diesel_End_Use",
+                    "transforms":{
+                        "emission_rate": 0.021717
+                    },
+                    "edges":{
+                            "diesel_edge": {
+                                "start_vertex": "diesel_NE"
+                            },
+                            "diesel_demand_edge": {
+                                "end_vertex": "diesel_demand_NE"
+                            }
+                        }
+
+                }
+            ]
+        }
+    ]
+
+}
