@@ -9,6 +9,7 @@
         {"name": "Biomass_Wood", "acts_like": "Biomass"},
         {"name": "Biomass_Herb", "acts_like": "Biomass"},
         "Uranium",
-        "Gasoline"
+        "Gasoline",
+        "JetFuel"
     ]
 }

@@ -26,6 +26,7 @@ abstract type Coal <: Commodity end ## MWh
 abstract type Biomass <: Commodity end ## tonnes
 abstract type Uranium <: Commodity end ## MWh
 abstract type Gasoline <: Commodity end ## MWh
+abstract type JetFuel <: Commodity end ## MWh
 
 ## Time data types
 abstract type AbstractTimeData{T<:Commodity} end
@@ -106,6 +107,7 @@ include("model/assets/mustrun.jl")
 
 include("model/assets/natgasenduse.jl")
 include("model/assets/gasolineenduse.jl")
+include("model/assets/jetfuelenduse.jl")
 
 include_all_in_folder("model/constraints")
 
@@ -156,6 +158,8 @@ export AbstractAsset,
     HydroRes,
     Hydrogen,
     HydrogenLine,
+    JetFuel,
+    JetFuelEndUse,
     LongDurationStorage,
     LongDurationStorageImplicitMinMaxConstraint,
     MaxCapacityConstraint,

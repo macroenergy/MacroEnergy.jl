@@ -1,0 +1,81 @@
+{
+    "JetFuelEndUse": [
+        {
+            "type": "JetFuelEndUse",
+            "global_data":{
+                "transforms": {
+                    "timedata": "JetFuel",
+                    "constraints": {
+                            "BalanceConstraint": true
+                    }
+                },
+                "edges" :{
+                    "jetfuel_edge": {
+                        "type": "JetFuel",
+                        "unidirectional": true,
+                        "has_capacity": false
+                    },
+                    "co2_edge": {
+                        "type": "CO2",
+                        "unidirectional": true,
+                        "has_capacity": false,
+                        "end_vertex": "co2_sink"
+                    },
+                    "jetfuel_demand_edge": {
+                        "type": "JetFuel",
+                        "unidirectional": true,
+                        "has_capacity": false
+                    }
+                }
+            },
+            "instance_data":[
+                {
+                    "id": "SE_JetFuel_End_Use",
+                    "transforms":{
+                        "emission_rate": 0.02116
+                    },
+                    "edges":{
+                            "jetfuel_edge": {
+                                "start_vertex": "jetfuel_SE"
+                            },
+                            "jetfuel_demand_edge": {
+                                "end_vertex": "jetfuel_demand_SE"
+                            }
+                        }
+
+                },
+                {
+                    "id": "MIDAT_JetFuel_End_Use",
+                    "transforms":{
+                        "emission_rate": 0.02116
+                    },
+                    "edges":{
+                            "jetfuel_edge": {
+                                "start_vertex": "jetfuel_MIDAT"
+                            },
+                            "jetfuel_demand_edge": {
+                                "end_vertex": "jetfuel_demand_MIDAT"
+                            }
+                        }
+
+                },
+                {
+                    "id": "NE_JetFuel_End_Use",
+                    "transforms":{
+                        "emission_rate": 0.02116
+                    },
+                    "edges":{
+                            "jetfuel_edge": {
+                                "start_vertex": "jetfuel_NE"
+                            },
+                            "jetfuel_demand_edge": {
+                                "end_vertex": "jetfuel_demand_NE"
+                            }
+                        }
+
+                }
+            ]
+        }
+    ]
+
+}
