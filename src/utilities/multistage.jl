@@ -1,4 +1,4 @@
-function initialize_stage_capacities!(system::System, system_prev::System)
+function initialize_stage_capacities!(system::System, system_prev::System; perfect_foresight::Bool = true)
 
     for a in system.assets
         a_prev_index = findfirst(id.(system_prev.assets).==id(a))
@@ -6,33 +6,43 @@ function initialize_stage_capacities!(system::System, system_prev::System)
             @info("Skipping asset $(id(a)) as it was not present in the previous stage")
         else
             a_prev = system_prev.assets[a_prev_index];
-            initialize_stage_capacities!(a, a_prev)
+            initialize_stage_capacities!(a, a_prev ; perfect_foresight)
         end
     end
 
 end
 
-function initialize_stage_capacities!(a::AbstractAsset, a_prev::AbstractAsset)
+function initialize_stage_capacities!(a::AbstractAsset, a_prev::AbstractAsset; perfect_foresight::Bool = true)
 
     for t in fieldnames(typeof(a))
-        initialize_stage_capacities!(getfield(a,t), getfield(a_prev,t))
+        initialize_stage_capacities!(getfield(a,t), getfield(a_prev,t); perfect_foresight)
     end
 
 end
 
-function initialize_stage_capacities!(y::Union{AbstractEdge,AbstractStorage},y_prev::Union{AbstractEdge,AbstractStorage})
+function initialize_stage_capacities!(y::Union{AbstractEdge,AbstractStorage},y_prev::Union{AbstractEdge,AbstractStorage}; perfect_foresight::Bool = true)
     if has_capacity(y_prev)
-        y.existing_capacity = capacity(y_prev)
+        if perfect_foresight
+            y.existing_capacity = capacity(y_prev)
+        else
+            y.existing_capacity = value(capacity(y_prev))
+        end
+        
         for prev_stage in keys(new_capacity_track(y_prev))
-            y.new_capacity_track[prev_stage] = new_capacity_track(y_prev,prev_stage)
-            y.retired_capacity_track[prev_stage] = retired_capacity_track(y_prev,prev_stage)
+            if perfect_foresight
+                y.new_capacity_track[prev_stage] = new_capacity_track(y_prev,prev_stage)
+                y.retired_capacity_track[prev_stage] = retired_capacity_track(y_prev,prev_stage)
+            else
+                y.new_capacity_track[prev_stage] = value(new_capacity_track(y_prev,prev_stage))
+                y.retired_capacity_track[prev_stage] = value(retired_capacity_track(y_prev,prev_stage))
+            end
         end
     end
 end
-function initialize_stage_capacities!(g::Transformation,g_prev::Transformation)
+function initialize_stage_capacities!(g::Transformation,g_prev::Transformation; perfect_foresight::Bool = true)
     return nothing
 end
-function initialize_stage_capacities!(n::Node,n_prev::Node)
+function initialize_stage_capacities!(n::Node,n_prev::Node; perfect_foresight::Bool = true)
     return nothing
 end
 

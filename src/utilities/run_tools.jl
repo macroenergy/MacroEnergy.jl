@@ -93,22 +93,84 @@ function run_multistage_case(case_path::AbstractString=@__DIR__; num_stages::Int
 
         optimize!(model)
 
+        for i in 1:num_stages
+            # Output results
+            results_dir = joinpath(case_path, "results_stage$i")
+            mkpath(results_dir)
+            
+            # Capacity results
+            write_capacity_results(joinpath(results_dir, "capacity.csv"), system_vec[i])
+            
+            # Cost results
+            # write_costs(joinpath(results_dir, "costs.csv"), model)
+        end
+    
+        return system_vec, model
+
     else
-        @info("Running myopic simulation")
+        @info("*** Running myopic simulation ***")
 
+        @info("Note that we do not apply any discount when running a myopic case")
+
+        @info("Computing retirement stages for age based retirements")
+
+        compute_retirement_stage!.(system_vec)
+
+        model_vec = Vector{MacroEnergy.AbstractModel}(undef,3)
+
+        for i in 1:num_stages
+
+            @info("Starting stage $i....")
+
+            model = generate_model(system_vec[i])
+
+            @info(" -- Including age-based retirements")
+            add_age_based_retirements!.(system_vec[i].assets, model)
+
+            if !ismissing(optimizer_env)
+                try 
+                    set_optimizer(model, () -> optimizer(optimizer_env));
+                catch
+                    error("Error creating optimizer with environment. Check that the environment is valid.")
+                end
+            else
+                set_optimizer(model, optimizer);
+            end
+    
+            try
+                set_optimizer_attributes(model, "BarConvTol"=>1e-3,"Crossover" => 0, "Method" => 2)
+            catch
+                @warn("Error setting optimizer attributes. Check that the optimizer is valid.")
+            end
+    
+            if system_vec[1].settings.ConstraintScaling
+                @info "Scaling constraints and RHS"
+                scale_constraints!(model)
+            end
+
+            optimize!(model)
+
+            if i < num_stages
+                @info(" -- Final capacity in stage $(i) is being carried over to stage $(i+1)")
+                initialize_stage_capacities!(system_vec[i+1],system_vec[i],perfect_foresight=false)
+            end
+
+            model_vec[i] = model;
+
+            # Output results
+            results_dir = joinpath(case_path, "results_stage$i")
+            mkpath(results_dir)
+            
+            # Capacity results
+            write_capacity_results(joinpath(results_dir, "capacity.csv"), system_vec[i])
+            
+            # Cost results
+            write_costs(joinpath(results_dir, "costs.csv"), model[i])
+
+        end
+    
+        return system_vec, model_vec
     end
 
-    for s in eachindex(system_vec)
-        # Output results
-        results_dir = joinpath(case_path, "results_stage$s")
-        mkpath(results_dir)
-        
-        # Capacity results
-        write_capacity_results(joinpath(results_dir, "capacity.csv"), system_vec[s])
-        
-        # Cost results
-        # write_costs(joinpath(results_dir, "costs.csv"), model)
-    end
-
-    return system_vec, model
 end
+
