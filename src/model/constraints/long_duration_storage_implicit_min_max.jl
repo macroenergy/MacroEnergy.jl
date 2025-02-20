@@ -19,8 +19,8 @@ function add_model_constraint!(ct::LongDurationStorageImplicitMinMaxConstraint, 
         charge_edge = g.charge_edge;
         discharge_edge = g.discharge_edge;
 
-        max_storage_level =  @variable(model, [w ∈ W], lower_bound = 0.0, base_name = "vSTORMAX_$(id(g))")
-        min_storage_level = @variable(model, [w ∈ W], lower_bound = 0.0, base_name = "vSTORMIN_$(id(g))")
+        max_storage_level =  @variable(model, [w ∈ W], lower_bound = 0.0, base_name = "vSTORMAX_$(id(g))_stage$(stage_index(g))")
+        min_storage_level = @variable(model, [w ∈ W], lower_bound = 0.0, base_name = "vSTORMIN_$(id(g))_stage$(stage_index(g))")
 
         @constraint(model, [t ∈ time_interval(g)], storage_level(g,t) ≤ max_storage_level[current_subperiod(g,t)])
         @constraint(model, [t ∈ time_interval(g)], storage_level(g,t) ≥ min_storage_level[current_subperiod(g,t)])

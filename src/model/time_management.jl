@@ -1,6 +1,7 @@
 Base.@kwdef mutable struct TimeData{T} <: AbstractTimeData{T}
     time_interval::StepRange{Int64,Int64}
     hours_per_timestep::Int64 = 1
+    stage_index::Int64 = 1
     subperiods::Vector{StepRange{Int64,Int64}} = StepRange{Int64,Int64}[]
     subperiod_indices::Vector{Int64} = Vector{Int64}()
     subperiod_weights::Dict{Int64,Float64} = Dict{Int64,Float64}()
@@ -14,6 +15,7 @@ current_subperiod(y::Union{AbstractVertex,AbstractEdge}, t::Int64) =
 commodity_type(n::TimeData{T}) where {T} = T;
 get_subperiod(y::Union{AbstractVertex,AbstractEdge}, w::Int64) = subperiods(y)[findfirst(subperiod_indices(y).==w)];
 hours_per_timestep(y::Union{AbstractVertex,AbstractEdge}) = y.timedata.hours_per_timestep;
+stage_index(y::Union{AbstractVertex,AbstractEdge}) = y.timedata.stage_index;
 subperiods(y::Union{AbstractVertex,AbstractEdge}) = y.timedata.subperiods;
 subperiod_indices(y::Union{AbstractVertex,AbstractEdge}) = y.timedata.subperiod_indices;
 subperiod_weight(y::Union{AbstractVertex,AbstractEdge}, w::Int64) =

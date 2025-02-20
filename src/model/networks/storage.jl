@@ -4,12 +4,14 @@ macro AbstractStorageBaseAttributes()
     capacity::AffExpr = AffExpr(0.0)
     capacity_size::Float64 = 1.0
     can_retire::Bool = false
+    capital_recovery_period::Int64 = 1;
     charge_edge::Union{Nothing,AbstractEdge} = nothing
     charge_discharge_ratio::Float64 = 1.0
     discharge_edge::Union{Nothing,AbstractEdge} = nothing
-    existing_capacity::Float64 = 0.0
+    existing_capacity::Union{AffExpr,Float64,Int64} = 0.0
     fixed_om_cost::Float64 = 0.0
     investment_cost::Float64 = 0.0
+    lifetime::Int64 = 1
     loss_fraction::Float64 = 0.0
     max_capacity::Float64 = Inf
     max_duration::Float64 = 0.0
@@ -19,11 +21,15 @@ macro AbstractStorageBaseAttributes()
     min_outflow_fraction::Float64 = 0.0
     min_storage_level::Float64 = 0.0
     new_capacity::AffExpr = AffExpr(0.0)
+    new_capacity_track::Dict{Int64,AffExpr} = Dict(1=>AffExpr(0.0))
     new_units::Union{Missing, JuMPVariable} = missing
     retired_capacity::AffExpr = AffExpr(0.0)
+    retired_capacity_track::Dict{Int64,AffExpr} = Dict(1=>AffExpr(0.0))
+    retirement_stage::Int64 = 0
     retired_units::Union{Missing, JuMPVariable} = missing
     spillage_edge::Union{Nothing, AbstractEdge} = nothing
     storage_level::JuMPVariable = Vector{VariableRef}()
+    wacc::Float64 = 0.0
     end)
 end
 
@@ -43,6 +49,7 @@ function make_storage(
         timedata = time_data,
         can_expand = get(data, :can_expand, false),
         capacity_size = get(data, :capacity_size, 1.0),
+        capital_recovery_period = get(data,:capital_recovery_period, 20),
         can_retire = get(data, :can_retire, false),
         charge_edge =  get(data, :charge_edge, nothing),
         charge_discharge_ratio = get(data, :charge_discharge_ratio, false),
@@ -50,6 +57,7 @@ function make_storage(
         existing_capacity = get(data, :existing_capacity, 0.0),
         fixed_om_cost = get(data, :fixed_om_cost, 0.0),
         investment_cost = get(data, :investment_cost, 0.0),
+        lifetime = get(data, :lifetime, 20),
         loss_fraction = get(data, :loss_fraction, 0.0),
         max_capacity = get(data, :max_capacity, Inf),
         max_duration = get(data, :max_duration, 0.0),
@@ -59,6 +67,7 @@ function make_storage(
         min_outflow_fraction = get(data, :min_outflow_fraction, 0.0),
         min_storage_level = get(data, :min_storage_level, 0.0),
         spillage_edge = get(data, :spillage_edge, nothing),
+        wacc = get(data,:wacc,0.0)
     )
     return _storage
 end
@@ -70,6 +79,7 @@ all_constraints(g::AbstractStorage) = g.constraints;
 can_expand(g::AbstractStorage) = g.can_expand;
 capacity(g::AbstractStorage) = g.capacity;
 capacity_size(g::AbstractStorage) = g.capacity_size;
+capital_recovery_period(g::AbstractStorage) = g.capital_recovery_period;
 can_retire(g::AbstractStorage) = g.can_retire;
 charge_edge(g::AbstractStorage) = g.charge_edge;
 charge_discharge_ratio(g::AbstractStorage) = g.charge_discharge_ratio;
@@ -77,7 +87,9 @@ commodity_type(g::AbstractStorage{T}) where {T} = T;
 discharge_edge(g::AbstractStorage) = g.discharge_edge;
 existing_capacity(g::AbstractStorage) = g.existing_capacity;
 fixed_om_cost(g::AbstractStorage) = g.fixed_om_cost;
+has_capacity(g::AbstractStorage) = true;
 investment_cost(g::AbstractStorage) = g.investment_cost;
+lifetime(g::AbstractStorage) = g.lifetime;
 loss_fraction(g::AbstractStorage) = g.loss_fraction;
 max_capacity(g::AbstractStorage) = g.max_capacity;
 max_duration(g::AbstractStorage) = g.max_duration;
@@ -87,12 +99,20 @@ min_duration(g::AbstractStorage) = g.min_duration;
 min_outflow_fraction(g::AbstractStorage) = g.min_outflow_fraction;
 min_storage_level(g::AbstractStorage) = g.min_storage_level;
 new_capacity(g::AbstractStorage) = g.new_capacity;
+new_capacity_track(g::AbstractStorage) = g.new_capacity_track;
+#### Note that storage "g" may not be present in the inputs for all stages
+new_capacity_track(g::AbstractStorage,s::Int64) =  (haskey(new_capacity_track(g),s) == false) ? 0.0 : g.new_capacity_track[s];
 new_units(g::AbstractStorage) = g.new_units;
 retired_capacity(g::AbstractStorage) = g.retired_capacity;
+retired_capacity_track(g::AbstractStorage) = g.retired_capacity_track;
+#### Note that storage "g" may not be present in the inputs for all stages
+retired_capacity_track(g::AbstractStorage,s::Int64) =  (haskey(retired_capacity_track(g),s) == false) ? 0.0 : g.retired_capacity_track[s];
 retired_units(g::AbstractStorage) = g.retired_units;
+retirement_stage(g::AbstractStorage) = g.retirement_stage;
 spillage_edge(g::AbstractStorage) = g.spillage_edge;
 storage_level(g::AbstractStorage) = g.storage_level;
 storage_level(g::AbstractStorage, t::Int64) = storage_level(g)[t];
+wacc(g::AbstractStorage) = g.wacc;
 
 function define_available_capacity!(g::AbstractStorage, model::Model)
 
@@ -105,14 +125,17 @@ end
 
 function add_linking_variables!(g::Storage, model::Model)
 
-    g.new_units = @variable(model, lower_bound = 0.0, base_name = "vNEWUNIT_$(id(g))")
+    g.new_units = @variable(model, lower_bound = 0.0, base_name = "vNEWUNIT_$(id(g))_stage$(stage_index(g))")
 
-    g.retired_units = @variable(model, lower_bound = 0.0, base_name = "vRETUNIT_$(id(g))")
+    g.retired_units = @variable(model, lower_bound = 0.0, base_name = "vRETUNIT_$(id(g))_stage$(stage_index(g))")
 
     g.new_capacity = @expression(model, capacity_size(g) * new_units(g))
     
     g.retired_capacity = @expression(model, capacity_size(g) * retired_units(g))
 
+    g.new_capacity_track[stage_index(g)] = new_capacity(g);
+        
+    g.retired_capacity_track[stage_index(g)] = retired_capacity(g);
 
 end
 
@@ -151,7 +174,7 @@ function operation_model!(g::Storage, model::Model)
         model,
         [t in time_interval(g)],
         lower_bound = 0.0,
-        base_name = "vSTOR_$(g.id)"
+        base_name = "vSTOR_$(g.id)_stage$(stage_index(g))"
     )
 
     if :storage ∈ balance_ids(g)
@@ -192,6 +215,7 @@ function make_long_duration_storage(
         timedata = time_data,
         can_expand = get(data, :can_expand, false),
         capacity_size = get(data, :capacity_size, 1.0),
+        capital_recovery_period = get(data,:capital_recovery_period, 20),
         can_retire = get(data, :can_retire, false),
         charge_edge =  get(data, :charge_edge, nothing),
         charge_discharge_ratio = get(data, :charge_discharge_ratio, false),
@@ -199,6 +223,7 @@ function make_long_duration_storage(
         existing_capacity = get(data, :existing_capacity, 0.0),
         fixed_om_cost = get(data, :fixed_om_cost, 0.0),
         investment_cost = get(data, :investment_cost, 0.0),
+        lifetime = get(data, :lifetime, 20),
         loss_fraction = get(data, :loss_fraction, 0.0),
         max_capacity = get(data, :max_capacity, Inf),
         max_duration = get(data, :max_duration, 0.0),
@@ -208,6 +233,7 @@ function make_long_duration_storage(
         min_outflow_fraction = get(data, :min_outflow_fraction, 0.0),
         min_storage_level = get(data, :min_storage_level, 0.0),
         spillage_edge = get(data, :spillage_edge, nothing),
+        wacc = get(data,:wacc,0.0)
     )
     return _storage
 end
@@ -216,19 +242,19 @@ LongDurationStorage(id::Symbol, data::Dict{Symbol,Any}, time_data::TimeData, com
 
 function add_linking_variables!(g::LongDurationStorage, model::Model)
 
-    g.new_units = @variable(model, lower_bound = 0.0, base_name = "vNEWUNIT_$(id(g))")
+    g.new_units = @variable(model, lower_bound = 0.0, base_name = "vNEWUNIT_$(id(g))_stage$(stage_index(g))")
 
-    g.retired_units = @variable(model, lower_bound = 0.0, base_name = "vRETUNIT_$(id(g))")
+    g.retired_units = @variable(model, lower_bound = 0.0, base_name = "vRETUNIT_$(id(g))_stage$(stage_index(g))")
 
     g.new_capacity = @expression(model, capacity_size(g) * new_units(g))
     
     g.retired_capacity = @expression(model, capacity_size(g) * retired_units(g))
 
     g.storage_initial =
-    @variable(model, [r in modeled_subperiods(g)], lower_bound = 0.0, base_name = "vSTOR_INIT_$(g.id)")
+    @variable(model, [r in modeled_subperiods(g)], lower_bound = 0.0, base_name = "vSTOR_INIT_$(g.id)_stage$(stage_index(g))")
 
     g.storage_change =
-    @variable(model, [w in subperiod_indices(g)], base_name = "vSTOR_CHANGE_$(g.id)")
+    @variable(model, [w in subperiod_indices(g)], base_name = "vSTOR_CHANGE_$(g.id)_stage$(stage_index(g))")
 
 end
 
@@ -280,7 +306,7 @@ function operation_model!(g::LongDurationStorage, model::Model)
         model,
         [t in time_interval(g)],
         lower_bound = 0.0,
-        base_name = "vSTOR_$(g.id)"
+        base_name = "vSTOR_$(g.id)_stage$(stage_index(g))"
     )
 
     if :storage ∈ balance_ids(g)

@@ -9,26 +9,32 @@ macro AbstractEdgeBaseAttributes()
         can_retire::Bool = false
         capacity::AffExpr = AffExpr(0.0)
         capacity_size::Float64 = 1.0
+        capital_recovery_period::Int64 = 1
         constraints::Vector{AbstractTypeConstraint} = Vector{AbstractTypeConstraint}()
         distance::Float64 = 0.0
-        existing_capacity::Float64 = 0.0
+        existing_capacity::Union{AffExpr,Float64,Int64} = 0.0
         fixed_om_cost::Float64 = 0.0
         flow::JuMPVariable = Vector{VariableRef}()
         has_capacity::Bool = false
         integer_decisions::Bool = false
         investment_cost::Float64 = 0.0
+        lifetime::Int64 = 1
         loss_fraction::Float64 = 0.0
         max_capacity::Float64 = Inf
         min_capacity::Float64 = 0.0
         min_flow_fraction::Float64 = 0.0
         new_capacity::AffExpr = AffExpr(0.0)
+        new_capacity_track::Dict{Int64,AffExpr} = Dict(1=>AffExpr(0.0))
         new_units::Union{JuMPVariable,Float64} = 0.0
         ramp_down_fraction::Float64 = 1.0
         ramp_up_fraction::Float64 = 1.0
         retired_capacity::AffExpr = AffExpr(0.0)
+        retired_capacity_track::Dict{Int64,AffExpr} = Dict(1=>AffExpr(0.0))
         retired_units::Union{JuMPVariable,Float64} = 0.0
+        retirement_stage::Int64 = 0
         unidirectional::Bool = false
         variable_om_cost::Float64 = 0.0
+        wacc::Float64 = 0.0
     end)
 end
 Base.@kwdef mutable struct Edge{T} <: AbstractEdge{T}
@@ -52,12 +58,14 @@ function make_edge(
         can_expand = get(data, :can_expand, false),
         can_retire = get(data, :can_retire, false),
         capacity_size = get(data, :capacity_size, 1.0),
+        capital_recovery_period = get(data,:capital_recovery_period, 20),
         distance = get(data, :distance, 0.0),
         existing_capacity = get(data, :existing_capacity, 0.0),
         fixed_om_cost = get(data, :fixed_om_cost, 0.0),
         has_capacity = get(data, :has_capacity, false),
         integer_decisions = get(data, :integer_decisions, false),
         investment_cost = get(data, :investment_cost, 0.0),
+        lifetime = get(data, :lifetime, 0.0),
         loss_fraction = get(data,:loss_fraction,0.0),
         max_capacity = get(data, :max_capacity, Inf),
         min_capacity = get(data, :min_capacity, 0.0),
@@ -66,6 +74,7 @@ function make_edge(
         ramp_up_fraction = get(data, :ramp_up_fraction, 1.0),
         unidirectional = get(data, :unidirectional, false),
         variable_om_cost = get(data, :variable_om_cost, 0.0),
+        wacc = get(data,:wacc, 0.0)
     )
     return _edge
 end
@@ -100,6 +109,7 @@ can_expand(e::AbstractEdge) = e.can_expand;
 can_retire(e::AbstractEdge) = e.can_retire;
 capacity(e::AbstractEdge) = e.capacity;
 capacity_size(e::AbstractEdge) = e.capacity_size;
+capital_recovery_period(e::AbstractEdge) = e.capital_recovery_period;
 commodity_type(e::AbstractEdge{T}) where {T} = T;
 end_vertex(e::AbstractEdge) = e.end_vertex;
 existing_capacity(e::AbstractEdge) = e.existing_capacity;
@@ -110,31 +120,44 @@ has_capacity(e::AbstractEdge) = e.has_capacity;
 id(e::AbstractEdge) = e.id;
 integer_decisions(e::AbstractEdge) = e.integer_decisions;
 investment_cost(e::AbstractEdge) = e.investment_cost;
+lifetime(e::AbstractEdge) = e.lifetime;
 loss_fraction(e::AbstractEdge) = e.loss_fraction;
 max_capacity(e::AbstractEdge) = e.max_capacity;
 min_capacity(e::AbstractEdge) = e.min_capacity;
 min_flow_fraction(e::AbstractEdge) = e.min_flow_fraction;
 new_capacity(e::AbstractEdge) = e.new_capacity;
+new_capacity_track(e::AbstractEdge) = e.new_capacity_track;
+#### Note that edge "e" may not be present in the inputs for all stages
+new_capacity_track(e::AbstractEdge,s::Int64) =  (haskey(new_capacity_track(e),s) == false) ? 0.0 : e.new_capacity_track[s];
 new_units(e::AbstractEdge) = e.new_units;
 ramp_down_fraction(e::AbstractEdge) = e.ramp_down_fraction;
 ramp_up_fraction(e::AbstractEdge) = e.ramp_up_fraction;
 retired_capacity(e::AbstractEdge) = e.retired_capacity;
+retired_capacity_track(e::AbstractEdge) = e.retired_capacity_track;
+#### Note that edge "e" may not be present in the inputs for all stages
+retired_capacity_track(e::AbstractEdge,s::Int64) =  (haskey(retired_capacity_track(e),s) == false) ? 0.0 : e.retired_capacity_track[s];
 retired_units(e::AbstractEdge) = e.retired_units;
+retirement_stage(e::AbstractEdge) = e.retirement_stage;
 start_vertex(e::AbstractEdge)::AbstractVertex = e.start_vertex;
 variable_om_cost(e::AbstractEdge) = e.variable_om_cost;
+wacc(e::AbstractEdge) = e.wacc;
 ##### End of Edge interface #####
 
 
 function add_linking_variables!(e::AbstractEdge, model::Model)
 
     if has_capacity(e)
-        e.new_units = @variable(model, lower_bound = 0.0, base_name = "vNEWUNIT_$(id(e))")
+        e.new_units = @variable(model, lower_bound = 0.0, base_name = "vNEWUNIT_$(id(e))_stage$(stage_index(e))")
 
-        e.retired_units = @variable(model, lower_bound = 0.0, base_name = "vRETUNIT_$(id(e))")
+        e.retired_units = @variable(model, lower_bound = 0.0, base_name = "vRETUNIT_$(id(e))_stage$(stage_index(e))")
 
         e.new_capacity = @expression(model, capacity_size(e) * new_units(e))
         
         e.retired_capacity = @expression(model, capacity_size(e) * retired_units(e))
+
+        e.new_capacity_track[stage_index(e)] = new_capacity(e);
+        
+        e.retired_capacity_track[stage_index(e)] = retired_capacity(e);
     end
 
     return nothing
@@ -199,10 +222,10 @@ function operation_model!(e::Edge, model::Model)
             model,
             [t in time_interval(e)],
             lower_bound = 0.0,
-            base_name = "vFLOW_$(id(e))"
+            base_name = "vFLOW_$(id(e))_stage$(stage_index(e))"
         )
     else
-        e.flow = @variable(model, [t in time_interval(e)], base_name = "vFLOW_$(id(e))")
+        e.flow = @variable(model, [t in time_interval(e)], base_name = "vFLOW_$(id(e))_stage$(stage_index(e))")
     end
 
     update_balances!(e, model)
@@ -260,11 +283,14 @@ function make_edge_UC(
         can_expand = get(data, :can_expand, false),
         can_retire = get(data, :can_retire, false),
         capacity_size = get(data, :capacity_size, 1.0),
+        capital_recovery_period = get(data,:capital_recovery_period, 20),
         distance = get(data, :distance, 0.0),
         existing_capacity = get(data, :existing_capacity, 0.0),
         fixed_om_cost = get(data, :fixed_om_cost, 0.0),
         has_capacity = get(data, :has_capacity, false),
         investment_cost = get(data, :investment_cost, 0.0),
+        lifetime = get(data, :lifetime, 0.0),
+        loss_fraction = get(data,:loss_fraction,0.0),
         max_capacity = get(data, :max_capacity, Inf),
         min_capacity = get(data, :min_capacity, 0.0),
         min_flow_fraction = get(data, :min_flow_fraction, 0.0),
@@ -277,6 +303,7 @@ function make_edge_UC(
         startup_cost = get(data, :startup_cost, 0.0),
         startup_fuel = get(data, :startup_fuel, 0.0),
         startup_fuel_balance_id = get(data, :startup_fuel_balance_id, :none),
+        wacc = get(data,:wacc, 0.0)
     )
     return _edge
 end
@@ -316,28 +343,28 @@ function operation_model!(e::EdgeWithUC, model::Model)
         model,
         [t in time_interval(e)],
         lower_bound = 0.0,
-        base_name = "vFLOW_$(id(e))"
+        base_name = "vFLOW_$(id(e))_stage$(stage_index(e))"
     )
 
     e.ucommit = @variable(
         model,
         [t in time_interval(e)],
         lower_bound = 0.0,
-        base_name = "vCOMMIT_$(id(e))"
+        base_name = "vCOMMIT_$(id(e))_stage$(stage_index(e))"
     )
 
     e.ustart = @variable(
         model,
         [t in time_interval(e)],
         lower_bound = 0.0,
-        base_name = "vSTART_$(id(e))"
+        base_name = "vSTART_$(id(e))_stage$(stage_index(e))"
     )
 
     e.ushut = @variable(
         model,
         [t in time_interval(e)],
         lower_bound = 0.0,
-        base_name = "vSHUT_$(id(e))"
+        base_name = "vSHUT_$(id(e))_stage$(stage_index(e))"
     )
 
     update_balances!(e, model)
@@ -446,8 +473,8 @@ function update_balance_start!(e::AbstractEdge, model::Model)
         effective_flow = @expression(model,[t in time_interval(e)], flow(e,t))
         
     else
-        flow_pos = @variable(model, [t in time_interval(e)], lower_bound = 0.0, base_name = "vFLOWPOS_$(id(e))")
-        flow_neg = @variable(model, [t in time_interval(e)], lower_bound = 0.0, base_name = "vFLOWNEG_$(id(e))")
+        flow_pos = @variable(model, [t in time_interval(e)], lower_bound = 0.0, base_name = "vFLOWPOS_$(id(e))_stage$(stage_index(e))")
+        flow_neg = @variable(model, [t in time_interval(e)], lower_bound = 0.0, base_name = "vFLOWNEG_$(id(e))_stage$(stage_index(e))")
 
         @constraint(model, [t in time_interval(e)], flow_pos[t] - flow_neg[t] == flow(e, t))
 
@@ -475,8 +502,8 @@ function update_balance_end!(e::AbstractEdge, model::Model)
         effective_flow = @expression(model, [t in time_interval(e)], flow(e,t))
     else
     
-        flow_pos = @variable(model, [t in time_interval(e)], lower_bound = 0.0, base_name = "vFLOWPOS_$(id(e))")
-        flow_neg = @variable(model, [t in time_interval(e)], lower_bound = 0.0, base_name = "vFLOWNEG_$(id(e))")
+        flow_pos = @variable(model, [t in time_interval(e)], lower_bound = 0.0, base_name = "vFLOWPOS_$(id(e))_stage$(stage_index(e))")
+        flow_neg = @variable(model, [t in time_interval(e)], lower_bound = 0.0, base_name = "vFLOWNEG_$(id(e))_stage$(stage_index(e))")
 
         @constraint(model, [t in time_interval(e)], flow_pos[t] - flow_neg[t] == flow(e, t))
 

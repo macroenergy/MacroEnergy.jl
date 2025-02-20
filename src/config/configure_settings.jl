@@ -2,6 +2,8 @@ function default_settings()
     return (
         ConstraintScaling = false,
         WriteSubcommodities = false,
+        StageLengths = [1],
+        WACC = 0.   
     )
 end
 
@@ -43,6 +45,8 @@ end
 
 function validate_settings(settings::NamedTuple)
     @assert settings[:ConstraintScaling] ∈ (false, true)
+    @assert all(settings[:StageLengths].>0)
+    @assert settings[:WACC] >= 0
 end
 
 function validate_names(settings::NamedTuple)
