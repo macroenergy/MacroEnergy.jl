@@ -14,6 +14,12 @@ function add_constraints_by_type!(system::System, model::Model, constraint_type:
         end
     end
 
+    # Add retrofitting constraints
+    if isa(constraint_type, PlanningConstraint)
+        retrofit_ids = get_unique_retrofit_ids(system)
+        @info("retrofit_ids $(retrofit_ids)")
+        @constraint(model, cRetrofitCapacity[id in retrofit_ids], model[:eRetrofittedCapByRetroId][id] == model[:eRetrofitCapByRetroId][id])
+    end
 end
 
 function add_constraints_by_type!(
@@ -27,13 +33,28 @@ function add_constraints_by_type!(
         end
     end
 end
-
 function add_constraints_by_type!(
     location::Location, 
     model::Model,
     constraint_type::DataType
 )
     return nothing
+end
+
+function get_unique_retrofit_ids(system::System)
+    can_retrofit_ids = []
+    is_retrofit_ids = []
+    for e in get_edges(system)
+        if can_retrofit(e)
+            push!(can_retrofit_ids, e.retrofit_id)
+        end
+        if is_retrofit(e)
+            push!(is_retrofit_ids, e.retrofit_id)
+        end
+    end
+    @assert unique(can_retrofit_ids) == unique(is_retrofit_ids)
+    retrofit_ids = unique(can_retrofit_ids)
+    return retrofit_ids
 end
 
 const CONSTRAINT_TYPES = Dict{Symbol,DataType}()
