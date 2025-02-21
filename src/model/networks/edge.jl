@@ -18,7 +18,7 @@ macro AbstractEdgeBaseAttributes()
         has_capacity::Bool = false
         integer_decisions::Bool = false
         investment_cost::Float64 = 0.0
-        lifetime::Int64 = 1
+        lifetime::Int64 = 20
         loss_fraction::Float64 = 0.0
         max_capacity::Float64 = Inf
         min_capacity::Float64 = 0.0
@@ -65,7 +65,7 @@ function make_edge(
         has_capacity = get(data, :has_capacity, false),
         integer_decisions = get(data, :integer_decisions, false),
         investment_cost = get(data, :investment_cost, 0.0),
-        lifetime = get(data, :lifetime, 0.0),
+        lifetime = get(data, :lifetime, 20),
         loss_fraction = get(data,:loss_fraction,0.0),
         max_capacity = get(data, :max_capacity, Inf),
         min_capacity = get(data, :min_capacity, 0.0),

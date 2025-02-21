@@ -91,9 +91,12 @@ get_optimal_retired_capacity(system)
 """
 get_optimal_retired_capacity(system::System) = get_optimal_capacity_by_field(system, retired_capacity)
 
+get_existing_capacity(system::System) = get_optimal_capacity_by_field(system, existing_capacity)
+
 get_optimal_capacity(asset::AbstractAsset; scaling::Float64=1.0) = get_optimal_capacity_by_field(asset, capacity, scaling)
 get_optimal_new_capacity(asset::AbstractAsset; scaling::Float64=1.0) = get_optimal_capacity_by_field(asset, new_capacity, scaling)
 get_optimal_retired_capacity(asset::AbstractAsset; scaling::Float64=1.0) = get_optimal_capacity_by_field(asset, retired_capacity, scaling)
+get_existing_capacity(asset::AbstractAsset; scaling::Float64=1.0) = get_optimal_capacity_by_field(asset, existing_capacity, scaling)
 
 """
     write_capacity_results(file_path::AbstractString, system::System)
@@ -119,7 +122,8 @@ function write_capacity_results(file_path::AbstractString, system::System)
     capacity_results = get_optimal_capacity(system)
     new_capacity_results = get_optimal_new_capacity(system)
     retired_capacity_results = get_optimal_retired_capacity(system)
-    all_capacity_results = vcat(capacity_results, new_capacity_results, retired_capacity_results)
+    exsiting_capacity_results = get_existing_capacity(system)
+    all_capacity_results = vcat(capacity_results, exsiting_capacity_results, new_capacity_results, retired_capacity_results)
     write_dataframe(file_path, all_capacity_results)
     return nothing
 end

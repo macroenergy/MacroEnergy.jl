@@ -11,7 +11,7 @@ macro AbstractStorageBaseAttributes()
     existing_capacity::Union{AffExpr,Float64,Int64} = 0.0
     fixed_om_cost::Float64 = 0.0
     investment_cost::Float64 = 0.0
-    lifetime::Int64 = 1
+    lifetime::Int64 = 20
     loss_fraction::Float64 = 0.0
     max_capacity::Float64 = Inf
     max_duration::Float64 = 0.0
