@@ -1,5 +1,5 @@
 {
-  "ConstraintScaling":true,
+  "ConstraintScaling":false,
   "WriteSubcommodities":true,
   "StageLengths": [5,10,10],
   "WACC": 0.025

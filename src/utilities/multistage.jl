@@ -22,6 +22,7 @@ end
 
 function initialize_stage_capacities!(y::Union{AbstractEdge,AbstractStorage},y_prev::Union{AbstractEdge,AbstractStorage}; perfect_foresight::Bool = true)
     if has_capacity(y_prev)
+        
         if perfect_foresight
             y.existing_capacity = capacity(y_prev)
         else
@@ -37,6 +38,7 @@ function initialize_stage_capacities!(y::Union{AbstractEdge,AbstractStorage},y_p
                 y.retired_capacity_track[prev_stage] = value(retired_capacity_track(y_prev,prev_stage))
             end
         end
+        
     end
 end
 function initialize_stage_capacities!(g::Transformation,g_prev::Transformation; perfect_foresight::Bool = true)

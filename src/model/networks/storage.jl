@@ -1,37 +1,37 @@
 macro AbstractStorageBaseAttributes()
     storage_defaults = storage_default_data()
     esc(quote
-    charge_edge::Union{Nothing,AbstractEdge} = nothing
-    discharge_edge::Union{Nothing,AbstractEdge} = nothing
-    spillage_edge::Union{Nothing, AbstractEdge} = nothing
-    can_expand::Bool = $storage_defaults[:can_expand]
-    can_retire::Bool = $storage_defaults[:can_retire]
-    capacity::AffExpr = AffExpr(0.0)
-    capacity_size::Float64 = $storage_defaults[:capacity_size]
-    capital_recovery_period::Int64 = $storage_defaults[:capital_recovery_period]
-    charge_discharge_ratio::Float64 = $storage_defaults[:charge_discharge_ratio]
-    existing_capacity::Float64 = $storage_defaults[:existing_capacity]
-    fixed_om_cost::Float64 = $storage_defaults[:fixed_om_cost]
-    investment_cost::Float64 = $storage_defaults[:investment_cost]
-    lifetime::Int64 = $storage_defaults[:lifetime]
-    long_duration::Bool = $storage_defaults[:long_duration]
-    loss_fraction::Float64 = $storage_defaults[:loss_fraction]
-    max_capacity::Float64 = $storage_defaults[:max_capacity]
-    max_duration::Float64 = $storage_defaults[:max_duration]
-    max_storage_level::Float64 = $storage_defaults[:max_storage_level]
-    min_capacity::Float64 = $storage_defaults[:min_capacity]
-    min_duration::Float64 = $storage_defaults[:min_duration]
-    min_outflow_fraction::Float64 = $storage_defaults[:min_outflow_fraction]
-    min_storage_level::Float64 = $storage_defaults[:min_storage_level]
-    new_capacity::AffExpr = AffExpr(0.0)
-    new_capacity_track::Dict{Int64,AffExpr} = Dict(1=>AffExpr(0.0))
-    new_units::Union{Missing, JuMPVariable} = missing
-    retired_capacity::AffExpr = AffExpr(0.0)
-    retired_capacity_track::Dict{Int64,AffExpr} = Dict(1=>AffExpr(0.0))
-    retirement_stage::Int64 = $storage_defaults[:retirement_stage]
-    retired_units::Union{Missing, JuMPVariable} = missing
-    storage_level::JuMPVariable = Vector{VariableRef}()
-    wacc::Float64 = $storage_defaults[:wacc]
+        charge_edge::Union{Nothing,AbstractEdge} = nothing
+        discharge_edge::Union{Nothing,AbstractEdge} = nothing
+        spillage_edge::Union{Nothing, AbstractEdge} = nothing
+        can_expand::Bool = $storage_defaults[:can_expand]
+        can_retire::Bool = $storage_defaults[:can_retire]
+        capacity::AffExpr = AffExpr(0.0)
+        capacity_size::Float64 = $storage_defaults[:capacity_size]
+        capital_recovery_period::Int64 = $storage_defaults[:capital_recovery_period]
+        charge_discharge_ratio::Float64 = $storage_defaults[:charge_discharge_ratio]
+        existing_capacity::Float64 = $storage_defaults[:existing_capacity]
+        fixed_om_cost::Float64 = $storage_defaults[:fixed_om_cost]
+        investment_cost::Float64 = $storage_defaults[:investment_cost]
+        lifetime::Int64 = $storage_defaults[:lifetime]
+        long_duration::Bool = $storage_defaults[:long_duration]
+        loss_fraction::Float64 = $storage_defaults[:loss_fraction]
+        max_capacity::Float64 = $storage_defaults[:max_capacity]
+        max_duration::Float64 = $storage_defaults[:max_duration]
+        max_storage_level::Float64 = $storage_defaults[:max_storage_level]
+        min_capacity::Float64 = $storage_defaults[:min_capacity]
+        min_duration::Float64 = $storage_defaults[:min_duration]
+        min_outflow_fraction::Float64 = $storage_defaults[:min_outflow_fraction]
+        min_storage_level::Float64 = $storage_defaults[:min_storage_level]
+        new_capacity::AffExpr = AffExpr(0.0)
+        new_capacity_track::Dict{Int64,AffExpr} = Dict(1=>AffExpr(0.0))
+        new_units::Union{Missing, JuMPVariable} = missing
+        retired_capacity::AffExpr = AffExpr(0.0)
+        retired_capacity_track::Dict{Int64,AffExpr} = Dict(1=>AffExpr(0.0))
+        retirement_stage::Int64 = $storage_defaults[:retirement_stage]
+        retired_units::Union{Missing, JuMPVariable} = missing
+        storage_level::JuMPVariable = Vector{VariableRef}()
+        wacc::Float64 = $storage_defaults[:wacc]
     end)
 end
 

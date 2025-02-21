@@ -136,6 +136,7 @@ include_all_in_folder("utilities")
 
 export AbstractAsset,
     AbstractTypeConstraint,
+    AgeBasedRetirementConstraint,
     BalanceConstraint,
     Battery,
     Biomass,

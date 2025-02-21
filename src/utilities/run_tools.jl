@@ -165,7 +165,7 @@ function run_multistage_case(case_path::AbstractString=@__DIR__; num_stages::Int
             write_capacity_results(joinpath(results_dir, "capacity.csv"), system_vec[i])
             
             # Cost results
-            write_costs(joinpath(results_dir, "costs.csv"), model[i])
+            write_costs(joinpath(results_dir, "costs.csv"), model)
 
         end
     
