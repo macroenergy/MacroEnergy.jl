@@ -114,6 +114,8 @@ include("model/assets/gasolineenduse.jl")
 include("model/assets/jetfuelenduse.jl")
 include("model/assets/dieselenduse.jl")
 
+include("model/assets/syntheticnaturalgas.jl")
+
 include("model/assets/co2injection.jl")
 
 include_all_in_folder("model/constraints")
@@ -204,6 +206,7 @@ export AbstractAsset,
     StorageMinDurationConstraint,
     StorageSymmetricCapacityConstraint,
     StorageDischargeLimitConstraint,
+    SyntheticNaturalGas,
     ThermalHydrogen,
     ThermalPower,
     ThermalHydrogenCCS,
