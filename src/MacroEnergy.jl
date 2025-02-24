@@ -108,13 +108,20 @@ include("model/assets/beccsnaturalgas.jl")
 include("model/assets/hydrores.jl")
 include("model/assets/mustrun.jl")
 
-
+include("model/assets/natgasfossilupstream.jl")
 include("model/assets/natgasenduse.jl")
+
+include("model/assets/gasolinefossilupstream.jl")
 include("model/assets/gasolineenduse.jl")
+
+include("model/assets/jetfuelfossilupstream.jl")
 include("model/assets/jetfuelenduse.jl")
+
+include("model/assets/dieselfossilupstream.jl")
 include("model/assets/dieselenduse.jl")
 
 include("model/assets/syntheticnaturalgas.jl")
+include("model/assets/syntheticliquidfuels.jl")
 
 include("model/assets/co2injection.jl")
 
@@ -156,6 +163,7 @@ export AbstractAsset,
     Commodity,
     Diesel,
     DieselEndUse,
+    DieselFossilUpstream,
     Edge,
     EdgeWithUC,
     Electricity,
@@ -165,6 +173,7 @@ export AbstractAsset,
     GasStorage,
     Gasoline,
     GasolineEndUse,
+    GasolineFossilUpstream,
     get_optimal_capacity, 
     get_optimal_costs,
     get_optimal_flow,
@@ -175,6 +184,7 @@ export AbstractAsset,
     HydrogenLine,
     JetFuel,
     JetFuelEndUse,
+    JetFuelFossilUpstream,
     LongDurationStorage,
     LongDurationStorageImplicitMinMaxConstraint,
     MaxCapacityConstraint,
@@ -192,6 +202,7 @@ export AbstractAsset,
     NaturalGas,
     NaturalGasDAC,
     NaturalGasEndUse,
+    NaturalGasFossilUpstream,
     Node,
     OperationConstraint,
     PlanningConstraint,
@@ -207,6 +218,7 @@ export AbstractAsset,
     StorageSymmetricCapacityConstraint,
     StorageDischargeLimitConstraint,
     SyntheticNaturalGas,
+    SyntheticLiquidFuels,
     ThermalHydrogen,
     ThermalPower,
     ThermalHydrogenCCS,

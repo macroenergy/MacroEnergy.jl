@@ -3,6 +3,41 @@
         {
             "type": "NaturalGas",
             "global_data": {
+                "time_interval": "NaturalGas"
+            },
+            "instance_data": [
+                {
+                    "id": "natgas_fossil_SE",
+                    "price": {
+                        "timeseries": {
+                            "path": "system/fuel_prices.csv",
+                            "header": "natgas_fossil_SE"
+                        }
+                    }
+                },
+                {
+                    "id": "natgas_fossil_MIDAT",
+                    "price": {
+                        "timeseries": {
+                            "path": "system/fuel_prices.csv",
+                            "header": "natgas_fossil_MIDAT"
+                        }
+                    }
+                },
+                {
+                    "id": "natgas_fossil_NE",
+                    "price": {
+                        "timeseries": {
+                            "path": "system/fuel_prices.csv",
+                            "header": "natgas_fossil_NE"
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "type": "NaturalGas",
+            "global_data": {
                 "time_interval": "NaturalGas",
                 "constraints": {
                     "BalanceConstraint": true
@@ -11,12 +46,6 @@
             "instance_data": [
                 {
                     "id": "natgas_SE",
-                    "price": {
-                        "timeseries": {
-                            "path": "system/fuel_prices.csv",
-                            "header": "natgas_SE"
-                        }
-                    },
                     "demand": {
                         "timeseries": {
                             "path": "system/demand.csv",
@@ -26,12 +55,6 @@
                 },
                 {
                     "id": "natgas_MIDAT",
-                    "price": {
-                        "timeseries": {
-                            "path": "system/fuel_prices.csv",
-                            "header": "natgas_MIDAT"
-                        }
-                    },
                     "demand": {
                         "timeseries": {
                             "path": "system/demand.csv",
@@ -41,12 +64,6 @@
                 },
                 {
                     "id": "natgas_NE",
-                    "price": {
-                        "timeseries": {
-                            "path": "system/fuel_prices.csv",
-                            "header": "natgas_NE"
-                        }
-                    },
                     "demand": {
                         "timeseries": {
                             "path": "system/demand.csv",
@@ -378,6 +395,41 @@
         {
             "type": "Gasoline",
             "global_data": {
+                "time_interval": "Gasoline"
+            },
+            "instance_data": [
+                {
+                    "id": "gasoline_fossil_SE",
+                    "price": {
+                        "timeseries": {
+                            "path": "system/fuel_prices.csv",
+                            "header": "gasoline_fossil_SE"
+                        }
+                    }
+                },
+                {
+                    "id": "gasoline_fossil_MIDAT",
+                    "price": {
+                        "timeseries": {
+                            "path": "system/fuel_prices.csv",
+                            "header": "gasoline_fossil_MIDAT"
+                        }
+                    }
+                },
+                {
+                    "id": "gasoline_fossil_NE",
+                    "price": {
+                        "timeseries": {
+                            "path": "system/fuel_prices.csv",
+                            "header": "gasoline_fossil_NE"
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "type": "Gasoline",
+            "global_data": {
                 "time_interval": "Gasoline",
                 "constraints": {
                     "BalanceConstraint": true
@@ -386,12 +438,6 @@
             "instance_data": [
                 {
                     "id": "gasoline_SE",
-                    "price": {
-                        "timeseries": {
-                            "path": "system/fuel_prices.csv",
-                            "header": "gasoline_price_SE"
-                        }
-                    },
                     "demand": {
                         "timeseries": {
                             "path": "system/demand.csv",
@@ -401,12 +447,6 @@
                 },
                 {
                     "id": "gasoline_MIDAT",
-                    "price": {
-                        "timeseries": {
-                            "path": "system/fuel_prices.csv",
-                            "header": "gasoline_price_MIDAT"
-                        }
-                    },
                     "demand": {
                         "timeseries": {
                             "path": "system/demand.csv",
@@ -416,12 +456,6 @@
                 },
                 {
                     "id": "gasoline_NE",
-                    "price": {
-                        "timeseries": {
-                            "path": "system/fuel_prices.csv",
-                            "header": "gasoline_price_NE"
-                        }
-                    },
                     "demand": {
                         "timeseries": {
                             "path": "system/demand.csv",
@@ -472,6 +506,41 @@
         {
             "type": "JetFuel",
             "global_data": {
+                "time_interval": "JetFuel"
+            },
+            "instance_data": [
+                {
+                    "id": "jetfuel_fossil_SE",
+                    "price": {
+                        "timeseries": {
+                            "path": "system/fuel_prices.csv",
+                            "header": "jetfuel_fossil_SE"
+                        }
+                    }
+                },
+                {
+                    "id": "jetfuel_fossil_MIDAT",
+                    "price": {
+                        "timeseries": {
+                            "path": "system/fuel_prices.csv",
+                            "header": "jetfuel_fossil_MIDAT"
+                        }
+                    }
+                },
+                {
+                    "id": "jetfuel_fossil_NE",
+                    "price": {
+                        "timeseries": {
+                            "path": "system/fuel_prices.csv",
+                            "header": "jetfuel_fossil_NE"
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "type": "JetFuel",
+            "global_data": {
                 "time_interval": "JetFuel",
                 "constraints": {
                     "BalanceConstraint": true
@@ -480,12 +549,6 @@
             "instance_data": [
                 {
                     "id": "jetfuel_SE",
-                    "price": {
-                        "timeseries": {
-                            "path": "system/fuel_prices.csv",
-                            "header": "jetfuel_price_SE"
-                        }
-                    },
                     "demand": {
                         "timeseries": {
                             "path": "system/demand.csv",
@@ -495,12 +558,6 @@
                 },
                 {
                     "id": "jetfuel_MIDAT",
-                    "price": {
-                        "timeseries": {
-                            "path": "system/fuel_prices.csv",
-                            "header": "jetfuel_price_MIDAT"
-                        }
-                    },
                     "demand": {
                         "timeseries": {
                             "path": "system/demand.csv",
@@ -510,12 +567,6 @@
                 },
                 {
                     "id": "jetfuel_NE",
-                    "price": {
-                        "timeseries": {
-                            "path": "system/fuel_prices.csv",
-                            "header": "jetfuel_price_NE"
-                        }
-                    },
                     "demand": {
                         "timeseries": {
                             "path": "system/demand.csv",
@@ -566,6 +617,41 @@
         {
             "type": "Diesel",
             "global_data": {
+                "time_interval": "Diesel"
+            },
+            "instance_data": [
+                {
+                    "id": "diesel_fossil_SE",
+                    "price": {
+                        "timeseries": {
+                            "path": "system/fuel_prices.csv",
+                            "header": "diesel_fossil_SE"
+                        }
+                    }
+                },
+                {
+                    "id": "diesel_fossil_MIDAT",
+                    "price": {
+                        "timeseries": {
+                            "path": "system/fuel_prices.csv",
+                            "header": "diesel_fossil_MIDAT"
+                        }
+                    }
+                },
+                {
+                    "id": "diesel_fossil_NE",
+                    "price": {
+                        "timeseries": {
+                            "path": "system/fuel_prices.csv",
+                            "header": "diesel_fossil_NE"
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "type": "Diesel",
+            "global_data": {
                 "time_interval": "Diesel",
                 "constraints": {
                     "BalanceConstraint": true
@@ -574,12 +660,6 @@
             "instance_data": [
                 {
                     "id": "diesel_SE",
-                    "price": {
-                        "timeseries": {
-                            "path": "system/fuel_prices.csv",
-                            "header": "diesel_price_SE"
-                        }
-                    },
                     "demand": {
                         "timeseries": {
                             "path": "system/demand.csv",
@@ -589,12 +669,6 @@
                 },
                 {
                     "id": "diesel_MIDAT",
-                    "price": {
-                        "timeseries": {
-                            "path": "system/fuel_prices.csv",
-                            "header": "diesel_price_MIDAT"
-                        }
-                    },
                     "demand": {
                         "timeseries": {
                             "path": "system/demand.csv",
@@ -604,12 +678,6 @@
                 },
                 {
                     "id": "diesel_NE",
-                    "price": {
-                        "timeseries": {
-                            "path": "system/fuel_prices.csv",
-                            "header": "diesel_price_NE"
-                        }
-                    },
                     "demand": {
                         "timeseries": {
                             "path": "system/demand.csv",

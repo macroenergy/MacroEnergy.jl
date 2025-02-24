@@ -49,7 +49,7 @@
             },
             "instance_data":[
                 {
-                    "id": "SE_Sorbent_DAC",
+                    "id": "SE_Solvent_DAC",
                     "transforms":{
                         "emission_rate": 0.005516648,
                         "capture_rate": 0.546148172,
@@ -61,7 +61,7 @@
                                 "availability": {
                                 "timeseries": {
                                     "path": "system/availability.csv",
-                                    "header": "SE_Sorbent_DAC"
+                                    "header": "SE_Solvent_DAC"
                                     }
                                 },
                                 "existing_capacity": 0.0,
@@ -84,7 +84,7 @@
 
                 },
                 {
-                    "id": "MIDAT_Sorbent_DAC",
+                    "id": "MIDAT_Solvent_DAC",
                     "transforms":{
                         "emission_rate": 0.005516648,
                         "capture_rate": 0.546148172,
@@ -96,7 +96,7 @@
                                 "availability": {
                                 "timeseries": {
                                     "path": "system/availability.csv",
-                                    "header": "MIDAT_Sorbent_DAC"
+                                    "header": "MIDAT_Solvent_DAC"
                                     }
                                 },
                                 "existing_capacity": 0.0,
@@ -119,7 +119,7 @@
 
                 },
                 {
-                    "id": "NE_Sorbent_DAC",
+                    "id": "NE_Solvent_DAC",
                     "transforms":{
                         "emission_rate": 0.005516648,
                         "capture_rate": 0.546148172,
@@ -131,7 +131,7 @@
                                 "availability": {
                                 "timeseries": {
                                     "path": "system/availability.csv",
-                                    "header": "NE_Sorbent_DAC"
+                                    "header": "NE_Solvent_DAC"
                                     }
                                 },
                                 "existing_capacity": 0.0,

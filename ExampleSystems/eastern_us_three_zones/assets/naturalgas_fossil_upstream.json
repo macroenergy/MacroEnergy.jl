@@ -1,0 +1,73 @@
+{
+    "NaturalGasFossilUpstream": [
+        {
+            "type": "NaturalGasFossilUpstream",
+            "global_data":{
+                "transforms": {
+                    "timedata": "NaturalGas",
+                    "constraints": {
+                            "BalanceConstraint": true
+                    },
+                    "emission_rate": 0
+                },
+                "edges" :{
+                    "ng_fossil_edge": {
+                        "type": "NaturalGas",
+                        "unidirectional": true,
+                        "has_capacity": false
+                    },
+                    "co2_edge": {
+                        "type": "CO2",
+                        "unidirectional": true,
+                        "has_capacity": false,
+                        "end_vertex": "co2_sink"
+                    },
+                    "ng_edge": {
+                        "type": "NaturalGas",
+                        "unidirectional": true,
+                        "has_capacity": false
+                    }
+                }
+            },
+            "instance_data":[
+                {
+                    "id": "SE_NG_Fossil_Upstream",
+                    "edges":{
+                            "ng_fossil_edge": {
+                                "start_vertex": "natgas_fossil_SE"
+                            },
+                            "ng_edge": {
+                                "end_vertex": "natgas_SE"
+                            }
+                        }
+
+                },
+                {
+                    "id": "MIDAT_NG_Fossil_Upstream",
+                    "edges":{
+                            "ng_fossil_edge": {
+                                "start_vertex": "natgas_fossil_MIDAT"
+                            },
+                            "ng_edge": {
+                                "end_vertex": "natgas_MIDAT"
+                            }
+                        }
+
+                },
+                {
+                    "id": "NE_NG_Fossil_Upstream",
+                    "edges":{
+                            "ng_fossil_edge": {
+                                "start_vertex": "natgas_fossil_NE"
+                            },
+                            "ng_edge": {
+                                "end_vertex": "natgas_NE"
+                            }
+                        }
+
+                }
+            ]
+        }
+    ]
+
+}

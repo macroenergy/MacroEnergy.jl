@@ -38,7 +38,7 @@
             },
             "instance_data":[
                 {
-                    "id": "SE_Solvent_DAC",
+                    "id": "SE_Sorbent_DAC",
                     "transforms":{
                         "electricity_consumption": 4.38
                     },
@@ -47,7 +47,7 @@
                                 "availability": {
                                 "timeseries": {
                                     "path": "system/availability.csv",
-                                    "header": "SE_Solvent_DAC"
+                                    "header": "SE_Sorbent_DAC"
                                     }
                                 },
                                 "existing_capacity": 0.0,
@@ -67,7 +67,7 @@
 
                 },
                 {
-                    "id": "MIDAT_Solvent_DAC",
+                    "id": "MIDAT_Sorbent_DAC",
                     "transforms":{
                         "electricity_consumption": 4.38
                     },
@@ -76,7 +76,7 @@
                                 "availability": {
                                 "timeseries": {
                                     "path": "system/availability.csv",
-                                    "header": "MIDAT_Solvent_DAC"
+                                    "header": "MIDAT_Sorbent_DAC"
                                     }
                                 },
                                 "existing_capacity": 0.0,
@@ -96,7 +96,7 @@
 
                 },
                 {
-                    "id": "NE_Solvent_DAC",
+                    "id": "NE_Sorbent_DAC",
                     "transforms":{
                         "electricity_consumption": 4.38
                     },
@@ -105,7 +105,7 @@
                                 "availability": {
                                 "timeseries": {
                                     "path": "system/availability.csv",
-                                    "header": "NE_Solvent_DAC"
+                                    "header": "NE_Sorbent_DAC"
                                     }
                                 },
                                 "existing_capacity": 0.0,
