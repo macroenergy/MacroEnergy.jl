@@ -18,8 +18,6 @@ jobs:
           - "1.9" 
           - '1'  # latest stable Julia release (Linux)
           # - 'nightly'
-        os:
-          - ubuntu-latest
         arch:
           - x64
         # include:
