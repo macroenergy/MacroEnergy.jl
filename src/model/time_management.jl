@@ -18,6 +18,8 @@ subperiods(y::Union{AbstractVertex,AbstractEdge}) = y.timedata.subperiods;
 subperiod_indices(y::Union{AbstractVertex,AbstractEdge}) = y.timedata.subperiod_indices;
 subperiod_weight(y::Union{AbstractVertex,AbstractEdge}, w::Int64) =
     y.timedata.subperiod_weights[w];
+timestep_weight(y::Union{AbstractVertex,AbstractEdge}, t::Int64) =
+    y.timedata.subperiod_weights[current_subperiod(y,t)]/length(subperiods(y)[findfirst(t .∈ subperiods(y))]);
 time_interval(y::Union{AbstractVertex,AbstractEdge}) = y.timedata.time_interval;
 ##Functions needed to model long duration storage:
 modeled_subperiods(y::Union{AbstractVertex,AbstractEdge}) = sort(collect(keys(y.timedata.period_map)))

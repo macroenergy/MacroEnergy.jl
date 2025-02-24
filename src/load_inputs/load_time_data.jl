@@ -169,7 +169,18 @@ function get_unique_rep_periods(period_map::Dict{Int64, Int64})
 
 end
 
-function get_weights(period_map::Dict{Int64, Int64}, unique_rep_periods::Vector{Int64}, hours_per_subperiod::Int64, total_hours_modeled::Int64=8760)
+function get_weights(time_data::AbstractDict{Symbol,Any}, sym::Symbol)
+    if haskey(time_data, :PeriodMap)
+        period_map = time_data[:PeriodMap]
+        unique_rep_periods = get_unique_rep_periods(time_data, sym)
+        weights_unscaled = create_weights_unscaled(period_map, unique_rep_periods)
+        weights_total = time_data[:WeightTotal]
+        weights = weights_total * weights_unscaled / sum(weights_unscaled)
+        return weights
+    else
+        return time_data[:WeightTotal] # if no period map, all subperiods have the same weight
+    end
+end
 
     # If no period map provided in time_data.json input, each period maps to itself from get_timedata_period_map
     is_identity_mapping = all(period_map[k] == k for k in keys(period_map))
