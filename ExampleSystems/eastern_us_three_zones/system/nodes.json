@@ -3,7 +3,10 @@
         {
             "type": "NaturalGas",
             "global_data": {
-                "time_interval": "NaturalGas"
+                "time_interval": "NaturalGas",
+                "constraints": {
+                    "BalanceConstraint": true
+                }
             },
             "instance_data": [
                 {
@@ -12,6 +15,12 @@
                         "timeseries": {
                             "path": "system/fuel_prices.csv",
                             "header": "natgas_SE"
+                        }
+                    },
+                    "demand": {
+                        "timeseries": {
+                            "path": "system/demand.csv",
+                            "header": "Demand_Zero"
                         }
                     }
                 },
@@ -22,6 +31,12 @@
                             "path": "system/fuel_prices.csv",
                             "header": "natgas_MIDAT"
                         }
+                    },
+                    "demand": {
+                        "timeseries": {
+                            "path": "system/demand.csv",
+                            "header": "Demand_Zero"
+                        }
                     }
                 },
                 {
@@ -30,6 +45,12 @@
                         "timeseries": {
                             "path": "system/fuel_prices.csv",
                             "header": "natgas_NE"
+                        }
+                    },
+                    "demand": {
+                        "timeseries": {
+                            "path": "system/demand.csv",
+                            "header": "Demand_Zero"
                         }
                     }
                 }

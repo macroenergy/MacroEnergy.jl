@@ -104,6 +104,7 @@ include("model/assets/beccselectricity.jl")
 include("model/assets/beccshydrogen.jl")
 include("model/assets/beccsgasoline.jl")
 include("model/assets/beccsliquidfuels.jl")
+include("model/assets/beccsnaturalgas.jl")
 include("model/assets/hydrores.jl")
 include("model/assets/mustrun.jl")
 
@@ -143,6 +144,7 @@ export AbstractAsset,
     BECCSHydrogen,
     BECCSGasoline,
     BECCSLiquidFuels,
+    BECCSNaturalGas,
     CO2,
     CO2CapConstraint,
     CO2Captured,
