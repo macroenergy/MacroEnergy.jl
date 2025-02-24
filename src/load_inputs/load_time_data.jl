@@ -67,6 +67,20 @@ function validate_period_map(period_map_data::DataFrame)
     @assert typeof(period_map_data[!, :Rep_Period_Index]) == Vector{Union{Missing, Int}}
 end
 
+function validate_and_set_default_weight_total!(time_data::AbstractDict{Symbol,Any})
+    # Check if WeightTotal exists and is an integer
+    if haskey(time_data, :WeightTotal)
+        if !isa(time_data[:WeightTotal], Integer)
+            throw(ArgumentError("WeightTotal must be an integer, got $(typeof(time_data[:WeightTotal]))"))
+        end
+    # If WeightTotal does not exist, use default value of 8760 (hours per year)
+    else
+        @warn("WeightTotal not found in time_data.json")
+        @info("Using 8760 as default value for WeightTotal")
+        time_data[:WeightTotal] = 8760;
+    end
+end
+
 function validate_time_data(
     time_data::AbstractDict{Symbol,Any},
     case_commodities::Dict{Symbol,DataType}
@@ -178,7 +192,7 @@ function get_weights(time_data::AbstractDict{Symbol,Any}, sym::Symbol)
         weights = weights_total * weights_unscaled / sum(weights_unscaled)
         return weights
     else
-        return time_data[:WeightTotal] # if no period map, all subperiods have the same weight
+        return time_data[:HoursPerSubperiod][sym] # if no period map, all subperiods have the same weight
     end
 end
 

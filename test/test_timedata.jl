@@ -60,9 +60,9 @@ input_data_with_period_map = Dict{Symbol,Any}(
 )
 
 time_data_true_no_period_map = Dict{Symbol,TimeData}(
-    :Hydrogen => TimeData{Hydrogen}(time_interval=1:1:504, hours_per_timestep=1, subperiods=[1:1:168, 169:1:336, 337:1:504], subperiod_indices=[1, 2, 3], subperiod_weights=Dict(1 => 1.0, 2 => 1.0, 3 => 1.0), period_map=Dict(1 => 1, 2 => 2, 3 => 3)),
-    :NaturalGas => TimeData{NaturalGas}(time_interval=1:1:504, hours_per_timestep=1, subperiods=[1:1:168, 169:1:336, 337:1:504], subperiod_indices=[1, 2, 3], subperiod_weights=Dict(1 => 1.0, 2 => 1.0, 3 => 1.0), period_map=Dict(1 => 1, 2 => 2, 3 => 3)),
-    :Electricity => TimeData{Electricity}(time_interval=1:1:504, hours_per_timestep=1, subperiods=[1:1:168, 169:1:336, 337:1:504], subperiod_indices=[1, 2, 3], subperiod_weights=Dict(1 => 1.0, 2 => 1.0, 3 => 1.0), period_map=Dict(1 => 1, 2 => 2, 3 => 3))
+    :Hydrogen => TimeData{Hydrogen}(time_interval=1:1:504, hours_per_timestep=1, subperiods=[1:1:168, 169:1:336, 337:1:504], subperiod_indices=[1, 2, 3], subperiod_weights=Dict(1 => 168.0, 2 => 168.0, 3 => 168.0), period_map=Dict(1 => 1, 2 => 2, 3 => 3)),
+    :NaturalGas => TimeData{NaturalGas}(time_interval=1:1:504, hours_per_timestep=1, subperiods=[1:1:168, 169:1:336, 337:1:504], subperiod_indices=[1, 2, 3], subperiod_weights=Dict(1 => 168.0, 2 => 168.0, 3 => 168.0), period_map=Dict(1 => 1, 2 => 2, 3 => 3)),
+    :Electricity => TimeData{Electricity}(time_interval=1:1:504, hours_per_timestep=1, subperiods=[1:1:168, 169:1:336, 337:1:504], subperiod_indices=[1, 2, 3], subperiod_weights=Dict(1 => 168.0, 2 => 168.0, 3 => 168.0), period_map=Dict(1 => 1, 2 => 2, 3 => 3))
 )
 
 period_map = Dict(56 => 363, 35 => 83, 60 => 363, 220 => 230, 308 => 363, 67 => 230, 215 => 363, 73 => 230, 319 => 363, 251 => 363,
