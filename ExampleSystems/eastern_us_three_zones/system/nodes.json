@@ -357,7 +357,10 @@
         {
             "type": "Gasoline",
             "global_data": {
-                "time_interval": "Gasoline"
+                "time_interval": "Gasoline",
+                "constraints": {
+                    "BalanceConstraint": true
+                }
             },
             "instance_data": [
                 {
@@ -366,6 +369,12 @@
                         "timeseries": {
                             "path": "system/fuel_prices.csv",
                             "header": "gasoline_price_SE"
+                        }
+                    },
+                    "demand": {
+                        "timeseries": {
+                            "path": "system/demand.csv",
+                            "header": "Demand_Zero"
                         }
                     }
                 },
@@ -376,6 +385,12 @@
                             "path": "system/fuel_prices.csv",
                             "header": "gasoline_price_MIDAT"
                         }
+                    },
+                    "demand": {
+                        "timeseries": {
+                            "path": "system/demand.csv",
+                            "header": "Demand_Zero"
+                        }
                     }
                 },
                 {
@@ -384,6 +399,12 @@
                         "timeseries": {
                             "path": "system/fuel_prices.csv",
                             "header": "gasoline_price_NE"
+                        }
+                    },
+                    "demand": {
+                        "timeseries": {
+                            "path": "system/demand.csv",
+                            "header": "Demand_Zero"
                         }
                     }
                 }
@@ -430,7 +451,10 @@
         {
             "type": "JetFuel",
             "global_data": {
-                "time_interval": "JetFuel"
+                "time_interval": "JetFuel",
+                "constraints": {
+                    "BalanceConstraint": true
+                }
             },
             "instance_data": [
                 {
@@ -439,6 +463,12 @@
                         "timeseries": {
                             "path": "system/fuel_prices.csv",
                             "header": "jetfuel_price_SE"
+                        }
+                    },
+                    "demand": {
+                        "timeseries": {
+                            "path": "system/demand.csv",
+                            "header": "Demand_Zero"
                         }
                     }
                 },
@@ -449,6 +479,12 @@
                             "path": "system/fuel_prices.csv",
                             "header": "jetfuel_price_MIDAT"
                         }
+                    },
+                    "demand": {
+                        "timeseries": {
+                            "path": "system/demand.csv",
+                            "header": "Demand_Zero"
+                        }
                     }
                 },
                 {
@@ -457,6 +493,12 @@
                         "timeseries": {
                             "path": "system/fuel_prices.csv",
                             "header": "jetfuel_price_NE"
+                        }
+                    },
+                    "demand": {
+                        "timeseries": {
+                            "path": "system/demand.csv",
+                            "header": "Demand_Zero"
                         }
                     }
                 }
@@ -503,7 +545,10 @@
         {
             "type": "Diesel",
             "global_data": {
-                "time_interval": "Diesel"
+                "time_interval": "Diesel",
+                "constraints": {
+                    "BalanceConstraint": true
+                }
             },
             "instance_data": [
                 {
@@ -512,6 +557,12 @@
                         "timeseries": {
                             "path": "system/fuel_prices.csv",
                             "header": "diesel_price_SE"
+                        }
+                    },
+                    "demand": {
+                        "timeseries": {
+                            "path": "system/demand.csv",
+                            "header": "Demand_Zero"
                         }
                     }
                 },
@@ -522,6 +573,12 @@
                             "path": "system/fuel_prices.csv",
                             "header": "diesel_price_MIDAT"
                         }
+                    },
+                    "demand": {
+                        "timeseries": {
+                            "path": "system/demand.csv",
+                            "header": "Demand_Zero"
+                        }
                     }
                 },
                 {
@@ -530,6 +587,12 @@
                         "timeseries": {
                             "path": "system/fuel_prices.csv",
                             "header": "diesel_price_NE"
+                        }
+                    },
+                    "demand": {
+                        "timeseries": {
+                            "path": "system/demand.csv",
+                            "header": "Demand_Zero"
                         }
                     }
                 }

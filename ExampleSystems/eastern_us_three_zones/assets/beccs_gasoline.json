@@ -44,12 +44,6 @@
                         "has_capacity": false,
                         "end_vertex": "co2_sink"
                     },
-                    "biofuel_emission_edge": {
-                        "type": "CO2",
-                        "unidirectional": true,
-                        "has_capacity": false,
-                        "end_vertex": "co2_sink"
-                    },
                     "co2_captured_edge": {
                         "type": "CO2Captured",
                         "unidirectional": true,
@@ -65,8 +59,7 @@
                         "electricity_consumption": 0,
                         "capture_rate": 0,
                         "co2_content":1.721,
-                        "emission_rate":1.23359,
-                        "biofuel_emission_rate":0.48741
+                        "emission_rate":1.23359
                     },
                     "edges": {
                         "biomass_edge": {
@@ -86,7 +79,7 @@
                             "start_vertex": "elec_SE"
                         },
                         "gasoline_edge":{
-                            "end_vertex": "gasoline_demand_SE"
+                            "end_vertex": "gasoline_SE"
                         },
                         "co2_captured_edge": {
                             "end_vertex": "co2_captured_SE"
@@ -100,8 +93,7 @@
                         "electricity_consumption": 0,
                         "capture_rate": 0,
                         "co2_content":1.721,
-                        "emission_rate":1.23359,
-                        "biofuel_emission_rate":0.48741
+                        "emission_rate":1.23359
                     },
                     "edges": {
                         "biomass_edge": {
@@ -121,7 +113,7 @@
                             "start_vertex": "elec_MIDAT"
                         },
                         "gasoline_edge":{
-                            "end_vertex": "gasoline_demand_MIDAT"
+                            "end_vertex": "gasoline_MIDAT"
                         },
                         "co2_captured_edge": {
                             "end_vertex": "co2_captured_MIDAT"
@@ -135,8 +127,7 @@
                         "electricity_consumption": 0,
                         "capture_rate": 0,
                         "co2_content":1.721,
-                        "emission_rate":1.23359,
-                        "biofuel_emission_rate":0.48741
+                        "emission_rate":1.23359
                     },
                     "edges": {
                         "biomass_edge": {
@@ -156,7 +147,7 @@
                             "start_vertex": "elec_NE"
                         },
                         "gasoline_edge":{
-                            "end_vertex": "gasoline_demand_NE"
+                            "end_vertex": "gasoline_NE"
                         },
                         "co2_captured_edge": {
                             "end_vertex": "co2_captured_NE"
@@ -170,8 +161,7 @@
                         "electricity_consumption": 0,
                         "capture_rate": 0,
                         "co2_content":1.721,
-                        "emission_rate":1.23359,
-                        "biofuel_emission_rate":0.48741
+                        "emission_rate":1.23359
                     },
                     "edges": {
                         "biomass_edge": {
@@ -191,7 +181,7 @@
                             "start_vertex": "elec_SE"
                         },
                         "gasoline_edge":{
-                            "end_vertex": "gasoline_demand_SE"
+                            "end_vertex": "gasoline_SE"
                         },
                         "co2_captured_edge": {
                             "end_vertex": "co2_captured_SE"
@@ -205,8 +195,7 @@
                         "electricity_consumption": 0,
                         "capture_rate": 0,
                         "co2_content":1.721,
-                        "emission_rate":1.23359,
-                        "biofuel_emission_rate":0.48741
+                        "emission_rate":1.23359
                     },
                     "edges": {
                         "biomass_edge": {
@@ -226,7 +215,7 @@
                             "start_vertex": "elec_MIDAT"
                         },
                         "gasoline_edge":{
-                            "end_vertex": "gasoline_demand_MIDAT"
+                            "end_vertex": "gasoline_MIDAT"
                         },
                         "co2_captured_edge": {
                             "end_vertex": "co2_captured_MIDAT"
@@ -240,8 +229,7 @@
                         "electricity_consumption": 0,
                         "capture_rate": 0,
                         "co2_content":1.721,
-                        "emission_rate":1.23359,
-                        "biofuel_emission_rate":0.48741
+                        "emission_rate":1.23359
                     },
                     "edges": {
                         "biomass_edge": {
@@ -261,7 +249,7 @@
                             "start_vertex": "elec_NE"
                         },
                         "gasoline_edge":{
-                            "end_vertex": "gasoline_demand_NE"
+                            "end_vertex": "gasoline_NE"
                         },
                         "co2_captured_edge": {
                             "end_vertex": "co2_captured_NE"

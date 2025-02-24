@@ -1,6 +1,6 @@
 struct JetFuelEndUse <: AbstractAsset
     id::AssetId
-    jetfuelenduse_transform::Transformation
+    JetFuelEndUse_transform::Transformation
     jetfuel_edge::Edge{JetFuel}
     jetfuel_demand_edge::Edge{JetFuel}
     co2_edge::Edge{CO2}
@@ -9,10 +9,10 @@ end
 function make(::Type{JetFuelEndUse}, data::AbstractDict{Symbol,Any}, system::System)
     id = AssetId(data[:id])
 
-    jetfuelenduse_key = :transforms
-    transform_data = process_data(data[jetfuelenduse_key])
-    jetfuelenduse_transform = Transformation(;
-        id = Symbol(id, "_", jetfuelenduse_key),
+    JetFuelEndUse_key = :transforms
+    transform_data = process_data(data[JetFuelEndUse_key])
+    JetFuelEndUse_transform = Transformation(;
+        id = Symbol(id, "_", JetFuelEndUse_key),
         timedata = system.time_data[Symbol(transform_data[:timedata])],
         constraints = get(transform_data, :constraints, [BalanceConstraint()]),
     )
@@ -20,7 +20,7 @@ function make(::Type{JetFuelEndUse}, data::AbstractDict{Symbol,Any}, system::Sys
     jetfuel_edge_key = :jetfuel_edge
     jetfuel_edge_data = process_data(data[:edges][jetfuel_edge_key])
     jetfuel_start_node = find_node(system.locations, Symbol(jetfuel_edge_data[:start_vertex]))
-    jetfuel_end_node = jetfuelenduse_transform
+    jetfuel_end_node = JetFuelEndUse_transform
     jetfuel_edge = Edge(
         Symbol(id, "_", jetfuel_edge_key),
         jetfuel_edge_data,
@@ -35,7 +35,7 @@ function make(::Type{JetFuelEndUse}, data::AbstractDict{Symbol,Any}, system::Sys
 
     jetfuel_demand_edge_key = :jetfuel_demand_edge
     jetfuel_demand_edge_data = process_data(data[:edges][jetfuel_demand_edge_key])
-    jetfuel_demand_start_node = jetfuelenduse_transform
+    jetfuel_demand_start_node = JetFuelEndUse_transform
     jetfuel_demand_end_node = find_node(system.locations, Symbol(jetfuel_demand_edge_data[:end_vertex]))
     jetfuel_demand_edge = Edge(
         Symbol(id, "_", jetfuel_demand_edge_key),
@@ -51,7 +51,7 @@ function make(::Type{JetFuelEndUse}, data::AbstractDict{Symbol,Any}, system::Sys
 
     co2_edge_key = :co2_edge
     co2_edge_data = process_data(data[:edges][co2_edge_key])
-    co2_start_node = jetfuelenduse_transform
+    co2_start_node = JetFuelEndUse_transform
     co2_end_node = find_node(system.locations, Symbol(co2_edge_data[:end_vertex]))
     co2_edge = Edge(
         Symbol(id, "_", co2_edge_key),
@@ -65,7 +65,7 @@ function make(::Type{JetFuelEndUse}, data::AbstractDict{Symbol,Any}, system::Sys
     co2_edge.unidirectional = true;
     co2_edge.has_capacity = false;
 
-    jetfuelenduse_transform.balance_data = Dict(
+    JetFuelEndUse_transform.balance_data = Dict(
         :jetfuel_demand => Dict(
             jetfuel_edge.id => 1.0,
             jetfuel_demand_edge.id => 1.0
@@ -76,5 +76,5 @@ function make(::Type{JetFuelEndUse}, data::AbstractDict{Symbol,Any}, system::Sys
         )
     )
 
-    return JetFuelEndUse(id, jetfuelenduse_transform, jetfuel_edge, jetfuel_demand_edge, co2_edge) 
+    return JetFuelEndUse(id, JetFuelEndUse_transform, jetfuel_edge, jetfuel_demand_edge, co2_edge) 
 end

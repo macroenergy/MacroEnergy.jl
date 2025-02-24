@@ -1,6 +1,6 @@
 struct DieselEndUse <: AbstractAsset
     id::AssetId
-    dieselenduse_transform::Transformation
+    DieselEndUse_transform::Transformation
     diesel_edge::Edge{Diesel}
     diesel_demand_edge::Edge{Diesel}
     co2_edge::Edge{CO2}
@@ -9,10 +9,10 @@ end
 function make(::Type{DieselEndUse}, data::AbstractDict{Symbol,Any}, system::System)
     id = AssetId(data[:id])
 
-    dieselenduse_key = :transforms
-    transform_data = process_data(data[dieselenduse_key])
-    dieselenduse_transform = Transformation(;
-        id = Symbol(id, "_", dieselenduse_key),
+    DieselEndUse_key = :transforms
+    transform_data = process_data(data[DieselEndUse_key])
+    DieselEndUse_transform = Transformation(;
+        id = Symbol(id, "_", DieselEndUse_key),
         timedata = system.time_data[Symbol(transform_data[:timedata])],
         constraints = get(transform_data, :constraints, [BalanceConstraint()]),
     )
@@ -20,7 +20,7 @@ function make(::Type{DieselEndUse}, data::AbstractDict{Symbol,Any}, system::Syst
     diesel_edge_key = :diesel_edge
     diesel_edge_data = process_data(data[:edges][diesel_edge_key])
     diesel_start_node = find_node(system.locations, Symbol(diesel_edge_data[:start_vertex]))
-    diesel_end_node = dieselenduse_transform
+    diesel_end_node = DieselEndUse_transform
     diesel_edge = Edge(
         Symbol(id, "_", diesel_edge_key),
         diesel_edge_data,
@@ -35,7 +35,7 @@ function make(::Type{DieselEndUse}, data::AbstractDict{Symbol,Any}, system::Syst
 
     diesel_demand_edge_key = :diesel_demand_edge
     diesel_demand_edge_data = process_data(data[:edges][diesel_demand_edge_key])
-    diesel_demand_start_node = dieselenduse_transform
+    diesel_demand_start_node = DieselEndUse_transform
     diesel_demand_end_node = find_node(system.locations, Symbol(diesel_demand_edge_data[:end_vertex]))
     diesel_demand_edge = Edge(
         Symbol(id, "_", diesel_demand_edge_key),
@@ -51,7 +51,7 @@ function make(::Type{DieselEndUse}, data::AbstractDict{Symbol,Any}, system::Syst
 
     co2_edge_key = :co2_edge
     co2_edge_data = process_data(data[:edges][co2_edge_key])
-    co2_start_node = dieselenduse_transform
+    co2_start_node = DieselEndUse_transform
     co2_end_node = find_node(system.locations, Symbol(co2_edge_data[:end_vertex]))
     co2_edge = Edge(
         Symbol(id, "_", co2_edge_key),
@@ -65,7 +65,7 @@ function make(::Type{DieselEndUse}, data::AbstractDict{Symbol,Any}, system::Syst
     co2_edge.unidirectional = true;
     co2_edge.has_capacity = false;
 
-    dieselenduse_transform.balance_data = Dict(
+    DieselEndUse_transform.balance_data = Dict(
         :diesel_demand => Dict(
             diesel_edge.id => 1.0,
             diesel_demand_edge.id => 1.0
@@ -76,5 +76,5 @@ function make(::Type{DieselEndUse}, data::AbstractDict{Symbol,Any}, system::Syst
         )
     )
 
-    return DieselEndUse(id, dieselenduse_transform, diesel_edge, diesel_demand_edge, co2_edge) 
+    return DieselEndUse(id, DieselEndUse_transform, diesel_edge, diesel_demand_edge, co2_edge) 
 end

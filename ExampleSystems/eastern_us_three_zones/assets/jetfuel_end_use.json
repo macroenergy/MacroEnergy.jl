@@ -30,7 +30,7 @@
             },
             "instance_data":[
                 {
-                    "id": "SE_JetFuel_End_Use",
+                    "id": "SE_JetFuel_Use",
                     "transforms":{
                         "emission_rate": 0.246356685
                     },
@@ -45,7 +45,7 @@
 
                 },
                 {
-                    "id": "MIDAT_JetFuel_End_Use",
+                    "id": "MIDAT_JetFuel_Use",
                     "transforms":{
                         "emission_rate": 0.246356685
                     },
@@ -60,7 +60,7 @@
 
                 },
                 {
-                    "id": "NE_JetFuel_End_Use",
+                    "id": "NE_JetFuel_Use",
                     "transforms":{
                         "emission_rate": 0.246356685
                     },

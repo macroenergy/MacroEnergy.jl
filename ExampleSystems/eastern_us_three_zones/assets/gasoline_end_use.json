@@ -30,7 +30,7 @@
             },
             "instance_data":[
                 {
-                    "id": "SE_Gasoline_End_Use",
+                    "id": "SE_Gasoline_Use",
                     "transforms":{
                         "emission_rate": 0.241238471
                     },
@@ -45,7 +45,7 @@
 
                 },
                 {
-                    "id": "MIDAT_Gasoline_End_Use",
+                    "id": "MIDAT_Gasoline_Use",
                     "transforms":{
                         "emission_rate": 0.241238471
                     },
@@ -60,7 +60,7 @@
 
                 },
                 {
-                    "id": "NE_Gasoline_End_Use",
+                    "id": "NE_Gasoline_Use",
                     "transforms":{
                         "emission_rate": 0.241238471
                     },

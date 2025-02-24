@@ -6,7 +6,6 @@ struct BECCSGasoline <: AbstractAsset
     elec_edge::Edge{Electricity}
     co2_edge::Edge{CO2}
     co2_emission_edge::Edge{CO2}
-    biofuel_emission_edge::Edge{CO2}
     co2_captured_edge::Edge{CO2Captured}
 end
 
@@ -100,22 +99,6 @@ function make(::Type{BECCSGasoline}, data::AbstractDict{Symbol,Any}, system::Sys
     co2_emission_edge.unidirectional = true;
     co2_emission_edge.has_capacity = false;
 
-    biofuel_emission_edge_key = :biofuel_emission_edge
-    biofuel_emission_edge_data = process_data(data[:edges][biofuel_emission_edge_key])
-    biofuel_emission_start_node = beccs_transform
-    biofuel_emission_end_node = find_node(system.locations, Symbol(biofuel_emission_edge_data[:end_vertex]))
-    biofuel_emission_edge = Edge(
-        Symbol(id, "_", biofuel_emission_edge_key),
-        biofuel_emission_edge_data,
-        system.time_data[:CO2],
-        CO2,
-        biofuel_emission_start_node,
-        biofuel_emission_end_node,
-    )
-    biofuel_emission_edge.constraints = Vector{AbstractTypeConstraint}()
-    biofuel_emission_edge.unidirectional = true;
-    biofuel_emission_edge.has_capacity = false;
-
     co2_captured_edge_key = :co2_captured_edge
     co2_captured_edge_data = process_data(data[:edges][co2_captured_edge_key])
     co2_captured_start_node = beccs_transform
@@ -149,15 +132,11 @@ function make(::Type{BECCSGasoline}, data::AbstractDict{Symbol,Any}, system::Sys
             biomass_edge.id => get(transform_data, :emission_rate, 1.0),
             co2_emission_edge.id => 1.0
         ),
-        :biofuel_emissions => Dict(
-            biomass_edge.id => get(transform_data, :biofuel_emission_rate, 1.0),
-            biofuel_emission_edge.id => 1.0
-        ),
         :capture =>Dict(
             biomass_edge.id => get(transform_data, :capture_rate, 1.0),
             co2_captured_edge.id => 1.0
         )
     )
 
-    return BECCSGasoline(id, beccs_transform, biomass_edge,gasoline_edge,elec_edge,co2_edge,co2_emission_edge,biofuel_emission_edge,co2_captured_edge) 
+    return BECCSGasoline(id, beccs_transform, biomass_edge,gasoline_edge,elec_edge,co2_edge,co2_emission_edge,co2_captured_edge) 
 end

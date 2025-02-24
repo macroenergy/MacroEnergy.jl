@@ -1,6 +1,6 @@
 struct GasolineEndUse <: AbstractAsset
     id::AssetId
-    gasolineenduse_transform::Transformation
+    GasolineEndUse_transform::Transformation
     gasoline_edge::Edge{Gasoline}
     gasoline_demand_edge::Edge{Gasoline}
     co2_edge::Edge{CO2}
@@ -9,10 +9,10 @@ end
 function make(::Type{GasolineEndUse}, data::AbstractDict{Symbol,Any}, system::System)
     id = AssetId(data[:id])
 
-    gasolineenduse_key = :transforms
-    transform_data = process_data(data[gasolineenduse_key])
-    gasolineenduse_transform = Transformation(;
-        id = Symbol(id, "_", gasolineenduse_key),
+    GasolineEndUse_key = :transforms
+    transform_data = process_data(data[GasolineEndUse_key])
+    GasolineEndUse_transform = Transformation(;
+        id = Symbol(id, "_", GasolineEndUse_key),
         timedata = system.time_data[Symbol(transform_data[:timedata])],
         constraints = get(transform_data, :constraints, [BalanceConstraint()]),
     )
@@ -20,7 +20,7 @@ function make(::Type{GasolineEndUse}, data::AbstractDict{Symbol,Any}, system::Sy
     gasoline_edge_key = :gasoline_edge
     gasoline_edge_data = process_data(data[:edges][gasoline_edge_key])
     gasoline_start_node = find_node(system.locations, Symbol(gasoline_edge_data[:start_vertex]))
-    gasoline_end_node = gasolineenduse_transform
+    gasoline_end_node = GasolineEndUse_transform
     gasoline_edge = Edge(
         Symbol(id, "_", gasoline_edge_key),
         gasoline_edge_data,
@@ -35,7 +35,7 @@ function make(::Type{GasolineEndUse}, data::AbstractDict{Symbol,Any}, system::Sy
 
     gasoline_demand_edge_key = :gasoline_demand_edge
     gasoline_demand_edge_data = process_data(data[:edges][gasoline_demand_edge_key])
-    gasoline_demand_start_node = gasolineenduse_transform
+    gasoline_demand_start_node = GasolineEndUse_transform
     gasoline_demand_end_node = find_node(system.locations, Symbol(gasoline_demand_edge_data[:end_vertex]))
     gasoline_demand_edge = Edge(
         Symbol(id, "_", gasoline_demand_edge_key),
@@ -51,7 +51,7 @@ function make(::Type{GasolineEndUse}, data::AbstractDict{Symbol,Any}, system::Sy
 
     co2_edge_key = :co2_edge
     co2_edge_data = process_data(data[:edges][co2_edge_key])
-    co2_start_node = gasolineenduse_transform
+    co2_start_node = GasolineEndUse_transform
     co2_end_node = find_node(system.locations, Symbol(co2_edge_data[:end_vertex]))
     co2_edge = Edge(
         Symbol(id, "_", co2_edge_key),
@@ -65,7 +65,7 @@ function make(::Type{GasolineEndUse}, data::AbstractDict{Symbol,Any}, system::Sy
     co2_edge.unidirectional = true;
     co2_edge.has_capacity = false;
 
-    gasolineenduse_transform.balance_data = Dict(
+    GasolineEndUse_transform.balance_data = Dict(
         :gasoline_demand => Dict(
             gasoline_edge.id => 1.0,
             gasoline_demand_edge.id => 1.0
@@ -76,5 +76,5 @@ function make(::Type{GasolineEndUse}, data::AbstractDict{Symbol,Any}, system::Sy
         )
     )
 
-    return GasolineEndUse(id, gasolineenduse_transform, gasoline_edge, gasoline_demand_edge, co2_edge) 
+    return GasolineEndUse(id, GasolineEndUse_transform, gasoline_edge, gasoline_demand_edge, co2_edge) 
 end
