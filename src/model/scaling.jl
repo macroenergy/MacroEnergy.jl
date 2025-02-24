@@ -1,6 +1,6 @@
 function scaling!(y::Union{AbstractVertex,AbstractEdge})
     atts_vec = attributes_to_scale(y)
-
+    ScalingFactor = 1e3;
     for f in atts_vec
         setfield!(y, f, getfield(y, f) / ScalingFactor)
     end

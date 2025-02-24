@@ -6,20 +6,24 @@ end
 
 function generate_decomposed_system(system_full::System)
 
-    subperiod_indices = collect(eachindex(system_full.time_data[:Electricity].subperiods))
+    subperiod_indices = system_full.time_data[:Electricity].subperiod_indices;
+    subperiods = system_full.time_data[:Electricity].subperiods;
+    subperiod_weights = system_full.time_data[:Electricity].subperiod_weights;
 
-    system_decomp = Dict{Int64,System}()
+    number_of_subperiods = length(subperiod_indices);
 
-    for w in subperiod_indices
-        system_decomp[w] = deepcopy(system_full)
+    system_decomp = Vector{System}(undef,number_of_subperiods)
+
+    for i in 1:number_of_subperiods
+        system_decomp[i] = deepcopy(system_full)
+        w = subperiod_indices[i];
+
         for c in keys(system_full.time_data)
-            system_decomp[w].time_data[c].time_interval =
-                system_full.time_data[c].subperiods[w]
-            system_decomp[w].time_data[c].subperiod_weights =
-                Dict(w => system_full.time_data[c].subperiod_weights[w])
-            system_decomp[w].time_data[c].subperiods =
-                [system_full.time_data[c].subperiods[w]]
-            system_decomp[w].time_data[c].subperiod_indices = [w]
+            system_decomp[i].time_data[c].time_interval = subperiods[i]
+            system_decomp[i].time_data[c].subperiod_weights = Dict(w => subperiod_weights[w])
+            system_decomp[i].time_data[c].subperiods = [subperiods[i]]
+            system_decomp[i].time_data[c].subperiod_indices = [w]
+            system_decomp[i].time_data[c].period_map = Dict(w => w)
         end
     end
 
@@ -28,7 +32,7 @@ end
 
 function generate_planning_problem(system::System)
 
-    subperiod_indices = collect(eachindex(system.time_data[:Electricity].subperiods))
+    subperiod_indices = system.time_data[:Electricity].subperiod_indices;
 
     model = Model()
 
