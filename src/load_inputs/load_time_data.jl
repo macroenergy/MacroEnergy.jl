@@ -79,8 +79,8 @@ function validate_and_set_default_weight_total!(time_data::AbstractDict{Symbol,A
     # If WeightTotal does not exist, use default value of 8760 (hours per year)
     else
         @warn("WeightTotal not found in time_data.json")
-        @info("Using PeriodLength as default value for WeightTotal")
-        time_data[:WeightTotal] = time_data[:PeriodLength]
+        @info("Using 8760 as default value for WeightTotal")
+        time_data[:WeightTotal] = 8760;
     end
 end
 
@@ -195,7 +195,7 @@ function get_weights(time_data::AbstractDict{Symbol,Any}, sym::Symbol)
         weights = weights_total * weights_unscaled / sum(weights_unscaled)
         return weights
     else
-        return time_data[:WeightTotal] # if no period map, all subperiods have the same weight
+        return time_data[:HoursPerSubperiod][sym] # if no period map, all subperiods have the same weight
     end
 end
 
