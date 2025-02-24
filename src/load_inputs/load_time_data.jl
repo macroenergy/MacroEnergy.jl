@@ -142,6 +142,7 @@ function create_commodity_timedata(
     time_interval = 1:period_length
     
     hours_per_timestep = time_data[:HoursPerTimeStep][sym]
+
     validate_temporal_resolution(hours_per_timestep)
 
     subperiods = create_subperiods(time_data, sym)
@@ -194,7 +195,7 @@ function get_weights(time_data::AbstractDict{Symbol,Any}, sym::Symbol)
         weights = weights_total * weights_unscaled / sum(weights_unscaled)
         return weights
     else
-        return 1 # if no period map, all subperiods have the same weight
+        return time_data[:WeightTotal] # if no period map, all subperiods have the same weight
     end
 end
 
