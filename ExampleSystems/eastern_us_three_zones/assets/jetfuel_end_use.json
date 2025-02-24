@@ -32,7 +32,7 @@
                 {
                     "id": "SE_JetFuel_End_Use",
                     "transforms":{
-                        "emission_rate": 0.02116
+                        "emission_rate": 0.246356685
                     },
                     "edges":{
                             "jetfuel_edge": {
@@ -47,7 +47,7 @@
                 {
                     "id": "MIDAT_JetFuel_End_Use",
                     "transforms":{
-                        "emission_rate": 0.02116
+                        "emission_rate": 0.246356685
                     },
                     "edges":{
                             "jetfuel_edge": {
@@ -62,7 +62,7 @@
                 {
                     "id": "NE_JetFuel_End_Use",
                     "transforms":{
-                        "emission_rate": 0.02116
+                        "emission_rate": 0.246356685
                     },
                     "edges":{
                             "jetfuel_edge": {

@@ -32,7 +32,7 @@
                 {
                     "id": "SE_Gasoline_End_Use",
                     "transforms":{
-                        "emission_rate": 0.020721
+                        "emission_rate": 0.241238471
                     },
                     "edges":{
                             "gasoline_edge": {
@@ -47,7 +47,7 @@
                 {
                     "id": "MIDAT_Gasoline_End_Use",
                     "transforms":{
-                        "emission_rate": 0.020721
+                        "emission_rate": 0.241238471
                     },
                     "edges":{
                             "gasoline_edge": {
@@ -62,7 +62,7 @@
                 {
                     "id": "NE_Gasoline_End_Use",
                     "transforms":{
-                        "emission_rate": 0.020721
+                        "emission_rate": 0.241238471
                     },
                     "edges":{
                             "gasoline_edge": {

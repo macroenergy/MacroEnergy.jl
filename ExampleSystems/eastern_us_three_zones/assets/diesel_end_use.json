@@ -32,7 +32,7 @@
                 {
                     "id": "SE_Diesel_End_Use",
                     "transforms":{
-                        "emission_rate": 0.021717
+                        "emission_rate": 0.252839756
                     },
                     "edges":{
                             "diesel_edge": {
@@ -47,7 +47,7 @@
                 {
                     "id": "MIDAT_Diesel_End_Use",
                     "transforms":{
-                        "emission_rate": 0.021717
+                        "emission_rate": 0.252839756
                     },
                     "edges":{
                             "diesel_edge": {
@@ -62,7 +62,7 @@
                 {
                     "id": "NE_Diesel_End_Use",
                     "transforms":{
-                        "emission_rate": 0.021717
+                        "emission_rate": 0.252839756
                     },
                     "edges":{
                             "diesel_edge": {
