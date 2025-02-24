@@ -1,0 +1,20 @@
+{
+    "commodities": {
+        "path": "system"
+    },
+    "locations": {
+        "path": "locations"
+    },
+    "settings": {
+        "path": "settings/macro_settings.json"
+    },
+    "assets": {
+        "path": "assets"
+    },
+    "time_data": {
+        "path": "system/time_data.json"
+    },
+    "nodes": {
+        "path": "system/nodes.json"
+    }
+}

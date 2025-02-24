@@ -1,0 +1,19 @@
+{
+    "HoursPerSubperiod":
+        {
+            "NaturalGas":24,
+            "CO2":24,
+            "Electricity":24
+        },
+    "HoursPerTimeStep":
+        {
+            "NaturalGas":1,
+            "CO2":1,
+            "Electricity":1
+        },
+    "PeriodLength":120,
+    "WeightTotal": 8760,
+    "PeriodMap": {
+        "path": "system/Period_map.csv"
+    }
+}
