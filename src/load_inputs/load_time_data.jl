@@ -161,9 +161,7 @@ function get_unique_rep_periods(period_map::Dict{Int64, Int64})
     
     rep_periods = collect(values(period_map))
 
-    rep_period_indices = collect(keys(period_map))
-
-    return unique(rep_periods[sortperm(rep_period_indices)])
+    return sort(unique(rep_periods))
 
 end
 
