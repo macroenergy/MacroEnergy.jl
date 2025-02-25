@@ -31,7 +31,7 @@ function test_load_time_data()
     
     # Test different input data
     scenarios = [
-        (input_data_no_period_map, time_data_true_no_period_map, "No period map"),
+        (input_data_no_period_map, time_data_true_no_period_map, "No period map and weight total"),
         (input_data_with_period_map, time_data_true_with_period_map, "With period map")
     ]
     
@@ -53,7 +53,7 @@ input_data_no_period_map = Dict{Symbol,Any}(
 input_data_with_period_map = Dict{Symbol,Any}(
     :HoursPerSubperiod => Dict(:Hydrogen => 168, :NaturalGas => 168, :Electricity => 168),
     :HoursPerTimeStep => Dict(:Hydrogen => 1, :NaturalGas => 1, :Electricity => 1),
-    :PeriodLength => 504,
+    :PeriodLength => 504
     :PeriodMap => Dict(
         :path => "system/Period_map.csv"
     )

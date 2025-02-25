@@ -10,9 +10,10 @@ function add_model_constraint!(ct::CO2CapConstraint, n::Node{CO2}, model::Model)
     subperiod_balance = @expression(model, [w in subperiod_indices(n)], 0 * model[:vREF])
 
     for t in time_interval(n)
+        w = current_subperiod(n,t)
         add_to_expression!(
-            subperiod_balance[current_subperiod(n,t)],
-            timestep_weight(n, t),
+            subperiod_balance[w],
+            subperiod_weight(n, w),
             get_balance(n, :emissions, t),
         )
     end

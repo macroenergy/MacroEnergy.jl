@@ -208,10 +208,11 @@ function operation_model!(e::Edge, model::Model)
     update_balances!(e, model)
 
     for t in time_interval(e)
+        w = current_subperiod(e,t)
         if variable_om_cost(e) > 0
             add_to_expression!(
                 model[:eVariableCost],
-                timestep_weight(e, t) * variable_om_cost(e),
+                subperiod_weight(e, w) * variable_om_cost(e),
                 flow(e, t),
             )
         end
@@ -219,7 +220,7 @@ function operation_model!(e::Edge, model::Model)
             if !isempty(price(start_vertex(e)))
                 add_to_expression!(
                     model[:eVariableCost],
-                    timestep_weight(e, t) * price(start_vertex(e), t),
+                    subperiod_weight(e, w) * price(start_vertex(e), t),
                     flow(e, t),
                 )
             end
@@ -345,10 +346,11 @@ function operation_model!(e::EdgeWithUC, model::Model)
 
     for t in time_interval(e)
 
+        w = current_subperiod(e,t)
         if variable_om_cost(e) > 0
             add_to_expression!(
                 model[:eVariableCost],
-                timestep_weight(e, t) * variable_om_cost(e),
+                subperiod_weight(e, w) * variable_om_cost(e),
                 flow(e, t),
             )
         end
@@ -357,7 +359,7 @@ function operation_model!(e::EdgeWithUC, model::Model)
             if !isempty(price(start_vertex(e)))
                 add_to_expression!(
                     model[:eVariableCost],
-                    timestep_weight(e, t) * price(start_vertex(e), t),
+                    subperiod_weight(e, w) * price(start_vertex(e), t),
                     flow(e, t),
                 )
             end
@@ -366,7 +368,7 @@ function operation_model!(e::EdgeWithUC, model::Model)
         if startup_cost(e) > 0
             add_to_expression!(
                 model[:eVariableCost],
-                timestep_weight(e, t) * startup_cost(e) * capacity_size(e),
+                subperiod_weight(e, w) * startup_cost(e) * capacity_size(e),
                 ustart(e, t),
             )
         end
