@@ -28,9 +28,8 @@ function make(::Type{CO2Injection}, data::AbstractDict{Symbol,Any}, system::Syst
         co2_captured_start_node,
         co2_captured_end_node,
     )
-    co2_captured_edge.constraints = get(co2_captured_edge_data, :constraints, Vector{AbstractTypeConstraint}())
-    co2_captured_edge.unidirectional = true;
-    co2_captured_edge.has_capacity = false;
+    co2_captured_edge.constraints = get(co2_captured_edge_data, :constraints, [CapacityConstraint()])
+    co2_captured_edge.unidirectional = get(co2_captured_edge_data, :unidirectional, true)
 
     co2_storage_edge_key = :co2_storage_edge
     co2_storage_edge_data = process_data(data[:edges][co2_storage_edge_key])

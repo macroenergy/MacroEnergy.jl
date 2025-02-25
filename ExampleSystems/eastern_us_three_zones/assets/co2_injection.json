@@ -13,7 +13,14 @@
                     "co2_captured_edge": {
                         "type": "CO2Captured",
                         "unidirectional": true,
-                        "has_capacity": false
+                        "has_capacity": true,
+                        "can_retire": false,
+                        "can_expand": false,
+                        "integer_decisions": false,
+                        "uc": false,
+                        "constraints": {
+                            "CapacityConstraint": true
+                        }
                     },
                     "co2_storage_edge": {
                         "type": "CO2Captured",
@@ -24,11 +31,164 @@
             },
             "instance_data":[
                 {
-                    "id": "SE_CO2_Injection",
+                    "id": "SE_CO2_Injection_1",
                     "edges":{
                             "co2_captured_edge": {
-                                "start_vertex": "co2_captured_SE"
+                                "start_vertex": "co2_captured_SE",
+                                "existing_capacity": 19634.7,
+                                "variable_om_cost": 6.1
                             },
+
+                            "co2_storage_edge": {
+                                "end_vertex": "co2_storage_SE"
+                            }
+                        }
+
+                },
+                {
+                    "id": "SE_CO2_Injection_2",
+                    "edges":{
+                            "co2_captured_edge": {
+                                "start_vertex": "co2_captured_SE",
+                                "existing_capacity": 21367.2,
+                                "variable_om_cost": 6.4
+                            },
+
+                            "co2_storage_edge": {
+                                "end_vertex": "co2_storage_SE"
+                            }
+                        }
+
+                },
+                {
+                    "id": "SE_CO2_Injection_3",
+                    "edges":{
+                            "co2_captured_edge": {
+                                "start_vertex": "co2_captured_SE",
+                                "existing_capacity": 12704.8,
+                                "variable_om_cost": 6.6
+                            },
+
+                            "co2_storage_edge": {
+                                "end_vertex": "co2_storage_SE"
+                            }
+                        }
+
+                },
+                {
+                    "id": "SE_CO2_Injection_4",
+                    "edges":{
+                            "co2_captured_edge": {
+                                "start_vertex": "co2_captured_SE",
+                                "existing_capacity": 14437.3,
+                                "variable_om_cost": 7.4
+                            },
+
+                            "co2_storage_edge": {
+                                "end_vertex": "co2_storage_SE"
+                            }
+                        }
+
+                },
+                {
+                    "id": "SE_CO2_Injection_5",
+                    "edges":{
+                            "co2_captured_edge": {
+                                "start_vertex": "co2_captured_SE",
+                                "existing_capacity": 8662.4,
+                                "variable_om_cost": 7.6
+                            },
+
+                            "co2_storage_edge": {
+                                "end_vertex": "co2_storage_SE"
+                            }
+                        }
+
+                },
+                {
+                    "id": "SE_CO2_Injection_6",
+                    "edges":{
+                            "co2_captured_edge": {
+                                "start_vertex": "co2_captured_SE",
+                                "existing_capacity": 55439.2,
+                                "variable_om_cost": 7.8
+                            },
+
+                            "co2_storage_edge": {
+                                "end_vertex": "co2_storage_SE"
+                            }
+                        }
+
+                },
+                {
+                    "id": "SE_CO2_Injection_7",
+                    "edges":{
+                            "co2_captured_edge": {
+                                "start_vertex": "co2_captured_SE",
+                                "existing_capacity": 15014.8,
+                                "variable_om_cost": 8
+                            },
+
+                            "co2_storage_edge": {
+                                "end_vertex": "co2_storage_SE"
+                            }
+                        }
+
+                },
+                {
+                    "id": "SE_CO2_Injection_8",
+                    "edges":{
+                            "co2_captured_edge": {
+                                "start_vertex": "co2_captured_SE",
+                                "existing_capacity": 6929.9,
+                                "variable_om_cost": 9.1
+                            },
+
+                            "co2_storage_edge": {
+                                "end_vertex": "co2_storage_SE"
+                            }
+                        }
+
+                },
+                {
+                    "id": "SE_CO2_Injection_9",
+                    "edges":{
+                            "co2_captured_edge": {
+                                "start_vertex": "co2_captured_SE",
+                                "existing_capacity": 2887.5,
+                                "variable_om_cost": 9.4
+                            },
+
+                            "co2_storage_edge": {
+                                "end_vertex": "co2_storage_SE"
+                            }
+                        }
+
+                },
+                {
+                    "id": "SE_CO2_Injection_10",
+                    "edges":{
+                            "co2_captured_edge": {
+                                "start_vertex": "co2_captured_SE",
+                                "existing_capacity": 9239.9,
+                                "variable_om_cost": 9.8
+                            },
+
+                            "co2_storage_edge": {
+                                "end_vertex": "co2_storage_SE"
+                            }
+                        }
+
+                },
+                {
+                    "id": "SE_CO2_Injection_11",
+                    "edges":{
+                            "co2_captured_edge": {
+                                "start_vertex": "co2_captured_SE",
+                                "existing_capacity": 577.5,
+                                "variable_om_cost": 18.9
+                            },
+
                             "co2_storage_edge": {
                                 "end_vertex": "co2_storage_SE"
                             }
@@ -39,22 +199,12 @@
                     "id": "MIDAT_CO2_Injection",
                     "edges":{
                             "co2_captured_edge": {
-                                "start_vertex": "co2_captured_MIDAT"
+                                "start_vertex": "co2_captured_MIDAT",
+                                "existing_capacity": 1155,
+                                "variable_om_cost": 7.9
                             },
                             "co2_storage_edge": {
                                 "end_vertex": "co2_storage_MIDAT"
-                            }
-                        }
-
-                },
-                {
-                    "id": "NE_CO2_Injection",
-                    "edges":{
-                            "co2_captured_edge": {
-                                "start_vertex": "co2_captured_NE"
-                            },
-                            "co2_storage_edge": {
-                                "end_vertex": "co2_storage_NE"
                             }
                         }
 
