@@ -201,9 +201,7 @@ function operation_model!(e::Edge, model::Model)
     update_balances!(e, model)
 
     for t in time_interval(e)
-
-        w = current_subperiod(e, t)
-
+        w = current_subperiod(e,t)
         if variable_om_cost(e) > 0
             add_to_expression!(
                 model[:eVariableCost],
@@ -341,8 +339,7 @@ function operation_model!(e::EdgeWithUC, model::Model)
 
     for t in time_interval(e)
 
-        w = current_subperiod(e, t)
-
+        w = current_subperiod(e,t)
         if variable_om_cost(e) > 0
             add_to_expression!(
                 model[:eVariableCost],

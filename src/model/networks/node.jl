@@ -127,7 +127,7 @@ function operation_model!(n::Node, model::Model)
             base_name = "vNSD_$(id(n))"
         )
         for t in time_interval(n)
-            w = current_subperiod(n, t)
+            w = current_subperiod(n,t)
             for s in segments_non_served_demand(n)
                 add_to_expression!(
                     model[:eVariableCost],
@@ -150,7 +150,7 @@ function operation_model!(n::Node, model::Model)
         )
 
         for t in time_interval(n)
-            w = current_subperiod(n,t);
+            w = current_subperiod(n,t)
             for s in supply_segments(n)
 
                 add_to_expression!(model[:eVariableCost], subperiod_weight(n,w)*price_supply(n,s), supply_flow(n,s,t))

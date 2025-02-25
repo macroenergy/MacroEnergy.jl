@@ -2,14 +2,13 @@ module TestTimeData
 
 using Test
 import MacroEnergy: TimeData, Hydrogen, NaturalGas, Electricity
-import MacroEnergy: load_time_data, load_period_map!, validate_and_set_default_weight_total!
+import MacroEnergy: load_time_data, load_period_map!
 
 include("utilities.jl")
 
 function test_time_data_commodity(input_data, expected_data, rel_path)
     haskey(input_data, :PeriodMap) && load_period_map!(input_data, rel_path)
-    validate_and_set_default_weight_total!(input_data)
-    
+
     time_data = load_time_data(input_data, Dict(
         :Hydrogen => Hydrogen,
         :NaturalGas => NaturalGas,
@@ -32,8 +31,7 @@ function test_load_time_data()
     
     # Test different input data
     scenarios = [
-        (input_data_no_period_map, time_data_true_no_period_map, "No period map and weight total"),
-        (input_data_with_weight_total, time_data_true_no_period_map, "With weight total"),
+        (input_data_no_period_map, time_data_true_no_period_map, "No period map"),
         (input_data_with_period_map, time_data_true_with_period_map, "With period map")
     ]
     
@@ -52,18 +50,10 @@ input_data_no_period_map = Dict{Symbol,Any}(
     :PeriodLength => 504
 )
 
-input_data_with_weight_total = Dict{Symbol,Any}(
-    :HoursPerSubperiod => Dict(:Hydrogen => 168, :NaturalGas => 168, :Electricity => 168),
-    :HoursPerTimeStep => Dict(:Hydrogen => 1, :NaturalGas => 1, :Electricity => 1),
-    :PeriodLength => 504,
-    :WeightTotal => 8760
-)
-
 input_data_with_period_map = Dict{Symbol,Any}(
     :HoursPerSubperiod => Dict(:Hydrogen => 168, :NaturalGas => 168, :Electricity => 168),
     :HoursPerTimeStep => Dict(:Hydrogen => 1, :NaturalGas => 1, :Electricity => 1),
     :PeriodLength => 504,
-    :WeightTotal => 8760,
     :PeriodMap => Dict(
         :path => "system/Period_map.csv"
     )
@@ -114,9 +104,9 @@ period_map = Dict(56 => 363, 35 => 83, 60 => 363, 220 => 230, 308 => 363, 67 => 
     155 => 363, 181 => 83, 65 => 230, 293 => 83)
 
 time_data_true_with_period_map = Dict{Symbol,TimeData}(
-    :Hydrogen => TimeData{Hydrogen}(time_interval=1:1:504, hours_per_timestep=1, subperiods=[1:1:168, 169:1:336, 337:1:504], subperiod_indices=[83, 230, 363], subperiod_weights=Dict(83 => 3024.0, 230 => 1920.0, 363 => 3816.0), period_map=period_map),
-    :NaturalGas => TimeData{NaturalGas}(time_interval=1:1:504, hours_per_timestep=1, subperiods=[1:1:168, 169:1:336, 337:1:504], subperiod_indices=[83, 230, 363], subperiod_weights=Dict(83 => 3024.0, 230 => 1920.0, 363 => 3816.0), period_map=period_map),
-    :Electricity => TimeData{Electricity}(time_interval=1:1:504, hours_per_timestep=1, subperiods=[1:1:168, 169:1:336, 337:1:504], subperiod_indices=[83, 230, 363], subperiod_weights=Dict(83 => 3024.0, 230 => 1920.0, 363 => 3816.0), period_map=period_map)
+    :Hydrogen => TimeData{Hydrogen}(time_interval=1:1:504, hours_per_timestep=1, subperiods=[1:1:168, 169:1:336, 337:1:504], subperiod_indices=[83, 230, 363], subperiod_weights=Dict(83 => 126, 230 => 80, 363 => 159), period_map=period_map),
+    :NaturalGas => TimeData{NaturalGas}(time_interval=1:1:504, hours_per_timestep=1, subperiods=[1:1:168, 169:1:336, 337:1:504], subperiod_indices=[83, 230, 363], subperiod_weights=Dict(83 => 126, 230 => 80, 363 => 159), period_map=period_map),
+    :Electricity => TimeData{Electricity}(time_interval=1:1:504, hours_per_timestep=1, subperiods=[1:1:168, 169:1:336, 337:1:504], subperiod_indices=[83, 230, 363], subperiod_weights=Dict(83 => 126, 230 => 80, 363 => 159), period_map=period_map)
 )
 
 test_load_time_data()

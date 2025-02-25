@@ -34,9 +34,6 @@ function load_time_data(
     time_data::AbstractDict{Symbol,Any},
     commodities::Dict{Symbol,DataType}
 )
-    # make sure that the weight total is set: default values is PeriodLength
-    validate_and_set_default_weight_total!(time_data)
-    
     # validate the time data
     validate_time_data(time_data, commodities)
 
@@ -70,20 +67,6 @@ function validate_period_map(period_map_data::DataFrame)
     @assert typeof(period_map_data[!, :Rep_Period_Index]) == Vector{Union{Missing, Int}}
 end
 
-function validate_and_set_default_weight_total!(time_data::AbstractDict{Symbol,Any})
-    # Check if WeightTotal exists and is an integer
-    if haskey(time_data, :WeightTotal)
-        if !isa(time_data[:WeightTotal], Integer)
-            throw(ArgumentError("WeightTotal must be an integer, got $(typeof(time_data[:WeightTotal]))"))
-        end
-    # If WeightTotal does not exist, use default value of 8760 (hours per year)
-    else
-        @warn("WeightTotal not found in time_data.json")
-        @info("Using PeriodLength as default value for WeightTotal")
-        time_data[:WeightTotal] = time_data[:PeriodLength]
-    end
-end
-
 function validate_time_data(
     time_data::AbstractDict{Symbol,Any},
     case_commodities::Dict{Symbol,DataType}
@@ -92,7 +75,6 @@ function validate_time_data(
     @assert haskey(time_data, :PeriodLength)
     @assert haskey(time_data, :HoursPerTimeStep)
     @assert haskey(time_data, :HoursPerSubperiod)
-    @assert haskey(time_data, :WeightTotal)
     # Check that the time data has the correct values    
     @assert time_data[:PeriodLength] > 0
     @assert all(values(time_data[:HoursPerTimeStep]) .> 0)
@@ -142,14 +124,16 @@ function create_commodity_timedata(
     time_interval = 1:period_length
     
     hours_per_timestep = time_data[:HoursPerTimeStep][sym]
+
     validate_temporal_resolution(hours_per_timestep)
 
     subperiods = create_subperiods(time_data, sym)
 
-    unique_rep_periods = get_unique_rep_periods(time_data, sym)
-    weights = get_weights(time_data, sym)
+    period_map  = get_timedata_period_map(time_data, sym)
 
-    period_map = get_timedata_period_map(time_data, sym)
+    unique_rep_periods = get_unique_rep_periods(period_map)
+
+    weights = get_weights(period_map, unique_rep_periods)
 
     return TimeData{type}(;
         time_interval = time_interval,
@@ -172,34 +156,19 @@ function create_subperiods(time_data::AbstractDict{Symbol,Any}, sym::Symbol)
     return collect(Iterators.partition(time_interval, hours_per_subperiod))
 end
 
-function get_unique_rep_periods(time_data::AbstractDict{Symbol,Any}, sym::Symbol)
-    if haskey(time_data, :PeriodMap)
-        period_map = time_data[:PeriodMap]
-        rep_periods = period_map[!, :Rep_Period]
-        rep_period_indices = period_map[!, :Rep_Period_Index]
-        rep_periods = rep_periods[sortperm(rep_period_indices)]
-        return unique(rep_periods)
-    else
-        subperiods = create_subperiods(time_data, sym)
-        return eachindex(subperiods)
-    end
+
+function get_unique_rep_periods(period_map::Dict{Int64, Int64})
+    
+    rep_periods = collect(values(period_map))
+
+    return sort(unique(rep_periods))
+
 end
 
-function get_weights(time_data::AbstractDict{Symbol,Any}, sym::Symbol)
-    if haskey(time_data, :PeriodMap)
-        period_map = time_data[:PeriodMap]
-        unique_rep_periods = get_unique_rep_periods(time_data, sym)
-        weights_unscaled = create_weights_unscaled(period_map, unique_rep_periods)
-        weights_total = time_data[:WeightTotal]
-        weights = weights_total * weights_unscaled / sum(weights_unscaled)
-        return weights
-    else
-        return 1 # if no period map, all subperiods have the same weight
-    end
-end
+function get_weights(period_map::Dict{Int64, Int64}, unique_rep_periods::Vector{Int64})
 
-function create_weights_unscaled(period_map::DataFrame, unique_rep_periods::AbstractVector{Union{Missing, Int}})
-    rep_periods = period_map[!, :Rep_Period]    # list of rep period for each time step
+    rep_periods = collect(values(period_map))    # list of rep periods for each subperiod
+
     return Int[length(findall(rep_periods .== p)) for p in unique_rep_periods]
 end
 
