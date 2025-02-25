@@ -395,7 +395,7 @@
         {
             "type": "Gasoline",
             "global_data": {
-                "time_interval": "Gasoline"
+                "time_interval": "LiquidFuels"
             },
             "instance_data": [
                 {
@@ -430,7 +430,7 @@
         {
             "type": "Gasoline",
             "global_data": {
-                "time_interval": "Gasoline",
+                "time_interval": "LiquidFuels",
                 "constraints": {
                     "BalanceConstraint": true
                 }
@@ -468,7 +468,7 @@
         {
             "type": "Gasoline",
             "global_data": {
-                "time_interval": "Gasoline",
+                "time_interval": "LiquidFuels",
                 "constraints": {
                     "BalanceConstraint": true
                 }
@@ -506,7 +506,7 @@
         {
             "type": "JetFuel",
             "global_data": {
-                "time_interval": "JetFuel"
+                "time_interval": "LiquidFuels"
             },
             "instance_data": [
                 {
@@ -541,7 +541,7 @@
         {
             "type": "JetFuel",
             "global_data": {
-                "time_interval": "JetFuel",
+                "time_interval": "LiquidFuels",
                 "constraints": {
                     "BalanceConstraint": true
                 }
@@ -579,7 +579,7 @@
         {
             "type": "JetFuel",
             "global_data": {
-                "time_interval": "JetFuel",
+                "time_interval": "LiquidFuels",
                 "constraints": {
                     "BalanceConstraint": true
                 }
@@ -617,7 +617,7 @@
         {
             "type": "Diesel",
             "global_data": {
-                "time_interval": "Diesel"
+                "time_interval": "LiquidFuels"
             },
             "instance_data": [
                 {
@@ -652,7 +652,7 @@
         {
             "type": "Diesel",
             "global_data": {
-                "time_interval": "Diesel",
+                "time_interval": "LiquidFuels",
                 "constraints": {
                     "BalanceConstraint": true
                 }
@@ -690,7 +690,7 @@
         {
             "type": "Diesel",
             "global_data": {
-                "time_interval": "Diesel",
+                "time_interval": "LiquidFuels",
                 "constraints": {
                     "BalanceConstraint": true
                 }

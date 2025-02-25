@@ -25,9 +25,7 @@ abstract type CO2Captured <: CO2 end ## tonnes
 abstract type Coal <: Commodity end ## MWh
 abstract type Biomass <: Commodity end ## tonnes
 abstract type Uranium <: Commodity end ## MWh
-abstract type Gasoline <: Commodity end ## MWh
-abstract type JetFuel <: Commodity end ## MWh
-abstract type Diesel <: Commodity end ## MWh
+abstract type LiquidFuels <: Commodity end ## MWh
 
 ## Time data types
 abstract type AbstractTimeData{T<:Commodity} end
@@ -152,7 +150,6 @@ export AbstractAsset,
     CapacityConstraint,
     collect_results,
     Commodity,
-    Diesel,
     Edge,
     EdgeWithUC,
     Electricity,
@@ -162,7 +159,6 @@ export AbstractAsset,
     FuelCell,
     FuelsEndUse,
     GasStorage,
-    Gasoline,
     get_optimal_capacity, 
     get_optimal_costs,
     get_optimal_flow,
@@ -171,9 +167,9 @@ export AbstractAsset,
     HydroRes,
     Hydrogen,
     HydrogenLine,
-    JetFuel,
     LongDurationStorage,
     LongDurationStorageImplicitMinMaxConstraint,
+    LiquidFuels,
     MaxCapacityConstraint,
     MaxNonServedDemandConstraint,
     MaxNonServedDemandPerSegmentConstraint,

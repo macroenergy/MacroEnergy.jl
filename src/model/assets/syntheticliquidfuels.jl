@@ -2,9 +2,9 @@ struct SyntheticLiquidFuels <: AbstractAsset
     id::AssetId
     synthetic_liquid_fuels_transform::Transformation
     co2_captured_edge::Edge{CO2Captured}
-    gasoline_edge::Edge{Gasoline}
-    jetfuel_edge::Edge{JetFuel}
-    diesel_edge::Edge{Diesel}
+    gasoline_edge::Edge{LiquidFuels}
+    jetfuel_edge::Edge{LiquidFuels}
+    diesel_edge::Edge{LiquidFuels}
     elec_edge::Edge{Electricity}
     h2_edge::Edge{Hydrogen}
     co2_emission_edge::Edge{CO2}
@@ -43,8 +43,8 @@ function make(::Type{SyntheticLiquidFuels}, data::AbstractDict{Symbol,Any}, syst
     gasoline_edge = Edge(
         Symbol(id, "_", gasoline_edge_key),
         gasoline_edge_data,
-        system.time_data[:Gasoline],
-        Gasoline,
+        system.time_data[:LiquidFuels],
+        LiquidFuels,
         gasoline_start_node,
         gasoline_end_node,
     )
@@ -59,8 +59,8 @@ function make(::Type{SyntheticLiquidFuels}, data::AbstractDict{Symbol,Any}, syst
     jetfuel_edge = Edge(
         Symbol(id, "_", jetfuel_edge_key),
         jetfuel_edge_data,
-        system.time_data[:JetFuel],
-        JetFuel,
+        system.time_data[:LiquidFuels],
+        LiquidFuels,
         jetfuel_start_node,
         jetfuel_end_node,
     )
@@ -75,8 +75,8 @@ function make(::Type{SyntheticLiquidFuels}, data::AbstractDict{Symbol,Any}, syst
     diesel_edge = Edge(
         Symbol(id, "_", diesel_edge_key),
         diesel_edge_data,
-        system.time_data[:Diesel],
-        Diesel,
+        system.time_data[:LiquidFuels],
+        LiquidFuels,
         diesel_start_node,
         diesel_end_node,
     )

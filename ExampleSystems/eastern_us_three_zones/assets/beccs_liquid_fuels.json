@@ -16,17 +16,17 @@
                         "has_capacity": false
                     },
                     "gasoline_edge":{
-                        "type": "Gasoline",
+                        "type": "LiquidFuels",
                         "unidirectional": true,
                         "has_capacity": false
                     },
                     "jetfuel_edge":{
-                        "type": "JetFuel",
+                        "type": "LiquidFuels",
                         "unidirectional": true,
                         "has_capacity": false
                     },
                     "diesel_edge":{
-                        "type": "Diesel",
+                        "type": "LiquidFuels",
                         "unidirectional": true,
                         "has_capacity": false
                     },

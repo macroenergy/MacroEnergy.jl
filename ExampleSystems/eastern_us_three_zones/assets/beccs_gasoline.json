@@ -16,7 +16,7 @@
                         "has_capacity": false
                     },
                     "gasoline_edge":{
-                        "type": "Gasoline",
+                        "type": "LiquidFuels",
                         "unidirectional": true,
                         "has_capacity": false
                     },

@@ -2,7 +2,7 @@ struct BECCSGasoline <: AbstractAsset
     id::AssetId
     beccs_transform::Transformation
     biomass_edge::Edge{Biomass}
-    gasoline_edge::Edge{Gasoline}
+    gasoline_edge::Edge{LiquidFuels}
     elec_edge::Edge{Electricity}
     co2_edge::Edge{CO2}
     co2_emission_edge::Edge{CO2}
@@ -42,8 +42,8 @@ function make(::Type{BECCSGasoline}, data::AbstractDict{Symbol,Any}, system::Sys
     gasoline_edge = Edge(
         Symbol(id, "_", gasoline_edge_key),
         gasoline_edge_data,
-        system.time_data[:Gasoline],
-        Gasoline,
+        system.time_data[:LiquidFuels],
+        LiquidFuels,
         gasoline_start_node,
         gasoline_end_node,
     )
