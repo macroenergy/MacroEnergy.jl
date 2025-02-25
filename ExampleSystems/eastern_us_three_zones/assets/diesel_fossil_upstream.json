@@ -1,7 +1,7 @@
 {
     "DieselFossilUpstream": [
         {
-            "type": "DieselFossilUpstream",
+            "type": "FossilFuelsUpstream",
             "global_data":{
                 "transforms": {
                     "timedata": "Diesel",
@@ -11,7 +11,7 @@
                     "emission_rate": 0
                 },
                 "edges" :{
-                    "diesel_fossil_edge": {
+                    "fossil_fuel_edge": {
                         "type": "Diesel",
                         "unidirectional": true,
                         "has_capacity": false
@@ -22,7 +22,7 @@
                         "has_capacity": false,
                         "end_vertex": "co2_sink"
                     },
-                    "diesel_edge": {
+                    "fuel_edge": {
                         "type": "Diesel",
                         "unidirectional": true,
                         "has_capacity": false
@@ -33,10 +33,10 @@
                 {
                     "id": "SE_Diesel_Fossil_Upstream",
                     "edges":{
-                            "diesel_fossil_edge": {
+                            "fossil_fuel_edge": {
                                 "start_vertex": "diesel_fossil_SE"
                             },
-                            "diesel_edge": {
+                            "fuel_edge": {
                                 "end_vertex": "diesel_SE"
                             }
                         }
@@ -45,10 +45,10 @@
                 {
                     "id": "MIDAT_Diesel_Fossil_Upstream",
                     "edges":{
-                            "diesel_fossil_edge": {
+                            "fossil_fuel_edge": {
                                 "start_vertex": "diesel_fossil_MIDAT"
                             },
-                            "diesel_edge": {
+                            "fuel_edge": {
                                 "end_vertex": "diesel_MIDAT"
                             }
                         }
@@ -57,10 +57,10 @@
                 {
                     "id": "NE_Diesel_Fossil_Upstream",
                     "edges":{
-                            "diesel_fossil_edge": {
+                            "fossil_fuel_edge": {
                                 "start_vertex": "diesel_fossil_NE"
                             },
-                            "diesel_edge": {
+                            "fuel_edge": {
                                 "end_vertex": "diesel_NE"
                             }
                         }

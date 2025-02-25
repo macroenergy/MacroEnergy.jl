@@ -1,7 +1,7 @@
 {
     "GasolineFossilUpstream": [
         {
-            "type": "GasolineFossilUpstream",
+            "type": "FossilFuelsUpstream",
             "global_data":{
                 "transforms": {
                     "timedata": "Gasoline",
@@ -11,7 +11,7 @@
                     "emission_rate": 0
                 },
                 "edges" :{
-                    "gasoline_fossil_edge": {
+                    "fossil_fuel_edge": {
                         "type": "Gasoline",
                         "unidirectional": true,
                         "has_capacity": false
@@ -22,7 +22,7 @@
                         "has_capacity": false,
                         "end_vertex": "co2_sink"
                     },
-                    "gasoline_edge": {
+                    "fuel_edge": {
                         "type": "Gasoline",
                         "unidirectional": true,
                         "has_capacity": false
@@ -33,10 +33,10 @@
                 {
                     "id": "SE_Gasoline_Fossil_Upstream",
                     "edges":{
-                            "gasoline_fossil_edge": {
+                            "fossil_fuel_edge": {
                                 "start_vertex": "gasoline_fossil_SE"
                             },
-                            "gasoline_edge": {
+                            "fuel_edge": {
                                 "end_vertex": "gasoline_SE"
                             }
                         }
@@ -45,10 +45,10 @@
                 {
                     "id": "MIDAT_Gasoline_Fossil_Upstream",
                     "edges":{
-                            "gasoline_fossil_edge": {
+                            "fossil_fuel_edge": {
                                 "start_vertex": "gasoline_fossil_MIDAT"
                             },
-                            "gasoline_edge": {
+                            "fuel_edge": {
                                 "end_vertex": "gasoline_MIDAT"
                             }
                         }
@@ -57,10 +57,10 @@
                 {
                     "id": "NE_Gasoline_Fossil_Upstream",
                     "edges":{
-                            "gasoline_fossil_edge": {
+                            "fossil_fuel_edge": {
                                 "start_vertex": "gasoline_fossil_NE"
                             },
-                            "gasoline_edge": {
+                            "fuel_edge": {
                                 "end_vertex": "gasoline_NE"
                             }
                         }

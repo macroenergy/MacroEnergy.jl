@@ -1,7 +1,7 @@
 {
     "JetFuelFossilUpstream": [
         {
-            "type": "JetFuelFossilUpstream",
+            "type": "FossilFuelsUpstream",
             "global_data":{
                 "transforms": {
                     "timedata": "JetFuel",
@@ -11,7 +11,7 @@
                     "emission_rate": 0
                 },
                 "edges" :{
-                    "jetfuel_fossil_edge": {
+                    "fossil_fuel_edge": {
                         "type": "JetFuel",
                         "unidirectional": true,
                         "has_capacity": false
@@ -22,7 +22,7 @@
                         "has_capacity": false,
                         "end_vertex": "co2_sink"
                     },
-                    "jetfuel_edge": {
+                    "fuel_edge": {
                         "type": "JetFuel",
                         "unidirectional": true,
                         "has_capacity": false
@@ -33,10 +33,10 @@
                 {
                     "id": "SE_JetFuel_Fossil_Upstream",
                     "edges":{
-                            "jetfuel_fossil_edge": {
+                            "fossil_fuel_edge": {
                                 "start_vertex": "jetfuel_fossil_SE"
                             },
-                            "jetfuel_edge": {
+                            "fuel_edge": {
                                 "end_vertex": "jetfuel_SE"
                             }
                         }
@@ -45,10 +45,10 @@
                 {
                     "id": "MIDAT_JetFuel_Fossil_Upstream",
                     "edges":{
-                            "jetfuel_fossil_edge": {
+                            "fossil_fuel_edge": {
                                 "start_vertex": "jetfuel_fossil_MIDAT"
                             },
-                            "jetfuel_edge": {
+                            "fuel_edge": {
                                 "end_vertex": "jetfuel_MIDAT"
                             }
                         }
@@ -57,10 +57,10 @@
                 {
                     "id": "NE_JetFuel_Fossil_Upstream",
                     "edges":{
-                            "jetfuel_fossil_edge": {
+                            "fossil_fuel_edge": {
                                 "start_vertex": "jetfuel_fossil_NE"
                             },
-                            "jetfuel_edge": {
+                            "fuel_edge": {
                                 "end_vertex": "jetfuel_NE"
                             }
                         }

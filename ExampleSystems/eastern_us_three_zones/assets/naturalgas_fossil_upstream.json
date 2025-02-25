@@ -1,7 +1,7 @@
 {
     "NaturalGasFossilUpstream": [
         {
-            "type": "NaturalGasFossilUpstream",
+            "type": "FossilFuelsUpstream",
             "global_data":{
                 "transforms": {
                     "timedata": "NaturalGas",
@@ -11,7 +11,7 @@
                     "emission_rate": 0
                 },
                 "edges" :{
-                    "ng_fossil_edge": {
+                    "fossil_fuel_edge": {
                         "type": "NaturalGas",
                         "unidirectional": true,
                         "has_capacity": false
@@ -22,7 +22,7 @@
                         "has_capacity": false,
                         "end_vertex": "co2_sink"
                     },
-                    "ng_edge": {
+                    "fuel_edge": {
                         "type": "NaturalGas",
                         "unidirectional": true,
                         "has_capacity": false
@@ -33,10 +33,10 @@
                 {
                     "id": "SE_NG_Fossil_Upstream",
                     "edges":{
-                            "ng_fossil_edge": {
+                            "fossil_fuel_edge": {
                                 "start_vertex": "natgas_fossil_SE"
                             },
-                            "ng_edge": {
+                            "fuel_edge": {
                                 "end_vertex": "natgas_SE"
                             }
                         }
@@ -45,10 +45,10 @@
                 {
                     "id": "MIDAT_NG_Fossil_Upstream",
                     "edges":{
-                            "ng_fossil_edge": {
+                            "fossil_fuel_edge": {
                                 "start_vertex": "natgas_fossil_MIDAT"
                             },
-                            "ng_edge": {
+                            "fuel_edge": {
                                 "end_vertex": "natgas_MIDAT"
                             }
                         }
@@ -57,10 +57,10 @@
                 {
                     "id": "NE_NG_Fossil_Upstream",
                     "edges":{
-                            "ng_fossil_edge": {
+                            "fossil_fuel_edge": {
                                 "start_vertex": "natgas_fossil_NE"
                             },
-                            "ng_edge": {
+                            "fuel_edge": {
                                 "end_vertex": "natgas_NE"
                             }
                         }

@@ -108,17 +108,8 @@ include("model/assets/beccsnaturalgas.jl")
 include("model/assets/hydrores.jl")
 include("model/assets/mustrun.jl")
 
-include("model/assets/natgasfossilupstream.jl")
-include("model/assets/natgasenduse.jl")
-
-include("model/assets/gasolinefossilupstream.jl")
-include("model/assets/gasolineenduse.jl")
-
-include("model/assets/jetfuelfossilupstream.jl")
-include("model/assets/jetfuelenduse.jl")
-
-include("model/assets/dieselfossilupstream.jl")
-include("model/assets/dieselenduse.jl")
+include("model/assets/fossilfuelsupstream.jl")
+include("model/assets/fuelsenduse.jl")
 
 include("model/assets/syntheticnaturalgas.jl")
 include("model/assets/syntheticliquidfuels.jl")
@@ -162,18 +153,16 @@ export AbstractAsset,
     collect_results,
     Commodity,
     Diesel,
-    DieselEndUse,
-    DieselFossilUpstream,
     Edge,
     EdgeWithUC,
     Electricity,
     Electrolyzer,
     ElectricDAC,
+    FossilFuelsUpstream,
     FuelCell,
+    FuelsEndUse,
     GasStorage,
     Gasoline,
-    GasolineEndUse,
-    GasolineFossilUpstream,
     get_optimal_capacity, 
     get_optimal_costs,
     get_optimal_flow,
@@ -183,8 +172,6 @@ export AbstractAsset,
     Hydrogen,
     HydrogenLine,
     JetFuel,
-    JetFuelEndUse,
-    JetFuelFossilUpstream,
     LongDurationStorage,
     LongDurationStorageImplicitMinMaxConstraint,
     MaxCapacityConstraint,
@@ -201,7 +188,6 @@ export AbstractAsset,
     MustRunConstraint,
     NaturalGas,
     NaturalGasDAC,
-    NaturalGasEndUse,
     NaturalGasFossilUpstream,
     Node,
     OperationConstraint,
