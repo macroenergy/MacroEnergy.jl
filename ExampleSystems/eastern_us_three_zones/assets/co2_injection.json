@@ -40,7 +40,7 @@
                             },
 
                             "co2_storage_edge": {
-                                "end_vertex": "co2_storage_SE"
+                                "end_vertex": "co2_storage_SE_1"
                             }
                         }
 
@@ -55,7 +55,7 @@
                             },
 
                             "co2_storage_edge": {
-                                "end_vertex": "co2_storage_SE"
+                                "end_vertex": "co2_storage_SE_2"
                             }
                         }
 
@@ -70,7 +70,7 @@
                             },
 
                             "co2_storage_edge": {
-                                "end_vertex": "co2_storage_SE"
+                                "end_vertex": "co2_storage_SE_3"
                             }
                         }
 
@@ -85,7 +85,7 @@
                             },
 
                             "co2_storage_edge": {
-                                "end_vertex": "co2_storage_SE"
+                                "end_vertex": "co2_storage_SE_4"
                             }
                         }
 
@@ -100,7 +100,7 @@
                             },
 
                             "co2_storage_edge": {
-                                "end_vertex": "co2_storage_SE"
+                                "end_vertex": "co2_storage_SE_5"
                             }
                         }
 
@@ -115,7 +115,7 @@
                             },
 
                             "co2_storage_edge": {
-                                "end_vertex": "co2_storage_SE"
+                                "end_vertex": "co2_storage_SE_6"
                             }
                         }
 
@@ -130,7 +130,7 @@
                             },
 
                             "co2_storage_edge": {
-                                "end_vertex": "co2_storage_SE"
+                                "end_vertex": "co2_storage_SE_7"
                             }
                         }
 
@@ -145,7 +145,7 @@
                             },
 
                             "co2_storage_edge": {
-                                "end_vertex": "co2_storage_SE"
+                                "end_vertex": "co2_storage_SE_8"
                             }
                         }
 
@@ -160,7 +160,7 @@
                             },
 
                             "co2_storage_edge": {
-                                "end_vertex": "co2_storage_SE"
+                                "end_vertex": "co2_storage_SE_9"
                             }
                         }
 
@@ -175,7 +175,7 @@
                             },
 
                             "co2_storage_edge": {
-                                "end_vertex": "co2_storage_SE"
+                                "end_vertex": "co2_storage_SE_10"
                             }
                         }
 
@@ -190,7 +190,7 @@
                             },
 
                             "co2_storage_edge": {
-                                "end_vertex": "co2_storage_SE"
+                                "end_vertex": "co2_storage_SE_11"
                             }
                         }
 

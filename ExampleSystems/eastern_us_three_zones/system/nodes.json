@@ -321,7 +321,7 @@
                         "CO2CapConstraint": true
                     },
                     "rhs_policy": {
-                            "CO2CapConstraint": 0
+                            "CO2CapConstraint": 1000000
                         }
                 }
             ]
@@ -371,10 +371,112 @@
             },
             "instance_data": [
                 {
-                    "id": "co2_storage_SE"
+                    "id": "co2_storage_SE_1",
+                    "constraints": {
+                        "CO2StorageConstraint": true
+                    },
+                    "rhs_policy": {
+                            "CO2StorageConstraint": 4753600
+                        }
                 },
                 {
-                    "id": "co2_storage_MIDAT"
+                    "id": "co2_storage_SE_2",
+                    "constraints": {
+                        "CO2StorageConstraint": true
+                    },
+                    "rhs_policy": {
+                            "CO2StorageConstraint": 5145400
+                        }
+                },
+                {
+                    "id": "co2_storage_SE_3",
+                    "constraints": {
+                        "CO2StorageConstraint": true
+                    },
+                    "rhs_policy": {
+                            "CO2StorageConstraint": 3040100
+                        }
+                },
+                {
+                    "id": "co2_storage_SE_4",
+                    "constraints": {
+                        "CO2StorageConstraint": true
+                    },
+                    "rhs_policy": {
+                            "CO2StorageConstraint": 3525200
+                        }
+                },
+                {
+                    "id": "co2_storage_SE_5",
+                    "constraints": {
+                        "CO2StorageConstraint": true
+                    },
+                    "rhs_policy": {
+                            "CO2StorageConstraint": 2154100
+                        }
+                },
+                {
+                    "id": "co2_storage_SE_6",
+                    "constraints": {
+                        "CO2StorageConstraint": true
+                    },
+                    "rhs_policy": {
+                            "CO2StorageConstraint": 13171700
+                        }
+                },
+                {
+                    "id": "co2_storage_SE_7",
+                    "constraints": {
+                        "CO2StorageConstraint": true
+                    },
+                    "rhs_policy": {
+                            "CO2StorageConstraint": 3572700
+                        }
+                },
+                {
+                    "id": "co2_storage_SE_8",
+                    "constraints": {
+                        "CO2StorageConstraint": true
+                    },
+                    "rhs_policy": {
+                            "CO2StorageConstraint": 1774500
+                        }
+                },
+                {
+                    "id": "co2_storage_SE_9",
+                    "constraints": {
+                        "CO2StorageConstraint": true
+                    },
+                    "rhs_policy": {
+                            "CO2StorageConstraint": 775500
+                        }
+                },
+                {
+                    "id": "co2_storage_SE_10",
+                    "constraints": {
+                        "CO2StorageConstraint": true
+                    },
+                    "rhs_policy": {
+                            "CO2StorageConstraint": 2289900
+                        }
+                },
+                {
+                    "id": "co2_storage_SE_11",
+                    "constraints": {
+                        "CO2StorageConstraint": true
+                    },
+                    "rhs_policy": {
+                            "CO2StorageConstraint": 224800
+                        }
+                },
+                {
+                    "id": "co2_storage_MIDAT",
+                    "constraints": {
+                        "CO2StorageConstraint": true
+                    },
+                    "rhs_policy": {
+                            "CO2StorageConstraint": 336600
+                        }
                 }
             ]
         },

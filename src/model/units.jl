@@ -6,6 +6,7 @@ const DEFAULT_UNITS = Dict{Symbol,Symbol}(
     :CO2 => :t,
     :CO2Captured => :t,
     :Biomass => :t,
+    :LiquidFuels => :MWh,
 )
 
 function convert_power_to_energy_unit(unit::Symbol)::Symbol
