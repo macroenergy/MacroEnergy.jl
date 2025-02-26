@@ -133,7 +133,7 @@
                         "type": "Electricity",
                         "unidirectional": true,
                         "can_expand": true,
-                        "can_retire": false,
+                        "can_retire": true,
                         "has_capacity": true,
                         "constraints": {
                             "CapacityConstraint": true,

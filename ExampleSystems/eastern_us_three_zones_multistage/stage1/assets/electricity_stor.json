@@ -11,7 +11,7 @@
                         "unidirectional": true,
                         "has_capacity": true,
                         "can_expand": true,
-                        "can_retire": false,
+                        "can_retire": true,
                         "constraints": {
                             "CapacityConstraint": true,
                             "StorageDischargeLimitConstraint": true
@@ -26,7 +26,7 @@
                 "storage": {
                     "commodity": "Electricity",
                     "can_expand": true,
-                    "can_retire": false,
+                    "can_retire": true,
                     "constraints": {
                         "StorageCapacityConstraint": true,
                         "StorageSymmetricCapacityConstraint": true,

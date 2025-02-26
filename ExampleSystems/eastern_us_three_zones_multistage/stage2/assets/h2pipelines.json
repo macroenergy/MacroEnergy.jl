@@ -15,7 +15,7 @@
                         "type": "Hydrogen",
                         "unidirectional": true,
                         "can_expand": true,
-                        "can_retire": false,
+                        "can_retire": true,
                         "has_capacity": true,
                         "integer_decisions": false,
                         "constraints": {
@@ -27,7 +27,7 @@
                         "unidirectional": true,
                         "has_capacity": true,
                         "can_expand": true,
-                        "can_retire": false,
+                        "can_retire": true,
                         "constraints": {
                             "CapacityConstraint": true
                         }

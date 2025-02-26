@@ -9,7 +9,7 @@
                         "has_capacity": true,
                         "unidirectional": false,
                         "can_expand": true,
-                        "can_retire": false,
+                        "can_retire": true,
                         "integer_decisions": false,
                         "constraints": {
                             "CapacityConstraint": true,
