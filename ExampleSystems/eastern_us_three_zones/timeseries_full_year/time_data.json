@@ -7,7 +7,8 @@
         "CO2": 1,
         "CO2Captured": 1,
         "Biomass": 1,
-        "Uranium": 1
+        "Uranium": 1,
+        "LiquidFuels": 1
     },
     "HoursPerSubperiod": {
         "Electricity": 8760,
@@ -16,6 +17,7 @@
         "Hydrogen": 8760,
         "CO2Captured": 8760,
         "Biomass": 8760,
-        "Uranium": 8760
+        "Uranium": 8760,
+        "LiquidFuels": 8760
     }
 }

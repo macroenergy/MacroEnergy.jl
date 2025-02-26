@@ -149,8 +149,8 @@
                     "id": "NE_offshorewind_class10_moderate_floating_1_1",
                     "edges": {
                         "edge": {
-                            "fixed_om_cost": 56095.98976,
-                            "investment_cost": 225783.4407,
+                            "fixed_om_cost": 57294.4,
+                            "investment_cost": 173830.4242,
                             "max_capacity": 32928.493,
                             "end_vertex": "elec_NE",
                             "availability": {
@@ -168,8 +168,8 @@
                     "id": "SE_utilitypv_class1_moderate_70_0_2_1",
                     "edges": {
                         "edge": {
-                            "fixed_om_cost": 15390.48615,
-                            "investment_cost": 49950.17548,
+                            "fixed_om_cost": 13510.19684,
+                            "investment_cost": 40649.03073,
                             "max_capacity": 1041244,
                             "end_vertex": "elec_SE",
                             "availability": {
@@ -187,8 +187,8 @@
                     "id": "SE_utilitypv_class1_moderate_70_0_2_2",
                     "edges": {
                         "edge": {
-                            "fixed_om_cost": 15390.48615,
-                            "investment_cost": 49950.17548,
+                            "fixed_om_cost": 13510.19684,
+                            "investment_cost": 39383.65331,
                             "max_capacity": 890062,
                             "end_vertex": "elec_SE",
                             "availability": {
@@ -206,8 +206,8 @@
                     "id": "SE_utilitypv_class1_moderate_70_0_2_3",
                     "edges": {
                         "edge": {
-                            "fixed_om_cost": 15390.48615,
-                            "investment_cost": 49950.17548,
+                            "fixed_om_cost": 13510.19684,
+                            "investment_cost": 40720.18482,
                             "max_capacity": 1238552,
                             "end_vertex": "elec_SE",
                             "availability": {
@@ -225,8 +225,8 @@
                     "id": "SE_utilitypv_class1_moderate_70_0_2_4",
                     "edges": {
                         "edge": {
-                            "fixed_om_cost": 15390.48615,
-                            "investment_cost": 49950.17548,
+                            "fixed_om_cost": 13510.19684,
+                            "investment_cost": 42820.55885,
                             "max_capacity": 1039859,
                             "end_vertex": "elec_SE",
                             "availability": {
@@ -244,8 +244,8 @@
                     "id": "SE_utilitypv_class1_moderate_70_0_2_5",
                     "edges": {
                         "edge": {
-                            "fixed_om_cost": 15390.48615,
-                            "investment_cost": 49950.17548,
+                            "fixed_om_cost": 13510.19684,
+                            "investment_cost": 42551.95547,
                             "max_capacity": 955445,
                             "end_vertex": "elec_SE",
                             "availability": {
@@ -263,8 +263,8 @@
                     "id": "SE_utilitypv_class1_moderate_70_0_2_6",
                     "edges": {
                         "edge": {
-                            "fixed_om_cost": 15390.48615,
-                            "investment_cost": 49950.17548,
+                            "fixed_om_cost": 13510.19684,
+                            "investment_cost": 40680.27197,
                             "max_capacity": 1729874,
                             "end_vertex": "elec_SE",
                             "availability": {
@@ -282,8 +282,8 @@
                     "id": "SE_utilitypv_class1_moderate_70_0_2_7",
                     "edges": {
                         "edge": {
-                            "fixed_om_cost": 15390.48615,
-                            "investment_cost": 49950.17548,
+                            "fixed_om_cost": 13510.19684,
+                            "investment_cost": 39896.03932,
                             "max_capacity": 618334,
                             "end_vertex": "elec_SE",
                             "availability": {
@@ -301,8 +301,8 @@
                     "id": "SE_utilitypv_class1_moderate_70_0_2_8",
                     "edges": {
                         "edge": {
-                            "fixed_om_cost": 15390.48615,
-                            "investment_cost": 49950.17548,
+                            "fixed_om_cost": 13510.19684,
+                            "investment_cost": 41245.37889,
                             "max_capacity": 989513,
                             "end_vertex": "elec_SE",
                             "availability": {
@@ -320,8 +320,8 @@
                     "id": "MIDAT_utilitypv_class1_moderate_70_0_2_1",
                     "edges": {
                         "edge": {
-                            "fixed_om_cost": 15390.48615,
-                            "investment_cost": 51590.03227,
+                            "fixed_om_cost": 13510.19684,
+                            "investment_cost": 41179.38174,
                             "max_capacity": 26783,
                             "end_vertex": "elec_MIDAT",
                             "availability": {
@@ -339,8 +339,8 @@
                     "id": "MIDAT_utilitypv_class1_moderate_70_0_2_2",
                     "edges": {
                         "edge": {
-                            "fixed_om_cost": 15390.48615,
-                            "investment_cost": 51590.03227,
+                            "fixed_om_cost": 13510.19684,
+                            "investment_cost": 41016.27415,
                             "max_capacity": 288617,
                             "end_vertex": "elec_MIDAT",
                             "availability": {
@@ -358,8 +358,8 @@
                     "id": "MIDAT_utilitypv_class1_moderate_70_0_2_3",
                     "edges": {
                         "edge": {
-                            "fixed_om_cost": 15390.48615,
-                            "investment_cost": 51590.03227,
+                            "fixed_om_cost": 13510.19684,
+                            "investment_cost": 40242.3086,
                             "max_capacity": 115699,
                             "end_vertex": "elec_MIDAT",
                             "availability": {
@@ -377,8 +377,8 @@
                     "id": "MIDAT_utilitypv_class1_moderate_70_0_2_4",
                     "edges": {
                         "edge": {
-                            "fixed_om_cost": 15390.48615,
-                            "investment_cost": 51590.03227,
+                            "fixed_om_cost": 13510.19684,
+                            "investment_cost": 41350.78566,
                             "max_capacity": 996252,
                             "end_vertex": "elec_MIDAT",
                             "availability": {
@@ -396,8 +396,8 @@
                     "id": "MIDAT_utilitypv_class1_moderate_70_0_2_5",
                     "edges": {
                         "edge": {
-                            "fixed_om_cost": 15390.48615,
-                            "investment_cost": 51590.03227,
+                            "fixed_om_cost": 13510.19684,
+                            "investment_cost": 41176.87277,
                             "max_capacity": 1212132,
                             "end_vertex": "elec_MIDAT",
                             "availability": {
@@ -415,8 +415,8 @@
                     "id": "MIDAT_utilitypv_class1_moderate_70_0_2_6",
                     "edges": {
                         "edge": {
-                            "fixed_om_cost": 15390.48615,
-                            "investment_cost": 51590.03227,
+                            "fixed_om_cost": 13510.19684,
+                            "investment_cost": 41746.9133,
                             "max_capacity": 1080112,
                             "end_vertex": "elec_MIDAT",
                             "availability": {
@@ -434,8 +434,8 @@
                     "id": "MIDAT_utilitypv_class1_moderate_70_0_2_7",
                     "edges": {
                         "edge": {
-                            "fixed_om_cost": 15390.48615,
-                            "investment_cost": 51590.03227,
+                            "fixed_om_cost": 13510.19684,
+                            "investment_cost": 43028.1307,
                             "max_capacity": 608258,
                             "end_vertex": "elec_MIDAT",
                             "availability": {
@@ -453,8 +453,8 @@
                     "id": "NE_utilitypv_class1_moderate_70_0_2_1",
                     "edges": {
                         "edge": {
-                            "fixed_om_cost": 15390.48615,
-                            "investment_cost": 55500.19498,
+                            "fixed_om_cost": 13510.19684,
+                            "investment_cost": 43445.847,
                             "max_capacity": 156573,
                             "end_vertex": "elec_NE",
                             "availability": {
@@ -472,8 +472,8 @@
                     "id": "NE_utilitypv_class1_moderate_70_0_2_2",
                     "edges": {
                         "edge": {
-                            "fixed_om_cost": 15390.48615,
-                            "investment_cost": 55500.19498,
+                            "fixed_om_cost": 13510.19684,
+                            "investment_cost": 43474.3934,
                             "max_capacity": 141382,
                             "end_vertex": "elec_NE",
                             "availability": {
@@ -491,8 +491,8 @@
                     "id": "NE_utilitypv_class1_moderate_70_0_2_3",
                     "edges": {
                         "edge": {
-                            "fixed_om_cost": 15390.48615,
-                            "investment_cost": 55500.19498,
+                            "fixed_om_cost": 13510.19684,
+                            "investment_cost": 48886.47247,
                             "max_capacity": 894093,
                             "end_vertex": "elec_NE",
                             "availability": {
@@ -510,8 +510,8 @@
                     "id": "NE_utilitypv_class1_moderate_70_0_2_4",
                     "edges": {
                         "edge": {
-                            "fixed_om_cost": 15390.48615,
-                            "investment_cost": 55500.19498,
+                            "fixed_om_cost": 13510.19684,
+                            "investment_cost": 47324.48871,
                             "max_capacity": 301180,
                             "end_vertex": "elec_NE",
                             "availability": {
@@ -529,8 +529,8 @@
                     "id": "NE_utilitypv_class1_moderate_70_0_2_5",
                     "edges": {
                         "edge": {
-                            "fixed_om_cost": 15390.48615,
-                            "investment_cost": 55500.19498,
+                            "fixed_om_cost": 13510.19684,
+                            "investment_cost": 45284.8639,
                             "max_capacity": 996252,
                             "end_vertex": "elec_NE",
                             "availability": {
@@ -548,8 +548,8 @@
                     "id": "NE_utilitypv_class1_moderate_70_0_2_6",
                     "edges": {
                         "edge": {
-                            "fixed_om_cost": 15390.48615,
-                            "investment_cost": 55500.19498,
+                            "fixed_om_cost": 13510.19684,
+                            "investment_cost": 43252.63671,
                             "max_capacity": 14823,
                             "end_vertex": "elec_NE",
                             "availability": {
@@ -567,8 +567,8 @@
                     "id": "NE_utilitypv_class1_moderate_70_0_2_7",
                     "edges": {
                         "edge": {
-                            "fixed_om_cost": 15390.48615,
-                            "investment_cost": 55500.19498,
+                            "fixed_om_cost": 13510.19684,
+                            "investment_cost": 51642.1947,
                             "max_capacity": 233816,
                             "end_vertex": "elec_NE",
                             "availability": {
@@ -586,8 +586,8 @@
                     "id": "SE_landbasedwind_class4_moderate_70_1",
                     "edges": {
                         "edge": {
-                            "fixed_om_cost": 34568.125,
-                            "investment_cost": 68099.00274,
+                            "fixed_om_cost": 26256.10757,
+                            "investment_cost": 74858.52871,
                             "max_capacity": 84058,
                             "end_vertex": "elec_SE",
                             "availability": {
@@ -605,8 +605,8 @@
                     "id": "SE_landbasedwind_class4_moderate_70_2",
                     "edges": {
                         "edge": {
-                            "fixed_om_cost": 34568.125,
-                            "investment_cost": 68099.00274,
+                            "fixed_om_cost": 26256.10757,
+                            "investment_cost": 71910.68871,
                             "max_capacity": 20182,
                             "end_vertex": "elec_SE",
                             "availability": {
@@ -624,8 +624,8 @@
                     "id": "SE_landbasedwind_class4_moderate_70_3",
                     "edges": {
                         "edge": {
-                            "fixed_om_cost": 34568.125,
-                            "investment_cost": 68099.00274,
+                            "fixed_om_cost": 26256.10757,
+                            "investment_cost": 74548.28871,
                             "max_capacity": 105301,
                             "end_vertex": "elec_SE",
                             "availability": {
@@ -643,8 +643,8 @@
                     "id": "SE_landbasedwind_class4_moderate_70_4",
                     "edges": {
                         "edge": {
-                            "fixed_om_cost": 34568.125,
-                            "investment_cost": 68099.00274,
+                            "fixed_om_cost": 26256.10757,
+                            "investment_cost": 77283.32871,
                             "max_capacity": 95536,
                             "end_vertex": "elec_SE",
                             "availability": {
@@ -662,8 +662,8 @@
                     "id": "SE_landbasedwind_class4_moderate_70_5",
                     "edges": {
                         "edge": {
-                            "fixed_om_cost": 34568.125,
-                            "investment_cost": 68099.00274,
+                            "fixed_om_cost": 26256.10757,
+                            "investment_cost": 78208.44871,
                             "max_capacity": 79807,
                             "end_vertex": "elec_SE",
                             "availability": {
@@ -681,8 +681,8 @@
                     "id": "SE_landbasedwind_class4_moderate_70_6",
                     "edges": {
                         "edge": {
-                            "fixed_om_cost": 34568.125,
-                            "investment_cost": 68099.00274,
+                            "fixed_om_cost": 26256.10757,
+                            "investment_cost": 74465.40871,
                             "max_capacity": 117168,
                             "end_vertex": "elec_SE",
                             "availability": {
@@ -700,8 +700,8 @@
                     "id": "SE_landbasedwind_class4_moderate_70_7",
                     "edges": {
                         "edge": {
-                            "fixed_om_cost": 34568.125,
-                            "investment_cost": 68099.00274,
+                            "fixed_om_cost": 26256.10757,
+                            "investment_cost": 73950.20871,
                             "max_capacity": 66201,
                             "end_vertex": "elec_SE",
                             "availability": {
@@ -719,8 +719,8 @@
                     "id": "SE_landbasedwind_class4_moderate_70_8",
                     "edges": {
                         "edge": {
-                            "fixed_om_cost": 34568.125,
-                            "investment_cost": 68099.00274,
+                            "fixed_om_cost": 26256.10757,
+                            "investment_cost": 76381.72871,
                             "max_capacity": 102849,
                             "end_vertex": "elec_SE",
                             "availability": {
@@ -738,8 +738,8 @@
                     "id": "MIDAT_landbasedwind_class4_moderate_70_1",
                     "edges": {
                         "edge": {
-                            "fixed_om_cost": 34568.125,
-                            "investment_cost": 73230.74162,
+                            "fixed_om_cost": 26256.10757,
+                            "investment_cost": 78331.91929,
                             "max_capacity": 1384,
                             "end_vertex": "elec_MIDAT",
                             "availability": {
@@ -757,8 +757,8 @@
                     "id": "MIDAT_landbasedwind_class4_moderate_70_2",
                     "edges": {
                         "edge": {
-                            "fixed_om_cost": 34568.125,
-                            "investment_cost": 73230.74162,
+                            "fixed_om_cost": 26256.10757,
+                            "investment_cost": 78069.83929,
                             "max_capacity": 25176,
                             "end_vertex": "elec_MIDAT",
                             "availability": {
@@ -776,8 +776,8 @@
                     "id": "MIDAT_landbasedwind_class4_moderate_70_3",
                     "edges": {
                         "edge": {
-                            "fixed_om_cost": 34568.125,
-                            "investment_cost": 73230.74162,
+                            "fixed_om_cost": 26256.10757,
+                            "investment_cost": 76035.91929,
                             "max_capacity": 10379,
                             "end_vertex": "elec_MIDAT",
                             "availability": {
@@ -795,8 +795,8 @@
                     "id": "MIDAT_landbasedwind_class4_moderate_70_4",
                     "edges": {
                         "edge": {
-                            "fixed_om_cost": 34568.125,
-                            "investment_cost": 73230.74162,
+                            "fixed_om_cost": 26256.10757,
+                            "investment_cost": 78783.27929,
                             "max_capacity": 94297,
                             "end_vertex": "elec_MIDAT",
                             "availability": {
@@ -814,8 +814,8 @@
                     "id": "MIDAT_landbasedwind_class4_moderate_70_5",
                     "edges": {
                         "edge": {
-                            "fixed_om_cost": 34568.125,
-                            "investment_cost": 73230.74162,
+                            "fixed_om_cost": 26256.10757,
+                            "investment_cost": 79963.75929,
                             "max_capacity": 78586,
                             "end_vertex": "elec_MIDAT",
                             "availability": {
@@ -833,8 +833,8 @@
                     "id": "MIDAT_landbasedwind_class4_moderate_70_6",
                     "edges": {
                         "edge": {
-                            "fixed_om_cost": 34568.125,
-                            "investment_cost": 73230.74162,
+                            "fixed_om_cost": 26256.10757,
+                            "investment_cost": 79696.07929,
                             "max_capacity": 86257,
                             "end_vertex": "elec_MIDAT",
                             "availability": {
@@ -852,8 +852,8 @@
                     "id": "MIDAT_landbasedwind_class4_moderate_70_7",
                     "edges": {
                         "edge": {
-                            "fixed_om_cost": 34568.125,
-                            "investment_cost": 73230.74162,
+                            "fixed_om_cost": 26256.10757,
+                            "investment_cost": 82433.35929,
                             "max_capacity": 42063,
                             "end_vertex": "elec_MIDAT",
                             "availability": {
@@ -871,8 +871,8 @@
                     "id": "NE_landbasedwind_class4_moderate_70_1",
                     "edges": {
                         "edge": {
-                            "fixed_om_cost": 34568.125,
-                            "investment_cost": 86536.01624,
+                            "fixed_om_cost": 26256.10757,
+                            "investment_cost": 90411.84793,
                             "max_capacity": 6841,
                             "end_vertex": "elec_NE",
                             "availability": {
@@ -890,8 +890,8 @@
                     "id": "NE_landbasedwind_class4_moderate_70_2",
                     "edges": {
                         "edge": {
-                            "fixed_om_cost": 34568.125,
-                            "investment_cost": 86536.01624,
+                            "fixed_om_cost": 26256.10757,
+                            "investment_cost": 91172.32793,
                             "max_capacity": 10960,
                             "end_vertex": "elec_NE",
                             "availability": {
@@ -909,8 +909,8 @@
                     "id": "NE_landbasedwind_class4_moderate_70_3",
                     "edges": {
                         "edge": {
-                            "fixed_om_cost": 34568.125,
-                            "investment_cost": 86536.01624,
+                            "fixed_om_cost": 26256.10757,
+                            "investment_cost": 102114.7279,
                             "max_capacity": 65324,
                             "end_vertex": "elec_NE",
                             "availability": {
@@ -928,8 +928,8 @@
                     "id": "NE_landbasedwind_class4_moderate_70_4",
                     "edges": {
                         "edge": {
-                            "fixed_om_cost": 34568.125,
-                            "investment_cost": 86536.01624,
+                            "fixed_om_cost": 26256.10757,
+                            "investment_cost": 97037.76793,
                             "max_capacity": 17702,
                             "end_vertex": "elec_NE",
                             "availability": {
@@ -947,8 +947,8 @@
                     "id": "NE_landbasedwind_class4_moderate_70_5",
                     "edges": {
                         "edge": {
-                            "fixed_om_cost": 34568.125,
-                            "investment_cost": 86536.01624,
+                            "fixed_om_cost": 26256.10757,
+                            "investment_cost": 95103.52793,
                             "max_capacity": 90535,
                             "end_vertex": "elec_NE",
                             "availability": {
@@ -966,8 +966,8 @@
                     "id": "NE_landbasedwind_class4_moderate_70_6",
                     "edges": {
                         "edge": {
-                            "fixed_om_cost": 34568.125,
-                            "investment_cost": 86536.01624,
+                            "fixed_om_cost": 26256.10757,
+                            "investment_cost": 91036.80793,
                             "max_capacity": 1111,
                             "end_vertex": "elec_NE",
                             "availability": {
@@ -985,8 +985,8 @@
                     "id": "NE_landbasedwind_class4_moderate_70_7",
                     "edges": {
                         "edge": {
-                            "fixed_om_cost": 34568.125,
-                            "investment_cost": 86536.01624,
+                            "fixed_om_cost": 26256.10757,
+                            "investment_cost": 101355.3679,
                             "max_capacity": 13217,
                             "end_vertex": "elec_NE",
                             "availability": {

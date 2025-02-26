@@ -46,7 +46,7 @@ ExtremePeriods:
         Min: 1
         Max: 0
 UseExtremePeriods: 0
-MinPeriods: 1
+MinPeriods: 3
 MaxPeriods: 3
 LoadWeight: 1
 ClusterFuelPrices: 1

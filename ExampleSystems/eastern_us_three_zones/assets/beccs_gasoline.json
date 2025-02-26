@@ -55,11 +55,11 @@
                 {
                     "id": "SE_Bio_Gasoline_Herb",
                     "transforms":{
-                        "gasoline_production": 2.02043,
+                        "gasoline_production": 2.02155,
                         "electricity_consumption": 0,
                         "capture_rate": 0,
-                        "co2_content":1.721,
-                        "emission_rate":1.23359
+                        "co2_content":1.717,
+                        "emission_rate":1.22933
                     },
                     "edges": {
                         "biomass_edge": {
@@ -89,11 +89,11 @@
                 {
                     "id": "MIDAT_Bio_Gasoline_Herb",
                     "transforms":{
-                        "gasoline_production": 2.02043,
+                        "gasoline_production": 2.02155,
                         "electricity_consumption": 0,
                         "capture_rate": 0,
-                        "co2_content":1.721,
-                        "emission_rate":1.23359
+                        "co2_content":1.717,
+                        "emission_rate":1.22933
                     },
                     "edges": {
                         "biomass_edge": {
@@ -123,11 +123,11 @@
                 {
                     "id": "NE_Bio_Gasoline_Herb",
                     "transforms":{
-                        "gasoline_production": 2.02043,
+                        "gasoline_production": 2.02155,
                         "electricity_consumption": 0,
                         "capture_rate": 0,
-                        "co2_content":1.721,
-                        "emission_rate":1.23359
+                        "co2_content":1.717,
+                        "emission_rate":1.22933
                     },
                     "edges": {
                         "biomass_edge": {
@@ -157,11 +157,11 @@
                 {
                     "id": "SE_Bio_Gasoline_Wood",
                     "transforms":{
-                        "gasoline_production": 2.02043,
+                        "gasoline_production": 2.02155,
                         "electricity_consumption": 0,
                         "capture_rate": 0,
-                        "co2_content":1.721,
-                        "emission_rate":1.23359
+                        "co2_content":1.717,
+                        "emission_rate":1.22933
                     },
                     "edges": {
                         "biomass_edge": {
@@ -191,11 +191,11 @@
                 {
                     "id": "MIDAT_Bio_Gasoline_Wood",
                     "transforms":{
-                        "gasoline_production": 2.02043,
+                        "gasoline_production": 2.02155,
                         "electricity_consumption": 0,
                         "capture_rate": 0,
-                        "co2_content":1.721,
-                        "emission_rate":1.23359
+                        "co2_content":1.717,
+                        "emission_rate":1.22933
                     },
                     "edges": {
                         "biomass_edge": {
@@ -225,11 +225,11 @@
                 {
                     "id": "NE_Bio_Gasoline_Wood",
                     "transforms":{
-                        "gasoline_production": 2.02043,
+                        "gasoline_production": 2.02155,
                         "electricity_consumption": 0,
                         "capture_rate": 0,
-                        "co2_content":1.721,
-                        "emission_rate":1.23359
+                        "co2_content":1.717,
+                        "emission_rate":1.22933
                     },
                     "edges": {
                         "biomass_edge": {

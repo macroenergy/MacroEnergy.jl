@@ -65,13 +65,13 @@
                 {
                     "id": "SE_Bio_FT_Herb",
                     "transforms":{
-                        "gasoline_production": 0.65961,
-                        "jetfuel_production": 0.68003,
-                        "diesel_production": 1.34716,
+                        "gasoline_production": 0.65997,
+                        "jetfuel_production": 0.68040,
+                        "diesel_production": 1.34790,
                         "electricity_consumption": 2.8679,
                         "capture_rate": 0,
-                        "co2_content":1.721,
-                        "emission_rate":1.05373
+                        "co2_content": 1.717,
+                        "emission_rate": 1.04936
                     },
                     "edges": {
                         "biomass_edge": {
@@ -107,13 +107,13 @@
                 {
                     "id": "MIDAT_Bio_FT_Herb",
                     "transforms":{
-                        "gasoline_production": 0.65961,
-                        "jetfuel_production": 0.68003,
-                        "diesel_production": 1.34716,
+                        "gasoline_production": 0.65997,
+                        "jetfuel_production": 0.68040,
+                        "diesel_production": 1.34790,
                         "electricity_consumption": 2.8679,
                         "capture_rate": 0,
-                        "co2_content":1.721,
-                        "emission_rate":1.05373
+                        "co2_content": 1.717,
+                        "emission_rate": 1.04936
                     },
                     "edges": {
                         "biomass_edge": {
@@ -149,13 +149,13 @@
                 {
                     "id": "NE_Bio_FT_Herb",
                     "transforms":{
-                        "gasoline_production": 0.65961,
-                        "jetfuel_production": 0.68003,
-                        "diesel_production": 1.34716,
+                        "gasoline_production": 0.65997,
+                        "jetfuel_production": 0.68040,
+                        "diesel_production": 1.34790,
                         "electricity_consumption": 2.8679,
                         "capture_rate": 0,
-                        "co2_content":1.721,
-                        "emission_rate":1.05373
+                        "co2_content": 1.717,
+                        "emission_rate": 1.04936
                     },
                     "edges": {
                         "biomass_edge": {
@@ -191,13 +191,13 @@
                 {
                     "id": "SE_Bio_FT_Wood",
                     "transforms":{
-                        "gasoline_production": 0.65961,
-                        "jetfuel_production": 0.68003,
-                        "diesel_production": 1.34716,
+                        "gasoline_production": 0.65997,
+                        "jetfuel_production": 0.68040,
+                        "diesel_production": 1.34790,
                         "electricity_consumption": 2.8679,
                         "capture_rate": 0,
-                        "co2_content":1.721,
-                        "emission_rate":1.05373
+                        "co2_content": 1.717,
+                        "emission_rate": 1.04936
                     },
                     "edges": {
                         "biomass_edge": {
@@ -233,13 +233,13 @@
                 {
                     "id": "MIDAT_Bio_FT_Wood",
                     "transforms":{
-                        "gasoline_production": 0.65961,
-                        "jetfuel_production": 0.68003,
-                        "diesel_production": 1.34716,
+                        "gasoline_production": 0.65997,
+                        "jetfuel_production": 0.68040,
+                        "diesel_production": 1.34790,
                         "electricity_consumption": 2.8679,
                         "capture_rate": 0,
-                        "co2_content":1.721,
-                        "emission_rate":1.05373
+                        "co2_content": 1.717,
+                        "emission_rate": 1.04936
                     },
                     "edges": {
                         "biomass_edge": {
@@ -275,13 +275,13 @@
                 {
                     "id": "NE_Bio_FT_Wood",
                     "transforms":{
-                        "gasoline_production": 0.65961,
-                        "jetfuel_production": 0.68003,
-                        "diesel_production": 1.34716,
+                        "gasoline_production": 0.65997,
+                        "jetfuel_production": 0.68040,
+                        "diesel_production": 1.34790,
                         "electricity_consumption": 2.8679,
                         "capture_rate": 0,
-                        "co2_content":1.721,
-                        "emission_rate":1.05373
+                        "co2_content": 1.717,
+                        "emission_rate": 1.04936
                     },
                     "edges": {
                         "biomass_edge": {
@@ -317,13 +317,13 @@
                 {
                     "id": "SE_BECCS_FT_Herb",
                     "transforms":{
-                        "gasoline_production": 0.41430,
-                        "jetfuel_production": 1.84977,
+                        "gasoline_production": 0.41452,
+                        "jetfuel_production": 1.85078,
                         "diesel_production": 0,
                         "electricity_consumption": 0,
-                        "capture_rate": 0.97750,
-                        "co2_content":1.721,
-                        "emission_rate":0.18785
+                        "capture_rate": 0.97389,
+                        "co2_content": 1.717,
+                        "emission_rate": 0.18716
                     },
                     "edges": {
                         "biomass_edge": {
@@ -359,13 +359,13 @@
                 {
                     "id": "MIDAT_BECCS_FT_Herb",
                     "transforms":{
-                        "gasoline_production": 0.41430,
-                        "jetfuel_production": 1.84977,
+                        "gasoline_production": 0.41452,
+                        "jetfuel_production": 1.85078,
                         "diesel_production": 0,
                         "electricity_consumption": 0,
-                        "capture_rate": 0.97750,
-                        "co2_content":1.721,
-                        "emission_rate":0.18785
+                        "capture_rate": 0.97389,
+                        "co2_content": 1.717,
+                        "emission_rate": 0.18716
                     },
                     "edges": {
                         "biomass_edge": {
@@ -401,13 +401,13 @@
                 {
                     "id": "NE_BECCS_FT_Herb",
                     "transforms":{
-                        "gasoline_production": 0.41430,
-                        "jetfuel_production": 1.84977,
+                        "gasoline_production": 0.41452,
+                        "jetfuel_production": 1.85078,
                         "diesel_production": 0,
                         "electricity_consumption": 0,
-                        "capture_rate": 0.97750,
-                        "co2_content":1.721,
-                        "emission_rate":0.18785
+                        "capture_rate": 0.97389,
+                        "co2_content": 1.717,
+                        "emission_rate": 0.18716
                     },
                     "edges": {
                         "biomass_edge": {
@@ -443,13 +443,13 @@
                 {
                     "id": "SE_BECCS_FT_Wood",
                     "transforms":{
-                        "gasoline_production": 0.41430,
-                        "jetfuel_production": 1.84977,
+                        "gasoline_production": 0.41452,
+                        "jetfuel_production": 1.85078,
                         "diesel_production": 0,
                         "electricity_consumption": 0,
-                        "capture_rate": 0.97750,
-                        "co2_content":1.721,
-                        "emission_rate":0.18785
+                        "capture_rate": 0.97389,
+                        "co2_content": 1.717,
+                        "emission_rate": 0.18716
                     },
                     "edges": {
                         "biomass_edge": {
@@ -485,13 +485,13 @@
                 {
                     "id": "MIDAT_BECCS_FT_Wood",
                     "transforms":{
-                        "gasoline_production": 0.41430,
-                        "jetfuel_production": 1.84977,
+                        "gasoline_production": 0.41452,
+                        "jetfuel_production": 1.85078,
                         "diesel_production": 0,
                         "electricity_consumption": 0,
-                        "capture_rate": 0.97750,
-                        "co2_content":1.721,
-                        "emission_rate":0.18785
+                        "capture_rate": 0.97389,
+                        "co2_content": 1.717,
+                        "emission_rate": 0.18716
                     },
                     "edges": {
                         "biomass_edge": {
@@ -527,13 +527,13 @@
                 {
                     "id": "NE_BECCS_FT_Wood",
                     "transforms":{
-                        "gasoline_production": 0.41430,
-                        "jetfuel_production": 1.84977,
+                        "gasoline_production": 0.41452,
+                        "jetfuel_production": 1.85078,
                         "diesel_production": 0,
                         "electricity_consumption": 0,
-                        "capture_rate": 0.97750,
-                        "co2_content":1.721,
-                        "emission_rate":0.18785
+                        "capture_rate": 0.97389,
+                        "co2_content": 1.717,
+                        "emission_rate": 0.18716
                     },
                     "edges": {
                         "biomass_edge": {

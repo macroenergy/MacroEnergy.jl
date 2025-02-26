@@ -44,7 +44,7 @@
                     "id": "SE_CCGT-H2",
                     "transforms":{
                         "emission_rate": 0,
-                        "efficiency_rate": 0.549644
+                        "efficiency_rate": 0.553948
                     },
                     "edges":{
                             "elec_edge": {
@@ -56,10 +56,10 @@
                                     }
                                 },
                                 "existing_capacity": 0.0,
-                                "investment_cost": 69700,
+                                "investment_cost": 62275.58,
                                 "integer_decisions": false,
-                                "fixed_om_cost": 27300,
-                                "variable_om_cost": 1.74,
+                                "fixed_om_cost": 27800,
+                                "variable_om_cost": 1.85,
                                 "capacity_size": 573,
                                 "startup_cost": 61,
                                 "min_up_time": 4,
@@ -77,7 +77,7 @@
                     "id": "MIDAT_CCGT-H2",
                     "transforms":{
                         "emission_rate": 0,
-                        "efficiency_rate": 0.549644
+                        "efficiency_rate": 0.553948
                     },
                     "edges":{
                             "elec_edge": {
@@ -89,10 +89,10 @@
                                     }
                                 },
                                 "existing_capacity": 0.0,
-                                "investment_cost": 69700,
+                                "investment_cost": 62275.58,
                                 "integer_decisions": false,
-                                "fixed_om_cost": 27300,
-                                "variable_om_cost": 1.74,
+                                "fixed_om_cost": 27800,
+                                "variable_om_cost": 1.85,
                                 "capacity_size": 573,
                                 "startup_cost": 61,
                                 "min_up_time": 4,
@@ -110,7 +110,7 @@
                     "id": "NE_CCGT-H2",
                     "transforms":{
                         "emission_rate": 0,
-                        "efficiency_rate": 0.549644
+                        "efficiency_rate": 0.553948
                     },
                     "edges":{
                             "elec_edge": {
@@ -122,10 +122,10 @@
                                     }
                                 },
                                 "existing_capacity": 0.0,
-                                "investment_cost": 69700,
+                                "investment_cost": 62275.58,
                                 "integer_decisions": false,
-                                "fixed_om_cost": 27300,
-                                "variable_om_cost": 1.74,
+                                "fixed_om_cost": 27800,
+                                "variable_om_cost": 1.85,
                                 "capacity_size": 573,
                                 "startup_cost": 61,
                                 "min_up_time": 4,

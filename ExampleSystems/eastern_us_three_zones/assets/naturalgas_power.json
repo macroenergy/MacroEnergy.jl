@@ -564,7 +564,7 @@
                     "id": "SE_naturalgas_ccavgcf_moderate_0",
                     "transforms":{
                         "emission_rate": 0.181048235160161,
-                        "efficiency_rate": 0.53624731
+                        "efficiency_rate": 0.554009165
                     },
                     "edges":{
                         "elec_edge": {
@@ -572,9 +572,9 @@
                             "can_retire": true,
                             "can_expand": true,
                             "existing_capacity": 0.0,
-                            "investment_cost": 78218.72932,
-                            "fixed_om_cost": 27300,
-                            "variable_om_cost": 1.74,
+                            "investment_cost": 57692.09836,
+                            "fixed_om_cost": 27800,
+                            "variable_om_cost": 1.85,
                             "capacity_size": 573,
                             "startup_cost": 61,
                             "startup_fuel": 0.058614214,                            
@@ -593,7 +593,7 @@
                     "id": "SE_naturalgas_ctavgcf_moderate_0",
                     "transforms":{
                         "emission_rate": 0.181048235160161,
-                        "efficiency_rate": 0.351151758
+                        "efficiency_rate": 0.351151842
                     },
                     "edges":{
                         "elec_edge": {
@@ -601,12 +601,12 @@
                             "can_retire": true,
                             "can_expand": true,
                             "existing_capacity": 0.0,
-                            "investment_cost": 64896.77451,
-                            "fixed_om_cost": 20900,
-                            "variable_om_cost": 4.94,
+                            "investment_cost": 51669.01214,
+                            "fixed_om_cost": 22800,
+                            "variable_om_cost": 6.94,
                             "capacity_size": 237,
                             "startup_cost": 140,
-                            "startup_fuel": 0.055683503,                            
+                            "startup_fuel": 0.05568349,                            
                             "min_up_time": 0,
                             "min_down_time": 0,
                             "ramp_up_fraction": 1,
@@ -622,7 +622,7 @@
                     "id": "MIDAT_naturalgas_ccavgcf_moderate_0",
                     "transforms":{
                         "emission_rate": 0.181048235160161,
-                        "efficiency_rate": 0.53624731
+                        "efficiency_rate": 0.554009165
                     },
                     "edges":{
                         "elec_edge": {
@@ -630,9 +630,9 @@
                             "can_retire": true,
                             "can_expand": true,
                             "existing_capacity": 0.0,
-                            "investment_cost": 92031.96779,
-                            "fixed_om_cost": 27300,
-                            "variable_om_cost": 1.74,
+                            "investment_cost": 67880.38343,
+                            "fixed_om_cost": 27800,
+                            "variable_om_cost": 1.85,
                             "capacity_size": 573,
                             "startup_cost": 61,
                             "startup_fuel": 0.058614214,                            
@@ -651,7 +651,7 @@
                     "id": "MIDAT_naturalgas_ctavgcf_moderate_0",
                     "transforms":{
                         "emission_rate": 0.181048235160161,
-                        "efficiency_rate": 0.351151758
+                        "efficiency_rate": 0.351151842
                     },
                     "edges":{
                         "elec_edge": {
@@ -659,12 +659,12 @@
                             "can_retire": true,
                             "can_expand": true,
                             "existing_capacity": 0.0,
-                            "investment_cost": 72348.76761,
-                            "fixed_om_cost": 20900,
-                            "variable_om_cost": 4.94,
+                            "investment_cost": 57602.08239,
+                            "fixed_om_cost": 22800,
+                            "variable_om_cost": 6.94,
                             "capacity_size": 237,
                             "startup_cost": 140,
-                            "startup_fuel": 0.055683503,                            
+                            "startup_fuel": 0.05568349,                            
                             "min_up_time": 0,
                             "min_down_time": 0,
                             "ramp_up_fraction": 1,
@@ -680,7 +680,7 @@
                     "id": "NE_naturalgas_ccavgcf_moderate_0",
                     "transforms":{
                         "emission_rate": 0.181048235160161,
-                        "efficiency_rate": 0.53624731
+                        "efficiency_rate": 0.554009165
                     },
                     "edges":{
                         "elec_edge": {
@@ -688,9 +688,9 @@
                             "can_retire": true,
                             "can_expand": true,
                             "existing_capacity": 0.0,
-                            "investment_cost": 111901.8666,
-                            "fixed_om_cost": 27300,
-                            "variable_om_cost": 1.74,
+                            "investment_cost": 82535.90352,
+                            "fixed_om_cost": 27800,
+                            "variable_om_cost": 1.85,
                             "capacity_size": 573,
                             "startup_cost": 61,
                             "startup_fuel": 0.058614214,                            
@@ -709,7 +709,7 @@
                     "id": "NE_naturalgas_ctavgcf_moderate_0",
                     "transforms":{
                         "emission_rate": 0.181048235160161,
-                        "efficiency_rate": 0.351151758
+                        "efficiency_rate": 0.351151842
                     },
                     "edges":{
                         "elec_edge": {
@@ -717,12 +717,12 @@
                             "can_retire": true,
                             "can_expand": true,
                             "existing_capacity": 0.0,
-                            "investment_cost": 85702.58984,
-                            "fixed_om_cost": 20900,
-                            "variable_om_cost": 4.94,
+                            "investment_cost": 68234.02532,
+                            "fixed_om_cost": 22800,
+                            "variable_om_cost": 6.94,
                             "capacity_size": 237,
                             "startup_cost": 140,
-                            "startup_fuel": 0.055683503,                            
+                            "startup_fuel": 0.05568349,                            
                             "min_up_time": 0,
                             "min_down_time": 0,
                             "ramp_up_fraction": 1,

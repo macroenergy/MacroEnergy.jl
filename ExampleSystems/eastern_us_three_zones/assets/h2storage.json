@@ -59,7 +59,7 @@
                 {
                     "id": "SE_Above_ground_storage",
                     "transforms": {
-                        "electricity_consumption": 0.018029457
+                        "electricity_consumption": 0.018024879
                     },
                     "edges": {
                         "discharge_edge": {
@@ -74,7 +74,7 @@
                         },
                         "charge_edge":{
                             "existing_capacity": 0,
-                            "investment_cost": 3219.236569,
+                            "investment_cost": 3218.419297,
                             "fixed_om_cost": 0.0,
                             "variable_om_cost": 0.0,
                             "efficiency": 1.0
@@ -87,8 +87,8 @@
                         }
                     },
                     "storage":{
-                        "investment_cost": 873.013307,
-                        "fixed_om_cost":28.75810056,
+                        "investment_cost": 872.7916738,
+                        "fixed_om_cost":28.7507997,
                         "loss_fraction": 0.0,
                         "min_storage_level": 0.3
                     }
@@ -96,7 +96,7 @@
                 {
                     "id": "MIDAT_Above_ground_storage",
                     "transforms": {
-                        "electricity_consumption": 0.018029457
+                        "electricity_consumption": 0.018024879
                     },
                     "edges": {
                         "discharge_edge": {
@@ -111,7 +111,7 @@
                         },
                         "charge_edge":{
                             "existing_capacity": 0,
-                            "investment_cost": 3219.236569,
+                            "investment_cost": 3218.419297,
                             "fixed_om_cost": 0.0,
                             "variable_om_cost": 0.0,
                             "efficiency": 1.0
@@ -124,8 +124,8 @@
                         }
                     },
                     "storage":{
-                        "investment_cost": 873.013307,
-                        "fixed_om_cost":28.75810056,
+                        "investment_cost": 872.7916738,
+                        "fixed_om_cost":28.7507997,
                         "loss_fraction": 0.0,
                         "min_storage_level": 0.3
                     }
@@ -133,7 +133,7 @@
                 {
                     "id": "NE_Above_ground_storage",
                     "transforms": {
-                        "electricity_consumption": 0.018029457
+                        "electricity_consumption": 0.018024879
                     },
                     "edges": {
                         "discharge_edge": {
@@ -148,7 +148,7 @@
                         },
                         "charge_edge":{
                             "existing_capacity": 0,
-                            "investment_cost": 3219.236569,
+                            "investment_cost": 3218.419297,
                             "fixed_om_cost": 0.0,
                             "variable_om_cost": 0.0,
                             "efficiency": 1.0
@@ -161,8 +161,8 @@
                         }
                     },
                     "storage":{
-                        "investment_cost": 873.013307,
-                        "fixed_om_cost":28.75810056,
+                        "investment_cost": 872.7916738,
+                        "fixed_om_cost":28.7507997,
                         "loss_fraction": 0.0,
                         "min_storage_level": 0.3
                     }

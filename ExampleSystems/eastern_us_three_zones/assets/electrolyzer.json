@@ -34,7 +34,7 @@
                 {
                     "id": "SE_Electrolyzer",
                     "transforms":{
-                        "efficiency_rate": 0.875111139
+                        "efficiency_rate": 0.87455595
                     },
                     "edges":{
                             "elec_edge": {
@@ -43,10 +43,10 @@
                             "h2_edge": {
                                 "end_vertex": "h2_SE",
                                 "existing_capacity": 0,
-                                "investment_cost": 41112.53426,
-                                "fixed_om_cost": 1052.480877,
+                                "investment_cost": 41139.12592,
+                                "fixed_om_cost": 1174.680271,
                                 "variable_om_cost": 0.0,
-                                "capacity_size": 1.5752,
+                                "capacity_size": 1.5756,
                                 "ramp_up_fraction": 1,
                                 "ramp_down_fraction": 1,
                                 "min_flow_fraction":0.1
@@ -56,7 +56,7 @@
                 {
                     "id": "MIDAT_Electrolyzer",
                     "transforms":{
-                        "efficiency_rate": 0.875111139
+                        "efficiency_rate": 0.87455595
                     },
                     "edges":{
                             "elec_edge": {
@@ -65,10 +65,10 @@
                             "h2_edge": {
                                 "end_vertex": "h2_MIDAT",
                                 "existing_capacity": 0,
-                                "investment_cost": 41112.53426,
-                                "fixed_om_cost": 1052.480877,
+                                "investment_cost": 41139.12592,
+                                "fixed_om_cost": 1174.680271,
                                 "variable_om_cost": 0.0,
-                                "capacity_size": 1.5752,
+                                "capacity_size": 1.5756,
                                 "ramp_up_fraction": 1,
                                 "ramp_down_fraction": 1,
                                 "min_flow_fraction":0.1
@@ -78,7 +78,7 @@
                 {
                     "id": "NE_Electrolyzer",
                     "transforms":{
-                        "efficiency_rate": 0.875111139
+                        "efficiency_rate": 0.87455595
                     },
                     "edges":{
                             "elec_edge": {
@@ -87,10 +87,10 @@
                             "h2_edge": {
                                 "end_vertex": "h2_NE",
                                 "existing_capacity": 0,
-                                "investment_cost": 41112.53426,
-                                "fixed_om_cost": 1052.480877,
+                                "investment_cost": 41139.12592,
+                                "fixed_om_cost": 1174.680271,
                                 "variable_om_cost": 0.0,
-                                "capacity_size": 1.5752,
+                                "capacity_size": 1.5756,
                                 "ramp_up_fraction": 1,
                                 "ramp_down_fraction": 1,
                                 "min_flow_fraction":0.1

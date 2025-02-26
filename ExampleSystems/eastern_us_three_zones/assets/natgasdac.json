@@ -51,10 +51,10 @@
                 {
                     "id": "SE_Solvent_DAC",
                     "transforms":{
-                        "emission_rate": 0.005516648,
-                        "capture_rate": 0.546148172,
+                        "emission_rate": 0.001810482,
+                        "capture_rate": 0.179237753,
                         "electricity_production": 0.125,
-                        "fuel_consumption": 3.047059915
+                        "fuel_consumption": 3.047059187
                     },
                     "edges":{
                             "co2_edge": {
@@ -65,9 +65,9 @@
                                     }
                                 },
                                 "existing_capacity": 0.0,
-                                "investment_cost": 869000.00,
-                                "fixed_om_cost": 384000.00,
-                                "variable_om_cost": 58.41,
+                                "investment_cost": 973000,
+                                "fixed_om_cost": 430000,
+                                "variable_om_cost": 65.42,
                                 "ramp_up_fraction": 1.0,
                                 "ramp_down_fraction": 1.0
                             },
@@ -86,10 +86,10 @@
                 {
                     "id": "MIDAT_Solvent_DAC",
                     "transforms":{
-                        "emission_rate": 0.005516648,
-                        "capture_rate": 0.546148172,
+                        "emission_rate": 0.001810482,
+                        "capture_rate": 0.179237753,
                         "electricity_production": 0.125,
-                        "fuel_consumption": 3.047059915
+                        "fuel_consumption": 3.047059187
                     },
                     "edges":{
                             "co2_edge": {
@@ -100,9 +100,9 @@
                                     }
                                 },
                                 "existing_capacity": 0.0,
-                                "investment_cost": 869000.00,
-                                "fixed_om_cost": 384000.00,
-                                "variable_om_cost": 58.41,
+                                "investment_cost": 973000,
+                                "fixed_om_cost": 430000,
+                                "variable_om_cost": 65.42,
                                 "ramp_up_fraction": 1.0,
                                 "ramp_down_fraction": 1.0
                             },
@@ -121,10 +121,10 @@
                 {
                     "id": "NE_Solvent_DAC",
                     "transforms":{
-                        "emission_rate": 0.005516648,
-                        "capture_rate": 0.546148172,
+                        "emission_rate": 0.001810482,
+                        "capture_rate": 0.179237753,
                         "electricity_production": 0.125,
-                        "fuel_consumption": 3.047059915
+                        "fuel_consumption": 3.047059187
                     },
                     "edges":{
                             "co2_edge": {
@@ -135,9 +135,9 @@
                                     }
                                 },
                                 "existing_capacity": 0.0,
-                                "investment_cost": 869000.00,
-                                "fixed_om_cost": 384000.00,
-                                "variable_om_cost": 58.41,
+                                "investment_cost": 973000,
+                                "fixed_om_cost": 430000,
+                                "variable_om_cost": 65.42,
                                 "ramp_up_fraction": 1.0,
                                 "ramp_down_fraction": 1.0
                             },

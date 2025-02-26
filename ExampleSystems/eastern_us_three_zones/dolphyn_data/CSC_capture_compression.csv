@@ -1,4 +1,0 @@
-CO2_Capture_Compression,Zone,etaPCO2_MWh_per_tonne,Inv_Cost_per_tonne_per_hr_yr,Fixed_OM_Cost_per_tonne_per_hr_yr,Min_capacity_tonne_per_hr,Max_capacity_tonne_per_hr,CO2_Capture_Compression_Min_Output,CO2_Capture_Compression_Max_Output
-SE_CAPTURE_COMP,1,0,0,0,0,3000000,0,1
-MIDAT_CAPTURE_COMP,2,0,0,0,0,3000000,0,1
-NE_CAPTURE_COMP,3,0,0,0,0,3000000,0,1

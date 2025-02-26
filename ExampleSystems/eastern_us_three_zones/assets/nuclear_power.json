@@ -187,7 +187,7 @@
                 {
                     "id": "MIDAT_nuclear_mid_0",
                     "transforms":{
-                        "efficiency_rate": 0.326364575
+                        "efficiency_rate": 0.325058822
                     },
                     "edges":{
                         "elec_edge": {
@@ -195,9 +195,9 @@
                             "can_retire": true,
                             "can_expand": true,
                             "existing_capacity": 0.0,
-                            "investment_cost": 329182.6099,
-                            "fixed_om_cost": 144972.332,
-                            "variable_om_cost": 2.351778656,
+                            "investment_cost": 238887.9439,
+                            "fixed_om_cost": 175000,
+                            "variable_om_cost": 2.8,
                             "capacity_size": 1000,
                             "min_flow_fraction":0.3,
                             "startup_cost": 1000,
@@ -212,7 +212,7 @@
                 {
                     "id": "NE_nuclear_mid_0",
                     "transforms":{
-                        "efficiency_rate": 0.326364575
+                        "efficiency_rate": 0.325058822
                     },
                     "edges":{
                         "elec_edge": {
@@ -220,9 +220,9 @@
                             "can_retire": true,
                             "can_expand": true,
                             "existing_capacity": 0.0,
-                            "investment_cost": 377875.7514,
-                            "fixed_om_cost": 144972.332,
-                            "variable_om_cost": 2.351778656,
+                            "investment_cost": 274224.575,
+                            "fixed_om_cost": 175000,
+                            "variable_om_cost": 2.8,
                             "capacity_size": 1000,
                             "min_flow_fraction":0.3,
                             "startup_cost": 1000,
@@ -237,7 +237,7 @@
                 {
                     "id": "SE_nuclear_mid_0",
                     "transforms":{
-                        "efficiency_rate": 0.326364575
+                        "efficiency_rate": 0.325058822
                     },
                     "edges":{
                         "elec_edge": {
@@ -245,9 +245,9 @@
                             "can_retire": true,
                             "can_expand": true,
                             "existing_capacity": 0.0,
-                            "investment_cost": 318446.78,
-                            "fixed_om_cost": 144972.332,
-                            "variable_om_cost": 2.351778656,
+                            "investment_cost": 231096.9481,
+                            "fixed_om_cost": 175000,
+                            "variable_om_cost": 2.8,
                             "capacity_size": 1000,
                             "min_flow_fraction":0.3,
                             "startup_cost": 1000,

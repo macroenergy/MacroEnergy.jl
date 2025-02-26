@@ -43,21 +43,21 @@
                         "discharge_edge": {
                             "end_vertex": "elec_SE",
                             "existing_capacity" : 0.0,
-                            "fixed_om_cost" : 4536.98,
-                            "investment_cost": 17239.56121,
-                            "variable_om_cost": 0.15,
+                            "fixed_om_cost" : 7075.764437,
+                            "investment_cost": 26886.40679,
+                            "variable_om_cost": 1,
                             "efficiency": 0.92
                         },
                         "charge_edge": {
                             "start_vertex": "elec_SE",
                             "efficiency": 0.92,
-                            "variable_om_cost": 0.15
+                            "variable_om_cost": 1
                         }
                     },
                     "storage":{
                         "existing_capacity": 0.0,
-                        "fixed_om_cost": 2541.19,
-                        "investment_cost": 9656.002735,
+                        "fixed_om_cost": 4477.587766,
+                        "investment_cost": 17013.88552,
                         "max_duration": 10,
                         "min_duration": 1
                     }
@@ -68,21 +68,21 @@
                         "discharge_edge": {
                             "end_vertex": "elec_SE",
                             "existing_capacity" : 0.0,
-                            "fixed_om_cost" : 4536.98,
-                            "investment_cost": 17239.56121,
-                            "variable_om_cost": 0.15,
+                            "fixed_om_cost" : 7075.764437,
+                            "investment_cost": 26406.76299,
+                            "variable_om_cost": 1,
                             "efficiency": 0.92
                         },
                         "charge_edge": {
                             "start_vertex": "elec_SE",
                             "efficiency": 0.92,
-                            "variable_om_cost": 0.15
+                            "variable_om_cost": 1
                         }
                     },
                     "storage":{
                         "existing_capacity": 0.0,
-                        "fixed_om_cost": 2541.19,
-                        "investment_cost": 9656.002735,
+                        "fixed_om_cost": 4477.587766,
+                        "investment_cost": 16710.36394,
                         "max_duration": 10,
                         "min_duration": 1
                     }
@@ -93,21 +93,21 @@
                         "discharge_edge": {
                             "end_vertex": "elec_SE",
                             "existing_capacity" : 0.0,
-                            "fixed_om_cost" : 4536.98,
-                            "investment_cost": 17239.56121,
-                            "variable_om_cost": 0.15,
+                            "fixed_om_cost" : 7075.764437,
+                            "investment_cost": 26889.92066,
+                            "variable_om_cost": 1,
                             "efficiency": 0.92
                         },
                         "charge_edge": {
                             "start_vertex": "elec_SE",
                             "efficiency": 0.92,
-                            "variable_om_cost": 0.15
+                            "variable_om_cost": 1
                         }
                     },
                     "storage":{
                         "existing_capacity": 0.0,
-                        "fixed_om_cost": 2541.19,
-                        "investment_cost": 9656.002735,
+                        "fixed_om_cost": 4477.587766,
+                        "investment_cost": 17016.10912,
                         "max_duration": 10,
                         "min_duration": 1
                     }

@@ -55,11 +55,11 @@
                 {
                     "id": "SE_Bio_NaturalGas_Herb",
                     "transforms":{
-                        "natgas_production": 2.75078,
+                        "natgas_production": 2.75229,
                         "electricity_consumption": 0.208,
                         "capture_rate": 0,
-                        "co2_content":1.721,
-                        "emission_rate":1.22298
+                        "co2_content": 1.717,
+                        "emission_rate": 1.21870
                     },
                     "edges": {
                         "biomass_edge": {
@@ -89,11 +89,11 @@
                 {
                     "id": "MIDAT_Bio_NaturalGas_Herb",
                     "transforms":{
-                        "natgas_production": 2.75078,
+                        "natgas_production": 2.75229,
                         "electricity_consumption": 0.208,
                         "capture_rate": 0,
-                        "co2_content":1.721,
-                        "emission_rate":1.22298
+                        "co2_content": 1.717,
+                        "emission_rate": 1.21870
                     },
                     "edges": {
                         "biomass_edge": {
@@ -123,11 +123,11 @@
                 {
                     "id": "NE_Bio_NaturalGas_Herb",
                     "transforms":{
-                        "natgas_production": 2.75078,
+                        "natgas_production": 2.75229,
                         "electricity_consumption": 0.208,
                         "capture_rate": 0,
-                        "co2_content":1.721,
-                        "emission_rate":1.22298
+                        "co2_content": 1.717,
+                        "emission_rate": 1.21870
                     },
                     "edges": {
                         "biomass_edge": {
@@ -157,11 +157,11 @@
                 {
                     "id": "SE_Bio_NaturalGas_Wood",
                     "transforms":{
-                        "natgas_production": 2.75078,
+                        "natgas_production": 2.75229,
                         "electricity_consumption": 0.208,
                         "capture_rate": 0,
-                        "co2_content":1.721,
-                        "emission_rate":1.22298
+                        "co2_content": 1.717,
+                        "emission_rate": 1.21870
                     },
                     "edges": {
                         "biomass_edge": {
@@ -191,11 +191,11 @@
                 {
                     "id": "MIDAT_Bio_NaturalGas_Wood",
                     "transforms":{
-                        "natgas_production": 2.75078,
+                        "natgas_production": 2.75229,
                         "electricity_consumption": 0.208,
                         "capture_rate": 0,
-                        "co2_content":1.721,
-                        "emission_rate":1.22298
+                        "co2_content": 1.717,
+                        "emission_rate": 1.21870
                     },
                     "edges": {
                         "biomass_edge": {
@@ -225,11 +225,11 @@
                 {
                     "id": "NE_Bio_NaturalGas_Wood",
                     "transforms":{
-                        "natgas_production": 2.75078,
+                        "natgas_production": 2.75229,
                         "electricity_consumption": 0.208,
                         "capture_rate": 0,
-                        "co2_content":1.721,
-                        "emission_rate":1.22298
+                        "co2_content": 1.717,
+                        "emission_rate": 1.21870
                     },
                     "edges": {
                         "biomass_edge": {
@@ -259,11 +259,11 @@
                 {
                     "id": "SE_BECCS_NaturalGas_Herb",
                     "transforms":{
-                        "natgas_production": 2.72945,
+                        "natgas_production": 2.73095,
                         "electricity_consumption": 0.253,
-                        "capture_rate": 0.48472,
-                        "co2_content":1.721,
-                        "emission_rate":0.74211
+                        "capture_rate": 0.48304,
+                        "co2_content": 1.717,
+                        "emission_rate": 0.73953
                     },
                     "edges": {
                         "biomass_edge": {
@@ -293,11 +293,11 @@
                 {
                     "id": "MIDAT_BECCS_NaturalGas_Herb",
                     "transforms":{
-                        "natgas_production": 2.72945,
+                        "natgas_production": 2.73095,
                         "electricity_consumption": 0.253,
-                        "capture_rate": 0.48472,
-                        "co2_content":1.721,
-                        "emission_rate":0.74211
+                        "capture_rate": 0.48304,
+                        "co2_content": 1.717,
+                        "emission_rate": 0.73953
                     },
                     "edges": {
                         "biomass_edge": {
@@ -327,11 +327,11 @@
                 {
                     "id": "NE_BECCS_NaturalGas_Herb",
                     "transforms":{
-                        "natgas_production": 2.72945,
+                        "natgas_production": 2.73095,
                         "electricity_consumption": 0.253,
-                        "capture_rate": 0.48472,
-                        "co2_content":1.721,
-                        "emission_rate":0.74211
+                        "capture_rate": 0.48304,
+                        "co2_content": 1.717,
+                        "emission_rate": 0.73953
                     },
                     "edges": {
                         "biomass_edge": {
@@ -361,11 +361,11 @@
                 {
                     "id": "SE_BECCS_NaturalGas_Wood",
                     "transforms":{
-                        "natgas_production": 2.72945,
+                        "natgas_production": 2.73095,
                         "electricity_consumption": 0.253,
-                        "capture_rate": 0.48472,
-                        "co2_content":1.721,
-                        "emission_rate":0.74211
+                        "capture_rate": 0.48304,
+                        "co2_content": 1.717,
+                        "emission_rate": 0.73953
                     },
                     "edges": {
                         "biomass_edge": {
@@ -395,11 +395,11 @@
                 {
                     "id": "MIDAT_BECCS_NaturalGas_Wood",
                     "transforms":{
-                        "natgas_production": 2.72945,
+                        "natgas_production": 2.73095,
                         "electricity_consumption": 0.253,
-                        "capture_rate": 0.48472,
-                        "co2_content":1.721,
-                        "emission_rate":0.74211
+                        "capture_rate": 0.48304,
+                        "co2_content": 1.717,
+                        "emission_rate": 0.73953
                     },
                     "edges": {
                         "biomass_edge": {
@@ -429,11 +429,11 @@
                 {
                     "id": "NE_BECCS_NaturalGas_Wood",
                     "transforms":{
-                        "natgas_production": 2.72945,
+                        "natgas_production": 2.73095,
                         "electricity_consumption": 0.253,
-                        "capture_rate": 0.48472,
-                        "co2_content":1.721,
-                        "emission_rate":0.74211
+                        "capture_rate": 0.48304,
+                        "co2_content": 1.717,
+                        "emission_rate": 0.73953
                     },
                     "edges": {
                         "biomass_edge": {
