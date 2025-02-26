@@ -14,7 +14,7 @@ function add_model_constraint!(ct::CO2StorageConstraint, n::Node{CO2Captured}, m
         add_to_expression!(
             subperiod_balance[w],
             subperiod_weight(n, w),
-            get_balance(n, :storage, t),
+            get_balance(n, :co2_storage, t),
         )
     end
 

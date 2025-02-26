@@ -191,7 +191,7 @@ function make(commodity::Type{<:Commodity}, data::AbstractDict{Symbol,Any}, syst
             get(data, :balance_data, Dict(:emissions => Dict{Symbol,Float64}()))
     elseif any(isa.(node.constraints, CO2StorageConstraint))
         node.balance_data =
-            get(data, :balance_data, Dict(:storage => Dict{Symbol,Float64}()))
+            get(data, :balance_data, Dict(:co2_storage => Dict{Symbol,Float64}()))
     else
         node.balance_data =
             get(data, :balance_data, Dict(:exogenous => Dict{Symbol,Float64}()))
