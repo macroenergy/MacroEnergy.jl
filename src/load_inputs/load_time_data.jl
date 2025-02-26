@@ -133,7 +133,11 @@ function create_commodity_timedata(
 
     unique_rep_periods = get_unique_rep_periods(period_map)
 
-    weights = get_weights(period_map, unique_rep_periods)
+    hours_per_subperiod = get(time_data[:HoursPerSubperiod], sym, 168)
+
+    total_hours_modeled = get(time_data, :TotalHoursModeled, 8760)
+
+    weights = get_weights(period_map, unique_rep_periods, hours_per_subperiod, total_hours_modeled)
 
     return TimeData{type}(;
         time_interval = time_interval,
@@ -165,11 +169,29 @@ function get_unique_rep_periods(period_map::Dict{Int64, Int64})
 
 end
 
-function get_weights(period_map::Dict{Int64, Int64}, unique_rep_periods::Vector{Int64})
+function get_weights(period_map::Dict{Int64, Int64}, unique_rep_periods::Vector{Int64}, hours_per_subperiod::Int64, total_hours_modeled::Int64=8760)
+
+    # If no period map provided in time_data.json input, each period maps to itself from get_timedata_period_map
+    is_identity_mapping = all(period_map[k] == k for k in keys(period_map))
+
+    if is_identity_mapping
+        @warn "Using default weights = 1 as no period map provided and each period maps to itself"
+        return [1.0 for _ in unique_rep_periods]
+    end
 
     rep_periods = collect(values(period_map))    # list of rep periods for each subperiod
 
-    return Int[length(findall(rep_periods .== p)) for p in unique_rep_periods]
+    unscaled_weights = Int[length(findall(rep_periods .== p)) for p in unique_rep_periods]
+
+    weight_scaling_factor = total_hours_modeled / sum(unscaled_weights * hours_per_subperiod)
+
+    scaled_weights = [w * weight_scaling_factor for w in unscaled_weights]
+
+    println("Original Weights (Occurrences per Subperiod): ", unscaled_weights)
+    println("Scaling Factor: ", weight_scaling_factor)
+    println("Scaled Weights: ", scaled_weights)
+
+    return scaled_weights
 end
 
 function get_timedata_period_map(time_data::AbstractDict{Symbol,Any}, sym::Symbol)

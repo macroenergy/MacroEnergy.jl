@@ -22,5 +22,6 @@
     "PeriodLength": 504,
     "PeriodMap": {
         "path": "system/Period_map.csv"
-    }
+    },
+    "TotalHoursModeled": 8760
 }
