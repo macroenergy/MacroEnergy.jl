@@ -8,30 +8,15 @@
             "instance_data": [
                 {
                     "id": "natgas_SE",
-                    "price": {
-                        "timeseries": {
-                            "path": "system/fuel_prices.csv",
-                            "header": "natgas_SE"
-                        }
-                    }
+                    "price": [12.55668122]
                 },
                 {
                     "id": "natgas_MIDAT",
-                    "price": {
-                        "timeseries": {
-                            "path": "system/fuel_prices.csv",
-                            "header": "natgas_MIDAT"
-                        }
-                    }
+                    "price": [12.21546705]
                 },
                 {
                     "id": "natgas_NE",
-                    "price": {
-                        "timeseries": {
-                            "path": "system/fuel_prices.csv",
-                            "header": "natgas_NE"
-                        }
-                    }
+                    "price": [15.01342319]
                 }
             ]
         },
@@ -43,12 +28,7 @@
             "instance_data": [
                 {
                     "id": "uranium_source",
-                    "price": {
-                        "timeseries": {
-                            "path": "system/fuel_prices.csv",
-                            "header": "uranium_source"
-                        }
-                    }
+                    "price": [2.490863394]
                 }
             ]
         },
@@ -63,34 +43,19 @@
             "instance_data": [
                 {
                     "id" : "biowood_SE",
-                    "demand": {
-                        "timeseries": {
-                            "path": "system/demand.csv",
-                            "header": "Demand_Zero"
-                        }
-                    },
+                    "demand": [0.0],
                     "max_supply":[8000,16000,24000],                    
                     "price_supply":[40,60,80]
                 },
                 {
                     "id" : "biowood_MIDAT",
-                    "demand": {
-                        "timeseries": {
-                            "path": "system/demand.csv",
-                            "header": "Demand_Zero"
-                        }
-                    },
+                    "demand": [0.0],
                     "max_supply":[15000,30000,45000],                    
                     "price_supply":[40,60,80]
                 },
                 {
                     "id" : "biowood_NE",
-                    "demand": {
-                        "timeseries": {
-                            "path": "system/demand.csv",
-                            "header": "Demand_Zero"
-                        }
-                    },
+                    "demand": [0.0],
                     "max_supply":[4000,8000,12000],                    
                     "price_supply":[40,60,80]
                 }
@@ -108,34 +73,19 @@
             "instance_data": [
                 {
                     "id" : "bioherb_SE",
-                    "demand": {
-                        "timeseries": {
-                            "path": "system/demand.csv",
-                            "header": "Demand_Zero"
-                        }
-                    },
+                    "demand": [0.0],
                     "max_supply":[10000,20000,30000],                    
                     "price_supply":[40,60,80]
                 },
                 {
                     "id" : "bioherb_MIDAT",
-                    "demand": {
-                        "timeseries": {
-                            "path": "system/demand.csv",
-                            "header": "Demand_Zero"
-                        }
-                    },
+                    "demand": [0.0],
                     "max_supply":[80000,160000,240000],                    
                     "price_supply":[40,60,80]
                 },
                 {
                     "id" : "bioherb_NE",
-                    "demand": {
-                        "timeseries": {
-                            "path": "system/demand.csv",
-                            "header": "Demand_Zero"
-                        }
-                    },
+                    "demand": [0.0],
                     "max_supply":[400,800,1200],                    
                     "price_supply":[40,60,80]
                 }
@@ -245,10 +195,7 @@
                         "CO2CapConstraint": true
                     },
                     "rhs_policy": {
-                            "CO2CapConstraint": 0
-                        },
-                    "price_unmet_policy":{
-                        "CO2CapConstraint": 250.0
+                            "CO2CapConstraint": 1.3808371217540407e8
                     }
                 }
             ]

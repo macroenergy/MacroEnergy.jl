@@ -169,7 +169,7 @@
                         "emission_rate": 0.006879832936086124,
                         "efficiency_rate": 0.72289814,
                         "electricity_consumption": 0.051727,
-                        "capture_rate": 0.070609837
+                        "capture_rate": 0.17416840222407487
                     },
                     "edges":{
                             "h2_edge": {
@@ -206,7 +206,7 @@
                         "emission_rate": 0.006879832936086124,
                         "efficiency_rate": 0.72289814,
                         "electricity_consumption": 0.051727,
-                        "capture_rate": 0.070609837
+                        "capture_rate": 0.17416840222407487
                     },
                     "edges":{
                             "h2_edge": {
@@ -243,7 +243,7 @@
                         "emission_rate": 0.006879832936086124,
                         "efficiency_rate": 0.72289814,
                         "electricity_consumption": 0.051727,
-                        "capture_rate": 0.070609837
+                        "capture_rate": 0.17416840222407487
                     },
                     "edges":{
                             "h2_edge": {
