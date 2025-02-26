@@ -18,9 +18,7 @@
         "CO2Captured": 1
     },
     "PeriodLength": 504,
-    "WeightTotal": 8760,
     "PeriodMap": {
         "path": "system/Period_map.csv"
-    },
-    "StageIndex": 3
+    }
 }

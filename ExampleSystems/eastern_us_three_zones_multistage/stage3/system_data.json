@@ -8,13 +8,13 @@
     "settings": {
         "path": "../settings/macro_settings.json"
     },
+    "nodes": {
+        "path": "system/nodes.json"
+    },
     "assets": {
         "path": "assets"
     },
     "time_data": {
         "path": "system/time_data.json"
-    },
-    "nodes": {
-        "path": "system/nodes.json"
     }
 }
