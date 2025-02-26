@@ -150,6 +150,19 @@ function run_multistage_case(case_path::AbstractString=@__DIR__; num_stages::Int
 
             optimize!(model)
 
+            if !has_values(model)
+                compute_conflict!(model)
+                list_of_conflicting_constraints = ConstraintRef[];
+                for (F, S) in list_of_constraint_types(model)
+                    for con in JuMP.all_constraints(model, F, S)
+                        if get_attribute(con, MOI.ConstraintConflictStatus()) == MOI.IN_CONFLICT
+                            push!(list_of_conflicting_constraints, con)
+                        end
+                    end
+                end
+                display(list_of_conflicting_constraints)
+            end
+
             if i < num_stages
                 @info(" -- Final capacity in stage $(i) is being carried over to stage $(i+1)")
                 initialize_stage_capacities!(system_vec[i+1],system_vec[i],perfect_foresight=false)
