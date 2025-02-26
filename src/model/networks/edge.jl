@@ -9,7 +9,7 @@ macro AbstractEdgeBaseAttributes()
         can_retire::Bool = false
         capacity::AffExpr = AffExpr(0.0)
         capacity_size::Float64 = 1.0
-        capital_recovery_period::Int64 = 1
+        capital_recovery_period::Int64 = 20
         constraints::Vector{AbstractTypeConstraint} = Vector{AbstractTypeConstraint}()
         distance::Float64 = 0.0
         existing_capacity::Union{AffExpr,Float64,Int64} = 0.0
@@ -34,7 +34,7 @@ macro AbstractEdgeBaseAttributes()
         retirement_stage::Int64 = 0
         unidirectional::Bool = false
         variable_om_cost::Float64 = 0.0
-        wacc::Float64 = 0.0
+        wacc::Float64 = 0.02
     end)
 end
 Base.@kwdef mutable struct Edge{T} <: AbstractEdge{T}
@@ -74,7 +74,7 @@ function make_edge(
         ramp_up_fraction = get(data, :ramp_up_fraction, 1.0),
         unidirectional = get(data, :unidirectional, false),
         variable_om_cost = get(data, :variable_om_cost, 0.0),
-        wacc = get(data,:wacc, 0.0)
+        wacc = get(data,:wacc, 0.02)
     )
     return _edge
 end

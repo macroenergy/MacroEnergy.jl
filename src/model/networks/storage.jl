@@ -4,7 +4,7 @@ macro AbstractStorageBaseAttributes()
     capacity::AffExpr = AffExpr(0.0)
     capacity_size::Float64 = 1.0
     can_retire::Bool = false
-    capital_recovery_period::Int64 = 1;
+    capital_recovery_period::Int64 = 20;
     charge_edge::Union{Nothing,AbstractEdge} = nothing
     charge_discharge_ratio::Float64 = 1.0
     discharge_edge::Union{Nothing,AbstractEdge} = nothing
@@ -29,7 +29,7 @@ macro AbstractStorageBaseAttributes()
     retired_units::Union{Missing, JuMPVariable} = missing
     spillage_edge::Union{Nothing, AbstractEdge} = nothing
     storage_level::JuMPVariable = Vector{VariableRef}()
-    wacc::Float64 = 0.0
+    wacc::Float64 = 0.02
     end)
 end
 
@@ -67,7 +67,7 @@ function make_storage(
         min_outflow_fraction = get(data, :min_outflow_fraction, 0.0),
         min_storage_level = get(data, :min_storage_level, 0.0),
         spillage_edge = get(data, :spillage_edge, nothing),
-        wacc = get(data,:wacc,0.0)
+        wacc = get(data,:wacc,0.02)
     )
     return _storage
 end

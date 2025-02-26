@@ -18,6 +18,7 @@
         "CO2Captured": 1
     },
     "PeriodLength": 504,
+    "StageIndex": 1,
     "PeriodMap": {
         "path": "system/Period_map.csv"
     }
