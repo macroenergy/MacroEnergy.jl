@@ -27,6 +27,7 @@ function load_time_data(
     # we make sure that the period map is loaded
     time_data = copy(JSON3.read(path))
     haskey(time_data, :PeriodMap) && load_period_map!(time_data, rel_path)
+    validate_and_set_default_total_hours_modeled!(time_data::AbstractDict{Symbol,Any})
     return load_time_data(time_data, commodities)
 end
 
@@ -65,6 +66,19 @@ function validate_period_map(period_map_data::DataFrame)
     @assert typeof(period_map_data[!, :Period_Index]) == Vector{Union{Missing, Int}}
     @assert typeof(period_map_data[!, :Rep_Period]) == Vector{Union{Missing, Int}}
     @assert typeof(period_map_data[!, :Rep_Period_Index]) == Vector{Union{Missing, Int}}
+end
+
+function validate_and_set_default_total_hours_modeled!(time_data::AbstractDict{Symbol,Any})
+    # Check if TotalHoursModeled exists and is an integer
+    if haskey(time_data, :TotalHoursModeled)
+        if !isa(time_data[:TotalHoursModeled], Integer)
+            throw(ArgumentError("TotalHoursModeled must be an integer, got $(typeof(time_data[:TotalHoursModeled]))"))
+        end
+    # If TotalHoursModeled does not exist, use default value of 8760 (hours per year)
+    else
+        @warn("TotalHoursModeled not found in time_data.json - Using 8760 as default value for TotalHoursModeled")
+        time_data[:TotalHoursModeled] = 8760
+    end
 end
 
 function validate_time_data(
@@ -133,9 +147,9 @@ function create_commodity_timedata(
 
     unique_rep_periods = get_unique_rep_periods(period_map)
 
-    hours_per_subperiod = get(time_data[:HoursPerSubperiod], sym, 168)
+    hours_per_subperiod = time_data[:HoursPerSubperiod][sym]
 
-    total_hours_modeled = get(time_data, :TotalHoursModeled, 8760)
+    total_hours_modeled = time_data[:TotalHoursModeled]
 
     weights = get_weights(period_map, unique_rep_periods, hours_per_subperiod, total_hours_modeled)
 
@@ -169,7 +183,7 @@ function get_unique_rep_periods(period_map::Dict{Int64, Int64})
 
 end
 
-function get_weights(period_map::Dict{Int64, Int64}, unique_rep_periods::Vector{Int64}, hours_per_subperiod::Int64, total_hours_modeled::Int64=8760)
+function get_weights(period_map::Dict{Int64, Int64}, unique_rep_periods::Vector{Int64}, hours_per_subperiod::Int64, total_hours_modeled::Int64)
 
     # If no period map provided in time_data.json input, each period maps to itself from get_timedata_period_map
     is_identity_mapping = all(period_map[k] == k for k in keys(period_map))
@@ -183,13 +197,9 @@ function get_weights(period_map::Dict{Int64, Int64}, unique_rep_periods::Vector{
 
     unscaled_weights = Int[length(findall(rep_periods .== p)) for p in unique_rep_periods]
 
-    weight_scaling_factor = total_hours_modeled / sum(unscaled_weights * hours_per_subperiod)
+    weight_scaling_factor = total_hours_modeled / (sum(unscaled_weights) * hours_per_subperiod)
 
-    scaled_weights = [w * weight_scaling_factor for w in unscaled_weights]
-
-    println("Original Weights (Occurrences per Subperiod): ", unscaled_weights)
-    println("Scaling Factor: ", weight_scaling_factor)
-    println("Scaled Weights: ", scaled_weights)
+    scaled_weights = unscaled_weights * weight_scaling_factor
 
     return scaled_weights
 end
