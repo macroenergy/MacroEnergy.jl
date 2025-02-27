@@ -1,0 +1,10 @@
+CO2_Resource,Zone,etaPCO2_MWh_per_tonne,etaNG_MMBtu_per_tonne,etaFuel_MMBtu_per_tonne,Fuel,Inv_Cost_per_tonne_per_hr_yr,Fixed_OM_Cost_per_tonne_per_hr_yr,Var_OM_Cost_per_tonne,Power_Production_MWh_per_tonne,Fuel_CCS_Rate,Min_capacity_tonne_per_hr,Max_capacity_tonne_per_hr,Ramp_Up_Percentage,Ramp_Down_Percentage,CO2_Capture_Min_Output
+SE_Solvent_wNGCC_DAC,1,0,10.397,0,None,9.73E+05,4.30E+05,65.42,0.125,0.99,0,-1,1,1,0
+MIDAT_Solvent_wNGCC_DAC,2,0,10.397,0,None,9.73E+05,4.30E+05,65.42,0.125,0.99,0,-1,1,1,0
+NE_Solvent_wNGCC_DAC,3,0,10.397,0,None,9.73E+05,4.30E+05,65.42,0.125,0.99,0,-1,1,1,0
+SE_Sorbent_wNGCC_DAC,1,0,22.643,0,None,2.40E+06,1.32E+06,68.32,0,0.9,0,-1,1,1,0
+MIDAT_Sorbent_wNGCC_DAC,2,0,22.643,0,None,2.40E+06,1.32E+06,68.32,0,0.9,0,-1,1,1,0
+NE_Sorbent_wNGCC_DAC,3,0,22.643,0,None,2.40E+06,1.32E+06,68.32,0,0.9,0,-1,1,1,0
+SE_Sorbent_DAC,1,4.38,0,0,None,1.05E+06,8.37E+05,24.64,0,0,0,-1,1,1,0
+MIDAT_Sorbent_DAC,2,4.38,0,0,None,1.05E+06,8.37E+05,24.64,0,0,0,-1,1,1,0
+NE_Sorbent_DAC,3,4.38,0,0,None,1.05E+06,8.37E+05,24.64,0,0,0,-1,1,1,0

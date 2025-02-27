@@ -1,0 +1,146 @@
+{
+    "NaturalGasPowerCCS": [
+        {
+            "type": "ThermalPowerCCS",
+            "global_data": {
+                "nodes": {},
+                "transforms": {
+                    "timedata": "NaturalGas",
+                    "constraints": {
+                        "BalanceConstraint": true
+                    }
+                },
+                "edges": {
+                    "elec_edge": {
+                        "type": "Electricity",
+                        "uc": true,
+                        "unidirectional": true,
+                        "has_capacity": true,
+                        "can_expand": true,
+                        "can_retire": true,
+                        "integer_decisions": false,
+                        "constraints": {
+                            "CapacityConstraint": true,
+                            "RampingLimitConstraint": true,
+                            "MinFlowConstraint": true,
+                            "MinUpTimeConstraint": true,
+                            "MinDownTimeConstraint": true
+                        }
+                    },
+                    "fuel_edge": {
+                        "type": "NaturalGas",
+                        "unidirectional": true,
+                        "has_capacity": false
+                    },
+                    "co2_edge": {
+                        "type": "CO2",
+                        "unidirectional": true,
+                        "has_capacity": false,
+                        "end_vertex": "co2_sink"
+                    },
+                    "co2_captured_edge": {
+                        "type": "CO2Captured",
+                        "unidirectional": true,
+                        "has_capacity": false
+                    }
+                },
+                "storage": {}
+            },
+            "instance_data": [
+                {
+                    "id": "SE_naturalgas_ccccsavgcf_conservative_0",
+                    "transforms": {                    
+                        "efficiency_rate": 0.496095151,
+                        "emission_rate": 0.005431447,
+                        "capture_rate": 0.175616788
+                    },
+                    "edges": {
+                        "elec_edge": {
+                            "end_vertex": "elec_SE",
+                            "investment_cost": 105122.0711,
+                            "existing_capacity": 0.0,
+                            "fixed_om_cost": 47800,
+                            "variable_om_cost": 3.76,
+                            "capacity_size": 377,
+                            "startup_cost": 97,
+                            "startup_fuel": 0.058614214,                            
+                            "min_up_time": 4,
+                            "min_down_time": 4,
+                            "ramp_up_fraction": 1,
+                            "ramp_down_fraction": 1,
+                            "min_flow_fraction":0.5
+                        },
+                        "fuel_edge": {
+                            "start_vertex": "natgas_SE"
+                        },
+                        "co2_captured_edge": {
+                            "end_vertex": "co2_captured_SE"
+                        }
+                    }
+                },
+                {
+                    "id": "MIDAT_naturalgas_ccccsavgcf_conservative_0",
+                    "transforms": {                    
+                        "efficiency_rate": 0.496095151,
+                        "emission_rate": 0.005431447,
+                        "capture_rate": 0.175616788
+                    },
+                    "edges": {
+                        "elec_edge": {
+                            "end_vertex": "elec_MIDAT",
+                            "investment_cost": 111088.9792,
+                            "existing_capacity": 0.0,
+                            "fixed_om_cost": 47800,
+                            "variable_om_cost": 3.76,
+                            "capacity_size": 377,
+                            "startup_cost": 97,
+                            "startup_fuel": 0.058614214,                            
+                            "min_up_time": 4,
+                            "min_down_time": 4,
+                            "ramp_up_fraction": 1,
+                            "ramp_down_fraction": 1,
+                            "min_flow_fraction":0.5
+                        },
+                        "fuel_edge": {
+                            "start_vertex": "natgas_MIDAT"
+                        },
+                        "co2_captured_edge": {
+                            "end_vertex": "co2_captured_MIDAT"
+                        }
+                    }
+                },
+                {
+                    "id": "NE_naturalgas_ccccsavgcf_conservative_0",
+                    "transforms": {                    
+                        "efficiency_rate": 0.496095151,
+                        "emission_rate": 0.005431447,
+                        "capture_rate": 0.175616788
+                    },
+                    "edges": {
+                        "elec_edge": {
+                            "end_vertex": "elec_NE",
+                            "investment_cost": 121097.9862,
+                            "existing_capacity": 0.0,
+                            "fixed_om_cost": 47800,
+                            "variable_om_cost": 3.76,
+                            "capacity_size": 377,
+                            "startup_cost": 97,
+                            "startup_fuel": 0.058614214,                            
+                            "min_up_time": 4,
+                            "min_down_time": 4,
+                            "ramp_up_fraction": 1,
+                            "ramp_down_fraction": 1,
+                            "min_flow_fraction":0.5
+                        },
+                        "fuel_edge": {
+                            "start_vertex": "natgas_NE"
+                        },
+                        "co2_captured_edge": {
+                            "end_vertex": "co2_captured_NE"
+                        }
+                    }
+                }
+            ]
+        }
+    ]
+}

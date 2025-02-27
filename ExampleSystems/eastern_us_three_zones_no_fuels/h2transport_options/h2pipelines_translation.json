@@ -1,0 +1,86 @@
+{
+    "h2pipeline": [
+        {
+            "type": "GasStorage",
+            "global_data": {
+                "transforms": {
+                    "timedata": "Hydrogen",
+                    "constraints": {
+                        "BalanceConstraint": true
+                    }
+                },
+                "edges": {
+                    "discharge_edge": {
+                        "type": "Hydrogen",
+                        "unidirectional": true,
+                        "can_expand": true,
+                        "can_retire": false,
+                        "has_capacity": true,
+                        "integer_decisions": false,
+                        "constraints": {
+                            "CapacityConstraint": true
+                        }
+                    },
+                    "charge_edge": {
+                        "type": "Hydrogen",
+                        "unidirectional": true,
+                        "has_capacity": true,
+                        "can_expand": true,
+                        "can_retire": false,
+                        "constraints": {
+                            "CapacityConstraint": true
+                        }
+                    },
+                    "compressor_elec_edge": {
+                        "type": "Electricity",
+                        "unidirectional": true,
+                        "has_capacity": false
+                    },
+                    "compressor_gas_edge": {
+                        "type": "Hydrogen",
+                        "unidirectional": true,
+                        "has_capacity": false
+                    }
+                },
+                "storage": {
+                    "commodity": "Hydrogen",
+                    "can_expand": true,
+                    "can_retire": false,
+                    "constraints": {
+                        "StorageCapacityConstraint": true,
+                        "BalanceConstraint": true,
+                        "StorageMaxDurationConstraint": true,
+                        "StorageChargeDischargeRatioConstraint": true
+                    }
+                }
+            },
+            "instance_data": [
+                {
+                    "id": "h2pipe_MA_to_CT",
+                    "transforms": {
+                    "electricity_consumption": "ColumnPath(<HSC_pipelines/H2PipeCompEnergy_MWh_p_MWh>) + ColumnPath(<HSC_pipelines/BoosterCompEnergy_MWh_p_MWh>)*ColumnPath(<HSC_pipelines/Pipe_length_miles>)/ColumnPath(<HSC_pipelines/len_bw_comp_mile>)"
+                    },
+                    "storage":{
+                        "max_duration" : "ColumnPath(<HSC_pipeliens/H2PipeCap_MWh_p_mile>) * ColumnPath(<HSC_pipelines/Pipe_length_miles>) / ColumnPath(<HSC_pipelines/Max_Flow_MW_p_pipe>)",
+                        "charge_discharge_ratio": 1
+                    },
+                    "edges": {
+                        "discharge_edge": {
+                            "end_vertex": "h2_CT",
+                            "distance":"ColumnPath(<HSC_pipelines/Pipe_length_miles>)",
+                            "capacity_size": "ColumnPath(<HSC_pipelines/Max_Flow_MW_p_pipe>)",
+                            "max_capacity": "ColumnPath(<HSC_pipelines/Max_Flow_MW_p_pipe>) *  ColumnPath(<HSC_pipelines/Max_No_Pipe>)",
+                            "investment_cost": "ColumnPath(<HSC_pipeliens/H2Pipe_Inv_Cost_per_mile_yr>) * ColumnPath(<HSC_pipelines/Pipe_length_miles>)/ColumnPath(<HSC_pipelines/Max_Flow_MW_p_pipe>) + ColumnPath(<HSC_pipelines/H2PipeCompCapex>) + ColumnPath(<HSC_pipelines/BoosterCompCapex_p_MW_yr>) * ColumnPath(<HSC_pipelines/Pipe_length_miles>)/ColumnPath(<HSC_pipelines/len_bw_comp_mile>)"
+                        },
+                        "compressor_gas_edge": {
+                            "start_vertex": "h2_MA"
+                        },
+                        "compressor_elec_edge": {
+                            "start_vertex": "elec_MA"
+                        }
+                    }
+                }
+            ]
+        }
+    ]
+}

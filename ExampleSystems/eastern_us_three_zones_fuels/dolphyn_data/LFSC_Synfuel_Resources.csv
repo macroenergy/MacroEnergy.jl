@@ -1,0 +1,4 @@
+Syn_Fuel_Resource,Zone,mmbtu_sf_diesel_p_tonne_co2,mmbtu_sf_jetfuel_p_tonne_co2,mmbtu_sf_gasoline_p_tonne_co2,mwh_h2_p_tonne_co2,mwh_p_tonne_co2,Inv_Cost_p_tonne_co2_p_hr_yr,Fixed_OM_cost_p_tonne_co2_hr_yr,Var_OM_cost_p_tonne_co2,mmbtu_p_tonne_co2_p1,price_p_mmbtu_p1,co2_out_p_mmbtu_p1,CCS_Rate,MinCapacity_tonne_p_hr,MaxCapacity_tonne_p_hr
+SE_Synfuel_Plant,1,1.691347471,3.056776059,1.790838499,3.679920389,0.036196062,277645.8123,240596.9274,9.655519518,0,0,0,0,0,10000000000
+MIDAT_Synfuel_Plant,2,1.691347471,3.056776059,1.790838499,3.679920389,0.036196062,277645.8123,240596.9274,9.655519518,0,0,0,0,0,10000000000
+NE_Synfuel_Plant,3,1.691347471,3.056776059,1.790838499,3.679920389,0.036196062,277645.8123,240596.9274,9.655519518,0,0,0,0,0,10000000000

@@ -1,4 +1,0 @@
-Syn_NG_Resource,Zone,mmbtu_syn_ng_p_tonne_co2,mwh_h2_p_tonne_co2,mwh_p_tonne_co2,Inv_Cost_p_tonne_co2_p_hr_yr,Fixed_OM_cost_p_tonne_co2_hr_yr,Var_OM_cost_p_tonne_co2,CCS_Rate,MinCapacity_tonne_p_hr,MaxCapacity_tonne_p_hr
-SE_Syn_NG_Plant,1,18.007,7.16898,0.291,91213.92,0,0,0,0,-1
-MIDAT_Syn_NG_Plant,2,18.007,7.16898,0.291,91213.92,0,0,0,0,-1
-NE_Syn_NG_Plant,3,18.007,7.16898,0.291,91213.92,0,0,0,0,-1

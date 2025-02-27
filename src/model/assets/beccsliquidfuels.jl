@@ -5,7 +5,8 @@ struct BECCSLiquidFuels <: AbstractAsset
     gasoline_edge::Edge{LiquidFuels}
     jetfuel_edge::Edge{LiquidFuels}
     diesel_edge::Edge{LiquidFuels}
-    elec_edge::Edge{Electricity}
+    elec_production_edge::Edge{Electricity}
+    elec_consumption_edge::Edge{Electricity}
     co2_edge::Edge{CO2}
     co2_emission_edge::Edge{CO2}
     co2_captured_edge::Edge{CO2Captured}
@@ -85,21 +86,37 @@ function make(::Type{BECCSLiquidFuels}, data::AbstractDict{Symbol,Any}, system::
     diesel_edge.unidirectional = true;
     diesel_edge.has_capacity = false;
 
-    elec_edge_key = :elec_edge
-    elec_edge_data = process_data(data[:edges][elec_edge_key])
+    elec_consumption_edge_key = :elec_consumption_edge
+    elec_consumption_edge_data = process_data(data[:edges][elec_consumption_edge_key])
     elec_end_node = beccs_transform
-    elec_start_node = find_node(system.locations, Symbol(elec_edge_data[:start_vertex]))
-    elec_edge = Edge(
-        Symbol(id, "_", elec_edge_key),
-        elec_edge_data,
+    elec_start_node = find_node(system.locations, Symbol(elec_consumption_edge_data[:start_vertex]))
+    elec_consumption_edge = Edge(
+        Symbol(id, "_", elec_consumption_edge_key),
+        elec_consumption_edge_data,
         system.time_data[:Electricity],
         Electricity,
         elec_start_node,
         elec_end_node,
     )
-    elec_edge.constraints = Vector{AbstractTypeConstraint}()
-    elec_edge.unidirectional = true;
-    elec_edge.has_capacity = false;
+    elec_consumption_edge.constraints = Vector{AbstractTypeConstraint}()
+    elec_consumption_edge.unidirectional = true;
+    elec_consumption_edge.has_capacity = false;
+
+    elec_production_edge_key = :elec_production_edge
+    elec_production_edge_data = process_data(data[:edges][elec_production_edge_key])
+    elec_start_node = beccs_transform 
+    elec_end_node = find_node(system.locations, Symbol(elec_production_edge_data[:end_vertex]))
+    elec_production_edge = Edge(
+        Symbol(id, "_", elec_production_edge_key),
+        elec_production_edge_data,
+        system.time_data[:Electricity],
+        Electricity,
+        elec_start_node,
+        elec_end_node,
+    )
+    elec_production_edge.constraints = Vector{AbstractTypeConstraint}()
+    elec_production_edge.unidirectional = true;
+    elec_production_edge.has_capacity = false;
 
     co2_edge_key = :co2_edge
     co2_edge_data = process_data(data[:edges][co2_edge_key])
@@ -162,8 +179,12 @@ function make(::Type{BECCSLiquidFuels}, data::AbstractDict{Symbol,Any}, system::
             diesel_edge.id => 1.0,
             biomass_edge.id => get(transform_data, :diesel_production, 0.0)
         ),
+        :elec_production => Dict(
+            elec_production_edge.id => 1.0,
+            biomass_edge.id => get(transform_data, :electricity_production, 0.0)
+        ),
         :elec_consumption => Dict(
-            elec_edge.id => -1.0,
+            elec_consumption_edge.id => -1.0,
             biomass_edge.id => get(transform_data, :electricity_consumption, 0.0)
         ),
         :negative_emissions => Dict(
@@ -180,5 +201,5 @@ function make(::Type{BECCSLiquidFuels}, data::AbstractDict{Symbol,Any}, system::
         )
     )
 
-    return BECCSLiquidFuels(id, beccs_transform, biomass_edge,gasoline_edge,jetfuel_edge,diesel_edge,elec_edge,co2_edge,co2_emission_edge,co2_captured_edge) 
+    return BECCSLiquidFuels(id, beccs_transform, biomass_edge, gasoline_edge, jetfuel_edge, diesel_edge, elec_production_edge, elec_consumption_edge, co2_edge, co2_emission_edge, co2_captured_edge) 
 end

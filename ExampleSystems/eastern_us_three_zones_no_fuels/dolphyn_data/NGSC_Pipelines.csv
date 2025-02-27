@@ -1,0 +1,5 @@
+NG_Pipelines,z1,z2,z3,Max_No_Pipe,Existing_No_Pipe,Max_Flow_MMBtu_p_Hr_Per_Pipe,NGPipe_Inv_Cost_per_mile_yr,Pipe_length_miles,NGPipeCap_MMBtu_per_mile,Min_pipecap_stor_frac,len_bw_comp_mile,BoosterCompCapex_per_MMBtu_p_hr_yr,BoosterCompEnergy_MWh_per_MMBtu,NGPipeCompCapex,NGPipeCompEnergy
+1,1,-1,0,1,1,452308.5,0,843.0302747,0,0,31,0.00E+00,0,0,0
+2,-1,1,0,1,1,514977.75,0,843.0302747,0,0,31,0.00E+00,0,0,0
+3,0,1,-1,1,1,440544.5,0,1008.271753,0,0,31,0.00E+00,0,0,0
+4,0,-1,1,1,1,77114.75,0,1008.271753,0,0,31,0.00E+00,0,0,0

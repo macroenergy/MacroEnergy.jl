@@ -1,0 +1,66 @@
+{
+    "CO2Injection": [
+        {
+            "type": "CO2Injection",
+            "global_data":{
+                "transforms": {
+                    "timedata": "CO2Captured",
+                    "constraints": {
+                            "BalanceConstraint": true
+                    }
+                },
+                "edges" :{
+                    "co2_captured_edge": {
+                        "type": "CO2Captured",
+                        "unidirectional": true,
+                        "has_capacity": true,
+                        "can_retire": false,
+                        "can_expand": false,
+                        "integer_decisions": false,
+                        "uc": false,
+                        "constraints": {
+                            "CapacityConstraint": true
+                        }
+                    },
+                    "co2_storage_edge": {
+                        "type": "CO2Captured",
+                        "unidirectional": true,
+                        "has_capacity": false
+                    }
+                }
+            },
+            "instance_data":[
+                {
+                    "id": "SE_CO2_Injection",
+                    "edges":{
+                            "co2_captured_edge": {
+                                "start_vertex": "co2_captured_SE",
+                                "existing_capacity": 19634.7,
+                                "variable_om_cost": 6.1
+                            },
+
+                            "co2_storage_edge": {
+                                "end_vertex": "co2_storage_SE"
+                            }
+                        }
+
+                },
+                {
+                    "id": "MIDAT_CO2_Injection",
+                    "edges":{
+                            "co2_captured_edge": {
+                                "start_vertex": "co2_captured_MIDAT",
+                                "existing_capacity": 1155,
+                                "variable_om_cost": 7.9
+                            },
+                            "co2_storage_edge": {
+                                "end_vertex": "co2_storage_MIDAT"
+                            }
+                        }
+
+                }
+            ]
+        }
+    ]
+
+}

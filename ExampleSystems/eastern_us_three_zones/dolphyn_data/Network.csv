@@ -1,4 +1,0 @@
-,Network_zones,Network_Lines,z1,z2,z3,Line_Max_Flow_MW,transmission_path_name,distance_mile,Line_Loss_Percentage,Line_Max_Reinforcement_MW,Line_Reinforcement_Cost_per_MWyr,DerateCapRes_1,CapRes_1,CapRes_Excl_1,DerateCapRes_2,CapRes_2,CapRes_Excl_2,DerateCapRes_3,CapRes_3,CapRes_Excl_3
-SE,z1,1,1,-1,0,5552,SE_to_MID_AT,491.4512001,0.04914512,27760,40219,0.95,0,0,0.95,0,0,0.95,0,0
-MIDAT,z2,2,0,1,-1,1915,MID_AT_to_NE,473.6625536,0.047366255,9575,62316,0.95,0,0,0.95,0,0,0.95,0,0
-NE,z3,,,,,,,,,,,,,,,,,,,
