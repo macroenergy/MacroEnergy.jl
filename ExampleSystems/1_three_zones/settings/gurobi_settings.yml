@@ -1,0 +1,5 @@
+# Gurobi Solver Parameters
+Method: 2                  
+BarConvTol: 1e-08         
+Crossover: 1              
+

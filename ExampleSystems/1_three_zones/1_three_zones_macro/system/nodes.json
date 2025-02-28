@@ -1,0 +1,135 @@
+{
+    "nodes": [
+        {
+            "global_data": {
+                "constraints": {
+                    "MaxNonServedDemandConstraint": true,
+                    "MaxNonServedDemandPerSegmentConstraint": true,
+                    "BalanceConstraint": true
+                },
+                "max_nsd": [
+                    1,
+                    0.04,
+                    0.024,
+                    0.003
+                ],
+                "time_interval": "Electricity",
+                "price_nsd": [
+                    50000,
+                    45000,
+                    27500.000000000004,
+                    10000
+                ]
+            },
+            "instance_data": [
+                {
+                    "demand": {
+                        "timeseries": {
+                            "header": "elec_demand_MA",
+                            "path": "system/demand.csv"
+                        }
+                    },
+                    "id": "elec_MA"
+                },
+                {
+                    "demand": {
+                        "timeseries": {
+                            "header": "elec_demand_CT",
+                            "path": "system/demand.csv"
+                        }
+                    },
+                    "id": "elec_CT"
+                },
+                {
+                    "demand": {
+                        "timeseries": {
+                            "header": "elec_demand_ME",
+                            "path": "system/demand.csv"
+                        }
+                    },
+                    "id": "elec_ME"
+                }
+            ],
+            "type": "Electricity"
+        },
+        {
+            "global_data": {
+                "time_interval": "NaturalGas"
+            },
+            "instance_data": [
+                {
+                    "price": {
+                        "timeseries": {
+                            "header": "CT_NG",
+                            "path": "system/fuel_prices.csv"
+                        }
+                    },
+                    "id": "CT_NG"
+                },
+                {
+                    "price": {
+                        "timeseries": {
+                            "header": "ME_NG",
+                            "path": "system/fuel_prices.csv"
+                        }
+                    },
+                    "id": "ME_NG"
+                },
+                {
+                    "price": {
+                        "timeseries": {
+                            "header": "MA_NG",
+                            "path": "system/fuel_prices.csv"
+                        }
+                    },
+                    "id": "MA_NG"
+                },
+                {
+                    "price": {
+                        "timeseries": {
+                            "header": "None",
+                            "path": "system/fuel_prices.csv"
+                        }
+                    },
+                    "id": "None"
+                }
+            ],
+            "type": "NaturalGas"
+        },
+        {
+            "global_data": {
+                "time_interval": "CO2"
+            },
+            "instance_data": [
+                {
+                    "constraints": {
+                        "CO2CapConstraint": true
+                    },
+                    "rhs_policy": {
+                        "CO2CapConstraint": 18000
+                    },
+                    "id": "co2_sink_1"
+                },
+                {
+                    "constraints": {
+                        "CO2CapConstraint": true
+                    },
+                    "rhs_policy": {
+                        "CO2CapConstraint": 25000
+                    },
+                    "id": "co2_sink_2"
+                },
+                {
+                    "constraints": {
+                        "CO2CapConstraint": true
+                    },
+                    "rhs_policy": {
+                        "CO2CapConstraint": 25000
+                    },
+                    "id": "co2_sink_3"
+                }
+            ],
+            "type": "CO2"
+        }
+    ]
+}
