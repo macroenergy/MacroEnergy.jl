@@ -28,6 +28,7 @@ YAML = "ddb6d928-2868-570f-bddf-ab3f9cf99eb6"
 [compat]
 DuckDB = "^0.10.3"
 Gurobi = "1.6.0"
+JSON3 = "1"
 Parquet2 = "0.2.27"
 
 [extras]
