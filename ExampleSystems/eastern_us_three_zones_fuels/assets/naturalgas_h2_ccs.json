@@ -167,7 +167,7 @@
                     "id": "SE_Large_SMR_wCCS_96pct",
                     "transforms":{
                         "emission_rate": 0.006879832936086124,
-                        "efficiency_rate": 0.72289814,
+                        "fuel_consumption": 1.300184721664035,
                         "electricity_consumption": 0.051727,
                         "capture_rate": 0.17416840222407487
                     },
@@ -204,7 +204,7 @@
                     "id": "MIDAT_Large_SMR_wCCS_96pct",
                     "transforms":{
                         "emission_rate": 0.006879832936086124,
-                        "efficiency_rate": 0.72289814,
+                        "fuel_consumption": 1.300184721664035,
                         "electricity_consumption": 0.051727,
                         "capture_rate": 0.17416840222407487
                     },
@@ -241,7 +241,7 @@
                     "id": "NE_Large_SMR_wCCS_96pct",
                     "transforms":{
                         "emission_rate": 0.006879832936086124,
-                        "efficiency_rate": 0.72289814,
+                        "fuel_consumption": 1.300184721664035,
                         "electricity_consumption": 0.051727,
                         "capture_rate": 0.17416840222407487
                     },
