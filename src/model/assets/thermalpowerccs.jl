@@ -44,6 +44,7 @@ function make(::Type{ThermalPowerCCS}, data::AbstractDict{Symbol,Any}, system::S
                 MinDownTimeConstraint(),
             ],
         )
+        elec_edge.startup_fuel_balance_id = :energy
     else
         elec_edge = Edge(
             Symbol(id, "_", elec_edge_key),
@@ -62,7 +63,7 @@ function make(::Type{ThermalPowerCCS}, data::AbstractDict{Symbol,Any}, system::S
         )
     end
     elec_edge.unidirectional = true;
-    elec_edge.startup_fuel_balance_id = :energy
+    
 
     fuel_edge_key = :fuel_edge
     fuel_edge_data = process_data(data[:edges][fuel_edge_key])
@@ -114,8 +115,8 @@ function make(::Type{ThermalPowerCCS}, data::AbstractDict{Symbol,Any}, system::S
 
     thermalccs_transform.balance_data = Dict(
         :energy => Dict(
-            elec_edge.id => 1.0,
-            fuel_edge.id => get(transform_data, :efficiency_rate, 1.0),
+            elec_edge.id => get(transform_data, :fuel_consumption, 1.0),
+            fuel_edge.id => 1.0,
             co2_edge.id => 0.0,
             co2_captured_edge.id => 0.0,
         ),

@@ -42,7 +42,7 @@
                     "id": "SE_OCGT-H2",
                     "transforms":{
                         "emission_rate": 0,
-                        "efficiency_rate": 0.45353
+                        "fuel_consumption": 2.2049258042466873
                     },
                     "edges":{
                             "elec_edge": {
@@ -73,7 +73,7 @@
                     "id": "MIDAT_OCGT-H2",
                     "transforms":{
                         "emission_rate": 0,
-                        "efficiency_rate": 0.45353
+                        "fuel_consumption": 2.2049258042466873
                     },
                     "edges":{
                             "elec_edge": {
@@ -104,7 +104,7 @@
                     "id": "NE_OCGT-H2",
                     "transforms":{
                         "emission_rate": 0,
-                        "efficiency_rate": 0.45353
+                        "fuel_consumption": 2.2049258042466873
                     },
                     "edges":{
                             "elec_edge": {

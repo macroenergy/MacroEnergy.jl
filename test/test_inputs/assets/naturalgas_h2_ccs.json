@@ -55,7 +55,7 @@
                     "id": "MA_ATR_wCCS_94pct",
                     "transforms":{
                         "emission_rate": 0.003794329,
-                        "efficiency_rate": 0.769121482,
+                        "fuel_consumption": 1.300184721664035,
                         "electricity_consumption": 0.101574,
                         "capture_rate": 0.065193472
                     },
@@ -95,7 +95,7 @@
                     "id": "CT_ATR_wCCS_94pct",
                     "transforms":{
                         "emission_rate": 0.003794329,
-                        "efficiency_rate": 0.769121482,
+                        "fuel_consumption": 1.300184721664035,
                         "electricity_consumption": 0.101574,
                         "capture_rate": 0.065193472
                     },
@@ -135,7 +135,7 @@
                     "id": "ME_ATR_wCCS_94pct",
                     "transforms":{
                         "emission_rate": 0.003794329,
-                        "efficiency_rate": 0.769121482,
+                        "fuel_consumption": 1.300184721664035,
                         "electricity_consumption": 0.101574,
                         "capture_rate": 0.065193472
                     },

@@ -37,7 +37,7 @@ fuel_edge::Edge{T},co2_edge::Edge{CO2},co2_captured_edge::Edge{CO2Captured}) whe
             - min_up_time: Int
             - min_down_time: Int
             - startup_cost: Float64
-            - startup_fuel: Float64
+            - startup_fuel_consumption: Float64
             - startup_fuel_balance_id: Symbol
             - constraints: Vector{AbstractTypeConstraint}
         - fuel_edge: Dict{Symbol, Any}
@@ -115,6 +115,7 @@ function make(::Type{ThermalHydrogenCCS}, data::AbstractDict{Symbol,Any}, system
                 MinDownTimeConstraint(),
             ],
         )
+        h2_edge.startup_fuel_balance_id = :energy
     else
         h2_edge = Edge(
             Symbol(id, "_", h2_edge_key),
@@ -133,7 +134,7 @@ function make(::Type{ThermalHydrogenCCS}, data::AbstractDict{Symbol,Any}, system
         )
     end
     h2_edge.unidirectional = true;
-    h2_edge.startup_fuel_balance_id = :energy
+    
 
     fuel_edge_key = :fuel_edge
     fuel_edge_data = process_data(data[:edges][fuel_edge_key])
@@ -184,8 +185,8 @@ function make(::Type{ThermalHydrogenCCS}, data::AbstractDict{Symbol,Any}, system
 
     thermalhydrogenccs_transform.balance_data = Dict(
         :energy => Dict(
-            h2_edge.id => 1.0,
-            fuel_edge.id => get(transform_data, :efficiency_rate, 1.0),
+            h2_edge.id =>  get(transform_data, :fuel_consumption, 1.0),
+            fuel_edge.id => 1.0,
         ),
         :electricity => Dict(
             h2_edge.id => get(transform_data, :electricity_consumption, 0.0),

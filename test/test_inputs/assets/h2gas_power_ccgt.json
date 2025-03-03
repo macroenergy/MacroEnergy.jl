@@ -43,7 +43,7 @@
                     "id": "MA_CCGT-H2",
                     "transforms": {
                         "emission_rate": 0,
-                        "efficiency_rate": 0.549644
+                        "fuel_consumption": 1.8193594399283899
                     },
                     "edges": {
                         "elec_edge": {
@@ -79,7 +79,7 @@
                     "id": "CT_CCGT-H2",
                     "transforms": {
                         "emission_rate": 0,
-                        "efficiency_rate": 0.549644
+                        "fuel_consumption": 1.8193594399283899
                     },
                     "edges": {
                         "elec_edge": {
@@ -115,7 +115,7 @@
                     "id": "ME_CCGT-H2",
                     "transforms": {
                         "emission_rate": 0,
-                        "efficiency_rate": 0.549644
+                        "fuel_consumption": 1.8193594399283899
                     },
                     "edges": {
                         "elec_edge": {

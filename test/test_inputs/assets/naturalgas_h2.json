@@ -49,7 +49,7 @@
                     "id": "MA_Large_SMR_Non_CCS",
                     "transforms": {
                         "emission_rate": 0.069029264,
-                        "efficiency_rate": 0.76865951,
+                        "fuel_consumption": 1.3009661455954666,
                         "electricity_consumption": 0.016404
                     },
                     "edges": {

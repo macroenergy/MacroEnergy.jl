@@ -43,7 +43,7 @@
                 {
                     "id": "SE_nuclear_1",
                     "transforms":{
-                        "efficiency_rate": 0.326333362
+                        "fuel_consumption": 3.064351108
                     },
                     "edges":{
                         "elec_edge": {
@@ -60,14 +60,14 @@
                             "min_down_time": 36,
                             "ramp_up_fraction": 0.25,
                             "ramp_down_fraction": 0.25,
-                            "startup_fuel": 0.0
+                            "startup_fuel_consumption": 0.0
                         }
                     }
                 },
                 {
                     "id": "SE_nuclear_2",
                     "transforms":{
-                        "efficiency_rate": 0.370482262
+                        "fuel_consumption": 2.699184555
                     },
                     "edges":{
                         "elec_edge": {
@@ -84,14 +84,14 @@
                             "min_down_time": 36,
                             "ramp_up_fraction": 0.25,
                             "ramp_down_fraction": 0.25,
-                            "startup_fuel": 0.0
+                            "startup_fuel_consumption": 0.0
                         }
                     }
                 },
                 {
                     "id": "NE_nuclear_1",
                     "transforms":{
-                        "efficiency_rate": 0.326364575
+                        "fuel_consumption": 3.064058037
                     },
                     "edges":{
                         "elec_edge": {
@@ -108,14 +108,14 @@
                             "min_down_time": 36,
                             "ramp_up_fraction": 0.25,
                             "ramp_down_fraction": 0.25,
-                            "startup_fuel": 0.0
+                            "startup_fuel_consumption": 0.0
                         }
                     }
                 },
                 {
                     "id": "NE_nuclear_2",
                     "transforms":{
-                        "efficiency_rate": 0.326364575
+                        "fuel_consumption": 3.064058037
                     },
                     "edges":{
                         "elec_edge": {
@@ -132,14 +132,14 @@
                             "min_down_time": 36,
                             "ramp_up_fraction": 0.25,
                             "ramp_down_fraction": 0.25,
-                            "startup_fuel": 0.0
+                            "startup_fuel_consumption": 0.0
                         }
                     }
                 },
                 {
                     "id": "MIDAT_nuclear_1",
                     "transforms":{
-                        "efficiency_rate": 0.326364575
+                        "fuel_consumption": 3.064058037
                     },
                     "edges":{
                         "elec_edge": {
@@ -156,14 +156,14 @@
                             "min_down_time": 36,
                             "ramp_up_fraction": 0.25,
                             "ramp_down_fraction": 0.25,
-                            "startup_fuel": 0.0
+                            "startup_fuel_consumption": 0.0
                         }
                     }
                 },
                 {
                     "id": "MIDAT_nuclear_2",
                     "transforms":{
-                        "efficiency_rate": 0.326364575
+                        "fuel_consumption": 3.064058037
                     },
                     "edges":{
                         "elec_edge": {
@@ -180,14 +180,14 @@
                             "min_down_time": 36,
                             "ramp_up_fraction": 0.25,
                             "ramp_down_fraction": 0.25,
-                            "startup_fuel": 0.0
+                            "startup_fuel_consumption": 0.0
                         }
                     }
                 },
                 {
                     "id": "MIDAT_nuclear_mid_0",
                     "transforms":{
-                        "efficiency_rate": 0.326364575
+                        "fuel_consumption": 3.064058037
                     },
                     "edges":{
                         "elec_edge": {
@@ -205,14 +205,14 @@
                             "min_down_time": 36,
                             "ramp_up_fraction": 0.25,
                             "ramp_down_fraction": 0.25,
-                            "startup_fuel": 0.0
+                            "startup_fuel_consumption": 0.0
                         }
                     }
                 },
                 {
                     "id": "NE_nuclear_mid_0",
                     "transforms":{
-                        "efficiency_rate": 0.326364575
+                        "fuel_consumption": 3.064058037
                     },
                     "edges":{
                         "elec_edge": {
@@ -230,14 +230,14 @@
                             "min_down_time": 36,
                             "ramp_up_fraction": 0.25,
                             "ramp_down_fraction": 0.25,
-                            "startup_fuel": 0.0
+                            "startup_fuel_consumption": 0.0
                         }
                     }
                 },
                 {
                     "id": "SE_nuclear_mid_0",
                     "transforms":{
-                        "efficiency_rate": 0.326364575
+                        "fuel_consumption": 3.064058037
                     },
                     "edges":{
                         "elec_edge": {
@@ -255,7 +255,7 @@
                             "min_down_time": 36,
                             "ramp_up_fraction": 0.25,
                             "ramp_down_fraction": 0.25,
-                            "startup_fuel": 0.0
+                            "startup_fuel_consumption": 0.0
                         }
                     }
                 }
