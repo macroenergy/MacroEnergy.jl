@@ -1,7 +1,7 @@
 # Variable Renewable Energy resources (VRE)
 
 ## Graph structure
-A Variable Renewable Energy asset is represented in MACRO using the following graph structure:
+A Variable Renewable Energy asset is represented in Macro using the following graph structure:
 
 ```@raw html
 <img width="400" src="../../images/vre.png" />
@@ -30,21 +30,21 @@ The structure of the input file for a VRE asset follows the graph representation
 ```
 
 ### Transformation
-The definition of the transformation object can be found here [Macro.Transformation](@ref).
+The definition of the transformation object can be found here [MacroEnergy.Transformation](@ref).
 
 | **Attribute** | **Type** | **Values** | **Default** | **Description** |
 |:--------------| :------: |:------: | :------: |:-------|
 | **timedata** | `String` | `String` | Required | Time resolution for the time series data linked to the transformation. E.g. "Electricity". |
-| **constraints** | `Dict{String,Bool}` | Any MACRO constraint type for vertices | Empty | List of constraints applied to the transformation. E.g. `{"BalanceConstraint": true}`. |
+| **constraints** | `Dict{String,Bool}` | Any Macro constraint type for vertices | Empty | List of constraints applied to the transformation. E.g. `{"BalanceConstraint": true}`. |
 
 ### Edges
-The definition of the `Edge` object can be found here [Macro.Edge](@ref).
+The definition of the `Edge` object can be found here [MacroEnergy.Edge](@ref).
 
 | **Attribute** | **Type** | **Values** | **Default** | **Description** |
 |:--------------| :------: |:------: | :------: |:-------|
 | **type** | `String` | `Electricity` | Required | Commodity of the edge. |
 | **end_vertex** | `String` | Any electricity node id present in the system | Required | ID of the ending vertex of the edge. The node must be present in the `nodes.json` file. E.g. "elec\_node\_1". |
-| **constraints** | `Dict{String,Bool}` | Any MACRO constraint type for Edges | Empty | List of constraints applied to the edge. E.g. `{"MustRunConstraint": true}`. |
+| **constraints** | `Dict{String,Bool}` | Any Macro constraint type for Edges | Empty | List of constraints applied to the edge. E.g. `{"MustRunConstraint": true}`. |
 | **can_expand** | `Bool` | `Bool` | `false` | Whether the edge is eligible for capacity expansion. |
 | **can_retire** | `Bool` | `Bool` | `false` | Whether the edge is eligible for capacity retirement. |
 | **capacity_size** | `Float64` | `Float64` | `1.0` | Size of the edge capacity. |

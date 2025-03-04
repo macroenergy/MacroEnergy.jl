@@ -1,7 +1,7 @@
 # Hydro Reservoir
 
 ## Graph structure
-A hydroelectric reservoir is represented in MACRO using the following graph structure:
+A hydroelectric reservoir is represented in Macro using the following graph structure:
 
 ```@raw html
 <img width="400" src="../../images/hydrores.png" />
@@ -48,12 +48,12 @@ The structure of the input file for a hydroelectric reservoir asset follows the 
 ```
 
 ### Storage component
-The definition of the `Storage` object can be found here [Macro.Storage](@ref).
+The definition of the `Storage` object can be found here [MacroEnergy.Storage](@ref).
 
 | **Attribute** | **Type** | **Values** | **Default** | **Description** |
 |:--------------| :------: |:------: | :------: |:-------|
 | **commodity** | `String` | `Electricity` | Required | Commodity being stored. |
-| **constraints** | `Dict{String,Bool}` | Any MACRO constraint type for storage | `BalanceConstraint`, `StorageCapacityConstraint` | List of constraints applied to the storage. E.g. `{"BalanceConstraint": true}`. |
+| **constraints** | `Dict{String,Bool}` | Any Macro constraint type for storage | `BalanceConstraint`, `StorageCapacityConstraint` | List of constraints applied to the storage. E.g. `{"BalanceConstraint": true}`. |
 | **can_expand** | `Bool` | `Bool` | `false` | Whether the storage is eligible for capacity expansion. |
 | **can\_retire** | `Bool` | `Bool` | `false` | Whether the storage is eligible for capacity retirement. |
 | **charge\_discharge\_ratio** | `Float64` | `Float64` | `1.0` | Ratio between charging and discharging rates. |
@@ -81,14 +81,14 @@ The definition of the `Storage` object can be found here [Macro.Storage](@ref).
 !!! warning "Directionality"
     All the three edges are unidirectional by construction.
 
-All the edges have the same set of attributes. The definition of the `Edge` object can be found here [Macro.Edge](@ref).
+All the edges have the same set of attributes. The definition of the `Edge` object can be found here [MacroEnergy.Edge](@ref).
 
 | **Attribute** | **Type** | **Values** | **Default** | **Description** |
 |:--------------| :------: |:------: | :------: |:-------|
 | **type** | `String` | `Electricity` | Required | Commodity of the edge. |
 | **start_vertex** | `String` | Any electricity node id present in the system | Required | ID of the starting vertex of the edge. The node must be present in the `nodes.json` file. E.g. "elec\_node\_1". |
 | **end_vertex** | `String` | Any electricity node id present in the system | Required | ID of the ending vertex of the edge. The node must be present in the `nodes.json` file. E.g. "elec\_node\_2". |
-| **constraints** | `Dict{String,Bool}` | Any MACRO constraint type for Edges | Empty | List of constraints applied to the edge. E.g. `{"CapacityConstraint": true}`. |
+| **constraints** | `Dict{String,Bool}` | Any Macro constraint type for Edges | Empty | List of constraints applied to the edge. E.g. `{"CapacityConstraint": true}`. |
 | **can_expand** | `Bool` | `Bool` | `false` | Whether the edge is eligible for capacity expansion. |
 | **can_retire** | `Bool` | `Bool` | `false` | Whether the edge is eligible for capacity retirement. |
 | **capacity_size** | `Float64` | `Float64` | `1.0` | Size of the edge capacity. |

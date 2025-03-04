@@ -1,9 +1,9 @@
 # User Guide
-*MACRO version 0.1.0*
+*Macro version 0.1.0*
 
-## Introduction: Energy System in MACRO
+## Introduction: Energy System in Macro
 
-The MACRO model is designed to represent the energy system in a detailed manner, with various sectors and technologies interacting. Each sector is characterized by a **commodity**, a type of energy carrier. The current model includes the following sectors:
+The Macro model is designed to represent the energy system in a detailed manner, with various sectors and technologies interacting. Each sector is characterized by a **commodity**, a type of energy carrier. The current model includes the following sectors:
 
 - **Electricity**
 - **Natural Gas**
@@ -32,7 +32,7 @@ The key components of this network are:
 2. **Edges**: 
     - Depict the **flow** of a commodity into or out of a vertex.
     - Capacity sizing decisions, capex/opex, planning and operational constraints are associated with the edges.
-3. **Assets**: Defined as a collection of edges and vertices. See [MACRO Asset Library](@ref) for a list of all the assets available in MACRO.
+3. **Assets**: Defined as a collection of edges and vertices. See [Macro Asset Library](@ref) for a list of all the assets available in Macro.
 
 The figure below illustrates a multi-plex network representing an energy system with electricity, natural gas, and CO2 sectors, with two natural gas power plants, and a solar panel. Blue nodes represent the electricity sector, red nodes represent natural gas, and yellow nodes represent CO2. The edges depict commodity flow, and squares represent transformation points.
 

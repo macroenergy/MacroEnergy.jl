@@ -1,9 +1,9 @@
 # Modeler Guide
 
-## How to build new sectors in MACRO
+## How to build new sectors in Macro
 
 ### Overview
-The steps to build a sector in MACRO are as follows:
+The steps to build a sector in Macro are as follows:
 
 1. Create new sectors/commodity types by defining new subtypes of `Commodity` in the `MacroEnergy.jl` file.
 
@@ -22,7 +22,7 @@ During the creation of the assets, you will need to provide (check the following
     <li>(Optional) Create a new JSON data file to test the new assets.</li>
 </ol>
 ```
-The following section provides an example of how to create a new sector and assets in MACRO.
+The following section provides an example of how to create a new sector and assets in Macro.
 
 ### Example
 For example, let's create a new sector called `MyNewSector` with two assets: `MyAsset1`, and `MyAsset2`. 

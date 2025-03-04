@@ -1,27 +1,27 @@
-# MACRO Objects
+# Macro Objects
 
 ## Vertex
 ```@docs
-Macro.@AbstractVertexBaseAttributes
+MacroEnergy.@AbstractVertexBaseAttributes
 ```
 
 ## Node
 ```@docs
-Macro.Node
+MacroEnergy.Node
 ```
 
 ## Transformation
 ```@docs
-Macro.Transformation
+MacroEnergy.Transformation
 ```
 
 ## Storage
 ```@docs
-Macro.Storage
+MacroEnergy.Storage
 ```
 
 ## Edge (with and without UC)
 ```@docs
-Macro.Edge
-Macro.EdgeWithUC
+MacroEnergy.Edge
+MacroEnergy.EdgeWithUC
 ```
