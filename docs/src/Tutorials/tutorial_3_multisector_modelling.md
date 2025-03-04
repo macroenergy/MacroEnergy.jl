@@ -1,12 +1,12 @@
 
-# Multisector modelling with MACRO
+# Multisector modelling with Macro
 
 !!! note "Interactive Notebook"
     The interactive version of this tutorial can be found [here](https://github.com/macroenergy/Macro/tree/main/tutorials/tutorial_3_multisector_modelling.ipynb).
 
 In this tutorial, we extend the electricity-only model considered in Tutorial 2 to build a multisector model for joint capacity expansion in electricity and hydrogen sectors. 
 
-To do this, we scorporate hydrogen and electricity demand from Tutorial 2, and endogeneously model hydrogen production and storage in MACRO.
+To do this, we scorporate hydrogen and electricity demand from Tutorial 2, and endogeneously model hydrogen production and storage in Macro.
 
 ```julia
 using Pkg; Pkg.add(["VegaLite", "Plots"])
@@ -122,7 +122,7 @@ The definition of the new Hydrogen node in `one_zone_multisector/system/nodes.js
     },
 ```
 
-Next, add an electrolyzer asset represented in MACRO as a transformation connecting electricity and hydrogen nodes:
+Next, add an electrolyzer asset represented in Macro as a transformation connecting electricity and hydrogen nodes:
 
 ![electrolyzer](../images/electrolyzer.png)
 
@@ -189,7 +189,7 @@ To include the electrolyzer, create a file `one_zone_multisector/assets/electrol
 }
 ```
 
-Include an hydrogen storage resource cluster, represented in MACRO as combination of a compressor transformation (consuming electricity to compress the gas) and a storage node:
+Include an hydrogen storage resource cluster, represented in Macro as combination of a compressor transformation (consuming electricity to compress the gas) and a storage node:
 
 ![hydrogen_storage](../images/hydrogen_storage.png)
 
@@ -297,23 +297,23 @@ Add a file `one_zone_multisector/assets/h2_storage.json` based on the asset defi
 ```
 
 ### Exercise 2
-Following the same steps taken in Tutorial 2, load the input files, generate MACRO model, and solve it using the open-source solver HiGHS.
+Following the same steps taken in Tutorial 2, load the input files, generate Macro model, and solve it using the open-source solver HiGHS.
 
 #### Solution
 
 First, load the inputs:
 ```julia
-system = Macro.load_system("one_zone_multisector");
+system = MacroEnergy.load_system("one_zone_multisector");
 ```
 Then, generate the model:
 ```julia
-model = Macro.generate_model(system)
+model = MacroEnergy.generate_model(system)
 ```
 
 Finally, solve it using the HiGHS solver:
 ```julia
-Macro.set_optimizer(model, HiGHS.Optimizer);
-Macro.optimize!(model)
+MacroEnergy.set_optimizer(model, HiGHS.Optimizer);
+MacroEnergy.optimize!(model)
 ```
 
 ### Exercise 3
@@ -328,17 +328,17 @@ To explain the results, plot both the electricity generation and hydrogen supply
 Optimized capacities are retrieved as follows:
 
 ```julia
-capacity_results = Macro.get_optimal_asset_capacity(system)
+capacity_results = MacroEnergy.get_optimal_asset_capacity(system)
 ```
 Total system cost is:
 ```julia
-Macro.objective_value(model)
+MacroEnergy.objective_value(model)
 ```
 
 Total $\text{CO}_2$ emissions are:
 ```julia
-co2_node = Macro.get_nodes_sametype(system.locations, CO2)[1]
-Macro.value(sum(co2_node.operation_expr[:emissions]))
+co2_node = MacroEnergy.get_nodes_sametype(system.locations, CO2)[1]
+MacroEnergy.value(sum(co2_node.operation_expr[:emissions]))
 ```
 
 Note that we have achieved lower costs and emissions when able to co-optimize capacity and operation of electricity and hydrogen sectors. In the following, we further investigate these
@@ -348,9 +348,9 @@ plot_time_interval = 3600:3624
 ```
 Here is the electricity generation profile:
 ```julia
-natgas_power =  Macro.value.(Macro.flow(system.assets[4].elec_edge)).data[plot_time_interval]/1e3;
-solar_power = Macro.value.(Macro.flow(system.assets[5].edge)).data[plot_time_interval]/1e3;
-wind_power = Macro.value.(Macro.flow(system.assets[6].edge)).data[plot_time_interval]/1e3;
+natgas_power =  MacroEnergy.value.(MacroEnergy.flow(system.assets[4].elec_edge)).data[plot_time_interval]/1e3;
+solar_power = MacroEnergy.value.(MacroEnergy.flow(system.assets[5].edge)).data[plot_time_interval]/1e3;
+wind_power = MacroEnergy.value.(MacroEnergy.flow(system.assets[6].edge)).data[plot_time_interval]/1e3;
 
 elec_gen =  DataFrame( hours = plot_time_interval, 
                 solar_photovoltaic = solar_power,
@@ -382,9 +382,9 @@ We verify our assumption by making a stacked area plot of the hydrogen supply (h
 electrolyzer_idx = findfirst(isa.(system.assets,Electrolyzer).==1)
 h2stor_idx = findfirst(isa.(system.assets,GasStorage{Hydrogen}).==1)
 
-electrolyzer_gen =  Macro.value.(Macro.flow(system.assets[electrolyzer_idx].h2_edge)).data[plot_time_interval]/1e3;
-h2stor_charge =  Macro.value.(Macro.flow(system.assets[h2stor_idx].charge_edge)).data[plot_time_interval]/1e3;
-h2stor_discharge = Macro.value.(Macro.flow(system.assets[h2stor_idx].discharge_edge)).data[plot_time_interval]/1e3;
+electrolyzer_gen =  MacroEnergy.value.(MacroEnergy.flow(system.assets[electrolyzer_idx].h2_edge)).data[plot_time_interval]/1e3;
+h2stor_charge =  MacroEnergy.value.(MacroEnergy.flow(system.assets[h2stor_idx].charge_edge)).data[plot_time_interval]/1e3;
+h2stor_discharge = MacroEnergy.value.(MacroEnergy.flow(system.assets[h2stor_idx].discharge_edge)).data[plot_time_interval]/1e3;
 
 h2_gen = DataFrame( hours = plot_time_interval, 
                     electrolyzer = electrolyzer_gen - h2stor_charge,

@@ -44,8 +44,6 @@ function add_model_constraint!(ct::MinDownTimeConstraint, e::EdgeWithUC, model::
         )
     end
 
-
-
     return nothing
 end
 

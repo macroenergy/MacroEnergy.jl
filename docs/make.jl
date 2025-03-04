@@ -1,4 +1,5 @@
 using MacroEnergy
+import MacroEnergy: AbstractEdge, AbstractStorage, Model
 using Documenter
 
 DocMeta.setdocmeta!(MacroEnergy, :DocTestSetup, :(using MacroEnergy); recursive=true)
@@ -71,7 +72,7 @@ makedocs(;
 
 # PDF documentation
 Documenter.makedocs(
-    modules = [Macro],
+    modules = [MacroEnergy],
     authors = "Macro Energy Team",
     sitename = "Macro",
     format = Documenter.LaTeX(),

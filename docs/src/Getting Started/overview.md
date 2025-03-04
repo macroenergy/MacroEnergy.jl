@@ -1,7 +1,7 @@
 # Overview
 
 ## Multi-commodity flow network
-MACRO is designed to represent energy systems in a detailed manner, capturing interactions among various sectors and technologies. The system is structured as a **multi-commodity flow network**, with each commodity having independent spatial and temporal scale:
+Macro is designed to represent energy systems in a detailed manner, capturing interactions among various sectors and technologies. The system is structured as a **multi-commodity flow network**, with each commodity having independent spatial and temporal scale:
 
 ![multi-commodity flow network](../images/multi_network.png)
 
@@ -25,12 +25,12 @@ As illustrated in the figures above, the core components of the model are:
 2. **Edges**: 
     - Depict the **flow** of a commodity into or out of a vertex.
     - Capacity sizing decisions, capex/opex, planning and operational constraints are associated with the edges.
-3. **Assets**: Defined as a collection of edges and vertices. See [MACRO Asset Library](@ref) for a list of all the assets available in MACRO.
+3. **Assets**: Defined as a collection of edges and vertices. See [Macro Asset Library](@ref) for a list of all the assets available in Macro.
 
-MACRO includes a library of assets (see [MACRO Asset Library](@ref)) and constraints (see [MACRO Constraint Library](@ref)), enabling **fast** and **flexible assembly** of new technologies and sectors.
+Macro includes a library of assets (see [Macro Asset Library](@ref)) and constraints (see [Macro Constraint Library](@ref)), enabling **fast** and **flexible assembly** of new technologies and sectors.
 
 ## Benders decomposition
 
-MACRO is natively designed to create optimization models ready to be solved using the Benders decomposition framework and [high-performance decomposition algorithms](https://arxiv.org/abs/2403.02559). This allows to solve large-scale problems with several sectors interacting together in a reasonable time frame.
+Macro is natively designed to create optimization models ready to be solved using the Benders decomposition framework and [high-performance decomposition algorithms](https://arxiv.org/abs/2403.02559). This allows to solve large-scale problems with several sectors interacting together in a reasonable time frame.
 
 ![model_structure](../images/model_structure.png)

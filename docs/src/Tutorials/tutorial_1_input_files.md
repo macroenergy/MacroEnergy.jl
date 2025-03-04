@@ -1,16 +1,16 @@
 
-# MACRO input files
+# Macro input files
 
 !!! note "Interactive Notebook"
     The interactive version of this tutorial can be found [here](https://github.com/macroenergy/Macro/tree/main/tutorials/tutorial_1_input_files.ipynb).
 
-To configure a MACRO case, the user needs to provide a set of input files describing at least the following components:
+To configure a Macro case, the user needs to provide a set of input files describing at least the following components:
 - **System configuration**
 - **Assets/technologies**
 - **Model settings**
 
 !!! warning "Remove comments from JSON files"
-    The comments in the JSON files below are only for the user's reference and should be removed before using them as input for a MACRO case.
+    The comments in the JSON files below are only for the user's reference and should be removed before using them as input for a Macro case.
 
 ## System configuration
 
@@ -38,7 +38,7 @@ To include new commodities, the user just needs to add the new commodity to the 
 This file describes the temporal resolution of the simulation. It contains three main parameters:
 - `PeriodLength`: total number of hours in the simulation.
 - `HoursPerTimeStep`: number of hours in each time step.
-- `HoursPerSubperiod`: number of hours in each subperiod, where a subperiod represents a time slice of the simulation used to perform time wrapping for time-coupling constraints (see, for example, [Macro.timestepbefore](@ref)).
+- `HoursPerSubperiod`: number of hours in each subperiod, where a subperiod represents a time slice of the simulation used to perform time wrapping for time-coupling constraints (see, for example, [MacroEnergy.timestepbefore](@ref)).
 
 Except for the `PeriodLength`, all the other parameters need to be provided for each commodity in the system.
 For example, the following is a complete example of the `time_data.json` file:
@@ -60,7 +60,7 @@ For example, the following is a complete example of the `time_data.json` file:
 In the example above, the simulation will run for 8760 hours (one year), with one hour per time step and one hour per subperiod for each commodity (single subperiod).
 
 ### Units
-In MACRO, everything that is transformed into electricity is expressed in MWh, and all the other commodities are expressed in metric tons:
+In Macro, everything that is transformed into electricity is expressed in MWh, and all the other commodities are expressed in metric tons:
 - **Time**: hours
 - **Electricity**: MWh
 - **NaturalGas**: MWh
@@ -82,7 +82,7 @@ The `nodes.json` file is a JSON file with a list of nodes to include in the case
      - `id`: A unique identifier for the node
 
 
-All other fields (e.g, `demand`, `price`, `constraints`, etc.) are optional and will take the default values if not provided. A complete list of the fields that can be included in the `nodes.json` file can be found here `Macro.Node`(@ref).
+All other fields (e.g, `demand`, `price`, `constraints`, etc.) are optional and will take the default values if not provided. A complete list of the fields that can be included in the `nodes.json` file can be found here `MacroEnergy.Node`(@ref).
 
 Here's a simplified example:
 ```json
@@ -172,7 +172,7 @@ first(demand_data, 10)
 ```
 
 #### Constraints
-One of the main features of MACRO is the ability to include constraints on the system from a pre-defined library of constraints. To include a constraint to a node, the user needs to add the constraint name to the `constraints` dictionary in the node's `global_data` or `instance_data` field.
+One of the main features of Macro is the ability to include constraints on the system from a pre-defined library of constraints. To include a constraint to a node, the user needs to add the constraint name to the `constraints` dictionary in the node's `global_data` or `instance_data` field.
 
 For example, to include the `BalanceConstraint` to the node `elec_SE`, the user needs to add the following to the `nodes.json` file:
 ```json
@@ -193,7 +193,7 @@ Another example is the `MaxNonServedDemandConstraint`, which limits the maximum 
 ```
 This will add the `MaxNonServedDemandConstraint` and the `MaxNonServedDemandPerSegmentConstraint` to the node `elec_SE` with a maximum non-served demand equal to the demand in each period, and a price of 5000.0 \$/MWh for the unmet demand ("max_nds" is the fraction of the demand that can be unmet). 
 
-A complete list of the constraints available in MACRO can be found in the [MACRO Constraint Library](@ref) section.
+A complete list of the constraints available in Macro can be found in the [Macro Constraint Library](@ref) section.
 
 Therefore, a complete example of the `nodes.json` file for the electricity system is the following:
 ```json
@@ -283,7 +283,7 @@ Each asset or technology is defined in a separate file, and all files share a si
 
 Similarly to the nodes, all the fields defined in the `global_data` will be shared by all the instances of the asset/technology, and the fields defined in `instance_data` can be different for each instance.
 
-**Note:** To understand the structure of the attributes in both `global_data` and `instance_data`, the user can refer to the asset definitions in the [MACRO Asset Library](@ref) section. 
+**Note:** To understand the structure of the attributes in both `global_data` and `instance_data`, the user can refer to the asset definitions in the [Macro Asset Library](@ref) section. 
 
 To familiarize with the structure of the asset/technology input files, let's now see an example of a **system** with:
 - a natural gas power plant, 
@@ -359,7 +359,7 @@ For the `edges` field, some important attributes are:
 - `investment_cost/fixed_om_cost/variable_om_cost`: investment, fixed, and variable operating costs for the asset
 - `existing_capacity`: existing capacity of the asset
 
-The complete list of fields that can be included in each of the fields `transforms`, `elec_edge`, `fuel_edge`, and `co2_edge` can be found in the definition of the `Edge` type in the `Macro.Edge`(@ref), `Macro.EdgeWithUC`(@ref), and `Transformation` type in the `Macro.Transformation`(@ref) files.
+The complete list of fields that can be included in each of the fields `transforms`, `elec_edge`, `fuel_edge`, and `co2_edge` can be found in the definition of the `Edge` type in the `MacroEnergy.Edge`(@ref), `MacroEnergy.EdgeWithUC`(@ref), and `Transformation` type in the `MacroEnergy.Transformation`(@ref) files.
 
 For example, the following is a complete example of the `naturalgas_power.json` file:
 
@@ -440,7 +440,7 @@ For example, the following is a complete example of the `naturalgas_power.json` 
 ```
 
 !!! error "Remove comments from JSON files"
-    The comments in the JSON file above are only for the user's reference and should be removed before using them as input for a MACRO case.
+    The comments in the JSON file above are only for the user's reference and should be removed before using them as input for a Macro case.
 
 ### Solar photovoltaic pannel and wind turbine
 Since the solar photovoltaic pannel and the wind turbine are very similar, the type that defines them is called `Vre` and can be found in `src/model/assets/vre.jl`. 
@@ -560,7 +560,7 @@ Plots.plot!(p, availability_data[:,1], availability_data[:,3], label="Wind")
 ```
 
 ### Battery (Electricity)
-Finally, let's see how storage technologies are defined in MACRO and how to include them in the system.
+Finally, let's see how storage technologies are defined in Macro and how to include them in the system.
 
 A battery is defined by the following components:
 - `battery_storage`
@@ -652,7 +652,7 @@ This folder contains the `macro_settings.json` file, which is used to set the mo
 - `ScalingFactor = true/false`: if true, the model will scale the input data to the following units: MWh → GWh, tons → ktons, \$\/MWh → M\$\/GWh, \$\/ton → M\$\/kton
 
 ## Summary
-In this tutorial, we have seen how to define a system in MACRO by providing the input files in the `system` and `assets` folders. 
+In this tutorial, we have seen how to define a system in Macro by providing the input files in the `system` and `assets` folders. 
 - Almost all the files except for time series data are JSON files, which allow for a high degree of customization of the system. 
 - Time series data are provided in CSV files, where the first column is the time step and the following columns are the time series for each node/asset.
 - Both nodes and assets have a similar structure:
@@ -662,7 +662,7 @@ In this tutorial, we have seen how to define a system in MACRO by providing the 
         - `id`: a unique identifier for the node/asset
   which allows to define multiple instances of the same node/asset type while sharing common settings through the `global_data` field.
 - Each asset is defined by a set of edges, transformations, and storage objects, which are defined in the `edges`, `transforms`, and `storage` fields respectively.
-- All the fields in the `global_data` and `instance_data` fields can be customized, and the complete list of fields that can be included in each of the fields `transforms`, `edges`, and `storage` can be found in the definition of the `Edge`, `Transformation`, and `Storage` types in the `Macro.Edge`(@ref), `Macro.Transformation`(@ref), and `Macro.Storage`(@ref) files.
-- All the constraints available in MACRO can be found in the [MACRO Constraint Library](@ref) section.
-- All the assets available in MACRO can be found in the [MACRO Asset Library](@ref) section, where each file contains the definition of the asset type. 
+- All the fields in the `global_data` and `instance_data` fields can be customized, and the complete list of fields that can be included in each of the fields `transforms`, `edges`, and `storage` can be found in the definition of the `Edge`, `Transformation`, and `Storage` types in the `MacroEnergy.Edge`(@ref), `MacroEnergy.Transformation`(@ref), and `MacroEnergy.Storage`(@ref) files.
+- All the constraints available in Macro can be found in the [Macro Constraint Library](@ref) section.
+- All the assets available in Macro can be found in the [Macro Asset Library](@ref) section, where each file contains the definition of the asset type. 
 

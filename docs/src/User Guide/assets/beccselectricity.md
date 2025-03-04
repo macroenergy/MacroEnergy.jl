@@ -1,7 +1,7 @@
 # BECCS Electricity
 
 ## Graph structure
-Bioenergy with carbon capture and storage (BECCS) that produces electricity is represented in MACRO using the following graph structure:
+Bioenergy with carbon capture and storage (BECCS) that produces electricity is represented in Macro using the following graph structure:
 
 ```@raw html
 <img width="400" src="../../images/beccselec.png" />
@@ -47,12 +47,12 @@ The structure of the input file for a BECCS electricity asset follows the graph 
 where the possible attributes that the user can set are reported in the following tables. 
 
 ### Transformation
-The definition of the transformation object can be found here [Macro.Transformation](@ref).
+The definition of the transformation object can be found here [MacroEnergy.Transformation](@ref).
 
 | **Attribute** | **Type** | **Values** | **Default** | **Description/Units** |
 |:--------------| :------: |:------: | :------: |:-------|
-| **timedata**  | `String` | Any MACRO commodity type | Required | Time resolution for the time series data linked to the transformation. E.g. "Biomass". |
-| **constraints** | `Dict{String,Bool}` | Any MACRO constraint type for vertices | Empty | List of constraints applied to the transformation. E.g. `{"BalanceConstraint": true}`. |
+| **timedata**  | `String` | Any Macro commodity type | Required | Time resolution for the time series data linked to the transformation. E.g. "Biomass". |
+| **constraints** | `Dict{String,Bool}` | Any Macro constraint type for vertices | Empty | List of constraints applied to the transformation. E.g. `{"BalanceConstraint": true}`. |
 | **capture_rate** $\epsilon_{co2\_capture\_rate}$ | `Float64` | `Float64` | 1.0 | $t_{CO2}/t_{Biomass}$ |
 | **co2_content** $\epsilon_{co2}$ | `Float64` | `Float64` | 0.0 | $t_{CO2}/t_{Biomass}$ |
 | **electricity_production** $\epsilon_{elec\_prod}$ | `Float64` | `Float64` | 1.0 | $MWh_{elec}/t_{Biomass}$ |
@@ -82,14 +82,14 @@ In the following equations, $\phi$ is the flow of the commodity and $\epsilon$ i
 !!! warning "Directionality"
     The `unidirectional` attribute is only available for the `Biomass` edge. For the other edges, this attribute is pre-set to `true` to ensure the correct modeling of the asset. 
 
-All the edges are represented by the same set of attributes. The definition of the `Edge` object can be found here [Macro.Edge](@ref).
+All the edges are represented by the same set of attributes. The definition of the `Edge` object can be found here [MacroEnergy.Edge](@ref).
 
 | **Attribute** | **Type** | **Values** | **Default** | **Description** |
 |:--------------| :------: |:------: | :------: |:-------|
-| **type** | `String` | Any MACRO commodity type matching the commodity of the edge| Required | Commodity of the edge. E.g. "Electricity". |
+| **type** | `String` | Any Macro commodity type matching the commodity of the edge| Required | Commodity of the edge. E.g. "Electricity". |
 | **start_vertex** | `String` | Any node id present in the system matching the commodity of the edge | Required | ID of the starting vertex of the edge. The node must be present in the `nodes.json` file. E.g. "elec\_node\_1". |
 | **end_vertex** | `String` | Any node id present in the system matching the commodity of the edge | Required | ID of the ending vertex of the edge. The node must be present in the `nodes.json` file. E.g. "elec\_node\_2". |
-| **constraints** | `Dict{String,Bool}` | Any MACRO constraint type for Edges | Empty | List of constraints applied to the edge. E.g. `{"CapacityConstraint": true}`. |
+| **constraints** | `Dict{String,Bool}` | Any Macro constraint type for Edges | Empty | List of constraints applied to the edge. E.g. `{"CapacityConstraint": true}`. |
 | **availability** | `Dict` | Availability file path and header | Empty | Path to the availability file and column name for the availability time series to link to the edge. E.g. `{"timeseries": {"path": "system/availability.csv", "header": "Availability_MW_z1"}}`.|
 | **can_expand** | `Bool` | `Bool` | `false` | Whether the edge is eligible for capacity expansion. |
 | **can_retire** | `Bool` | `Bool` | `false` | Whether the edge is eligible for capacity retirement. |

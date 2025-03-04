@@ -6,22 +6,22 @@ CurrentModule = MacroEnergy
 
 ### Welcome to the [Macro](https://github.com/macroenergy/MacroEnergy.jl.git) documentation!
 
-## What is MACRO?
+## What is Macro?
 
-**MA**cro-Energy System **C**apacity Expansion & **R**esource **O**ptimization Model (MACRO) is a bottom-up, electricity-centric, macro-energy systems optimization model. It is designed to capture capacity investments, operations, and energy flows across and between multiple energy sectors and can be used to explore the impacts of different energy policies, technology costs, and other exogenous factors on the energy system. 
+**Macro** is a bottom-up, electricity-centric, macro-energy systems optimization model. It is designed to capture capacity investments, operations, and energy flows across and between multiple energy sectors and can be used to explore the impacts of different energy policies, technology costs, and other exogenous factors on the energy system. 
 
-The main features of MACRO include:
+The main features of Macro include:
 - Tailored **Benders decomposition** framework for optimization.
 - **Graph-based representation** of the energy system, including nodes, storage units, edges/transmission lines, transformation nodes/conversion units.
 - **"Plug and play" flexibility** for integrating various technologies and sectors (e.g., electricity, hydrogen, heat, and transport).
 - Technologically rich, **granular temporal resolution** for detailed analysis.
 - **Open-source** built using Julia and JuMP.
 
-## MACRO development strategy
+## Macro development strategy
 
-MACRO has been designed and developed with three layers of abstractions in mind, each serving a different kind of user:
+Macro has been designed and developed with three layers of abstractions in mind, each serving a different kind of user:
 
-![MACRO architecture](./images/macro_abstr_layers.png)
+![Macro architecture](./images/macro_abstr_layers.png)
 
 The following sections of the documentation are designed to serve the different needs of the different users:
 - [User Guide](@ref)

@@ -1,7 +1,7 @@
 # Battery
 
 ## Graph structure
-A battery is a storage technology that is represented in MACRO by the following graph structure:
+A battery is a storage technology that is represented in Macro by the following graph structure:
 
 ```@raw html
 <img width="270" src="../../images/battery.png" />
@@ -35,12 +35,12 @@ As for all the other assets, the structure of the input file for a battery asset
 where the possible attributes that the user can set are reported in the following tables. 
 
 ### Storage component
-The definition of the `Storage` object can be found here [Macro.Storage](@ref).
+The definition of the `Storage` object can be found here [MacroEnergy.Storage](@ref).
 
 | **Attribute** | **Type** | **Values** | **Default** | **Description** |
 |:--------------| :------: |:------: | :------: |:-------|
 | **commodity** | `String` | `Electricity` | Required | Commodity being stored. |
-| **constraints** | `Dict{String,Bool}` | Any MACRO constraint type for storage | `BalanceConstraint`, `StorageCapacityConstraint`, `StorageMaxDurationConstraint`, `StorageMinDurationConstraint`, `StorageSymmetricCapacityConstraint` | List of constraints applied to the storage. E.g. `{"BalanceConstraint": true}`. |
+| **constraints** | `Dict{String,Bool}` | Any Macro constraint type for storage | `BalanceConstraint`, `StorageCapacityConstraint`, `StorageMaxDurationConstraint`, `StorageMinDurationConstraint`, `StorageSymmetricCapacityConstraint` | List of constraints applied to the storage. E.g. `{"BalanceConstraint": true}`. |
 | **can_expand** | `Bool` | `Bool` | `false` | Whether the storage is eligible for capacity expansion. |
 | **can\_retire** | `Bool` | `Bool` | `false` | Whether the storage is eligible for capacity retirement. |
 | **charge\_discharge\_ratio** | `Float64` | `Float64` | `1.0` | Ratio between charging and discharging rates. |
@@ -66,14 +66,14 @@ The definition of the `Storage` object can be found here [Macro.Storage](@ref).
     - [Storage symmetric capacity constraint](@ref)
 
 ### Charge and discharge edges
-Both the charge and discharge edges are represented by the same set of attributes. The definition of the `Edge` object can be found here [Macro.Edge](@ref).
+Both the charge and discharge edges are represented by the same set of attributes. The definition of the `Edge` object can be found here [MacroEnergy.Edge](@ref).
 
 | **Attribute** | **Type** | **Values** | **Default** | **Description** |
 |:--------------| :------: |:------: | :------: |:-------|
 | **type** | `String` | `Electricity` | Required | Commodity of the edge. E.g. "Electricity". |
 | **start_vertex** | `String` | Any electricity node id present in the system | Required | ID of the starting vertex of the edge. The node must be present in the `nodes.json` file. E.g. "elec\_node\_1". |
 | **end_vertex** | `String` | Any electricity node id present in the system | Required | ID of the ending vertex of the edge. The node must be present in the `nodes.json` file. E.g. "elec\_node\_2". |
-| **constraints** | `Dict{String,Bool}` | Any MACRO constraint type for Edges | Empty | List of constraints applied to the edge. E.g. `{"CapacityConstraint": true}`. |
+| **constraints** | `Dict{String,Bool}` | Any Macro constraint type for Edges | Empty | List of constraints applied to the edge. E.g. `{"CapacityConstraint": true}`. |
 | **can_expand** | `Bool` | `Bool` | `false` | Whether the edge is eligible for capacity expansion. |
 | **can_retire** | `Bool` | `Bool` | `false` | Whether the edge is eligible for capacity retirement. |
 | **efficiency** | `Float64` | Number $\in$ [0,1] | `1.0` | Efficiency of the charging/discharging process. |
