@@ -1,7 +1,7 @@
 # Thermal Hydrogen Plant (with and without CCS)
 
 ## Graph structure
-A thermal hydrogen plant (with and without CCS) is represented in MACRO using the following graph structure:
+A thermal hydrogen plant (with and without CCS) is represented in Macro using the following graph structure:
 
 ```@raw html
 <img width="400" src="../../images/smr.png" />
@@ -45,12 +45,12 @@ The structure of the input file for a ThermalHydrogen asset follows the graph re
 ```
 
 ### Transformation
-The definition of the transformation object can be found here [Macro.Transformation](@ref).
+The definition of the transformation object can be found here [MacroEnergy.Transformation](@ref).
 
 | **Attribute** | **Type** | **Values** | **Default** | **Description/Units** |
 |:--------------| ::------: | :------: | :------: |:-------|
 | **timedata** | `String` | `String` | Required | Time resolution for the time series data linked to the transformation. E.g. "NaturalGas". |
-| **constraints** | `Dict{String,Bool}` | Any MACRO constraint type for vertices| Empty | List of constraints applied to the transformation. E.g. `{"BalanceConstraint": true}`. |
+| **constraints** | `Dict{String,Bool}` | Any Macro constraint type for vertices| Empty | List of constraints applied to the transformation. E.g. `{"BalanceConstraint": true}`. |
 | **electricity_consumption** $\epsilon_{elec\_consumption}$ | `Float64` | `Float64` | 0.0 | $MWh_{elec}/MWh_{h2}$ |
 | **efficiency_rate** $\epsilon_{efficiency}$ | `Float64` | `Float64` | 1.0 | $MWh_{h2}/MWh_{fuel}$|
 | **emission_rate** $\epsilon_{emission\_rate}$ | `Float64` | `Float64` | 1.0 | $t_{CO2}/MWh_{fuel}$ |
@@ -91,14 +91,14 @@ In the following equations, $\phi$ is the flow of the commodity and $\epsilon$ i
     - [Capacity constraint](@ref)
 
 
-All the edges are represented by the same set of attributes. The definition of the `Edge` object can be found here [Macro.Edge](@ref).
+All the edges are represented by the same set of attributes. The definition of the `Edge` object can be found here [MacroEnergy.Edge](@ref).
 
 | **Attribute** | **Type** | **Values** | **Default** | **Description** |
 |:--------------| :------: |:------: | :------: |:-------|
-| **type** | `String` | Any MACRO commodity type matching the commodity of the edge | Required | Commodity of the edge. E.g. "Hydrogen". |
+| **type** | `String` | Any Macro commodity type matching the commodity of the edge | Required | Commodity of the edge. E.g. "Hydrogen". |
 | **start_vertex** | `String` | Any node id present in the system matching the commodity of the edge | Required | ID of the starting vertex of the edge. The node must be present in the `nodes.json` file. E.g. "elec\_node\_1". |
 | **end_vertex** | `String` | Any node id present in the system matching the commodity of the edge | Required | ID of the ending vertex of the edge. The node must be present in the `nodes.json` file. E.g. "elec\_node\_2". |
-| **constraints** | `Dict{String,Bool}` | Any MACRO constraint type for Edges | Empty | List of constraints applied to the edge. E.g. `{"CapacityConstraint": true}`. |
+| **constraints** | `Dict{String,Bool}` | Any Macro constraint type for Edges | Empty | List of constraints applied to the edge. E.g. `{"CapacityConstraint": true}`. |
 | **availability** | `Dict` | Availability file path and header | Empty | Path to the availability file and column name for the availability time series to link to the edge. E.g. `{"timeseries": {"path": "system/availability.csv", "header": "Availability_MW_z1"}}`.|
 | **can_expand** | `Bool` | `Bool` | `false` | Whether the edge is eligible for capacity expansion. |
 | **can_retire** | `Bool` | `Bool` | `false` | Whether the edge is eligible for capacity retirement. |

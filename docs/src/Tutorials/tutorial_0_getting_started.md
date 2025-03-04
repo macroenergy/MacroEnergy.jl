@@ -1,13 +1,13 @@
 
-# Tutorial 0: Getting Started with MACRO
+# Tutorial 0: Getting Started with Macro
 
 !!! note "Interactive Notebook"
     The interactive version of this tutorial can be found [here](https://github.com/macroenergy/Macro/tree/main/tutorials/tutorial_0_getting_started.ipynb).
 
-This tutorial will guide you through the steps to install MACRO, a solver, and all the necessary dependencies.
+This tutorial will guide you through the steps to install Macro, a solver, and all the necessary dependencies.
 
 ## Installation
-Before installing MACRO, make sure you have the following requirements installed:
+Before installing Macro, make sure you have the following requirements installed:
 
 ### Requirements
 - **Julia**: you can download it [here](https://julialang.org/downloads/). 
@@ -17,13 +17,13 @@ Before installing MACRO, make sure you have the following requirements installed
 pip install notebook
 ```
 
-### Download MACRO
+### Download Macro
 
 **Note**: The following steps assume that you have a GitHub account and that you have already created a token to download the repository. To create a new token, you can go to your [GitHub settings](https://github.com/settings/tokens) and click on "Generate new token". Please refer to the [GitHub documentation](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token) for more information on how to create a token.
 
-Since MACRO is a **private repository**, you need to have permissions to clone the repository. Once your user has been added to the repository, to clone the repository you can use the following command in your terminal:
+Since Macro is a **private repository**, you need to have permissions to clone the repository. Once your user has been added to the repository, to clone the repository you can use the following command in your terminal:
 ```bash
-git clone -b <branch-name> https://<username>:<token>@github.com/macroenergy/Macro.git
+git clone -b <branch-name> https://<username>:<token>@github.com/macroenergy/MacroEnergy.git
 ```
 Alternatively, you can setup an SSH key pair and use the SSH URL instead of the HTTPS URL.
 
@@ -32,13 +32,13 @@ Alternatively, you can setup an SSH key pair and use the SSH URL instead of the 
 ```bash
 cd Macro
 ```
-- **Install MACRO and all the dependencies**:
+- **Install Macro and all the dependencies**:
 ```bash
 julia --project -e 'using Pkg; Pkg.instantiate(); Pkg.precompile()'
 ```
 
 ### Setting up Jupyter Notebook
-Once MACRO is installed, to enable Jupyter Notebook support, you can run the following command:
+Once Macro is installed, to enable Jupyter Notebook support, you can run the following command:
 ```bash
 julia --project -e 'using IJulia; IJulia.installkernel("Macro", "--project=@.")'
 ```
@@ -65,13 +65,13 @@ One simple way to run the notebooks is by using [GitHub Codespaces](https://docs
 **Note**: A GitHub Codespace is a cloud-based development environment that is hosted on GitHub's infrastructure. Therefore, a GitHub account is required to access it.
 
 The repository is already configured to be used with GitHub Codespaces, and the following steps will guide you through the process:
-1. Navigate to the repository on GitHub [MACRO](https://github.com/macroenergy/Macro).
+1. Navigate to the repository on GitHub [Macro](https://github.com/macroenergy/Macro).
 2. Change the branch to `tutorials`.
 3. Click on the "Code" button and then on "Codespaces".
 4. (Optional) GitHub allows you to configure the codespace to use a specific hardware. To do that, click on the three dots on the top right corner of the pop-up dialog and then click on "New with options". 
 **Note**: All personal GitHub accounts are limited to 120 hours of compute time and 15GB of storage per month. You can learn more about the limitations [here](https://docs.github.com/en/billing/managing-billing-for-github-codespaces/about-billing-for-github-codespaces) and [here](https://docs.github.com/en/codespaces/codespaces-reference/understanding-billing-for-codespaces).
 5. If you want to use the default hardware, skip the previous step and click on "Create codespace on tutorials".
-6. Once the codespace is open, remember to install the dependencies of MACRO by copying and pasting the following command in the terminal at the bottom of the page:
+6. Once the codespace is open, remember to install the dependencies of Macro by copying and pasting the following command in the terminal at the bottom of the page:
 ```bash
 julia --project -e 'using Pkg; Pkg.instantiate(); Pkg.precompile()'
 ```

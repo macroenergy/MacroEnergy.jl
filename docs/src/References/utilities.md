@@ -1,9 +1,9 @@
 # Utilities
 
 ```@docs
-Macro.get_value_and_keys
-Macro.set_value
-Macro.timestepbefore
-Macro.struct_info
-Macro.get_value
+MacroEnergy.get_value_and_keys
+MacroEnergy.set_value
+MacroEnergy.timestepbefore
+MacroEnergy.struct_info
+MacroEnergy.get_value
 ```

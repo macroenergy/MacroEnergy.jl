@@ -1,7 +1,7 @@
 # Gas Storage
 
 ## Graph structure
-A storage for a gas commodity is represented in MACRO using the following graph structure:
+A storage for a gas commodity is represented in Macro using the following graph structure:
 
 ```@raw html
 <img width="400" src="../../images/hydrogen_storage.png" />
@@ -46,12 +46,12 @@ The structure of the input file for a gas storage asset follows the graph repres
 ```
 
 ### Transformation
-The definition of the transformation object can be found here [Macro.Transformation](@ref).
+The definition of the transformation object can be found here [MacroEnergy.Transformation](@ref).
 
 | **Attribute** | **Type** | **Values** | **Default** | **Description** |
 |:--------------| :------: | :------: | :------: |:-------|
 | **timedata** | `String` | `String` | Required | Time resolution for the time series data linked to the transformation. E.g. "Hydrogen". |
-| **constraints** | `Dict{String,Bool}` | Any MACRO constraint type for vertices | Empty | List of constraints applied to the transformation. E.g. `{"BalanceConstraint": true}`. |
+| **constraints** | `Dict{String,Bool}` | Any Macro constraint type for vertices | Empty | List of constraints applied to the transformation. E.g. `{"BalanceConstraint": true}`. |
 | **electricity_consumption** $\epsilon_{elec\_consumption}$ | `Float64` | `Float64` | `0.0` | $MWh_{elec}/MWh_{gas}$ |
 
 #### Flow equations
@@ -68,14 +68,14 @@ In the following equations, $\phi$ is the flow of the commodity and $\epsilon$ i
     Look also at the "Efficiency" tip below for more information on the efficiency of charging/discharging process.
 
 ### Edges
-All the edges are represented by the same set of attributes. The definition of the `Edge` object can be found here [Macro.Edge](@ref).
+All the edges are represented by the same set of attributes. The definition of the `Edge` object can be found here [MacroEnergy.Edge](@ref).
 
 | **Attribute** | **Type** | **Values** | **Default** | **Description** |
 |:--------------| :------: |:------: | :------: |:-------|
-| **type** | `String` | Any MACRO commodity type matching the commodity of the edge | Required | Commodity of the edge. E.g. "Electricity". |
+| **type** | `String` | Any Macro commodity type matching the commodity of the edge | Required | Commodity of the edge. E.g. "Electricity". |
 | **start_vertex** | `String` | Any node id present in the system matching the commodity of the edge | Required | ID of the starting vertex of the edge. The node must be present in the `nodes.json` file. E.g. "elec\_node\_1". |
 | **end_vertex** | `String` | Any node id present in the system matching the commodity of the edge | Required | ID of the ending vertex of the edge. The node must be present in the `nodes.json` file. E.g. "elec\_node\_2". |
-| **constraints** | `Dict{String,Bool}` | Any MACRO constraint type for Edges | Empty | List of constraints applied to the edge. E.g. `{"CapacityConstraint": true}`.|
+| **constraints** | `Dict{String,Bool}` | Any Macro constraint type for Edges | Empty | List of constraints applied to the edge. E.g. `{"CapacityConstraint": true}`.|
 | **availability** | `Dict` | Availability file path and header | Empty | Path to the availability file and column name for the availability time series to link to the edge. E.g. `{"timeseries": {"path": "system/availability.csv", "header": "Availability_MW_z1"}}`.|
 | **can_expand** | `Bool` | `Bool` | `false` | Whether the edge is eligible for capacity expansion. |
 | **can_retire** | `Bool` | `Bool` | `false` | Whether the edge is eligible for capacity retirement. |
@@ -101,12 +101,12 @@ All the edges are represented by the same set of attributes. The definition of t
     The only **default constraint** for the edges of the gas storage asset is the [Capacity constraint](@ref) applied to both the charge and discharge edges.
 
 ### Storage component
-The definition of the `Storage` object can be found here [Macro.Storage](@ref).
+The definition of the `Storage` object can be found here [MacroEnergy.Storage](@ref).
 
 | **Attribute** | **Type** | **Values** | **Default** | **Description** |
 |:--------------| :------: |:------: | :------: |:-------|
-| **commodity** | `String` | Any MACRO commodity type | Required | Commodity being stored. E.g. "Hydrogen". |
-| **constraints** | `Dict{String,Bool}` | Any MACRO constraint type for storage | `BalanceConstraint`, `StorageCapacityConstraint` | List of constraints applied to the storage. E.g. `{"BalanceConstraint": true}`. |
+| **commodity** | `String` | Any Macro commodity type | Required | Commodity being stored. E.g. "Hydrogen". |
+| **constraints** | `Dict{String,Bool}` | Any Macro constraint type for storage | `BalanceConstraint`, `StorageCapacityConstraint` | List of constraints applied to the storage. E.g. `{"BalanceConstraint": true}`. |
 | **can_expand** | `Bool` | `Bool` | `false` | Whether the storage is eligible for capacity expansion. |
 | **can\_retire** | `Bool` | `Bool` | `false` | Whether the storage is eligible for capacity retirement. |
 | **charge\_discharge\_ratio** | `Float64` | `Float64` | `1.0` | Ratio between charging and discharging rates. |
