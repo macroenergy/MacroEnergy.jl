@@ -15078,7 +15078,7 @@
                         "max_capacity": "Inf",
                         "startup_fuel_balance_id": "energy",
                         "fixed_om_cost": 27300,
-                        "startup_fuel": 0,
+                        "startup_fuel_consumption": 0,
                         "availability": [
                             0.9,
                             0.9,
@@ -15677,9 +15677,9 @@
                             "MA_CCGT-H2_elec_edge": 0
                         },
                         "energy": {
-                            "MA_CCGT-H2_fuel_edge": 0.549644,
+                            "MA_CCGT-H2_fuel_edge": 1,
                             "MA_CCGT-H2_co2_edge": 0,
-                            "MA_CCGT-H2_elec_edge": 1
+                            "MA_CCGT-H2_elec_edge": 1.8193594399283899
                         }
                     },
                     "id": "MA_CCGT-H2_transforms",
@@ -15707,7 +15707,7 @@
                         "max_capacity": "Inf",
                         "startup_fuel_balance_id": "energy",
                         "fixed_om_cost": 27300,
-                        "startup_fuel": 0,
+                        "startup_fuel_consumption": 0,
                         "availability": [
                             0.9,
                             0.9,
@@ -16306,8 +16306,8 @@
                             "CT_CCGT-H2_co2_edge": 1
                         },
                         "energy": {
-                            "CT_CCGT-H2_elec_edge": 1,
-                            "CT_CCGT-H2_fuel_edge": 0.549644,
+                            "CT_CCGT-H2_elec_edge": 1.8193594399283899,
+                            "CT_CCGT-H2_fuel_edge": 1,
                             "CT_CCGT-H2_co2_edge": 0
                         }
                     },
@@ -16336,7 +16336,7 @@
                         "max_capacity": "Inf",
                         "startup_fuel_balance_id": "energy",
                         "fixed_om_cost": 27300,
-                        "startup_fuel": 0,
+                        "startup_fuel_consumption": 0,
                         "availability": [
                             0.9,
                             0.9,
@@ -16935,9 +16935,9 @@
                             "ME_CCGT-H2_fuel_edge": 0
                         },
                         "energy": {
-                            "ME_CCGT-H2_elec_edge": 1,
+                            "ME_CCGT-H2_elec_edge": 1.8193594399283899,
                             "ME_CCGT-H2_co2_edge": 0,
-                            "ME_CCGT-H2_fuel_edge": 0.549644
+                            "ME_CCGT-H2_fuel_edge": 1
                         }
                     },
                     "id": "ME_CCGT-H2_transforms",
@@ -16965,7 +16965,7 @@
                         "max_capacity": "Inf",
                         "startup_fuel_balance_id": "energy",
                         "fixed_om_cost": 20900,
-                        "startup_fuel": 0,
+                        "startup_fuel_consumption": 0,
                         "availability": [
                             0.9,
                             0.9,
@@ -17562,8 +17562,8 @@
                             "MA_OCGT-H2_co2_edge": 1
                         },
                         "energy": {
-                            "MA_OCGT-H2_elec_edge": 1,
-                            "MA_OCGT-H2_fuel_edge": 0.45353,
+                            "MA_OCGT-H2_elec_edge": 2.2049258042466873,
+                            "MA_OCGT-H2_fuel_edge": 1,
                             "MA_OCGT-H2_co2_edge": 0
                         }
                     },
@@ -17592,7 +17592,7 @@
                         "max_capacity": "Inf",
                         "startup_fuel_balance_id": "energy",
                         "fixed_om_cost": 20900,
-                        "startup_fuel": 0,
+                        "startup_fuel_consumption": 0,
                         "availability": [
                             0.9,
                             0.9,
@@ -18189,8 +18189,8 @@
                             "CT_OCGT-H2_co2_edge": 1
                         },
                         "energy": {
-                            "CT_OCGT-H2_elec_edge": 1,
-                            "CT_OCGT-H2_fuel_edge": 0.45353,
+                            "CT_OCGT-H2_elec_edge": 2.2049258042466873,
+                            "CT_OCGT-H2_fuel_edge": 1,
                             "CT_OCGT-H2_co2_edge": 0
                         }
                     },
@@ -18219,7 +18219,7 @@
                         "max_capacity": "Inf",
                         "startup_fuel_balance_id": "energy",
                         "fixed_om_cost": 20900,
-                        "startup_fuel": 0,
+                        "startup_fuel_consumption": 0,
                         "availability": [
                             0.9,
                             0.9,
@@ -18817,8 +18817,8 @@
                         },
                         "energy": {
                             "ME_OCGT-H2_co2_edge": 0,
-                            "ME_OCGT-H2_elec_edge": 1,
-                            "ME_OCGT-H2_fuel_edge": 0.45353
+                            "ME_OCGT-H2_elec_edge": 2.2049258042466873,
+                            "ME_OCGT-H2_fuel_edge": 1
                         }
                     },
                     "id": "ME_OCGT-H2_transforms",
@@ -25806,7 +25806,7 @@
                         "max_capacity": "Inf",
                         "startup_fuel_balance_id": "energy",
                         "fixed_om_cost": 13685.61723,
-                        "startup_fuel": 0,
+                        "startup_fuel_consumption": 0,
                         "availability": [
                             0.9,
                             0.9,
@@ -26377,8 +26377,8 @@
                             "MA_Large_SMR_Non_CCS_fuel_edge": 0.069029264
                         },
                         "energy": {
-                            "MA_Large_SMR_Non_CCS_h2_edge": 1,
-                            "MA_Large_SMR_Non_CCS_fuel_edge": 0.76865951
+                            "MA_Large_SMR_Non_CCS_h2_edge": 1.3009661455954666,
+                            "MA_Large_SMR_Non_CCS_fuel_edge": 1
                         },
                         "electricity": {
                             "MA_Large_SMR_Non_CCS_h2_edge": 0.016404,
@@ -26464,7 +26464,7 @@
                         "max_capacity": "Inf",
                         "startup_fuel_balance_id": "energy",
                         "fixed_om_cost": 0,
-                        "startup_fuel": 0,
+                        "startup_fuel_consumption": 0,
                         "availability": [
                             0.9,
                             0.9,
@@ -27122,7 +27122,7 @@
                         "max_capacity": "Inf",
                         "startup_fuel_balance_id": "energy",
                         "fixed_om_cost": 0,
-                        "startup_fuel": 0,
+                        "startup_fuel_consumption": 0,
                         "availability": [
                             0.9,
                             0.9,
@@ -27780,7 +27780,7 @@
                         "max_capacity": "Inf",
                         "startup_fuel_balance_id": "energy",
                         "fixed_om_cost": 23292.27286,
-                        "startup_fuel": 0,
+                        "startup_fuel_consumption": 0,
                         "availability": [
                             0.9,
                             0.9,
@@ -28378,8 +28378,8 @@
                             "MA_ATR_wCCS_94pct_co2_edge": 1
                         },
                         "energy": {
-                            "MA_ATR_wCCS_94pct_fuel_edge": 0.769121482,
-                            "MA_ATR_wCCS_94pct_h2_edge": 1
+                            "MA_ATR_wCCS_94pct_fuel_edge": 1,
+                            "MA_ATR_wCCS_94pct_h2_edge": 1.300184721664035
                         },
                         "electricity": {
                             "MA_ATR_wCCS_94pct_elec_edge": 1,
@@ -28469,7 +28469,7 @@
                         "max_capacity": "Inf",
                         "startup_fuel_balance_id": "energy",
                         "fixed_om_cost": 23292.27286,
-                        "startup_fuel": 0,
+                        "startup_fuel_consumption": 0,
                         "availability": [
                             0.9,
                             0.9,
@@ -29067,8 +29067,8 @@
                             "CT_ATR_wCCS_94pct_co2_edge": 1
                         },
                         "energy": {
-                            "CT_ATR_wCCS_94pct_h2_edge": 1,
-                            "CT_ATR_wCCS_94pct_fuel_edge": 0.769121482
+                            "CT_ATR_wCCS_94pct_h2_edge": 1.300184721664035,
+                            "CT_ATR_wCCS_94pct_fuel_edge": 1
                         },
                         "electricity": {
                             "CT_ATR_wCCS_94pct_h2_edge": 0.101574,
@@ -29158,7 +29158,7 @@
                         "max_capacity": "Inf",
                         "startup_fuel_balance_id": "energy",
                         "fixed_om_cost": 23292.27286,
-                        "startup_fuel": 0,
+                        "startup_fuel_consumption": 0,
                         "availability": [
                             0.9,
                             0.9,
@@ -29756,8 +29756,8 @@
                             "ME_ATR_wCCS_94pct_fuel_edge": 0.003794329
                         },
                         "energy": {
-                            "ME_ATR_wCCS_94pct_h2_edge": 1,
-                            "ME_ATR_wCCS_94pct_fuel_edge": 0.769121482
+                            "ME_ATR_wCCS_94pct_h2_edge": 1.300184721664035,
+                            "ME_ATR_wCCS_94pct_fuel_edge": 1
                         },
                         "electricity": {
                             "ME_ATR_wCCS_94pct_h2_edge": 0.101574,
@@ -29793,7 +29793,7 @@
                         "max_capacity": "Inf",
                         "startup_fuel_balance_id": "energy",
                         "fixed_om_cost": 65100,
-                        "startup_fuel": 0.058614214,
+                        "startup_fuel_consumption": 0.058614214,
                         "existing_capacity": 0,
                         "min_up_time": 4,
                         "capacity_size": 377,
@@ -29914,8 +29914,8 @@
                             "SE_naturalgas_ccccsavgcf_conservative_0_co2_captured_edge": 0
                         },
                         "energy": {
-                            "SE_naturalgas_ccccsavgcf_conservative_0_elec_edge": 1,
-                            "SE_naturalgas_ccccsavgcf_conservative_0_fuel_edge": 0.476622662,
+                            "SE_naturalgas_ccccsavgcf_conservative_0_elec_edge": 2.098095788823403,
+                            "SE_naturalgas_ccccsavgcf_conservative_0_fuel_edge": 1,
                             "SE_naturalgas_ccccsavgcf_conservative_0_co2_edge": 0,
                             "SE_naturalgas_ccccsavgcf_conservative_0_co2_captured_edge": 0
                         },
@@ -29951,7 +29951,7 @@
                         "max_capacity": "Inf",
                         "startup_fuel_balance_id": "energy",
                         "fixed_om_cost": 65100,
-                        "startup_fuel": 0.058614214,
+                        "startup_fuel_consumption": 0.058614214,
                         "existing_capacity": 0,
                         "min_up_time": 4,
                         "capacity_size": 377,
@@ -30073,8 +30073,8 @@
                         },
                         "energy": {
                             "MIDAT_naturalgas_ccccsavgcf_conservative_0_co2_captured_edge": 0,
-                            "MIDAT_naturalgas_ccccsavgcf_conservative_0_elec_edge": 1,
-                            "MIDAT_naturalgas_ccccsavgcf_conservative_0_fuel_edge": 0.476622662,
+                            "MIDAT_naturalgas_ccccsavgcf_conservative_0_elec_edge": 2.098095788823403,
+                            "MIDAT_naturalgas_ccccsavgcf_conservative_0_fuel_edge": 1,
                             "MIDAT_naturalgas_ccccsavgcf_conservative_0_co2_edge": 0
                         },
                         "capture": {
@@ -30109,7 +30109,7 @@
                         "max_capacity": "Inf",
                         "startup_fuel_balance_id": "energy",
                         "fixed_om_cost": 65100,
-                        "startup_fuel": 0.058614214,
+                        "startup_fuel_consumption": 0.058614214,
                         "existing_capacity": 0,
                         "min_up_time": 4,
                         "capacity_size": 377,
@@ -30231,9 +30231,9 @@
                         },
                         "energy": {
                             "NE_naturalgas_ccccsavgcf_conservative_0_co2_captured_edge": 0,
-                            "NE_naturalgas_ccccsavgcf_conservative_0_fuel_edge": 0.476622662,
+                            "NE_naturalgas_ccccsavgcf_conservative_0_fuel_edge": 1,
                             "NE_naturalgas_ccccsavgcf_conservative_0_co2_edge": 0,
-                            "NE_naturalgas_ccccsavgcf_conservative_0_elec_edge": 1
+                            "NE_naturalgas_ccccsavgcf_conservative_0_elec_edge": 2.098095788823403
                         },
                         "capture": {
                             "NE_naturalgas_ccccsavgcf_conservative_0_co2_captured_edge": 1,
@@ -30267,7 +30267,7 @@
                         "max_capacity": "Inf",
                         "startup_fuel_balance_id": "energy",
                         "fixed_om_cost": 199087.824,
-                        "startup_fuel": 0,
+                        "startup_fuel_consumption": 0,
                         "existing_capacity": 33632.288,
                         "min_up_time": 36,
                         "capacity_size": 1051.009,
@@ -30360,8 +30360,8 @@
                             "MA_nuclear_1_co2_edge": 1
                         },
                         "energy": {
-                            "MA_nuclear_1_fuel_edge": 0.326333362,
-                            "MA_nuclear_1_elec_edge": 1,
+                            "MA_nuclear_1_fuel_edge": 1,
+                            "MA_nuclear_1_elec_edge": 3.0643511097709952,
                             "MA_nuclear_1_co2_edge": 0
                         }
                     },
@@ -30390,7 +30390,7 @@
                         "max_capacity": "Inf",
                         "startup_fuel_balance_id": "energy",
                         "fixed_om_cost": 144972.332,
-                        "startup_fuel": 0,
+                        "startup_fuel_consumption": 0,
                         "existing_capacity": 0,
                         "min_up_time": 36,
                         "capacity_size": 1000,
@@ -30483,8 +30483,8 @@
                             "CT_nuclear_mid_0_co2_edge": 1
                         },
                         "energy": {
-                            "CT_nuclear_mid_0_fuel_edge": 0.326364575,
-                            "CT_nuclear_mid_0_elec_edge": 1,
+                            "CT_nuclear_mid_0_fuel_edge": 1,
+                            "CT_nuclear_mid_0_elec_edge": 3.0640580400002055,
                             "CT_nuclear_mid_0_co2_edge": 0
                         }
                     },
@@ -30513,7 +30513,7 @@
                         "max_capacity": "Inf",
                         "startup_fuel_balance_id": "energy",
                         "fixed_om_cost": 144972.332,
-                        "startup_fuel": 0,
+                        "startup_fuel_consumption": 0,
                         "existing_capacity": 0,
                         "min_up_time": 36,
                         "capacity_size": 1000,
@@ -30606,8 +30606,8 @@
                             "ME_nuclear_mid_0_co2_edge": 1
                         },
                         "energy": {
-                            "ME_nuclear_mid_0_fuel_edge": 0.326364575,
-                            "ME_nuclear_mid_0_elec_edge": 1,
+                            "ME_nuclear_mid_0_fuel_edge": 1,
+                            "ME_nuclear_mid_0_elec_edge": 3.0640580400002055,
                             "ME_nuclear_mid_0_co2_edge": 0
                         }
                     },
@@ -31025,7 +31025,7 @@
                         "max_capacity": "Inf",
                         "startup_fuel_balance_id": "energy",
                         "fixed_om_cost": 10287,
-                        "startup_fuel": 0.58614214,
+                        "startup_fuel_consumption": 0.58614214,
                         "existing_capacity": 0,
                         "min_up_time": 6,
                         "capacity_size": 250,
@@ -31118,7 +31118,7 @@
                             "ng_MA_fuel_edge": 0.181048235160161
                         },
                         "energy": {
-                            "ng_MA_elec_edge": 1,
+                            "ng_MA_elec_edge": 2.2496135315801657,
                             "ng_MA_co2_edge": 0,
                             "ng_MA_fuel_edge": 0.444520797
                         }
@@ -31148,7 +31148,7 @@
                         "max_capacity": "Inf",
                         "startup_fuel_balance_id": "energy",
                         "fixed_om_cost": 9698,
-                        "startup_fuel": 0.58614214,
+                        "startup_fuel_consumption": 0.58614214,
                         "existing_capacity": 0,
                         "min_up_time": 6,
                         "capacity_size": 250,
@@ -31241,9 +31241,9 @@
                             "ng_CT_elec_edge": 0
                         },
                         "energy": {
-                            "ng_CT_fuel_edge": 0.499362159,
+                            "ng_CT_fuel_edge": 1,
                             "ng_CT_co2_edge": 0,
-                            "ng_CT_elec_edge": 1
+                            "ng_CT_elec_edge": 2.002554622886433
                         }
                     },
                     "id": "ng_CT_transforms",
@@ -31271,7 +31271,7 @@
                         "max_capacity": "Inf",
                         "startup_fuel_balance_id": "energy",
                         "fixed_om_cost": 16291,
-                        "startup_fuel": 0.58614214,
+                        "startup_fuel_consumption": 0.58614214,
                         "existing_capacity": 0,
                         "min_up_time": 6,
                         "capacity_size": 250,
@@ -31365,8 +31365,8 @@
                         },
                         "energy": {
                             "ng_ME_co2_edge": 0,
-                            "ng_ME_elec_edge": 1,
-                            "ng_ME_fuel_edge": 0.475891441
+                            "ng_ME_elec_edge": 2.1013195738479356,
+                            "ng_ME_fuel_edge": 1
                         }
                     },
                     "id": "ng_ME_transforms",

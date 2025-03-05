@@ -43,7 +43,7 @@ include("test_timedata.jl")
 const test_path = joinpath(@__DIR__, "test_inputs")
 const system_data_true_path = joinpath(@__DIR__, "test_inputs/system_data_true.json")
 const optim = is_gurobi_available() ? Gurobi.Optimizer : HiGHS.Optimizer
-const obj_true = 6.238270617683867e10
+const obj_true = 6.2353192538993225e10
 
 function test_configure_settings(data::NamedTuple, data_true::T) where {T<:JSON3.Object}
     @test data.ConstraintScaling == data_true.ConstraintScaling
@@ -131,7 +131,7 @@ function test_load(e_in::EdgeWithUC{T}, e_true::S) where {T<:Commodity,S<:JSON3.
     @test e_in.min_up_time == get(e_true, :min_up_time, 0)
     @test e_in.min_down_time == get(e_true, :min_down_time, 0)
     @test e_in.startup_cost == get(e_true, :startup_cost, 0.0)
-    @test e_in.startup_fuel == get(e_true, :startup_fuel, 0.0)
+    @test e_in.startup_fuel_consumption == get(e_true, :startup_fuel_consumption, 0.0)
     @test e_in.startup_fuel_balance_id ==
           Symbol(get(e_true, :startup_fuel_balance_id, "node"))
     @test e_in.ucommit == get(e_true, :ucommit, Vector{VariableRef}())

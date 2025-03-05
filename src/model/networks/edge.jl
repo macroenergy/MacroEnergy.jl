@@ -229,7 +229,7 @@ Base.@kwdef mutable struct EdgeWithUC{T} <: AbstractEdge{T}
     min_down_time::Int64 = 0.0
     min_up_time::Int64 = 0.0
     startup_cost::Float64 = 0.0
-    startup_fuel::Float64 = 0.0
+    startup_fuel_consumption::Float64 = 0.0
     startup_fuel_balance_id::Symbol = :none
     ucommit::Union{JuMPVariable,Vector{Float64}} = Vector{VariableRef}()
     ushut::Union{JuMPVariable,Vector{Float64}} = Vector{VariableRef}()
@@ -268,7 +268,7 @@ function make_edge_UC(
         min_down_time = get(data, :min_down_time, 0.0),
         min_up_time = get(data, :min_up_time, 0.0),
         startup_cost = get(data, :startup_cost, 0.0),
-        startup_fuel = get(data, :startup_fuel, 0.0),
+        startup_fuel_consumption = get(data, :startup_fuel_consumption, 0.0),
         startup_fuel_balance_id = get(data, :startup_fuel_balance_id, :none),
     )
     return _edge
@@ -286,7 +286,7 @@ EdgeWithUC(
 min_down_time(e::EdgeWithUC) = e.min_down_time;
 min_up_time(e::EdgeWithUC) = e.min_up_time;
 startup_cost(e::EdgeWithUC) = e.startup_cost;
-startup_fuel(e::EdgeWithUC) = e.startup_fuel;
+startup_fuel_consumption(e::EdgeWithUC) = e.startup_fuel_consumption;
 startup_fuel_balance_id(e::EdgeWithUC) = e.startup_fuel_balance_id;
 ucommit(e::EdgeWithUC) = e.ucommit;
 ucommit(e::EdgeWithUC, t::Int64) = ucommit(e)[t];
@@ -335,7 +335,7 @@ function operation_model!(e::EdgeWithUC, model::Model)
 
     update_balances!(e, model)
 
-    update_startup_fuel_balances!(e)
+    update_startup_fuel_balance!(e)
 
     for t in time_interval(e)
 
@@ -422,11 +422,19 @@ function update_balances!(e::AbstractEdge, model::Model)
 
 end
 
-function update_startup_fuel_balances!(e::EdgeWithUC)
+function update_startup_fuel_balance!(e::EdgeWithUC)
 
-    update_startup_fuel_balance_start!(e)
+    # The startup fuel will not contribute to the end vertex balance as it is not consumed there.
 
-    update_startup_fuel_balance_end!(e)
+    v = start_vertex(e);
+
+    i = startup_fuel_balance_id(e)
+
+    if i ∈ balance_ids(v)
+        add_to_expression!.(get_balance(v, i), -1 * startup_fuel_consumption(e) * capacity_size(e) * ustart(e))
+    end
+
+    return nothing
 
 end
 
@@ -487,33 +495,4 @@ function update_balance_end!(e::AbstractEdge, model::Model)
         add_to_expression!.(get_balance(v, i),  balance_data(e, v, i) * effective_flow)
     end
     
-end
-
-function update_startup_fuel_balance_start!(e::EdgeWithUC)
-
-    v = start_vertex(e);
-
-    i = startup_fuel_balance_id(e)
-
-    if i ∈ balance_ids(v)
-        add_to_expression!.(get_balance(v, i), -1 * startup_fuel(e) * capacity_size(e) * ustart(e))
-    end
-
-    return nothing
-
-end
-
-
-function update_startup_fuel_balance_end!(e::EdgeWithUC)
-    
-    v = end_vertex(e);
-
-    i = startup_fuel_balance_id(e)
-
-    if i ∈ balance_ids(v)
-        add_to_expression!.(get_balance(v, i), startup_fuel(e) * capacity_size(e) * ustart(e))
-    end
-
-    return nothing
-
 end

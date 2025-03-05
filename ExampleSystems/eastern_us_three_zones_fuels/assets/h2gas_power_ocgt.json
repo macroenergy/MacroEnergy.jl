@@ -42,7 +42,7 @@
                     "id": "SE_OCGT-H2",
                     "transforms":{
                         "emission_rate": 0,
-                        "efficiency_rate": 0.351104
+                        "fuel_consumption": 2.2049258042466873
                     },
                     "edges":{
                             "elec_edge": {
@@ -54,10 +54,10 @@
                                     }
                                 },
                                 "existing_capacity": 0.0,
-                                "investment_cost": 55761.94,
+                                "investment_cost": 57800,
                                 "integer_decisions": false,
-                                "fixed_om_cost": 22800,
-                                "variable_om_cost": 6.94,
+                                "fixed_om_cost": 20900,
+                                "variable_om_cost": 4.94,
                                 "capacity_size": 237,
                                 "startup_cost": 140,
                                 "ramp_up_fraction": 1,
@@ -73,7 +73,7 @@
                     "id": "MIDAT_OCGT-H2",
                     "transforms":{
                         "emission_rate": 0,
-                        "efficiency_rate": 0.351104
+                        "fuel_consumption": 2.2049258042466873
                     },
                     "edges":{
                             "elec_edge": {
@@ -85,10 +85,10 @@
                                     }
                                 },
                                 "existing_capacity": 0.0,
-                                "investment_cost": 55761.94,
+                                "investment_cost": 57800,
                                 "integer_decisions": false,
-                                "fixed_om_cost": 22800,
-                                "variable_om_cost": 6.94,
+                                "fixed_om_cost": 20900,
+                                "variable_om_cost": 4.94,
                                 "capacity_size": 237,
                                 "startup_cost": 140,
                                 "ramp_up_fraction": 1,
@@ -104,7 +104,7 @@
                     "id": "NE_OCGT-H2",
                     "transforms":{
                         "emission_rate": 0,
-                        "efficiency_rate": 0.351104
+                        "fuel_consumption": 2.2049258042466873
                     },
                     "edges":{
                             "elec_edge": {
@@ -116,10 +116,10 @@
                                     }
                                 },
                                 "existing_capacity": 0.0,
-                                "investment_cost": 55761.94,
+                                "investment_cost": 57800,
                                 "integer_decisions": false,
-                                "fixed_om_cost": 22800,
-                                "variable_om_cost": 6.94,
+                                "fixed_om_cost": 20900,
+                                "variable_om_cost": 4.94,
                                 "capacity_size": 237,
                                 "startup_cost": 140,
                                 "ramp_up_fraction": 1,

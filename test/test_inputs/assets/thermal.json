@@ -22,7 +22,7 @@
                         "ramp_up_fraction": 0.64,
                         "ramp_down_fraction": 0.64,
                         "startup_cost": 91,
-                        "startup_fuel": 0.58614214,
+                        "startup_fuel_consumption": 0.58614214,
                         "existing_capacity": 0,
                         "capacity_size": 250,
                         "investment_cost": 65400,
@@ -52,7 +52,7 @@
                     "nodes": {},
                     "transforms": {
                         "emission_rate": 0.181048235160161,
-                        "efficiency_rate": 0.444520797
+                        "fuel_consumption": 2.2496135315801657
                     },
                     "edges": {
                         "elec_edge": {
@@ -73,7 +73,7 @@
                     "id": "ng_CT",
                     "nodes": {},
                     "transforms": {
-                        "efficiency_rate": 0.499362159,
+                        "fuel_consumption": 2.002554622886433,
                         "emission_rate": 0.181048235160161
                     },
                     "edges": {
@@ -95,7 +95,7 @@
                     "id": "ng_ME",
                     "nodes": {},
                     "transforms": {
-                        "efficiency_rate": 0.475891441,
+                        "fuel_consumption": 2.1013195738479356,
                         "emission_rate": 0.181048235160161
                     },
                     "edges": {
