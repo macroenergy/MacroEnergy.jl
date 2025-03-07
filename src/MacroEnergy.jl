@@ -91,7 +91,7 @@ include("model/assets/thermalpower.jl")
 include("model/assets/powerline.jl")
 include("model/assets/vre.jl")
 
-include("model/assets/hydrogenline.jl")
+include("model/assets/gaspipeline.jl")
 include("model/assets/thermalhydrogenccs.jl")
 include("model/assets/thermalpowerccs.jl")
 
@@ -142,6 +142,7 @@ export AbstractAsset,
     ElectricDAC,
     FuelCell,
     GasStorage,
+    GasPipeline,
     get_optimal_capacity, 
     get_optimal_costs,
     get_optimal_flow,
