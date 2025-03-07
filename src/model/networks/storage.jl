@@ -156,14 +156,20 @@ function operation_model!(g::Storage, model::Model)
 
     if :storage ∈ balance_ids(g)
 
-        g.operation_expr[:storage] = @expression(
-            model,
-            [t in time_interval(g)],
-            -storage_level(g, t) +
-            (1 - loss_fraction(g)) *
-            storage_level(g, timestepbefore(t, 1, subperiods(g)))
-        )
-
+        for i in balance_ids(g)
+            if i == :storage 
+                g.operation_expr[:storage] = @expression(
+                    model,
+                    [t in time_interval(g)],
+                    -storage_level(g, t) +
+                    (1 - loss_fraction(g)) *
+                    storage_level(g, timestepbefore(t, 1, subperiods(g)))
+                )
+            else
+                g.operation_expr[i] =
+                @expression(model, [t in time_interval(g)], 0 * model[:vREF])
+            end
+        end
     else
         error("A storage vertex requires to have a balance named :storage")
     end
@@ -285,22 +291,27 @@ function operation_model!(g::LongDurationStorage, model::Model)
 
     if :storage ∈ balance_ids(g)
 
-        STARTS = [first(sp) for sp in subperiods(g)];
-
-        g.operation_expr[:storage] = @expression(
-            model,
-            [t in time_interval(g)],
-            if t ∈ STARTS 
-                -storage_level(g, t) +
-                (1 - loss_fraction(g)) *
-                (storage_level(g, timestepbefore(t, 1, subperiods(g))) - storage_change(g, current_subperiod(g,t)))
+        for i in balance_ids(g)
+            if i == :storage 
+                STARTS = [first(sp) for sp in subperiods(g)];
+                g.operation_expr[:storage] = @expression(
+                    model,
+                    [t in time_interval(g)],
+                    if t ∈ STARTS 
+                        -storage_level(g, t) +
+                        (1 - loss_fraction(g)) *
+                        (storage_level(g, timestepbefore(t, 1, subperiods(g))) - storage_change(g, current_subperiod(g,t)))
+                    else
+                        -storage_level(g, t) +
+                        (1 - loss_fraction(g)) *
+                        storage_level(g, timestepbefore(t, 1, subperiods(g)))
+                    end
+                )
             else
-                -storage_level(g, t) +
-                (1 - loss_fraction(g)) *
-                storage_level(g, timestepbefore(t, 1, subperiods(g)))
+                g.operation_expr[i] =
+                @expression(model, [t in time_interval(g)], 0 * model[:vREF])
             end
-        )
-
+        end
     else
         error("A storage vertex requires to have a balance named :storage")
     end
