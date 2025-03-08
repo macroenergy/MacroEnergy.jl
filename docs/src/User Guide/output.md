@@ -1,13 +1,13 @@
 # Macro Output
 
-Macro provides functionality to access and export optimization results. Results can be accessed in memory as DataFrames or written directly to files for further analysis.
+Macro provides functionality to access and export optimization results. Results can be accessed in memory as `DataFrames` or written directly to files for further analysis.
 
 Currently, Macro supports the following types of outputs:
 
-- **Capacity results**: final capacity, new capacity, retired capacity for each technology
-- **Costs**: total, fixed, variable and total costs for the system
-- **Flow results**: flow for each commodity through each edge
-- **Combined results**: all results (capacity, costs, flows, non-served demand, storage level) in a single DataFrame
+- [Capacity Results](@ref): final capacity, new capacity, retired capacity for each technology
+- [Costs](@ref): total, fixed, variable and total costs for the system
+- [Flow Results](@ref): flow for each commodity through each edge
+- **`Combined Results`**: all results (capacity, costs, flows, non-served demand, storage level) in a single DataFrame
 
 The default column names for the results in *long* format are:
 - `commodity`: commodity type
@@ -80,10 +80,10 @@ The default column names for the results in *long* format are:
 To collect and save all results at once, users can use the [`collect_results`](@ref) and [`write_results`](@ref) functions:
 
 ```julia
-# Collect all results in memory
+# Collect all results in memory and return a DataFrame
 results = collect_results(system, model)
 
-# Or write directly to file
+# Or collect and write directly to file
 write_results("results.csv.gz", system, model)
 ```
 
@@ -93,7 +93,7 @@ write_results("results.csv.gz", system, model)
     - **CSV.GZ**: compressed CSV
     - **Parquet**: column-based data store
 
-    The output format is determined by the file extension. For example, to write the results to a Parquet file instead of a CSV file, use the following line:
+    The output format is determined by the file extension attached to the filename. For example, to write the results to a Parquet file instead of a CSV file, use the following line:
 
     ```julia
     write_results("results.parquet", system, model)
@@ -149,6 +149,7 @@ System-wide cost results can be obtained as DataFrames using the [`get_optimal_c
 
 ```julia
 cost_results = get_optimal_costs(model)
+write_dataframe("costs.csv", cost_results)
 ```
 
 To write the costs results directly to a file, users can use the [`write_costs`](@ref) function:
