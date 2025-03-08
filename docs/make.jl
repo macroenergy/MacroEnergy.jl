@@ -6,17 +6,19 @@ DocMeta.setdocmeta!(MacroEnergy, :DocTestSetup, :(using MacroEnergy); recursive=
 
 const pages = [
     "Welcome to Macro" => [
-        "Introduction" => "index.md"
+        "Introduction" => "index.md",
+        "Table of contents" => "table_of_contents.md",
     ],
     "Getting Started" => [
         "Overview" => "Getting Started/overview.md",
         "Installation" => "Getting Started/installation.md",
+        "First Run" => "Getting Started/first_run.md",
     ],
     "Tutorials" => [
-        "Getting Started" => "Tutorials/tutorial_0_getting_started.md",
-        "Input Files" => "Tutorials/tutorial_1_input_files.md",
-        "Running Macro" => "Tutorials/tutorial_2_running_macro.md",
-        "Multisector Modelling" => "Tutorials/tutorial_3_multisector_modelling.md",
+        "Getting Started" => "Tutorials/0_getting_started.md",
+        # "Input Files" => "Tutorials/tutorial_1_input_files.md",
+        "Running Macro" => "Tutorials/1_running_macro.md",
+        "Multisector Modelling" => "Tutorials/2_multisector_modelling.md",
     ],
     "User Guide" => [
         "Sectors" => "User Guide/sectors.md",
@@ -38,6 +40,7 @@ const pages = [
             "User Guide/assets/thermalpower.md",
             "User Guide/assets/vre.md"],
         "Constraints" => "User Guide/constraints.md",
+        "Output" => "User Guide/output.md",
     ],
     "Modeler Guide" => [
         "How to build a sector" => "Modeler Guide/build_sectors.md",
@@ -70,15 +73,15 @@ makedocs(;
     pages=pages,
 )
 
-# PDF documentation
-Documenter.makedocs(
-    modules = [MacroEnergy],
-    authors = "Macro Energy Team",
-    sitename = "Macro",
-    format = Documenter.LaTeX(),
-    build = "build_pdf",
-    pages = pages,
-)
+# # PDF documentation
+# Documenter.makedocs(
+#     modules = [MacroEnergy],
+#     authors = "Macro Energy Team",
+#     sitename = "Macro",
+#     format = Documenter.LaTeX(),
+#     build = "build_pdf",
+#     pages = pages,
+# )
 
 # Deploy built documentation.
 # ===========================
