@@ -1,6 +1,6 @@
 # Macro Asset Library
 
-Macro is designed to be a flexible and modular model that can adapt to various energy system representations. The model includes a library of assets that represent different technologies within the energy system.
+Macro is designed to be a flexible and modular model that can adapt to various energy system representations. The model provides a rich library of pre-defined assets, enabling a "plug-and-play" approach for users building their own energy system.
 
 Each asset is defined by a **combination of transformations, edges, and storage units** that represent the physical and operational characteristics of a technology. These assets can be combined to create a detailed representation of the energy system, capturing the interactions between technologies and sectors.
 
@@ -53,7 +53,7 @@ The current library includes the following assets:
 - [Gas Storage](@ref)
 
 ```@raw html
-<a href="gasstorage.html"><img width="400" src="../../images/hydrogen_storage.png" /></a>
+<a href="gasstorage.html"><img width="400" src="../../images/gas_storage.png" /></a>
 ```
 
 - [Hydrogen Line](@ref)

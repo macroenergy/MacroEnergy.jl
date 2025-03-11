@@ -40,30 +40,32 @@ The definition of the `Storage` object can be found here [MacroEnergy.Storage](@
 | **Attribute** | **Type** | **Values** | **Default** | **Description** |
 |:--------------| :------: |:------: | :------: |:-------|
 | **commodity** | `String` | `Electricity` | Required | Commodity being stored. |
-| **constraints** | `Dict{String,Bool}` | Any Macro constraint type for storage | `BalanceConstraint`, `StorageCapacityConstraint`, `StorageMaxDurationConstraint`, `StorageMinDurationConstraint`, `StorageSymmetricCapacityConstraint` | List of constraints applied to the storage. E.g. `{"BalanceConstraint": true}`. |
+| **constraints** | `Dict{String,Bool}` | Any Macro constraint type for storage | `BalanceConstraint`, `StorageCapacityConstraint`, `StorageSymmetricCapacityConstraint` | List of constraints applied to the storage. E.g. `{"BalanceConstraint": true}`. |
 | **can_expand** | `Bool` | `Bool` | `false` | Whether the storage is eligible for capacity expansion. |
 | **can\_retire** | `Bool` | `Bool` | `false` | Whether the storage is eligible for capacity retirement. |
 | **charge\_discharge\_ratio** | `Float64` | `Float64` | `1.0` | Ratio between charging and discharging rates. |
-| **existing\_capacity\_storage** | `Float64` | `Float64` | `0.0` | Initial installed storage capacity (MWh). |
-| **fixed\_om\_cost\_storage** | `Float64` | `Float64` | `0.0` | Fixed operations and maintenance cost (USD/MWh-year). |
-| **investment\_cost\_storage** | `Float64` | `Float64` | `0.0` | Annualized investment cost of the energy capacity for a storage technology (USD/MWh-year). |
-| **max\_capacity\_storage** | `Float64` | `Float64` | `Inf` | Maximum allowed storage capacity (MWh). |
+| **existing\_capacity** | `Float64` | `Float64` | `0.0` | Initial installed storage capacity (MWh). |
+| **fixed\_om\_cost** | `Float64` | `Float64` | `0.0` | Fixed operations and maintenance cost (USD/MWh-year). |
+| **investment\_cost** | `Float64` | `Float64` | `0.0` | Annualized investment cost of the energy capacity for a storage technology (USD/MWh-year). |
+| **long\_duration** | `Bool` | `Bool` | `false` | Whether the storage is a long-duration storage. (**Note**: if `true`, the model will add the long-duration storage constraints to the storage). |
+| **loss\_fraction** | `Float64` | Number $\in$ [0,1] | `0.0` | Fraction of stored commodity lost per timestep. |
+| **max\_capacity** | `Float64` | `Float64` | `Inf` | Maximum allowed storage capacity (MWh). |
 | **max\_duration** | `Float64` | `Float64` | `0.0` | Maximum ratio of installed energy to discharged capacity that can be installed (hours).|
-| **min\_capacity\_storage** | `Float64` | `Float64` | `0.0` | Minimum allowed storage capacity (MWh). |
+| **max\_storage\_level** | `Float64` | `Float64` | `1.0` | Maximum storage level as a fraction of capacity. |
+| **min\_capacity** | `Float64` | `Float64` | `0.0` | Minimum allowed storage capacity (MWh). |
 | **min\_duration** | `Float64` | `Float64` | `0.0` | Minimum ratio of installed energy to discharged capacity that can be installed (hours).|
 | **min\_outflow\_fraction** | `Float64` | `Float64` | `0.0` | Minimum outflow as a fraction of capacity. |
 | **min\_storage\_level** | `Float64` | `Float64` | `0.0` | Minimum storage level as a fraction of capacity. |
-| **max\_storage\_level** | `Float64` | `Float64` | `1.0` | Maximum storage level as a fraction of capacity. |
-| **storage\_loss\_fraction** | `Float64` | Number $\in$ [0,1] | `0.0` | Fraction of stored commodity lost per timestep. |
 
 !!! tip "Default constraints"
     As noted in the above table, the **default constraints** for the storage component of the battery are the following:
 
     - [Balance constraint](@ref)
     - [Storage capacity constraint](@ref)
-    - [Storage max duration constraint](@ref)
-    - [Storage min duration constraint](@ref)
     - [Storage symmetric capacity constraint](@ref)
+
+    If the storage is a long-duration storage, the following additional constraints are applied:
+    - [Long-duration storage constraints](@ref)
 
 ### Charge and discharge edges
 Both the charge and discharge edges are represented by the same set of attributes. The definition of the `Edge` object can be found here [MacroEnergy.Edge](@ref).
@@ -73,7 +75,7 @@ Both the charge and discharge edges are represented by the same set of attribute
 | **type** | `String` | `Electricity` | Required | Commodity of the edge. E.g. "Electricity". |
 | **start_vertex** | `String` | Any electricity node id present in the system | Required | ID of the starting vertex of the edge. The node must be present in the `nodes.json` file. E.g. "elec\_node\_1". |
 | **end_vertex** | `String` | Any electricity node id present in the system | Required | ID of the ending vertex of the edge. The node must be present in the `nodes.json` file. E.g. "elec\_node\_2". |
-| **constraints** | `Dict{String,Bool}` | Any Macro constraint type for Edges | Empty | List of constraints applied to the edge. E.g. `{"CapacityConstraint": true}`. |
+| **constraints** | `Dict{String,Bool}` | Any Macro constraint type for Edges | Empty for charge edge, check box below for discharge edge | List of constraints applied to the edge. E.g. `{"CapacityConstraint": true}`. |
 | **can_expand** | `Bool` | `Bool` | `false` | Whether the edge is eligible for capacity expansion. |
 | **can_retire** | `Bool` | `Bool` | `false` | Whether the edge is eligible for capacity retirement. |
 | **efficiency** | `Float64` | Number $\in$ [0,1] | `1.0` | Efficiency of the charging/discharging process. |
@@ -93,7 +95,7 @@ Both the charge and discharge edges are represented by the same set of attribute
 !!! tip "Efficiency"
     The efficiency of the charging/discharging process can be set in the `charge_edge` and `discharge_edge` parts of the input file. These parameters are used, for example, in the [Balance constraint](@ref) to balance the charge and discharge flows. 
 
-!!! tip "Default constraints"
+!!! tip "Default constraints - discharge edge"
     The **default constraints** for the discharge edge are the following:
 
     - [Capacity constraint](@ref)
@@ -114,11 +116,11 @@ The following is an example of the input file for a battery asset that creates t
                     "can_expand": true,
                     "can_retire": false,
                     "constraints": {
+                        "BalanceConstraint": true,
                         "StorageCapacityConstraint": true,
                         "StorageSymmetricCapacityConstraint": true,
                         "StorageMinDurationConstraint": true,
                         "StorageMaxDurationConstraint": true,
-                        "BalanceConstraint": true
                     }
                 },
                 "edges": {

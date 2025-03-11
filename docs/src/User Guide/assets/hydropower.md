@@ -9,7 +9,7 @@ A hydroelectric reservoir is represented in Macro using the following graph stru
 
 A hydroelectric reservoir asset is made of:
 
-- 1 `Storage` component, representing the hydroelectric reservoir.
+- 1 `Electricity` `Storage` component, representing the hydroelectric reservoir.
 - 3 `Edge` components:
     - 1 **incoming** `Electricity` `Edge`, representing the electricity supply.
     - 1 **outgoing** `Electricity` `Edge`, representing the electricity production.
@@ -60,6 +60,7 @@ The definition of the `Storage` object can be found here [MacroEnergy.Storage](@
 | **existing\_capacity\_storage** | `Float64` | `Float64` | `0.0` | Initial installed storage capacity (MWh). |
 | **fixed\_om\_cost\_storage** | `Float64` | `Float64` | `0.0` | Fixed operations and maintenance cost (USD/MWh-year). |
 | **investment\_cost\_storage** | `Float64` | `Float64` | `0.0` | Annualized investment cost of the energy capacity for a storage technology (USD/MWh-year). |
+| **long\_duration** | `Bool` | `Bool` | `false` | Whether the storage is a long-duration storage. **Note**: if `true`, the long-duration storage constraint will be applied. |
 | **max\_capacity\_storage** | `Float64` | `Float64` | `Inf` | Maximum allowed storage capacity (MWh). |
 | **max\_duration** | `Float64` | `Float64` | `0.0` | Maximum ratio of installed energy to discharged capacity that can be installed (hours).|
 | **min\_capacity\_storage** | `Float64` | `Float64` | `0.0` | Minimum allowed storage capacity (MWh). |
@@ -74,12 +75,20 @@ The definition of the `Storage` object can be found here [MacroEnergy.Storage](@
 
     - [Balance constraint](@ref)
 
+    If the storage is a long-duration storage, the following additional constraints are applied:
+    - [Long-duration storage constraints](@ref)
+
 ### Edges (discharge\_edge, inflow\_edge, spillage\_edge)
 !!! warning "Asset expansion"
-    As a modeling decision, only charge and discharge edges are allowed to expand. Therefore, the `has_capacity` attribute can only be set for the `discharge_edge` and `inflow_edge`. For the spillage edge, this attribute is pre-set to `false` to ensure the correct modeling of the asset. 
+    As a modeling decision, the following conditions are implemented:
+    - Only charge and discharge edges are allowed to expand (i.e., they have the `has_capacity` attribute set to `true`). In contrast, this attribute is pre-set to `false` for the `spillage_edge`.
+    - The `can_retire` and `can_expand` attributes of the `inflow_edge` are set to match those of the `discharge_edge`.
 
 !!! warning "Directionality"
     All the three edges are unidirectional by construction.
+
+!!! warning "Capacity parameters"
+    The user only needs to specify `capacity_size` and `existing_capacity` for the `discharge_edge`, as the model will automatically apply the same values to the `inflow_edge`.
 
 All the edges have the same set of attributes. The definition of the `Edge` object can be found here [MacroEnergy.Edge](@ref).
 
@@ -89,10 +98,10 @@ All the edges have the same set of attributes. The definition of the `Edge` obje
 | **start_vertex** | `String` | Any electricity node id present in the system | Required | ID of the starting vertex of the edge. The node must be present in the `nodes.json` file. E.g. "elec\_node\_1". |
 | **end_vertex** | `String` | Any electricity node id present in the system | Required | ID of the ending vertex of the edge. The node must be present in the `nodes.json` file. E.g. "elec\_node\_2". |
 | **constraints** | `Dict{String,Bool}` | Any Macro constraint type for Edges | Empty | List of constraints applied to the edge. E.g. `{"CapacityConstraint": true}`. |
-| **can_expand** | `Bool` | `Bool` | `false` | Whether the edge is eligible for capacity expansion. |
-| **can_retire** | `Bool` | `Bool` | `false` | Whether the edge is eligible for capacity retirement. |
-| **capacity_size** | `Float64` | `Float64` | `1.0` | Size of the edge capacity. |
-| **existing_capacity** | `Float64` | `Float64` | `0.0` | Existing capacity of the edge in MW. |
+| **can_expand** | `Bool` | `Bool` | `false` | Whether the edge is eligible for capacity expansion. **Note**: only available for charge and discharge edges. |
+| **can_retire** | `Bool` | `Bool` | `false` | Whether the edge is eligible for capacity retirement. **Note**: only available for charge and discharge edges. |
+| **capacity_size** | `Float64` | `Float64` | `1.0` | Size of the edge capacity. **Note**: discharge edge only. The model will automatically apply the same values to the inflow edge. |
+| **existing_capacity** | `Float64` | `Float64` | `0.0` | Existing capacity of the edge in MW. **Note**: discharge edge only. The model will automatically apply the same values to the inflow edge. |
 | **fixed\_om\_cost** | `Float64` | `Float64` | `0.0` | Fixed operations and maintenance cost (USD/MW-year). |
 | **has\_capacity** | `Bool` | `Bool` | `false` | Whether capacity variables are created for the edge. |
 | **integer\_decisions** | `Bool` | `Bool` | `false` | Whether capacity variables are integers. |
@@ -135,8 +144,6 @@ The following input file example shows how to create a hydroelectric reservoir a
                         "unidirectional": true,
                         "start_vertex": "hydro_source",
                         "has_capacity": true,
-                        "can_expand": false,
-                        "can_retire": false,
                         "constraints": {
                             "MustRunConstraint": true
                         }
