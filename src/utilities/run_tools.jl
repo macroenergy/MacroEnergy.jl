@@ -39,5 +39,8 @@ function run_case(case_path::AbstractString=@__DIR__; lazy_load::Bool=true, opti
     # Cost results
     write_costs(joinpath(results_dir, "costs.csv"), model)
 
+    # Flow results
+    write_flow_results(joinpath(results_dir, "flow.csv"), system)
+
     return system, model
 end
