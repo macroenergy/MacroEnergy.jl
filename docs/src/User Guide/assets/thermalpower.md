@@ -46,10 +46,10 @@ The definition of the transformation object can be found here [MacroEnergy.Trans
 | **Attribute** | **Type** | **Values** | **Default** | **Description/Units** |
 |:--------------| :------: |:------: | :------: |:-------|
 | **timedata** | `String` | `String` | Required | Time resolution for the time series data linked to the transformation. E.g. "NaturalGas". |
-| **constraints** | `Dict{String,Bool}` | Any Macro constraint type for vertices| Empty | List of constraints applied to the transformation. E.g. `{"BalanceConstraint": true}`. |
-| **efficiency_rate** $\epsilon_{efficiency}$ | `Float64` | `Float64` | 1.0 | $MWh_{elec}/MWh_{fuel}$|
-| **emission_rate** $\epsilon_{emission\_rate}$ | `Float64` | `Float64` | 1.0 | $t_{CO2}/MWh_{fuel}$ |
-| **capture_rate** $\epsilon_{co2\_capture\_rate}$ | `Float64` | `Float64` | 1.0 | $t_{CO2}/MWh_{fuel}$ |
+| **constraints** | `Dict{String,Bool}` | Any Macro constraint type for vertices| `BalanceConstraint` | List of constraints applied to the transformation. E.g. `{"BalanceConstraint": true}`. |
+| **fuel_consumption** $\epsilon_{fuel\_consumption}$ | `Float64` | `Float64` | 1.0 | $MWh_{fuel}/MWh_{elec}$|
+| **emission_rate** $\epsilon_{emission\_rate}$ | `Float64` | `Float64` | 0.0 | $t_{CO2}/MWh_{fuel}$ |
+| **capture_rate** $\epsilon_{co2\_capture\_rate}$ | `Float64` | `Float64` | 0.0 | $t_{CO2}/MWh_{fuel}$ |
 
 !!! tip "Default constraints"
     The **default constraint** for the transformation part of the thermal power asset is the following:
@@ -62,7 +62,7 @@ In the following equations, $\phi$ is the flow of the commodity and $\epsilon$ i
     **Note**: Fuel is the type of the fuel being converted.
     ```math
     \begin{aligned}
-    \phi_{elec} &= \phi_{fuel} \cdot \epsilon_{efficiency} \\
+    \phi_{fuel} &= \phi_{elec} \cdot \epsilon_{fuel\_consumption} \\
     \phi_{co2} &= \phi_{fuel} \cdot \epsilon_{emission\_rate} \\
     \phi_{co2\_captured} &= \phi_{fuel} \cdot \epsilon_{co2\_capture\_rate} \quad \text{(if CCS)} \\
     \end{aligned}
@@ -91,8 +91,8 @@ All the edges are represented by the same set of attributes. The definition of t
 | **type** | `String` | Any Macro commodity type matching the commodity of the edge | Required | Commodity of the edge. E.g. "Electricity". |
 | **start_vertex** | `String` | Any node id present in the system matching the commodity of the edge | Required | ID of the starting vertex of the edge. The node must be present in the `nodes.json` file. E.g. "elec\_node\_1". |
 | **end_vertex** | `String` | Any node id present in the system matching the commodity of the edge | Required | ID of the ending vertex of the edge. The node must be present in the `nodes.json` file. E.g. "elec\_node\_2". |
-| **constraints** | `Dict{String,Bool}` | Any Macro constraint type for Edges | Empty | List of constraints applied to the edge. E.g. `{"CapacityConstraint": true}`. |
-| **availability** | `Dict` | Availability file path and header | Empty | Path to the availability file and column name for the availability time series to link to the edge. E.g. `{"timeseries": {"path": "system/availability.csv", "header": "Availability_MW_z1"}}`.|
+| **constraints** | `Dict{String,Bool}` | Any Macro constraint type for Edges | See note above | List of constraints applied to the edge. E.g. `{"CapacityConstraint": true}`. |
+| **availability** | `Dict` | Availability file path and header | Empty | Path to the availability file and column name for the availability time series to link to the edge. E.g. `{"timeseries": {"path": "assets/availability.csv", "header": "MIDAT_natural_gas_fired_combined_cycle_1"}}`.|
 | **can_expand** | `Bool` | `Bool` | `false` | Whether the edge is eligible for capacity expansion. |
 | **can_retire** | `Bool` | `Bool` | `false` | Whether the edge is eligible for capacity retirement. |
 | **capacity_size** | `Float64` | `Float64` | `1.0` | Size of the edge capacity. |
@@ -111,6 +111,7 @@ All the edges are represented by the same set of attributes. The definition of t
 | **ramp\_up\_fraction** | `Float64` | Number $\in$ [0,1] | `1.0` | Maximum increase in flow between two time steps, reported as a fraction of the capacity. **Note: add the `RampingLimitConstraint` to the constraints dictionary to activate this constraint**. |
 | **startup\_cost** | `Float64` | `Float64` | `0.0` | Cost per MW of capacity to start a generator (USD/MW per start). |
 | **startup\_fuel** | `Float64` | `Float64` | `0.0` | Startup fuel use per MW of capacity (MWh/MW per start). |
+| **uc** | `Bool` | `Bool` | `false` | Whether the edge has unit commitment operations. |
 | **variable\_om\_cost** | `Float64` | `Float64` | `0.0` | Variable operation and maintenance cost (USD/MWh). |
 
 ## Example
@@ -168,7 +169,7 @@ The following is an example of the input file for a ThermalPowerCCS asset that c
                 {
                     "id": "SE_naturalgas_ccccsavgcf_conservative_0",
                     "transforms": {
-                        "efficiency_rate": 0.476622662,
+                        "fuel_consumption": 2.09809579,
                         "emission_rate": 0.018104824,
                         "capture_rate": 0.162943412
                     },
@@ -196,7 +197,7 @@ The following is an example of the input file for a ThermalPowerCCS asset that c
                 {
                     "id": "MIDAT_naturalgas_ccccsavgcf_conservative_0",
                     "transforms": {
-                        "efficiency_rate": 0.476622662,
+                        "fuel_consumption": 2.09809579,
                         "emission_rate": 0.018104824,
                         "capture_rate": 0.162943412
                     },
@@ -224,7 +225,7 @@ The following is an example of the input file for a ThermalPowerCCS asset that c
                 {
                     "id": "NE_naturalgas_ccccsavgcf_conservative_0",
                     "transforms": {
-                        "efficiency_rate": 0.476622662,
+                        "fuel_consumption": 2.09809579,
                         "emission_rate": 0.018104824,
                         "capture_rate": 0.162943412
                     },

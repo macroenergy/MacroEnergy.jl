@@ -14,7 +14,7 @@ A MustRun asset is very similar to a `VRE` asset, and is made of:
     - 1 **outgoing** `Electricity` `Edge`, representing the electricity production.
 
 ## Attributes
-The structure of the input file for a hydroelectric reservoir asset follows the graph representation. Each `global_data` and `instance_data` will look like this:
+The structure of the input file for a MustRun asset follows the graph representation. Each `global_data` and `instance_data` will look like this:
 
 ```json
 {
@@ -43,7 +43,8 @@ The definition of the `Edge` object can be found here [MacroEnergy.Edge](@ref).
 | **Attribute** | **Type** | **Values** | **Default** | **Description** |
 |:--------------| :------: |:------: | :------: |:-------|
 | **end_vertex** | `String` | Any electricity node id present in the system | Required | ID of the ending vertex of the edge. The node must be present in the `nodes.json` file. E.g. "elec\_node\_1". |
-| **constraints** | `Dict{String,Bool}` | Any Macro constraint type for Edges | Empty | List of constraints applied to the edge. E.g. `{"MustRunConstraint": true}`. |
+| **constraints** | `Dict{String,Bool}` | Any Macro constraint type for Edges | `MustRunConstraint` | List of constraints applied to the edge. E.g. `{"MustRunConstraint": true}`. |
+| **availability** | `Dict` | Availability file path and header | Empty | Path to the availability file and column name for the availability time series to link to the edge. E.g. `{"timeseries": {"path": "assets/availability.csv", "header": "SE_small_hydroelectric_1"}}`.|
 | **can_expand** | `Bool` | `Bool` | `false` | Whether the edge is eligible for capacity expansion. |
 | **can_retire** | `Bool` | `Bool` | `false` | Whether the edge is eligible for capacity retirement. |
 | **capacity_size** | `Float64` | `Float64` | `1.0` | Size of the edge capacity. |
@@ -54,16 +55,11 @@ The definition of the `Edge` object can be found here [MacroEnergy.Edge](@ref).
 | **investment\_cost** | `Float64` | `Float64` | `0.0` | Annualized capacity investment cost (USD/MW-year) |
 | **max\_capacity** | `Float64` | `Float64` | `Inf` | Maximum allowed capacity of the edge (MW). **Note: add the `MaxCapacityConstraint` to the constraints dictionary to activate this constraint**. |
 | **min\_capacity** | `Float64` | `Float64` | `0.0` | Minimum allowed capacity of the edge (MW). **Note: add the `MinCapacityConstraint` to the constraints dictionary to activate this constraint**. |
-| **min\_flow\_fraction** | `Float64` | Number $\in$ [0,1] | `0.0` | Minimum flow of the edge as a fraction of the total capacity. **Note: add the `MinFlowConstraint` to the constraints dictionary to activate this constraint**. |
-| **ramp\_down\_fraction** | `Float64` | Number $\in$ [0,1] | `1.0` | Maximum decrease in flow between two time steps, reported as a fraction of the capacity. **Note: add the `RampingLimitConstraint` to the constraints dictionary to activate this constraint**. |
-| **ramp\_up\_fraction** | `Float64` | Number $\in$ [0,1] | `1.0` | Maximum increase in flow between two time steps, reported as a fraction of the capacity. **Note: add the `RampingLimitConstraint` to the constraints dictionary to activate this constraint**. |
 | **unidirectional** | `Bool` | `Bool` | `true` | Whether the edge is unidirectional. |
 | **variable\_om\_cost** | `Float64` | `Float64` | `0.0` | Variable operation and maintenance cost (USD/MWh). |
 
-!!! tip "Default constraints"
-    **Default constraints** for the edges of the MustRun asset are only applied to the inflow edge. These constraints are:
-
-    - [Must run constraint](@ref)
+!!! tip "Default constraint"
+    **Default constraint** for the electricity edge of the MustRun asset is the [Must run constraint](@ref).
 
 ## Example
 The following input file example shows how to create a MustRun asset in each of the three zones SE, MIDAT and NE.

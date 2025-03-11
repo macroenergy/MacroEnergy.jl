@@ -4,7 +4,7 @@
 A storage for a gas commodity is represented in Macro using the following graph structure:
 
 ```@raw html
-<img width="400" src="../../images/hydrogen_storage.png" />
+<img width="400" src="../../images/gas_storage.png" />
 ```
 
 A gas storage asset is made of:
@@ -51,7 +51,7 @@ The definition of the transformation object can be found here [MacroEnergy.Trans
 | **Attribute** | **Type** | **Values** | **Default** | **Description** |
 |:--------------| :------: | :------: | :------: |:-------|
 | **timedata** | `String` | `String` | Required | Time resolution for the time series data linked to the transformation. E.g. "Hydrogen". |
-| **constraints** | `Dict{String,Bool}` | Any Macro constraint type for vertices | Empty | List of constraints applied to the transformation. E.g. `{"BalanceConstraint": true}`. |
+| **constraints** | `Dict{String,Bool}` | Any Macro constraint type for vertices | `BalanceConstraint` | List of constraints applied to the transformation. E.g. `{"BalanceConstraint": true}`. |
 | **electricity_consumption** $\epsilon_{elec\_consumption}$ | `Float64` | `Float64` | `0.0` | $MWh_{elec}/MWh_{gas}$ |
 
 #### Flow equations
@@ -75,8 +75,8 @@ All the edges are represented by the same set of attributes. The definition of t
 | **type** | `String` | Any Macro commodity type matching the commodity of the edge | Required | Commodity of the edge. E.g. "Electricity". |
 | **start_vertex** | `String` | Any node id present in the system matching the commodity of the edge | Required | ID of the starting vertex of the edge. The node must be present in the `nodes.json` file. E.g. "elec\_node\_1". |
 | **end_vertex** | `String` | Any node id present in the system matching the commodity of the edge | Required | ID of the ending vertex of the edge. The node must be present in the `nodes.json` file. E.g. "elec\_node\_2". |
-| **constraints** | `Dict{String,Bool}` | Any Macro constraint type for Edges | Empty | List of constraints applied to the edge. E.g. `{"CapacityConstraint": true}`.|
-| **availability** | `Dict` | Availability file path and header | Empty | Path to the availability file and column name for the availability time series to link to the edge. E.g. `{"timeseries": {"path": "system/availability.csv", "header": "Availability_MW_z1"}}`.|
+| **constraints** | `Dict{String,Bool}` | Any Macro constraint type for Edges | Check box below | List of constraints applied to the edge. E.g. `{"CapacityConstraint": true}`.|
+| **availability** | `Dict` | Availability file path and header | Empty | Path to the availability file and column name for the availability time series to link to the edge. E.g. `{"timeseries": {"path": "assets/availability.csv", "header": "SE_Above_ground_storage"}}`.|
 | **can_expand** | `Bool` | `Bool` | `false` | Whether the edge is eligible for capacity expansion. |
 | **can_retire** | `Bool` | `Bool` | `false` | Whether the edge is eligible for capacity retirement. |
 | **capacity_size** | `Float64` | `Float64` | `1.0` | Size of the edge capacity. |
@@ -113,6 +113,7 @@ The definition of the `Storage` object can be found here [MacroEnergy.Storage](@
 | **existing\_capacity\_storage** | `Float64` | `Float64` | `0.0` | Initial installed storage capacity (MWh). |
 | **fixed\_om\_cost\_storage** | `Float64` | `Float64` | `0.0` | Fixed operations and maintenance cost (USD/MWh-year). |
 | **investment\_cost\_storage** | `Float64` | `Float64` | `0.0` | Annualized investment cost of the energy capacity for a storage technology (USD/MWh-year). |
+| **long\_duration** | `Bool` | `Bool` | `false` | Whether the storage is a long-duration storage. **Note**: if `true`, the long-duration storage constraint will be applied. |
 | **max\_capacity\_storage** | `Float64` | `Float64` | `Inf` | Maximum allowed storage capacity (MWh). |
 | **max\_duration** | `Float64` | `Float64` | `0.0` | Maximum ratio of installed energy to discharged capacity that can be installed (hours).|
 | **min\_capacity\_storage** | `Float64` | `Float64` | `0.0` | Minimum allowed storage capacity (MWh). |
@@ -127,6 +128,9 @@ The definition of the `Storage` object can be found here [MacroEnergy.Storage](@
 
     - [Balance constraint](@ref)
     - [Storage capacity constraint](@ref)
+
+    If the storage is a long-duration storage, the following additional constraints are applied:
+    - [Long-duration storage constraints](@ref)
 
 ## Example
 The following input file example shows how to create a hydrogen storage asset in each of the three zones SE, MIDAT and NE.

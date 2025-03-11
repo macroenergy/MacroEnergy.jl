@@ -51,11 +51,11 @@ The definition of the transformation object can be found here [MacroEnergy.Trans
 | **Attribute** |  **Type** | **Values** | **Default** | **Description/Units** |
 |:--------------| :------: | :------: | :------: |:-------|
 | **timedata** | `String` | `String` | Required | Time resolution for the time series data linked to the transformation. E.g. "NaturalGas". |
-| **constraints** | `Dict{String,Bool}` | Any Macro constraint type for vertices| Empty | List of constraints applied to the transformation. E.g. `{"BalanceConstraint": true}`. |
+| **constraints** | `Dict{String,Bool}` | Any Macro constraint type for vertices| `BalanceConstraint` | List of constraints applied to the transformation. E.g. `{"BalanceConstraint": true}`. |
 | **capture_rate** $\epsilon_{co2\_capture\_rate}$ | `Float64` | `Float64` | 1.0 | $t_{CO2}/MWh_{ng}$ |
 | **electricity_production** $\epsilon_{elec\_prod}$ | `Float64` | `Float64` | 0.0 | $MWh_{elec}/MWh_{ng}$ |
 | **emission_rate** $\epsilon_{emission\_rate}$ | `Float64` | `Float64` | 1.0 | $t_{CO2}/MWh_{ng}$ |
-| **fuel_consumption** $\epsilon_{fuel\_consumption}$ | `Float64` | `Float64` | 1.0 | $MWh_{ng}/t_{CO2}$ |
+| **fuel_consumption** $\epsilon_{fuel\_consumption}$ | `Float64` | `Float64` | 0.0 | $MWh_{ng}/t_{CO2}$ |
 
 !!! tip "Default constraints"
     The **default constraint** for the transformation part of the natural gas DAC asset is the following:
@@ -74,7 +74,6 @@ In the following equations, $\phi$ is the flow of the commodity and $\epsilon$ i
     \end{aligned}
     ```
 
-
 ### Edges
 !!! warning "Asset expansion"
     As a modeling decision, only the incoming `CO2` edge is allowed to expand. Therefore, the `has_capacity` attribute can only be set for this edge. For all the other edges, this attribute is pre-set to `false` to ensure the correct modeling of the asset. 
@@ -90,7 +89,7 @@ The definition of the `Edge` object can be found here [MacroEnergy.Edge](@ref).
 | **start_vertex** | `String` | Any node id present in the system matching the commodity of the edge | Required | ID of the starting vertex of the edge. The node must be present in the `nodes.json` file. E.g. "natgas\_node\_1". |
 | **end_vertex** | `String` | Any node id present in the system matching the commodity of the edge | Required | ID of the ending vertex of the edge. The node must be present in the `nodes.json` file. E.g. "elec\_node\_1". |
 | **constraints** | `Dict{String,Bool}` | Any Macro constraint type for Edges | Empty | List of constraints applied to the edge. E.g. `{"CapacityConstraint": true}`. |
-| **availability** | `Dict` | Availability file path and header | Empty | Path to the availability file and column name for the availability time series to link to the edge. E.g. `{"timeseries": {"path": "system/availability.csv", "header": "Availability_MW_z1"}}`.|
+| **availability** | `Dict` | Availability file path and header | Empty | Path to the availability file and column name for the availability time series to link to the edge. E.g. `{"timeseries": {"path": "assets/availability.csv", "header": "Availability_MW_z1"}}`.|
 | **can_expand** | `Bool` | `Bool` | `false` | Whether the edge is eligible for capacity expansion. |
 | **can_retire** | `Bool` | `Bool` | `false` | Whether the edge is eligible for capacity retirement. |
 | **capacity_size** | `Float64` | `Float64` | `1.0` | Size of the edge capacity. |

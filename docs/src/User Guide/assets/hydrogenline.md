@@ -33,7 +33,7 @@ The definition of the `Edge` object can be found here [MacroEnergy.Edge](@ref).
 | **type** | `String` | `Hydrogen` | Required | Commodity flowing through the edge. |
 | **start_vertex** | `String` | Any hydrogen node id present in the system | Required | ID of the starting vertex of the edge. The node must be present in the `nodes.json` file. E.g. "h2\_node\_1". |
 | **end_vertex** | `String` | Any hydrogen node id present in the system | Required | ID of the ending vertex of the edge. The node must be present in the `nodes.json` file. E.g. "h2\_node\_2". |
-| **constraints** | `Dict{String,Bool}` | Any Macro constraint type for Edges | Empty | List of constraints applied to the edge. E.g. `{"CapacityConstraint": true}`. |
+| **constraints** | `Dict{String,Bool}` | Any Macro constraint type for Edges | `CapacityConstraint` | List of constraints applied to the edge. E.g. `{"CapacityConstraint": true}`. |
 | **can_expand** | `Bool` | `Bool` | `false` | Whether the edge is eligible for capacity expansion. |
 | **can_retire** | `Bool` | `Bool` | `false` | Whether the edge is eligible for capacity retirement. |
 | **capacity_size** | `Float64` | `Float64` | `1.0` | Size of the edge capacity. |

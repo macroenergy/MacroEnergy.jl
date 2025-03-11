@@ -1,32 +1,7 @@
 # Macro Input Data
 *Macro version 0.1.0*
 
-!!! tip "Tutorial 1"
-    We recommend to check the Tutorial 1 for a step-by-step guide on how to create the input data.
-
-!!! note "Units in Macro"
-    Macro is agnostic to the units of the input data. Special attention should be paid to the units of the transformation parameters (e.g., conversion efficiency, fuel-to-energy production, etc.). It is the user's responsibility to ensure that the units are consistent across the system input data.
-
-    The following table shows the **default units** of the input data that are used, for instance, in the example system provided with the package:
-
-    | **Sector/Quantity** | **Units** |
-    | :-----------------: | :---------: |
-    | **Electricity** | MWh |
-    | **Hydrogen** | MWh |
-    | **NaturalGas** | MWh |
-    | **Uranium** | MWh |
-    | **Coal** | MWh |
-    | **CO2** | ton |
-    | **CO2Captured** | ton |
-    | **Biomass** | ton |
-    | **Time** | hours |
-    | **Price** | USD |
-
-    Commodities that require only an energy representation (e.g., Hydrogen) have units of MWh.
-    Commodities that require a physical representation (e.g., Biomass, where regional supply curve is important) have units of metric tonnes.
-    The recommended convention is MWh on a higher heating value basis for transformations where hydrogen is involved, and tonnes on a dry basis for transformations where biomass is involved.
-
-All input files are divided into **three** main directories:
+Macro input files are organized into **three** main directories:
 
 - **[Settings folder](@ref)**: Contains all the settings for the run and the solver.
 - **[System folder](@ref)**: Contains all files related to the system, such as sectors, time resolution, nodes, demand, etc.
@@ -64,6 +39,31 @@ MacroCase
 │ 
 └── system_data.json
 ```
+
+!!! note "Units in Macro"
+    Macro is agnostic to the units of the input data. Special attention should be paid to the units of the transformation parameters (e.g., conversion efficiency, fuel-to-energy production, etc.). It is the user's responsibility to ensure that the units are consistent across the system input data.
+
+    The following table shows the **default units** of the input data that are used, for instance, in the example system provided with the package:
+
+    | **Sector/Quantity** | **Units** |
+    | :-----------------: | :---------: |
+    | **Electricity** | MWh |
+    | **Hydrogen** | MWh |
+    | **NaturalGas** | MWh |
+    | **Uranium** | MWh |
+    | **Coal** | MWh |
+    | **CO2** | ton |
+    | **CO2Captured** | ton |
+    | **Biomass** | ton |
+    | **Time** | hours |
+    | **Price** | USD |
+
+    Commodities that require only an energy representation (e.g., Hydrogen) have units of MWh.
+    Commodities that require a physical representation (e.g., Biomass, where regional supply curve is important) have units of metric tonnes.
+    The recommended convention is MWh on a higher heating value basis for transformations where hydrogen is involved, and tonnes on a dry basis for transformations where biomass is involved.
+
+!!! warning "Comments in JSON files"
+    The comments (e.g. `//`) in the JSON file examples are for illustrative purposes only. They should be removed before using these lines as input, as JSON does not support comments.
 
 In the following section, we will go through each folder and file in detail.
 
@@ -202,7 +202,7 @@ This file contains the data related to the time resolution for each sector. The 
 
 In this example, Macro uses the above input files to create the following parameters:
 - **Total time interval**: `[1:PeriodLength] = [1:504]`
-- **Hours per time step**: `HoursPerTimeStep = 1` for all sectors
+- **`HoursPerTimeStep`**: `1` for all sectors
 - **Subperiods**:
   1. `[1:168]`: first week
   2. `[169:336]`: second week
@@ -248,7 +248,7 @@ Each dictionary has three main attributes:
 - `global_data`: attributes that are the same for all the nodes in the network.
 - `instance_data`: attributes that are different for each node in the network.
 
-This structure for the network has the advantage of **grouping the common attributes** for all the nodes in a single place, avoiding to repeat the same attribute for each node.
+This structure for the network has the advantage of **grouping the common attributes** for all the nodes in a single place, avoiding to repeat the same attribute for all the nodes.
 
 This is the structure of the `nodes.json` file:
 
@@ -258,12 +258,20 @@ This is the structure of the `nodes.json` file:
         {
             "type": "NaturalGas", // NaturalGas network
             "global_data": {},    // attributes that are the same for all the nodes in the network
-            "instance_data": [    // nodes ...
+            "instance_data": [
+                // NaturalGas node 1 ...
+                // NaturalGas node 2 ...
+                // ...
+            ]
         },
         {
             "type": "Electricity", // Electricity network
             "global_data": {},     // attributes that are the same for all the nodes in the network
-            "instance_data": [     // nodes ...
+            "instance_data": [
+                // Electricity node 1 ...
+                // Electricity node 2 ...
+                // ...
+            ]
         }
     ]
 }
@@ -311,7 +319,7 @@ Therefore, the system has 4 networks and 8 nodes in total.
                 "time_interval": "NaturalGas" // time resolution as defined in the time_data.json file
             },
             "instance_data": [
-                {
+                {   // NaturalGas node 1
                     "id": "natgas_SE",
                     "price": {
                         "timeseries": {
@@ -319,8 +327,8 @@ Therefore, the system has 4 networks and 8 nodes in total.
                             "header": "natgas_SE" // column name in the price file for the price time series
                         }
                     }
-                },
-                {
+                },  // End of NaturalGas node 1
+                {   // NaturalGas node 2
                     "id": "natgas_MIDAT",
                     "price": {
                         "timeseries": {
@@ -328,8 +336,8 @@ Therefore, the system has 4 networks and 8 nodes in total.
                             "header": "natgas_MIDAT"
                         }
                     }
-                },
-                {
+                },  // End of NaturalGas node 2
+                {   // NaturalGas node 3
                     "id": "natgas_NE",
                     "price": {
                         "timeseries": {
@@ -337,7 +345,7 @@ Therefore, the system has 4 networks and 8 nodes in total.
                             "header": "natgas_NE"
                         }
                     }
-                }
+                },  // End of NaturalGas node 3
             ]
         },
         {
@@ -475,13 +483,13 @@ This file contains the prices for each fuel for each region/node.
 ## Assets folder
 The `assets` folder contains all the files that define the resources and technologies that are included in the system. As a general rule, each asset type has its own file, where each file is structured in a similar way to the `nodes.json` file. 
 
-### Asset type files
+### Asset files
 **Format**: JSON
 
-Each asset type file has the following three main parameters:
+Similar to the `nodes.json` file, each asset file has the following three main parameters:
 - `type`: The type of the asset (e.g. "Battery", "FuelCell", "PowerLine", etc.).
-- `global_data`: attributes that are the same for all the assets of the same type.
-- `instance_data`: attributes that are different for each asset of the same type.
+- `global_data`: attributes that are the same for all the assets of the same type (e.g., unit commitment constraints applied to all the power plants).
+- `instance_data`: attributes that are different for each asset of the same type (e.g., investment costs, lifetime, etc.).
 
 Depending on the graph structure of the asset, both `global_data` and `instance_data` can have different attributes, one for each transformation, edge, and storage present in the asset. 
 
