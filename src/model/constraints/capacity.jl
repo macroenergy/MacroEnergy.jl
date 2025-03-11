@@ -23,7 +23,7 @@ If the edge is bidirectional, the constraint is:
 \end{aligned}
 ```
 
-for each time `t` in `time_interval(e)` for the edge `e` and each `i` in `[-1, 1]`. The function `availability` returns the time series of the capacity factor of the edge at time `t`.
+for each time `t` in `time_interval(e)` for the edge `e` and each `i` in `{0, 1}`. The function `availability` returns the time series of the capacity factor of the edge at time `t`.
 """
 function add_model_constraint!(ct::CapacityConstraint, e::Edge, model::Model)
 
