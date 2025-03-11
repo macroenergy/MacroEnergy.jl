@@ -2,26 +2,92 @@
 
 ## How to build new sectors in Macro
 
-### Overview
-The steps to build a sector in Macro are as follows:
+This section provides an overview of the steps to build new sectors in Macro, including:
+1. Adding new commodities to the model.
+2. Creating new assets and transformation processes.
+3. Adding modeling details to the assets (e.g., constraints, data, etc.).
 
-1. Create new sectors/commodity types by defining new subtypes of `Commodity` in the `MacroEnergy.jl` file.
+### 1. Adding a new sector to Macro
+In Macro, each sector is defined by a `Commodity` type. More specifically, a commodity type is defined as a subtype of the `Commodity` type, as can be seen at the top of the `MacroEnergy.jl` file:
 
-2. Create new assets. Each asset type should be a subtype of `AbstractAsset` and be defined in a Julia (`.jl`) file located in the `src/assets` folder. A `make` function should be defined for each asset type to create an instance of the asset.
+`MacroEnergy.jl`
+```julia
+## Commodity types
+abstract type Commodity end
+abstract type Electricity <: Commodity end ## MWh
+abstract type Hydrogen <: Commodity end ## MWh
+```
 
-!!! note "Note"
+the operator `<:` means *is-a-subtype-of*, that is `Electricity` and `Hydrogen` are **subtypes** of `Commodity`. 
+
+Therefore, to add a new sector to Macro, the modeler needs to add a new line in the `MacroEnergy.jl` file, as follows:
+
+`MacroEnergy.jl`
+```julia
+# ... existing code ...
+abstract type MyNewSector <: Commodity end
+# ... existing code ...
+```
+
+### 2. Create new assets
+Once the new commodity type is added to Macro, the modeler can create new assets that use this commodity type. For instance, a modeler may want to create a new asset that converts a commodity `MyNewSector` into two other commodities, `Electricity` and `CO2`. 
+
+!!! tip "Tip"
+    Before creating a new asset, we recommend the modeler to have a look at the existing assets in the `src/assets` folder. All the asset files follow a same structure to streamline the creation of new assets.
+
+As for the case of the commodity type, each asset in Macro is defined as a **subtype** of the `AbstractAsset` type (the user can find some examples by checking the `struct` definintion in the `.jl` files in the `src/assets` folder):
+
+`src/assets/electrolyzer.jl`
+```julia
+struct Electrolyzer <: AbstractAsset
+    id::AssetId
+    electrolyzer_transform::Transformation
+    h2_edge::Edge{Hydrogen}
+    elec_edge::Edge{Electricity}
+end
+```
+
+The steps to create a new asset `MyNewAsset` are:
+1. Design the new asset in terms of transformations, edges, and storage units for each commodity type used in the asset.
+2. Create a new Julia file in the `src/assets` folder called `mynewasset.jl`.
+3. At the top of the file, define the asset type as a subtype of `AbstractAsset`.
+
+```julia
+struct MyNewAsset <: AbstractAsset
+    # ... asset structure will go here ...
+end
+```
+
+4. Define the fields of the asset type as transformations, edges, and storage units with the appropriate commodity types.
+
+```julia
+struct MyNewAsset <: AbstractAsset
+    transform::Transformation
+    edge1::Edge{CommodityType1}
+    edge2::Edge{CommodityType2}
+    # ... rest of the asset structure will go here ...
+end
+```
+
+5. Define a `make` function in the same file with the steps to create an instance of the asset. The function should have the following signature:
+```julia
+function make(::Type{MyNewAsset}, data::AbstractDict{Symbol,Any}, system::System)
+    # ... make function will go here ...
+    return MyNewAsset(transform, edge1, edge2, # ... rest of the asset structure will go here ...)
+end
+```
+
+!!! note "Make function"
+    The `make` function should include the steps to create the asset structure, including:
+    1. **Creation of each component of the asset**: transformations, edges, and storage units.
+    2. **Default constraints** for each component.
+    3. **Stoichiometric equations/coefficients** for the transformation processes.
+
+6. (Optional) Create a new JSON data file to test the new assets.
+
+!!! warning "Include the new files in the MacroEnergy.jl file"
     Remember to include the new files in the `MacroEnergy.jl` file, so that they are available when the package is loaded.
 
-During the creation of the assets, you will need to provide (check the following sections for an example):
-1. **Asset structure**: list of fields that define the asset in the form of transformations, edges, and storage units.
-2. **Default constraints** for the transformations, edges, and storage units.
-3. **Stoichiometric equations/coefficients** for the transformation processes.
-
-```@raw html
-<ol start="4">
-    <li>(Optional) Create a new JSON data file to test the new assets.</li>
-</ol>
-```
 The following section provides an example of how to create a new sector and assets in Macro.
 
 ### Example
