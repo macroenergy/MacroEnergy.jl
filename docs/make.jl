@@ -43,10 +43,12 @@ const pages = [
         "Output" => "User Guide/output.md",
     ],
     "Modeler Guide" => [
+        "Overview" => "Modeler Guide/overview.md",
         "How to build a sector" => "Modeler Guide/build_sectors.md",
         "How to create an example case" => "Modeler Guide/create_example_case.md",
     ],
     "Developer Guide" => [
+        "Overview" => "Developer Guide/overview.md",
         "Type hierarchy" => "Developer Guide/type_hierarchy.md"
     ],
     "References" => [

@@ -11,7 +11,7 @@ Add a max non-served demand constraint to the node `n`. The functional form of t
 
 ```math
 \begin{aligned}
-    \sum_{s\ \in\ \text{segments\_non\_served\_demand(n)}} \text{non\_served\_demand(n, s, t)} \leq \text{demand(n, t)}
+    \sum_{s\ \in\ \text{segments\_nsd(n)}} \text{non\_served\_demand(n, s, t)} \leq \text{demand(n, t)}
 \end{aligned}
 ```
 for each time `t` in `time_interval(n)` for the node `n`.
