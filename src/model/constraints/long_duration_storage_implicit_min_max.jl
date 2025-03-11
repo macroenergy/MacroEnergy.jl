@@ -11,6 +11,44 @@ Base.@kwdef mutable struct LongDurationStorageImplicitMinMaxConstraint <: Operat
     constraint_ref::Union{Missing,JuMPConstraint} = missing
 end
 
+@doc raw"""
+    add_model_constraint!(ct::LongDurationStorageImplicitMinMaxConstraint, g::LongDurationStorage, model::Model)
+
+Adds constraints to ensure that the storage levels of long-duration storage systems do not exceed installed capacity over non-representative subperiods.
+
+The functional form of the two constraints are:
+
+```math
+\begin{aligned}
+    \text{storage\_balance(p)} + \text{max\_storage\_level(r)} - \text{storage\_level(tstart(p))} &\leq \text{capacity(g)} \\
+    \text{storage\_balance(p)} + \ \text{min\_storage\_level(r)} - \text{storage\_level(tstart(p))} &\geq 0
+\end{aligned}
+```
+where:
+- `p` is a non-representative subperiod.
+- `r` is the representative subperiod used to model `p`.
+- `tstart(p)` is the first timestep of the representative subperiod `r` used to model the non-representative subperiod `p`.
+- `storage_balance(p)` is the balance of the storage resource at the non-representative subperiod `p` and is defined as 
+```math
+\begin{aligned}
+    \text{storage\_balance(p)} = (1 - \text{loss\_fraction}) \times \text{storage\_initial(p)} + \frac{\text{flow(discharge\_edge, tstart(p))}}{\text{efficiency(discharge\_edge)}} - \text{efficiency(charge\_edge)} \times \text{flow(charge\_edge, tstart(p))}
+\end{aligned}
+```
+
+- `max_storage_level(r)` and `min_storage_level(r)` are the maximum and minimum storage levels for the representative subperiod `r`, respectively. These are used to constrain the storage levels as follows:
+
+```math
+\begin{aligned}
+    \text{min\_storage\_level(t')} \leq \text{storage\_level(t)} \leq \text{max\_storage\_level(t')}
+\end{aligned}
+```
+
+for each time `t` in the time interval of the storage resource `g`. `t'` is the corresponding time in the representative subperiod `r` used to model the time interval of the storage resource `g`.
+
+!!! warning "Only applies to long duration energy storage"
+    This constraint only applies to long duration energy storage resources. To model a storage technology as long duration energy storage, the user must set `long_duration = true` in the `Storage` component of the asset in the `.json` file.
+    Check the the file `hydropower.json` in the `ExampleSystems/eastern_us_three_zones` folder for an example of how to model a long duration energy storage resource.
+"""
 function add_model_constraint!(ct::LongDurationStorageImplicitMinMaxConstraint, g::LongDurationStorage, model::Model)
     W = subperiod_indices(g);
     N = setdiff(modeled_subperiods(g),W)
