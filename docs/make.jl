@@ -10,20 +10,19 @@ const pages = [
         "Table of contents" => "table_of_contents.md",
     ],
     "Getting Started" => [
-        "Overview" => "Getting Started/overview.md",
-        "Installation" => "Getting Started/installation.md",
-        "First Run" => "Getting Started/first_run.md",
+        "Overview" => "Getting Started/1_overview.md",
+        "Installation" => "Getting Started/2_installation.md",
+        "First Run" => "Getting Started/3_first_run.md",
     ],
     "Tutorials" => [
         "Getting Started" => "Tutorials/0_getting_started.md",
-        # "Input Files" => "Tutorials/tutorial_1_input_files.md",
         "Running Macro" => "Tutorials/1_running_macro.md",
         "Multisector Modelling" => "Tutorials/2_multisector_modelling.md",
     ],
     "User Guide" => [
-        "Sectors" => "User Guide/sectors.md",
-        "Input Data" => "User Guide/input_data.md",
-        "Assets" => ["User Guide/assets/introduction.md",
+        "Sectors" => "User Guide/1_sectors.md",
+        "Input Data" => "User Guide/2_input_data.md",
+        "Assets" => ["User Guide/assets/1_introduction.md",
             "User Guide/assets/battery.md",
             "User Guide/assets/beccselectricity.md",
             "User Guide/assets/beccshydrogen.md",
@@ -39,22 +38,24 @@ const pages = [
             "User Guide/assets/thermalhydrogen.md",
             "User Guide/assets/thermalpower.md",
             "User Guide/assets/vre.md"],
-        "Constraints" => "User Guide/constraints.md",
-        "Output" => "User Guide/output.md",
+        "Constraints" => "User Guide/4_constraints.md",
+        "Output" => "User Guide/5_output.md",
     ],
     "Modeler Guide" => [
-        "Overview" => "Modeler Guide/overview.md",
-        "How to build a sector" => "Modeler Guide/build_sectors.md",
-        "How to create an example case" => "Modeler Guide/create_example_case.md",
+        "Overview" => "Modeler Guide/1_introduction.md",
+        "How to build a sector" => "Modeler Guide/2_build_sectors.md",
+        "How to create an example case" => "Modeler Guide/3_create_example_case.md",
     ],
     "Developer Guide" => [
-        "Overview" => "Developer Guide/overview.md",
-        "Type hierarchy" => "Developer Guide/type_hierarchy.md"
+        "Overview" => "Developer Guide/1_introduction.md",
+        "Type hierarchy" => "Developer Guide/2_type_hierarchy.md"
     ],
     "References" => [
-        "Macro Objects" => "References/macro_objects.md",
-        "Asset Library" => "References/assets.md",
-        "Utilities" => "References/utilities.md",
+        "Macro Objects" => "References/1_macro_objects.md",
+        "Asset Library" => "References/2_assets.md",
+        "Reading input data" => "References/3_reading_input.md",
+        "Writing output data" => "References/4_writing_output.md",
+        "Utilities" => "References/5_utilities.md",
     ],
 ]
 
