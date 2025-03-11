@@ -26,8 +26,8 @@
                         "start_vertex": "h2_SE",
                         "end_vertex": "h2_MIDAT",
                         "distance": 491.4512001,
-                        "investment_cost": 92580.5925294,    
-                        "electricity_consumption": 0.067740938                   
+                        "investment_cost": 91350.53992,    
+                        "electricity_consumption": 0.06449                  
                     }
                 },
                 {
@@ -36,8 +36,8 @@
                         "start_vertex": "h2_MIDAT",
                         "end_vertex": "h2_SE",
                         "distance": 491.4512001,
-                        "investment_cost": 92580.5925294,
-                        "electricity_consumption": 0.067740938                     
+                        "investment_cost": 91350.53992,
+                        "electricity_consumption": 0.06449                   
                     }
                 },
                 {
@@ -46,8 +46,8 @@
                         "start_vertex": "h2_MIDAT",
                         "end_vertex": "h2_NE",
                         "distance": 473.6625536,
-                        "investment_cost": 89461.90456,
-                        "electricity_consumption": 0.065554656                    
+                        "investment_cost": 89059.0723,
+                        "electricity_consumption": 0.06449                    
                     }
                 },
                 {
@@ -56,8 +56,8 @@
                         "start_vertex": "h2_NE",
                         "end_vertex": "h2_MIDAT",
                         "distance": 473.6625536,
-                        "investment_cost": 89461.90456,
-                        "electricity_consumption": 0.065554656                        
+                        "investment_cost": 89059.0723,
+                        "electricity_consumption": 0.06449                        
                     }
                 }
             ]
