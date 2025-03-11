@@ -11,7 +11,20 @@ MacroEnergy.add_model_constraint!(ct::BalanceConstraint, v::MacroEnergy.Abstract
 MacroEnergy.add_model_constraint!(ct::CapacityConstraint, e::MacroEnergy.Edge, model::Model)
 MacroEnergy.add_model_constraint!(ct::CapacityConstraint, e::MacroEnergy.EdgeWithUC, model::Model)
 ```
-## CO2 capture constraint
+## CO2 capacity constraint
+The CO2 capacity constraint is used to limit the amount of CO2 that can be emitted by a single CO2 node.
+```@docs
+MacroEnergy.add_model_constraint!(ct::CO2CapConstraint, n::Node{CO2}, model::Model)
+```
+
+## Long-duration storage constraints
+These additional constraints (and variables) can be used to ensure that storage levels of long-duration storage systems do not exceed installed capacity over non-representative subperiods. 
+
+For a complete description of the constraints, see the paper: "Improved formulation for long-duration storage in capacity expansion models using representative periods", Federico Parolin, Paolo Colbertaldo, Ruaridh Macdonald, 2024, [https://doi.org/10.48550/arXiv.2409.19079](https://doi.org/10.48550/arXiv.2409.19079).
+
+```@docs
+MacroEnergy.add_model_constraint!(ct::LongDurationStorageImplicitMinMaxConstraint, g::LongDurationStorage, model::Model)
+```
 
 ## Maximum capacity constraint
 ```@docs

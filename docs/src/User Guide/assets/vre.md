@@ -44,7 +44,8 @@ The definition of the `Edge` object can be found here [MacroEnergy.Edge](@ref).
 |:--------------| :------: |:------: | :------: |:-------|
 | **type** | `String` | `Electricity` | Required | Commodity of the edge. |
 | **end_vertex** | `String` | Any electricity node id present in the system | Required | ID of the ending vertex of the edge. The node must be present in the `nodes.json` file. E.g. "elec\_node\_1". |
-| **constraints** | `Dict{String,Bool}` | Any Macro constraint type for Edges | Empty | List of constraints applied to the edge. E.g. `{"MustRunConstraint": true}`. |
+| **constraints** | `Dict{String,Bool}` | Any Macro constraint type for Edges | `CapacityConstraint` | List of constraints applied to the edge. E.g. `{"MustRunConstraint": true}`. |
+| **availability** | `Dict` | Availability file path and header | Empty | Path to the availability file and column name for the availability time series to link to the edge. E.g. `{"timeseries": {"path": "assets/availability.csv", "header": "SE_solar_photovoltaic_1"}}`.|
 | **can_expand** | `Bool` | `Bool` | `false` | Whether the edge is eligible for capacity expansion. |
 | **can_retire** | `Bool` | `Bool` | `false` | Whether the edge is eligible for capacity retirement. |
 | **capacity_size** | `Float64` | `Float64` | `1.0` | Size of the edge capacity. |

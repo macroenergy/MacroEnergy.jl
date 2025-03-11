@@ -50,11 +50,11 @@ The definition of the transformation object can be found here [MacroEnergy.Trans
 | **Attribute** | **Type** | **Values** | **Default** | **Description/Units** |
 |:--------------| ::------: | :------: | :------: |:-------|
 | **timedata** | `String` | `String` | Required | Time resolution for the time series data linked to the transformation. E.g. "NaturalGas". |
-| **constraints** | `Dict{String,Bool}` | Any Macro constraint type for vertices| Empty | List of constraints applied to the transformation. E.g. `{"BalanceConstraint": true}`. |
+| **constraints** | `Dict{String,Bool}` | Any Macro constraint type for vertices| `BalanceConstraint` | List of constraints applied to the transformation. E.g. `{"BalanceConstraint": true}`. |
 | **electricity_consumption** $\epsilon_{elec\_consumption}$ | `Float64` | `Float64` | 0.0 | $MWh_{elec}/MWh_{h2}$ |
-| **efficiency_rate** $\epsilon_{efficiency}$ | `Float64` | `Float64` | 1.0 | $MWh_{h2}/MWh_{fuel}$|
-| **emission_rate** $\epsilon_{emission\_rate}$ | `Float64` | `Float64` | 1.0 | $t_{CO2}/MWh_{fuel}$ |
-| **capture_rate** $\epsilon_{co2\_capture\_rate}$ | `Float64` | `Float64` | 1.0 | $t_{CO2}/MWh_{fuel}$ |
+| **fuel_consumption** $\epsilon_{fuel\_consumption}$ | `Float64` | `Float64` | 1.0 | $MWh_{fuel}/MWh_{h2}$|
+| **emission_rate** $\epsilon_{emission\_rate}$ | `Float64` | `Float64` | 0.0 | $t_{CO2}/MWh_{fuel}$ |
+| **capture_rate** $\epsilon_{co2\_capture\_rate}$ | `Float64` | `Float64` | 0.0 | $t_{CO2}/MWh_{fuel}$ |
 
 !!! tip "Default constraints"
     The **default constraint** for the transformation part of the ThermalHydrogen asset is the following:
@@ -67,7 +67,7 @@ In the following equations, $\phi$ is the flow of the commodity and $\epsilon$ i
     **Note**: Fuel is the type of the fuel being converted.
     ```math
     \begin{aligned}
-    \phi_{h2} &= \phi_{fuel} \cdot \epsilon_{efficiency} \\
+    \phi_{fuel} &= \phi_{h2} \cdot \epsilon_{fuel\_consumption} \\
     \phi_{elec} &= \phi_{h2} \cdot \epsilon_{elec\_consumption} \\
     \phi_{co2} &= \phi_{fuel} \cdot \epsilon_{emission\_rate} \\
     \phi_{co2\_captured} &= \phi_{fuel} \cdot \epsilon_{co2\_capture\_rate} \quad \text{(if CCS)} \\
@@ -75,12 +75,6 @@ In the following equations, $\phi$ is the flow of the commodity and $\epsilon$ i
     ```
 
 ### Edges
-!!! warning "Asset expansion"
-    As a modeling decision, only the `Hydrogen` and `Fuel` edges are allowed to expand. Therefore, both the `has_capacity` and `constraints` attributes can only be set for those edges. For all the other edges, these attributes are pre-set to `false` and to an empty list respectively to ensure the correct modeling of the asset. 
-
-!!! warning "Directionality"
-    The `unidirectional` attribute is set to `true` for all the edges.
-
 !!! note "Unit commitment and default constraints"
     The `Hydrogen` edge **can have unit commitment operations**. To enable it, the user needs to set the `uc` attribute to `true`. The default constraints for unit commitment case are the following:
     - [Capacity constraint](@ref)
@@ -90,6 +84,12 @@ In the following equations, $\phi$ is the flow of the commodity and $\epsilon$ i
     In case of no unit commitment, the `uc` attribute is set to `false` and the default constraints are the following:
     - [Capacity constraint](@ref)
 
+!!! warning "Asset expansion"
+    As a modeling decision, only the `Hydrogen` and `Fuel` edges are allowed to expand. Therefore, both the `has_capacity` and `constraints` attributes can only be set for those edges. For all the other edges, these attributes are pre-set to `false` and to an empty list respectively to ensure the correct modeling of the asset. 
+
+!!! warning "Directionality"
+    The `unidirectional` attribute is set to `true` for all the edges.
+
 
 All the edges are represented by the same set of attributes. The definition of the `Edge` object can be found here [MacroEnergy.Edge](@ref).
 
@@ -98,8 +98,8 @@ All the edges are represented by the same set of attributes. The definition of t
 | **type** | `String` | Any Macro commodity type matching the commodity of the edge | Required | Commodity of the edge. E.g. "Hydrogen". |
 | **start_vertex** | `String` | Any node id present in the system matching the commodity of the edge | Required | ID of the starting vertex of the edge. The node must be present in the `nodes.json` file. E.g. "elec\_node\_1". |
 | **end_vertex** | `String` | Any node id present in the system matching the commodity of the edge | Required | ID of the ending vertex of the edge. The node must be present in the `nodes.json` file. E.g. "elec\_node\_2". |
-| **constraints** | `Dict{String,Bool}` | Any Macro constraint type for Edges | Empty | List of constraints applied to the edge. E.g. `{"CapacityConstraint": true}`. |
-| **availability** | `Dict` | Availability file path and header | Empty | Path to the availability file and column name for the availability time series to link to the edge. E.g. `{"timeseries": {"path": "system/availability.csv", "header": "Availability_MW_z1"}}`.|
+| **constraints** | `Dict{String,Bool}` | Any Macro constraint type for Edges | See note above | List of constraints applied to the edge. E.g. `{"CapacityConstraint": true}`. |
+| **availability** | `Dict` | Availability file path and header | Empty | Path to the availability file and column name for the availability time series to link to the edge. E.g. `{"timeseries": {"path": "assets/availability.csv", "header": "SE_ATR_wCCS"}}`.|
 | **can_expand** | `Bool` | `Bool` | `false` | Whether the edge is eligible for capacity expansion. |
 | **can_retire** | `Bool` | `Bool` | `false` | Whether the edge is eligible for capacity retirement. |
 | **capacity_size** | `Float64` | `Float64` | `1.0` | Size of the edge capacity. |
@@ -118,6 +118,7 @@ All the edges are represented by the same set of attributes. The definition of t
 | **ramp\_up\_fraction** | `Float64` | Number $\in$ [0,1] | `1.0` | Maximum increase in flow between two time steps, reported as a fraction of the capacity. **Note: add the `RampingLimitConstraint` to the constraints dictionary to activate this constraint**. |
 | **startup\_cost** | `Float64` | `Float64` | `0.0` | Cost per MW of capacity to start a generator (USD/MW per start). |
 | **startup\_fuel** | `Float64` | `Float64` | `0.0` | Startup fuel use per MW of capacity (MWh/MW per start). |
+| **uc** | `Bool` | `Bool` | `false` | Whether the edge has unit commitment operations. |
 | **variable\_om\_cost** | `Float64` | `Float64` | `0.0` | Variable operation and maintenance cost (USD/MWh). |
 
 ## Example
@@ -181,7 +182,7 @@ The following is an example of the input file for a ThermalHydrogenCCS asset tha
                     "id": "SE_ATR_wCCS_94pct",
                     "transforms": {
                         "emission_rate": 0.003794329,
-                        "efficiency_rate": 0.769121482,
+                        "fuel_consumption": 1.300184721664035,
                         "electricity_consumption": 0.101574,
                         "capture_rate": 0.065193472
                     },
@@ -218,7 +219,7 @@ The following is an example of the input file for a ThermalHydrogenCCS asset tha
                     "id": "MIDAT_ATR_wCCS_94pct",
                     "transforms": {
                         "emission_rate": 0.003794329,
-                        "efficiency_rate": 0.769121482,
+                        "fuel_consumption": 1.300184721664035,
                         "electricity_consumption": 0.101574,
                         "capture_rate": 0.065193472
                     },
@@ -255,7 +256,7 @@ The following is an example of the input file for a ThermalHydrogenCCS asset tha
                     "id": "NE_ATR_wCCS_94pct",
                     "transforms": {
                         "emission_rate": 0.003794329,
-                        "efficiency_rate": 0.769121482,
+                        "fuel_consumption": 1.300184721664035,
                         "electricity_consumption": 0.101574,
                         "capture_rate": 0.065193472
                     },
