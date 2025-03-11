@@ -191,7 +191,7 @@ To include the electrolyzer, create a file `one_zone_multisector/assets/electrol
 
 Include an hydrogen storage resource cluster, represented in Macro as combination of a compressor transformation (consuming electricity to compress the gas) and a storage node:
 
-![hydrogen_storage](../images/hydrogen_storage.png)
+![hydrogen_storage](../images/gas_storage.png)
 
 Add a file `one_zone_multisector/assets/h2_storage.json` based on the asset definition in  `src/model/assets/gasstorage.jl`that should look like this:
 

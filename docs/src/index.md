@@ -28,6 +28,7 @@ The following sections of the documentation are designed to serve the different 
 
 ## Package Outline
 
+- ##### [Getting Started](@ref)
 - ##### [User Guide](@ref)
 - ##### [Modeler Guide](@ref)
 - ##### [Developer Guide](@ref)
