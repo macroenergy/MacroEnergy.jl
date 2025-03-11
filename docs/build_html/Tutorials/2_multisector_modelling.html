@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Multisector Modelling · Macro</title><meta name="title" content="Multisector Modelling · Macro"/><meta property="og:title" content="Multisector Modelling · Macro"/><meta property="twitter:title" content="Multisector Modelling · Macro"/><meta name="description" content="Documentation for Macro."/><meta property="og:description" content="Documentation for Macro."/><meta property="twitter:description" content="Documentation for Macro."/><meta property="og:url" content="https://macroenergy.github.io/Macro/stable/Tutorials/2_multisector_modelling.html"/><meta property="twitter:url" content="https://macroenergy.github.io/Macro/stable/Tutorials/2_multisector_modelling.html"/><link rel="canonical" href="https://macroenergy.github.io/Macro/stable/Tutorials/2_multisector_modelling.html"/><script data-outdated-warner src="../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../search_index.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../index.html">Macro</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><input class="collapse-toggle" id="menuitem-1" type="checkbox"/><label class="tocitem" for="menuitem-1"><span class="docs-label">Welcome to Macro</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../index.html">Introduction</a></li><li><a class="tocitem" href="../table_of_contents.html">Table of contents</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-2" type="checkbox"/><label class="tocitem" for="menuitem-2"><span class="docs-label">Getting Started</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../Getting Started/overview.html">Overview</a></li><li><a class="tocitem" href="../Getting Started/installation.html">Installation</a></li><li><a class="tocitem" href="../Getting Started/first_run.html">First Run</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-3" type="checkbox" checked/><label class="tocitem" for="menuitem-3"><span class="docs-label">Tutorials</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="0_getting_started.html">Getting Started</a></li><li><a class="tocitem" href="1_running_macro.html">Running Macro</a></li><li class="is-active"><a class="tocitem" href="2_multisector_modelling.html">Multisector Modelling</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4" type="checkbox"/><label class="tocitem" for="menuitem-4"><span class="docs-label">User Guide</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../User Guide/sectors.html">Sectors</a></li><li><a class="tocitem" href="../User Guide/input_data.html">Input Data</a></li><li><input class="collapse-toggle" id="menuitem-4-3" type="checkbox"/><label class="tocitem" for="menuitem-4-3"><span class="docs-label">Assets</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../User Guide/assets/introduction.html">Macro Asset Library</a></li><li><a class="tocitem" href="../User Guide/assets/battery.html">Battery</a></li><li><a class="tocitem" href="../User Guide/assets/beccselectricity.html">BECCS Electricity</a></li><li><a class="tocitem" href="../User Guide/assets/beccshydrogen.html">BECCS Hydrogen</a></li><li><a class="tocitem" href="../User Guide/assets/electricdac.html">Electric DAC</a></li><li><a class="tocitem" href="../User Guide/assets/electrolyzer.html">Electrolyzer</a></li><li><a class="tocitem" href="../User Guide/assets/fuelcell.html">Fuel Cell</a></li><li><a class="tocitem" href="../User Guide/assets/gasstorage.html">Gas Storage</a></li><li><a class="tocitem" href="../User Guide/assets/hydrogenline.html">Hydrogen Line</a></li><li><a class="tocitem" href="../User Guide/assets/hydropower.html">Hydro Reservoir</a></li><li><a class="tocitem" href="../User Guide/assets/mustrun.html">Must Run</a></li><li><a class="tocitem" href="../User Guide/assets/natgasdaq.html">Natural Gas DAC</a></li><li><a class="tocitem" href="../User Guide/assets/powerline.html">Power Line</a></li><li><a class="tocitem" href="../User Guide/assets/thermalhydrogen.html">Thermal Hydrogen Plant (with and without CCS)</a></li><li><a class="tocitem" href="../User Guide/assets/thermalpower.html">Thermal Power Plant (with and without CCS)</a></li><li><a class="tocitem" href="../User Guide/assets/vre.html">Variable Renewable Energy resources (VRE)</a></li></ul></li><li><a class="tocitem" href="../User Guide/constraints.html">Constraints</a></li><li><a class="tocitem" href="../User Guide/output.html">Output</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-5" type="checkbox"/><label class="tocitem" for="menuitem-5"><span class="docs-label">Modeler Guide</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../Modeler Guide/overview.html">Overview</a></li><li><a class="tocitem" href="../Modeler Guide/build_sectors.html">How to build a sector</a></li><li><a class="tocitem" href="../Modeler Guide/create_example_case.html">How to create an example case</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-6" type="checkbox"/><label class="tocitem" for="menuitem-6"><span class="docs-label">Developer Guide</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../Developer Guide/overview.html">Overview</a></li><li><a class="tocitem" href="../Developer Guide/type_hierarchy.html">Type hierarchy</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-7" type="checkbox"/><label class="tocitem" for="menuitem-7"><span class="docs-label">References</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../References/macro_objects.html">Macro Objects</a></li><li><a class="tocitem" href="../References/assets.html">Asset Library</a></li><li><a class="tocitem" href="../References/utilities.html">Utilities</a></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Tutorials</a></li><li class="is-active"><a href="2_multisector_modelling.html">Multisector Modelling</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href="2_multisector_modelling.html">Multisector Modelling</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/macroenergy/Macro" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/macroenergy/Macro/blob/master/docs/src/Tutorials/2_multisector_modelling.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Multisector-modelling-with-Macro"><a class="docs-heading-anchor" href="#Multisector-modelling-with-Macro">Multisector modelling with Macro</a><a id="Multisector-modelling-with-Macro-1"></a><a class="docs-heading-anchor-permalink" href="#Multisector-modelling-with-Macro" title="Permalink"></a></h1><div class="admonition is-info"><header class="admonition-header">Interactive Notebook</header><div class="admonition-body"><p>The interactive version of this tutorial can be found <a href="https://github.com/macroenergy/Macro/tree/main/tutorials/tutorial_3_multisector_modelling.ipynb">here</a>.</p></div></div><p>In this tutorial, we extend the electricity-only model considered in Tutorial 2 to build a multisector model for joint capacity expansion in electricity and hydrogen sectors. </p><p>To do this, we scorporate hydrogen and electricity demand from Tutorial 2, and endogeneously model hydrogen production and storage in Macro.</p><pre><code class="language-julia hljs">using Pkg; Pkg.add([&quot;VegaLite&quot;, &quot;Plots&quot;])</code></pre><pre><code class="language-julia hljs">using Macro
+using HiGHS
+using CSV
+using DataFrames
+using JSON3
+using Plots
+using VegaLite</code></pre><p>Create a new case folder named &quot;one<em>zone</em>multisector&quot;</p><pre><code class="language-julia hljs">if !isdir(&quot;one_zone_multisector&quot;)
+    mkdir(&quot;one_zone_multisector&quot;)
+    cp(&quot;one_zone_electricity_only/assets&quot;,&quot;one_zone_multisector/assets&quot;, force=true)
+    cp(&quot;one_zone_electricity_only/settings&quot;,&quot;one_zone_multisector/settings&quot;, force=true)
+    cp(&quot;one_zone_electricity_only/system&quot;,&quot;one_zone_multisector/system&quot;, force=true)
+    cp(&quot;one_zone_electricity_only/system_data.json&quot;,&quot;one_zone_multisector/system_data.json&quot;, force=true)
+end</code></pre><p><strong>Note:</strong> If you have previously run Tutorial 2, make sure that file <code>one_zone_multisector/system/nodes.json</code> is restored to the original version with a <span>$\text{CO}_2$</span> price. The definition of the <span>$\text{CO}_2$</span> node should look like this:</p><pre><code class="language-json hljs">{
+    &quot;type&quot;: &quot;CO2&quot;,
+    &quot;global_data&quot;: {
+        &quot;time_interval&quot;: &quot;CO2&quot;
+    },
+    &quot;instance_data&quot;: [
+        {
+            &quot;id&quot;: &quot;co2_sink&quot;,
+            &quot;constraints&quot;: {
+                &quot;CO2CapConstraint&quot;: true
+            },
+            &quot;rhs_policy&quot;: {
+                &quot;CO2CapConstraint&quot;: 0
+            },
+            &quot;price_unmet_policy&quot;:{
+                &quot;CO2CapConstraint&quot;: 200
+            }    
+        }
+    ]
+}</code></pre><p>Add Hydrogen to the list of modeled commodities, modifying file <code>one_zone_multisector/system/commodities.json</code>:</p><pre><code class="language-julia hljs">new_macro_commodities = Dict(&quot;commodities&quot;=&gt; [&quot;Electricity&quot;, &quot;NaturalGas&quot;, &quot;CO2&quot;, &quot;Hydrogen&quot;])
+
+open(&quot;one_zone_multisector/system/commodities.json&quot;, &quot;w&quot;) do io
+    JSON3.pretty(io, new_macro_commodities)
+end</code></pre><p>Update file <code>one_zone_multisector/system/time_data.json</code> accordingly:</p><pre><code class="language-julia hljs">new_time_data = Dict(&quot;PeriodLength&quot;=&gt;8760,
+new_time_data = Dict(&quot;PeriodLength&quot;=&gt;8760,
+                    &quot;HoursPerTimeStep&quot;=&gt;Dict(&quot;Electricity&quot;=&gt;1, &quot;NaturalGas&quot;=&gt; 1, &quot;CO2&quot;=&gt; 1, &quot;Hydrogen&quot;=&gt;1),
+                    &quot;HoursPerSubperiod&quot;=&gt;Dict(&quot;Electricity&quot;=&gt;8760, &quot;NaturalGas&quot;=&gt; 8760, &quot;CO2&quot;=&gt; 8760, &quot;Hydrogen&quot;=&gt;8760)
+                )
+
+open(&quot;one_zone_multisector/system/time_data.json&quot;, &quot;w&quot;) do io
+    JSON3.pretty(io, new_time_data)
+end</code></pre><p>Move separate electricity and hydrogen demand timeseries into the system folder</p><pre><code class="language-julia hljs">cp(&quot;demand_timeseries/electricity_demand.csv&quot;,&quot;one_zone_multisector/system/demand.csv&quot;;force=true)</code></pre><pre><code class="language-julia hljs">cp(&quot;demand_timeseries/hydrogen_demand.csv&quot;,&quot;one_zone_multisector/system/hydrogen_demand.csv&quot;;force=true)</code></pre><h3 id="Exercise-1"><a class="docs-heading-anchor" href="#Exercise-1">Exercise 1</a><a id="Exercise-1-1"></a><a class="docs-heading-anchor-permalink" href="#Exercise-1" title="Permalink"></a></h3><p>using the existing electricity nodes in <code>one_zone_multisector/system/nodes.json</code> as template, add an Hydrogen demand node, linking it to the <code>hydogen_demand.csv</code> timeseries.</p><h4 id="Solution"><a class="docs-heading-anchor" href="#Solution">Solution</a><a id="Solution-1"></a><a class="docs-heading-anchor-permalink" href="#Solution" title="Permalink"></a></h4><p>The definition of the new Hydrogen node in <code>one_zone_multisector/system/nodes.json</code> should look like this:</p><pre><code class="language-json hljs">    {
+        &quot;type&quot;: &quot;Hydrogen&quot;,
+        &quot;global_data&quot;: {
+            &quot;time_interval&quot;: &quot;Hydrogen&quot;,
+            &quot;constraints&quot;: {
+                &quot;BalanceConstraint&quot;: true
+            }
+        },
+        &quot;instance_data&quot;: [
+            {
+                &quot;id&quot;: &quot;h2_SE&quot;,
+                &quot;demand&quot;: {
+                    &quot;timeseries&quot;: {
+                        &quot;path&quot;: &quot;system/hydrogen_demand.csv&quot;,
+                        &quot;header&quot;: &quot;Demand_H2_z1&quot;
+                    }
+                }
+            }
+        ]
+    },</code></pre><p>Next, add an electrolyzer asset represented in Macro as a transformation connecting electricity and hydrogen nodes:</p><p><img src="../images/electrolyzer.png" alt="electrolyzer"/></p><p>To include the electrolyzer, create a file <code>one_zone_multisector/assets/electrolyzer.json</code> based on the asset definition in <code>src/model/assets/electrolyzer.jl</code>:</p><pre><code class="language-json hljs">{
+   &quot;electrolyzer&quot;: [
+        {   
+            &quot;type&quot;: &quot;Electrolyzer&quot;,
+            &quot;global_data&quot;:{
+                &quot;transforms&quot;: {
+                    &quot;timedata&quot;: &quot;Electricity&quot;,
+                    &quot;constraints&quot;: {
+                        &quot;BalanceConstraint&quot;: true
+                    }
+                },
+                &quot;edges&quot;: {
+                    &quot;h2_edge&quot;: {
+                        &quot;type&quot;: &quot;Hydrogen&quot;,
+                        &quot;unidirectional&quot;: true,
+                        &quot;has_capacity&quot;: true,
+                        &quot;can_retire&quot;: true,
+                        &quot;can_expand&quot;: true,
+                        &quot;constraints&quot;: {
+                            &quot;CapacityConstraint&quot;: true,
+                            &quot;RampingLimitConstraint&quot;: true,
+                            &quot;MinFlowConstraint&quot;: true
+                        }
+                    },
+                    &quot;elec_edge&quot;: {
+                        &quot;type&quot;: &quot;Electricity&quot;,
+                        &quot;unidirectional&quot;: true,
+                        &quot;has_capacity&quot;: false
+                    }
+                }
+            },
+            &quot;instance_data&quot;:[
+                {
+                    &quot;id&quot;: &quot;SE_Electrolyzer&quot;,
+                    &quot;transforms&quot;:{
+                        &quot;efficiency_rate&quot;: 0.875111139 // units: # MWh of H2 / MWh of electricity
+                    },
+                    &quot;edges&quot;:{
+                        &quot;elec_edge&quot;: {
+                            &quot;start_vertex&quot;: &quot;elec_SE&quot;
+                        },
+                        &quot;h2_edge&quot;: {
+                            &quot;end_vertex&quot;: &quot;h2_SE&quot;,
+                            &quot;existing_capacity&quot;: 0,
+                            &quot;investment_cost&quot;: 41112.53426,
+                            &quot;fixed_om_cost&quot;: 1052.480877,
+                            &quot;variable_om_cost&quot;: 0.0,
+                            &quot;capacity_size&quot;: 1.5752,
+                            &quot;ramp_up_fraction&quot;: 1,
+                            &quot;ramp_down_fraction&quot;: 1,
+                            &quot;min_flow_fraction&quot;:0.1
+                        }
+                    }
+                }
+            ]
+        }
+    ]
+}</code></pre><p>Include an hydrogen storage resource cluster, represented in Macro as combination of a compressor transformation (consuming electricity to compress the gas) and a storage node:</p><p><img src="../images/gas_storage.png" alt="hydrogen_storage"/></p><p>Add a file <code>one_zone_multisector/assets/h2_storage.json</code> based on the asset definition in  <code>src/model/assets/gasstorage.jl</code>that should look like this:</p><pre><code class="language-json hljs">{
+    &quot;h2stor&quot;: [
+        {
+            &quot;type&quot;: &quot;GasStorage&quot;,
+            &quot;global_data&quot;: {
+                &quot;nodes&quot;: {},
+                &quot;transforms&quot;: {
+                    &quot;timedata&quot;: &quot;Hydrogen&quot;,
+                    &quot;constraints&quot;: {
+                        &quot;BalanceConstraint&quot;: true
+                    }
+                },
+                &quot;edges&quot;: {
+                    &quot;discharge_edge&quot;: {
+                        &quot;type&quot;: &quot;Hydrogen&quot;,
+                        &quot;unidirectional&quot;: true,
+                        &quot;can_expand&quot;: true,
+                        &quot;can_retire&quot;: false,
+                        &quot;has_capacity&quot;: true,
+                        &quot;constraints&quot;: {
+                            &quot;CapacityConstraint&quot;: true,
+                            &quot;RampingLimitConstraint&quot;: true
+                        }
+                    },
+                    &quot;charge_edge&quot;: {
+                        &quot;type&quot;: &quot;Hydrogen&quot;,
+                        &quot;unidirectional&quot;: true,
+                        &quot;has_capacity&quot;: true,
+                        &quot;can_expand&quot;: true,
+                        &quot;can_retire&quot;: false,
+                        &quot;constraints&quot;: {
+                            &quot;CapacityConstraint&quot;: true
+                        }
+                    },
+                    &quot;compressor_elec_edge&quot;: {
+                        &quot;type&quot;: &quot;Electricity&quot;,
+                        &quot;unidirectional&quot;: true,
+                        &quot;has_capacity&quot;: false
+                    },
+                    &quot;compressor_gas_edge&quot;: {
+                        &quot;type&quot;: &quot;Hydrogen&quot;,
+                        &quot;unidirectional&quot;: true,
+                        &quot;has_capacity&quot;: false
+                    }
+                },
+                &quot;storage&quot;: {
+                    &quot;commodity&quot;: &quot;Hydrogen&quot;,
+                    &quot;can_expand&quot;: true,
+                    &quot;can_retire&quot;: false,
+                    &quot;constraints&quot;: {
+                        &quot;StorageCapacityConstraint&quot;: true,
+                        &quot;BalanceConstraint&quot;: true,
+                        &quot;MinStorageLevelConstraint&quot;: true
+                    }
+                }
+            },
+            &quot;instance_data&quot;: [
+                {
+                    &quot;id&quot;: &quot;SE_Above_ground_storage&quot;,
+                    &quot;transforms&quot;: {
+                        &quot;electricity_consumption&quot;: 0.018029457
+                    },
+                    &quot;edges&quot;: {
+                        &quot;discharge_edge&quot;: {
+                            &quot;end_vertex&quot;: &quot;h2_SE&quot;,
+                            &quot;existing_capacity&quot;: 0,
+                            &quot;investment_cost&quot;: 0.0,
+                            &quot;fixed_om_cost&quot;: 0.0,
+                            &quot;variable_om_cost&quot;: 0.0,
+                            &quot;efficiency&quot;: 1.0,
+                            &quot;ramp_up_fraction&quot;: 1,
+                            &quot;ramp_down_fraction&quot;: 1
+                        },
+                        &quot;charge_edge&quot;:{
+                            &quot;existing_capacity&quot;: 0,
+                            &quot;investment_cost&quot;: 3219.236569,
+                            &quot;fixed_om_cost&quot;: 0.0,
+                            &quot;variable_om_cost&quot;: 0.0,
+                            &quot;efficiency&quot;: 1.0
+                        },
+                        &quot;compressor_gas_edge&quot;: {
+                            &quot;start_vertex&quot;: &quot;h2_SE&quot;
+                        },
+                        &quot;compressor_elec_edge&quot;: {
+                            &quot;start_vertex&quot;: &quot;elec_SE&quot;
+                        }
+                    },
+                    &quot;storage&quot;:{
+                        &quot;investment_cost_storage&quot;: 873.013307,
+                        &quot;fixed_om_cost_storage&quot;:28.75810056,
+                        &quot;storage_loss_fraction&quot;: 0.0,
+                        &quot;min_storage_level&quot;: 0.3
+                    }
+                }
+            ]
+        }
+    ]
+}</code></pre><h3 id="Exercise-2"><a class="docs-heading-anchor" href="#Exercise-2">Exercise 2</a><a id="Exercise-2-1"></a><a class="docs-heading-anchor-permalink" href="#Exercise-2" title="Permalink"></a></h3><p>Following the same steps taken in Tutorial 2, load the input files, generate Macro model, and solve it using the open-source solver HiGHS.</p><h4 id="Solution-2"><a class="docs-heading-anchor" href="#Solution-2">Solution</a><a class="docs-heading-anchor-permalink" href="#Solution-2" title="Permalink"></a></h4><p>First, load the inputs:</p><pre><code class="language-julia hljs">system = MacroEnergy.load_system(&quot;one_zone_multisector&quot;);</code></pre><p>Then, generate the model:</p><pre><code class="language-julia hljs">model = MacroEnergy.generate_model(system)</code></pre><p>Finally, solve it using the HiGHS solver:</p><pre><code class="language-julia hljs">MacroEnergy.set_optimizer(model, HiGHS.Optimizer);
+MacroEnergy.optimize!(model)</code></pre><h3 id="Exercise-3"><a class="docs-heading-anchor" href="#Exercise-3">Exercise 3</a><a id="Exercise-3-1"></a><a class="docs-heading-anchor-permalink" href="#Exercise-3" title="Permalink"></a></h3><p>As in Tutorial 2, print optimized capacity for each asset, the system total cost, and the total emissions. </p><p>What do you observe?</p><p>To explain the results, plot both the electricity generation and hydrogen supply results as done in Tutorial 2 using <code>VegaLite.jl</code>.</p><h4 id="Solution-3"><a class="docs-heading-anchor" href="#Solution-3">Solution</a><a class="docs-heading-anchor-permalink" href="#Solution-3" title="Permalink"></a></h4><p>Optimized capacities are retrieved as follows:</p><pre><code class="language-julia hljs">capacity_results = MacroEnergy.get_optimal_asset_capacity(system)</code></pre><p>Total system cost is:</p><pre><code class="language-julia hljs">MacroEnergy.objective_value(model)</code></pre><p>Total <span>$\text{CO}_2$</span> emissions are:</p><pre><code class="language-julia hljs">co2_node = MacroEnergy.get_nodes_sametype(system.locations, CO2)[1]
+MacroEnergy.value(sum(co2_node.operation_expr[:emissions]))</code></pre><p>Note that we have achieved lower costs and emissions when able to co-optimize capacity and operation of electricity and hydrogen sectors. In the following, we further investigate these</p><pre><code class="language-julia hljs">plot_time_interval = 3600:3624</code></pre><p>Here is the electricity generation profile:</p><pre><code class="language-julia hljs">natgas_power =  MacroEnergy.value.(MacroEnergy.flow(system.assets[4].elec_edge)).data[plot_time_interval]/1e3;
+solar_power = MacroEnergy.value.(MacroEnergy.flow(system.assets[5].edge)).data[plot_time_interval]/1e3;
+wind_power = MacroEnergy.value.(MacroEnergy.flow(system.assets[6].edge)).data[plot_time_interval]/1e3;
+
+elec_gen =  DataFrame( hours = plot_time_interval, 
+                solar_photovoltaic = solar_power,
+                wind_turbine = wind_power,
+                natural_gas_fired_combined_cycle = natgas_power,
+                )
+
+stack_elec_gen = stack(elec_gen, [:natural_gas_fired_combined_cycle,:wind_turbine,:solar_photovoltaic], variable_name=:resource, value_name=:generation);
+
+elc_plot = stack_elec_gen |&gt; 
+@vlplot(
+    :area,
+    x={:hours, title=&quot;Hours&quot;},
+    y={:generation, title=&quot;Electricity generation (GWh)&quot;,stack=:zero},
+    color={&quot;resource:n&quot;, scale={scheme=:category10}},
+    width=400,
+    height=300
+)</code></pre><p><img src="../images/multisector_elec_gen.png" alt="elec_generation"/></p><p>During the day, when solar photovoltaic is available, almost all of the electricity generation comes from VREs.</p><p>Because hydrogen storage is cheaper than batteries, we expect the system to use the electricity generated during the day to operate the electrolyzers to meet the hydrogen demand, storing the excess hydrogen to be used when solar photolvoltaics can not generate electricity.</p><p>We verify our assumption by making a stacked area plot of the hydrogen supply (hydrogen generation net of the hydrogen stored):</p><pre><code class="language-julia hljs">electrolyzer_idx = findfirst(isa.(system.assets,Electrolyzer).==1)
+h2stor_idx = findfirst(isa.(system.assets,GasStorage{Hydrogen}).==1)
+
+electrolyzer_gen =  MacroEnergy.value.(MacroEnergy.flow(system.assets[electrolyzer_idx].h2_edge)).data[plot_time_interval]/1e3;
+h2stor_charge =  MacroEnergy.value.(MacroEnergy.flow(system.assets[h2stor_idx].charge_edge)).data[plot_time_interval]/1e3;
+h2stor_discharge = MacroEnergy.value.(MacroEnergy.flow(system.assets[h2stor_idx].discharge_edge)).data[plot_time_interval]/1e3;
+
+h2_gen = DataFrame( hours = plot_time_interval, 
+                    electrolyzer = electrolyzer_gen - h2stor_charge,
+                    storage =  h2stor_discharge)
+
+stack_h2_gen = stack(h2_gen, [:electrolyzer, :storage], variable_name=:resource, value_name=:supply);
+
+h2plot = stack_h2_gen |&gt; 
+    @vlplot(
+        :area,
+        x={:hours, title=&quot;Hours&quot;},
+        y={:supply, title=&quot;Hydrogen supply (GWh)&quot;,stack=:zero},
+        color={&quot;resource:n&quot;, scale={scheme=:category20}},
+        width=400,
+        height=300
+    )</code></pre><p><img src="../images/multisector_hydrogen.png" alt="h2_generation"/></p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="1_running_macro.html">« Running Macro</a><a class="docs-footer-nextpage" href="../User Guide/sectors.html">Sectors »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.8.1 on <span class="colophon-date" title="Tuesday 11 March 2025 15:34">Tuesday 11 March 2025</span>. Using Julia version 1.11.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
