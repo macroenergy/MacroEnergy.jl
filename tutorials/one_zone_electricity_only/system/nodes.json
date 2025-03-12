@@ -49,11 +49,11 @@
                         "CO2CapConstraint": true
                     },
                     "rhs_policy": {
-                            "CO2CapConstraint": 0
-                        },
-                    "price_unmet_policy":{
+                        "CO2CapConstraint": 0
+                    },
+                    "price_unmet_policy": {
                         "CO2CapConstraint": 200
-                    }    
+                    }
                 }
             ]
         }

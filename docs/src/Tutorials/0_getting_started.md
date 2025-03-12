@@ -8,7 +8,6 @@ This tutorial will guide you through the steps to install Macro, a solver, and a
 ## Installation
 Before installing Macro, make sure you have the following requirements installed:
 
-### Requirements
 - **Julia**: you can download it [here](https://julialang.org/downloads/). 
 - **Git**: you can download it [here](https://git-scm.com/downloads).
 - (optional) **Jupyter Notebook**: you can install it using the following command:

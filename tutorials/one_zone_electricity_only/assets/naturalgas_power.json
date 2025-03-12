@@ -1,35 +1,36 @@
 {
     "NaturalGasPower": [
-        {"type": "ThermalPower",
+        {
+            "type": "ThermalPower",
             "global_data": {
-            "nodes": {},
-            "transforms": {
-                "timedata": "NaturalGas",
-                "constraints": {
+                "nodes": {},
+                "transforms": {
+                    "timedata": "NaturalGas",
+                    "constraints": {
                         "BalanceConstraint": true
-                }
-            },
-            "edges" : {
-                "elec_edge":{
-                            "type": "Electricity",
-                            "unidirectional": true,
-                            "has_capacity": true,
-                            "uc": true,
-                            "integer_decisions": false,
-                            "constraints": {
-                                "CapacityConstraint": true,
-                                "RampingLimitConstraint": true,
-                                "MinFlowConstraint": true,
-                                "MinUpTimeConstraint": true,
-                                "MinDownTimeConstraint": true
-                            }
-                        },
-                "fuel_edge": {
-                            "type": "NaturalGas",
-                            "unidirectional": true,
-                            "has_capacity": false
-                        },
-                "co2_edge": {
+                    }
+                },
+                "edges": {
+                    "elec_edge": {
+                        "type": "Electricity",
+                        "unidirectional": true,
+                        "has_capacity": true,
+                        "uc": true,
+                        "integer_decisions": false,
+                        "constraints": {
+                            "CapacityConstraint": true,
+                            "RampingLimitConstraint": true,
+                            "MinFlowConstraint": true,
+                            "MinUpTimeConstraint": true,
+                            "MinDownTimeConstraint": true
+                        }
+                    },
+                    "fuel_edge": {
+                        "type": "NaturalGas",
+                        "unidirectional": true,
+                        "has_capacity": false
+                    },
+                    "co2_edge": {
                         "type": "CO2",
                         "unidirectional": true,
                         "has_capacity": false,
@@ -40,11 +41,11 @@
             "instance_data": [
                 {
                     "id": "SE_naturalgas_ccavgcf_moderate_0",
-                    "transforms":{
+                    "transforms": {
                         "emission_rate": 0.181048235160161,
-                        "efficiency_rate": 0.53624731
+                        "fuel_consumption": 1.8193594399283899
                     },
-                    "edges":{
+                    "edges": {
                         "elec_edge": {
                             "end_vertex": "elec_SE",
                             "can_retire": true,
@@ -55,7 +56,7 @@
                             "variable_om_cost": 1.74,
                             "capacity_size": 573,
                             "startup_cost": 61,
-                            "startup_fuel": 0.058614214,                            
+                            "startup_fuel_consumption": 0.058614214,
                             "min_up_time": 4,
                             "min_down_time": 4,
                             "ramp_up_fraction": 1,
