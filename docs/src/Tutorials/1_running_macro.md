@@ -19,7 +19,7 @@ using Pkg; Pkg.add("VegaLite")
 ```
 
 ```julia
-using Macro
+using MacroEnergy
 using HiGHS
 using CSV
 using DataFrames
@@ -53,10 +53,25 @@ Finally, we solve the capacity expansion model:
 MacroEnergy.optimize!(model)
 ```
 
-And extract the results:
+To output the results in a csv file, we can use the following functions:
 
 ```julia
-capacity_results = MacroEnergy.get_optimal_asset_capacity(system)
+result_dir = joinpath(@__DIR__, "results")
+mkpath(result_dir)
+
+write_capacity_results(joinpath(result_dir, "capacity.csv"), system)
+write_costs(joinpath(result_dir, "costs.csv"), model)
+write_flow_results(joinpath(result_dir, "flow.csv"), system)
+```
+
+To only view the results, we can use the following functions:
+
+```julia
+get_optimal_capacity(system)
+get_optimal_retired_capacity(system)
+get_optimal_flows(system)
+get_optimal_costs(model)
+get_optimal_flows(system)
 ```
 
 The total system cost (in dollars) is:

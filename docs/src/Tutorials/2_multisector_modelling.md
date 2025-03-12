@@ -22,7 +22,7 @@ using Plots
 using VegaLite
 ```
 
-Create a new case folder named "one_zone_multisector"
+Create a new case folder named "one\_zone\_multisector"
 
 ```julia
 if !isdir("one_zone_multisector")
@@ -71,11 +71,19 @@ end
 Update file `one_zone_multisector/system/time_data.json` accordingly:
 
 ```julia
-new_time_data = Dict("PeriodLength"=>8760,
-new_time_data = Dict("PeriodLength"=>8760,
-                    "HoursPerTimeStep"=>Dict("Electricity"=>1, "NaturalGas"=> 1, "CO2"=> 1, "Hydrogen"=>1),
-                    "HoursPerSubperiod"=>Dict("Electricity"=>8760, "NaturalGas"=> 8760, "CO2"=> 8760, "Hydrogen"=>8760)
-                )
+new_time_data = Dict(
+    "PeriodLength"=>8760,
+    "HoursPerTimeStep" => Dict(
+        "Electricity" => 1, 
+        "NaturalGas" => 1, 
+        "CO2" => 1, 
+        "Hydrogen" => 1),
+    "HoursPerSubperiod" => Dict(
+        "Electricity" => 8760, 
+        "NaturalGas" => 8760, 
+        "CO2" => 8760, 
+        "Hydrogen"=>8760)
+)
 
 open("one_zone_multisector/system/time_data.json", "w") do io
     JSON3.pretty(io, new_time_data)
@@ -85,15 +93,15 @@ end
 Move separate electricity and hydrogen demand timeseries into the system folder
 
 ```julia
-cp("demand_timeseries/electricity_demand.csv","one_zone_multisector/system/demand.csv";force=true)
+cp("demand_timeseries/electricity_demand.csv","one_zone_multisector/system/demand.csv"; force=true)
 ```
 
 ```julia
-cp("demand_timeseries/hydrogen_demand.csv","one_zone_multisector/system/hydrogen_demand.csv";force=true)
+cp("demand_timeseries/hydrogen_demand.csv","one_zone_multisector/system/hydrogen_demand.csv"; force=true)
 ```
 
 ### Exercise 1
-using the existing electricity nodes in `one_zone_multisector/system/nodes.json` as template, add an Hydrogen demand node, linking it to the `hydogen_demand.csv` timeseries.
+Using the existing electricity nodes in `one_zone_multisector/system/nodes.json` as template, add an Hydrogen demand node, linking it to the `hydogen_demand.csv` timeseries.
 
 #### Solution
 
@@ -124,7 +132,9 @@ The definition of the new Hydrogen node in `one_zone_multisector/system/nodes.js
 
 Next, add an electrolyzer asset represented in Macro as a transformation connecting electricity and hydrogen nodes:
 
-![electrolyzer](../images/electrolyzer.png)
+```@raw html
+<a href="electrolyzer.html"><img width="400" src="../images/electrolyzer.png" /></a>
+```
 
 To include the electrolyzer, create a file `one_zone_multisector/assets/electrolyzer.json` based on the asset definition in `src/model/assets/electrolyzer.jl`:
 
@@ -191,7 +201,9 @@ To include the electrolyzer, create a file `one_zone_multisector/assets/electrol
 
 Include an hydrogen storage resource cluster, represented in Macro as combination of a compressor transformation (consuming electricity to compress the gas) and a storage node:
 
-![hydrogen_storage](../images/gas_storage.png)
+```@raw html
+<a href="gas_storage.html"><img width="400" src="../images/gas_storage.png" /></a>
+```
 
 Add a file `one_zone_multisector/assets/h2_storage.json` based on the asset definition in  `src/model/assets/gasstorage.jl`that should look like this:
 
@@ -201,7 +213,6 @@ Add a file `one_zone_multisector/assets/h2_storage.json` based on the asset defi
         {
             "type": "GasStorage",
             "global_data": {
-                "nodes": {},
                 "transforms": {
                     "timedata": "Hydrogen",
                     "constraints": {
@@ -284,9 +295,9 @@ Add a file `one_zone_multisector/assets/h2_storage.json` based on the asset defi
                         }
                     },
                     "storage":{
-                        "investment_cost_storage": 873.013307,
-                        "fixed_om_cost_storage":28.75810056,
-                        "storage_loss_fraction": 0.0,
+                        "investment_cost": 873.013307,
+                        "fixed_om_cost":28.75810056,
+                        "loss_fraction": 0.0,
                         "min_storage_level": 0.3
                     }
                 }
@@ -328,7 +339,9 @@ To explain the results, plot both the electricity generation and hydrogen supply
 Optimized capacities are retrieved as follows:
 
 ```julia
-capacity_results = MacroEnergy.get_optimal_asset_capacity(system)
+capacity_results = get_optimal_capacity(system)
+new_capacity_results = get_optimal_new_capacity(system)
+retired_capacity_results = get_optimal_retired_capacity(system)
 ```
 Total system cost is:
 ```julia

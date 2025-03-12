@@ -1,5 +1,4 @@
 {
-  "Scaling":false
+  "ConstraintScaling": true,
+  "WriteSubcommodities": true
 }
-
-
