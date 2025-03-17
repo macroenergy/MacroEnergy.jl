@@ -15,9 +15,9 @@ function add_constraints_by_type!(system::System, model::Model, constraint_type:
     end
 
     # Add retrofitting constraints
-    if isa(constraint_type, PlanningConstraint)
+    if constraint_type == PlanningConstraint
         retrofit_ids = get_unique_retrofit_ids(system)
-        @info("retrofit_ids $(retrofit_ids)")
+        @info("Retrofit_ids: $(retrofit_ids)")
         @constraint(model, cRetrofitCapacity[id in retrofit_ids], model[:eRetrofittedCapByRetroId][id] == model[:eRetrofitCapByRetroId][id])
     end
 end

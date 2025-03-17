@@ -1,0 +1,126 @@
+{
+    "nodes": [
+        {
+            "type": "NaturalGas",
+            "global_data": {
+                "time_interval": "NaturalGas"
+            },
+            "instance_data": [
+                {
+                    "id": "ng_source"
+                }
+            ]
+        },
+        {
+            "type": "Electricity",
+            "global_data": {
+                "time_interval": "Electricity",
+                "max_nsd": [
+                    1,
+                    0.04,
+                    0.024,
+                    0.003
+                ],
+                "price_nsd": [
+                    50000.0,
+                    45000.0,
+                    27500.0,
+                    10000.0
+                ],
+                "constraints": {
+                    "BalanceConstraint": true,
+                    "MaxNonServedDemandConstraint": true,
+                    "MaxNonServedDemandPerSegmentConstraint": true
+                }
+            },
+            "instance_data": [
+                {
+                    "id": "elec_MA",
+                    "demand": {
+                        "timeseries": {
+                            "path": "system/demand.csv",
+                            "header": "Demand_MW_z1"
+                        }
+                    }
+                },
+                {
+                    "id": "elec_CT",
+                    "demand": {
+                        "timeseries": {
+                            "path": "system/demand.csv",
+                            "header": "Demand_MW_z2"
+                        }
+                    }
+                },
+                {
+                    "id": "elec_ME",
+                    "demand": {
+                        "timeseries": {
+                            "path": "system/demand.csv",
+                            "header": "Demand_MW_z3"
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "type": "CementMaterials",
+            "global_data": {
+                "time_interval": "CementMaterials"
+            },
+            "instance_data": [
+                {
+                    "id": "cement_input_materials_source"
+                }
+            ]
+        },
+        {
+            "type": "Cement",
+            "global_data": {
+                "time_interval": "Cement",
+                "constraints": {
+                    "BalanceConstraint": true
+                }
+            },
+            "instance_data": [
+                {
+                    "id": "cement_produced",
+                    "demand": {
+                        "timeseries": {
+                            "path": "system/hourly_cement_demand.csv",
+                            "header": "Cement_Demand_Tons"
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "type": "CO2",
+            "global_data": {
+                "time_interval": "CO2"
+            },
+            "instance_data": [
+                {
+                    "id": "co2_sink",
+                    "constraints": {
+                        "CO2CapConstraint": false
+                    },
+                    "rhs_policy": {
+                            "CO2CapConstraint": 0
+                        }
+                }
+            ]
+        },
+        {
+            "type": "CO2Captured",
+            "global_data": {
+                "time_interval": "CO2Captured"
+            },
+            "instance_data": [
+                {
+                    "id": "co2_captured_sink"
+                }
+            ]
+        }
+    ]
+}

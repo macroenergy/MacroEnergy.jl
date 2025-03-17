@@ -38,12 +38,12 @@
                         "has_capacity": true,
                         "can_retire": true,
                         "can_expand": true,
-                        "is_retrofit": true,
-                        "retrofit_id": 1,
                         "capacity_size": 114.15,
                         "investment_cost": 100,
                         "fixed_om_cost": 20.3775,
-                        "variable_om_cost": 0
+                        "variable_om_cost": 0,
+                        "is_retrofit": true,
+                        "retrofit_id": 1
                     },
                     "co2_edge": {
                         "type": "CO2",
@@ -55,7 +55,7 @@
             },
             "instance_data": [
                 {
-                    "id": "cement_MA",
+                    "id": "cement_MA_retrofit",
                     "nodes": {},
                     "edges": {
                         "elec_edge": {
@@ -76,7 +76,7 @@
                     }
                 },
                 {
-                    "id": "cement_CT",
+                    "id": "cement_CT_retrofit",
                     "nodes": {},
                     "edges": {
                         "elec_edge": {
@@ -97,7 +97,7 @@
                     }
                 },
                 {
-                    "id": "cement_ME",
+                    "id": "cement_ME_retrofit",
                     "nodes": {},
                     "edges": {
                         "elec_edge": {
