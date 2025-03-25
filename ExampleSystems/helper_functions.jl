@@ -1,24 +1,53 @@
+# Function for saving results
+function save_results(results_dir, case, system)
+    ## System results
+    system_results_df = get_system_results(system)
+    MacroEnergy.write_csv(joinpath(results_dir, case * "_system_results.csv"), system_results_df)
+
+    ## Capacity results
+    capacity_df = MacroEnergy.get_optimal_capacity(system)
+    MacroEnergy.write_csv(joinpath(results_dir, case * "_capacity.csv"), capacity_df)
+
+    ## Flow results
+    flows_df = MacroEnergy.get_optimal_flow(system)  
+    MacroEnergy.write_csv(joinpath(results_dir, case * "_flows.csv"), flows_df)
+end
+
 # Get system-wide results (objective value, co2 emissions, co2 captured)
 function get_system_results(system)
-    co2_node = MacroEnergy.get_nodes_sametype(system.locations, CO2)[1] # There is only 1 CO2 node
-    co2_captured_node = MacroEnergy.get_nodes_sametype(system.locations, CO2Captured)[1]
     system_results_df = DataFrame(
         objective_value = MacroEnergy.objective_value(model),
-        co2_emissions = MacroEnergy.value(sum(co2_node.operation_expr[:emissions])),
-        co2_captured = MacroEnergy.value(sum(co2_captured_node.operation_expr[:exogenous])),
     )
+    co2_nodes = MacroEnergy.get_nodes_sametype(system.locations, CO2) # List of CO2 nodes
+    co2_captured_nodes = MacroEnergy.get_nodes_sametype(system.locations, CO2Captured) # List of CO2Captured nodes
+    system_results_df = get_co2_node_values(system_results_df, co2_nodes) # Push values of CO2 nodes to dataframe
+    system_results_df = get_co2_node_values(system_results_df, co2_captured_nodes) # Push values of CO2Captured nodes to dataframe
     return system_results_df
 end
 
-# Get system-wide results if no CO2 cap (objective value, co2 emissions, co2 captured)
-function get_system_results_no_co2_cap(system)
-    co2_node = MacroEnergy.get_nodes_sametype(system.locations, CO2)[1] # There is only 1 CO2 node
-    system_results_df = DataFrame(
-        objective_value = MacroEnergy.objective_value(model),
-        co2_emissions = MacroEnergy.value(sum(co2_node.operation_expr[:exogenous])),
-    )
-    return system_results_df
+# Get values from CO2 and CO2Captured nodes
+function get_co2_node_values(df, co2_nodes)
+    for co2_node in co2_nodes
+        if haskey(co2_node.operation_expr, :emissions)
+            df[!, co2_node.id] = [MacroEnergy.value(sum(co2_node.operation_expr[:emissions]))]
+        elseif haskey(co2_node.operation_expr, :exogenous)
+            df[!, co2_node.id] = [MacroEnergy.value(sum(co2_node.operation_expr[:exogenous]))]
+        else
+            println("There is are no values for CO2 emissions in this node")
+        end
+    end
+    return df
 end
+
+# # Get system-wide results if no CO2 cap (objective value, co2 emissions, co2 captured)
+# function get_system_results_no_co2_cap(system)
+#     co2_node = MacroEnergy.get_nodes_sametype(system.locations, CO2)[1] # There is only 1 CO2 node
+#     system_results_df = DataFrame(
+#         objective_value = MacroEnergy.objective_value(model),
+#         co2_emissions = MacroEnergy.value(sum(co2_node.operation_expr[:exogenous])),
+#     )
+#     return system_results_df
+# end
 
 # # Get system flows
 # function get_system_flows(system)

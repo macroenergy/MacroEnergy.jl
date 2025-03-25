@@ -101,9 +101,26 @@
             },
             "instance_data": [
                 {
-                    "id": "co2_sink",
+                    "id": "cement_co2_sink",
                     "constraints": {
                         "CO2CapConstraint": true
+                    },
+                    "rhs_policy": {
+                        "CO2CapConstraint": 1.197e6
+                        }
+                }
+            ]
+        },
+        {
+            "type": "CO2",
+            "global_data": {
+                "time_interval": "CO2"
+            },
+            "instance_data": [
+                {
+                    "id": "co2_sink",
+                    "constraints": {
+                        "CO2CapConstraint": false
                     },
                     "rhs_policy": {
                         "CO2CapConstraint": 2.295e7

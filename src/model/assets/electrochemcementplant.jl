@@ -3,11 +3,11 @@ struct ElectrochemCementPlant{T} <: AbstractAsset
     cement_transform::Transformation
     cement_materials_edge::Edge{CementMaterials} # Cement input materials
     elec_edge::Union{Edge{Electricity},EdgeWithUC{Electricity}}
-    cement_edge::Edge{Cement} # Cement produced
+    echem_cement_edge::Edge{Cement} # Cement produced
 end
 
-ElectrochemCementPlant(id::AssetId, cement_transform::Transformation, cement_materials_edge::Edge{T}, elec_edge::Union{Edge{Electricity},EdgeWithUC{Electricity}}, cement_edge::Edge{Cement}) where T<:Commodity =
-ElectrochemCementPlant{T}(id, cement_transform, cement_materials_edge, elec_edge, cement_edge)
+ElectrochemCementPlant(id::AssetId, cement_transform::Transformation, cement_materials_edge::Edge{T}, elec_edge::Union{Edge{Electricity},EdgeWithUC{Electricity}}, echem_cement_edge::Edge{Cement}) where T<:Commodity =
+ElectrochemCementPlant{T}(id, cement_transform, cement_materials_edge, elec_edge, echem_cement_edge)
 
 function make(::Type{ElectrochemCementPlant}, data::AbstractDict{Symbol,Any}, system::System)
     id = AssetId(data[:id])
@@ -55,41 +55,41 @@ function make(::Type{ElectrochemCementPlant}, data::AbstractDict{Symbol,Any}, sy
     cement_materials_edge.unidirectional = true;
 
     # Cement Edge
-    cement_edge_key = :cement_edge
-    cement_edge_data = process_data(data[:edges][cement_edge_key])
+    echem_cement_edge_key = :echem_cement_edge
+    echem_cement_edge_data = process_data(data[:edges][echem_cement_edge_key])
     cement_start_node = cement_transform
-    cement_end_node = find_node(system.locations, Symbol(cement_edge_data[:end_vertex]))
-    cement_edge = Edge(
-        Symbol(id, "_", cement_edge_key),
-        cement_edge_data,
+    cement_end_node = find_node(system.locations, Symbol(echem_cement_edge_data[:end_vertex]))
+    echem_cement_edge = Edge(
+        Symbol(id, "_", echem_cement_edge_key),
+        echem_cement_edge_data,
         system.time_data[:Cement],
         Cement,
         cement_start_node,
         cement_end_node,
     )
-    cement_edge.constraints = get(
-            cement_edge_data,
+    echem_cement_edge.constraints = get(
+            echem_cement_edge_data,
             :constraints,
             [
                 CapacityConstraint()
             ],
         )
-    cement_edge.unidirectional = true;
+    echem_cement_edge.unidirectional = true;
 
     # Balance Constraint Values
     cement_transform.balance_data = Dict(
         :input_materials_to_cement => Dict(
             cement_materials_edge.id => 1.0,
             elec_edge.id => 0,
-            cement_edge.id => 1.0
+            echem_cement_edge.id => 1.0
         ),
         :elec_to_cement => Dict(
             cement_materials_edge.id => 0,
             elec_edge.id => 1.0,
-            cement_edge.id => get(transform_data, :elec_cement_rate, 1.0)
+            echem_cement_edge.id => get(transform_data, :elec_cement_rate, 1.0)
         )
     )
 
 
-    return ElectrochemCementPlant(id, cement_transform, cement_materials_edge, elec_edge, cement_edge)
+    return ElectrochemCementPlant(id, cement_transform, cement_materials_edge, elec_edge, echem_cement_edge)
 end
