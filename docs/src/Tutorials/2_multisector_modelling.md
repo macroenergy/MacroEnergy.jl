@@ -6,7 +6,7 @@
 
 In this tutorial, we extend the electricity-only model considered in Tutorial 2 to build a multisector model for joint capacity expansion in electricity and hydrogen sectors. 
 
-To do this, we scorporate hydrogen and electricity demand from Tutorial 2, and endogeneously model hydrogen production and storage in Macro.
+To do this, we incorporate hydrogen and electricity demand from Tutorial 2, and endogenously model hydrogen production and storage in Macro.
 
 ```julia
 using Pkg; Pkg.add(["VegaLite", "Plots"])
@@ -101,7 +101,7 @@ cp("demand_timeseries/hydrogen_demand.csv","one_zone_multisector/system/hydrogen
 ```
 
 ### Exercise 1
-Using the existing electricity nodes in `one_zone_multisector/system/nodes.json` as template, add an Hydrogen demand node, linking it to the `hydogen_demand.csv` timeseries.
+Using the existing electricity nodes in `one_zone_multisector/system/nodes.json` as template, add an Hydrogen demand node, linking it to the `hydrogen_demand.csv` timeseries.
 
 #### Solution
 
@@ -387,7 +387,7 @@ elc_plot = stack_elec_gen |>
 
 During the day, when solar photovoltaic is available, almost all of the electricity generation comes from VREs.
 
-Because hydrogen storage is cheaper than batteries, we expect the system to use the electricity generated during the day to operate the electrolyzers to meet the hydrogen demand, storing the excess hydrogen to be used when solar photolvoltaics can not generate electricity.
+Because hydrogen storage is cheaper than batteries, we expect the system to use the electricity generated during the day to operate the electrolyzers to meet the hydrogen demand, storing the excess hydrogen to be used when solar photovoltaics can not generate electricity.
 
 We verify our assumption by making a stacked area plot of the hydrogen supply (hydrogen generation net of the hydrogen stored):
 

@@ -8,7 +8,7 @@ In this tutorial, we start from a single zone electricity system with four resou
 
 We consider three commodities: electricity, natural gas, and $\text{CO}_2$. 
 
-Initially, hydrogen is modeled exogenously, adding a constant electricity demand for hydrogen production to the electricity demand time series. In other words, we assume the existance of an electrolyzer that continuously consumes electricity to meet the hydrogen demand.
+Initially, hydrogen is modeled exogenously, adding a constant electricity demand for hydrogen production to the electricity demand time series. In other words, we assume the existence of an electrolyzer that continuously consumes electricity to meet the hydrogen demand.
 
 We model a greenfield scenario with a carbon price of 200 USD/ton, i.e., we allow $\text{CO}_2$ emissions with a penalty cost.
 
@@ -41,7 +41,7 @@ We are now ready to generate the Macro capacity expansion model. Because Macro i
 model = MacroEnergy.generate_model(system)
 ```
 
-Next, we set the optimizer. Note that we are using the open-source LP solver [HiGHS](https://highs.dev/), alternatives include the commerical solvers [Gurobi](https://www.gurobi.com/), [CPLEX](https://www.ibm.com/products/ilog-cplex-optimization-studio), [COPT](https://www.copt.de/).
+Next, we set the optimizer. Note that we are using the open-source LP solver [HiGHS](https://highs.dev/), alternatives include the commercial solvers [Gurobi](https://www.gurobi.com/), [CPLEX](https://www.ibm.com/products/ilog-cplex-optimization-studio), [COPT](https://www.copt.de/).
 
 ```julia
 MacroEnergy.set_optimizer(model, HiGHS.Optimizer);
