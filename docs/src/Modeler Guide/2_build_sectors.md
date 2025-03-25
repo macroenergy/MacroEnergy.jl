@@ -35,7 +35,7 @@ Once the new commodity type is added to Macro, the modeler can create new assets
 !!! tip "Tip"
     Before creating a new asset, we recommend the modeler to have a look at the existing assets in the `src/assets` folder. All the asset files follow a same structure to streamline the creation of new assets.
 
-As for the case of the commodity type, each asset in Macro is defined as a **subtype** of the `AbstractAsset` type (the user can find some examples by checking the `struct` definintion in the `.jl` files in the `src/assets` folder):
+As for the case of the commodity type, each asset in Macro is defined as a **subtype** of the `AbstractAsset` type (the user can find some examples by checking the `struct` definition in the `.jl` files in the `src/assets` folder):
 
 `src/assets/electrolyzer.jl`
 ```julia
@@ -265,7 +265,7 @@ function make(::Type{MyAsset2}, data::AbstractDict{Symbol,Any}, system::System)
     myasset2_storage.charge_edge = charge_edge
 
     myasset2_storage.balance_data = Dict(
-        # Edit this part to include the energy efficiency of the storage unit or any other stoiometric equations
+        # Edit this part to include the energy efficiency of the storage unit or any other stoichiometric equations
         ),
     )
 
