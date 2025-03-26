@@ -101,10 +101,10 @@ function get_retirement_stage(cur_stage::Int,lifetime::Int,stage_lengths::Vector
 
 end
 
-function compute_retirement_stage!(system::System)
+function compute_retirement_stage!(system::System, stage_lengths::Vector{Int})
     
     for a in system.assets
-        compute_retirement_stage!(a,collect(system.settings.StageLengths))
+        compute_retirement_stage!(a, stage_lengths)
     end
 
     return nothing
