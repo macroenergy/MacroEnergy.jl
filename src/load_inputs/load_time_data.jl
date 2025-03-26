@@ -3,9 +3,10 @@ function load_time_data(
     commodities::Dict{Symbol,DataType},
     rel_path::AbstractString
 )
+    stage_index = data[:StageIndex]
     if haskey(data, :path)
         path = rel_or_abs_path(data[:path], rel_path)
-        return load_time_data(path, commodities, rel_path)
+        return load_time_data(path, commodities, rel_path, stage_index)
     else
         return load_time_data(data, commodities)
     end
@@ -14,7 +15,8 @@ end
 function load_time_data(
     path::AbstractString,
     commodities::Dict{Symbol,DataType},
-    rel_path::AbstractString
+    rel_path::AbstractString,
+    stage_index::Int = 1
 )
     path = rel_or_abs_path(path, rel_path)
     if isdir(path)
@@ -28,6 +30,7 @@ function load_time_data(
     time_data = copy(JSON3.read(path))
     haskey(time_data, :PeriodMap) && load_period_map!(time_data, rel_path)
     validate_and_set_default_total_hours_modeled!(time_data::AbstractDict{Symbol,Any})
+    time_data[:StageIndex] = stage_index
     return load_time_data(time_data, commodities)
 end
 
@@ -158,7 +161,7 @@ function create_commodity_timedata(
     return TimeData{type}(;
         time_interval = time_interval,
         hours_per_timestep = hours_per_timestep,
-        stage_index = get(time_data,:StageIndex,1),
+        stage_index = time_data[:StageIndex],
         subperiods = subperiods,
         subperiod_indices = unique_rep_periods,
         subperiod_weights = Dict(unique_rep_periods .=> weights),

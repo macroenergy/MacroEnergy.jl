@@ -9,8 +9,10 @@ function generate_stages(
     
     start_time = time()
     systems::Vector{System} = map(1:num_stages) do stage_idx
+        system_data = stages[stage_idx]
+        system_data[:time_data][:StageIndex] = stage_idx
         stage_system = empty_system(dirname(path))
-        generate_system!(stage_system, stages[stage_idx])
+        generate_system!(stage_system, system_data)
         return stage_system
     end
 
