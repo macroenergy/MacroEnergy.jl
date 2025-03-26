@@ -92,6 +92,7 @@ include("model/networks/location.jl")
 include("model/networks/edge.jl")
 include("model/networks/asset.jl")
 include("model/system.jl")
+include("model/stages.jl")
 include("model/networks/macroobject.jl")
 
 include("model/assets/battery.jl")
@@ -127,8 +128,8 @@ include("model/assets/co2injection.jl")
 include_all_in_folder("model/constraints")
 
 include("config/configure_settings.jl")
-
-include_all_in_folder("load_inputs/")
+include("config/stage_settings.jl")
+include_all_in_folder("load_inputs")
 
 include("generate_model.jl")
 
