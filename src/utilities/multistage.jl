@@ -48,9 +48,9 @@ function initialize_stage_capacities!(n::Node,n_prev::Node; perfect_foresight::B
     return nothing
 end
 
-function discount_fixed_costs!(system::System)
+function discount_fixed_costs!(system::System, settings::NamedTuple)
     for a in system.assets
-        discount_fixed_costs!(a, system.settings)
+        discount_fixed_costs!(a, settings)
     end
 end
 
