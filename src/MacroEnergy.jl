@@ -12,6 +12,7 @@ using InteractiveUtils
 using Printf: @printf
 using MacroEnergyScaling
 import MacroEnergyScaling: scale_constraints!
+import JuMP: set_optimizer, set_optimizer_attributes
 
 import Base: /, push!, merge!
 
