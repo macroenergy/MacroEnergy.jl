@@ -920,3 +920,56 @@ function find_available_filepath(filepath::AbstractString; max_attempts::Int=999
     filename = basename(filepath)
     return find_available_filepath(path, filename; max_attempts=max_attempts)
 end
+
+function write_outputs(case_path::AbstractString, stages::Stages, model::Model, ::PerfectForesight)
+
+    for s in 1:length(stages.systems)
+        # Output results
+        results_dir = joinpath(case_path, "results_stage_$i")
+        mkpath(results_dir)
+                    
+        # Capacity results
+        write_capacity(joinpath(results_dir, "capacity.csv"), stages.systems[s])
+    end
+
+    return nothing
+end
+
+function write_outputs(results_dir::AbstractString, system::System, model::Model)
+    
+    # Capacity results
+    write_capacity(joinpath(results_dir, "capacity.csv"), system)
+    
+    # Cost results
+    write_costs(joinpath(results_dir, "costs.csv"), system, model)
+
+    # Flow results
+    write_flow(joinpath(results_dir, "flows.csv"), system)
+
+    return nothing
+end
+
+function write_outputs(case_path::AbstractString, stages::Stages, model::Union{Model, Vector{Model}})
+    write_outputs(case_path, stages, model, stages.settings[:SolutionAlgorithm])
+end
+
+function write_outputs(case_path::AbstractString, stages::Stages, model::Model, ::SingleStageAlgorithm)
+    @info("Writing results for single stage")
+    results_dir = joinpath(case_path, "results")
+    mkpath(results_dir)
+    write_outputs(results_dir, stages.systems[1], model)
+
+    return nothing
+end
+
+function write_outputs(case_path::AbstractString, stages::Stages, models::Vector{Model}, ::Myopic)
+
+    for s in 1:length(stages.systems)
+        @info("Writing results for stage $s")
+        results_dir = joinpath(case_path, "results_stage_$s")
+        mkpath(results_dir)
+        write_outputs(results_dir, stages.systems[s], models[s])
+    end
+
+    return nothing
+end
