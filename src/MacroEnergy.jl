@@ -11,6 +11,7 @@ using Revise
 using InteractiveUtils
 using Printf: @printf
 using MacroEnergyScaling
+import MacroEnergyScaling: scale_constraints!
 
 import Base: /, push!, merge!
 
