@@ -1,0 +1,13 @@
+{
+    "commodities": [
+        "Electricity",
+        "NaturalGas",
+        "CO2",
+        "Hydrogen",
+        "CO2Captured",
+        "Biomass",
+        {"name": "Biomass_Wood", "acts_like": "Biomass"},
+        {"name": "Biomass_Herb", "acts_like": "Biomass"},
+        "Uranium"
+    ]
+}
