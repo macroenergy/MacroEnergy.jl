@@ -16,7 +16,7 @@ function load_stages_data(
     # to unify the interface with multistage systems
     if !haskey(data, :stages)
         data = Dict(:stages => [data],
-            :settings => nothing,
+            :settings => default_stage_settings() # default stage settings: single stage, no discounting
         )
     end
 
