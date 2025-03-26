@@ -55,10 +55,13 @@ abstract type PlanningConstraint <: AbstractTypeConstraint end
 
 # Solution algorithms
 abstract type AbstractSolutionAlgorithm end
-abstract type SingleStageAlgorithm <: AbstractSolutionAlgorithm end
-abstract type MultiStageAlgorithm <: AbstractSolutionAlgorithm end
-struct Myopic <: MultiStageAlgorithm end
-struct PerfectForesight <: MultiStageAlgorithm end
+struct Myopic <: AbstractSolutionAlgorithm end
+struct PerfectForesight <: AbstractSolutionAlgorithm end
+struct SingleStage <: AbstractSolutionAlgorithm end
+algorithm_type(::AbstractSolutionAlgorithm) = SingleStage() # default to single stage
+algorithm_type(::SingleStage) = SingleStage()
+algorithm_type(::Myopic) = Myopic()
+algorithm_type(::PerfectForesight) = PerfectForesight()
 
 # global constants
 const H2_MWh = 33.33 # MWh per tonne of H2

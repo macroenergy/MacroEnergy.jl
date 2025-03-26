@@ -2,8 +2,7 @@ function default_stage_settings()
     return Dict(
         :StageLengths => [1],
         :WACC => 0.,
-        :Myopic => true,
-        :PerfectForesight => false,
+        :SolutionAlgorithm => "SingleStage",
     )
 end
 
@@ -47,6 +46,7 @@ end
 function validate_stage_settings(stage_settings::AbstractDict{Symbol,Any})
     @assert all(stage_settings[:StageLengths].>0)
     @assert stage_settings[:WACC] >= 0
+    @assert isa(stage_settings[:SolutionAlgorithm], AbstractSolutionAlgorithm)
 end
 
 function set_stage_lengths!(stage_settings::AbstractDict{Symbol,Any})
@@ -56,15 +56,16 @@ end
 
 function set_solution_algorithm!(stage_settings::AbstractDict{Symbol,Any})
     @info("Setting solution algorithm")
-    if stage_settings[:Myopic]
+    if stage_settings[:SolutionAlgorithm] == "Myopic"
         stage_settings[:SolutionAlgorithm] = Myopic()
-    elseif stage_settings[:PerfectForesight]
+    elseif stage_settings[:SolutionAlgorithm] == "PerfectForesight"
         stage_settings[:SolutionAlgorithm] = PerfectForesight()
+    elseif stage_settings[:SolutionAlgorithm] == "SingleStage"
+        stage_settings[:SolutionAlgorithm] = SingleStage()
     else
-        error("Invalid solution algorithm: $(stage_settings[:SolutionAlgorithm])")
+        @warn("No solution algorithm specified, defaulting to SingleStage")
+        stage_settings[:SolutionAlgorithm] = SingleStage()
     end
-    delete!(stage_settings, :Myopic)
-    delete!(stage_settings, :PerfectForesight)
     @info("Solution algorithm set to $(stage_settings[:SolutionAlgorithm])")
     return nothing
 end

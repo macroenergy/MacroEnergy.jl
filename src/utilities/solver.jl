@@ -1,10 +1,10 @@
 function solve_stages(stages::Stages, opt::Optimizer)
-    solve_stages(stages, opt, stages.settings[:SolutionAlgorithm])
+    solve_stages(stages, opt, algorithm_type(stages))
 end
 
 ####### single stage algorithm and perfect foresight algorithm #######
 # share the same model generation and optimization workflow
-function solve_stages(stages::Stages, opt::Optimizer, algorithm::T) where T <: Union{SingleStageAlgorithm, PerfectForesight}
+function solve_stages(stages::Stages, opt::Optimizer, algorithm::T) where T <: Union{SingleStage, PerfectForesight}
 
     @info("*** Running $(algorithm) simulation ***")
     

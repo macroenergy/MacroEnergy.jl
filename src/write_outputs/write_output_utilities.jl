@@ -950,10 +950,10 @@ function write_outputs(results_dir::AbstractString, system::System, model::Model
 end
 
 function write_outputs(case_path::AbstractString, stages::Stages, model::Union{Model, Vector{Model}})
-    write_outputs(case_path, stages, model, stages.settings[:SolutionAlgorithm])
+    write_outputs(case_path, stages, model, algorithm_type(stages))
 end
 
-function write_outputs(case_path::AbstractString, stages::Stages, model::Model, ::SingleStageAlgorithm)
+function write_outputs(case_path::AbstractString, stages::Stages, model::Model, ::SingleStage)
     @info("Writing results for single stage")
     results_dir = joinpath(case_path, "results")
     mkpath(results_dir)
@@ -969,6 +969,20 @@ function write_outputs(case_path::AbstractString, stages::Stages, models::Vector
         results_dir = joinpath(case_path, "results_stage_$s")
         mkpath(results_dir)
         write_outputs(results_dir, stages.systems[s], models[s])
+    end
+
+    return nothing
+end
+
+function write_outputs(case_path::AbstractString, stages::Stages, model::Model, ::PerfectForesight)
+
+    for s in 1:length(stages.systems)
+        # Output results
+        results_dir = joinpath(case_path, "results_stage_$s")
+        mkpath(results_dir)
+                    
+        # Capacity results
+        write_capacity(joinpath(results_dir, "capacity.csv"), stages.systems[s])
     end
 
     return nothing

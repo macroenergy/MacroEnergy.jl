@@ -17,15 +17,18 @@ function generate_stages(
     settings = configure_stages(systems_data[:settings], dirname(path))
 
     prepare_stages!(systems, settings)
-    # prepare_stages!(systems, settings[:SolutionAlgorithm])
 
     @info("Done loading stages. It took $(round(time() - start_time, digits=2)) seconds")
     return Stages(systems, settings)
 end
 
 function prepare_stages!(systems::Vector{System}, settings::NamedTuple)
-    solution_algorithm = settings[:SolutionAlgorithm]
-    prepare_stages!(systems, settings, solution_algorithm)
+    prepare_stages!(systems, settings, algorithm_type(settings[:SolutionAlgorithm]))
+end
+
+function prepare_stages!(systems::Vector{System}, settings::NamedTuple, ::AbstractSolutionAlgorithm)
+    @debug("Default `prepare_stages!` method called. No preparation needed.")
+    return nothing
 end
 
 function prepare_stages!(systems::Vector{System}, settings::NamedTuple, ::PerfectForesight)
