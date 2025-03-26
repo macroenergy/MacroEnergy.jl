@@ -2,10 +2,10 @@
 struct Optimizer
     optimizer::DataType
     optimizer_env::Any
-    attributes::AbstractDict{Symbol,<:Any}
+    attributes::Tuple
 end
 
-function create_optimizer(optimizer::DataType, optimizer_env::Any, attributes::AbstractDict{Symbol,<:Any})
+function create_optimizer(optimizer::DataType, optimizer_env::Any, attributes::Tuple)
     return Optimizer(optimizer, optimizer_env, attributes)
 end
 
@@ -19,21 +19,20 @@ function set_optimizer(model::Model, opt::Optimizer)
     else
         set_optimizer(model, opt.optimizer);
     end
+    set_optimizer_attributes(model, opt)
 end
 
-# JuMP.set_optimizer
 function set_optimizer(models::Vector{Model}, opt::Optimizer)
     for model in models
         set_optimizer(model, opt)
-        set_optimizer_attributes(model, opt.attributes)
+        set_optimizer_attributes(model, opt)
     end
 end
 
-# JuMP.set_optimizer_attributes 
-function set_optimizer_attributes(model::Model, attributes::Dict{Symbol,Any})
+function set_optimizer_attributes(model::Model, opt::Optimizer)
     try
-        set_optimizer_attributes(model, attributes...)
+        set_optimizer_attributes(model, opt.attributes...)
     catch
         @warn("Error setting optimizer attributes. Check that the optimizer is valid.")
-    end 
+    end
 end

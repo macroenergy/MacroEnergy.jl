@@ -3,7 +3,7 @@ function run_case(
     lazy_load::Bool=true, 
     optimizer::DataType=HiGHS.Optimizer, 
     optimizer_env::Any=missing,
-    attributes::AbstractDict{Symbol,<:Any}=Dict(:BarConvTol=>1e-3, :Crossover => 0, :Method => 2)
+    attributes::Tuple=("BarConvTol"=>1e-3, "Crossover" => 0, "Method" => 2)
 )
 
     println("###### ###### ######")
