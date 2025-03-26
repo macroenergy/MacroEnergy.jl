@@ -12,7 +12,12 @@ function solve_stages(stages::Stages, opt::Optimizer, algorithm::T) where T <: U
 
     set_optimizer(model, opt)
 
-    scale_constraints!(stages, model)
+    # for single stage and perfect foresight there is only one model
+    # scale constraints if the flag is true in the first system
+    if stages.systems[1].settings.ConstraintScaling
+        @info "Scaling constraints and RHS"
+        scale_constraints!(model)
+    end
 
     optimize!(model)
 
