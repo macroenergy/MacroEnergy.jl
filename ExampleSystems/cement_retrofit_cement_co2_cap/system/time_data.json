@@ -15,5 +15,6 @@
         "Cement": 8760,
         "CementMaterials": 8760
     },
-    "PeriodLength": 8760
+    "PeriodLength": 8760,
+    "NumberOfSubperiods": 1
 }
