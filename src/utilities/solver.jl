@@ -49,7 +49,7 @@ function solve_stages(stages::Stages, opt::Optimizer, ::Myopic)
 
         if s < number_of_stages
             @info(" -- Final capacity in stage $(s) is being carried over to stage $(s+1)")
-            initialize_stage_capacities!(systems[s+1], systems[s], perfect_foresight=false)
+            carry_over_capacities!(systems[s+1], systems[s], perfect_foresight=false)
         end
 
         models[s] = model

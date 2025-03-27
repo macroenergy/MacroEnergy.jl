@@ -167,14 +167,6 @@ function add_linking_variables!(e::AbstractEdge, model::Model)
         e.new_units = @variable(model, lower_bound = 0.0, base_name = "vNEWUNIT_$(id(e))_stage$(stage_index(e))")
 
         e.retired_units = @variable(model, lower_bound = 0.0, base_name = "vRETUNIT_$(id(e))_stage$(stage_index(e))")
-
-        e.new_capacity = @expression(model, capacity_size(e) * new_units(e))
-        
-        e.retired_capacity = @expression(model, capacity_size(e) * retired_units(e))
-
-        e.new_capacity_track[stage_index(e)] = new_capacity(e);
-        
-        e.retired_capacity_track[stage_index(e)] = retired_capacity(e);
     end
 
     return nothing
@@ -184,6 +176,15 @@ end
 function define_available_capacity!(e::AbstractEdge,model::Model)
 
     if has_capacity(e)
+        
+        e.new_capacity = @expression(model, capacity_size(e) * new_units(e))
+        
+        e.retired_capacity = @expression(model, capacity_size(e) * retired_units(e))
+
+        e.new_capacity_track[stage_index(e)] = new_capacity(e);
+        
+        e.retired_capacity_track[stage_index(e)] = retired_capacity(e);
+
         e.capacity = @expression(
             model,
             new_capacity(e) - retired_capacity(e) + existing_capacity(e)

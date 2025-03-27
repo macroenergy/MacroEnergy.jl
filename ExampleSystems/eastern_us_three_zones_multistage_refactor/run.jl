@@ -1,4 +1,4 @@
 using MacroEnergy
 using Gurobi
 
-(stages, models) = run_case(case; optimizer=Gurobi.Optimizer);
+(stages, models) = run_case(@__DIR__; optimizer=Gurobi.Optimizer);

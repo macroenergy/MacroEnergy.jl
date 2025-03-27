@@ -1,4 +1,4 @@
-function initialize_stage_capacities!(system::System, system_prev::System; perfect_foresight::Bool = true)
+function carry_over_capacities!(system::System, system_prev::System; perfect_foresight::Bool = true)
 
     for a in system.assets
         a_prev_index = findfirst(id.(system_prev.assets).==id(a))
@@ -6,21 +6,21 @@ function initialize_stage_capacities!(system::System, system_prev::System; perfe
             @info("Skipping asset $(id(a)) as it was not present in the previous stage")
         else
             a_prev = system_prev.assets[a_prev_index];
-            initialize_stage_capacities!(a, a_prev ; perfect_foresight)
+            carry_over_capacities!(a, a_prev ; perfect_foresight)
         end
     end
 
 end
 
-function initialize_stage_capacities!(a::AbstractAsset, a_prev::AbstractAsset; perfect_foresight::Bool = true)
+function carry_over_capacities!(a::AbstractAsset, a_prev::AbstractAsset; perfect_foresight::Bool = true)
 
     for t in fieldnames(typeof(a))
-        initialize_stage_capacities!(getfield(a,t), getfield(a_prev,t); perfect_foresight)
+        carry_over_capacities!(getfield(a,t), getfield(a_prev,t); perfect_foresight)
     end
 
 end
 
-function initialize_stage_capacities!(y::Union{AbstractEdge,AbstractStorage},y_prev::Union{AbstractEdge,AbstractStorage}; perfect_foresight::Bool = true)
+function carry_over_capacities!(y::Union{AbstractEdge,AbstractStorage},y_prev::Union{AbstractEdge,AbstractStorage}; perfect_foresight::Bool = true)
     if has_capacity(y_prev)
         
         if perfect_foresight
@@ -41,10 +41,10 @@ function initialize_stage_capacities!(y::Union{AbstractEdge,AbstractStorage},y_p
         
     end
 end
-function initialize_stage_capacities!(g::Transformation,g_prev::Transformation; perfect_foresight::Bool = true)
+function carry_over_capacities!(g::Transformation,g_prev::Transformation; perfect_foresight::Bool = true)
     return nothing
 end
-function initialize_stage_capacities!(n::Node,n_prev::Node; perfect_foresight::Bool = true)
+function carry_over_capacities!(n::Node,n_prev::Node; perfect_foresight::Bool = true)
     return nothing
 end
 

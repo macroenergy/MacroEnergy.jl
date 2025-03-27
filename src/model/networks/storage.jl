@@ -109,20 +109,21 @@ storage_level(g::AbstractStorage) = g.storage_level;
 storage_level(g::AbstractStorage, t::Int64) = storage_level(g)[t];
 wacc(g::AbstractStorage) = g.wacc;
 
-function define_available_capacity!(g::AbstractStorage, model::Model)
-
-    g.capacity = @expression(
-        model,
-        new_capacity(g) - retired_capacity(g) + existing_capacity(g)
-    )
-
-end
 
 function add_linking_variables!(g::Storage, model::Model)
 
     g.new_units = @variable(model, lower_bound = 0.0, base_name = "vNEWUNIT_$(id(g))_stage$(stage_index(g))")
 
     g.retired_units = @variable(model, lower_bound = 0.0, base_name = "vRETUNIT_$(id(g))_stage$(stage_index(g))")
+
+end
+
+function define_available_capacity!(g::AbstractStorage, model::Model)
+
+    g.capacity = @expression(
+        model,
+        new_capacity(g) - retired_capacity(g) + existing_capacity(g)
+    )
 
     g.new_capacity = @expression(model, capacity_size(g) * new_units(g))
     
