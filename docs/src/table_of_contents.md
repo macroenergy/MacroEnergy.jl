@@ -38,13 +38,17 @@ Depth = 2
 Pages = [
     "Developer Guide/1_introduction.md",
     "Developer Guide/2_type_hierarchy.md",
-    "References/1_macro_objects.md",
-    "References/2_assets.md",
-    "References/3_reading_input.md",
+]
+Depth = 2
+```
+
+## [References](@ref)
+```@contents
+Pages = [
+    "References/2_reading_input.md",
+    "References/3_macro_objects.md",
     "References/4_writing_output.md",
     "References/5_utilities.md"
 ]
 Depth = 2
 ```
-
-
