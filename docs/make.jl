@@ -51,11 +51,12 @@ const pages = [
         "Type hierarchy" => "Developer Guide/2_type_hierarchy.md"
     ],
     "References" => [
-        "Macro Objects" => "References/1_macro_objects.md",
-        "Asset Library" => "References/2_assets.md",
-        "Reading input data" => "References/3_reading_input.md",
+        "Introduction" => "References/1_introduction.md",
+        "Reading input data" => "References/2_reading_input.md",
+        "Macro Objects" => "References/3_macro_objects.md",
         "Writing output data" => "References/4_writing_output.md",
         "Utilities" => "References/5_utilities.md",
+        # "Asset Library" => "References/2_assets.md", TODO: think if we should include this
     ],
 ]
 
