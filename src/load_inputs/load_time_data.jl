@@ -3,7 +3,7 @@ function load_time_data(
     commodities::Dict{Symbol,DataType},
     rel_path::AbstractString
 )
-    stage_index = data[:StageIndex]
+    stage_index = get(data, :StageIndex, 1)
     if haskey(data, :path)
         path = rel_or_abs_path(data[:path], rel_path)
         return load_time_data(path, commodities, rel_path, stage_index)
@@ -161,7 +161,7 @@ function create_commodity_timedata(
     return TimeData{type}(;
         time_interval = time_interval,
         hours_per_timestep = hours_per_timestep,
-        stage_index = time_data[:StageIndex],
+        stage_index = get(time_data, :StageIndex, 1),
         subperiods = subperiods,
         subperiod_indices = unique_rep_periods,
         subperiod_weights = Dict(unique_rep_periods .=> weights),
