@@ -1,8 +1,9 @@
 {
-  "ConstraintScaling":true,
+  "ConstraintScaling":false,
   "WriteSubcommodities":true,
   "AutoCreateNodes":false,
-  "AutoCreateLocations":true
+  "AutoCreateLocations":true,
+  "OutputLayout": "wide"
 }
 
 

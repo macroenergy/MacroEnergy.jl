@@ -72,7 +72,7 @@
                 {
                     "id": "ng_CT",
                     "transforms": {
-                        "heat_rate": 2.0866660184,
+                        "fuel_consumption": 2.0866660184,
                         "emission_rate": 0.181048235160161
                     },
                     "edges": {
@@ -93,7 +93,7 @@
                 {
                     "id": "ng_ME",
                     "transforms": {
-                        "heat_rate": 3.6985569033999997,
+                        "fuel_consumption": 3.6985569033999997,
                         "emission_rate": 0.181048235160161
                     },
                     "edges": {

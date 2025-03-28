@@ -37,7 +37,14 @@
                     "loss_fraction": 0.0,
                     "min_duration": 1,
                     "max_duration": 10,
-                    "wacc": 0.03
+                    "wacc": 0.03,
+                    "constraints": {
+                        "StorageCapacityConstraint": true,
+                        "StorageSymmetricCapacityConstraint": true,
+                        "StorageMinDurationConstraint": true,
+                        "StorageMaxDurationConstraint": true,
+                        "BalanceConstraint": true
+                    }
                 }
             },
             "instance_data": [
