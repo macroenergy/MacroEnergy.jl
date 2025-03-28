@@ -3,7 +3,7 @@ function run_case(
     lazy_load::Bool=true, 
     optimizer::DataType=HiGHS.Optimizer, 
     optimizer_env::Any=missing,
-    attributes::Tuple=("BarConvTol"=>1e-3, "Crossover" => 0, "Method" => 2)
+    optimizer_attributes::Tuple=("BarConvTol"=>1e-3, "Crossover" => 0, "Method" => 2)
 )
 
     println("###### ###### ######")
@@ -11,7 +11,7 @@ function run_case(
 
     stages = load_stages(case_path; lazy_load=lazy_load)
 
-    optimizer = create_optimizer(optimizer, optimizer_env, attributes)
+    optimizer = create_optimizer(optimizer, optimizer_env, optimizer_attributes)
 
     (stages, model) = solve_stages(stages, optimizer)
     
