@@ -84,7 +84,11 @@ function include_all_in_folder(folder::AbstractString, root_path::AbstractString
     return nothing
 end
 
+
 # include files
+include("utilities/default_data.jl")
+include("utilities/utilities.jl")
+
 include("model/units.jl")
 include("model/time_management.jl")
 include("model/networks/vertex.jl")
@@ -134,18 +138,22 @@ include("config/configure_settings.jl")
 include("config/stage_settings.jl")
 include_all_in_folder("load_inputs")
 
-include("generate_model.jl")
-
+include("model/generate_model.jl")
+include("model/multistage.jl")
+include("model/optimizer.jl")
 include("model/scaling.jl")
+include("model/solver.jl")
+
+include("utilities/benchmarking.jl")
+include("utilities/benders.jl")
+include("utilities/comparisons.jl")
+include("utilities/run_tools.jl")
 
 include("write_outputs/capacity.jl")
 include("write_outputs/flow.jl")
 include("write_outputs/write_output_utilities.jl")
 include("write_outputs/costs.jl")
 include("write_outputs/write_system_data.jl")
-
-
-include_all_in_folder("utilities")
 
 export AbstractAsset,
     AbstractTypeConstraint,
