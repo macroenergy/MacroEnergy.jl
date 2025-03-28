@@ -1,0 +1,17 @@
+{
+    "HoursPerSubperiod": {
+        "Electricity": 168,
+        "NaturalGas": 168,
+        "CO2": 168
+    },
+    "HoursPerTimeStep": {
+        "Electricity": 1,
+        "NaturalGas": 1,
+        "CO2": 1
+    },
+    "NumberOfSubperiods": 11,
+    "PeriodMap": {
+        "path": "system/Period_map_1.csv"
+    },
+    "TotalHoursModeled": 8760
+}

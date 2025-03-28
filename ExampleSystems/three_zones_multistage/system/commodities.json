@@ -1,0 +1,7 @@
+{
+    "commodities": [
+        "Electricity",
+        {"name": "Fossil_NaturalGas", "acts_like": "NaturalGas"},
+        "CO2"
+    ]
+}
