@@ -120,15 +120,16 @@ end
 
 function define_available_capacity!(g::AbstractStorage, model::Model)
 
+    
+    g.new_capacity = @expression(model, capacity_size(g) * new_units(g))
+    
+    g.retired_capacity = @expression(model, capacity_size(g) * retired_units(g))
+    
     g.capacity = @expression(
         model,
         new_capacity(g) - retired_capacity(g) + existing_capacity(g)
     )
-
-    g.new_capacity = @expression(model, capacity_size(g) * new_units(g))
     
-    g.retired_capacity = @expression(model, capacity_size(g) * retired_units(g))
-
     g.new_capacity_track[stage_index(g)] = new_capacity(g);
         
     g.retired_capacity_track[stage_index(g)] = retired_capacity(g);
