@@ -67,13 +67,7 @@ function load_commodities(data::AbstractVector{<:AbstractString}, rel_path::Abst
 end
 
 function load_commodities(commodities::AbstractVector{<:Any}, rel_path::AbstractString=""; write_subcommodities::Bool=false)
-    subcommodities_path = joinpath(rel_path, "tmp", "subcommodities.jl")
-    if isfile(subcommodities_path)
-        @info(" ++ Loading pre-defined user commodities")
-        @debug(" -- Loading subcommodities from file $(subcommodities_path)")
-        include(subcommodities_path)
-    end
-    register_commodity_types!()
+    subcommodities_path = load_subcommodities_from_file(rel_path)
 
     macro_commodities = commodity_types()
     sub_commodities = Vector{Dict{Symbol,Any}}()
@@ -162,4 +156,15 @@ function validate_commodities(
         error("Unknown commodities: $(setdiff(commodities, keys(macro_commodities)))")
     end
     return nothing
+end
+
+function load_subcommodities_from_file(path::AbstractString="")
+    subcommodities_path = joinpath(path, "tmp", "subcommodities.jl")
+    if isfile(subcommodities_path)
+        @info(" ++ Loading pre-defined user commodities")
+        @debug(" -- Loading subcommodities from file $(subcommodities_path)")
+        include(subcommodities_path)
+    end
+    register_commodity_types!()
+    return subcommodities_path
 end
