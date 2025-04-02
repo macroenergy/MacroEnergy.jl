@@ -9,7 +9,7 @@
                     "unidirectional": true,
                     "has_capacity": true,
                     "commodity": "Electricity",
-                    "wacc": 0.02,
+                    "wacc": 0.017,
                     "lifetime": 20,
                     "capital_recovery_period": 20
                 }
