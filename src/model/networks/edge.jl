@@ -22,6 +22,7 @@ macro AbstractEdgeBaseAttributes()
         lifetime::Int64 = $edge_defaults[:lifetime]
         loss_fraction::Float64 = $edge_defaults[:loss_fraction]
         max_capacity::Float64 = $edge_defaults[:max_capacity]
+        max_new_capacity::Float64 = $edge_defaults[:max_new_capacity]
         min_capacity::Float64 = $edge_defaults[:min_capacity]
         min_flow_fraction::Float64 = $edge_defaults[:min_flow_fraction]
         new_capacity::AffExpr = AffExpr(0.0)
@@ -140,6 +141,7 @@ investment_cost(e::AbstractEdge) = e.investment_cost;
 lifetime(e::AbstractEdge) = e.lifetime;
 loss_fraction(e::AbstractEdge) = e.loss_fraction;
 max_capacity(e::AbstractEdge) = e.max_capacity;
+max_new_capacity(e::AbstractEdge) = e.max_new_capacity;
 min_capacity(e::AbstractEdge) = e.min_capacity;
 min_flow_fraction(e::AbstractEdge) = e.min_flow_fraction;
 new_capacity(e::AbstractEdge) = e.new_capacity;

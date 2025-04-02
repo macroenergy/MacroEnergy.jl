@@ -18,6 +18,7 @@ macro AbstractStorageBaseAttributes()
         loss_fraction::Float64 = $storage_defaults[:loss_fraction]
         max_capacity::Float64 = $storage_defaults[:max_capacity]
         max_duration::Float64 = $storage_defaults[:max_duration]
+        max_new_capacity::Float64 = $storage_defaults[:max_new_capacity]
         max_storage_level::Float64 = $storage_defaults[:max_storage_level]
         min_capacity::Float64 = $storage_defaults[:min_capacity]
         min_duration::Float64 = $storage_defaults[:min_duration]
@@ -88,6 +89,7 @@ lifetime(g::AbstractStorage) = g.lifetime;
 loss_fraction(g::AbstractStorage) = g.loss_fraction;
 max_capacity(g::AbstractStorage) = g.max_capacity;
 max_duration(g::AbstractStorage) = g.max_duration;
+max_new_capacity(g::AbstractStorage) = g.max_new_capacity;
 max_storage_level(g::AbstractStorage) = g.max_storage_level;
 min_capacity(g::AbstractStorage) = g.min_capacity;
 min_duration(g::AbstractStorage) = g.min_duration;
