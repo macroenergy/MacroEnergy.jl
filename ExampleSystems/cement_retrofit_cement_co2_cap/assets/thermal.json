@@ -2,6 +2,7 @@
     "ng": [
         {
             "type": "ThermalPower",
+            "fuel_commodity": "NaturalGas",
             "global_data": {
                 "nodes": {},
                 "transforms": {

@@ -1,0 +1,36 @@
+{
+    "CementPlant": [
+        {
+            "type": "CementPlant",
+            "global_data": {
+                "timedata": "Cement",
+                "co2_sink": "cement_co2_sink",
+                "fuel_cement_rate": 0.9156,
+                "elec_cement_rate": 0.128,
+                "cement_emission_rate": 0.77,
+                "capacity_size": 114.15,
+                "investment_cost": 20279.68,
+                "fixed_om_cost": 20.3775,
+                "variable_om_cost": 0,
+                "cement_can_expand": true
+            },
+            "instance_data": [
+                {
+                    "id": "MIDAT_cement",
+                    "location": "MIDAT",
+                    "existing_capacity": 100
+                },
+                {
+                    "id": "NE_cement",
+                    "location": "NE",
+                    "existing_capacity": 100
+                },
+                {
+                    "id": "SE_cement",
+                    "location": "SE",
+                    "existing_capacity": 100
+                }
+            ]
+        }
+    ]
+}

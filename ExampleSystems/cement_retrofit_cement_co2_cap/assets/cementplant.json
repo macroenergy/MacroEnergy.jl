@@ -3,6 +3,8 @@
         {
             "type": "CementPlant",
             "global_data": {
+                "fuel_commodity": "NaturalGas",
+                "co2_sink": "cement_co2_sink",
                 "nodes": {},
                 "transforms": {
                     "timedata": "Cement",
