@@ -67,7 +67,7 @@ function discount_fixed_costs!(y::Union{AbstractEdge,AbstractStorage},settings::
     payment_years_remaining = min(capital_recovery_period(y), model_years_remaining);
 
     y.investment_cost = investment_cost(y) * sum(1 / (1 + wacc(y))^s for s in 1:payment_years_remaining; init=0);
-
+    
     opexmult = sum([1 / (1 + settings.WACC)^(i - 1) for i in 1:settings.StageLengths[stage_index(y)]])
 
     y.fixed_om_cost = fixed_om_cost(y) * opexmult

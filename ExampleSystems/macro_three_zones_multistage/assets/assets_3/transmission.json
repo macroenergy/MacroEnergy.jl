@@ -26,7 +26,7 @@
                             "MaxNewCapacityConstraint": true
                         },
                         "start_vertex": "elec_MA",
-                        "line_loss_percentage": 0.012305837,
+                        "line_loss_fraction": 0.012305837,
                         "end_vertex": "elec_CT",
                         "max_capacity": 7000,
                         "max_new_capacity": 2950,
