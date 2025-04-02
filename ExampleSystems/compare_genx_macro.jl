@@ -4,6 +4,7 @@ using GenX
 using JuMP
 
 genx_case_path = "ExampleSystems/genx_three_zones_multistage";
+#macro_case_path = "ExampleSystems/macro_three_zones_multistage_fixed_capacity";
 macro_case_path = "ExampleSystems/macro_three_zones_multistage";
 optimizer = JuMP.optimizer_with_attributes(Gurobi.Optimizer, "BarConvTol"=>1e-6,"Crossover" => 1, "Method" => 2)
 
@@ -90,23 +91,23 @@ function myrun_genx_case_multistage!(case::AbstractString, mysetup::Dict, OPTIMI
         mkdir(outpath)
     end
 
-    # Step 3) Run DDP Algorithm
-    ## Solve Model
+    # # Step 3) Run DDP Algorithm
+    # ## Solve Model
     model_dict, mystats_d, inputs_dict = GenX.run_ddp(outpath, model_dict, mysetup, inputs_dict)
 
-    # # Step 4) Write final outputs from each stage
-    # if mysetup["MultiStageSettingsDict"]["Myopic"] == 0 ||
-    #    mysetup["MultiStageSettingsDict"]["WriteIntermittentOutputs"] == 0
-    #     for p in 1:mysetup["MultiStageSettingsDict"]["NumStages"]
-    #         mysetup["MultiStageSettingsDict"]["CurStage"] = p
-    #         outpath_cur = joinpath(outpath, "results_p$p")
-    #         GenX.write_outputs(model_dict[p], outpath_cur, mysetup, inputs_dict[p])
-    #     end
-    # end
+    # Step 4) Write final outputs from each stage
+    if mysetup["MultiStageSettingsDict"]["Myopic"] == 0 ||
+       mysetup["MultiStageSettingsDict"]["WriteIntermittentOutputs"] == 0
+        for p in 1:mysetup["MultiStageSettingsDict"]["NumStages"]
+            mysetup["MultiStageSettingsDict"]["CurStage"] = p
+            outpath_cur = joinpath(outpath, "results_p$p")
+            GenX.write_outputs(model_dict[p], outpath_cur, mysetup, inputs_dict[p])
+        end
+    end
 
-    # Step 5) Write DDP summary outputs
+    ### Step 5) Write DDP summary outputs
 
-    # GenX.write_multi_stage_outputs(mystats_d, outpath, mysetup, inputs_dict)
+    GenX.write_multi_stage_outputs(mystats_d, outpath, mysetup, inputs_dict)
 
     return model_dict, mystats_d,inputs_dict
 end
@@ -130,20 +131,10 @@ end
 
 genx_models,genx_stats,genx_inputs = myrun_genx_case_multistage!(genx_case_path, genx_setup, optimizer)
 
-stages,macro_models = myrun_marco_case_multistage(macro_case_path)
+stages,macro_models = myrun_marco_case_multistage(macro_case_path);
 
-for i in 1:3
-    println("Relative difference in objective function for stage $i: $((objective_value(genx_models[i]) - objective_value(macro_models[i]))/objective_value(genx_models[i]))")
-end
-
-# value.(genx_models[3][:vEXISTINGCAP])
-# value.(genx_models[3][:eTotalCap])
-
-# AvailableCapacity = Dict( i => MacroEnergy.get_available_capacity(stages[i]) for i in 1:3)
-
-cap_size = ones(10);
-cap_size[1:3] .= 250
-[genx_inputs[3]["RESOURCE_NAMES"] value.(genx_models[3][:eTotalCap]) cap_size.*value.(genx_models[3][:vCAP])  cap_size.*value.(genx_models[3][:vRETCAP])]
-
+# for i in 1:3
+#     println("Relative difference in objective function for stage $i: $((objective_value(genx_models[i]) - objective_value(macro_models[i]))/objective_value(genx_models[i]))")
+# end
 
 println("")
