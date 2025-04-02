@@ -10,7 +10,7 @@ macro AbstractStorageBaseAttributes()
         capacity_size::Float64 = $storage_defaults[:capacity_size]
         capital_recovery_period::Int64 = $storage_defaults[:capital_recovery_period]
         charge_discharge_ratio::Float64 = $storage_defaults[:charge_discharge_ratio]
-        existing_capacity::Float64 = $storage_defaults[:existing_capacity]
+        existing_capacity::Union{AffExpr,Float64,Int64} = $storage_defaults[:existing_capacity]
         fixed_om_cost::Float64 = $storage_defaults[:fixed_om_cost]
         investment_cost::Float64 = $storage_defaults[:investment_cost]
         lifetime::Int64 = $storage_defaults[:lifetime]

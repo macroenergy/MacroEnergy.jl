@@ -13,7 +13,7 @@ macro AbstractEdgeBaseAttributes()
         capital_recovery_period::Int64 = $edge_defaults[:capital_recovery_period]
         constraints::Vector{AbstractTypeConstraint} = Vector{AbstractTypeConstraint}()
         distance::Float64 = $edge_defaults[:distance]
-        existing_capacity::Float64 = $edge_defaults[:existing_capacity]
+        existing_capacity::Union{AffExpr,Float64,Int64} = $edge_defaults[:existing_capacity]
         fixed_om_cost::Float64 = $edge_defaults[:fixed_om_cost]
         flow::JuMPVariable = Vector{VariableRef}()
         has_capacity::Bool = $edge_defaults[:has_capacity]
