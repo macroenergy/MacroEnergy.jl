@@ -1,5 +1,0 @@
-{
-  "StageLengths": [5,10,10],
-  "WACC": 0.025,
-  "SolutionAlgorithm": "PerfectForesight"
-}
