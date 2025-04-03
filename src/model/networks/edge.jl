@@ -20,7 +20,8 @@ macro AbstractEdgeBaseAttributes()
         integer_decisions::Bool = $edge_defaults[:integer_decisions]
         investment_cost::Float64 = $edge_defaults[:investment_cost]
         is_retrofit::Bool = false
-        loss_fraction::Vector{Float64} = $edge_defaults[:loss_fraction]
+        location::Union{Missing, String} = $edge_defaults[:location]
+        loss_fraction::Float64 = $edge_defaults[:loss_fraction]
         max_capacity::Float64 = $edge_defaults[:max_capacity]
         min_capacity::Float64 = $edge_defaults[:min_capacity]
         min_flow_fraction::Float64 = $edge_defaults[:min_flow_fraction]
@@ -185,6 +186,7 @@ id(e::AbstractEdge) = e.id;
 integer_decisions(e::AbstractEdge) = e.integer_decisions;
 investment_cost(e::AbstractEdge) = e.investment_cost;
 is_retrofit(e::AbstractEdge) = e.is_retrofit;
+location(e::AbstractEdge) = e.location;
 loss_fraction(e::AbstractEdge) = e.loss_fraction;
 function loss_fraction(e::AbstractEdge, t::Int64)
     a = loss_fraction(e)

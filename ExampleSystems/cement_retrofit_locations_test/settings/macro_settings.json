@@ -1,7 +1,7 @@
 {
   "ConstraintScaling":true,
   "WriteSubcommodities":true,
-  "AutoCreateNodes":false,
+  "AutoCreateNodes":true,
   "AutoCreateLocations":true
 }
 
