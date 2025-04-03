@@ -70,8 +70,9 @@ function load_commodities(commodities::AbstractVector{<:Any}, rel_path::Abstract
     subcommodities_path = load_subcommodities_from_file(rel_path)
 
     macro_commodities = commodity_types()
-    sub_commodities = Vector{Dict{Symbol,Any}}()
+    all_sub_commodities = Vector{Dict{Symbol,Any}}()
     commodity_keys = unique!([MacroEnergy.typesymbol(commodity) for commodity in values(macro_commodities)])
+
     for commodity in commodities
         if isa(commodity, Symbol)
             if commodity ∉ keys(macro_commodities)
@@ -82,13 +83,7 @@ function load_commodities(commodities::AbstractVector{<:Any}, rel_path::Abstract
                 error("Unknown commodity: $commodity")
             end
         elseif isa(commodity, Dict) && haskey(commodity, :name) && haskey(commodity, :acts_like)
-            if Symbol(commodity[:name]) ∉ commodity_keys
-                @debug("Adding commodity $(commodity[:name]) to list of subcommodities to be added")
-                push!(sub_commodities, commodity)
-            else
-                @debug("Commodity $(commodity[:name]) already exists")
-                continue
-            end
+            push!(all_sub_commodities, commodity)
         else
             error("Invalid commodity format: $commodity")
         end
@@ -96,23 +91,22 @@ function load_commodities(commodities::AbstractVector{<:Any}, rel_path::Abstract
 
     subcommodities_lines = String[]
 
-    for commodity in sub_commodities
+    for commodity in all_sub_commodities
         @debug("Iterating over user-defined subcommodities")
         new_name = Symbol(commodity[:name])
+        parent_name = Symbol(commodity[:acts_like])
+        if write_subcommodities
+            @debug("Will write subcommodity $(new_name) to file")
+            push!(subcommodities_lines, make_commodity(new_name, parent_name))
+        end
         if new_name in keys(commodity_types())
             @debug("Commodity $(commodity[:name]) already exists")
             continue
         end
-        parent_name = Symbol(commodity[:acts_like])
         commodity_keys = keys(commodity_types())
         if parent_name ∈ commodity_keys
             @debug("Adding subcommodity $(new_name), which acts like commodity $(parent_name)")
-            subcommodity_string = make_commodity(new_name, parent_name)
             COMMODITY_TYPES[new_name] = getfield(MacroEnergy, new_name)
-            if write_subcommodities
-                @debug("Will write subcommodity $(new_name) to file")
-                push!(subcommodities_lines, subcommodity_string)
-            end
         else
             error("Unknown parent commodity: $parent_name")
         end
