@@ -66,6 +66,7 @@ algorithm_type(::PerfectForesight) = PerfectForesight()
 algorithm_type(::Benders) = Myopic()
 
 # global constants
+const ME_DEPOT_PATH = joinpath(homedir(), ".macroenergy")
 const H2_MWh = 33.33 # MWh per tonne of H2
 const NG_MWh = 0.29307107 # MWh per MMBTU of NG 
 const AssetId = Symbol
@@ -73,6 +74,11 @@ const JuMPConstraint =
     Union{Array,Containers.DenseAxisArray,Containers.SparseAxisArray,ConstraintRef}
 const JuMPVariable =
     Union{Array,Containers.DenseAxisArray,Containers.SparseAxisArray,VariableRef}
+
+# Load subcommodities from file when MacroEnergy is loaded
+function __init__()
+    isdir(ME_DEPOT_PATH) && load_subcommodities_from_file(ME_DEPOT_PATH)
+end
 
 function include_all_in_folder(folder::AbstractString, root_path::AbstractString=@__DIR__)
     base_path = joinpath(root_path, folder)
