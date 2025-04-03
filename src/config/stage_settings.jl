@@ -62,6 +62,8 @@ function set_solution_algorithm!(stage_settings::AbstractDict{Symbol,Any})
         stage_settings[:SolutionAlgorithm] = PerfectForesight()
     elseif stage_settings[:SolutionAlgorithm] == "SingleStage"
         stage_settings[:SolutionAlgorithm] = SingleStage()
+    elseif stage_settings[:SolutionAlgorithm] == "Benders"
+        stage_settings[:SolutionAlgorithm] = Benders()
     else
         @warn("No solution algorithm specified, defaulting to SingleStage")
         stage_settings[:SolutionAlgorithm] = SingleStage()

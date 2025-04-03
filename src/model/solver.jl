@@ -57,3 +57,20 @@ function solve_stages(stages::Stages, opt::Optimizer, ::Myopic)
 
     return (stages, models)
 end
+
+####### Benders decomposition algorithm: solves either multistage with perfect foresight or single stage models #######
+function solve_stages(stages::Stages, opt::Dict{:Symbol,Optimizer}, ::Benders)
+
+    @info("*** Running $(algorithm) simulation ***")
+
+    planning_optimizer = optimizer_with_attributes(()->opt[:planning].optimizer(opt[:planing].optimizer_env), opt[:planning].attributes...)
+
+    planning_problem,linking_variables = initialize_planning_problem!(stages.system,MacroEnergy,planning_optimizer);
+
+    
+
+    # system_decomp = MacroEnergy.generate_decomposed_system(stages.system);
+
+
+    # return (stages, model)
+end

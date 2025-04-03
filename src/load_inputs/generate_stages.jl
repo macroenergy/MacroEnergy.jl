@@ -18,6 +18,10 @@ function generate_stages(
 
     settings = configure_stages(systems_data[:settings], dirname(path))
 
+    if settings[:SolutionAlgorithm] == "Benders"
+        benders_settings = configure_benders(systems_data[:benders_settings], dirname(path))
+    end
+
     prepare_stages!(systems, settings)
 
     @info("Done loading stages. It took $(round(time() - start_time, digits=2)) seconds")

@@ -58,10 +58,12 @@ abstract type AbstractSolutionAlgorithm end
 struct Myopic <: AbstractSolutionAlgorithm end
 struct PerfectForesight <: AbstractSolutionAlgorithm end
 struct SingleStage <: AbstractSolutionAlgorithm end
+struct Benders <: AbstractSolutionAlgorithm end
 algorithm_type(::AbstractSolutionAlgorithm) = SingleStage() # default to single stage
 algorithm_type(::SingleStage) = SingleStage()
 algorithm_type(::Myopic) = Myopic()
 algorithm_type(::PerfectForesight) = PerfectForesight()
+algorithm_type(::Benders) = Myopic()
 
 # global constants
 const H2_MWh = 33.33 # MWh per tonne of H2
