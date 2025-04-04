@@ -6,6 +6,17 @@ function default_stage_settings()
     )
 end
 
+function default_benders_settings()
+    return Dict(
+        :MaxIter=> 50,
+        :MaxCpuTime => 7200,
+        :ConvTol => 1e-3,
+        :StabParam => 0.0,
+        :StabDynamic => false,
+        :IntegerInvestment => false
+    )
+end
+
 function configure_stages(
     path::AbstractString,
     rel_path::AbstractString,
@@ -14,10 +25,22 @@ function configure_stages(
     if isdir(path)
         path = joinpath(path, "stage_settings.json")
     end
+    
     if !isfile(path)
-        error("Settings file not found: $path")
+        error("Stage settings file not found: $path")
     end
-    return configure_stages(read_file(path))
+    
+    # Load stage settings
+    stage_settings = copy(read_file(path))
+    
+    # Load benders settings if they exist
+    benders_path = joinpath(dirname(path), "benders_settings.json")
+    if isfile(benders_path)
+        benders_settings = read_file(benders_path)
+        stage_settings[:BendersSettings] = benders_settings
+    end
+    
+    return configure_stages(stage_settings)
 end
 
 function configure_stages(
@@ -39,6 +62,7 @@ function configure_stages(stage_settings::AbstractDict{Symbol,Any})
     settings = merge(settings, stage_settings)
     set_stage_lengths!(settings)
     set_solution_algorithm!(settings)
+    isa(settings[:SolutionAlgorithm], Benders) && configure_benders!(settings)
     validate_stage_settings(settings)
     return namedtuple(settings)
 end
@@ -70,4 +94,24 @@ function set_solution_algorithm!(stage_settings::AbstractDict{Symbol,Any})
     end
     @info("Solution algorithm set to $(stage_settings[:SolutionAlgorithm])")
     return nothing
+end
+
+function configure_benders!(stage_settings::AbstractDict{Symbol,Any})
+    # use default benders settings if BendersSettings is not specified
+    benders_settings = get(stage_settings, :BendersSettings, Dict{Symbol,Any}())
+    @info("Configuring benders")
+    settings = default_benders_settings()
+    settings = merge(settings, benders_settings)
+    validate_benders_settings(settings)
+    stage_settings[:BendersSettings] = settings
+    return nothing
+end
+
+function validate_benders_settings(benders_settings::AbstractDict{Symbol,Any})
+    @assert benders_settings[:MaxIter] > 0 && isa(benders_settings[:MaxIter], Int)
+    @assert benders_settings[:MaxCpuTime] > 0 && isa(benders_settings[:MaxCpuTime], Int)
+    @assert benders_settings[:ConvTol] > 0 && isa(benders_settings[:ConvTol], Number)
+    @assert benders_settings[:StabParam] >= 0 && isa(benders_settings[:StabParam], Number)
+    @assert isa(benders_settings[:StabDynamic], Bool)
+    @assert isa(benders_settings[:IntegerInvestment], Bool)
 end
