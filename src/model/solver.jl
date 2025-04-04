@@ -81,7 +81,7 @@ function solve_stages(stages::Stages, opt::Dict{Symbol,Optimizer}, ::Benders)
 
     subproblems_dict, linking_variables_sub =  initialize_dist_subproblems!(system_decomp, MacroEnergy)
 
-    results = MacroEnergySolvers.benders(planning_model, linking_variables, subproblems_dict, linking_variables_sub, setup)
+    results = MacroEnergySolvers.benders(planning_model, linking_variables, subproblems_dict, linking_variables_sub, Dict(pairs(setup)))
 
     return (stages, results)
 end
