@@ -1,4 +1,4 @@
-function solve_stages(stages::Stages, opt::Optimizer)
+function solve_stages(stages::Stages, opt::O) where O <: Union{Optimizer, Dict{Symbol,Optimizer}}
     solve_stages(stages, opt, algorithm_type(stages))
 end
 
@@ -59,18 +59,30 @@ function solve_stages(stages::Stages, opt::Optimizer, ::Myopic)
 end
 
 ####### Benders decomposition algorithm: solves either multistage with perfect foresight or single stage models #######
-function solve_stages(stages::Stages, opt::Dict{:Symbol,Optimizer}, ::Benders)
+function solve_stages(stages::Stages, opt::Dict{Symbol,Optimizer}, ::Benders)
 
-    @info("*** Running $(algorithm) simulation ***")
+    @info("*** Running Benders decomposition ***")
+    setup = stages.settings.BendersSettings
+    system = stages.systems[1]  # FIXME: this will be a vector of systems
 
-    planning_optimizer = optimizer_with_attributes(()->opt[:planning].optimizer(opt[:planing].optimizer_env), opt[:planning].attributes...)
+    # planning_optimizer = optimizer_with_attributes(()->opt[:planning].optimizer(opt[:planing].optimizer_env), opt[:planning].attributes...)
 
-    planning_problem,linking_variables = initialize_planning_problem!(stages.system,MacroEnergy,planning_optimizer);
-
+    # Planning problem
+    planning_model, linking_variables = generate_planning_problem(system);
     
+    set_optimizer(planning_model, opt[:planning])
+    set_silent(planning_model)
 
-    # system_decomp = MacroEnergy.generate_decomposed_system(stages.system);
+    # Decomposed system
+    system_decomp = generate_decomposed_system(system);
 
+    number_of_subperiods = length(system_decomp);
+    start_distributed_processes!(number_of_subperiods, MacroEnergy, system.data_dirpath)
 
-    # return (stages, model)
+    subproblems_dict, linking_variables_sub =  initialize_dist_subproblems!(system_decomp, MacroEnergy, opt[:subproblems])
+
+    results = MacroEnergySolvers.benders(planning_model, linking_variables, subproblems_dict, linking_variables_sub, setup)
+
+    return (stages, results)
 end
+
