@@ -79,7 +79,7 @@ function solve_stages(stages::Stages, opt::Dict{Symbol,Optimizer}, ::Benders)
     number_of_subperiods = length(system_decomp);
     start_distributed_processes!(number_of_subperiods, MacroEnergy, system.data_dirpath)
 
-    subproblems_dict, linking_variables_sub =  initialize_dist_subproblems!(system_decomp, MacroEnergy, opt[:subproblems])
+    subproblems_dict, linking_variables_sub =  initialize_dist_subproblems!(system_decomp, MacroEnergy)
 
     results = MacroEnergySolvers.benders(planning_model, linking_variables, subproblems_dict, linking_variables_sub, setup)
 

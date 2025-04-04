@@ -16,7 +16,7 @@ end
 
 benders_optimizer = Dict(
     :planning => MacroEnergy.create_optimizer(Gurobi.Optimizer, GRB_ENV, ("Method" => 2, "Crossover" => 0, "BarConvTol" => 1e-6)),
-    :subproblems => MacroEnergy.create_optimizer(Gurobi.Optimizer, GRB_ENV, ("Method" => 2, "Crossover" => 0, "BarConvTol" => 1e-6))
+    :subproblems => MacroEnergy.create_optimizer(Gurobi.Optimizer, GRB_ENV, ("Method" => 2, "BarConvTol" => 1e-3, "Crossover" => 1))
 )
 
 (mono_stages, mono_model) = MacroEnergy.solve_stages(mono_stages, benders_optimizer);
