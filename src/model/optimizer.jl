@@ -11,14 +11,17 @@ end
 
 function set_optimizer(model::Model, opt::Optimizer)
     if !ismissing(opt.optimizer_env)
+        @debug("Setting optimizer with environment $(opt.optimizer_env)")
         try 
             set_optimizer(model, () -> opt.optimizer(opt.optimizer_env));
         catch
             error("Error creating optimizer with environment. Check that the environment is valid.")
         end
     else
+        @debug("Setting optimizer $(opt.optimizer)")
         set_optimizer(model, opt.optimizer);
     end
+    @debug("Setting optimizer attributes $(opt.attributes)")
     set_optimizer_attributes(model, opt)
 end
 
