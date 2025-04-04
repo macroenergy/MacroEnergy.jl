@@ -10,6 +10,7 @@ using HiGHS
 using Revise
 using InteractiveUtils
 using Printf: @printf
+using MacroEnergySolvers
 using MacroEnergyScaling
 import MacroEnergyScaling: scale_constraints!
 import JuMP: set_optimizer, set_optimizer_attributes
@@ -63,7 +64,7 @@ algorithm_type(::AbstractSolutionAlgorithm) = SingleStage() # default to single 
 algorithm_type(::SingleStage) = SingleStage()
 algorithm_type(::Myopic) = Myopic()
 algorithm_type(::PerfectForesight) = PerfectForesight()
-algorithm_type(::Benders) = Myopic()
+algorithm_type(::Benders) = Benders()
 
 # global constants
 const ME_DEPOT_PATH = joinpath(homedir(), ".macroenergy")
