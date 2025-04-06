@@ -36,9 +36,9 @@ end
 function planning_model!(system::System, model::Model)
 
     # Add retrofit constraints at a system level - need to move later
-    retrofit_ids = get_unique_retrofit_ids(system)
-    @expression(model, eRetrofittedCapByRetroId[id in retrofit_ids], 0 * model[:vREF])
-    @expression(model, eRetrofitCapByRetroId[id in retrofit_ids], 0 * model[:vREF])
+    # retrofit_ids = get_unique_retrofit_ids(system)
+    # @expression(model, eRetrofittedCapByRetroId[id in retrofit_ids], 0 * model[:vREF])
+    # @expression(model, eRetrofitCapByRetroId[id in retrofit_ids], 0 * model[:vREF])
 
     planning_model!.(system.locations, Ref(model))
 

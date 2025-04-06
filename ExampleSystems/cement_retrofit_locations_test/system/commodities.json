@@ -4,7 +4,6 @@
         "NaturalGas",
         "CO2",
         "CO2Captured",
-        "Cement",
-        "CementMaterials"
+        "Cement"
     ]
 }

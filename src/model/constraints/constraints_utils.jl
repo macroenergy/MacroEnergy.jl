@@ -16,9 +16,12 @@ function add_constraints_by_type!(system::System, model::Model, constraint_type:
 
     # Add retrofitting constraints
     if constraint_type == PlanningConstraint
-        retrofit_ids = get_unique_retrofit_ids(system)
-        @info("Retrofit_ids: $(retrofit_ids)")
-        @constraint(model, cRetrofitCapacity[id in retrofit_ids], model[:eRetrofittedCapByRetroId][id] == model[:eRetrofitCapByRetroId][id])
+        edges = get_edges(system)
+        retrofit_tuples = get_unique_retrofit_tuples(system)
+        @constraint(model, cRetrofitCapacity[(retrofit_id, retrofit_location) in retrofit_tuples],
+        sum(retrofitted_capacity(e) for e in get_can_retrofit_edges(edges, retrofit_id, retrofit_location)) ==
+        sum(new_capacity(e) for e in get_is_retrofit_edges(edges, retrofit_id, retrofit_location))
+    )
     end
 end
 
@@ -41,20 +44,42 @@ function add_constraints_by_type!(
     return nothing
 end
 
-function get_unique_retrofit_ids(system::System)
-    can_retrofit_ids = []
-    is_retrofit_ids = []
+function get_unique_retrofit_tuples(system::System)
+    can_retrofit_tuples = []
+    is_retrofit_tuples = []
     for e in get_edges(system)
         if can_retrofit(e)
-            push!(can_retrofit_ids, e.retrofit_id)
+            push!(can_retrofit_tuples, (e.retrofit_id, e.location))
         end
         if is_retrofit(e)
-            push!(is_retrofit_ids, e.retrofit_id)
+            push!(is_retrofit_tuples, (e.retrofit_id, e.location))
         end
     end
-    @assert unique(can_retrofit_ids) == unique(is_retrofit_ids)
-    retrofit_ids = unique(can_retrofit_ids)
-    return retrofit_ids
+    @assert unique(can_retrofit_tuples) == unique(is_retrofit_tuples)
+    retrofit_tuples = unique(can_retrofit_tuples)
+    return retrofit_tuples
+end
+
+function get_can_retrofit_edges(edges, retrofit_id, location)
+    # Returns the edges that can be retrofitted with a given retrofit_id and location
+    can_retrofit_edges = []
+    for edge in edges
+        if (can_retrofit(edge) == true) && (edge.retrofit_id == retrofit_id) && (edge.location == location)
+            push!(can_retrofit_edges, edge)
+        end
+    end
+    return can_retrofit_edges
+end
+
+function get_is_retrofit_edges(edges, retrofit_id, location)
+    # Returns the edges that can retrofit other edges with a given retrofit_id and location
+    is_retrofit_edges = []
+    for edge in edges
+        if (is_retrofit(edge) == true) && (edge.retrofit_id == retrofit_id) && (edge.location == location)
+            push!(is_retrofit_edges, edge)
+        end
+    end
+    return is_retrofit_edges
 end
 
 const CONSTRAINT_TYPES = Dict{Symbol,DataType}()
