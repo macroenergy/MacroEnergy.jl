@@ -97,7 +97,7 @@ function define_available_capacity!(a::AbstractAsset, model::Model)
 end
 
 function generate_model(stages::Stages)
-    generate_model(stages, algorithm_type(stages))
+    generate_model(stages, expansion_mode(stages))
 end
 
 # Single stage model

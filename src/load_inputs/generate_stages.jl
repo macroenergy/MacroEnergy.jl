@@ -18,10 +18,6 @@ function generate_stages(
 
     settings = configure_stages(systems_data[:settings], dirname(path))
 
-    if settings[:SolutionAlgorithm] == "Benders"
-        benders_settings = configure_benders(systems_data[:benders_settings], dirname(path))
-    end
-
     prepare_stages!(systems, settings)
 
     @info("Done loading stages. It took $(round(time() - start_time, digits=2)) seconds")
@@ -29,10 +25,10 @@ function generate_stages(
 end
 
 function prepare_stages!(systems::Vector{System}, settings::NamedTuple)
-    prepare_stages!(systems, settings, algorithm_type(settings[:SolutionAlgorithm]))
+    prepare_stages!(systems, settings, expansion_mode(settings[:ExpansionMode]))
 end
 
-function prepare_stages!(systems::Vector{System}, settings::NamedTuple, ::AbstractSolutionAlgorithm)
+function prepare_stages!(systems::Vector{System}, settings::NamedTuple, ::AbstractExpansionMode)
     @debug("Default `prepare_stages!` method called. No preparation needed.")
     return nothing
 end

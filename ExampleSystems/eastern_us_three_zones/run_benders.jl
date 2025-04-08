@@ -4,21 +4,29 @@
 
 using MacroEnergy
 using Gurobi
-
+using MacroEnergySolvers
 
 case_path = @__DIR__;
 
-mono_stages = MacroEnergy.load_stages(case_path; lazy_load=true);
-
 if !(@isdefined GRB_ENV)
     const GRB_ENV = Gurobi.Env()
-end
+end 
 
-benders_optimizer = Dict(
-    :planning => MacroEnergy.create_optimizer(Gurobi.Optimizer, GRB_ENV, ("Method" => 2, "Crossover" => 0, "BarConvTol" => 1e-6)),
-    :subproblems => MacroEnergy.create_optimizer(Gurobi.Optimizer, GRB_ENV, ("Method" => 2, "BarConvTol" => 1e-3, "Crossover" => 1))
+benders_optimizers = Dict(
+    :planning => MacroEnergy.create_optimizer(Gurobi.Optimizer,GRB_ENV,("Method" => 2, "Crossover" => 0, "BarConvTol" => 1e-3)),
+    :subproblems => MacroEnergy.create_optimizer(Gurobi.Optimizer, GRB_ENV, ("Method" => 2, "Crossover" => 1, "BarConvTol" => 1e-3)),
 )
 
-(mono_stages, mono_model) = MacroEnergy.solve_stages(mono_stages, benders_optimizer);
+# MacroEnergy.start_distributed_processes!(2, Gurobi, case_path)
+
+stages = MacroEnergy.load_stages(case_path; lazy_load=true);
+
+system = stages.systems[1];
+
+system_decomp = MacroEnergy.generate_decomposed_system(system);
+
+subproblems_dict, linking_variables_sub =  MacroEnergy.initialize_dist_subproblems!(system_decomp,benders_optimizers[:subproblems]);
+
+# MacroEnergy.solve_stages(stages, benders_optimizers);
 
 println("Done!")

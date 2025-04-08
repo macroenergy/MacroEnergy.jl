@@ -4,5 +4,6 @@
   "ConvTol": 1e-3,
   "StabParam": 0.0,
   "StabDynamic": false,
-  "IntegerInvestment": false
+  "IntegerInvestment": false,
+  "Distributed": false
 }

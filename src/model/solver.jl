@@ -1,14 +1,14 @@
-function solve_stages(stages::Stages, opt::O) where O <: Union{Optimizer, Dict{Symbol,Optimizer}}
-    solve_stages(stages, opt, algorithm_type(stages))
+function solve_stages(stages::Stages, opt::O) where O <: Union{Optimizer, Dict{Symbol, Optimizer}}
+    solve_stages(stages, opt, expansion_mode(stages),solution_algorithm(stages))
 end
 
-####### single stage algorithm and perfect foresight algorithm #######
+####### single stage expansion and perfect foresight expansion #######
 # share the same model generation and optimization workflow
-function solve_stages(stages::Stages, opt::Optimizer, algorithm::T) where T <: Union{SingleStage, PerfectForesight}
+function solve_stages(stages::Stages, opt::Optimizer, expansion::T, ::Monolithic) where T <: Union{SingleStage, PerfectForesight}
 
-    @info("*** Running $(algorithm) simulation ***")
+    @info("*** Running $(expansion) simulation ***")
     
-    model = generate_model(stages, algorithm)
+    model = generate_model(stages, expansion)
 
     set_optimizer(model, opt)
 
@@ -24,8 +24,8 @@ function solve_stages(stages::Stages, opt::Optimizer, algorithm::T) where T <: U
     return (stages, model)
 end
 
-####### myopic algorithm #######
-function solve_stages(stages::Stages, opt::Optimizer, ::Myopic)
+####### myopic expansion #######
+function solve_stages(stages::Stages, opt::Optimizer, ::Myopic, ::Monolithic)
 
     @info("*** Running myopic simulation ***")
     
@@ -59,30 +59,21 @@ function solve_stages(stages::Stages, opt::Optimizer, ::Myopic)
 end
 
 ####### Benders decomposition algorithm: solves either multistage with perfect foresight or single stage models #######
-function solve_stages(stages::Stages, opt::Dict{Symbol,Optimizer}, ::Benders)
+function solve_stages(stages::Stages, opt::Dict{Symbol, Optimizer}, expansion::T, ::Benders) where T <: Union{SingleStage, PerfectForesight}
 
-    @info("*** Running Benders decomposition ***")
+    @info("*** Running $(expansion) simulation with Benders decomposition ***")
     setup = stages.settings.BendersSettings
     system = stages.systems[1]  # FIXME: this will be a vector of systems
-
-    # planning_optimizer = optimizer_with_attributes(()->opt[:planning].optimizer(opt[:planing].optimizer_env), opt[:planning].attributes...)
-
-    # Planning problem
-    planning_model, linking_variables = generate_planning_problem(system);
     
-    set_optimizer(planning_model, opt[:planning])
-    set_silent(planning_model)
-
     # Decomposed system
     system_decomp = generate_decomposed_system(system);
 
-    number_of_subperiods = length(system_decomp);
-    start_distributed_processes!(number_of_subperiods, MacroEnergy, system.data_dirpath)
+    initialize_planning_problem!(system,opt[:planning])
 
-    subproblems_dict, linking_variables_sub =  initialize_dist_subproblems!(system_decomp, MacroEnergy)
+    initialize_subproblems!(system_decomp,opt[:subproblems],setup[:Distributed])
 
-    results = MacroEnergySolvers.benders(planning_model, linking_variables, subproblems_dict, linking_variables_sub, Dict(pairs(setup)))
+    # results = MacroEnergySolvers.benders(planning_model, linking_variables, subproblems_dict, linking_variables_sub, Dict(pairs(setup)))
 
-    return (stages, results)
+    # return (stages, results)
 end
 

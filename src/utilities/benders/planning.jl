@@ -1,34 +1,16 @@
-function get_subperiod_index(system::System)
 
-    return system.time_data[:Electricity].subperiod_indices[1]
+function initialize_planning_problem!(system::Any,optimizer::Optimizer)
+    
+    planning_model, linking_variables = generate_planning_problem(system);
+    
+    set_optimizer(planning_model, optimizer)
+
+    set_silent(planning_model)
+
+    return planning_model,linking_variables
 
 end
 
-function generate_decomposed_system(system_full::System)
-
-    subperiod_indices = system_full.time_data[:Electricity].subperiod_indices;
-    subperiods = system_full.time_data[:Electricity].subperiods;
-    subperiod_weights = system_full.time_data[:Electricity].subperiod_weights;
-
-    number_of_subperiods = length(subperiod_indices);
-
-    system_decomp = Vector{System}(undef,number_of_subperiods)
-
-    for i in 1:number_of_subperiods
-        system_decomp[i] = deepcopy(system_full)
-        w = subperiod_indices[i];
-
-        for c in keys(system_full.time_data)
-            system_decomp[i].time_data[c].time_interval = subperiods[i]
-            system_decomp[i].time_data[c].subperiod_weights = Dict(w => subperiod_weights[w])
-            system_decomp[i].time_data[c].subperiods = [subperiods[i]]
-            system_decomp[i].time_data[c].subperiod_indices = [w]
-            system_decomp[i].time_data[c].period_map = Dict(w => w)
-        end
-    end
-
-    return system_decomp
-end
 
 function generate_planning_problem(system::System)
 
@@ -59,28 +41,6 @@ function generate_planning_problem(system::System)
 end
 
 
-function generate_operation_subproblem(system::System)
-
-    model = Model()
-
-    @variable(model, vREF == 1)
-
-    model[:eVariableCost] = AffExpr(0.0)
-    
-    add_linking_variables!(system, model)
-
-    linking_variables = name.(setdiff(all_variables(model), model[:vREF]))
-
-    define_available_capacity!(system, model)
-
-    operation_model!(system, model)
-
-    @objective(model, Min, model[:eVariableCost])
-
-    return model, linking_variables
-
-
-end
 
 function get_available_capacity(system::System)
     

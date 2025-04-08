@@ -950,7 +950,7 @@ function write_outputs(results_dir::AbstractString, system::System, model::Model
 end
 
 function write_outputs(case_path::AbstractString, stages::Stages, model::Union{Model, Vector{Model}})
-    write_outputs(case_path, stages, model, algorithm_type(stages))
+    write_outputs(case_path, stages, model, expansion_mode(stages))
 end
 
 function write_outputs(case_path::AbstractString, stages::Stages, model::Model, ::SingleStage)

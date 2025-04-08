@@ -2,7 +2,8 @@ function default_stage_settings()
     return Dict(
         :StageLengths => [1],
         :WACC => 0.,
-        :SolutionAlgorithm => "SingleStage",
+        :ExpansionMode => "SingleStage",
+        :SolutionAlgorithm => "Monolithic",
     )
 end
 
@@ -13,7 +14,8 @@ function default_benders_settings()
         :ConvTol => 1e-3,
         :StabParam => 0.0,
         :StabDynamic => false,
-        :IntegerInvestment => false
+        :IntegerInvestment => false,
+        :Distributed => false
     )
 end
 
@@ -61,8 +63,9 @@ function configure_stages(stage_settings::AbstractDict{Symbol,Any})
     settings = default_stage_settings()
     settings = merge(settings, stage_settings)
     set_stage_lengths!(settings)
+    set_expansion_mode!(settings)
     set_solution_algorithm!(settings)
-    isa(settings[:SolutionAlgorithm], Benders) && configure_benders!(settings)
+    haskey(settings,:BendersSettings) && configure_benders!(settings)
     validate_stage_settings(settings)
     return namedtuple(settings)
 end
@@ -70,6 +73,7 @@ end
 function validate_stage_settings(stage_settings::AbstractDict{Symbol,Any})
     @assert all(stage_settings[:StageLengths].>0)
     @assert stage_settings[:WACC] >= 0
+    @assert isa(stage_settings[:ExpansionMode], AbstractExpansionMode)
     @assert isa(stage_settings[:SolutionAlgorithm], AbstractSolutionAlgorithm)
 end
 
@@ -78,19 +82,31 @@ function set_stage_lengths!(stage_settings::AbstractDict{Symbol,Any})
     return nothing
 end
 
+function set_expansion_mode!(stage_settings::AbstractDict{Symbol,Any})
+    @info("Setting expansion mode")
+    if stage_settings[:ExpansionMode] == "Myopic"
+        stage_settings[:ExpansionMode] = Myopic()
+    elseif stage_settings[:ExpansionMode] == "PerfectForesight"
+        stage_settings[:ExpansionMode] = PerfectForesight()
+    elseif stage_settings[:ExpansionMode] == "SingleStage"
+        stage_settings[:ExpansionMode] = SingleStage()
+    else
+        @warn("No expansion mode specified, defaulting to SingleStage")
+        stage_settings[:ExpansionMode] = SingleStage()
+    end
+    @info("Expansion mode set to $(stage_settings[:ExpansionMode])")
+    return nothing
+end
+
 function set_solution_algorithm!(stage_settings::AbstractDict{Symbol,Any})
     @info("Setting solution algorithm")
-    if stage_settings[:SolutionAlgorithm] == "Myopic"
-        stage_settings[:SolutionAlgorithm] = Myopic()
-    elseif stage_settings[:SolutionAlgorithm] == "PerfectForesight"
-        stage_settings[:SolutionAlgorithm] = PerfectForesight()
-    elseif stage_settings[:SolutionAlgorithm] == "SingleStage"
-        stage_settings[:SolutionAlgorithm] = SingleStage()
+    if stage_settings[:SolutionAlgorithm] == "Monolithic"
+        stage_settings[:SolutionAlgorithm] = Monolithic()
     elseif stage_settings[:SolutionAlgorithm] == "Benders"
         stage_settings[:SolutionAlgorithm] = Benders()
     else
-        @warn("No solution algorithm specified, defaulting to SingleStage")
-        stage_settings[:SolutionAlgorithm] = SingleStage()
+        @warn("No solution algorithm specified, defaulting to Monolithic")
+        stage_settings[:SolutionAlgorithm] = Monolithic()
     end
     @info("Solution algorithm set to $(stage_settings[:SolutionAlgorithm])")
     return nothing

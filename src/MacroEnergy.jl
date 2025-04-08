@@ -13,6 +13,10 @@ using Printf: @printf
 using MacroEnergySolvers
 using MacroEnergyScaling
 import MacroEnergyScaling: scale_constraints!
+using Pkg
+using DistributedArrays
+using Distributed
+using ClusterManagers
 import JuMP: set_optimizer, set_optimizer_attributes
 
 import Base: /, push!, merge!
@@ -55,16 +59,21 @@ abstract type PolicyConstraint <: OperationConstraint end
 abstract type PlanningConstraint <: AbstractTypeConstraint end
 
 # Solution algorithms
+abstract type AbstractExpansionMode end
+struct Myopic <: AbstractExpansionMode end
+struct PerfectForesight <: AbstractExpansionMode end
+struct SingleStage <: AbstractExpansionMode end
+
 abstract type AbstractSolutionAlgorithm end
-struct Myopic <: AbstractSolutionAlgorithm end
-struct PerfectForesight <: AbstractSolutionAlgorithm end
-struct SingleStage <: AbstractSolutionAlgorithm end
 struct Benders <: AbstractSolutionAlgorithm end
-algorithm_type(::AbstractSolutionAlgorithm) = SingleStage() # default to single stage
-algorithm_type(::SingleStage) = SingleStage()
-algorithm_type(::Myopic) = Myopic()
-algorithm_type(::PerfectForesight) = PerfectForesight()
-algorithm_type(::Benders) = Benders()
+struct Monolithic <: AbstractSolutionAlgorithm end
+
+expansion_mode(::AbstractExpansionMode) = SingleStage() # default to single stage
+expansion_mode(::SingleStage) = SingleStage()
+expansion_mode(::Myopic) = Myopic()
+expansion_mode(::PerfectForesight) = PerfectForesight()
+solution_algorithm(::Benders) = Benders()
+solution_algorithm(::Monolithic) = Monolithic()
 
 # global constants
 const ME_DEPOT_PATH = joinpath(homedir(), ".macroenergy")
@@ -153,8 +162,8 @@ include("model/optimizer.jl")
 include("model/scaling.jl")
 include("model/solver.jl")
 
+include_all_in_folder("utilities/benders")
 include("utilities/benchmarking.jl")
-include("utilities/benders.jl")
 include("utilities/comparisons.jl")
 include("utilities/run_tools.jl")
 
