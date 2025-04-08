@@ -162,7 +162,7 @@ include("model/optimizer.jl")
 include("model/scaling.jl")
 include("model/solver.jl")
 
-include_all_in_folder("utilities/benders")
+include_all_in_folder("model/benders")
 include("utilities/benchmarking.jl")
 include("utilities/comparisons.jl")
 include("utilities/run_tools.jl")

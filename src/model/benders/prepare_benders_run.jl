@@ -1,0 +1,125 @@
+# function generate_decomposed_system(system_full::System)
+
+#     subperiod_indices = system_full.time_data[:Electricity].subperiod_indices;
+#     subperiods = system_full.time_data[:Electricity].subperiods;
+#     subperiod_weights = system_full.time_data[:Electricity].subperiod_weights;
+
+#     number_of_subperiods = length(subperiod_indices);
+
+#     system_decomp = Vector{System}(undef,number_of_subperiods)
+
+#     for i in 1:number_of_subperiods
+#         system_decomp[i] = deepcopy(system_full)
+#         w = subperiod_indices[i];
+
+#         for c in keys(system_full.time_data)
+#             system_decomp[i].time_data[c].time_interval = subperiods[i]
+#             system_decomp[i].time_data[c].subperiod_weights = Dict(w => subperiod_weights[w])
+#             system_decomp[i].time_data[c].subperiods = [subperiods[i]]
+#             system_decomp[i].time_data[c].subperiod_indices = [w]
+#             system_decomp[i].time_data[c].period_map = Dict(w => w)
+#         end
+#     end
+
+#     return system_decomp
+# end
+
+function generate_decomposed_system(systems_full::Vector{System})
+    
+    number_of_subperiods = sum(length(system.time_data[:Electricity].subperiods) for system in systems_full);
+
+    system_decomp = Vector{System}(undef,number_of_subperiods)
+    subperiod_count = 0;
+
+    for system in systems_full
+        stage_index = system.time_data[:Electricity].stage_index;
+        number_of_subperiods_per_stage = length(system.time_data[:Electricity].subperiods);
+        for i in 1:number_of_subperiods_per_stage
+            subperiod_count = subperiod_count + 1;
+            system_decomp[subperiod_count] = deepcopy(system)
+            w = system.time_data[:Electricity].subperiod_indices[i];
+            subperiod_w = system.time_data[:Electricity].subperiods[i];
+            weight_w = system.time_data[:Electricity].subperiod_weights[w];
+            for c in keys(system.time_data)
+                system_decomp[subperiod_count].time_data[c].time_interval = subperiod_w
+                system_decomp[subperiod_count].time_data[c].subperiod_weights = Dict(w => weight_w)
+                system_decomp[subperiod_count].time_data[c].subperiods = [subperiod_w]
+                system_decomp[subperiod_count].time_data[c].subperiod_indices = [w]
+                system_decomp[subperiod_count].time_data[c].stage_index = stage_index
+                system_decomp[subperiod_count].time_data[c].period_map = Dict(w => w)
+            end
+        end
+    end
+
+
+    return system_decomp
+end
+
+function get_subproblem_to_stage_mapping(systems::Vector{System})
+
+    number_of_subperiods = sum(length(system.time_data[:Electricity].subperiods) for system in systems);
+    subperiod_count = 0;
+    stage_map = Vector{Int64}(undef,number_of_subperiods);
+    for system in systems
+        stage_index = system.time_data[:Electricity].stage_index;
+        number_of_subperiods_per_stage = length(system.time_data[:Electricity].subperiods);
+        for i in 1:number_of_subperiods_per_stage
+            subperiod_count = subperiod_count + 1;
+            stage_map[subperiod_count] = stage_index
+        end
+    end
+
+    return stage_map
+
+end
+
+function start_distributed_processes!(number_of_processes::Int64,solver::Module,case_path::AbstractString)
+
+    rmprocs.(workers())
+
+    if haskey(ENV,"SLURM_NTASKS")
+        ntasks = min(number_of_processes,parse(Int, ENV["SLURM_NTASKS"]));
+        cpus_per_task = parse(Int, ENV["SLURM_CPUS_PER_TASK"]);
+        addprocs(ClusterManagers.SlurmManager(ntasks);exeflags=["-t $cpus_per_task"])
+    else
+        ntasks = min(number_of_processes,Sys.CPU_THREADS)
+        cpus_per_task = 1;
+        addprocs(ntasks)
+    end
+
+    project = Pkg.project().path
+
+    @sync for p in workers()
+        @async create_worker_process(p,project,solver,case_path) # add a check
+    end
+    
+    if  "$(solver)" == "Gurobi"
+        @everywhere begin
+            if !(@isdefined GRB_ENV)
+                const GRB_ENV = Gurobi.Env()
+            end 
+        end
+    end
+
+    println("Number of procs: ", nprocs())
+    println("Number of workers: ", nworkers())
+end
+
+
+function create_worker_process(pid,project,solver::Module,case_path::AbstractString)
+
+    Distributed.remotecall_eval(Main, pid,:(using Pkg))
+
+    Distributed.remotecall_eval(Main, pid,:(Pkg.activate($(project))))
+
+    Distributed.remotecall_eval(Main, pid, :(using MacroEnergy))
+
+    Distributed.remotecall_eval(Main, pid, :(load_subcommodities_from_file($(case_path))))
+    
+    Distributed.remotecall_eval(Main, pid, :(using MacroEnergySolvers))
+
+    if  "$(solver)" == "Gurobi"
+        Distributed.remotecall_eval(Main, pid, :(using Gurobi))
+    end
+
+end

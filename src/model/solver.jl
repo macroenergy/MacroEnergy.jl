@@ -62,18 +62,18 @@ end
 function solve_stages(stages::Stages, opt::Dict{Symbol, Optimizer}, expansion::T, ::Benders) where T <: Union{SingleStage, PerfectForesight}
 
     @info("*** Running $(expansion) simulation with Benders decomposition ***")
-    setup = stages.settings.BendersSettings
-    system = stages.systems[1]  # FIXME: this will be a vector of systems
-    
+    bd_setup = stages.settings.BendersSettings
+    systems = stages.systems;
+
     # Decomposed system
-    system_decomp = generate_decomposed_system(system);
+    systems_decomp = generate_decomposed_system(systems);
 
-    initialize_planning_problem!(system,opt[:planning])
+    planning_problem,linking_variables = initialize_planning_problem!(stages,opt[:planning])
 
-    initialize_subproblems!(system_decomp,opt[:subproblems],setup[:Distributed])
+    subproblems, linking_variables_sub = initialize_subproblems!(systems_decomp,opt[:subproblems],bd_setup[:Distributed])
 
-    # results = MacroEnergySolvers.benders(planning_model, linking_variables, subproblems_dict, linking_variables_sub, Dict(pairs(setup)))
+    results = MacroEnergySolvers.benders(planning_problem, linking_variables, subproblems, linking_variables_sub, Dict(pairs(bd_setup)))
 
-    # return (stages, results)
+    return (stages, results)
 end
 

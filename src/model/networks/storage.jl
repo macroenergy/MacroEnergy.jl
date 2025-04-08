@@ -242,10 +242,6 @@ function add_linking_variables!(g::LongDurationStorage, model::Model)
 
     g.retired_units = @variable(model, lower_bound = 0.0, base_name = "vRETUNIT_$(id(g))_stage$(stage_index(g))")
 
-    g.new_capacity = @expression(model, capacity_size(g) * new_units(g))
-    
-    g.retired_capacity = @expression(model, capacity_size(g) * retired_units(g))
-
     g.storage_initial =
     @variable(model, [r in modeled_subperiods(g)], lower_bound = 0.0, base_name = "vSTOR_INIT_$(g.id)_stage$(stage_index(g))")
 

@@ -196,12 +196,13 @@ function get_weights(period_map::Dict{Int64, Int64}, unique_rep_periods::Vector{
 
     if is_identity_mapping
         @warn "Using default weights = 1 as no period map provided and each period maps to itself"
-        return [1.0 for _ in unique_rep_periods]
+        unscaled_weights = [1.0 for _ in unique_rep_periods]
+    else
+
+        rep_periods = collect(values(period_map))    # list of rep periods for each subperiod
+
+        unscaled_weights = Int[length(findall(rep_periods .== p)) for p in unique_rep_periods]
     end
-
-    rep_periods = collect(values(period_map))    # list of rep periods for each subperiod
-
-    unscaled_weights = Int[length(findall(rep_periods .== p)) for p in unique_rep_periods]
 
     weight_scaling_factor = total_hours_modeled / (sum(unscaled_weights) * hours_per_subperiod)
 
