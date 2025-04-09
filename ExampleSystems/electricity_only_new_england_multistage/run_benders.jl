@@ -29,4 +29,8 @@ bd_capacity = Dict(y=>MacroEnergy.value(_bd_capacity[y]) for y in keys(_bd_capac
 _mono_capacity = MacroEnergy.get_available_capacity(mono_stages.systems);
 mono_capacity = Dict(y=>MacroEnergy.value(_mono_capacity[y]) for y in keys(_mono_capacity));
 
+println("LB: ", bd_results.LB_hist[end])
+println("UB: ",  bd_results.UB_hist[end])   
+println("Monolithic objval: ", MacroEnergy.objective_value(mono_model))
+
 println("Done!")
