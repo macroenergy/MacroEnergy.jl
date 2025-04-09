@@ -2,5 +2,5 @@
   "StageLengths": [10,10,10],
   "WACC": 0.045,
   "ExpansionMode": "PerfectForesight",
-  "SolutionAlgorithm": "Benders"
+  "SolutionAlgorithm": "Monolithic"
 }
