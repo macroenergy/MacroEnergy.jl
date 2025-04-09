@@ -6,11 +6,11 @@ macro AbstractStorageBaseAttributes()
         spillage_edge::Union{Nothing, AbstractEdge} = nothing
         can_expand::Bool = $storage_defaults[:can_expand]
         can_retire::Bool = $storage_defaults[:can_retire]
-        capacity::AffExpr = AffExpr(0.0)
+        capacity::Union{JuMPVariable,AffExpr} = AffExpr(0.0)
         capacity_size::Float64 = $storage_defaults[:capacity_size]
         capital_recovery_period::Int64 = $storage_defaults[:capital_recovery_period]
         charge_discharge_ratio::Float64 = $storage_defaults[:charge_discharge_ratio]
-        existing_capacity::Union{AffExpr,Float64,Int64} = $storage_defaults[:existing_capacity]
+        existing_capacity::Union{JuMPVariable,AffExpr,Float64,Int64} = $storage_defaults[:existing_capacity]
         fixed_om_cost::Float64 = $storage_defaults[:fixed_om_cost]
         investment_cost::Float64 = $storage_defaults[:investment_cost]
         lifetime::Int64 = $storage_defaults[:lifetime]
@@ -113,29 +113,33 @@ wacc(g::AbstractStorage) = g.wacc;
 
 
 function add_linking_variables!(g::Storage, model::Model)
-
-    g.new_units = @variable(model, lower_bound = 0.0, base_name = "vNEWUNIT_$(id(g))_stage$(stage_index(g))")
-
-    g.retired_units = @variable(model, lower_bound = 0.0, base_name = "vRETUNIT_$(id(g))_stage$(stage_index(g))")
-
+    if has_capacity(g)
+        g.capacity = @variable(model, lower_bound = 0.0, base_name = "vCAP_$(id(g))_stage$(stage_index(g))")
+    end
 end
 
 function define_available_capacity!(g::AbstractStorage, model::Model)
 
-    
-    g.new_capacity = @expression(model, capacity_size(g) * new_units(g))
-    
-    g.retired_capacity = @expression(model, capacity_size(g) * retired_units(g))
-    
-    g.capacity = @expression(
-        model,
-        new_capacity(g) - retired_capacity(g) + existing_capacity(g)
-    )
-    
-    g.new_capacity_track[stage_index(g)] = new_capacity(g);
-        
-    g.retired_capacity_track[stage_index(g)] = retired_capacity(g);
+    if has_capacity(g)
+        g.new_units = @variable(model, lower_bound = 0.0, base_name = "vNEWUNIT_$(id(g))_stage$(stage_index(g))")
 
+        g.retired_units = @variable(model, lower_bound = 0.0, base_name = "vRETUNIT_$(id(g))_stage$(stage_index(g))")
+        
+        g.new_capacity = @expression(model, capacity_size(g) * new_units(g))
+        
+        g.retired_capacity = @expression(model, capacity_size(g) * retired_units(g))
+        
+        g.new_capacity_track[stage_index(g)] = new_capacity(g);
+            
+        g.retired_capacity_track[stage_index(g)] = retired_capacity(g);
+
+        @constraint(model, capacity(g) == new_capacity(g) - retired_capacity(g) + existing_capacity(g))
+
+        # g.capacity = @expression(
+        #     model,
+        #     new_capacity(g) - retired_capacity(g) + existing_capacity(g)
+        # )
+    end
 end
 
 function planning_model!(g::Storage, model::Model)
@@ -238,9 +242,7 @@ LongDurationStorage(id::Symbol, data::Dict{Symbol,Any}, time_data::TimeData, com
 
 function add_linking_variables!(g::LongDurationStorage, model::Model)
 
-    g.new_units = @variable(model, lower_bound = 0.0, base_name = "vNEWUNIT_$(id(g))_stage$(stage_index(g))")
-
-    g.retired_units = @variable(model, lower_bound = 0.0, base_name = "vRETUNIT_$(id(g))_stage$(stage_index(g))")
+    g.capacity = @variable(model, lower_bound = 0.0, base_name = "vCAP_$(id(g))_stage$(stage_index(g))")
 
     g.storage_initial =
     @variable(model, [r in modeled_subperiods(g)], lower_bound = 0.0, base_name = "vSTOR_INIT_$(g.id)_stage$(stage_index(g))")

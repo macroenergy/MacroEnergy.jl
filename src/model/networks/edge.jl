@@ -8,12 +8,12 @@ macro AbstractEdgeBaseAttributes()
         availability::Vector{Float64} = Float64[]
         can_expand::Bool = $edge_defaults[:can_expand]
         can_retire::Bool = $edge_defaults[:can_retire]
-        capacity::AffExpr = AffExpr(0.0)
+        capacity::Union{JuMPVariable,AffExpr} = AffExpr(0.0)
         capacity_size::Float64 = $edge_defaults[:capacity_size]
         capital_recovery_period::Int64 = $edge_defaults[:capital_recovery_period]
         constraints::Vector{AbstractTypeConstraint} = Vector{AbstractTypeConstraint}()
         distance::Float64 = $edge_defaults[:distance]
-        existing_capacity::Union{AffExpr,Float64,Int64} = $edge_defaults[:existing_capacity]
+        existing_capacity::Union{JuMPVariable,AffExpr,Float64,Int64} = $edge_defaults[:existing_capacity]
         fixed_om_cost::Float64 = $edge_defaults[:fixed_om_cost]
         flow::JuMPVariable = Vector{VariableRef}()
         has_capacity::Bool = $edge_defaults[:has_capacity]
@@ -162,13 +162,10 @@ variable_om_cost(e::AbstractEdge) = e.variable_om_cost;
 wacc(e::AbstractEdge) = e.wacc;
 ##### End of Edge interface #####
 
-
 function add_linking_variables!(e::AbstractEdge, model::Model)
 
     if has_capacity(e)
-        e.new_units = @variable(model, lower_bound = 0.0, base_name = "vNEWUNIT_$(id(e))_stage$(stage_index(e))")
-
-        e.retired_units = @variable(model, lower_bound = 0.0, base_name = "vRETUNIT_$(id(e))_stage$(stage_index(e))")
+        e.capacity = @variable(model, lower_bound = 0.0, base_name = "vCAP_$(id(e))_stage$(stage_index(e))")
     end
 
     return nothing
@@ -179,6 +176,10 @@ function define_available_capacity!(e::AbstractEdge,model::Model)
 
     if has_capacity(e)
         
+        e.new_units = @variable(model, lower_bound = 0.0, base_name = "vNEWUNIT_$(id(e))_stage$(stage_index(e))")
+
+        e.retired_units = @variable(model, lower_bound = 0.0, base_name = "vRETUNIT_$(id(e))_stage$(stage_index(e))")
+
         e.new_capacity = @expression(model, capacity_size(e) * new_units(e))
         
         e.retired_capacity = @expression(model, capacity_size(e) * retired_units(e))
@@ -187,10 +188,12 @@ function define_available_capacity!(e::AbstractEdge,model::Model)
         
         e.retired_capacity_track[stage_index(e)] = retired_capacity(e);
 
-        e.capacity = @expression(
-            model,
-            new_capacity(e) - retired_capacity(e) + existing_capacity(e)
-        )
+        @constraint(model, capacity(e) == new_capacity(e) - retired_capacity(e) + existing_capacity(e))
+
+        # e.capacity = @expression(
+        #     model,
+        #     new_capacity(e) - retired_capacity(e) + existing_capacity(e)
+        # )
     end
 
     return nothing
