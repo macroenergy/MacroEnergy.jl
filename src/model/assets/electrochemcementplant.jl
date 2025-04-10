@@ -29,6 +29,7 @@ function default_data(::Type{ElectrochemCementPlant}, id=missing)
                 :constraints => Dict{Symbol, Bool}(
                     :CapacityConstraint => true,
                 ),
+                :end_vertex => "cement_produced",
             ),
         ),
     )
@@ -117,10 +118,6 @@ function make(asset_type::Type{ElectrochemCementPlant}, data::AbstractDict{Symbo
 
     # Balance Constraint Values
     cement_transform.balance_data = Dict(
-        :input_materials_to_cement => Dict(
-            elec_edge.id => 0,
-            cement_edge.id => 1.0
-        ),
         :elec_to_cement => Dict(
             elec_edge.id => 1.0,
             cement_edge.id => get(transform_data, :elec_cement_rate, 1.0)

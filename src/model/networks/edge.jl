@@ -289,8 +289,8 @@ function planning_model!(e::AbstractEdge, model::Model)
             if integer_decisions(e)
                 set_integer(retrofitted_units(e))
             end
-            # retrofit_id = e.retrofit_id
-            # add_to_expression!(model[:eRetrofittedCapByRetroId][retrofit_id], retrofitted_capacity(e))
+        #     retrofit_id = e.retrofit_id
+        #     add_to_expression!(model[:eRetrofittedCapByRetroId][retrofit_id], retrofitted_capacity(e))
         end
         # if is_retrofit(e)
         #     retrofit_id = e.retrofit_id

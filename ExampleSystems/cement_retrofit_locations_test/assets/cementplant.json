@@ -8,28 +8,32 @@
                 "fuel_commodity": "NaturalGas",
                 "fuel_cement_rate": 0.9156,
                 "elec_cement_rate": 0.128,
-                "cement_emission_rate": 0.77,
+                "emission_rate": 0.77,
                 "capacity_size": 114.15,
                 "investment_cost": 20279.68,
                 "fixed_om_cost": 20.3775,
                 "variable_om_cost": 0,
-                "cement_can_expand": true,
+                "can_expand": true,
+                "can_retire": true,
                 "cement_can_retrofit": true,
-                "retrofit_id": 1
+                "retrofit_id": 1,
+                "cement_edge":{
+                    "end_vertex": "cement_produced"
+                }
             },
             "instance_data": [
                 {
-                    "id": "MA_cement",
+                    "id": "cement_MA",
                     "location": "MA",
                     "existing_capacity": 100
                 },
                 {
-                    "id": "CT_cement",
+                    "id": "cement_CT",
                     "location": "CT",
                     "existing_capacity": 100
                 },
                 {
-                    "id": "ME_cement",
+                    "id": "cement_ME",
                     "location": "ME",
                     "existing_capacity": 100
                 }

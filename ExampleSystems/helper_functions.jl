@@ -18,8 +18,9 @@ function get_system_results(system)
     system_results_df = DataFrame(
         objective_value = MacroEnergy.objective_value(model),
     )
-    co2_nodes = MacroEnergy.get_nodes_sametype(system.locations, CO2) # List of CO2 nodes
-    co2_captured_nodes = MacroEnergy.get_nodes_sametype(system.locations, CO2Captured) # List of CO2Captured nodes
+    nodes = Node[x for x in system.locations if x isa MacroEnergy.Node] # Get all nodes (and not locations) in system.locations
+    co2_nodes = MacroEnergy.get_nodes_sametype(nodes, CO2) # List of CO2 nodes
+    co2_captured_nodes = MacroEnergy.get_nodes_sametype(nodes, CO2Captured) # List of CO2Captured nodes
     system_results_df = get_co2_node_values(system_results_df, co2_nodes) # Push values of CO2 nodes to dataframe
     system_results_df = get_co2_node_values(system_results_df, co2_captured_nodes) # Push values of CO2Captured nodes to dataframe
     return system_results_df
