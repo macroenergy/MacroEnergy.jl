@@ -40,13 +40,16 @@ function generate_decomposed_system(systems_full::Vector{System})
             w = system.time_data[:Electricity].subperiod_indices[i];
             subperiod_w = system.time_data[:Electricity].subperiods[i];
             weight_w = system.time_data[:Electricity].subperiod_weights[w];
+            period_map = system.time_data[:Electricity].period_map;
+            modeled_periods_all = collect(keys(period_map));
             for c in keys(system.time_data)
                 system_decomp[subperiod_count].time_data[c].time_interval = subperiod_w
                 system_decomp[subperiod_count].time_data[c].subperiod_weights = Dict(w => weight_w)
                 system_decomp[subperiod_count].time_data[c].subperiods = [subperiod_w]
                 system_decomp[subperiod_count].time_data[c].subperiod_indices = [w]
                 system_decomp[subperiod_count].time_data[c].stage_index = stage_index
-                system_decomp[subperiod_count].time_data[c].period_map = Dict(w => w)
+                modeled_periods = modeled_periods_all[findall(period_map[x]==w for x in modeled_periods_all)] 
+                system_decomp[subperiod_count].time_data[c].period_map = Dict(n => w for n in modeled_periods) 
             end
         end
     end
