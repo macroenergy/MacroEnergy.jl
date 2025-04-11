@@ -7,6 +7,11 @@ function initialize_planning_problem!(stages::Stages,optimizer::Optimizer)
 
     set_silent(planning_problem)
 
+    if stages.systems[1].settings.ConstraintScaling
+        @info "Scaling constraints and RHS"
+        scale_constraints!(planning_problem)
+    end
+
     return planning_problem,linking_variables
 
 end

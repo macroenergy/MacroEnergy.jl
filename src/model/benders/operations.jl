@@ -16,20 +16,27 @@ function generate_operation_subproblem(system::System)
 
     @objective(model, Min, model[:eVariableCost])
 
-    return model, linking_variables
+    slack_penalty_value = compute_slack_penalty_value(system);
+
+    return model, linking_variables, slack_penalty_value
 
 
 end
 
 function initialize_subproblem(system::Any,optimizer::Optimizer)
     
-    subproblem,linking_variables_sub = generate_operation_subproblem(system);
+    subproblem,linking_variables_sub, slack_penalty_value = generate_operation_subproblem(system);
 
     set_optimizer(subproblem, optimizer)
 
     set_silent(subproblem)
 
-    return subproblem,linking_variables_sub
+    if system.settings.ConstraintScaling
+        @info "Scaling constraints and RHS"
+        scale_constraints!(subproblem)
+    end
+
+    return subproblem,linking_variables_sub, slack_penalty_value
 end
 
 function initialize_local_subproblems!(system_local::Vector,subproblems_local::Vector{Dict{Any,Any}},local_indices::UnitRange{Int64},optimizer::Optimizer)
@@ -37,10 +44,11 @@ function initialize_local_subproblems!(system_local::Vector,subproblems_local::V
     nW = length(system_local)
 
     for i=1:nW
-		subproblem,linking_variables_sub = initialize_subproblem(system_local[i],optimizer);
+		subproblem,linking_variables_sub, slack_penalty_value = initialize_subproblem(system_local[i],optimizer);
         subproblems_local[i][:model] = subproblem;
         subproblems_local[i][:linking_variables_sub] = linking_variables_sub;
         subproblems_local[i][:subproblem_index] = local_indices[i];
+        subproblems_local[i][:slack_penalty_value] = slack_penalty_value;
     end
 end
 
@@ -125,4 +133,18 @@ function get_local_linking_variables(subproblems_local::Vector{Dict{Any,Any}})
     return local_variables
 
 
+end
+
+function compute_slack_penalty_value(system::System)
+    x = 0.0;
+    for n in system.locations
+        if isa(n,Node)
+            w = subperiod_indices(n)[1]
+            y = subperiod_weight(n, w) * maximum(price_non_served_demand(n,s) for s in segments_non_served_demand(n))
+            if y>x
+                x = y
+            end
+        end
+    end 
+    return 2*x
 end
