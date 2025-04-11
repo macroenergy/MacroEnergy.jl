@@ -203,7 +203,7 @@ function add_feasibility_constraints!(system::System, model::Model)
             if !all(max_supply(n) .== 0)
                 edges_that_start_from_n = all_edges[findall(start_vertex(e) == n && e.unidirectional == true for e in all_edges)]
                 @info "Adding feasibility constraints for node $(n.id)"
-                @constraint(model, sum(maximum(availability(e))*capacity(e) for e in edges_that_start_from_n) <= maximum(max_supply(n)))    
+                @constraint(model, sum(capacity(e) for e in edges_that_start_from_n) <= sum(max_supply(n)))    
             end
         end
     end
