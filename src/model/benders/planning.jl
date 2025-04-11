@@ -62,6 +62,8 @@ function generate_planning_problem(stages::Stages,::PerfectForesight)
         @info(" -- Including age-based retirements")
         add_age_based_retirements!.(systems[s].assets, model)
 
+        add_feasibility_constraints!(systems[s], model)
+
         if s < number_of_stages
             @info(" -- Available capacity in stage $(s) is being carried over to stage $(s+1)")
             carry_over_capacities!(systems[s+1], systems[s])
@@ -123,6 +125,8 @@ function generate_planning_problem(system::System)
     define_available_capacity!(system, model)
 
     planning_model!(system, model)
+
+    add_feasibility_constraints!(system, model)
 
     model[:eAvailableCapacity] = get_available_capacity([system]);
 
@@ -190,4 +194,17 @@ function get_available_capacity!(e::AbstractEdge, AvailableCapacity::Dict{Tuple{
 
     AvailableCapacity[e.id,stage_index(e)] = e.capacity;
 
+end
+
+function add_feasibility_constraints!(system::System, model::Model)
+    all_edges = edges(system.assets)
+    for n in system.locations
+        if isa(n, Node)
+            if !all(max_supply(n) .== 0)
+                edges_that_start_from_n = all_edges[findall(start_vertex(e) == n && e.unidirectional == true for e in all_edges)]
+                @info "Adding feasibility constraints for node $(n.id)"
+                @constraint(model, sum(maximum(availability(e))*capacity(e) for e in edges_that_start_from_n) <= maximum(max_supply(n)))    
+            end
+        end
+    end
 end

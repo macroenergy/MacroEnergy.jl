@@ -10,7 +10,7 @@
                     "commodity": "Hydrogen",
                     "can_expand": true,
                     "can_retire": false,
-                    "long_duration": true,
+                    "long_duration": false,
                     "capacity_size": 787.8,
                     "min_duration": 1.0,
                     "max_duration": 1.0,
