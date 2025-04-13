@@ -78,9 +78,6 @@ function simple_default_data(::Type{HydroRes}, id=missing)
     )
 end
 
-"""
-    make(::Type{HydroRes}, data::AbstractDict{Symbol, Any}, system::System) -> HydroRes
-"""
 function make(asset_type::Type{HydroRes}, data::AbstractDict{Symbol,Any}, system::System)
     id = AssetId(data[:id])
 

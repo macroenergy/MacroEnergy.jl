@@ -49,9 +49,6 @@ function simple_default_data(::Type{MustRun}, id=missing)
     )
 end
 
-"""
-    make(::Type{MustRun}, data::AbstractDict{Symbol, Any}, system::System) -> MustRun
-"""
 function make(asset_type::Type{MustRun}, data::AbstractDict{Symbol,Any}, system::System)
     id = AssetId(data[:id])
 
