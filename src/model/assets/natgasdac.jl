@@ -75,9 +75,6 @@ function simple_default_data(::Type{NaturalGasDAC}, id=missing)
     )
 end
 
-"""
-    make(::Type{NaturalGasDAC}, data::AbstractDict{Symbol, Any}, system::System) -> NaturalGasDAC
-"""
 function make(asset_type::Type{NaturalGasDAC}, data::AbstractDict{Symbol,Any}, system::System)
     id = AssetId(data[:id])
 
