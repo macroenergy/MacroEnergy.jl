@@ -34,9 +34,9 @@ MacroEnergy.get_optimal_new_capacity
 MacroEnergy.get_optimal_retired_capacity
 ```
 
-## `write_capacity_results`
+## `write_capacity`
 ```@docs    
-MacroEnergy.write_capacity_results
+MacroEnergy.write_capacity
 ```
 
 ## `write_costs`
@@ -44,14 +44,14 @@ MacroEnergy.write_capacity_results
 MacroEnergy.write_costs
 ```
 
+## `write_flow`
+```@docs
+MacroEnergy.write_flow
+```
+
 ## `write_dataframe`
 ```@docs
 MacroEnergy.write_dataframe
-```
-
-## `write_flow_results`
-```@docs
-MacroEnergy.write_flow_results
 ```
 
 ## `write_results`
