@@ -1,6 +1,7 @@
 using MacroEnergy
 import MacroEnergy: AbstractEdge, AbstractStorage, Model
 using Documenter
+using DocumenterMermaid
 
 DocMeta.setdocmeta!(MacroEnergy, :DocTestSetup, :(using MacroEnergy); recursive=true)
 
@@ -19,10 +20,51 @@ const pages = [
         "Running Macro" => "Tutorials/1_running_macro.md",
         "Multisector Modelling" => "Tutorials/2_multisector_modelling.md",
     ],
-    "User Guide" => [
+    "Guides" => [
+        "User Guide" => [
+            "Sectors" => "User Guide/1_sectors.md",
+            "Input Data" => "User Guide/2_input_data.md",
+            "Assets" => ["User Guide/assets/1_introduction.md",
+                "User Guide/assets/battery.md",
+                "User Guide/assets/beccselectricity.md",
+                "User Guide/assets/beccshydrogen.md",
+                "User Guide/assets/electricdac.md",
+                "User Guide/assets/electrolyzer.md",
+                "User Guide/assets/fuelcell.md",
+                "User Guide/assets/gasstorage.md",
+                "User Guide/assets/hydrogenline.md",
+                "User Guide/assets/hydropower.md",
+                "User Guide/assets/mustrun.md",
+                "User Guide/assets/natgasdaq.md",
+                "User Guide/assets/powerline.md",
+                "User Guide/assets/thermalhydrogen.md",
+                "User Guide/assets/thermalpower.md",
+                "User Guide/assets/vre.md"],
+            "Constraints" => "User Guide/4_constraints.md",
+            "Output" => "User Guide/5_output.md",
+        ],
+        "Modeler Guide" => [
+            "Overview" => "Modeler Guide/1_introduction.md",
+            "How to build a sector" => "Modeler Guide/2_build_sectors.md",
+            "How to create an example case" => "Modeler Guide/3_create_example_case.md",
+        ],
+        "Developer Guide" => [
+            "Overview" => "Developer Guide/1_introduction.md",
+            "Type hierarchy" => "Developer Guide/2_type_hierarchy.md"
+        ],
+    ],
+    "Manual" => [
+        "Inputs" => "Manual/Inputs.md",
+        "Outputs" => "Manual/Outputs.md",
+        "System" => "Manual/System.md",
         "Sectors" => "User Guide/1_sectors.md",
-        "Input Data" => "User Guide/2_input_data.md",
-        "Assets" => ["User Guide/assets/1_introduction.md",
+        "Edges" => "Manual/Edges.md",
+        "Nodes" => "Manual/Nodes.md",
+        "Storage" => "Manual/Storage.md",
+        "Transforms" => "Manual/Transforms.md",
+        "Locations" => "Manual/Locations.md",
+        "Assets" => "User Guide/assets/1_introduction.md",
+        "Asset Library" => [
             "User Guide/assets/battery.md",
             "User Guide/assets/beccselectricity.md",
             "User Guide/assets/beccshydrogen.md",
@@ -37,20 +79,10 @@ const pages = [
             "User Guide/assets/powerline.md",
             "User Guide/assets/thermalhydrogen.md",
             "User Guide/assets/thermalpower.md",
-            "User Guide/assets/vre.md"],
-        "Constraints" => "User Guide/4_constraints.md",
-        "Output" => "User Guide/5_output.md",
-    ],
-    "Modeler Guide" => [
-        "Overview" => "Modeler Guide/1_introduction.md",
-        "How to build a sector" => "Modeler Guide/2_build_sectors.md",
-        "How to create an example case" => "Modeler Guide/3_create_example_case.md",
-    ],
-    "Developer Guide" => [
-        "Overview" => "Developer Guide/1_introduction.md",
-        "Type hierarchy" => "Developer Guide/2_type_hierarchy.md"
-    ],
-    "References" => [
+            "User Guide/assets/vre.md"
+        ],
+        "Model" => "Manual/Model.md"
+    ], "References" => [
         "Introduction" => "References/1_introduction.md",
         "Reading input data" => "References/2_reading_input.md",
         "Macro Objects" => "References/3_macro_objects.md",
@@ -73,7 +105,7 @@ makedocs(;
         # sidebar_sitename = false,
         collapselevel=1,
     ),
-    build = "build_html",
+    build="build_html",
     pages=pages,
 )
 
