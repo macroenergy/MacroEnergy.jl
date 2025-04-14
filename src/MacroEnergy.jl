@@ -107,11 +107,8 @@ function include_all_in_folder(folder::AbstractString, root_path::AbstractString
     return nothing
 end
 
-
+include_all_in_folder("utilities")
 # include files
-include("utilities/default_data.jl")
-include("utilities/utilities.jl")
-
 include("model/units.jl")
 include("model/time_management.jl")
 include("model/networks/vertex.jl")
@@ -168,9 +165,6 @@ include("model/scaling.jl")
 include("model/solver.jl")
 
 include_all_in_folder("model/benders")
-include("utilities/benchmarking.jl")
-include("utilities/comparisons.jl")
-include("utilities/run_tools.jl")
 
 include("write_outputs/capacity.jl")
 include("write_outputs/flow.jl")
