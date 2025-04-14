@@ -8,29 +8,35 @@ CurrentModule = MacroEnergy
 
 ## What is Macro?
 
-**Macro** is a bottom-up, electricity-centric, multi-sectoral macro-energy systems optimization model. It is designed to capture capacity investments, operations, and energy flows across and between multiple energy sectors and can therefore be used to explore the impacts of different energy policies, technology costs, and other exogenous factors on the energy system as a whole and also on the different sectors. 
+**Macro** is a bottom-up, multi-sectoral infrastructure optimization model for macro-energy systems. It co-optimizes the design and operation of user-defined models of multi-sector energy systems and networks. Macro allows users to explore the impact of energy policies, technology costs and performance, demand patterns, and other factors on an energy system as a whole and as separate sectors.
 
 The main features of Macro include:
-- **Graph-based representation** of the energy system, including demand nodes, edges, storage units, and transformation nodes (representing conversion processes between sectors).
-- **"Plug and play" flexibility** for integrating various technologies and sectors (e.g., electricity, hydrogen, heat, and transport).
-- **Granular spatial and temporal resolution** to accurately capture sector dynamics.
+
+- **Graph-based representation** of the energy system, facilitating clear representation and analysis of energy and mass flows between sectors.
+- **"Plug and play" flexibility** for integrating new technologies and sectors, including electricity, hydrogen, heat, and transport.
+- **High spatial and temporal resolution** to accurately capture sector dynamics.
 - Designed for **distributed computing** to enable large-scale optimizations.
 - Tailored **Benders decomposition** framework for optimization.
 - **Open-source** built using Julia and JuMP.
 
 ## Macro development strategy
 
-Macro has been designed and developed with three layers of abstractions in mind, each serving a different type of user:
+Macro is a very flexible tool for modelling energy systems. However, that flexibility also means the core architecture and functions are complex and difficult to use correctly.
+
+To make Macro as useful and accessible to the widest audience possible we designed and developed it with three layers of abstractions in mind, each serving a different user profile:
 
 ![Macro architecture](./images/macro_abstr_layers.png)
 
 The following sections of the documentation are designed to serve the different needs of the different users.
 
-## Package Outline
+## Structure of the documentation
 
-- ##### [Getting Started](@ref)
-- ##### [User Guide](@ref)
-- ##### [Modeler Guide](@ref)
-- ##### [Developer Guide](@ref)
+- ### [Getting Started](@ref)
+
+- ### [User Guide](@ref)
+
+- ### [Modeler Guide](@ref)
+
+- ### [Developer Guide](@ref)
 
 ## [Table of contents](@ref)
