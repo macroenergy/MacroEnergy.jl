@@ -62,7 +62,8 @@ function generate_planning_problem(stages::Stages,::PerfectForesight)
         @info(" -- Including age-based retirements")
         add_age_based_retirements!.(systems[s].assets, model)
 
-        add_feasibility_constraints!(systems[s], model)
+        #### Removing for now, needs more testing
+        ##### add_feasibility_constraints!(systems[s], model)
 
         if s < number_of_stages
             @info(" -- Available capacity in stage $(s) is being carried over to stage $(s+1)")
@@ -125,8 +126,9 @@ function generate_planning_problem(system::System)
     define_available_capacity!(system, model)
 
     planning_model!(system, model)
-
-    add_feasibility_constraints!(system, model)
+    
+    #### Removing for now, needs more testing  
+    #### add_feasibility_constraints!(system, model)
 
     model[:eAvailableCapacity] = get_available_capacity([system]);
 
@@ -207,4 +209,5 @@ function add_feasibility_constraints!(system::System, model::Model)
             end
         end
     end
+    return nothing
 end
