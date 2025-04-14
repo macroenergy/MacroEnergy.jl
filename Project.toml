@@ -38,6 +38,7 @@ DistributedArrays = "0.6.7"
 DuckDB = "^0.10.3"
 Gurobi = "1"
 MacroEnergyScaling = "0.2.0"
+MacroEnergySolvers = "0.1.0"
 Parquet2 = "0.2.27"
 Pkg = "1.11.0"
 
