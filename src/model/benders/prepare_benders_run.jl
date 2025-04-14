@@ -1,29 +1,3 @@
-# function generate_decomposed_system(system_full::System)
-
-#     subperiod_indices = system_full.time_data[:Electricity].subperiod_indices;
-#     subperiods = system_full.time_data[:Electricity].subperiods;
-#     subperiod_weights = system_full.time_data[:Electricity].subperiod_weights;
-
-#     number_of_subperiods = length(subperiod_indices);
-
-#     system_decomp = Vector{System}(undef,number_of_subperiods)
-
-#     for i in 1:number_of_subperiods
-#         system_decomp[i] = deepcopy(system_full)
-#         w = subperiod_indices[i];
-
-#         for c in keys(system_full.time_data)
-#             system_decomp[i].time_data[c].time_interval = subperiods[i]
-#             system_decomp[i].time_data[c].subperiod_weights = Dict(w => subperiod_weights[w])
-#             system_decomp[i].time_data[c].subperiods = [subperiods[i]]
-#             system_decomp[i].time_data[c].subperiod_indices = [w]
-#             system_decomp[i].time_data[c].period_map = Dict(w => w)
-#         end
-#     end
-
-#     return system_decomp
-# end
-
 function generate_decomposed_system(systems_full::Vector{System})
     
     number_of_subperiods = sum(length(system.time_data[:Electricity].subperiods) for system in systems_full);
@@ -76,7 +50,7 @@ function get_subproblem_to_stage_mapping(systems::Vector{System})
 
 end
 
-function start_distributed_processes!(number_of_processes::Int64,solver::Module,case_path::AbstractString)
+function start_distributed_processes!(number_of_processes::Int64,case_path::AbstractString)
 
     rmprocs.(workers())
 
@@ -93,23 +67,16 @@ function start_distributed_processes!(number_of_processes::Int64,solver::Module,
     project = Pkg.project().path
 
     @sync for p in workers()
-        @async create_worker_process(p,project,solver,case_path) # add a check
+        @async create_worker_process(p,project,case_path) # add a check
     end
     
-    if  "$(solver)" == "Gurobi"
-        @everywhere begin
-            if !(@isdefined GRB_ENV)
-                const GRB_ENV = Gurobi.Env()
-            end 
-        end
-    end
 
     println("Number of procs: ", nprocs())
     println("Number of workers: ", nworkers())
 end
 
 
-function create_worker_process(pid,project,solver::Module,case_path::AbstractString)
+function create_worker_process(pid,project,case_path::AbstractString)
 
     Distributed.remotecall_eval(Main, pid,:(using Pkg))
 
@@ -120,9 +87,5 @@ function create_worker_process(pid,project,solver::Module,case_path::AbstractStr
     Distributed.remotecall_eval(Main, pid, :(load_subcommodities_from_file($(case_path))))
     
     Distributed.remotecall_eval(Main, pid, :(using MacroEnergySolvers))
-
-    if  "$(solver)" == "Gurobi"
-        Distributed.remotecall_eval(Main, pid, :(using Gurobi))
-    end
 
 end

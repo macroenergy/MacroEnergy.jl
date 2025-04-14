@@ -17,6 +17,8 @@ using Pkg
 using DistributedArrays
 using Distributed
 using ClusterManagers
+using Gurobi
+
 import JuMP: set_optimizer, set_optimizer_attributes
 
 import Base: /, push!, merge!
@@ -86,8 +88,11 @@ const JuMPVariable =
     Union{Array,Containers.DenseAxisArray,Containers.SparseAxisArray,VariableRef}
 
 # Load subcommodities from file when MacroEnergy is loaded
+# Also load the Gurobi environment
+const GRB_ENV = Ref{Gurobi.Env}()
 function __init__()
     isdir(ME_DEPOT_PATH) && load_subcommodities_from_file(ME_DEPOT_PATH)
+    GRB_ENV[] = Gurobi.Env()
 end
 
 function include_all_in_folder(folder::AbstractString, root_path::AbstractString=@__DIR__)
@@ -236,7 +241,7 @@ export AbstractAsset,
     PowerLine,
     RampingLimitConstraint,
     run_case,
-    run_multistage_case,
+    run_case_benders,
     Storage,
     StorageCapacityConstraint,
     StorageChargeDischargeRatioConstraint,

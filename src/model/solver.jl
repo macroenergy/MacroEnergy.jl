@@ -1,4 +1,4 @@
-function solve_stages(stages::Stages, opt::O) where O <: Union{Optimizer, Dict{Symbol, Optimizer}}
+function solve_stages(stages::Stages, opt::O) where O <: Union{Optimizer, Dict{Symbol, Dict{Symbol, Any}}}
     solve_stages(stages, opt, expansion_mode(stages),solution_algorithm(stages))
 end
 
@@ -59,7 +59,7 @@ function solve_stages(stages::Stages, opt::Optimizer, ::Myopic, ::Monolithic)
 end
 
 ####### Benders decomposition algorithm: solves either multistage with perfect foresight or single stage models #######
-function solve_stages(stages::Stages, opt::Dict{Symbol, Optimizer}, expansion::T, ::Benders) where T <: Union{SingleStage, PerfectForesight}
+function solve_stages(stages::Stages, opt::Dict{Symbol, Dict{Symbol, Any}}, expansion::T, ::Benders) where T <: Union{SingleStage, PerfectForesight}
 
     @info("*** Running $(expansion) simulation with Benders decomposition ***")
     bd_setup = stages.settings.BendersSettings

@@ -52,18 +52,18 @@ function initialize_local_subproblems!(system_local::Vector,subproblems_local::V
     end
 end
 
-function initialize_subproblems!(system_decomp::Vector,optimizer::Optimizer,distributed_bool::Bool)
+function initialize_subproblems!(system_decomp::Vector,opt::Dict,distributed_bool::Bool)
     
     if distributed_bool
-        subproblems, linking_variables_sub =  initialize_dist_subproblems!(system_decomp,optimizer)
+        subproblems, linking_variables_sub =  initialize_dist_subproblems!(system_decomp,opt)
     else
-        subproblems, linking_variables_sub = initialize_serial_subproblems!(system_decomp,optimizer)
+        subproblems, linking_variables_sub = initialize_serial_subproblems!(system_decomp,opt)
     end
 
     return subproblems, linking_variables_sub
 end
 
-function initialize_dist_subproblems!(system_decomp::Vector,optimizer::Optimizer)
+function initialize_dist_subproblems!(system_decomp::Vector,opt::Dict)
 
     ##### Initialize a distributed arrays of JuMP models
 	## Start pre-solve timer
@@ -76,6 +76,11 @@ function initialize_dist_subproblems!(system_decomp::Vector,optimizer::Optimizer
         @async @spawnat p begin
             W_local = localindices(subproblems_all)[1];
             system_local = [system_decomp[k] for k in W_local];
+            if opt[:solver] == Gurobi.Optimizer
+                optimizer = create_optimizer(opt[:solver], GRB_ENV[], opt[:attributes])
+            else
+                optimizer = create_optimizer(opt[:solver], missing, opt[:attributes])
+            end
             initialize_local_subproblems!(system_local,localpart(subproblems_all),W_local,optimizer);
         end
     end
@@ -99,11 +104,17 @@ function initialize_dist_subproblems!(system_decomp::Vector,optimizer::Optimizer
 
 end
 
-function initialize_serial_subproblems!(system_decomp::Vector,optimizer::Optimizer)
+function initialize_serial_subproblems!(system_decomp::Vector,opt::Dict)
 
     ##### Initialize a array of JuMP models
 	## Start pre-solve timer
-     
+
+    if opt[:solver] == Gurobi.Optimizer
+        optimizer = create_optimizer(opt[:solver], GRB_ENV[], opt[:attributes])
+    else
+        optimizer = create_optimizer(opt[:solver], missing, opt[:attributes])
+    end
+
 	subproblem_generation_time = time()
 
     subproblems_all = [Dict() for i in 1:length(system_decomp)];

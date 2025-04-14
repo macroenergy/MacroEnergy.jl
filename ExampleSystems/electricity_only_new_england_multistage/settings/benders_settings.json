@@ -5,5 +5,5 @@
   "StabParam": 0.5,
   "StabDynamic": false,
   "IntegerInvestment": false,
-  "Distributed": false
+  "Distributed": true
 }

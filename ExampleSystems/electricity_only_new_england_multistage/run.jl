@@ -1,4 +1,4 @@
 using MacroEnergy
 using Gurobi
 
-(system, model) = run_case(@__DIR__; optimizer=Gurobi.Optimizer);
+(system, model) = run_case(@__DIR__; optimizer=Gurobi.Optimizer,attributes=("Method" => 2, "Crossover" => 0, "BarConvTol" => 1e-3));

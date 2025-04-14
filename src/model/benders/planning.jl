@@ -1,8 +1,14 @@
 
-function initialize_planning_problem!(stages::Stages,optimizer::Optimizer)
+function initialize_planning_problem!(stages::Stages,opt::Dict)
     
     planning_problem, linking_variables = generate_planning_problem(stages);
-    
+
+    if opt[:solver] == Gurobi.Optimizer
+        optimizer = create_optimizer(opt[:solver], GRB_ENV[], opt[:attributes])
+    else
+        optimizer = create_optimizer(opt[:solver], missing, opt[:attributes])
+    end
+
     set_optimizer(planning_problem, optimizer)
 
     set_silent(planning_problem)
@@ -126,7 +132,7 @@ function generate_planning_problem(system::System)
     define_available_capacity!(system, model)
 
     planning_model!(system, model)
-    
+
     #### Removing for now, needs more testing  
     #### add_feasibility_constraints!(system, model)
 
