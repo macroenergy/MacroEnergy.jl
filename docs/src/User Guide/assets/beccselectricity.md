@@ -1,7 +1,36 @@
 # BECCS Electricity
 
 ## Graph structure
+
 Bioenergy with carbon capture and storage (BECCS) that produces electricity is represented in Macro using the following graph structure:
+
+```mermaid
+%%{init: {'theme': 'base', 'themeVariables': { 'background': '#D1EBDE' }}}%%
+flowchart LR
+  subgraph BECCSElectricity
+  direction BT
+    B((Biomass)) --> A{{..}}
+    C((CO2 Source)) --> A
+    A --> D((Emitted CO2))
+    A --> E((Captured CO2))
+    A --> F((Electricity))
+ end
+ legend@{img: "../../images/battery.png", w: 120, h: 100, constraint: "off"}
+       BECCSElectricity ~~~ legend
+    style A fill:black,stroke:black,color:black;
+    style B fill:palegreen,stroke:black,color:black,stroke-dasharray: 3,5;
+    style C fill:lightgray,stroke:black,color:black,font-size: 12, stroke-dasharray: 3,5;
+    style D fill:lightgray,stroke:black,color:black, font-size: 12,stroke-dasharray: 3,5;
+    style E fill:lightgray,stroke:black,color:black, font-size: 10,stroke-dasharray: 3,5;
+    style F fill:orange,stroke:black,color:black, font-size: 12, stroke-dasharray: 3,5;
+
+    linkStyle default stroke:black;
+    linkStyle 0 stroke:palegreen, stroke-width: 3px;
+    linkStyle 1,2,3 stroke:lightgray, stroke-width: 3px;
+    linkStyle 4 stroke:orange, stroke-width: 3px;
+
+    style legend fill:white
+```
 
 ```@raw html
 <img width="400" src="../../images/beccselec.png" />
