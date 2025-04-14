@@ -1,4 +1,4 @@
-function generate_operation_subproblem(system::System)
+function generate_operation_subproblem(system::System,IncludeAutomaticSlackPenalty=false)
 
     model = Model()
 
@@ -16,16 +16,16 @@ function generate_operation_subproblem(system::System)
 
     @objective(model, Min, model[:eVariableCost])
 
-    slack_penalty_value = compute_slack_penalty_value(system);
+    slack_penalty_value = compute_slack_penalty_value(system,IncludeAutomaticSlackPenalty);
 
     return model, linking_variables, slack_penalty_value
 
 
 end
 
-function initialize_subproblem(system::Any,optimizer::Optimizer)
+function initialize_subproblem(system::Any,optimizer::Optimizer,IncludeAutomaticSlackPenalty=false)
     
-    subproblem,linking_variables_sub, slack_penalty_value = generate_operation_subproblem(system);
+    subproblem,linking_variables_sub, slack_penalty_value = generate_operation_subproblem(system,IncludeAutomaticSlackPenalty);
 
     set_optimizer(subproblem, optimizer)
 
@@ -39,12 +39,12 @@ function initialize_subproblem(system::Any,optimizer::Optimizer)
     return subproblem,linking_variables_sub, slack_penalty_value
 end
 
-function initialize_local_subproblems!(system_local::Vector,subproblems_local::Vector{Dict{Any,Any}},local_indices::UnitRange{Int64},optimizer::Optimizer)
+function initialize_local_subproblems!(system_local::Vector,subproblems_local::Vector{Dict{Any,Any}},local_indices::UnitRange{Int64},optimizer::Optimizer,IncludeAutomaticSlackPenalty=false)
 
     nW = length(system_local)
 
     for i=1:nW
-		subproblem,linking_variables_sub, slack_penalty_value = initialize_subproblem(system_local[i],optimizer);
+		subproblem,linking_variables_sub, slack_penalty_value = initialize_subproblem(system_local[i],optimizer,IncludeAutomaticSlackPenalty);
         subproblems_local[i][:model] = subproblem;
         subproblems_local[i][:linking_variables_sub] = linking_variables_sub;
         subproblems_local[i][:subproblem_index] = local_indices[i];
@@ -52,18 +52,18 @@ function initialize_local_subproblems!(system_local::Vector,subproblems_local::V
     end
 end
 
-function initialize_subproblems!(system_decomp::Vector,opt::Dict,distributed_bool::Bool)
+function initialize_subproblems!(system_decomp::Vector,opt::Dict,distributed_bool::Bool,IncludeAutomaticSlackPenalty=false)
     
     if distributed_bool
-        subproblems, linking_variables_sub =  initialize_dist_subproblems!(system_decomp,opt)
+        subproblems, linking_variables_sub =  initialize_dist_subproblems!(system_decomp,opt,IncludeAutomaticSlackPenalty)
     else
-        subproblems, linking_variables_sub = initialize_serial_subproblems!(system_decomp,opt)
+        subproblems, linking_variables_sub = initialize_serial_subproblems!(system_decomp,opt,IncludeAutomaticSlackPenalty)
     end
 
     return subproblems, linking_variables_sub
 end
 
-function initialize_dist_subproblems!(system_decomp::Vector,opt::Dict)
+function initialize_dist_subproblems!(system_decomp::Vector,opt::Dict,IncludeAutomaticSlackPenalty=false)
 
     ##### Initialize a distributed arrays of JuMP models
 	## Start pre-solve timer
@@ -81,7 +81,7 @@ function initialize_dist_subproblems!(system_decomp::Vector,opt::Dict)
             else
                 optimizer = create_optimizer(opt[:solver], missing, opt[:attributes])
             end
-            initialize_local_subproblems!(system_local,localpart(subproblems_all),W_local,optimizer);
+            initialize_local_subproblems!(system_local,localpart(subproblems_all),W_local,optimizer,IncludeAutomaticSlackPenalty);
         end
     end
 
@@ -104,7 +104,7 @@ function initialize_dist_subproblems!(system_decomp::Vector,opt::Dict)
 
 end
 
-function initialize_serial_subproblems!(system_decomp::Vector,opt::Dict)
+function initialize_serial_subproblems!(system_decomp::Vector,opt::Dict,IncludeAutomaticSlackPenalty=false)
 
     ##### Initialize a array of JuMP models
 	## Start pre-solve timer
@@ -119,7 +119,7 @@ function initialize_serial_subproblems!(system_decomp::Vector,opt::Dict)
 
     subproblems_all = [Dict() for i in 1:length(system_decomp)];
 
-    initialize_local_subproblems!(system_decomp,subproblems_all, 1:length(system_decomp),optimizer);
+    initialize_local_subproblems!(system_decomp,subproblems_all, 1:length(system_decomp),optimizer,IncludeAutomaticSlackPenalty);
 
     linking_variables_sub = [get_local_linking_variables([subproblems_all[k]]) for k in 1:length(system_decomp)];
     linking_variables_sub = merge(linking_variables_sub...);
@@ -146,16 +146,20 @@ function get_local_linking_variables(subproblems_local::Vector{Dict{Any,Any}})
 
 end
 
-function compute_slack_penalty_value(system::System)
-    x = 0.0;
-    for n in system.locations
-        if isa(n,Node)
-            w = subperiod_indices(n)[1]
-            y = subperiod_weight(n, w) * maximum(price_non_served_demand(n,s) for s in segments_non_served_demand(n))
-            if y>x
-                x = y
+function compute_slack_penalty_value(system::System,IncludeAutomaticSlackPenalty=false)
+    if IncludeAutomaticSlackPenalty == true
+        x = 0.0;
+        for n in system.locations
+            if isa(n,Node)
+                w = subperiod_indices(n)[1]
+                y = subperiod_weight(n, w) * maximum(price_non_served_demand(n,s) for s in segments_non_served_demand(n))
+                if y>x
+                    x = y
+                end
             end
-        end
-    end 
-    return 2*x
+        end 
+        return 2*x
+    else
+        return nothing
+    end
 end

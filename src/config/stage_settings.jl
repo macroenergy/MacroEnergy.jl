@@ -15,7 +15,8 @@ function default_benders_settings()
         :StabParam => 0.0,
         :StabDynamic => false,
         :IntegerInvestment => false,
-        :Distributed => false
+        :Distributed => false,
+        :IncludeAutomaticSlackPenalty => false,
     )
 end
 

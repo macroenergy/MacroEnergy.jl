@@ -70,7 +70,7 @@ function solve_stages(stages::Stages, opt::Dict{Symbol, Dict{Symbol, Any}}, expa
 
     planning_problem,linking_variables = initialize_planning_problem!(stages,opt[:planning])
 
-    subproblems, linking_variables_sub = initialize_subproblems!(systems_decomp,opt[:subproblems],bd_setup[:Distributed])
+    subproblems, linking_variables_sub = initialize_subproblems!(systems_decomp,opt[:subproblems],bd_setup[:Distributed],bd_setup[:IncludeAutomaticSlackPenalty])
 
     results = MacroEnergySolvers.benders(planning_problem, linking_variables, subproblems, linking_variables_sub, Dict(pairs(bd_setup)))
 

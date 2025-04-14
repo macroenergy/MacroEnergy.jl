@@ -52,7 +52,7 @@ end
 
 function start_distributed_processes!(number_of_processes::Int64,case_path::AbstractString)
 
-    rmprocs.(workers())
+    # rmprocs.(workers())
 
     if haskey(ENV,"SLURM_NTASKS")
         ntasks = min(number_of_processes,parse(Int, ENV["SLURM_NTASKS"]));
