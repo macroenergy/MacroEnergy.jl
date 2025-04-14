@@ -28,8 +28,7 @@ function default_data(::Type{ElectrochemCementPlant}, id=missing)
                 :can_retire => true,
                 :constraints => Dict{Symbol, Bool}(
                     :CapacityConstraint => true,
-                ),
-                :end_vertex => "cement_produced",
+                )
             ),
         ),
     )

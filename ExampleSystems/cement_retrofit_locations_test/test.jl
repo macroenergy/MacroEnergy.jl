@@ -1,10 +1,9 @@
 using Pkg
 Pkg.activate(dirname(dirname(@__DIR__)))
+using Revise
 using MacroEnergy
 using Gurobi
 using DataFrames
-using MacroEnergy
-using Gurobi
 
 system = MacroEnergy.load_system(@__DIR__)
 model = MacroEnergy.generate_model(system)

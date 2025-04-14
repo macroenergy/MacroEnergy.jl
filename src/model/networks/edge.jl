@@ -8,7 +8,7 @@ macro AbstractEdgeBaseAttributes()
         availability::Vector{Float64} = Float64[]
         can_expand::Bool = $edge_defaults[:can_expand]
         can_retire::Bool = $edge_defaults[:can_retire]
-        can_retrofit::Bool = false
+        can_retrofit::Bool = $edge_defaults[:can_retrofit]
         capacity::AffExpr = AffExpr(0.0)
         capacity_size::Float64 = $edge_defaults[:capacity_size]
         constraints::Vector{AbstractTypeConstraint} = Vector{AbstractTypeConstraint}()
@@ -19,7 +19,7 @@ macro AbstractEdgeBaseAttributes()
         has_capacity::Bool = $edge_defaults[:has_capacity]
         integer_decisions::Bool = $edge_defaults[:integer_decisions]
         investment_cost::Float64 = $edge_defaults[:investment_cost]
-        is_retrofit::Bool = false
+        is_retrofit::Bool = $edge_defaults[:is_retrofit]
         location::Union{Missing, String} = $edge_defaults[:location]
         loss_fraction::Float64 = $edge_defaults[:loss_fraction]
         max_capacity::Float64 = $edge_defaults[:max_capacity]
@@ -31,9 +31,10 @@ macro AbstractEdgeBaseAttributes()
         ramp_up_fraction::Float64 = $edge_defaults[:ramp_up_fraction]
         retired_capacity::AffExpr = AffExpr(0.0)
         retired_units::Union{JuMPVariable,Float64} = 0.0
+        retrofit_efficiency::Union{Missing,Float64} = $edge_defaults[:retrofit_efficiency]
+        retrofit_id::Union{Missing,Int,String} = $edge_defaults[:retrofit_id]
         retrofitted_capacity::AffExpr = AffExpr(0.0)
         retrofitted_units::Union{JuMPVariable,Float64} = 0.0
-        retrofit_id::Int = 0
         unidirectional::Bool = $edge_defaults[:unidirectional]
         variable_om_cost::Float64 = $edge_defaults[:variable_om_cost]
         min_down_time::Int64 = $edge_defaults[:min_down_time]
@@ -207,6 +208,8 @@ ramp_down_fraction(e::AbstractEdge) = e.ramp_down_fraction;
 ramp_up_fraction(e::AbstractEdge) = e.ramp_up_fraction;
 retired_capacity(e::AbstractEdge) = e.retired_capacity;
 retired_units(e::AbstractEdge) = e.retired_units;
+retrofit_efficiency(e::AbstractEdge) = e.retrofit_efficiency;
+retrofit_id(e::AbstractEdge) = e.retrofit_id;
 retrofitted_capacity(e::AbstractEdge) = e.retrofitted_capacity;
 retrofitted_units(e::AbstractEdge) = e.retrofitted_units;
 start_vertex(e::AbstractEdge)::AbstractVertex = e.start_vertex;
@@ -283,19 +286,13 @@ function planning_model!(e::AbstractEdge, model::Model)
 
         @constraint(model, retired_capacity(e) <= existing_capacity(e))
 
-        # Retrofitting constraints
         if can_retrofit(e)
             @constraint(model, retrofitted_capacity(e) + retired_capacity(e) <= existing_capacity(e))
             if integer_decisions(e)
                 set_integer(retrofitted_units(e))
             end
-        #     retrofit_id = e.retrofit_id
-        #     add_to_expression!(model[:eRetrofittedCapByRetroId][retrofit_id], retrofitted_capacity(e))
         end
-        # if is_retrofit(e)
-        #     retrofit_id = e.retrofit_id
-        #     add_to_expression!(model[:eRetrofitCapByRetroId][retrofit_id], new_capacity(e))
-        # end
+
     end
 
 
