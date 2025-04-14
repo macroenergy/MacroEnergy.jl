@@ -31,6 +31,9 @@ Revise = "295af30f-e4ad-537b-8983-00126c2a3abe"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 YAML = "ddb6d928-2868-570f-bddf-ab3f9cf99eb6"
 
+[sources]
+MacroEnergySolvers = {rev = "main", url = "https://github.com/macroenergy/MacroEnergySolvers.jl"}
+
 [compat]
 ClusterManagers = "2.0.0"
 Distributed = "1.11.0"
