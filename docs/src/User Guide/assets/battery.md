@@ -1,7 +1,25 @@
 # Battery
 
 ## Graph structure
+
 A battery is a storage technology that is represented in Macro by the following graph structure:
+
+```mermaid
+%%{init: {'theme': 'base', 'themeVariables': { 'background': '#D1EBDE' }}}%%
+flowchart LR
+  subgraph Battery
+  direction BT
+    A((Electricity))--Charge--> B[Storage] --Discharge--> A
+ end
+       legend@{img: "../../images/battery.png", w: 120, h: 100, constraint: "off"}
+       Battery ~~~ legend
+    style A fill:orange,stroke:black,color:black,stroke-dasharray: 3,5;
+    style B fill:orange,stroke:black,color:black;
+    
+    linkStyle 0,1 stroke:orange, stroke-width: 3px;
+
+    style legend fill:white
+```
 
 ```@raw html
 <img width="270" src="../../images/battery.png" />
