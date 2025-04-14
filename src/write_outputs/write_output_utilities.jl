@@ -921,20 +921,6 @@ function find_available_filepath(filepath::AbstractString; max_attempts::Int=999
     return find_available_filepath(path, filename; max_attempts=max_attempts)
 end
 
-function write_outputs(case_path::AbstractString, stages::Stages, model::Model, ::PerfectForesight)
-
-    for s in 1:length(stages.systems)
-        # Output results
-        results_dir = joinpath(case_path, "results_stage_$i")
-        mkpath(results_dir)
-                    
-        # Capacity results
-        write_capacity(joinpath(results_dir, "capacity.csv"), stages.systems[s])
-    end
-
-    return nothing
-end
-
 function write_outputs(results_dir::AbstractString, system::System, model::Model)
     
     # Capacity results

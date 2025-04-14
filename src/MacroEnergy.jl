@@ -165,12 +165,7 @@ include("model/scaling.jl")
 include("model/solver.jl")
 
 include_all_in_folder("model/benders")
-
-include("write_outputs/capacity.jl")
-include("write_outputs/flow.jl")
-include("write_outputs/write_output_utilities.jl")
-include("write_outputs/costs.jl")
-include("write_outputs/write_system_data.jl")
+include_all_in_folder("write_outputs/")
 
 export AbstractAsset,
     AbstractTypeConstraint,
