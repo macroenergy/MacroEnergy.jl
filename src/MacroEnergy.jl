@@ -92,7 +92,15 @@ const JuMPVariable =
 const GRB_ENV = Ref{Gurobi.Env}()
 function __init__()
     isdir(ME_DEPOT_PATH) && load_subcommodities_from_file(ME_DEPOT_PATH)
-    GRB_ENV[] = Gurobi.Env()
+    try
+        GRB_ENV[] = Gurobi.Env()
+    catch e
+        if isa(e, ErrorException) && occursin("Gurobi Error", string(e))
+            @debug "Gurobi is not available."
+        else
+            rethrow(e)
+        end
+    end
 end
 
 function include_all_in_folder(folder::AbstractString, root_path::AbstractString=@__DIR__)
