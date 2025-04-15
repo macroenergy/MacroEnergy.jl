@@ -5,7 +5,7 @@ struct ElectrochemCementPlant <: AbstractAsset
     cement_edge::Edge{Cement} # Cement produced
 end
 
-function default_data(::Type{ElectrochemCementPlant}, id=missing)
+function default_data(::Type{ElectrochemCementPlant}, id=missing, style="full")
     return Dict{Symbol,Any}(
         :id => id,
         :transforms => @transform_data(

@@ -1,6 +1,5 @@
 using Pkg
 Pkg.activate(dirname(dirname(@__DIR__)))
-using Revise
 using MacroEnergy
 using Gurobi
 using DataFrames
