@@ -152,7 +152,7 @@ end
 
 function get_available_capacity(systems::Vector{System})
     
-    AvailableCapacity = Dict{Tuple{Symbol,Int64}, AffExpr}();
+    AvailableCapacity = Dict{Tuple{Symbol,Int64}, Union{JuMPVariable,AffExpr}}();
 
     for system in systems
         AvailableCapacity = get_available_capacity!(system,AvailableCapacity)
@@ -161,7 +161,7 @@ function get_available_capacity(systems::Vector{System})
     return AvailableCapacity
 end
 
-function get_available_capacity!(system::System, AvailableCapacity::Dict{Tuple{Symbol,Int64}, AffExpr})
+function get_available_capacity!(system::System, AvailableCapacity::Dict{Tuple{Symbol,Int64}, Union{JuMPVariable,AffExpr}})
     
     for a in system.assets
         get_available_capacity!(a, AvailableCapacity)
@@ -170,7 +170,7 @@ function get_available_capacity!(system::System, AvailableCapacity::Dict{Tuple{S
     return AvailableCapacity
 end
 
-function get_available_capacity!(a::AbstractAsset, AvailableCapacity::Dict{Tuple{Symbol,Int64}, AffExpr})
+function get_available_capacity!(a::AbstractAsset, AvailableCapacity::Dict{Tuple{Symbol,Int64}, Union{JuMPVariable,AffExpr}})
 
     for t in fieldnames(typeof(a))
         get_available_capacity!(getfield(a, t), AvailableCapacity)
@@ -178,42 +178,43 @@ function get_available_capacity!(a::AbstractAsset, AvailableCapacity::Dict{Tuple
 
 end
 
-function get_available_capacity!(n::Node, AvailableCapacity::Dict{Tuple{Symbol,Int64}, AffExpr})
+function get_available_capacity!(n::Node, AvailableCapacity::Dict{Tuple{Symbol,Int64}, Union{JuMPVariable,AffExpr}})
 
     return nothing
 
 end
 
 
-function get_available_capacity!(g::Transformation, AvailableCapacity::Dict{Tuple{Symbol,Int64}, AffExpr})
+function get_available_capacity!(g::Transformation, AvailableCapacity::Dict{Tuple{Symbol,Int64}, Union{JuMPVariable,AffExpr}})
 
     return nothing
 
 end
 
-function get_available_capacity!(g::AbstractStorage, AvailableCapacity::Dict{Tuple{Symbol,Int64}, AffExpr})
+function get_available_capacity!(g::AbstractStorage, AvailableCapacity::Dict{Tuple{Symbol,Int64}, Union{JuMPVariable,AffExpr}})
 
     AvailableCapacity[g.id,stage_index(g)] = g.capacity;
 
 end
 
 
-function get_available_capacity!(e::AbstractEdge, AvailableCapacity::Dict{Tuple{Symbol,Int64}, AffExpr})
+function get_available_capacity!(e::AbstractEdge, AvailableCapacity::Dict{Tuple{Symbol,Int64}, Union{JuMPVariable,AffExpr}})
 
     AvailableCapacity[e.id,stage_index(e)] = e.capacity;
 
 end
 
-function add_feasibility_constraints!(system::System, model::Model)
-    all_edges = edges(system.assets)
-    for n in system.locations
-        if isa(n, Node)
-            if !all(max_supply(n) .== 0)
-                edges_that_start_from_n = all_edges[findall(start_vertex(e) == n && e.unidirectional == true for e in all_edges)]
-                @info "Adding feasibility constraints for node $(n.id)"
-                @constraint(model, sum(capacity(e) for e in edges_that_start_from_n) <= sum(max_supply(n)))    
-            end
-        end
-    end
-    return nothing
-end
+#### Removing for now, needs more testing  
+# function add_feasibility_constraints!(system::System, model::Model)
+#     all_edges = edges(system.assets)
+#     for n in system.locations
+#         if isa(n, Node)
+#             if !all(max_supply(n) .== 0)
+#                 edges_that_start_from_n = all_edges[findall(start_vertex(e) == n && e.unidirectional == true for e in all_edges)]
+#                 @info "Adding feasibility constraints for node $(n.id)"
+#                 @constraint(model, sum(capacity(e) for e in edges_that_start_from_n) <= sum(max_supply(n)))    
+#             end
+#         end
+#     end
+#     return nothing
+# end
