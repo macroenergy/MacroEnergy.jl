@@ -10,21 +10,26 @@ const pages = [
         "Introduction" => "index.md",
         "Table of contents" => "table_of_contents.md",
     ],
-    "Getting Started" => [
+    "Guides" => [
+        "Getting Started" => [
         "Overview" => "Getting Started/1_overview.md",
         "Installation" => "Getting Started/2_installation.md",
         "First Run" => "Getting Started/3_first_run.md",
-    ],
-    "Tutorials" => [
-        "Getting Started" => "Tutorials/0_getting_started.md",
-        "Running Macro" => "Tutorials/1_running_macro.md",
-        "Multisector Modelling" => "Tutorials/2_multisector_modelling.md",
-    ],
-    "Guides" => [
+        ],
         "User Guide" => [
-            "Sectors" => "User Guide/1_sectors.md",
-            "Input Data" => "User Guide/2_input_data.md",
-            "Assets" => ["User Guide/assets/1_introduction.md",
+            "Introduction" => "User Guide/user_introduction.md",
+            "Adding locations" => "User Guide/user_add_location.md",
+            "Adding assets" => "User Guide/user_add_asset.md",
+            "Making new models" => "User Guide/user_build_model.md",
+            "Adding commodities" => "User Guide/user_add_commodity.md",
+            "Adding assets constraints" => "User Guide/user_asset_constraints.md",
+            "Adding policy constraints" => "User Guide/user_policy_constraints.md",
+            "Configuring settings" => "User Guide/user_settings.md",
+            "Running models" => "User Guide/user_run_model.md",
+            "Writing results" => "User Guide/user_write_results.md",
+            "Using multi-stage models" => "User Guide/user_multistage.md",
+            "Asset Library" => [
+                "User Guide/assets/1_introduction.md",
                 "User Guide/assets/battery.md",
                 "User Guide/assets/beccselectricity.md",
                 "User Guide/assets/beccshydrogen.md",
@@ -39,21 +44,23 @@ const pages = [
                 "User Guide/assets/powerline.md",
                 "User Guide/assets/thermalhydrogen.md",
                 "User Guide/assets/thermalpower.md",
-                "User Guide/assets/vre.md"],
-            "Constraints" => "User Guide/4_constraints.md",
-            "Output" => "User Guide/5_output.md",
+                "User Guide/assets/vre.md"
+            ],
         ],
         "Modeler Guide" => [
-            "Overview" => "Modeler Guide/1_introduction.md",
-            "How to build a sector" => "Modeler Guide/2_build_sectors.md",
+            "Introduction" => "Modeler Guide/1_introduction.md",
+            "Creating a sector" => "Modeler Guide/modeler_build_sectors.md",
+            "Creating an asset" => "Modeler Guide/modeler_build_asset.md",
             "How to create an example case" => "Modeler Guide/3_create_example_case.md",
         ],
         "Developer Guide" => [
-            "Overview" => "Developer Guide/1_introduction.md",
-            "Type hierarchy" => "Developer Guide/2_type_hierarchy.md"
+            "Introduction" => "Developer Guide/1_introduction.md",
+            "Creating a constraint" => "Developer Guide/dev_create_constraint.md",
+            "Type hierarchy" => "Developer Guide/2_type_hierarchy.md",
         ],
     ],
     "Manual" => [
+        "Overview" => "Manual/Overview.md",
         "Inputs" => "Manual/Inputs.md",
         "Outputs" => "Manual/Outputs.md",
         "System" => "Manual/System.md",
@@ -82,7 +89,14 @@ const pages = [
             "User Guide/assets/vre.md"
         ],
         "Model" => "Manual/Model.md"
-    ], "References" => [
+    ],
+    "Extended Tutorials" => [
+        "Getting Started" => "Tutorials/0_getting_started.md",
+        "Running Macro" => "Tutorials/1_running_macro.md",
+        "Multisector Modelling" => "Tutorials/2_multisector_modelling.md",
+    ],
+    "How to contribute" => "how_to_contribute.md", 
+    "References" => [
         "Introduction" => "References/1_introduction.md",
         "Reading input data" => "References/2_reading_input.md",
         "Macro Objects" => "References/3_macro_objects.md",

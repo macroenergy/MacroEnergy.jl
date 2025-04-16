@@ -3,6 +3,75 @@
 ## Graph structure
 A storage for a gas commodity is represented in Macro using the following graph structure:
 
+```mermaid
+%%{init: {
+    'theme': 'base', 
+    "themeCSS": ".node circle { radius: 40 !important; }",
+    'themeVariables': { 'background': '#D1EBDE' }
+}}%%
+flowchart LR
+  subgraph GasStorage
+  direction BT
+    B((Gas)) --Charge--> A{{..}}
+    A --Discharge--> B
+    C((Electricity)) --Charge--> A
+    C --Discharge--> A
+    A --Charge--> D[Storage]
+    D --Discharge--> A
+
+ end
+ legend@{img: "../../images/battery.png", w: 120, h: 100, constraint: "off"}
+       GasStorage ~~~ legend
+    style A fill:black,stroke:black,color:black;
+    style B r:40,fill:lightblue,stroke:black,color:black,stroke-dasharray: 3,5;
+    style C r:40,fill:orange,stroke:black,color:black,font-size: 12, stroke-dasharray: 3,5;
+    style D fill:lightblue,stroke:black,color:black, font-size: 12;
+
+    linkStyle 0,1 stroke:lightblue, stroke-width: 3px;
+    linkStyle 2,3 stroke:orange, stroke-width: 3px;
+    linkStyle 4,5 stroke:lightblue, stroke-width: 3px;
+
+    style legend fill:white
+```
+
+```mermaid
+%%{init: {
+    'theme': 'base', 
+    "themeCSS": ".node circle { r: 100 !important; }",
+    'themeVariables': { 'background': '#D1EBDE' }
+}}%%
+flowchart LR
+  subgraph GasPipeline
+  direction BT
+    B((Gas)) --Charge--> A{{..}}
+    A --Discharge--> E((Gas))
+    C((Electricity)) --Charge--> A
+    F((Electricity)) --Discharge--> A
+    A --Charge--> D[Storage]
+    D --Discharge--> A
+    subgraph "Source location"
+    B ~~~ C
+    end
+    subgraph "Dest location"
+    E ~~~ F
+    end
+ end
+ legend@{img: "../../images/battery.png", w: 120, h: 100, constraint: "off"}
+       GasPipeline ~~~ legend
+    style A fill:black,stroke:black,color:black;
+    style B radius:50,fill:lightblue,stroke:black,color:black,font-size: 12, stroke-dasharray: 3,5;
+    style C r:40,fill:orange,stroke:black,color:black,font-size: 12, stroke-dasharray: 3,5;
+    style D r:40,fill:lightblue,stroke:black,color:black, font-size: 12;
+    style E r:40,fill:lightblue,stroke:black,color:black, font-size: 12,stroke-dasharray: 3,5;
+    style F r:40,fill:orange,stroke:black,color:black, font-size: 12,stroke-dasharray: 3,5;
+
+    linkStyle 0,1 stroke:lightblue, stroke-width: 3px;
+    linkStyle 2,3 stroke:orange, stroke-width: 3px;
+    linkStyle 4,5 stroke:lightblue, stroke-width: 3px;
+
+    style legend fill:white
+```
+
 ```@raw html
 <img width="400" src="../../images/gas_storage.png" />
 ```

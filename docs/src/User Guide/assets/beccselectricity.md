@@ -18,13 +18,12 @@ flowchart LR
  legend@{img: "../../images/battery.png", w: 120, h: 100, constraint: "off"}
        BECCSElectricity ~~~ legend
     style A fill:black,stroke:black,color:black;
-    style B fill:palegreen,stroke:black,color:black,stroke-dasharray: 3,5;
-    style C fill:lightgray,stroke:black,color:black,font-size: 12, stroke-dasharray: 3,5;
-    style D fill:lightgray,stroke:black,color:black, font-size: 12,stroke-dasharray: 3,5;
-    style E fill:lightgray,stroke:black,color:black, font-size: 10,stroke-dasharray: 3,5;
-    style F fill:orange,stroke:black,color:black, font-size: 12, stroke-dasharray: 3,5;
+    style B r:40,fill:palegreen,stroke:black,color:black,stroke-dasharray: 3,5;
+    style C r:40,fill:lightgray,stroke:black,color:black,font-size: 12, stroke-dasharray: 3,5;
+    style D r:40,fill:lightgray,stroke:black,color:black, font-size: 12,stroke-dasharray: 3,5;
+    style E r:40,fill:lightgray,stroke:black,color:black, font-size: 12,stroke-dasharray: 3,5;
+    style F r:40,fill:orange,stroke:black,color:black, font-size: 12, stroke-dasharray: 3,5;
 
-    linkStyle default stroke:black;
     linkStyle 0 stroke:palegreen, stroke-width: 3px;
     linkStyle 1,2,3 stroke:lightgray, stroke-width: 3px;
     linkStyle 4 stroke:orange, stroke-width: 3px;
