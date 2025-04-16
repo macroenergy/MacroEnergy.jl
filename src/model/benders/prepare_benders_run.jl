@@ -71,8 +71,8 @@ function start_distributed_processes!(number_of_processes::Int64,case_path::Abst
     end
     
 
-    println("Number of procs: ", nprocs())
-    println("Number of workers: ", nworkers())
+    @info("Number of procs: ", nprocs())
+    @info("Number of workers: ", nworkers())
 end
 
 

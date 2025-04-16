@@ -98,7 +98,7 @@ function initialize_dist_subproblems!(system_decomp::Vector,opt::Dict,IncludeAut
 
     ## Record pre-solver time
 	subproblem_generation_time = time() - subproblem_generation_time
-	println("Distributed operational subproblems generation took $subproblem_generation_time seconds")
+	@info("Distributed operational subproblems generation took $subproblem_generation_time seconds")
 
     return subproblems_all,linking_variables_sub
 
@@ -126,7 +126,7 @@ function initialize_serial_subproblems!(system_decomp::Vector,opt::Dict,IncludeA
 
     ## Record pre-solver time
 	subproblem_generation_time = time() - subproblem_generation_time
-	println("Serial subproblems generation took $subproblem_generation_time seconds")
+	@info("Serial subproblems generation took $subproblem_generation_time seconds")
 
     return subproblems_all,linking_variables_sub
 
