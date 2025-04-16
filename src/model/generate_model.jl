@@ -174,8 +174,6 @@ function generate_model(stages::Stages, ::PerfectForesight)
 
     opexmult = [sum([1 / (1 + wacc)^(i - 1) for i in 1:stage_lengths[s]]) for s in 1:number_of_stages]
 
-    @show opexmult
-
     @expression(model, eDiscountedVariableCost[s in 1:number_of_stages], discount_factor[s] * opexmult[s] * variable_cost[s])
 
     @expression(model,eVariableCost, sum(eDiscountedVariableCost[s] for s in 1:number_of_stages))
