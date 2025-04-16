@@ -168,11 +168,17 @@ function generate_model(stages::Stages, ::PerfectForesight)
 
     discount_factor = 1 ./ ( (1 + wacc) .^ cum_years)
 
-    @expression(model,eFixedCost, sum(discount_factor[s] * fixed_cost[s] for s in 1:number_of_stages))
+    @expression(model, eDiscountedFixedCost[s in 1:number_of_stages], discount_factor[s] * fixed_cost[s])
+
+    @expression(model,eFixedCost, sum(eDiscountedFixedCost[s] for s in 1:number_of_stages))
 
     opexmult = [sum([1 / (1 + wacc)^(i - 1) for i in 1:stage_lengths[s]]) for s in 1:number_of_stages]
 
-    @expression(model,eVariableCost, sum(discount_factor[s] * opexmult[s] * variable_cost[s] for s in 1:number_of_stages))
+    @show opexmult
+
+    @expression(model, eDiscountedVariableCost[s in 1:number_of_stages], discount_factor[s] * opexmult[s] * variable_cost[s])
+
+    @expression(model,eVariableCost, sum(eDiscountedVariableCost[s] for s in 1:number_of_stages))
 
     @objective(model, Min, model[:eFixedCost] + model[:eVariableCost])
 

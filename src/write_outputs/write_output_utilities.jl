@@ -969,18 +969,13 @@ end
 function write_outputs(case_path::AbstractString, stages::Stages, model::Model, ::PerfectForesight)
 
     for s in 1:length(stages.systems)
+        @info("Writing results for stage $s")
+        compute_real_costs!(model, stages.systems[s], stages.settings)
         # Output results
         results_dir = joinpath(case_path, "results_stage_$s")
         mkpath(results_dir)
-                    
-        # Capacity results
-        write_capacity(joinpath(results_dir, "capacity.csv"), stages.systems[s])
-
-        # Write cost results
-        #TODO
-
-        # Write flow results
-        write_flow(joinpath(results_dir, "flows.csv"), stages.systems[s])
+        write_outputs(results_dir, stages.systems[s], model)
+        write_discounted_costs(joinpath(results_dir, "discounted_costs.csv"), stages.systems[s], model)
     end
 
     return nothing
