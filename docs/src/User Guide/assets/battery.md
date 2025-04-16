@@ -9,13 +9,14 @@ A battery is a storage technology that is represented in Macro by the following 
 flowchart LR
   subgraph Battery
   direction BT
-    A((Electricity))--Charge--> B[Storage] --Discharge--> A
+  A((Electricity)):::node1
+    A--Charge--> B[Storage] --Discharge--> A
  end
        legend@{img: "../../images/battery.png", w: 120, h: 100, constraint: "off"}
        Battery ~~~ legend
-    style A fill:orange,stroke:black,color:black,stroke-dasharray: 3,5;
+    style A  r:40,fill:orange,stroke:black,color:black,stroke-dasharray: 3,5;
     style B fill:orange,stroke:black,color:black;
-    
+
     linkStyle 0,1 stroke:orange, stroke-width: 3px;
 
     style legend fill:white
