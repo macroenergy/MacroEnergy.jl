@@ -52,8 +52,8 @@ function run_case_benders(
 
     (stages, bd_results) = solve_stages(stages, benders_optimizers)
 
-    #FIXME: to do
-    #####write_outputs(case_path, stages, model)
+    #FIXME: implement costs and check flows
+    write_outputs(case_path, stages, bd_results)
 
     ### Once we do not need the subproblems anymore, we delete the processes
     if stages.settings.BendersSettings[:Distributed]

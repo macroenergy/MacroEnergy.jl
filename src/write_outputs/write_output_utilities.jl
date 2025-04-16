@@ -939,6 +939,12 @@ function write_outputs(case_path::AbstractString, stages::Stages, model::Union{M
     write_outputs(case_path, stages, model, expansion_mode(stages))
 end
 
+function write_outputs(case_path::AbstractString, stages::Stages, bd_results::BendersResults)
+    # get the planning problem from the Benders results
+    model = bd_results.planning_problem
+    write_outputs(case_path, stages, model, expansion_mode(stages))
+end
+
 function write_outputs(case_path::AbstractString, stages::Stages, model::Model, ::SingleStage)
     @info("Writing results for single stage")
     results_dir = joinpath(case_path, "results")
@@ -969,6 +975,12 @@ function write_outputs(case_path::AbstractString, stages::Stages, model::Model, 
                     
         # Capacity results
         write_capacity(joinpath(results_dir, "capacity.csv"), stages.systems[s])
+
+        # Write cost results
+        #TODO
+
+        # Write flow results
+        write_flow(joinpath(results_dir, "flows.csv"), stages.systems[s])
     end
 
     return nothing
