@@ -74,6 +74,6 @@ function solve_stages(stages::Stages, opt::Dict{Symbol, Dict{Symbol, Any}}, expa
 
     results = MacroEnergySolvers.benders(planning_problem, linking_variables, subproblems, linking_variables_sub, Dict(pairs(bd_setup)))
 
-    return (stages, results)
+    return (stages, BendersResults(results))
 end
 
