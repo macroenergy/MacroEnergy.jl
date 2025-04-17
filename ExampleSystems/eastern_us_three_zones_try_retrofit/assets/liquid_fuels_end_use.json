@@ -1,0 +1,189 @@
+{
+    "GasolineEndUse": [
+        {
+            "type": "FuelsEndUse",
+            "global_data":{
+                "transforms": {
+                    "timedata": "LiquidFuels",
+                    "constraints": {
+                            "BalanceConstraint": true
+                    }
+                },
+                "edges" :{
+                    "fuel_edge": {
+                        "commodity": "LiquidFuels",
+                        "unidirectional": true,
+                        "has_capacity": false
+                    },
+                    "co2_edge": {
+                        "commodity": "CO2",
+                        "unidirectional": true,
+                        "has_capacity": false,
+                        "end_vertex": "co2_sink"
+                    },
+                    "fuel_demand_edge": {
+                        "commodity": "LiquidFuels",
+                        "unidirectional": true,
+                        "has_capacity": false
+                    }
+                }
+            },
+            "instance_data":[
+                {
+                    "id": "SE_Gasoline_Use",
+                    "transforms": {
+                        "emission_rate": 0.241238471
+                    },
+                    "edges":{
+                            "fuel_edge": {
+                                "commodity": "Gasoline",
+                                "start_vertex": "gasoline_SE"
+                            },
+                            "fuel_demand_edge": {
+                                "commodity": "Gasoline",
+                                "end_vertex": "gasoline_demand_SE"
+                            }
+                        }
+
+                },
+                {
+                    "id": "MIDAT_Gasoline_Use",
+                    "transforms": {
+                        "emission_rate": 0.241238471
+                    },
+                    "edges":{
+                            "fuel_edge": {
+                                "commodity": "Gasoline",
+                                "start_vertex": "gasoline_MIDAT"
+                            },
+                            "fuel_demand_edge": {
+                                "commodity": "Gasoline",
+                                "end_vertex": "gasoline_demand_MIDAT"
+                            }
+                        }
+
+                },
+                {
+                    "id": "NE_Gasoline_Use",
+                    "transforms": {
+                        "emission_rate": 0.241238471
+                    },
+                    "edges":{
+                            "fuel_edge": {
+                                "commodity": "Gasoline",
+                                "start_vertex": "gasoline_NE"
+                            },
+                            "fuel_demand_edge": {
+                                "commodity": "Gasoline",
+                                "end_vertex": "gasoline_demand_NE"
+                            }
+                        }
+
+                },
+                {
+                    "id": "SE_JetFuel_Use",
+                    "transforms": {
+                        "emission_rate": 0.246356685
+                    },
+                    "edges":{
+                            "fuel_edge": {
+                                "commodity": "JetFuel",
+                                "start_vertex": "jetfuel_SE"
+                            },
+                            "fuel_demand_edge": {
+                                "commodity": "JetFuel",
+                                "end_vertex": "jetfuel_demand_SE"
+                            }
+                        }
+
+                },
+                {
+                    "id": "MIDAT_JetFuel_Use",
+                    "transforms": {
+                        "emission_rate": 0.246356685
+                    },
+                    "edges":{
+                            "fuel_edge": {
+                                "commodity": "JetFuel",
+                                "start_vertex": "jetfuel_MIDAT"
+                            },
+                            "fuel_demand_edge": {
+                                "commodity": "JetFuel",
+                                "end_vertex": "jetfuel_demand_MIDAT"
+                            }
+                        }
+
+                },
+                {
+                    "id": "NE_JetFuel_Use",
+                    "transforms": {
+                        "emission_rate": 0.246356685
+                    },
+                    "edges":{
+                            "fuel_edge": {
+                                "commodity": "JetFuel",
+                                "start_vertex": "jetfuel_NE"
+                            },
+                            "fuel_demand_edge": {
+                                "commodity": "JetFuel",
+                                "end_vertex": "jetfuel_demand_NE"
+                            }
+                        }
+
+                },
+                {
+                    "id": "SE_Diesel_Use",
+                    "transforms": {
+                        "emission_rate": 0.252839756
+                    },
+                    "edges":{
+                            "fuel_edge": {
+                                "commodity": "Diesel",
+                                "start_vertex": "diesel_SE"
+                            },
+                            "fuel_demand_edge": {
+                                "commodity": "Diesel",
+                                "end_vertex": "diesel_demand_SE"
+                            }
+                        }
+
+                },
+                {
+                    "id": "MIDAT_Diesel_Use",
+                    "transforms": {
+                        "emission_rate": 0.252839756
+                    },
+                    "edges":{
+                            "fuel_edge": {
+                                "commodity": "Diesel",
+                                "start_vertex": "diesel_MIDAT"
+                            },
+                            "fuel_demand_edge": {
+                                "commodity": "Diesel",
+                                "end_vertex": "diesel_demand_MIDAT"
+                            }
+                        }
+
+                },
+                {
+                    "id": "NE_Diesel_Use",
+                    "transforms": {
+                        "emission_rate": 0.252839756
+                    },
+                    "edges":{
+                            "fuel_edge": {
+                                "commodity": "Diesel",
+                                "start_vertex": "diesel_NE"
+                            },
+                            "fuel_demand_edge": {
+                                "commodity": "Diesel",
+                                "end_vertex": "diesel_demand_NE"
+                            }
+                        }
+
+                }
+            ]
+        }
+    ]
+
+}

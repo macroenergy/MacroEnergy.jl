@@ -32,7 +32,7 @@ macro AbstractEdgeBaseAttributes()
         retired_capacity::AffExpr = AffExpr(0.0)
         retired_units::Union{JuMPVariable,Float64} = 0.0
         retrofit_efficiency::Union{Missing,Float64} = $edge_defaults[:retrofit_efficiency]
-        retrofit_id::Union{Missing,Int,String} = $edge_defaults[:retrofit_id]
+        retrofit_id::Union{Missing,Symbol} = $edge_defaults[:retrofit_id]
         retrofitted_capacity::AffExpr = AffExpr(0.0)
         retrofitted_units::Union{JuMPVariable,Float64} = 0.0
         unidirectional::Bool = $edge_defaults[:unidirectional]
@@ -120,6 +120,11 @@ function make_edge(
     filtered_data = Dict{Symbol, Any}(
         k => v for (k,v) in data if k in edge_kwargs
     )
+    
+    if !ismissing(get(filtered_data, :retrofit_id, missing))
+        filtered_data[:retrofit_id] = Symbol(filtered_data[:retrofit_id])
+    end
+
     remove_keys = [:id, :start_vertex, :end_vertex, :timedata]
     for key in remove_keys
         if haskey(filtered_data, key)
@@ -187,7 +192,6 @@ id(e::AbstractEdge) = e.id;
 integer_decisions(e::AbstractEdge) = e.integer_decisions;
 investment_cost(e::AbstractEdge) = e.investment_cost;
 is_retrofit(e::AbstractEdge) = e.is_retrofit;
-location(e::AbstractEdge) = e.location;
 loss_fraction(e::AbstractEdge) = e.loss_fraction;
 function loss_fraction(e::AbstractEdge, t::Int64)
     a = loss_fraction(e)
@@ -248,7 +252,7 @@ function define_available_capacity!(e::AbstractEdge, model::Model)
     end
 
     if can_retrofit(e)
-        add_to_expression!(e.capacity, -1, retrofitted_capacity(e))
+        add_to_expression!(capacity(e), -1, retrofitted_capacity(e))
     end
 
     return nothing
@@ -284,13 +288,13 @@ function planning_model!(e::AbstractEdge, model::Model)
             add_to_expression!(model[:eFixedCost], fixed_om_cost(e), capacity(e))
         end
 
-        @constraint(model, retired_capacity(e) <= existing_capacity(e))
-
         if can_retrofit(e)
             @constraint(model, retrofitted_capacity(e) + retired_capacity(e) <= existing_capacity(e))
             if integer_decisions(e)
                 set_integer(retrofitted_units(e))
             end
+        else
+            @constraint(model, retired_capacity(e) <= existing_capacity(e))
         end
 
     end
@@ -412,6 +416,9 @@ function make_edge_UC(
     filtered_data = Dict{Symbol,Any}(
         k => v for (k, v) in data if k in edge_kwargs
     )
+    if !ismissing(get(filtered_data, :retrofit_id, missing))
+        filtered_data[:retrofit_id] = Symbol(filtered_data[:retrofit_id])
+    end
     remove_keys = [:id, :start_vertex, :end_vertex, :timedata]
     for key in remove_keys
         if haskey(filtered_data, key)

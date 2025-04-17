@@ -136,6 +136,8 @@ include("benders_utilities.jl")
 
 include("model/scaling.jl")
 
+include("model/retrofit.jl")
+
 include("write_outputs/capacity.jl")
 include("write_outputs/flow.jl")
 include("write_outputs/write_output_utilities.jl")

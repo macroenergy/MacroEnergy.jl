@@ -1,0 +1,131 @@
+{
+    "h2stor": [
+        {
+            "type": "GasStorage",
+            "global_data": {
+                "transforms": {
+                    "timedata": "Hydrogen",
+                    "charge_electricity_consumption": 0.01,
+                    "discharge_electricity_consumption": 0.02
+                },
+                "storage": {
+                    "commodity": "Hydrogen",
+                    "can_expand": true,
+                    "can_retire": false,
+                    "long_duration": true,
+                    "investment_cost": 873.01,
+                    "fixed_om_cost": 28.76,
+                    "loss_fraction": 0.0,
+                    "min_storage_level": 0.3,
+                    "constraints": {
+                        "StorageCapacityConstraint": true,
+                        "BalanceConstraint": true,
+                        "MinStorageLevelConstraint": true,
+                        "LongDurationStorageImplicitMinMaxConstraint": true
+                    }
+                },
+                "edges": {
+                    "discharge_edge": {
+                        "type": "Hydrogen",
+                        "unidirectional": true,
+                        "can_expand": true,
+                        "can_retire": false,
+                        "has_capacity": true,
+                        "efficiency": 1.0,
+                        "ramp_up_fraction": 1,
+                        "ramp_down_fraction": 1,
+                        "constraints": {
+                            "CapacityConstraint": true,
+                            "RampingLimitConstraint": true
+                        }
+                    },
+                    "charge_edge": {
+                        "type": "Hydrogen",
+                        "unidirectional": true,
+                        "has_capacity": true,
+                        "can_expand": true,
+                        "can_retire": false,
+                        "investment_cost": 3219.24,
+                        "efficiency": 1.0,
+                        "constraints": {
+                            "CapacityConstraint": true
+                        }
+                    },
+                    "charge_elec_edge": {
+                        "type": "Electricity",
+                        "unidirectional": true,
+                        "has_capacity": false
+                    },
+                    "discharge_elec_edge": {
+                        "type": "Electricity",
+                        "unidirectional": true,
+                        "has_capacity": false
+                    },
+                    "external_charge_edge": {
+                        "type": "Hydrogen",
+                        "unidirectional": true,
+                        "has_capacity": false
+                    },
+                    "external_discharge_edge": {
+                        "type": "Hydrogen",
+                        "unidirectional": true,
+                        "has_capacity": false
+                    }
+                }
+            },
+            "instance_data": [
+                {
+                    "id": "SE_Above_ground_storage",
+                    "edges": {
+                        "external_discharge_edge": {
+                            "end_vertex": "h2_SE"
+                        },
+                        "external_charge_edge":{
+                            "start_vertex": "h2_SE"
+                        },
+                        "discharge_elec_edge": {
+                            "start_vertex": "elec_SE"
+                        },
+                        "charge_elec_edge": {
+                            "start_vertex": "elec_SE"
+                        }
+                    }
+                },
+                {
+                    "id": "MIDAT_Above_ground_storage",
+                    "edges": {
+                        "external_discharge_edge": {
+                            "end_vertex": "h2_MIDAT"
+                        },
+                        "external_charge_edge":{
+                            "start_vertex": "h2_MIDAT"
+                        },
+                        "discharge_elec_edge": {
+                            "start_vertex": "elec_MIDAT"
+                        },
+                        "charge_elec_edge": {
+                            "start_vertex": "elec_MIDAT"
+                        }
+                    }
+                },
+                {
+                    "id": "NE_Above_ground_storage",
+                    "edges": {
+                        "external_discharge_edge": {
+                            "end_vertex": "h2_NE"
+                        },
+                        "external_charge_edge":{
+                            "start_vertex": "h2_NE"
+                        },
+                        "discharge_elec_edge": {
+                            "start_vertex": "elec_NE"
+                        },
+                        "charge_elec_edge": {
+                            "start_vertex": "elec_NE"
+                        }
+                    }
+                }
+            ]
+        }
+    ]
+}

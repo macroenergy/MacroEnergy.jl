@@ -1,0 +1,274 @@
+{
+    "BECCS_Gasoline": [
+        {
+            "type": "BECCSGasoline",
+            "global_data":{
+                "transforms": {
+                    "timedata": "Biomass",
+                    "constraints": {
+                            "BalanceConstraint": true
+                    }
+                },
+                "edges":{
+                    "elec_edge":{
+                        "commodity": "Electricity",
+                        "unidirectional": true,
+                        "has_capacity": false
+                    },
+                    "gasoline_edge":{
+                        "commodity": "Gasoline",
+                        "unidirectional": true,
+                        "has_capacity": false
+                    },
+                    "biomass_edge":{
+                        "commodity": "Biomass",
+                        "unidirectional": true,
+                        "has_capacity": true,
+                        "can_expand": true,
+                        "can_retire": true,
+                        "integer_decisions": false,
+                        "constraints": {
+                            "CapacityConstraint": true,
+                            "MinFlowConstraint": true
+                        }
+                    },
+                    "co2_edge":{
+                        "commodity": "CO2",
+                        "unidirectional": true,
+                        "has_capacity": false,
+                        "start_vertex": "co2_sink"
+                    },
+                    "co2_emission_edge": {
+                        "commodity": "CO2",
+                        "unidirectional": true,
+                        "has_capacity": false,
+                        "end_vertex": "co2_sink"
+                    },
+                    "co2_captured_edge": {
+                        "commodity": "CO2Captured",
+                        "unidirectional": true,
+                        "has_capacity": false
+                    }
+                }
+            },
+            "instance_data":[
+                {
+                    "id": "SE_Bio_Gasoline_Herb",
+                    "transforms":{
+                        "gasoline_production": 2.02155,
+                        "electricity_consumption": 0,
+                        "capture_rate": 0,
+                        "co2_content":1.717,
+                        "emission_rate":1.22933
+                    },
+                    "edges": {
+                        "biomass_edge": {
+                            "commodity": "Biomass_Herb",
+                            "start_vertex": "bioherb_SE",
+                            "availability": {
+                                "timeseries": {
+                                    "path": "system/availability.csv",
+                                    "header": "SE_Bio_Gasoline_Herb"
+                                    }
+                                },
+                            "investment_cost": 356054,
+                            "fixed_om_cost": 283503,
+                            "variable_om_cost": 22.04,
+                            "min_flow_fraction": 0.85
+                        },
+                        "elec_edge": {
+                            "start_vertex": "elec_SE"
+                        },
+                        "gasoline_edge":{
+                            "commodity": "Gasoline",
+                            "end_vertex": "gasoline_SE"
+                        },
+                        "co2_captured_edge": {
+                            "end_vertex": "co2_captured_SE"
+                        }
+                    }
+                },
+                {
+                    "id": "MIDAT_Bio_Gasoline_Herb",
+                    "transforms":{
+                        "gasoline_production": 2.02155,
+                        "electricity_consumption": 0,
+                        "capture_rate": 0,
+                        "co2_content":1.717,
+                        "emission_rate":1.22933
+                    },
+                    "edges": {
+                        "biomass_edge": {
+                            "commodity": "Biomass_Herb",
+                            "start_vertex": "bioherb_MIDAT",
+                            "availability": {
+                                "timeseries": {
+                                    "path": "system/availability.csv",
+                                    "header": "MIDAT_Bio_Gasoline_Herb"
+                                    }
+                                },
+                            "investment_cost": 356054,
+                            "fixed_om_cost": 283503,
+                            "variable_om_cost": 22.04,
+                            "min_flow_fraction": 0.85
+                        },
+                        "elec_edge": {
+                            "start_vertex": "elec_MIDAT"
+                        },
+                        "gasoline_edge":{
+                            "commodity": "Gasoline",
+                            "end_vertex": "gasoline_MIDAT"
+                        },
+                        "co2_captured_edge": {
+                            "end_vertex": "co2_captured_MIDAT"
+                        }
+                    }
+                },
+                {
+                    "id": "NE_Bio_Gasoline_Herb",
+                    "transforms":{
+                        "gasoline_production": 2.02155,
+                        "electricity_consumption": 0,
+                        "capture_rate": 0,
+                        "co2_content":1.717,
+                        "emission_rate":1.22933
+                    },
+                    "edges": {
+                        "biomass_edge": {
+                            "commodity": "Biomass_Herb",
+                            "start_vertex": "bioherb_NE",
+                            "availability": {
+                                "timeseries": {
+                                    "path": "system/availability.csv",
+                                    "header": "NE_Bio_Gasoline_Herb"
+                                    }
+                                },
+                            "investment_cost": 356054,
+                            "fixed_om_cost": 283503,
+                            "variable_om_cost": 22.04,
+                            "min_flow_fraction": 0.85
+                        },
+                        "elec_edge": {
+                            "start_vertex": "elec_NE"
+                        },
+                        "gasoline_edge":{
+                            "commodity": "Gasoline",
+                            "end_vertex": "gasoline_NE"
+                        },
+                        "co2_captured_edge": {
+                            "end_vertex": "co2_captured_NE"
+                        }
+                    }
+                },
+                {
+                    "id": "SE_Bio_Gasoline_Wood",
+                    "transforms":{
+                        "gasoline_production": 2.02155,
+                        "electricity_consumption": 0,
+                        "capture_rate": 0,
+                        "co2_content":1.717,
+                        "emission_rate":1.22933
+                    },
+                    "edges": {
+                        "biomass_edge": {
+                            "commodity": "Biomass_Wood",
+                            "start_vertex": "biowood_SE",
+                            "availability": {
+                                "timeseries": {
+                                    "path": "system/availability.csv",
+                                    "header": "SE_Bio_Gasoline_Wood"
+                                    }
+                                },
+                            "investment_cost": 356054,
+                            "fixed_om_cost": 283503,
+                            "variable_om_cost": 22.04,
+                            "min_flow_fraction": 0.85
+                        },
+                        "elec_edge": {
+                            "start_vertex": "elec_SE"
+                        },
+                        "gasoline_edge":{
+                            "commodity": "Gasoline",
+                            "end_vertex": "gasoline_SE"
+                        },
+                        "co2_captured_edge": {
+                            "end_vertex": "co2_captured_SE"
+                        }
+                    }
+                },
+                {
+                    "id": "MIDAT_Bio_Gasoline_Wood",
+                    "transforms":{
+                        "gasoline_production": 2.02155,
+                        "electricity_consumption": 0,
+                        "capture_rate": 0,
+                        "co2_content":1.717,
+                        "emission_rate":1.22933
+                    },
+                    "edges": {
+                        "biomass_edge": {
+                            "commodity": "Biomass_Wood",
+                            "start_vertex": "biowood_MIDAT",
+                            "availability": {
+                                "timeseries": {
+                                    "path": "system/availability.csv",
+                                    "header": "MIDAT_Bio_Gasoline_Wood"
+                                    }
+                                },
+                            "investment_cost": 356054,
+                            "fixed_om_cost": 283503,
+                            "variable_om_cost": 22.04,
+                            "min_flow_fraction": 0.85
+                        },
+                        "elec_edge": {
+                            "start_vertex": "elec_MIDAT"
+                        },
+                        "gasoline_edge":{
+                            "commodity": "Gasoline",
+                            "end_vertex": "gasoline_MIDAT"
+                        },
+                        "co2_captured_edge": {
+                            "end_vertex": "co2_captured_MIDAT"
+                        }
+                    }
+                },
+                {
+                    "id": "NE_Bio_Gasoline_Wood",
+                    "transforms":{
+                        "gasoline_production": 2.02155,
+                        "electricity_consumption": 0,
+                        "capture_rate": 0,
+                        "co2_content":1.717,
+                        "emission_rate":1.22933
+                    },
+                    "edges": {
+                        "biomass_edge": {
+                            "commodity": "Biomass_Wood",
+                            "start_vertex": "biowood_NE",
+                            "availability": {
+                                "timeseries": {
+                                    "path": "system/availability.csv",
+                                    "header": "NE_Bio_Gasoline_Wood"
+                                    }
+                                },
+                            "investment_cost": 356054,
+                            "fixed_om_cost": 283503,
+                            "variable_om_cost": 22.04,
+                            "min_flow_fraction": 0.85
+                        },
+                        "elec_edge": {
+                            "start_vertex": "elec_NE"
+                        },
+                        "gasoline_edge":{
+                            "commodity": "Gasoline",
+                            "end_vertex": "gasoline_NE"
+                        },
+                        "co2_captured_edge": {
+                            "end_vertex": "co2_captured_NE"
+                        }
+                    }
+                }
+            ]
+        }
+    ]
+}

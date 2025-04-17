@@ -24,7 +24,7 @@ function edge_default_data()
         :min_flow_fraction => 0.0,
         :ramp_up_fraction => 1.0,
         :ramp_down_fraction => 1.0,
-        :retrofit_efficiency => missing,
+        :retrofit_efficiency => 1.0,
         :retrofit_id => missing,
         :distance => 0.0,
         :investment_cost => 0.0,
