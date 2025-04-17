@@ -49,6 +49,7 @@ function initialize_local_subproblems!(system_local::Vector,subproblems_local::V
         subproblems_local[i][:linking_variables_sub] = linking_variables_sub;
         subproblems_local[i][:subproblem_index] = local_indices[i];
         subproblems_local[i][:slack_penalty_value] = slack_penalty_value;
+        subproblems_local[i][:system_local] = system_local[i]
     end
 end
 

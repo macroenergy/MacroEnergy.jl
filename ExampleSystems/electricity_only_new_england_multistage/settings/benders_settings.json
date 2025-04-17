@@ -1,5 +1,5 @@
 {
-  "MaxIter": 50,
+  "MaxIter": 2,
   "MaxCpuTime": 7200,
   "ConvTol": 1e-3,
   "StabParam": 0.5,

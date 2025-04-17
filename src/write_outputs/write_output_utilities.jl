@@ -943,6 +943,23 @@ function write_outputs(case_path::AbstractString, stages::Stages, bd_results::Be
     # get the planning problem from the Benders results
     model = bd_results.planning_problem
     write_outputs(case_path, stages, model, expansion_mode(stages))
+
+    flow_df = Vector{DataFrame}(undef, length(bd_results.op_subproblem))
+    for s in eachindex(bd_results.op_subproblem)
+        system = bd_results.op_subproblem[s][:system_local]
+        flow_df[i] = get_optimal_flow(system)
+    end
+
+    flow_results = reduce(vcat, flow_df)
+
+    layout = get_output_layout(system, :Flow)
+
+    if layout == "wide"
+        # df will be of size (time_steps, component_ids)
+        flow_results = reshape_wide(flow_results, :time, :component_id, :value)
+    end
+    write_dataframe(file_path, flow_results, drop_cols)
+    return nothing
 end
 
 function write_outputs(case_path::AbstractString, stages::Stages, model::Model, ::SingleStage)
