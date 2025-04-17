@@ -1,0 +1,79 @@
+{
+    "NaturalGasFossilUpstream": [
+        {
+            "type": "FossilFuelsUpstream",
+            "global_data":{
+                "transforms": {
+                    "timedata": "NaturalGas",
+                    "constraints": {
+                            "BalanceConstraint": true
+                    },
+                    "emission_rate": 0
+                },
+                "edges" :{
+                    "fossil_fuel_edge": {
+                        "commodity": "NaturalGas",
+                        "unidirectional": true,
+                        "has_capacity": false
+                    },
+                    "co2_edge": {
+                        "commodity": "CO2",
+                        "unidirectional": true,
+                        "has_capacity": false,
+                        "end_vertex": "co2_sink"
+                    },
+                    "fuel_edge": {
+                        "commodity": "NaturalGas",
+                        "unidirectional": true,
+                        "has_capacity": false
+                    }
+                }
+            },
+            "instance_data":[
+                {
+                    "id": "SE_NG_Fossil_Upstream",
+                    "edges":{
+                            "fossil_fuel_edge": {
+                                "commodity": "Fossil_NaturalGas",
+                                "start_vertex": "natgas_fossil_SE"
+                            },
+                            "fuel_edge": {
+                                "commodity": "NaturalGas",
+                                "end_vertex": "natgas_SE"
+                            }
+                        }
+
+                },
+                {
+                    "id": "MIDAT_NG_Fossil_Upstream",
+                    "edges":{
+                            "fossil_fuel_edge": {
+                                "commodity": "Fossil_NaturalGas",
+                                "start_vertex": "natgas_fossil_MIDAT"
+                            },
+                            "fuel_edge": {
+                                "commodity": "NaturalGas",
+                                "end_vertex": "natgas_MIDAT"
+                            }
+                        }
+
+                },
+                {
+                    "id": "NE_NG_Fossil_Upstream",
+                    "edges":{
+                            "fossil_fuel_edge": {
+                                "commodity": "Fossil_NaturalGas",
+                                "start_vertex": "natgas_fossil_NE"
+                            },
+                            "fuel_edge": {
+                                "commodity": "NaturalGas",
+                                "end_vertex": "natgas_NE"
+                            }
+                        }
+
+                }
+            ]
+        }
+    ]
+
+}

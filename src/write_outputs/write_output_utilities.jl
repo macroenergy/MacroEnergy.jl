@@ -158,7 +158,7 @@ get_commodity_name(obj::Storage) = typesymbol(commodity_type(obj))
 # e.g., "capacity" for capacity variables, "flow" for flow variables, etc.
 function get_commodity_subtype(f::Function)
     field_name = Symbol(f)
-    if any(field_name .== (:capacity, :new_capacity, :retired_capacity))
+    if any(field_name .== (:capacity, :new_capacity, :retired_capacity, :retrofitted_capacity))
         return :capacity
     # elseif f == various cost # TODO: implement this
     #     return :cost
