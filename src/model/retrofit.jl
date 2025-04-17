@@ -3,9 +3,6 @@ function add_retrofit_constraints!(system::System, model::Model)
     # Add retrofitting constraints
     
     retrofit_ids,can_retrofit_edges,is_retrofit_edges = get_unique_retrofit_ids(system)
-    @show retrofit_ids
-    @show [e.id for e in can_retrofit_edges[retrofit_ids[1]]]
-    @show [e.id for e in is_retrofit_edges[retrofit_ids[1]]]
     @constraint(model, 
     cRetrofitCapacity[retrofit_id in retrofit_ids],
     sum(retrofitted_capacity(e) for e in can_retrofit_edges[retrofit_id]) ==
