@@ -27,56 +27,74 @@ This will use Macro to solve the example system and save the results in the `res
 Congratulations, you just ran your first Macro model! 🎉
 
 ## Running Macro with user-defined cases
-To run Macro with a user-defined case, you need to create a folder `MyCase` with the following structure:
+To run Macro with a user-defined case, you need to create a folder `MyCase` with a minimum of the following structure (customized cases can have additional files and folders (refer to the example cases, for specific details)):
 
 ```
 MyCase
 ├── assets/
-├── dolphyn_data/
-├── h2transport_options/
 ├── settings/
 ├── system/
-├── timeseries_3weeks/
-├── timeseries_full_year/
 ├── run.jl
 ├── run_HiGHS.jl
 ├── run_with_env.jl
 └── system_data.json
 ```
 
-where the `assets` folder consists of the details of the configurations of the different resources modeled as assets within Macro (e.g. the location of the nodes, edges, types of resources, such as BECCS, electrolyzers, hydrostorage units etc.), the `dolphyn_data` consists of the `.csv` files for resources, just as before, but to run with DOLPHYN model, the `h2transport_options` folder is similar to the contents of the `assets` folder, but it specifically contains `.json` files for h1 pipelines and transportations. The `settings` folder contains the configuration files for the constraint scaling and writing subcommodities, the `system` folder contains the `.csv` and `.json` input files related to timeseries data and the system under study, the `resource` folder contains the `.csv` input files with the list of generators to include in the model, and the `policies` folder contains the `.csv` input files which define the policies to be included in the model. 
+where the `assets` folder consists of the details of the configurations of the different resources modeled as assets within Macro (e.g. the location of the nodes, edges, types of resources, such as BECCS, electrolyzers, hydrostorage units etc.). The `settings` folder contains the configuration files for the constraint scaling and writing subcommodities, the `system` folder contains the `.csv` and `.json` input files related to timeseries data and the system under study, the `resource` folder contains the `.csv` input files with the list of generators to include in the model, and the `policies` folder contains the `.csv` input files which define the policies to be included in the model. 
 For instance, one case could have the following structure:
 
 ```
 MyCase
 │ 
 ├── settings
-│   ├── genx_settings.yml           # GenX settings
-│   ├── [solver_name]_settings.yml  # Solver settings
-│   ├── multi_stage_settings.yml    # Multi-stage settings
-│   └── time_domain_reduction.yml   # Time-domain clustering settings
+│   └── macro_settings.yml           # Macro settings
 │ 
 ├── system
-│   ├── Demand_data.csv
-│   ├── Fuel_data.csv
-│   ├── Generators_variability.csv
-│   └── Network.csv
+│   ├── Period_map.csv
+│   ├──availability.csv
+│   ├──commodities.json
+│   ├──demand fuel.csv
+│   ├──demand nofuel.csv
+│   ├──demand.csv
+│   ├──fuel_prices.csv
+│   ├──nodes.csv
+│   ├──nodes.json
+│   └──time_data.json
 │ 
-├── policies
-│   ├── CO2_cap.csv
-│   ├── Minimum_capacity_requirement.csv
-│   └── Energy_share_requirement.csv
-│ 
-├── resources
-│   ├── Thermal.csv
-│   ├── Storage.csv
-│   ├── Vre.csv
-│   ├── Hydro.csv
-│   └── policy_assignments
-|       ├── Resource_minimum_capacity_requirement.csv
-│       └── Resource_energy_share_requirement.csv
-│
-└── Run.jl
+├── assets
+│   ├──beccs_electricity.json
+│   ├──beccs_gasoline.json
+│   ├──beccs_hydrogen.json
+│   ├──beccs_liquid_fuels.json
+│   ├──beccs_naturalgas.json
+│   ├──co2_injection.json
+│   ├──electricdac.json
+│   ├──electricity_stor.json
+│   ├──electrolyzer.json
+│   ├──h2gas_power_ccgt.json
+│   ├──h2gas_power_ocgt.json
+│   ├──h2pipelines.json
+│   ├──h2storage.json
+│   ├──hydropower.json
+│   ├──liquid_fuels_end_use.json
+│   ├──liquid_fuels_fossil_upstream.json
+│   ├──mustrun.json
+│   ├──natgasdac.json
+│   ├──naturalgas_end_use.json
+│   ├──naturalgas_fossil_upstream.json
+│   ├──naturalgas_h2.json
+│   ├──naturalgas_h2_ccs.json
+│   ├──naturalgas_power.json
+│   ├──naturalgas_power_ccs.json
+│   ├──nuclear_power.json
+│   ├──powerlines.json
+│   ├──synthetic_liquid_fuels.json
+│   ├──synthetic_naturalgas.json
+│   └──vre.json
+├── run.jl
+├── run_HiGHS.jl
+├── run_with_env.jl
+└── system_data.json
 ```
 
 In this example, `MyCase` will define a case with `Themal`, `Storage`, `Vre`, and `Hydro` resources, the `system` folder will provide the data for the demand, fuel, generators' variability, and network, the `policies` folder will include a CO2 cap, a minimum capacity requirement, and an energy share requirement, and the `settings` folder will contain the configuration files for the model. 
