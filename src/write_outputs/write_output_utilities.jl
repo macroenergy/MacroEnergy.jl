@@ -936,33 +936,10 @@ function write_outputs(results_dir::AbstractString, system::System, model::Model
 end
 
 function write_outputs(case_path::AbstractString, stages::Stages, model::Union{Model, Vector{Model}})
-    write_outputs(case_path, stages, model, expansion_mode(stages))
+    write_outputs(case_path, stages, model, expansion_mode(stages), solution_algorithm(stages))
 end
 
-function write_outputs(case_path::AbstractString, stages::Stages, bd_results::BendersResults)
-    # get the planning problem from the Benders results
-    model = bd_results.planning_problem
-    write_outputs(case_path, stages, model, expansion_mode(stages))
-
-    flow_df = Vector{DataFrame}(undef, length(bd_results.op_subproblem))
-    for s in eachindex(bd_results.op_subproblem)
-        system = bd_results.op_subproblem[s][:system_local]
-        flow_df[i] = get_optimal_flow(system)
-    end
-
-    flow_results = reduce(vcat, flow_df)
-
-    layout = get_output_layout(system, :Flow)
-
-    if layout == "wide"
-        # df will be of size (time_steps, component_ids)
-        flow_results = reshape_wide(flow_results, :time, :component_id, :value)
-    end
-    write_dataframe(file_path, flow_results, drop_cols)
-    return nothing
-end
-
-function write_outputs(case_path::AbstractString, stages::Stages, model::Model, ::SingleStage)
+function write_outputs(case_path::AbstractString, stages::Stages, model::Model, ::SingleStage, ::Monolithic)
     @info("Writing results for single stage")
     results_dir = joinpath(case_path, "results")
     mkpath(results_dir)
@@ -971,7 +948,7 @@ function write_outputs(case_path::AbstractString, stages::Stages, model::Model, 
     return nothing
 end
 
-function write_outputs(case_path::AbstractString, stages::Stages, models::Vector{Model}, ::Myopic)
+function write_outputs(case_path::AbstractString, stages::Stages, models::Vector{Model}, ::Myopic, ::Monolithic)
 
     for s in 1:length(stages.systems)
         @info("Writing results for stage $s")
@@ -983,7 +960,7 @@ function write_outputs(case_path::AbstractString, stages::Stages, models::Vector
     return nothing
 end
 
-function write_outputs(case_path::AbstractString, stages::Stages, model::Model, ::PerfectForesight)
+function write_outputs(case_path::AbstractString, stages::Stages, model::Model, ::PerfectForesight, ::Monolithic)
 
     for s in 1:length(stages.systems)
         @info("Writing results for stage $s")
@@ -996,4 +973,119 @@ function write_outputs(case_path::AbstractString, stages::Stages, model::Model, 
     end
 
     return nothing
+end
+
+"""
+Write results when using Benders as solution algorithm.
+"""
+function write_outputs(case_path::AbstractString, stages::Stages, bd_results::BendersResults)
+    write_outputs(case_path, stages, bd_results, expansion_mode(stages), solution_algorithm(stages))
+end
+
+"""
+Write outputs for perfect foresight model with Benders decomposition.
+"""
+function write_outputs(case_path::AbstractString, stages::Stages, bd_results::BendersResults, ::PerfectForesight, ::Benders)
+
+    settings = stages.settings
+    stage_to_subproblem_map = get_stage_to_subproblem_mapping(stages.systems)
+    # get the results from the planning problem
+    model = bd_results.planning_problem
+    # get the flow results from the operational subproblems
+    flow_df = collect_flow_results(stages, bd_results)
+
+    for (stage_idx, system) in enumerate(stages.systems)
+        @info("Writing results for stage $stage_idx")
+        ## Create results directory to store the results
+        results_dir = joinpath(case_path, "results_stage_$stage_idx")
+        mkpath(results_dir)
+
+        @info("Writing investment results for stage $stage_idx")
+        write_investment_results(results_dir, settings, system, model)
+
+        @info("Writing operational results for stage $stage_idx")
+        flow_df_stage = flow_df[stage_to_subproblem_map[stage_idx]]
+        write_operational_results(results_dir, system, flow_df_stage)
+    end
+
+    return nothing
+end
+
+"""
+Collect flow results from all subproblems, handling distributed case.
+"""
+function collect_flow_results(stages::Stages, bd_results::BendersResults)
+    if stages.settings.BendersSettings[:Distributed]
+        return collect_distributed_flows(bd_results)
+    else
+        return collect_local_flows(bd_results)
+    end
+end
+
+"""
+Collect flow results from subproblems on distributed workers.
+"""
+function collect_distributed_flows(bd_results::BendersResults)
+    p_id = workers()
+    np_id = length(p_id)
+    flow_df = Vector{Vector{DataFrame}}(undef, np_id)
+    @sync for i in 1:np_id
+        @async flow_df[i] = @fetchfrom p_id[i] get_local_expressions(get_optimal_flow, DistributedArrays.localpart(bd_results.op_subproblem))
+    end
+    return reduce(vcat, flow_df)
+end
+
+"""
+Collect flow results from local subproblems.
+"""
+function collect_local_flows(bd_results::BendersResults)
+    flow_df = Vector{DataFrame}(undef, length(bd_results.op_subproblem))
+    for i in eachindex(bd_results.op_subproblem)
+        system = bd_results.op_subproblem[i][:system_local]
+        flow_df[i] = get_optimal_flow(system)
+    end
+    return flow_df
+end
+
+"""
+Write investment-related results for each stage.
+"""
+function write_investment_results(results_dir::AbstractString, settings::NamedTuple, system::System, model::Model)
+    # # Capacity results
+    write_capacity(joinpath(results_dir, "capacity.csv"), system)
+    # Cost results
+    compute_real_costs!(model, system, settings)
+    write_costs(joinpath(results_dir, "costs.csv"), system, model)
+    write_discounted_costs(joinpath(results_dir, "discounted_costs.csv"), system, model)
+end
+
+"""
+Write operational results for each stage.
+"""
+function write_operational_results(results_dir::AbstractString, system::System, flow_dfs::Vector{DataFrame})
+    # Flow results
+    write_stage_flows(results_dir, system, flow_dfs)
+end
+
+function write_stage_flows(results_dir::AbstractString, system::System, flow_dfs::Vector{DataFrame})
+    file_path = joinpath(results_dir, "flows.csv")
+    @info("Writing flow results to $file_path")
+    flow_results = reduce(vcat, flow_dfs)
+    
+    # Reshape if wide layout requested
+    layout = get_output_layout(system, :Flow)
+    if layout == "wide"
+        flow_results = reshape_wide(flow_results, :time, :component_id, :value)
+    end
+    write_dataframe(file_path, flow_results)
+end
+
+function get_local_expressions(optimal_getter::Function, subproblems_local::Vector{Dict{Any,Any}})
+    @assert isdefined(MacroEnergy, Symbol(optimal_getter))
+    n_local_subprob = length(subproblems_local)
+    expr_df = Vector{DataFrame}(undef, n_local_subprob)
+    for s in eachindex(subproblems_local)
+        expr_df[s] = optimal_getter(subproblems_local[s][:system_local])
+    end
+    return expr_df
 end
