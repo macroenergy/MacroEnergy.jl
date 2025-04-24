@@ -56,7 +56,7 @@ end
 function initialize_subproblems!(system_decomp::Vector,opt::Dict,distributed_bool::Bool,IncludeAutomaticSlackPenalty=false)
     
     if distributed_bool
-        subproblems, linking_variables_sub =  initialize_dist_subproblems!(system_decomp,opt,IncludeAutomaticSlackPenalty)
+        subproblems, linking_variables_sub = initialize_dist_subproblems!(system_decomp,opt,IncludeAutomaticSlackPenalty)
     else
         subproblems, linking_variables_sub = initialize_serial_subproblems!(system_decomp,opt,IncludeAutomaticSlackPenalty)
     end
@@ -92,7 +92,7 @@ function initialize_dist_subproblems!(system_decomp::Vector,opt::Dict,IncludeAut
     linking_variables_sub = [Dict() for k in 1:np_id];
 
     @sync for k in 1:np_id
-              @async linking_variables_sub[k]= @fetchfrom p_id[k] get_local_linking_variables(localpart(subproblems_all))
+        @async linking_variables_sub[k]= @fetchfrom p_id[k] get_local_linking_variables(localpart(subproblems_all))
     end
 
 	linking_variables_sub = merge(linking_variables_sub...);

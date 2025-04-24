@@ -60,20 +60,20 @@ abstract type OperationConstraint <: AbstractTypeConstraint end
 abstract type PolicyConstraint <: OperationConstraint end
 abstract type PlanningConstraint <: AbstractTypeConstraint end
 
-# Solution algorithms
+## Solution algorithms
 abstract type AbstractExpansionMode end
 struct Myopic <: AbstractExpansionMode end
 struct PerfectForesight <: AbstractExpansionMode end
 struct SingleStage <: AbstractExpansionMode end
-
-abstract type AbstractSolutionAlgorithm end
-struct Benders <: AbstractSolutionAlgorithm end
-struct Monolithic <: AbstractSolutionAlgorithm end
-
 expansion_mode(::AbstractExpansionMode) = SingleStage() # default to single stage
 expansion_mode(::SingleStage) = SingleStage()
 expansion_mode(::Myopic) = Myopic()
 expansion_mode(::PerfectForesight) = PerfectForesight()
+
+abstract type AbstractSolutionAlgorithm end
+struct Benders <: AbstractSolutionAlgorithm end
+struct Monolithic <: AbstractSolutionAlgorithm end
+solution_algorithm(::AbstractExpansionMode) = Monolithic() # default to monolithic
 solution_algorithm(::Benders) = Benders()
 solution_algorithm(::Monolithic) = Monolithic()
 
@@ -115,8 +115,9 @@ function include_all_in_folder(folder::AbstractString, root_path::AbstractString
     return nothing
 end
 
-include_all_in_folder("utilities")
 # include files
+include_all_in_folder("utilities")
+
 include("model/units.jl")
 include("model/time_management.jl")
 include("model/networks/vertex.jl")
@@ -129,6 +130,13 @@ include("model/networks/asset.jl")
 include("model/system.jl")
 include("model/stages.jl")
 include("model/networks/macroobject.jl")
+include("model/generate_model.jl")
+include("model/multistage.jl")
+include("model/optimizer.jl")
+include("model/scaling.jl")
+include("model/solver.jl")
+include_all_in_folder("model/constraints")
+include_all_in_folder("model/benders")
 
 include("model/assets/battery.jl")
 include("model/assets/electrolyzer.jl")
@@ -138,10 +146,8 @@ include("model/assets/thermalhydrogen.jl")
 include("model/assets/thermalpower.jl")
 include("model/assets/powerline.jl")
 include("model/assets/vre.jl")
-
 include("model/assets/thermalhydrogenccs.jl")
 include("model/assets/thermalpowerccs.jl")
-
 include("model/assets/natgasdac.jl")
 include("model/assets/electricdac.jl")
 include("model/assets/beccselectricity.jl")
@@ -151,28 +157,16 @@ include("model/assets/beccsliquidfuels.jl")
 include("model/assets/beccsnaturalgas.jl")
 include("model/assets/hydrores.jl")
 include("model/assets/mustrun.jl")
-
 include("model/assets/fossilfuelsupstream.jl")
 include("model/assets/fuelsenduse.jl")
-
 include("model/assets/syntheticnaturalgas.jl")
 include("model/assets/syntheticliquidfuels.jl")
-
 include("model/assets/co2injection.jl")
-
-include_all_in_folder("model/constraints")
 
 include("config/configure_settings.jl")
 include("config/stage_settings.jl")
 include_all_in_folder("load_inputs")
 
-include("model/generate_model.jl")
-include("model/multistage.jl")
-include("model/optimizer.jl")
-include("model/scaling.jl")
-include("model/solver.jl")
-
-include_all_in_folder("model/benders")
 include_all_in_folder("write_outputs/")
 
 export AbstractAsset,
