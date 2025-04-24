@@ -50,6 +50,25 @@ function get_subproblem_to_stage_mapping(systems::Vector{System})
 
 end
 
+function get_stage_to_subproblem_mapping(systems::Vector{System})
+    stage_map = get_subproblem_to_stage_mapping(systems)
+    return get_stage_to_subproblem_mapping(stage_map)
+end
+
+function get_stage_to_subproblem_mapping(stage_map::Vector{Int64})
+
+    stage_to_subproblem_map = Dict{Int64,Vector{Int64}}()
+    for (subproblem_index, stage_index) in enumerate(stage_map)
+        if haskey(stage_to_subproblem_map, stage_index)
+            push!(stage_to_subproblem_map[stage_index], subproblem_index)
+        else
+            stage_to_subproblem_map[stage_index] = [subproblem_index]
+        end
+    end
+
+    return stage_to_subproblem_map
+end
+
 function start_distributed_processes!(number_of_processes::Int64,case_path::AbstractString)
 
     # rmprocs.(workers())

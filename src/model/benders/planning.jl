@@ -92,17 +92,21 @@ function generate_planning_problem(stages::Stages,::PerfectForesight)
 
     discount_factor = 1 ./ ( (1 + wacc) .^ cum_years)
 
-    @expression(model,eFixedCost, sum(discount_factor[s] * fixed_cost[s] for s in 1:number_of_stages))
+    @expression(model, eDiscountedFixedCost[s in 1:number_of_stages], discount_factor[s] * fixed_cost[s])
+    @expression(model, eFixedCost, sum(eDiscountedFixedCost[s] for s in 1:number_of_stages))
 
     number_of_subproblems = sum(length(system.time_data[:Electricity].subperiods) for system in systems)
 
     stage_map = get_subproblem_to_stage_mapping(systems);
+    stage_to_subproblem_map = get_stage_to_subproblem_mapping(stage_map);
 
     @variable(model, vTHETA[w in 1:number_of_subproblems] .>= 0)
 
     opexmult = [sum([1 / (1 + wacc)^(i - 1) for i in 1:stage_lengths[s]]) for s in 1:number_of_stages]
 
     @expression(model,eApproximateVariableCost, sum(discount_factor[stage_map[w]] * opexmult[stage_map[w]] * vTHETA[w] for w in 1:number_of_subproblems))
+    
+    @expression(model, eDiscountedVariableCost[s in 1:number_of_stages], discount_factor[s] * opexmult[s] * sum(vTHETA[w] for w in stage_to_subproblem_map[s]))
 
     @objective(model, Min, model[:eFixedCost] + model[:eApproximateVariableCost])
 
