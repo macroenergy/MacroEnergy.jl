@@ -40,7 +40,7 @@ MyCase
 └── system_data.json
 ```
 
-where the `assets` folder consists of the details of the configurations of the different resources modeled as assets within Macro (e.g. the location of the nodes, edges, types of resources, such as BECCS, electrolyzers, hydrostorage units etc.). The `settings` folder contains the configuration files for the constraint scaling and writing subcommodities, the `system` folder contains the `.csv` and `.json` input files related to timeseries data and the system under study, the `resource` folder contains the `.csv` input files with the list of generators to include in the model, and the `policies` folder contains the `.csv` input files which define the policies to be included in the model. 
+where the `assets` folder consists of the details of the configurations of the different resources modeled as assets within Macro (e.g. the location of the nodes, edges, types of resources, such as BECCS, electrolyzers, hydrostorage units etc.). The `settings` folder contains the configuration files for the constraint scaling and writing subcommodities, the `system` folder contains the `.csv` and `.json` input files related to timeseries data and the system under study. 
 For instance, one case could have the following structure:
 
 ```
@@ -97,7 +97,7 @@ MyCase
 └── system_data.json
 ```
 
-In this example, `MyCase` will define a case with `Themal`, `Storage`, `Vre`, and `Hydro` resources, the `system` folder will provide the data for the demand, fuel, generators' variability, and network, the `policies` folder will include a CO2 cap, a minimum capacity requirement, and an energy share requirement, and the `settings` folder will contain the configuration files for the model. 
+In this example, `MyCase` will define a case with `assets` like  `beccs_electricity`, `electrolyzer`, `naturalgas_power` etc. resources, the `system` folder will provide the data for the demand, fuel prices, network etc., and the `settings` folder will contain the configuration files for the model. 
 
 The `run_HiGHS.jl` file should contain the following code:
 ```julia
