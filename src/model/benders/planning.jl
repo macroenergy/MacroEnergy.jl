@@ -104,9 +104,8 @@ function generate_planning_problem(stages::Stages,::PerfectForesight)
 
     opexmult = [sum([1 / (1 + wacc)^(i - 1) for i in 1:stage_lengths[s]]) for s in 1:number_of_stages]
 
-    @expression(model,eApproximateVariableCost, sum(discount_factor[stage_map[w]] * opexmult[stage_map[w]] * vTHETA[w] for w in 1:number_of_subproblems))
-    
     @expression(model, eDiscountedVariableCost[s in 1:number_of_stages], discount_factor[s] * opexmult[s] * sum(vTHETA[w] for w in stage_to_subproblem_map[s]))
+    @expression(model, eApproximateVariableCost, sum(eDiscountedVariableCost[s] for s in 1:number_of_stages))
 
     @objective(model, Min, model[:eFixedCost] + model[:eApproximateVariableCost])
 

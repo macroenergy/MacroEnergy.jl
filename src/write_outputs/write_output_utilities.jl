@@ -990,7 +990,8 @@ function write_outputs(case_path::AbstractString, stages::Stages, bd_results::Be
     settings = stages.settings
     stage_to_subproblem_map = get_stage_to_subproblem_mapping(stages.systems)
     # get the results from the planning problem
-    model = bd_results.planning_problem
+    planning_problem = bd_results.planning_problem
+    subop_sol = bd_results.subop_sol
     # get the flow results from the operational subproblems
     flow_df = collect_flow_results(stages, bd_results)
 
@@ -1001,7 +1002,7 @@ function write_outputs(case_path::AbstractString, stages::Stages, bd_results::Be
         mkpath(results_dir)
 
         @info("Writing investment results for stage $stage_idx")
-        write_investment_results(results_dir, settings, system, model)
+        write_investment_results(results_dir, settings, system, planning_problem, subop_sol, stage_to_subproblem_map[stage_idx])
 
         @info("Writing operational results for stage $stage_idx")
         flow_df_stage = flow_df[stage_to_subproblem_map[stage_idx]]
@@ -1050,13 +1051,13 @@ end
 """
 Write investment-related results for each stage.
 """
-function write_investment_results(results_dir::AbstractString, settings::NamedTuple, system::System, model::Model)
+function write_investment_results(results_dir::AbstractString, settings::NamedTuple, system::System, model::Model, subop_sol::Dict, subop_indices::Vector{Int64})
     # # Capacity results
     write_capacity(joinpath(results_dir, "capacity.csv"), system)
     # Cost results
     compute_real_costs!(model, system, settings)
     write_costs(joinpath(results_dir, "costs.csv"), system, model)
-    write_discounted_costs(joinpath(results_dir, "discounted_costs.csv"), system, model)
+    write_discounted_costs(joinpath(results_dir, "discounted_costs.csv"), system, model, subop_sol, subop_indices)
 end
 
 """

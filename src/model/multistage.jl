@@ -162,14 +162,16 @@ end
 function write_discounted_costs(
     file_path::AbstractString, 
     system::System, 
-    model::Model; 
+    model::Model,
+    subop_sol::Dict=Dict(),
+    subop_indices::Vector{Int64}=Int64[];
     scaling::Float64=1.0, 
     drop_cols::Vector{<:AbstractString}=String[]
 )
     @info "Writing discounted costs to $file_path"
 
     # Get costs and determine layout (wide or long)
-    costs = get_optimal_discounted_costs(model, system.time_data[:Electricity].stage_index; scaling)
+    costs = get_optimal_discounted_costs(model, system.time_data[:Electricity].stage_index, subop_sol, subop_indices; scaling)
     layout = get_output_layout(system, :Costs)
 
     if layout == "wide"
@@ -183,16 +185,20 @@ function write_discounted_costs(
     return nothing
 end
 
-function get_optimal_discounted_costs(model::Model,stage_index::Int64; scaling::Float64=1.0)
+function get_optimal_discounted_costs(model::Model, stage_index::Int64, subop_sol::Dict=Dict(), subop_indices::Vector{Int64}=Int64[]; scaling::Float64=1.0)
     @debug " -- Getting optimal discounted costs for the system."
-    costs = prepare_discounted_costs(model, stage_index, scaling)
+    costs = prepare_discounted_costs(model, stage_index, subop_sol, subop_indices, scaling)
     df = convert_to_dataframe(costs)
     df[!, (!isa).(eachcol(df), Vector{Missing})] # remove missing columns
 end
 
-function prepare_discounted_costs(model::Model, stage_index::Int64, scaling::Float64=1.0)
+function prepare_discounted_costs(model::Model, stage_index::Int64, subop_sol::Dict=Dict(), subop_indices::Vector{Int64}=Int64[], scaling::Float64=1.0)
     fixed_cost = value(model[:eDiscountedFixedCost][stage_index])
-    variable_cost = value(model[:eDiscountedVariableCost][stage_index])
+    variable_cost = if isempty(subop_sol) 
+        value(model[:eDiscountedVariableCost][stage_index])
+    else 
+        evaluate_vtheta_in_expression(model, :eDiscountedVariableCost, subop_sol, subop_indices, stage_index)
+    end
     total_cost = fixed_cost + variable_cost
     OutputRow[
         OutputRow(
@@ -285,3 +291,28 @@ function compute_retirement_stage!(a::AbstractAsset, stage_lengths::Vector{Int})
     return nothing
 end
 
+"""
+Evaluate the expression `expr` for a specific stage using operational subproblem solutions.
+
+# Arguments
+- `m::Model`: JuMP model containing vTHETA variables and the expression `expr` to evaluate
+- `expr::Symbol`: The expression to evaluate
+- `subop_sol::Dict`: Dictionary mapping subproblem indices to their operational costs
+- `subop_indices::Vector{Int64}`: The subproblem indices to evaluate
+- `stage_index::Int64`: The stage to evaluate
+
+# Returns
+The evaluated expression for the specified stage 
+"""
+function evaluate_vtheta_in_expression(m::Model, expr::Symbol, subop_sol::Dict, subop_indices::Vector{Int64}, stage_index::Int64)
+    @assert haskey(m, expr)
+    
+    # Create mapping from theta variables to their operational costs for this stage
+    theta_to_cost = Dict(
+        m[:vTHETA][w] => subop_sol[w].op_cost 
+        for w in subop_indices
+    )
+    
+    # Evaluate the expression `expr` using the mapping
+    return value(x -> theta_to_cost[x], m[expr][stage_index])
+end
