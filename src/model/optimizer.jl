@@ -39,3 +39,15 @@ function set_optimizer_attributes(model::Model, opt::Optimizer)
         @warn("Error setting optimizer attributes. Check that the optimizer is valid.")
     end
 end
+
+function create_optimizer_benders(
+    planning_optimizer::DataType,
+    subproblem_optimizer::DataType,
+    planning_optimizer_attributes::Tuple,
+    subproblem_optimizer_attributes::Tuple
+)
+    return Dict(
+        :planning => Dict(:solver => planning_optimizer, :attributes => planning_optimizer_attributes),
+        :subproblems => Dict(:solver => subproblem_optimizer, :attributes => subproblem_optimizer_attributes),
+    )
+end
