@@ -32,41 +32,23 @@ function generate_decomposed_system(systems_full::Vector{System})
     return system_decomp
 end
 
-function get_subproblem_to_stage_mapping(systems::Vector{System})
-
-    number_of_subperiods = sum(length(system.time_data[:Electricity].subperiods) for system in systems);
+function get_stage_to_subproblem_mapping(systems::Vector{System})
+    stage_to_subproblem_map = Dict{Int64,Vector{Int64}}()
     subperiod_count = 0;
-    stage_map = Vector{Int64}(undef,number_of_subperiods);
     for system in systems
         stage_index = system.time_data[:Electricity].stage_index;
-        number_of_subperiods_per_stage = length(system.time_data[:Electricity].subperiods);
+        number_of_subperiods_per_stage = length(system.time_data[:Electricity].subperiods);       
         for i in 1:number_of_subperiods_per_stage
-            subperiod_count = subperiod_count + 1;
-            stage_map[subperiod_count] = stage_index
+            subperiod_count = subperiod_count + 1; 
+            if haskey(stage_to_subproblem_map, stage_index)
+                push!(stage_to_subproblem_map[stage_index], subperiod_count)
+            else
+                stage_to_subproblem_map[stage_index] = [subperiod_count]
+            end
         end
     end
-
-    return stage_map
-
-end
-
-function get_stage_to_subproblem_mapping(systems::Vector{System})
-    stage_map = get_subproblem_to_stage_mapping(systems)
-    return get_stage_to_subproblem_mapping(stage_map)
-end
-
-function get_stage_to_subproblem_mapping(stage_map::Vector{Int64})
-
-    stage_to_subproblem_map = Dict{Int64,Vector{Int64}}()
-    for (subproblem_index, stage_index) in enumerate(stage_map)
-        if haskey(stage_to_subproblem_map, stage_index)
-            push!(stage_to_subproblem_map[stage_index], subproblem_index)
-        else
-            stage_to_subproblem_map[stage_index] = [subproblem_index]
-        end
-    end
-
-    return stage_to_subproblem_map
+    return stage_to_subproblem_map, collect(1:subperiod_count)
+    
 end
 
 function start_distributed_processes!(number_of_processes::Int64,case_path::AbstractString)

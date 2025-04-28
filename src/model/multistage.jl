@@ -107,7 +107,7 @@ function undo_discount_fixed_costs!(n::Node,settings::NamedTuple)
     return nothing
 end
 
-function compute_real_costs!(model::Model, system::System, settings::NamedTuple)
+function compute_nominal_costs!(model::Model, system::System, settings::NamedTuple)
     
     undo_discount_fixed_costs!(system, settings)
 

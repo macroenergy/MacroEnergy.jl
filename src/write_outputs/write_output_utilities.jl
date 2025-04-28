@@ -964,7 +964,7 @@ function write_outputs(case_path::AbstractString, stages::Stages, model::Model, 
 
     for s in 1:length(stages.systems)
         @info("Writing results for stage $s")
-        compute_real_costs!(model, stages.systems[s], stages.settings)
+        compute_nominal_costs!(model, stages.systems[s], stages.settings)
         # Output results
         results_dir = joinpath(case_path, "results_stage_$s")
         mkpath(results_dir)
@@ -988,7 +988,7 @@ Write outputs for perfect foresight model with Benders decomposition.
 function write_outputs(case_path::AbstractString, stages::Stages, bd_results::BendersResults, ::PerfectForesight, ::Benders)
 
     settings = stages.settings
-    stage_to_subproblem_map = get_stage_to_subproblem_mapping(stages.systems)
+    stage_to_subproblem_map, subproblem_indices = get_stage_to_subproblem_mapping(stages.systems)
     # get the results from the planning problem
     planning_problem = bd_results.planning_problem
     subop_sol = bd_results.subop_sol
@@ -1001,12 +1001,8 @@ function write_outputs(case_path::AbstractString, stages::Stages, bd_results::Be
         results_dir = joinpath(case_path, "results_stage_$stage_idx")
         mkpath(results_dir)
 
-        @info("Writing investment results for stage $stage_idx")
-        write_investment_results(results_dir, settings, system, planning_problem, subop_sol, stage_to_subproblem_map[stage_idx])
+        write_results(results_dir, settings, system, planning_problem, subop_sol, stage_to_subproblem_map[stage_idx],flow_df[stage_to_subproblem_map[stage_idx]])
 
-        @info("Writing operational results for stage $stage_idx")
-        flow_df_stage = flow_df[stage_to_subproblem_map[stage_idx]]
-        write_operational_results(results_dir, system, flow_df_stage)
     end
 
     return nothing
@@ -1049,21 +1045,15 @@ function collect_local_flows(bd_results::BendersResults)
 end
 
 """
-Write investment-related results for each stage.
+Write results for each stage for a multistage model solved with Benders decomposition.
 """
-function write_investment_results(results_dir::AbstractString, settings::NamedTuple, system::System, model::Model, subop_sol::Dict, subop_indices::Vector{Int64})
+function write_results(results_dir::AbstractString, settings::NamedTuple, system::System, model::Model, subop_sol::Dict, subop_indices::Vector{Int64},flow_dfs::Vector{DataFrame})
     # # Capacity results
     write_capacity(joinpath(results_dir, "capacity.csv"), system)
     # Cost results
-    compute_real_costs!(model, system, settings)
+    compute_nominal_costs!(model, system, settings)
     write_costs(joinpath(results_dir, "costs.csv"), system, model)
     write_discounted_costs(joinpath(results_dir, "discounted_costs.csv"), system, model, subop_sol, subop_indices)
-end
-
-"""
-Write operational results for each stage.
-"""
-function write_operational_results(results_dir::AbstractString, system::System, flow_dfs::Vector{DataFrame})
     # Flow results
     write_stage_flows(results_dir, system, flow_dfs)
 end

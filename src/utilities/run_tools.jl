@@ -29,8 +29,8 @@ function run_case(
     # If Benders, create processes for subproblems optimization
     if isa(solution_algorithm(stages), Benders)
         if stages.settings.BendersSettings[:Distributed]
-            number_of_processes = sum(length(system.time_data[:Electricity].subperiods) for system in stages.systems)
-            start_distributed_processes!(number_of_processes, case_path)
+            number_of_subproblems = sum(length(system.time_data[:Electricity].subperiods) for system in stages.systems)
+            start_distributed_processes!(number_of_subproblems, case_path)
         end
     end
 
