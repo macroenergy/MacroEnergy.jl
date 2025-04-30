@@ -68,11 +68,13 @@ function solve_stages(stages::Stages, opt::Dict{Symbol, Dict{Symbol, Any}}, expa
     # Decomposed system
     systems_decomp = generate_decomposed_system(systems);
 
-    planning_problem,linking_variables = initialize_planning_problem!(stages,opt[:planning])
+    planning_problem = initialize_planning_problem!(stages,opt[:planning])
 
     subproblems, linking_variables_sub = initialize_subproblems!(systems_decomp,opt[:subproblems],bd_setup[:Distributed],bd_setup[:IncludeAutomaticSlackPenalty])
 
-    results = MacroEnergySolvers.benders(planning_problem, linking_variables, subproblems, linking_variables_sub, Dict(pairs(bd_setup)))
+    results = MacroEnergySolvers.benders(planning_problem, subproblems, linking_variables_sub, Dict(pairs(bd_setup)))
+
+    update_with_planning_solution!(stages, results.planning_sol.values)
 
     return (stages, BendersResults(results, subproblems))
 end

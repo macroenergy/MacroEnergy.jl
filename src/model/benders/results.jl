@@ -1,11 +1,10 @@
 struct PlanningSolution
-    LB::Float64
     fixed_cost::Float64
     variable_values::Dict{String, Float64}
 end
 
 # Define conversion method
-Base.convert(::Type{PlanningSolution}, nt::NamedTuple) = PlanningSolution(nt.LB, nt.fixed_cost, nt.values)
+Base.convert(::Type{PlanningSolution}, nt::NamedTuple) = PlanningSolution(nt.fixed_cost, nt.values)
 
 struct BendersResults
     planning_problem::Model

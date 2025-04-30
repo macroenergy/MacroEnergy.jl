@@ -8,7 +8,7 @@ macro AbstractEdgeBaseAttributes()
         availability::Vector{Float64} = Float64[]
         can_expand::Bool = $edge_defaults[:can_expand]
         can_retire::Bool = $edge_defaults[:can_retire]
-        capacity::Union{JuMPVariable,AffExpr} = AffExpr(0.0)
+        capacity::Union{JuMPVariable,AffExpr,Float64} = AffExpr(0.0)
         capacity_size::Float64 = $edge_defaults[:capacity_size]
         capital_recovery_period::Int64 = $edge_defaults[:capital_recovery_period]
         constraints::Vector{AbstractTypeConstraint} = Vector{AbstractTypeConstraint}()
@@ -25,12 +25,12 @@ macro AbstractEdgeBaseAttributes()
         max_new_capacity::Float64 = $edge_defaults[:max_new_capacity]
         min_capacity::Float64 = $edge_defaults[:min_capacity]
         min_flow_fraction::Float64 = $edge_defaults[:min_flow_fraction]
-        new_capacity::AffExpr = AffExpr(0.0)
+        new_capacity::Union{AffExpr,Float64} = AffExpr(0.0)
         new_capacity_track::Dict{Int64,AffExpr} = Dict(1 => AffExpr(0.0))
         new_units::Union{JuMPVariable,Float64} = 0.0
         ramp_down_fraction::Float64 = $edge_defaults[:ramp_down_fraction]
         ramp_up_fraction::Float64 = $edge_defaults[:ramp_up_fraction]
-        retired_capacity::AffExpr = AffExpr(0.0)
+        retired_capacity::Union{AffExpr,Float64} = AffExpr(0.0)
         retired_capacity_track::Dict{Int64,AffExpr} = Dict(1 => AffExpr(0.0))
         retired_units::Union{JuMPVariable,Float64} = 0.0
         unidirectional::Bool = $edge_defaults[:unidirectional]

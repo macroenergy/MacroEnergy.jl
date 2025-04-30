@@ -6,7 +6,7 @@ macro AbstractStorageBaseAttributes()
         spillage_edge::Union{Nothing, AbstractEdge} = nothing
         can_expand::Bool = $storage_defaults[:can_expand]
         can_retire::Bool = $storage_defaults[:can_retire]
-        capacity::Union{JuMPVariable,AffExpr} = AffExpr(0.0)
+        capacity::Union{JuMPVariable,AffExpr,Float64} = AffExpr(0.0)
         capacity_size::Float64 = $storage_defaults[:capacity_size]
         capital_recovery_period::Int64 = $storage_defaults[:capital_recovery_period]
         charge_discharge_ratio::Float64 = $storage_defaults[:charge_discharge_ratio]
@@ -24,10 +24,10 @@ macro AbstractStorageBaseAttributes()
         min_duration::Float64 = $storage_defaults[:min_duration]
         min_outflow_fraction::Float64 = $storage_defaults[:min_outflow_fraction]
         min_storage_level::Float64 = $storage_defaults[:min_storage_level]
-        new_capacity::AffExpr = AffExpr(0.0)
+        new_capacity::Union{AffExpr,Float64} = AffExpr(0.0)
         new_capacity_track::Dict{Int64,AffExpr} = Dict(1=>AffExpr(0.0))
         new_units::Union{Missing, JuMPVariable} = missing
-        retired_capacity::AffExpr = AffExpr(0.0)
+        retired_capacity::Union{AffExpr,Float64} = AffExpr(0.0)
         retired_capacity_track::Dict{Int64,AffExpr} = Dict(1=>AffExpr(0.0))
         retirement_stage::Int64 = $storage_defaults[:retirement_stage]
         retired_units::Union{Missing, JuMPVariable} = missing
@@ -205,8 +205,8 @@ end
 Base.@kwdef mutable struct LongDurationStorage{T} <: AbstractStorage{T}
     @AbstractVertexBaseAttributes()
     @AbstractStorageBaseAttributes()
-    storage_initial::JuMPVariable = Vector{VariableRef}()
-    storage_change::JuMPVariable = Vector{VariableRef}()
+    storage_initial::Union{JuMPVariable,Vector{AffExpr},Vector{Float64}}= Vector{VariableRef}()
+    storage_change::Union{JuMPVariable,Vector{AffExpr},Vector{Float64}} = Vector{VariableRef}()
 end
 storage_initial(g::LongDurationStorage) = g.storage_initial;
 storage_initial(g::LongDurationStorage, r::Int64) = g.storage_initial[r];

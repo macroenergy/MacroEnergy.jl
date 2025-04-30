@@ -1,7 +1,7 @@
 
 function initialize_planning_problem!(stages::Stages,opt::Dict)
     
-    planning_problem, linking_variables = generate_planning_problem(stages);
+    planning_problem = generate_planning_problem(stages);
 
     if opt[:solver] == Gurobi.Optimizer
         optimizer = create_optimizer(opt[:solver], GRB_ENV[], opt[:attributes])
@@ -18,7 +18,7 @@ function initialize_planning_problem!(stages::Stages,opt::Dict)
         scale_constraints!(planning_problem)
     end
 
-    return planning_problem,linking_variables
+    return planning_problem
 
 end
 function generate_planning_problem(stages::Stages)
@@ -46,18 +46,14 @@ function generate_planning_problem(stages::Stages,::PerfectForesight)
 
     fixed_cost = Dict()
 
-    linking_variables = Vector{String}();
-
     for s in 1:number_of_stages
 
         @info(" -- Stage $s")
 
         model[:eFixedCost] = AffExpr(0.0)
 
-        prev_variables = all_variables(model);
         @info(" -- Adding linking variables")
         add_linking_variables!(systems[s], model) 
-        append!(linking_variables, name.(setdiff(all_variables(model), prev_variables)))
         
         @info(" -- Defining available capacity")
         define_available_capacity!(systems[s], model)
@@ -108,7 +104,7 @@ function generate_planning_problem(stages::Stages,::PerfectForesight)
 
     @info(" -- Planning problem generation complete, it took $(time() - start_time) seconds")
 
-    return model, linking_variables
+    return model
 
 end
 
@@ -127,8 +123,6 @@ function generate_planning_problem(system::System)
 
     add_linking_variables!(system, model)
 
-    linking_variables = name.(setdiff(all_variables(model), model[:vREF]))
-
     define_available_capacity!(system, model)
 
     planning_model!(system, model)
@@ -146,7 +140,7 @@ function generate_planning_problem(system::System)
 
     @info(" -- Planning problem generation complete, it took $(time() - start_time) seconds")
 
-    return model, linking_variables
+    return model
 
 end
 
@@ -204,6 +198,67 @@ function get_available_capacity!(e::AbstractEdge, AvailableCapacity::Dict{Tuple{
 
 end
 
+function update_with_planning_solution!(stages::Stages, planning_variable_values::Dict)
+
+    for system in stages.systems
+        update_with_planning_solution!(system, planning_variable_values)
+    end
+end
+
+function update_with_planning_solution!(system::System, planning_variable_values::Dict)
+
+    for a in system.assets
+        update_with_planning_solution!(a, planning_variable_values)
+    end
+
+end
+function update_with_planning_solution!(a::AbstractAsset, planning_variable_values::Dict)
+
+    for t in fieldnames(typeof(a))
+        update_with_planning_solution!(getfield(a, t), planning_variable_values)
+    end
+
+end
+function update_with_planning_solution!(n::Node, planning_variable_values::Dict)
+
+    if any(isa.(n.constraints, PolicyConstraint))
+        ct_all = findall(isa.(n.constraints, PolicyConstraint))
+        for ct in ct_all
+            ct_type = typeof(n.constraints[ct])
+            variable_ref = copy(n.policy_budgeting_vars[Symbol(string(ct_type) * "_Budget")]);
+            n.policy_budgeting_vars[Symbol(string(ct_type) * "_Budget")] = [planning_variable_values[name(variable_ref[w])] for w in subperiod_indices(n)]
+        end
+    end
+
+end
+function update_with_planning_solution!(g::Transformation, planning_variable_values::Dict)
+
+    return nothing
+
+end
+function update_with_planning_solution!(g::AbstractStorage, planning_variable_values::Dict)
+
+    if has_capacity(g)
+        g.capacity = planning_variable_values[name(g.capacity)]
+        g.new_capacity = value(x->planning_variable_values[name(x)], g.new_capacity)
+        g.retired_capacity = value(x->planning_variable_values[name(x)], g.retired_capacity)
+    end
+
+    if isa(g,LongDurationStorage)
+        variable_ref = copy(g.storage_intial);
+        g.storage_initial = [planning_variable_values[name(variable_ref[r])] for r in modeled_subperiods(g)]
+        variable_ref = copy(g.storage_change);
+        g.storage_change = [planning_variable_values[name(variable_ref[w])] for w in subperiod_indices(g)]
+    end
+
+end
+function update_with_planning_solution!(e::AbstractEdge, planning_variable_values::Dict)
+    if has_capacity(e)
+        e.capacity = planning_variable_values[name(e.capacity)]
+        e.new_capacity = value(x->planning_variable_values[name(x)], e.new_capacity)
+        e.retired_capacity = value(x->planning_variable_values[name(x)], e.retired_capacity)
+    end
+end
 #### Removing for now, needs more testing  
 # function add_feasibility_constraints!(system::System, model::Model)
 #     all_edges = edges(system.assets)
