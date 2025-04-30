@@ -4,33 +4,32 @@ CurrentModule = MacroEnergy
 
 # Macro
 
-### Welcome to the [Macro](https://github.com/macroenergy/MacroEnergy.jl.git) documentation!
+Welcome to the [Macro](https://github.com/macroenergy/MacroEnergy.jl.git) documentation!
 
 ## What is Macro?
+MAcro-Energy System Capacity Expansion & Resource Optimization Model (MACRO) is a bottom-up, electricity-centric, macro-energy systems optimization model. It is designed to capture capacity investments, operations, and energy flows across and between multiple energy sectors and can be used to explore the impacts of different energy policies, technology costs, and other exogenous factors on the energy system. 
 
-**Macro** is a bottom-up, electricity-centric, multi-sectoral macro-energy systems optimization model. It is designed to capture capacity investments, operations, and energy flows across and between multiple energy sectors and can therefore be used to explore the impacts of different energy policies, technology costs, and other exogenous factors on the energy system as a whole and also on the different sectors. 
-
-The main features of Macro include:
-- **Graph-based representation** of the energy system, including demand nodes, edges, storage units, and transformation nodes (representing conversion processes between sectors).
-- **"Plug and play" flexibility** for integrating various technologies and sectors (e.g., electricity, hydrogen, heat, and transport).
-- **Granular spatial and temporal resolution** to accurately capture sector dynamics.
-- Designed for **distributed computing** to enable large-scale optimizations.
+The main features of MACRO include:
 - Tailored **Benders decomposition** framework for optimization.
+- **Graph-based representation** of the energy system, including nodes, storage units, edges/transmission lines, transformation nodes/conversion units.
+- **"Plug and play" flexibility** for integrating various technologies and sectors (e.g., electricity, hydrogen, heat, and transport).
+- Technologically rich, **granular temporal resolution** for detailed analysis.
 - **Open-source** built using Julia and JuMP.
 
-## Macro development strategy
+## Software Manual
 
-Macro has been designed and developed with three layers of abstractions in mind, each serving a different type of user:
+```@contents
+Pages = [
+    "installation.md",
+    "sectors.md",
+    "assets.md",
+    "constraints.md",
+    "build_sectors.md",
+    "create_example_case.md",
+    "type_hierarchy.md",
+    "data_model.md",
+    "references.md"
+]
+Depth = 2
+```
 
-![Macro architecture](./images/macro_abstr_layers.png)
-
-The following sections of the documentation are designed to serve the different needs of the different users.
-
-## Package Outline
-
-- ##### [Getting Started](@ref)
-- ##### [User Guide](@ref)
-- ##### [Modeler Guide](@ref)
-- ##### [Developer Guide](@ref)
-
-## [Table of contents](@ref)
