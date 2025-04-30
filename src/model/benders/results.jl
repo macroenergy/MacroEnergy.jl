@@ -1,6 +1,15 @@
+struct PlanningSolution
+    LB::Float64
+    fixed_cost::Float64
+    variable_values::Dict{String, Float64}
+end
+
+# Define conversion method
+Base.convert(::Type{PlanningSolution}, nt::NamedTuple) = PlanningSolution(nt.LB, nt.fixed_cost, nt.values)
+
 struct BendersResults
     planning_problem::Model
-    planning_sol::NamedTuple
+    planning_solution::PlanningSolution
     subop_sol::Dict{Any, Any}
     LB_hist::Vector{Float64}
     UB_hist::Vector{Float64}
@@ -8,9 +17,6 @@ struct BendersResults
     planning_sol_hist::Matrix{Float64}
     op_subproblem::Union{Vector{Dict{Any, Any}},DistributedArrays.DArray}
 end
-
-# Define conversion method
-# Base.convert(::Type{BendersResults}, nt::NamedTuple) = BendersResults(nt.planning_problem, nt.planning_sol, nt.LB_hist, nt.UB_hist, nt.cpu_time, nt.sol_hist, nt.subproblems)
 
 # Define constructor
 # BendersResults(nt::NamedTuple) = convert(BendersResults, nt)

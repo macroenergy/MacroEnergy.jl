@@ -990,7 +990,7 @@ function write_outputs(case_path::AbstractString, stages::Stages, bd_results::Be
     settings = stages.settings
     stage_to_subproblem_map, subproblem_indices = get_stage_to_subproblem_mapping(stages.systems)
     # get the results from the planning problem
-    planning_problem = bd_results.planning_problem
+    planning_solution = bd_results.planning_solution
     subop_sol = bd_results.subop_sol
     # get the flow results from the operational subproblems
     flow_df = collect_flow_results(stages, bd_results)
@@ -1001,7 +1001,7 @@ function write_outputs(case_path::AbstractString, stages::Stages, bd_results::Be
         results_dir = joinpath(case_path, "results_stage_$stage_idx")
         mkpath(results_dir)
 
-        write_results(results_dir, settings, system, planning_problem, subop_sol, stage_to_subproblem_map[stage_idx],flow_df[stage_to_subproblem_map[stage_idx]])
+        write_results(results_dir, settings, system, planning_solution, subop_sol, stage_to_subproblem_map[stage_idx],flow_df[stage_to_subproblem_map[stage_idx]])
 
     end
 
@@ -1047,13 +1047,14 @@ end
 """
 Write results for each stage for a multistage model solved with Benders decomposition.
 """
-function write_results(results_dir::AbstractString, settings::NamedTuple, system::System, model::Model, subop_sol::Dict, subop_indices::Vector{Int64},flow_dfs::Vector{DataFrame})
+function write_results(results_dir::AbstractString, settings::NamedTuple, system::System, planning_solution::PlanningSolution, subop_sol::Dict, subop_indices::Vector{Int64},flow_dfs::Vector{DataFrame})
     # # Capacity results
-    write_capacity(joinpath(results_dir, "capacity.csv"), system)
+    write_capacity(joinpath(results_dir, "capacity.csv"), system, planning_solution)
     # Cost results
-    compute_nominal_costs!(model, system, settings)
-    write_costs(joinpath(results_dir, "costs.csv"), system, model)
-    write_discounted_costs(joinpath(results_dir, "discounted_costs.csv"), system, model, subop_sol, subop_indices)
+    # TODO: update costs
+    # compute_nominal_costs!(model, system, settings)
+    # write_costs(joinpath(results_dir, "costs.csv"), system, model)
+    # write_discounted_costs(joinpath(results_dir, "discounted_costs.csv"), system, model, subop_sol, subop_indices)
     # Flow results
     write_stage_flows(results_dir, system, flow_dfs)
 end
@@ -1079,4 +1080,54 @@ function get_local_expressions(optimal_getter::Function, subproblems_local::Vect
         expr_df[s] = optimal_getter(subproblems_local[s][:system_local])
     end
     return expr_df
+end
+
+## TODO: move this to write_outputs/capacity.jl
+function write_capacity(
+    file_path::AbstractString, 
+    system::System,
+    planning_solution::PlanningSolution; 
+    scaling::Float64=1.0, 
+    drop_cols::Vector{<:AbstractString}=String[],
+)
+    @info "Writing capacity results to $file_path"
+    capacity_results = get_optimal_capacity(system, planning_solution; scaling)
+    
+    # Reshape the dataframe based on the requested format
+    layout = get_output_layout(system, :Capacity)
+    capacity_results = layout == "wide" ? reshape_wide(capacity_results) : capacity_results
+
+    write_dataframe(file_path, capacity_results, drop_cols)
+    return nothing
+end
+
+"""
+Return a dataframe with the optimal capacity for the system solved with Benders decomposition.
+This function is very similar to the `get_optimal_capacity` function for a System object,
+but it uses the `planning_solution` object to return the optimal capacity values for the edges.
+"""
+function get_optimal_capacity(system::System, planning_solution::PlanningSolution; scaling::Float64=1.0)
+    @debug " -- Getting optimal capacity for the system solved with Benders decomposition."
+    edges, edge_asset_idmap = edges_with_capacity_variables(system, return_ids_map=true)
+    # override the "capacity" function to return the solution in the planning_solution object
+    capacity_func = (edge) -> get_optimal_planning_capacity(edge, planning_solution)
+    asset_capacity = get_optimal_vars(edges, capacity_func, scaling, edge_asset_idmap)
+    df = convert_to_dataframe(asset_capacity)
+    df.variable .= :capacity
+    df[!, (!isa).(eachcol(df), Vector{Missing})] # remove missing columns
+end
+
+"""
+This function overrides the `capacity` function for an edge to return the optimal capacity from the planning solution.
+In particular, when calling `value(f(obj))`, where `f` is `get_optimal_planning_capacity` and `obj` is an `AbstractEdge`, 
+the function will return `planning_solution.variable_values[variable_name]` if the variable name is present in the 
+planning solution. Otherwise, it will return 0.0.
+"""
+function get_optimal_planning_capacity(edge::AbstractEdge, planning_solution::PlanningSolution)
+    variable_name = name(capacity(edge))
+    if haskey(planning_solution.variable_values, variable_name)
+        return planning_solution.variable_values[variable_name]
+    else
+        return 0.0 # TODO: check with Filippo if this is correct
+    end
 end
