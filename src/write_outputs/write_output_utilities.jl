@@ -158,7 +158,7 @@ get_commodity_name(obj::Storage) = typesymbol(commodity_type(obj))
 # e.g., "capacity" for capacity variables, "flow" for flow variables, etc.
 function get_commodity_subtype(f::Function)
     field_name = Symbol(f)
-    if any(field_name .== (:capacity, :new_capacity, :retired_capacity))
+    if any(field_name .== (:capacity, :new_capacity, :retired_capacity, :existing_capacity))
         return :capacity
     # elseif f == various cost # TODO: implement this
     #     return :cost
@@ -1091,13 +1091,16 @@ function write_capacity(
     drop_cols::Vector{<:AbstractString}=String[],
 )
     @info "Writing capacity results to $file_path"
-    capacity_results = get_optimal_capacity(system, planning_solution; scaling)
-    
+    all_capacity_results = get_optimal_capacity(system, planning_solution; scaling)
+    ## TODO: new_capacity and retired_capacity are not variables and they are not in planning_solution.
+    # new_capacity_results = get_optimal_new_capacity(system, planning_solution; scaling)
+    # retired_capacity_results = get_optimal_retired_capacity(system, planning_solution; scaling)
+    # all_capacity_results = vcat(capacity_results, new_capacity_results, retired_capacity_results)
     # Reshape the dataframe based on the requested format
     layout = get_output_layout(system, :Capacity)
-    capacity_results = layout == "wide" ? reshape_wide(capacity_results) : capacity_results
+    all_capacity_results = layout == "wide" ? reshape_wide(all_capacity_results) : all_capacity_results
 
-    write_dataframe(file_path, capacity_results, drop_cols)
+    write_dataframe(file_path, all_capacity_results, drop_cols)
     return nothing
 end
 
@@ -1106,25 +1109,31 @@ Return a dataframe with the optimal capacity for the system solved with Benders 
 This function is very similar to the `get_optimal_capacity` function for a System object,
 but it uses the `planning_solution` object to return the optimal capacity values for the edges.
 """
-function get_optimal_capacity(system::System, planning_solution::PlanningSolution; scaling::Float64=1.0)
+get_optimal_capacity(system::System,planning_solution::PlanningSolution; scaling::Float64=1.0) = get_optimal_capacity_by_field(system, planning_solution, capacity, scaling)
+get_optimal_retired_capacity(system::System, planning_solution::PlanningSolution; scaling::Float64=1.0) = get_optimal_capacity_by_field(system, planning_solution, retired_capacity, scaling)
+get_optimal_new_capacity(system::System, planning_solution::PlanningSolution; scaling::Float64=1.0) = get_optimal_capacity_by_field(system, planning_solution, new_capacity, scaling)
+
+
+function get_optimal_capacity_by_field(system::System, planning_solution::PlanningSolution, capacity_func::Function, scaling::Float64=1.0)
     @debug " -- Getting optimal capacity for the system solved with Benders decomposition."
     edges, edge_asset_idmap = edges_with_capacity_variables(system, return_ids_map=true)
     # override the "capacity" function to return the solution in the planning_solution object
-    capacity_func = (edge) -> get_optimal_planning_capacity(edge, planning_solution)
-    asset_capacity = get_optimal_vars(edges, capacity_func, scaling, edge_asset_idmap)
+    benders_capacity_func = (edge) -> get_optimal_planning_solution(edge, planning_solution, capacity_func)
+    asset_capacity = get_optimal_vars(edges, benders_capacity_func, scaling, edge_asset_idmap)
     df = convert_to_dataframe(asset_capacity)
     df.variable .= :capacity
+    df.commodity_subtype .= :capacity
     df[!, (!isa).(eachcol(df), Vector{Missing})] # remove missing columns
 end
 
 """
-This function overrides the `capacity` function for an edge to return the optimal capacity from the planning solution.
+This function overrides the `capacity`, function for an edge to return the optimal capacity from the planning solution.
 In particular, when calling `value(f(obj))`, where `f` is `get_optimal_planning_capacity` and `obj` is an `AbstractEdge`, 
 the function will return `planning_solution.variable_values[variable_name]` if the variable name is present in the 
 planning solution. Otherwise, it will return 0.0.
 """
-function get_optimal_planning_capacity(edge::AbstractEdge, planning_solution::PlanningSolution)
-    variable_name = name(capacity(edge))
+function get_optimal_planning_solution(edge::AbstractEdge, planning_solution::PlanningSolution, capacity_func::Function)
+    variable_name = name(capacity_func(edge))
     if haskey(planning_solution.variable_values, variable_name)
         return planning_solution.variable_values[variable_name]
     else
