@@ -66,7 +66,7 @@ function configure_stages(stage_settings::AbstractDict{Symbol,Any})
     set_stage_lengths!(settings)
     set_expansion_mode!(settings)
     set_solution_algorithm!(settings)
-    haskey(settings,:BendersSettings) && configure_benders!(settings)
+    isa(settings[:SolutionAlgorithm], Benders) && configure_benders!(settings)
     validate_stage_settings(settings)
     return namedtuple(settings)
 end
