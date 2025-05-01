@@ -936,10 +936,10 @@ function write_outputs(results_dir::AbstractString, system::System, model::Model
 end
 
 function write_outputs(case_path::AbstractString, stages::Stages, model::Union{Model, Vector{Model}})
-    write_outputs(case_path, stages, model, expansion_mode(stages), solution_algorithm(stages))
+    write_outputs(case_path, stages, model, expansion_mode(stages))
 end
 
-function write_outputs(case_path::AbstractString, stages::Stages, model::Model, ::SingleStage, ::Monolithic)
+function write_outputs(case_path::AbstractString, stages::Stages, model::Model, ::SingleStage)
     @info("Writing results for single stage")
     results_dir = joinpath(case_path, "results")
     mkpath(results_dir)
@@ -948,7 +948,7 @@ function write_outputs(case_path::AbstractString, stages::Stages, model::Model, 
     return nothing
 end
 
-function write_outputs(case_path::AbstractString, stages::Stages, models::Vector{Model}, ::Myopic, ::Monolithic)
+function write_outputs(case_path::AbstractString, stages::Stages, models::Vector{Model}, ::Myopic)
 
     for s in 1:length(stages.systems)
         @info("Writing results for stage $s")
@@ -960,7 +960,7 @@ function write_outputs(case_path::AbstractString, stages::Stages, models::Vector
     return nothing
 end
 
-function write_outputs(case_path::AbstractString, stages::Stages, model::Model, ::PerfectForesight, ::Monolithic)
+function write_outputs(case_path::AbstractString, stages::Stages, model::Model, ::PerfectForesight)
 
     for s in 1:length(stages.systems)
         @info("Writing results for stage $s")
