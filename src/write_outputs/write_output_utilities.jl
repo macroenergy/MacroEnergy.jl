@@ -979,16 +979,58 @@ end
 Write results when using Benders as solution algorithm.
 """
 function write_outputs(case_path::AbstractString, stages::Stages, bd_results::BendersResults)
-    write_outputs(case_path, stages, bd_results, expansion_mode(stages), solution_algorithm(stages))
+    write_outputs(case_path, stages, bd_results, expansion_mode(stages))
+end
+
+function write_outputs(case_path::AbstractString, stages::Stages, bd_results::BendersResults, ::SingleStage)
+    @info("Writing results for single stage solved with Benders decomposition")
+
+    results_dir = joinpath(case_path, "results")
+    mkpath(results_dir)
+
+    system = stages.systems[1]
+
+    subop_indices_stage = collect(1:length(system.time_data[:Electricity].subperiods))
+
+    # Note: system has been updated with the capacity values in planning_solution at the end of function solve_stages
+    # Capacity results
+    write_capacity(joinpath(results_dir, "capacity.csv"), system)
+    
+    # Flow results
+    # get the flow results from the operational subproblems
+    flow_df = collect_flow_results(stages, bd_results)
+    write_stage_flows(results_dir, system, flow_df[subop_indices_stage])
+
+    # Cost results
+    costs = prepare_costs_benders_single_stage(bd_results, subop_indices_stage)
+    write_costs(joinpath(results_dir, "costs.csv"), system, costs)
+
+    return nothing
+end
+
+function prepare_costs_benders_single_stage(bd_results::BendersResults, subop_indices::Vector{Int64})
+    planning_problem = bd_results.planning_problem
+    subop_sol = bd_results.subop_sol
+
+    # evaluate the fixed cost expressions in the planning problem
+    fixed_cost = value(planning_problem[:eFixedCost])
+
+    # evaluate the variable cost expressions using the subproblem solutions
+    variable_cost = evaluate_vtheta_in_expression(planning_problem, :eApproximateVariableCost, subop_sol, subop_indices)
+    
+    return (
+        eFixedCost = fixed_cost,
+        eVariableCost = variable_cost
+    )
 end
 
 """
 Write outputs for perfect foresight model with Benders decomposition.
 """
-function write_outputs(case_path::AbstractString, stages::Stages, bd_results::BendersResults, ::PerfectForesight, ::Benders)
+function write_outputs(case_path::AbstractString, stages::Stages, bd_results::BendersResults, ::PerfectForesight)
 
     settings = stages.settings
-    stage_to_subproblem_map, subproblem_indices = get_stage_to_subproblem_mapping(stages.systems)
+    stage_to_subproblem_map, _ = get_stage_to_subproblem_mapping(stages.systems)
 
     # get the flow results from the operational subproblems
     flow_df = collect_flow_results(stages, bd_results)
@@ -1010,7 +1052,7 @@ function write_outputs(case_path::AbstractString, stages::Stages, bd_results::Be
         write_stage_flows(results_dir, system, flow_df[subop_indices_stage])
         
         # Cost results
-        costs = prepare_costs_benders(system, bd_results, subop_indices_stage, settings, stage_idx)
+        costs = prepare_costs_benders_multistage(system, bd_results, subop_indices_stage, settings, stage_idx)
         write_costs(joinpath(results_dir, "costs.csv"), system, costs)
         write_discounted_costs(joinpath(results_dir, "discounted_costs.csv"), system, costs)
     end
@@ -1018,7 +1060,12 @@ function write_outputs(case_path::AbstractString, stages::Stages, bd_results::Be
     return nothing
 end
 
-function prepare_costs_benders(system::System, bd_results::BendersResults, subop_indices::Vector{Int64}, settings::NamedTuple, stage_idx::Int)
+function prepare_costs_benders_multistage(system::System, 
+    bd_results::BendersResults, 
+    subop_indices::Vector{Int64}, 
+    settings::NamedTuple, 
+    stage_idx::Int
+)
     planning_problem = bd_results.planning_problem
     subop_sol = bd_results.subop_sol
     planning_variable_values = bd_results.planning_sol.values
