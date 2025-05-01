@@ -245,7 +245,7 @@ function update_with_planning_solution!(g::AbstractStorage, planning_variable_va
     end
 
     if isa(g,LongDurationStorage)
-        variable_ref = copy(g.storage_intial);
+        variable_ref = copy(g.storage_initial);
         g.storage_initial = [planning_variable_values[name(variable_ref[r])] for r in modeled_subperiods(g)]
         variable_ref = copy(g.storage_change);
         g.storage_change = [planning_variable_values[name(variable_ref[w])] for w in subperiod_indices(g)]
