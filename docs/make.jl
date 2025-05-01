@@ -18,6 +18,7 @@ const pages = [
         ],
         "User Guide" => [
             "Introduction" => "User Guide/user_introduction.md",
+            "Adding nodes" => "User Guide/user_add_node.md",
             "Adding locations" => "User Guide/user_add_location.md",
             "Adding assets" => "User Guide/user_add_asset.md",
             "Making new models" => "User Guide/user_build_model.md",

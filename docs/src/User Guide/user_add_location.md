@@ -7,14 +7,15 @@ Adding a new Location to a System requires two steps:
 
 ## Adding the Location to the Location list
 
-The location list is a JSON file containing an array of Location names. Each name should be unique.
+The Location list is a JSON file containing an array of Location names. Each name should be unique.
 
-The most straightforward way of adding a new location is to use the template functions:
+The most straightforward way of adding a new Location is to use the template functions. 
 
-You can add a location by providing the location file as an argument:
+You can add one or more Locations by providing the Location file as an argument:
 
 ```julia
-template_location("ExampleSystems/template_example/system/locations.json",["Boston", "NYC", "Princeton"])
+template_location("ExampleSystems/template_example/system/locations.json", "Boston")
+template_location("ExampleSystems/template_example/system/locations.json", ["Boston", "NYC", "Princeton"])
 ```
 
 Or by providing the associated System:
@@ -23,7 +24,7 @@ Or by providing the associated System:
 template_location(system, ["Boston", "NYC", "Princeton"])
 ```
 
-You can learn how to create or load the System here.
+You can learn how to create or load the System here: [Creating a System](@ref)
 
 With either approach, doing so will leave you with the following Locations file:
 
@@ -60,9 +61,9 @@ Alternatively, you can directly add names to the locations.json file. However, i
 
 ## Adding Nodes to a Location
 
-The next step is to let Macro know which Nodes are part of your new Location.
+The next step is to let Macro know which Nodes are part of your new Location.  
 
-In your Nodes file (at system/nodes.json by default), add a "location" field to the instance data of each Node you would like to include, and the name of the Location.
+In your Nodes file (at system/nodes.json by default), add a "location" field to the instance data of each Node you would like to include, and the name of the Location. A guide on how to add a Node to a System can be found here: [Adding a Node to an existing System](@ref)
 
 For example, if you have a three-Location system and each Location requires an Electricity Node, you could add the following:
 
@@ -168,3 +169,11 @@ For example, if you wish to differentiate between high and low emission electric
 As a reminder, sub-Commodities can flow into Nodes of the same type or one of their supertypes types. This means LowEmissElectricity can flow into LowEmissElectricity Nodes or Electricity Nodes. However, HighEmissElectricity and Electricity cannot flow into LowEmissElectricity Nodes.
 
 Also, if you connect an Asset producing LowEmissElectricity to our new "SE" Location, it will be connected to the LowEmissElectricity Node. If you want the LowEmissElectricity to be able to meet the Electricity demand then you will have to specify that the Asset be connected to the "elec_SE" Node, or add an edge connecting the "lowemisselec_SE" and "elec_SE" Nodes.
+
+## Important Settings for Locations
+
+There are two important settings when using Locations in your System:
+
+- AutoCreateLocations: default = true. When set to true, this feature will automatically create a new Location if Macro comes across a Node which is a assigned to a Location that does not exist. Macro will print an info statement to let the user know that the Location has been created and its name.
+
+- AutoCreateNodes: default = false. When set to true, this feature will automatically create a new Node if Macro is asked to find a Node of a given Commodity at a Location and the Node does not exist. For example, if Macro is asked to find the Electricity Node in "location 1", but that Location only has a Hydrogen Node, then a new Electricity Node will be created with the default parameters.

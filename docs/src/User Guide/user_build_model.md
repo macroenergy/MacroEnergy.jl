@@ -1,4 +1,6 @@
-# Building a model
+# Building a System
+
+## Creating a System
 
 - Use system-template to make a system
 - Use locations-template to add a location
