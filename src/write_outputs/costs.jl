@@ -1,11 +1,11 @@
 """
-    get_optimal_costs(model::Model)
+    get_optimal_costs(model::Union{Model,NamedTuple}; scaling::Float64=1.0)
 
 Get the total, fixed, and variable costs for the system.
 
 # Arguments
-- `model::Model`: The optimal model after the optimization
-
+- `model::Union{Model,NamedTuple}`: The optimal model after the optimization
+- `scaling::Float64`: The scaling factor for the results
 # Returns
 - `DataFrame`: A dataframe containing the total, fixed, and variable costs for the system, with missing columns removed
 
@@ -21,7 +21,7 @@ get_optimal_costs(model)
    3 │ all        cost               all     all          all           Cost    TotalCost     36787.3
 ```
 """
-function get_optimal_costs(model::Model; scaling::Float64=1.0)
+function get_optimal_costs(model::Union{Model,NamedTuple}; scaling::Float64=1.0)
     @debug " -- Getting optimal costs for the system."
     costs = prepare_costs(model, scaling)
     df = convert_to_dataframe(costs)
@@ -32,7 +32,7 @@ end
     write_costs(
         file_path::AbstractString, 
         system::System, 
-        model::Model; 
+        model::Union{Model,NamedTuple}; 
         scaling::Float64=1.0, 
         drop_cols::Vector{<:AbstractString}=String[]
     )
@@ -43,7 +43,7 @@ The extension of the file determines the format of the file.
 # Arguments
 - `file_path::AbstractString`: The path to the file where the results will be written
 - `system::System`: The system containing the assets/edges to analyze as well as the settings for the output
-- `model::Model`: The optimal model after the optimization
+- `model::Union{Model,NamedTuple}`: The optimal model after the optimization
 - `scaling::Float64`: The scaling factor for the results
 - `drop_cols::Vector{<:AbstractString}`: Columns to drop from the DataFrame
 
@@ -53,7 +53,7 @@ The extension of the file determines the format of the file.
 function write_costs(
     file_path::AbstractString, 
     system::System, 
-    model::Model; 
+    model::Union{Model,NamedTuple}; 
     scaling::Float64=1.0, 
     drop_cols::Vector{<:AbstractString}=String[]
 )

@@ -204,7 +204,7 @@ get_unit(obj::T, f::Function) where {T<:Union{Node,Storage}} = unit(commodity_ty
 # - Variable cost
 # - Fixed cost
 # - Total cost
-function prepare_costs(model::Model, scaling::Float64=1.0)
+function prepare_costs(model::Union{Model,NamedTuple}, scaling::Float64=1.0)
     fixed_cost = value(model[:eFixedCost])
     variable_cost = value(model[:eVariableCost])
     total_cost = fixed_cost + variable_cost
@@ -989,27 +989,30 @@ function write_outputs(case_path::AbstractString, stages::Stages, bd_results::Be
 
     settings = stages.settings
     stage_to_subproblem_map, subproblem_indices = get_stage_to_subproblem_mapping(stages.systems)
-    # get the results from the planning problem
-    planning_solution = bd_results.planning_solution
-    subop_sol = bd_results.subop_sol
+
     # get the flow results from the operational subproblems
     flow_df = collect_flow_results(stages, bd_results)
+    
     for (stage_idx, system) in enumerate(stages.systems)
         @info("Writing results for stage $stage_idx")
         ## Create results directory to store the results
         results_dir = joinpath(case_path, "results_stage_$stage_idx")
         mkpath(results_dir)
 
-        # Capacity results 
+        # subproblem indices for the current stage
+        subop_indices_stage = stage_to_subproblem_map[stage_idx]
+
         # Note: system has been updated with the capacity values in planning_solution at the end of function solve_stages
+        # Capacity results
         write_capacity(joinpath(results_dir, "capacity.csv"), system)
 
         # Flow results
-        write_stage_flows(results_dir, system, flow_df[stage_to_subproblem_map[stage_idx]])
+        write_stage_flows(results_dir, system, flow_df[subop_indices_stage])
         
-        ##TODO: write this new function to compute the nominal costs and evaluate the cost expressions 
-        ##TODO: in planning_problem using the values in planning_solution:
-        ##TODO: write_costs(joinpath(results_dir, "costs.csv"), planning_solution, bd_results.planning_problem)
+        # Cost results
+        costs = prepare_costs_benders(system, bd_results, subop_indices_stage, settings, stage_idx)
+        write_costs(joinpath(results_dir, "costs.csv"), system, costs)
+        write_discounted_costs(joinpath(results_dir, "discounted_costs.csv"), system, costs)
     end
 
     return nothing

@@ -162,16 +162,14 @@ end
 function write_discounted_costs(
     file_path::AbstractString, 
     system::System, 
-    model::Model,
-    subop_sol::Dict=Dict(),
-    subop_indices::Vector{Int64}=Int64[];
+    model::Union{Model,NamedTuple};
     scaling::Float64=1.0, 
     drop_cols::Vector{<:AbstractString}=String[]
 )
     @info "Writing discounted costs to $file_path"
 
     # Get costs and determine layout (wide or long)
-    costs = get_optimal_discounted_costs(model, system.time_data[:Electricity].stage_index, subop_sol, subop_indices; scaling)
+    costs = get_optimal_discounted_costs(model; scaling)
     layout = get_output_layout(system, :Costs)
 
     if layout == "wide"
@@ -185,20 +183,16 @@ function write_discounted_costs(
     return nothing
 end
 
-function get_optimal_discounted_costs(model::Model, stage_index::Int64, subop_sol::Dict=Dict(), subop_indices::Vector{Int64}=Int64[]; scaling::Float64=1.0)
+function get_optimal_discounted_costs(model::Union{Model,NamedTuple}; scaling::Float64=1.0)
     @debug " -- Getting optimal discounted costs for the system."
-    costs = prepare_discounted_costs(model, stage_index, subop_sol, subop_indices, scaling)
+    costs = prepare_discounted_costs(model, scaling)
     df = convert_to_dataframe(costs)
     df[!, (!isa).(eachcol(df), Vector{Missing})] # remove missing columns
 end
 
-function prepare_discounted_costs(model::Model, stage_index::Int64, subop_sol::Dict=Dict(), subop_indices::Vector{Int64}=Int64[], scaling::Float64=1.0)
-    fixed_cost = value(model[:eDiscountedFixedCost][stage_index])
-    variable_cost = if isempty(subop_sol) 
-        value(model[:eDiscountedVariableCost][stage_index])
-    else 
-        evaluate_vtheta_in_expression(model, :eDiscountedVariableCost, subop_sol, subop_indices, stage_index)
-    end
+function prepare_discounted_costs(model::Union{Model,NamedTuple}, scaling::Float64=1.0)
+    fixed_cost = value(model[:eDiscountedFixedCost])
+    variable_cost = value(model[:eDiscountedVariableCost])
     total_cost = fixed_cost + variable_cost
     OutputRow[
         OutputRow(
