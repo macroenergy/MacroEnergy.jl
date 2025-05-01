@@ -37,7 +37,7 @@ With either approach, doing so will leave you with the following Locations file:
 }
 ```
 
-Macro will not ignore duplicate Locations. If we next call:
+Macro will ignore duplicate Locations. If we next call:
 
 ```julia
 template_location(system, ["Boston", "New London", "Princeton"])
@@ -56,7 +56,7 @@ Our locations file will be:
 }
 ```
 
-Alternatively, you can directly add names to the locations.json file. However, in the future the template functions will take care of additional steps for you, so we recommend using them whenever possible.
+Alternatively, you can directly add names to the locations.json file. However, in the future, the template functions will take care of additional steps so we recommend using them whenever possible.
 
 ## Adding Nodes to a Location
 
