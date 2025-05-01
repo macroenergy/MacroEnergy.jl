@@ -1,13 +1,9 @@
 function load_stages_data(
     file_path::AbstractString,
     rel_path::AbstractString = dirname(file_path);
-    # default_file_path::String = joinpath(@__DIR__, "default_system_data.json"),
     lazy_load::Bool = true,
 )::Dict{Symbol,Any}
     file_path = abspath(rel_or_abs_path(file_path, rel_path))
-    @info("Loading system data")
-    start_time = time()
-    @debug("Loading system data from $path")
 
     # Load the system data from the JSON file(s)
     data = load_system_data(file_path, rel_path; lazy_load = lazy_load)
@@ -20,7 +16,6 @@ function load_stages_data(
         )
     end
 
-    @info("Done loading system data. It took $(round(time() - start_time, digits=2)) seconds")
     return data
 end
 

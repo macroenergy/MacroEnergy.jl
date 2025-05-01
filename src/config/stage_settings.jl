@@ -116,6 +116,7 @@ end
 function configure_benders!(stage_settings::AbstractDict{Symbol,Any})
     # use default benders settings if BendersSettings is not specified
     benders_settings = get(stage_settings, :BendersSettings, Dict{Symbol,Any}())
+    isempty(benders_settings) && @warn("No benders settings specified, using default settings")
     @info("Configuring benders")
     settings = default_benders_settings()
     settings = merge(settings, benders_settings)
