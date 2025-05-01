@@ -1,0 +1,234 @@
+# Adding a Node to an existing System
+
+Adding a new Node to a System requires two steps:
+
+1. Add the new Node to the Nodes file
+2. Give the Node a unique ID
+3. Add data and constraints
+4. (optionally) Add the Node to a Location
+
+## Adding the Node to the Nodes file
+
+The Nodes file is a JSON file containing an array of Nodes. Single Nodes should be defined by their Commodity (in the "type" field) and instance data. Nodes of the same Commodity with shared attributes can be described using global data.
+
+As an example, this Node file (at system/nodes.json, by default) describes a Hydrogen Node, and three Electricity Nodes. The three Electricity Nodes have the same non-served demand (NSD) constraints and prices, so those elements are moved to the global data field to reduce duplicate data.
+
+```json
+{"nodes": [
+    {
+        "type": "Hydrogen",
+        "instance_data": {
+            "id": "single_h2_node",
+            "time_interval": "Hydrogen",
+            "location": "SE",
+            "demand": {
+                "timeseries": {
+                    "path": "system/demand.csv",
+                    "header": "H2_demand_se"
+                }
+            }
+        }
+    },
+    {
+        "type": "Electricity",
+        "global_data": {
+            "time_interval": "Electricity",
+            "max_nsd": [
+                1
+            ],
+            "price_nsd": [
+                5000.0
+            ],
+            "constraints": {
+                "BalanceConstraint": true,
+                "MaxNonServedDemandConstraint": true,
+                "MaxNonServedDemandPerSegmentConstraint": true
+            }
+        },
+        "instance_data": [
+            {
+                "id": "elec_SE",
+                "location": "SE",
+                "demand": {
+                    "timeseries": {
+                        "path": "system/demand.csv",
+                        "header": "Demand_MW_z1"
+                    }
+                }
+            },
+            {
+                "id": "elec_MIDAT",
+                "location": "MIDAT",
+                "demand": {
+                    "timeseries": {
+                        "path": "system/demand.csv",
+                        "header": "Demand_MW_z2"
+                    }
+                }
+            },
+            {
+                "id": "elec_NE",
+                "location": "NE",
+                "demand": {
+                    "timeseries": {
+                        "path": "system/demand.csv",
+                        "header": "Demand_MW_z3"
+                    }
+                }
+            }
+        ]
+    }
+]}
+```
+
+The most straightforward way of adding a new Node is to use the template functions.
+
+You can add one or more Node by providing the Nodes file as an argument:
+
+```julia
+template_location("ExampleSystems/template_example/system/nodes.json", Electricity)
+template_location("ExampleSystems/template_example/system/nodes.json", [Electricity, Hydrogen])
+```
+
+Or by providing the associated System:
+
+```julia
+template_location(system, [Electricity, Hydrogen])
+```
+
+You can learn how to create or load the System here: [Creating a System](@ref)
+
+Each new Node will be added to the end of the existing Nodes in the Nodes file. For example, adding a new Hydrogen Node to the previous Nodes file will result in:
+
+```json
+{
+    "nodes": [
+        {
+            "type": "Hydrogen",
+            "instance_data": {
+                "location": "SE",
+                "id": "single_h2_node",
+                "demand": {
+                    "timeseries": {
+                        "path": "system/demand.csv",
+                        "header": "H2_demand_se"
+                    }
+                },
+                "time_interval": "Hydrogen"
+            }
+        },
+        {
+            "global_data": {
+                "constraints": {
+                    "MaxNonServedDemandPerSegmentConstraint": true,
+                    "MaxNonServedDemandConstraint": true,
+                    "BalanceConstraint": true
+                },
+                "max_nsd": [
+                    1
+                ],
+                "price_nsd": [
+                    5000
+                ],
+                "time_interval": "Electricity"
+            },
+            "type": "Electricity",
+            "instance_data": [
+                {
+                    "location": "SE",
+                    "id": "elec_SE",
+                    "demand": {
+                        "timeseries": {
+                            "path": "system/demand.csv",
+                            "header": "Demand_MW_z1"
+                        }
+                    }
+                },
+                {
+                    "location": "MIDAT",
+                    "id": "elec_MIDAT",
+                    "demand": {
+                        "timeseries": {
+                            "path": "system/demand.csv",
+                            "header": "Demand_MW_z2"
+                        }
+                    }
+                },
+                {
+                    "location": "NE",
+                    "id": "elec_NE",
+                    "demand": {
+                        "timeseries": {
+                            "path": "system/demand.csv",
+                            "header": "Demand_MW_z3"
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "type": "Hydrogen",
+            "instance_data": [
+                {
+                    "location": null,
+                    "min_nsd": [
+                        0
+                    ],
+                    "timedata": null,
+                    "max_nsd": [
+                        0
+                    ],
+                    "price": [
+                    ],
+                    "price_nsd": [
+                        0
+                    ],
+                    "max_supply": [
+                        0
+                    ],
+                    "price_supply": [
+                        0
+                    ],
+                    "price_unmet_policy": {
+                    },
+                    "constraints": {
+                    },
+                    "rhs_policy": {
+                    },
+                    "id": null,
+                    "demand": [
+                    ]
+                }
+            ]
+        }
+    ]
+}
+```
+
+Macro will add all default fields to the new Node. Details on each of these fields can be found here. Most fields can be deleted if you do not want to assign a non-default value. The only field which should not be deleted is the "id" field.
+
+In the future we will add features to allow several Nodes of the same Commodity to be added at once with global data, as well as tools to automatically group Nodes with the same parameters.
+
+## Giving a Node an ID
+
+Each Node must have a unique ID. This can be assigned by entering a name / identifier as a string in the Nodes file (system/nodes.json, by default).
+
+Macro does not currently have a way to check if an ID is already in use. This is something we are investigating as a future feature. In the meantime, we recommend using your code editors search features to see if a preferred ID is already in use.
+
+## Adding data and constraints
+
+You should add data and constraint to parameterize your Node.
+
+Details on the Node data and constraints can be found here.
+
+Details on adding timeseries data can be found here.
+
+## Assing the Node to a Location
+
+It is recommended to add Nodes to a Location whenever the design of your System allows. This will allow you to use several features which simplify the process of connecting a Node to Assets and other Nodes.
+
+To assign a Node to a Location, input the Location name as a string in the "location" field of the Node.
+
+[Adding a Location to an existing System](@ref) details how to add new Locations.
+
+In the future, we will add additional features to allow Locations and their constituent Nodes to be added with one template function call.
