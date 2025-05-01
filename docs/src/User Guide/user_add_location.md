@@ -165,6 +165,6 @@ For example, if you wish to differentiate between high and low emission electric
 ]}
 ```
 
-As a reminder, sub-Commodities can flow into Nodes of the same type or one of their subtypes types. This means LowEmissElectricity can flow into LowEmissElectricity Nodes or Electricity Nodes. However, Electricity cannot flow into LowEmissElectricity Nodes.
+As a reminder, sub-Commodities can flow into Nodes of the same type or one of their supertypes types. This means LowEmissElectricity can flow into LowEmissElectricity Nodes or Electricity Nodes. However, HighEmissElectricity and Electricity cannot flow into LowEmissElectricity Nodes.
 
 Also, if you connect an Asset producing LowEmissElectricity to our new "SE" Location, it will be connected to the LowEmissElectricity Node. If you want the LowEmissElectricity to be able to meet the Electricity demand then you will have to specify that the Asset be connected to the "elec_SE" Node, or add an edge connecting the "lowemisselec_SE" and "elec_SE" Nodes.
