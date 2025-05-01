@@ -304,7 +304,7 @@ Evaluate the expression `expr` for a specific stage using operational subproblem
 # Returns
 The evaluated expression for the specified stage 
 """
-function evaluate_vtheta_in_expression(m::Model, expr::Symbol, subop_sol::Dict, subop_indices::Vector{Int64}, stage_index::Int64)
+function evaluate_vtheta_in_expression(m::Model, expr::Symbol, subop_sol::Dict, subop_indices::Vector{Int64}, stage_index::Union{Int64,Nothing}=nothing)
     @assert haskey(m, expr)
     
     # Create mapping from theta variables to their operational costs for this stage
@@ -314,5 +314,9 @@ function evaluate_vtheta_in_expression(m::Model, expr::Symbol, subop_sol::Dict, 
     )
     
     # Evaluate the expression `expr` using the mapping
-    return value(x -> theta_to_cost[x], m[expr][stage_index])
+    if isnothing(stage_index)
+        return value(x -> theta_to_cost[x], m[expr])
+    else
+        return value(x -> theta_to_cost[x], m[expr][stage_index])
+    end
 end

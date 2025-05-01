@@ -1015,6 +1015,30 @@ function write_outputs(case_path::AbstractString, stages::Stages, bd_results::Be
     return nothing
 end
 
+function prepare_costs_benders(system::System, bd_results::BendersResults, subop_indices::Vector{Int64}, settings::NamedTuple, stage_idx::Int)
+    planning_problem = bd_results.planning_problem
+    subop_sol = bd_results.subop_sol
+    planning_variable_values = bd_results.planning_sol.values
+
+    compute_nominal_costs!(planning_problem, system, settings)
+
+    # evaluate the fixed cost expressions in the planning problem
+    fixed_cost = value(planning_problem[:eFixedCost])
+    #TODO: check if this is correct, or if we need to re-define the expression
+    discounted_fixed_cost = value(x -> planning_variable_values[name(x)], planning_problem[:eDiscountedFixedCost][stage_idx])
+
+    # evaluate the variable cost expressions using the subproblem solutions
+    variable_cost = evaluate_vtheta_in_expression(planning_problem, :eVariableCost, subop_sol, subop_indices)
+    discounted_variable_cost = evaluate_vtheta_in_expression(planning_problem, :eDiscountedVariableCost, subop_sol, subop_indices, stage_idx)
+
+    return (
+        eFixedCost = fixed_cost,
+        eVariableCost = variable_cost,
+        eDiscountedFixedCost = discounted_fixed_cost,
+        eDiscountedVariableCost = discounted_variable_cost
+    )
+end
+    
 """
 Collect flow results from all subproblems, handling distributed case.
 """
