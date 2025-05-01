@@ -1,14 +1,6 @@
-struct PlanningSolution
-    fixed_cost::Float64
-    variable_values::Dict{String, Float64}
-end
-
-# Define conversion method
-Base.convert(::Type{PlanningSolution}, nt::NamedTuple) = PlanningSolution(nt.fixed_cost, nt.values)
-
 struct BendersResults
     planning_problem::Model
-    planning_solution::PlanningSolution
+    planning_sol::NamedTuple
     subop_sol::Dict{Any, Any}
     LB_hist::Vector{Float64}
     UB_hist::Vector{Float64}
