@@ -122,7 +122,22 @@ function template_asset(assets_dir::AbstractString, asset_type::Type{T}; asset_n
     return nothing
 end
 
+function template_asset(system::AbstractSystem, asset_type::Type{T}; asset_name::AbstractString=string(typesymbol(asset_type)), style::AbstractString="full", format::AbstractString="json") where T<:AbstractAsset
+    system_data = load_system_data(joinpath(system.data_dirpath, "system_data.json"); lazy_load = true)
+    assets_dir = joinpath(system.data_dirpath, system_data[:assets][:path])
+    return template_asset(assets_dir, asset_type; asset_name=asset_name, style=style, format=format)
+end
+
 function template_asset(assets_dir::AbstractString, asset_types::Vector{T}; asset_names::Vector{String}=string.(asset_types), style::AbstractString="full", format::AbstractString="json") where T <: Union{Type, UnionAll}
+    for asset_type in asset_types
+        template_asset(assets_dir, asset_type; style=style, format=format)
+    end
+    return nothing
+end
+
+function template_asset(system::AbstractString, asset_types::Vector{T}; asset_names::Vector{String}=string.(asset_types), style::AbstractString="full", format::AbstractString="json") where T <: Union{Type, UnionAll}
+    system_data = load_system_data(joinpath(system.data_dirpath, "system_data.json"); lazy_load = true)
+    assets_dir = joinpath(system.data_dirpath, system_data[:assets][:path])
     for asset_type in asset_types
         template_asset(assets_dir, asset_type; style=style, format=format)
     end
