@@ -73,3 +73,19 @@ function write_costs(
     write_dataframe(file_path, costs, drop_cols)
     return nothing
 end
+
+function compute_fixed_costs!(system::System, model::Model)
+    for a in system.assets
+        compute_fixed_costs!(a, model)
+    end
+end
+
+function compute_fixed_costs!(a::AbstractAsset, model::Model)
+    for t in fieldnames(typeof(a))
+        compute_fixed_costs!(getfield(a, t), model)
+    end
+end
+
+function compute_fixed_costs!(g::Union{Node,Transformation},model::Model)
+    return nothing
+end

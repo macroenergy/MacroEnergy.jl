@@ -210,11 +210,6 @@ function planning_model!(e::AbstractEdge, model::Model)
             if integer_decisions(e)
                 set_integer(new_units(e))
             end
-            add_to_expression!(
-                model[:eFixedCost],
-                investment_cost(e),
-                new_capacity(e),
-            )
         end
 
         if !can_retire(e)
@@ -225,17 +220,33 @@ function planning_model!(e::AbstractEdge, model::Model)
             end
         end
 
-        if fixed_om_cost(e) > 0
-            add_to_expression!(model[:eFixedCost], fixed_om_cost(e), capacity(e))
-        end
-
         @constraint(model, retired_capacity(e) <= existing_capacity(e))
 
     end
 
+    compute_fixed_costs!(e, model)
 
     return nothing
 
+end
+
+function compute_fixed_costs!(e::AbstractEdge, model::Model)
+    if has_capacity(e)
+        if can_expand(e)
+            add_to_expression!(
+                    model[:eFixedCost],
+                    investment_cost(e),
+                    new_capacity(e),
+                )
+        end
+        if fixed_om_cost(e) > 0
+            add_to_expression!(
+                model[:eFixedCost],
+                fixed_om_cost(e),
+                capacity(e),
+            )
+        end
+    end
 end
 
 function operation_model!(e::Edge, model::Model)

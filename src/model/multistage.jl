@@ -128,37 +128,6 @@ function compute_nominal_costs!(model::Model, system::System, settings::NamedTup
 
 end
 
-function compute_fixed_costs!(system::System, model::Model)
-    for a in system.assets
-        compute_fixed_costs!(a, model)
-    end
-end
-function compute_fixed_costs!(a::AbstractAsset, model::Model)
-    for t in fieldnames(typeof(a))
-        compute_fixed_costs!(getfield(a, t), model)
-    end
-end
-function compute_fixed_costs!(y::Union{AbstractEdge,AbstractStorage}, model::Model)
-    if has_capacity(y)
-        if can_expand(y)
-            add_to_expression!(
-                    model[:eFixedCost],
-                    investment_cost(y),
-                    new_capacity(y),
-                )
-        end
-        add_to_expression!(
-            model[:eFixedCost],
-            fixed_om_cost(y),
-            capacity(y),
-        )
-    end
-end
-
-function compute_fixed_costs!(g::Union{Node,Transformation},model::Model)
-    return nothing
-end
-
 function write_discounted_costs(
     file_path::AbstractString, 
     system::System, 

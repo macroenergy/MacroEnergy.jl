@@ -146,26 +146,13 @@ function planning_model!(g::Storage, model::Model)
 
     if !g.can_expand
         fix(new_units(g), 0.0; force = true)
-    else
-        add_to_expression!(
-            model[:eFixedCost],
-            investment_cost(g),
-            new_capacity(g),
-        )
     end
 
     if !g.can_retire
         fix(retired_units(g), 0.0; force = true)
     end
 
-
-    if fixed_om_cost(g) > 0
-        add_to_expression!(
-            model[:eFixedCost],
-            fixed_om_cost(g),
-            capacity(g),
-        )
-    end
+    compute_fixed_costs!(g, model)
 
     @constraint(model, retired_capacity(g) <= existing_capacity(g))
 
@@ -257,26 +244,13 @@ function planning_model!(g::LongDurationStorage, model::Model)
 
     if !g.can_expand
         fix(new_units(g), 0.0; force = true)
-    else
-        add_to_expression!(
-            model[:eFixedCost],
-            investment_cost(g),
-            new_capacity(g),
-        )
     end
 
     if !g.can_retire
         fix(retired_units(g), 0.0; force = true)
     end
 
-
-    if fixed_om_cost(g) > 0
-        add_to_expression!(
-            model[:eFixedCost],
-            fixed_om_cost(g),
-            capacity(g),
-        )
-    end
+    compute_fixed_costs!(g, model)
 
     @constraint(model, retired_capacity(g) <= existing_capacity(g))
 
@@ -337,4 +311,23 @@ function operation_model!(g::LongDurationStorage, model::Model)
         storage_initial(g, w) ==  storage_level(g,subperiod_end[w]) - storage_change(g, w)
     )
 
+end
+
+function compute_fixed_costs!(g::AbstractStorage, model::Model)
+    if has_capacity(g)
+        if can_expand(g)
+            add_to_expression!(
+                    model[:eFixedCost],
+                    investment_cost(g),
+                    new_capacity(g),
+                )
+        end
+        if fixed_om_cost(g) > 0
+            add_to_expression!(
+                model[:eFixedCost],
+                fixed_om_cost(g),
+                capacity(g),
+            )
+        end
+    end
 end
