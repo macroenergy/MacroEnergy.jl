@@ -96,7 +96,7 @@ Or by providing the associated System:
 julia> template_location(system, [Electricity, Hydrogen])
 ```
 
-You can learn how to create or load the System here: [Creating a new System](@ref)
+[You can learn how to create or load the System here.](@ref "Creating a new System")
 
 Each new Node will be added to the end of the existing Nodes in the Nodes file. For example, adding a new Hydrogen Node to the previous Nodes file will result in:
 
@@ -217,9 +217,9 @@ Macro does not currently have a way to check if an ID is already in use. This is
 
 ## Adding data and constraints
 
-You should add data and constraint to parameterize your Node.
+You should parameterize your new Node by adding data and constraints to the relevant fields of the JSON file.
 
-Details on the Node data and constraints can be found here.
+Details on the Node fields can be found in [the Nodes page of the manual](@ref "Nodes").
 
 Details on adding timeseries data can be found here.
 

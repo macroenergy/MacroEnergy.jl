@@ -24,7 +24,7 @@ Or by providing the associated System:
 julia> template_location(system, ["Boston", "NYC", "Princeton"])
 ```
 
-You can learn how to create or load the System here: [Creating a new System](@ref)
+[You can learn how to create or load the System here.](@ref "Creating a new System")
 
 With either approach, doing so will leave you with the following Locations file:
 
@@ -63,7 +63,7 @@ Alternatively, you can directly add names to the locations.json file. However, i
 
 The next step is to let Macro know which Nodes are part of your new Location.  
 
-In your Nodes file (at system/nodes.json by default), add a "location" field to the instance data of each Node you would like to include, and the name of the Location. A guide on how to add a Node to a System can be found here: [Adding a Node to a System](@ref)
+In your Nodes file (at system/nodes.json by default), add a "location" field to the instance data of each Node you would like to include, and the name of the Location. [A guide on how to add a Node to a System can be found here.](@ref "Adding a Node to a System")
 
 For example, if you have a three-Location system and each Location requires an Electricity Node, you could add the following:
 
