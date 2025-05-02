@@ -215,6 +215,10 @@ export AbstractAsset,
     write_costs,
     write_dataframe,
     write_flow,
-    write_results
+    write_results,
+    template_system,
+    template_node,
+    template_location,
+    template_asset
     
 end # module MacroEnergy
