@@ -1,6 +1,6 @@
-# Adding a Node to an existing System
+# Adding a Node to a System
 
-Adding a new Node to a System requires two steps:
+Adding a new Node to a System requires a few steps:
 
 1. Add the new Node to the Nodes file
 2. Give the Node a unique ID
@@ -96,7 +96,7 @@ Or by providing the associated System:
 template_location(system, [Electricity, Hydrogen])
 ```
 
-You can learn how to create or load the System here: [Creating a System](@ref)
+You can learn how to create or load the System here: [Creating a new System](@ref)
 
 Each new Node will be added to the end of the existing Nodes in the Nodes file. For example, adding a new Hydrogen Node to the previous Nodes file will result in:
 
@@ -229,6 +229,6 @@ It is recommended to add Nodes to a Location whenever the design of your System 
 
 To assign a Node to a Location, input the Location name as a string in the "location" field of the Node.
 
-[Adding a Location to an existing System](@ref) details how to add new Locations.
+[Adding a Location to a System](@ref) details how to add new Locations.
 
 In the future, we will add additional features to allow Locations and their constituent Nodes to be added with one template function call.
