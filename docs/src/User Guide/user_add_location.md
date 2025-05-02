@@ -14,14 +14,14 @@ The most straightforward way of adding a new Location is to use the template fun
 You can add one or more Locations by providing the Location file as an argument:
 
 ```julia
-template_location("ExampleSystems/template_example/system/locations.json", "Boston")
-template_location("ExampleSystems/template_example/system/locations.json", ["Boston", "NYC", "Princeton"])
+julia> template_location("ExampleSystems/template_example/system/locations.json", "Boston")
+julia> template_location("ExampleSystems/template_example/system/locations.json", ["Boston", "NYC", "Princeton"])
 ```
 
 Or by providing the associated System:
 
 ```julia
-template_location(system, ["Boston", "NYC", "Princeton"])
+julia> template_location(system, ["Boston", "NYC", "Princeton"])
 ```
 
 You can learn how to create or load the System here: [Creating a new System](@ref)
@@ -41,7 +41,7 @@ With either approach, doing so will leave you with the following Locations file:
 Macro will ignore duplicate Locations. If we next call:
 
 ```julia
-template_location(system, ["Boston", "New London", "Princeton"])
+julia> template_location(system, ["Boston", "New London", "Princeton"])
 ```
 
 Our locations file will be:
