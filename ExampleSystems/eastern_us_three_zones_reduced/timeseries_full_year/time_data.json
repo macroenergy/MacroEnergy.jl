@@ -1,5 +1,4 @@
 {
-    "PeriodLength": 8760,
     "HoursPerTimeStep": {
         "Electricity": 1,
         "Hydrogen": 1,
