@@ -10,12 +10,12 @@ const pages = [
         "Introduction" => "index.md",
         "Table of contents" => "table_of_contents.md",
     ],
-    "Guides" => [
-        "Getting Started" => [
+    "Getting Started" => [
         "Overview" => "Getting Started/1_overview.md",
         "Installation" => "Getting Started/2_installation.md",
         "First Run" => "Getting Started/3_first_run.md",
-        ],
+    ],
+    "Guides" => [
         "User Guide" => [
             "Introduction" => "User Guide/user_introduction.md",
             "Create a System" => "User Guide/user_build_system.md",
@@ -96,7 +96,7 @@ const pages = [
         "Running Macro" => "Tutorials/1_running_macro.md",
         "Multisector Modelling" => "Tutorials/2_multisector_modelling.md",
     ],
-    "How to contribute" => "how_to_contribute.md", 
+    "How to contribute" => "how_to_contribute.md",
     "References" => [
         "Introduction" => "References/1_introduction.md",
         "Reading input data" => "References/2_reading_input.md",
