@@ -96,7 +96,9 @@ function template_system(dirpath::AbstractString, system_name::AbstractString=@d
 
     template_run_file(joinpath(system_path, "run.jl"))
 
-    return nothing
+    system = empty_system(system_path)
+
+    return system
 end
 
 function template_asset(assets_dir::AbstractString, asset_type::Type{T}; asset_name::AbstractString=string(typesymbol(asset_type)), style::AbstractString="full", format::AbstractString="json") where T<:AbstractAsset
@@ -131,6 +133,12 @@ function template_node(nodes_file::AbstractString, node_commodity::Type{T}; styl
     return template_node(nodes_file, [node_commodity]; style=style, format=format, make_file=make_file)
 end
 
+function template_node(system::AbstractSystem, node_commodity::Type{T}; style::AbstractString="full", format::AbstractString="json", make_file::Bool=true) where T<:Commodity
+    system_data = load_system_data(joinpath(system.data_dirpath, "system_data.json"); lazy_load = true)
+    nodes_file = joinpath(system.data_dirpath, system_data[:nodes][:path])
+    return template_node(nodes_file, [node_commodity]; style=style, format=format, make_file=make_file)
+end
+
 function template_node(nodes_file::AbstractString, node_commodities::Vector{<:Type}; style::AbstractString="full", format::AbstractString="json", make_file::Bool=true)
     if isfile(nodes_file)
         @debug("Reading existing nodes from $nodes_file")
@@ -161,7 +169,19 @@ function template_node(nodes_file::AbstractString, node_commodities::Vector{<:Ty
     return nothing
 end
 
+function template_node(system::AbstractSystem, node_commodities::Vector{<:Type}; style::AbstractString="full", format::AbstractString="json", make_file::Bool=true)
+    system_data = load_system_data(joinpath(system.data_dirpath, "system_data.json"); lazy_load = true)
+    nodes_file = joinpath(system.data_dirpath, system_data[:nodes][:path])
+    return template_node(nodes_file, node_commodities; style=style, format=format, make_file=make_file)
+end
+
 function template_location(loc_file::AbstractString, location_name::String; style::AbstractString="full", format::AbstractString="json", make_file::Bool=true)
+    return template_location(loc_file, [location_name]; style=style, format=format, make_file=make_file)
+end
+
+function template_location(system::AbstractSystem, location_name::String; style::AbstractString="full", format::AbstractString="json", make_file::Bool=true)
+    system_data = load_system_data(joinpath(system.data_dirpath, "system_data.json"); lazy_load = true)
+    loc_file = joinpath(system.data_dirpath, system_data[:locations][:path])
     return template_location(loc_file, [location_name]; style=style, format=format, make_file=make_file)
 end
 
@@ -183,6 +203,14 @@ function template_location(loc_file::AbstractString, location_names::Vector{<:Ab
     for loc_name in location_names
         push!(existing_loc[:locations], loc_name)
     end
+    # Ensure unique locations
+    existing_loc[:locations] = unique(existing_loc[:locations])
     write_json(loc_file, existing_loc)
     return nothing
+end
+
+function template_location(system::AbstractSystem, location_names::Vector{<:AbstractString}; style::AbstractString="full", format::AbstractString="json", make_file::Bool=true)
+    system_data = load_system_data(joinpath(system.data_dirpath, "system_data.json"); lazy_load = true)
+    loc_file = joinpath(system.data_dirpath, system_data[:locations][:path])
+    return template_location(loc_file, location_names; style=style, format=format, make_file=make_file)
 end
