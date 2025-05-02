@@ -1011,9 +1011,10 @@ end
 function prepare_costs_benders_single_stage(bd_results::BendersResults, subop_indices::Vector{Int64})
     planning_problem = bd_results.planning_problem
     subop_sol = bd_results.subop_sol
+    planning_variable_values = bd_results.planning_sol.values
 
     # evaluate the fixed cost expressions in the planning problem
-    fixed_cost = value(planning_problem[:eFixedCost])
+    fixed_cost = value(x -> planning_variable_values[name(x)], planning_problem[:eFixedCost])
 
     # evaluate the variable cost expressions using the subproblem solutions
     variable_cost = evaluate_vtheta_in_expression(planning_problem, :eApproximateVariableCost, subop_sol, subop_indices)
@@ -1072,9 +1073,11 @@ function prepare_costs_benders_multistage(system::System,
 
     compute_nominal_costs!(planning_problem, system, settings)
 
-    # evaluate the fixed cost expressions in the planning problem
+    # Evaluate the fixed cost expressions in the planning problem. Note that this expression has been modified 
+    # in compute_nominal_costs! to utilize undiscounted costs and the Benders planning solutions that are 
+    # stored in system. So, no need to re-evaluate the expression on planning_variable_values.
     fixed_cost = value(planning_problem[:eFixedCost])
-    #TODO: check if this is correct, or if we need to re-define the expression
+    # Evaluate the discounted fixed cost expression on the Benders planning solutions
     discounted_fixed_cost = value(x -> planning_variable_values[name(x)], planning_problem[:eDiscountedFixedCost][stage_idx])
 
     # evaluate the variable cost expressions using the subproblem solutions
