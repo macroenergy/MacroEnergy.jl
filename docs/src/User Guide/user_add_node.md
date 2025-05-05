@@ -11,7 +11,7 @@ Adding a new Node to a System requires a few steps:
 
 The Nodes file is a JSON file containing an array of Nodes. Single Nodes should be defined by their Commodity (in the "type" field) and instance data. Nodes of the same Commodity with shared attributes can be described using global data.
 
-As an example, this Node file (at system/nodes.json, by default) describes a Hydrogen Node, and three Electricity Nodes. The three Electricity Nodes have the same non-served demand (NSD) constraints and prices, so those elements are moved to the global data field to reduce duplicate data.
+As an example, this Node file (at `system/nodes.json`, by default) describes a Hydrogen Node, and three Electricity Nodes. The three Electricity Nodes have the same non-served demand (NSD) constraints and prices, so those elements are moved to the global data field to reduce duplicate data.
 
 ```json
 {"nodes": [
@@ -211,7 +211,7 @@ In the future we will add features to allow several Nodes of the same Commodity 
 
 ## Giving a Node an ID
 
-Each Node must have a unique ID. This can be assigned by entering a name / identifier as a string in the Nodes file (system/nodes.json, by default).
+Each Node must have a unique ID. This can be assigned by entering a name / identifier as a string in the Nodes file (`system/nodes.json`, by default).
 
 Macro does not currently have a way to check if an ID is already in use. This is something we are investigating as a future feature. In the meantime, we recommend using your code editors search features to see if a preferred ID is already in use.
 

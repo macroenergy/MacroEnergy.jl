@@ -15,7 +15,7 @@ In these guides, we will discuss building a "System", not a "Model". As a remind
 
 ## Creating a System
 
-You can create a new System using Macro's template functions. The following function call will create a new System in the "ExampleSystems/template_example" directory, if no such directory exists:
+You can create a new System using Macro's template functions. The following function call will create a new System in the `ExampleSystems/template_example` directory, if no such directory exists:
 
 ```julia
 julia> system = template_system("ExampleSystems/template_example")
@@ -23,13 +23,13 @@ julia> system = template_system("ExampleSystems/template_example")
 
 This function return a System object which can be used to conveniently add more objects, such as Nodes, Assets, and Locations to your System.
 
-If the path provided is already a directory, then the new System will be created at: "ExampleSystems/template_example/new_system". You can specify a different name for the System folder using a second argument:
+If the path provided is already a directory, then the new System will be created at: `ExampleSystems/template_example/new_system`. You can specify a different name for the System folder using a second argument:
 
 ```julia
 julia> system = template_system("ExampleSystems/template_example", "preferred_system_name")
 ```
 
-This will create a new System at "ExampleSystems/template_example/preferred_system_name".
+This will create a new System at `ExampleSystems/template_example/preferred_system_name`.
 
 The template System has the following folder structure:
 
