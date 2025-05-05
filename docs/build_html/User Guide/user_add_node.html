@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Adding Nodes · Macro</title><meta name="title" content="Adding Nodes · Macro"/><meta property="og:title" content="Adding Nodes · Macro"/><meta property="twitter:title" content="Adding Nodes · Macro"/><meta name="description" content="Documentation for Macro."/><meta property="og:description" content="Documentation for Macro."/><meta property="twitter:description" content="Documentation for Macro."/><meta property="og:url" content="https://macroenergy.github.io/Macro/stable/User Guide/user_add_node.html"/><meta property="twitter:url" content="https://macroenergy.github.io/Macro/stable/User Guide/user_add_node.html"/><link rel="canonical" href="https://macroenergy.github.io/Macro/stable/User Guide/user_add_node.html"/><script data-outdated-warner src="../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../search_index.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../index.html">Macro</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><input class="collapse-toggle" id="menuitem-1" type="checkbox"/><label class="tocitem" for="menuitem-1"><span class="docs-label">Welcome to Macro</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../index.html">Introduction</a></li><li><a class="tocitem" href="../table_of_contents.html">Table of contents</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-2" type="checkbox"/><label class="tocitem" for="menuitem-2"><span class="docs-label">Getting Started</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../Getting Started/1_overview.html">Overview</a></li><li><a class="tocitem" href="../Getting Started/2_installation.html">Installation</a></li><li><a class="tocitem" href="../Getting Started/3_first_run.html">First Run</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-3" type="checkbox" checked/><label class="tocitem" for="menuitem-3"><span class="docs-label">Guides</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><input class="collapse-toggle" id="menuitem-3-1" type="checkbox" checked/><label class="tocitem" for="menuitem-3-1"><span class="docs-label">User Guide</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="user_introduction.html">Introduction</a></li><li><a class="tocitem" href="user_build_system.html">Create a System</a></li><li><a class="tocitem" href="user_add_commodity.html">Adding Commodities</a></li><li class="is-active"><a class="tocitem" href="user_add_node.html">Adding Nodes</a><ul class="internal"><li><a class="tocitem" href="#Adding-the-Node-to-the-Nodes-file"><span>Adding the Node to the Nodes file</span></a></li><li><a class="tocitem" href="#Giving-a-Node-an-ID"><span>Giving a Node an ID</span></a></li><li><a class="tocitem" href="#Adding-data-and-constraints"><span>Adding data and constraints</span></a></li><li><a class="tocitem" href="#Assing-the-Node-to-a-Location"><span>Assing the Node to a Location</span></a></li></ul></li><li><a class="tocitem" href="user_add_location.html">Adding Locations</a></li><li><a class="tocitem" href="user_add_asset.html">Adding Assets</a></li><li><a class="tocitem" href="user_policy_constraints.html">Adding policy constraints</a></li><li><a class="tocitem" href="user_asset_constraints.html">Adding Assets constraints</a></li><li><a class="tocitem" href="user_settings.html">Configuring settings</a></li><li><a class="tocitem" href="user_run_model.html">Running models</a></li><li><a class="tocitem" href="user_write_results.html">Writing results</a></li><li><a class="tocitem" href="user_multistage.html">Using multi-stage models</a></li><li><input class="collapse-toggle" id="menuitem-3-1-13" type="checkbox"/><label class="tocitem" for="menuitem-3-1-13"><span class="docs-label">Asset Library</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="assets/1_introduction.html">Macro Asset Library</a></li><li><a class="tocitem" href="assets/battery.html">Battery</a></li><li><a class="tocitem" href="assets/beccselectricity.html">BECCS Electricity</a></li><li><a class="tocitem" href="assets/beccshydrogen.html">BECCS Hydrogen</a></li><li><a class="tocitem" href="assets/electricdac.html">Electric DAC</a></li><li><a class="tocitem" href="assets/electrolyzer.html">Electrolyzer</a></li><li><a class="tocitem" href="assets/fuelcell.html">Fuel Cell</a></li><li><a class="tocitem" href="assets/gasstorage.html">Gas Storage</a></li><li><a class="tocitem" href="assets/hydrogenline.html">Hydrogen Line</a></li><li><a class="tocitem" href="assets/hydropower.html">Hydro Reservoir</a></li><li><a class="tocitem" href="assets/mustrun.html">Must Run</a></li><li><a class="tocitem" href="assets/natgasdaq.html">Natural Gas DAC</a></li><li><a class="tocitem" href="assets/powerline.html">Power Line</a></li><li><a class="tocitem" href="assets/thermalhydrogen.html">Thermal Hydrogen Plant (with and without CCS)</a></li><li><a class="tocitem" href="assets/thermalpower.html">Thermal Power Plant (with and without CCS)</a></li><li><a class="tocitem" href="assets/vre.html">Variable Renewable Energy resources (VRE)</a></li></ul></li></ul></li><li><input class="collapse-toggle" id="menuitem-3-2" type="checkbox"/><label class="tocitem" for="menuitem-3-2"><span class="docs-label">Modeler Guide</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../Modeler Guide/1_introduction.html">Introduction</a></li><li><a class="tocitem" href="../Modeler Guide/modeler_build_sectors.html">Creating a sector</a></li><li><a class="tocitem" href="../Modeler Guide/modeler_build_asset.html">Creating an asset</a></li><li><a class="tocitem" href="../Modeler Guide/3_create_example_case.html">How to create an example case</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-3-3" type="checkbox"/><label class="tocitem" for="menuitem-3-3"><span class="docs-label">Developer Guide</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../Developer Guide/1_introduction.html">Introduction</a></li><li><a class="tocitem" href="../Developer Guide/dev_create_constraint.html">Creating a constraint</a></li><li><a class="tocitem" href="../Developer Guide/2_type_hierarchy.html">Type hierarchy</a></li></ul></li></ul></li><li><input class="collapse-toggle" id="menuitem-4" type="checkbox"/><label class="tocitem" for="menuitem-4"><span class="docs-label">Manual</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../Manual/Overview.html">Overview</a></li><li><a class="tocitem" href="../Manual/Inputs.html">Inputs</a></li><li><a class="tocitem" href="../Manual/Outputs.html">Outputs</a></li><li><a class="tocitem" href="../Manual/System.html">System</a></li><li><a class="tocitem" href="1_sectors.html">Sectors</a></li><li><a class="tocitem" href="../Manual/Edges.html">Edges</a></li><li><a class="tocitem" href="../Manual/Nodes.html">Nodes</a></li><li><a class="tocitem" href="../Manual/Storage.html">Storage</a></li><li><a class="tocitem" href="../Manual/Transforms.html">Transforms</a></li><li><a class="tocitem" href="../Manual/Locations.html">Locations</a></li><li><a class="tocitem" href="assets/1_introduction.html">Assets</a></li><li><input class="collapse-toggle" id="menuitem-4-12" type="checkbox"/><label class="tocitem" for="menuitem-4-12"><span class="docs-label">Asset Library</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="assets/battery.html">Battery</a></li><li><a class="tocitem" href="assets/beccselectricity.html">BECCS Electricity</a></li><li><a class="tocitem" href="assets/beccshydrogen.html">BECCS Hydrogen</a></li><li><a class="tocitem" href="assets/electricdac.html">Electric DAC</a></li><li><a class="tocitem" href="assets/electrolyzer.html">Electrolyzer</a></li><li><a class="tocitem" href="assets/fuelcell.html">Fuel Cell</a></li><li><a class="tocitem" href="assets/gasstorage.html">Gas Storage</a></li><li><a class="tocitem" href="assets/hydrogenline.html">Hydrogen Line</a></li><li><a class="tocitem" href="assets/hydropower.html">Hydro Reservoir</a></li><li><a class="tocitem" href="assets/mustrun.html">Must Run</a></li><li><a class="tocitem" href="assets/natgasdaq.html">Natural Gas DAC</a></li><li><a class="tocitem" href="assets/powerline.html">Power Line</a></li><li><a class="tocitem" href="assets/thermalhydrogen.html">Thermal Hydrogen Plant (with and without CCS)</a></li><li><a class="tocitem" href="assets/thermalpower.html">Thermal Power Plant (with and without CCS)</a></li><li><a class="tocitem" href="assets/vre.html">Variable Renewable Energy resources (VRE)</a></li></ul></li><li><a class="tocitem" href="../Manual/Model.html">Model</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-5" type="checkbox"/><label class="tocitem" for="menuitem-5"><span class="docs-label">Extended Tutorials</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../Tutorials/0_getting_started.html">Getting Started</a></li><li><a class="tocitem" href="../Tutorials/1_running_macro.html">Running Macro</a></li><li><a class="tocitem" href="../Tutorials/2_multisector_modelling.html">Multisector Modelling</a></li></ul></li><li><a class="tocitem" href="../how_to_contribute.html">How to contribute</a></li><li><input class="collapse-toggle" id="menuitem-7" type="checkbox"/><label class="tocitem" for="menuitem-7"><span class="docs-label">References</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../References/1_introduction.html">Introduction</a></li><li><a class="tocitem" href="../References/2_reading_input.html">Reading input data</a></li><li><a class="tocitem" href="../References/3_macro_objects.html">Macro Objects</a></li><li><a class="tocitem" href="../References/4_writing_output.html">Writing output data</a></li><li><a class="tocitem" href="../References/5_utilities.html">Utilities</a></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Guides</a></li><li><a class="is-disabled">User Guide</a></li><li class="is-active"><a href="user_add_node.html">Adding Nodes</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href="user_add_node.html">Adding Nodes</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/macroenergy/MacroEnergy.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/macroenergy/MacroEnergy.jl/blob/main/docs/src/User Guide/user_add_node.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Adding-a-Node-to-a-System"><a class="docs-heading-anchor" href="#Adding-a-Node-to-a-System">Adding a Node to a System</a><a id="Adding-a-Node-to-a-System-1"></a><a class="docs-heading-anchor-permalink" href="#Adding-a-Node-to-a-System" title="Permalink"></a></h1><p>Adding a new Node to a System requires a few steps:</p><ol><li>Add the new Node to the Nodes file</li><li>Give the Node a unique ID</li><li>Add data and constraints</li><li>(optionally) Add the Node to a Location</li></ol><h2 id="Adding-the-Node-to-the-Nodes-file"><a class="docs-heading-anchor" href="#Adding-the-Node-to-the-Nodes-file">Adding the Node to the Nodes file</a><a id="Adding-the-Node-to-the-Nodes-file-1"></a><a class="docs-heading-anchor-permalink" href="#Adding-the-Node-to-the-Nodes-file" title="Permalink"></a></h2><p>The Nodes file is a JSON file containing an array of Nodes. Single Nodes should be defined by their Commodity (in the &quot;type&quot; field) and instance data. Nodes of the same Commodity with shared attributes can be described using global data.</p><p>As an example, this Node file (at <code>system/nodes.json</code>, by default) describes a Hydrogen Node, and three Electricity Nodes. The three Electricity Nodes have the same non-served demand (NSD) constraints and prices, so those elements are moved to the global data field to reduce duplicate data.</p><pre><code class="language-json hljs">{&quot;nodes&quot;: [
+    {
+        &quot;type&quot;: &quot;Hydrogen&quot;,
+        &quot;instance_data&quot;: {
+            &quot;id&quot;: &quot;single_h2_node&quot;,
+            &quot;time_interval&quot;: &quot;Hydrogen&quot;,
+            &quot;location&quot;: &quot;SE&quot;,
+            &quot;demand&quot;: {
+                &quot;timeseries&quot;: {
+                    &quot;path&quot;: &quot;system/demand.csv&quot;,
+                    &quot;header&quot;: &quot;H2_demand_se&quot;
+                }
+            }
+        }
+    },
+    {
+        &quot;type&quot;: &quot;Electricity&quot;,
+        &quot;global_data&quot;: {
+            &quot;time_interval&quot;: &quot;Electricity&quot;,
+            &quot;max_nsd&quot;: [
+                1
+            ],
+            &quot;price_nsd&quot;: [
+                5000.0
+            ],
+            &quot;constraints&quot;: {
+                &quot;BalanceConstraint&quot;: true,
+                &quot;MaxNonServedDemandConstraint&quot;: true,
+                &quot;MaxNonServedDemandPerSegmentConstraint&quot;: true
+            }
+        },
+        &quot;instance_data&quot;: [
+            {
+                &quot;id&quot;: &quot;elec_SE&quot;,
+                &quot;location&quot;: &quot;SE&quot;,
+                &quot;demand&quot;: {
+                    &quot;timeseries&quot;: {
+                        &quot;path&quot;: &quot;system/demand.csv&quot;,
+                        &quot;header&quot;: &quot;Demand_MW_z1&quot;
+                    }
+                }
+            },
+            {
+                &quot;id&quot;: &quot;elec_MIDAT&quot;,
+                &quot;location&quot;: &quot;MIDAT&quot;,
+                &quot;demand&quot;: {
+                    &quot;timeseries&quot;: {
+                        &quot;path&quot;: &quot;system/demand.csv&quot;,
+                        &quot;header&quot;: &quot;Demand_MW_z2&quot;
+                    }
+                }
+            },
+            {
+                &quot;id&quot;: &quot;elec_NE&quot;,
+                &quot;location&quot;: &quot;NE&quot;,
+                &quot;demand&quot;: {
+                    &quot;timeseries&quot;: {
+                        &quot;path&quot;: &quot;system/demand.csv&quot;,
+                        &quot;header&quot;: &quot;Demand_MW_z3&quot;
+                    }
+                }
+            }
+        ]
+    }
+]}</code></pre><p>The most straightforward way of adding a new Node is to use the template functions.</p><p>You can add one or more Node by providing the Nodes file as an argument:</p><pre><code class="language-julia hljs">julia&gt; template_location(&quot;ExampleSystems/template_example/system/nodes.json&quot;, Electricity)
+julia&gt; template_location(&quot;ExampleSystems/template_example/system/nodes.json&quot;, [Electricity, Hydrogen])</code></pre><p>Or by providing the associated System:</p><pre><code class="language-julia hljs">julia&gt; template_location(system, [Electricity, Hydrogen])</code></pre><p><a href="user_build_system.html#Creating-a-new-System">You can learn how to create or load the System here.</a></p><p>Each new Node will be added to the end of the existing Nodes in the Nodes file. For example, adding a new Hydrogen Node to the previous Nodes file will result in:</p><pre><code class="language-json hljs">{
+    &quot;nodes&quot;: [
+        {
+            &quot;type&quot;: &quot;Hydrogen&quot;,
+            &quot;instance_data&quot;: {
+                &quot;location&quot;: &quot;SE&quot;,
+                &quot;id&quot;: &quot;single_h2_node&quot;,
+                &quot;demand&quot;: {
+                    &quot;timeseries&quot;: {
+                        &quot;path&quot;: &quot;system/demand.csv&quot;,
+                        &quot;header&quot;: &quot;H2_demand_se&quot;
+                    }
+                },
+                &quot;time_interval&quot;: &quot;Hydrogen&quot;
+            }
+        },
+        {
+            &quot;global_data&quot;: {
+                &quot;constraints&quot;: {
+                    &quot;MaxNonServedDemandPerSegmentConstraint&quot;: true,
+                    &quot;MaxNonServedDemandConstraint&quot;: true,
+                    &quot;BalanceConstraint&quot;: true
+                },
+                &quot;max_nsd&quot;: [
+                    1
+                ],
+                &quot;price_nsd&quot;: [
+                    5000
+                ],
+                &quot;time_interval&quot;: &quot;Electricity&quot;
+            },
+            &quot;type&quot;: &quot;Electricity&quot;,
+            &quot;instance_data&quot;: [
+                {
+                    &quot;location&quot;: &quot;SE&quot;,
+                    &quot;id&quot;: &quot;elec_SE&quot;,
+                    &quot;demand&quot;: {
+                        &quot;timeseries&quot;: {
+                            &quot;path&quot;: &quot;system/demand.csv&quot;,
+                            &quot;header&quot;: &quot;Demand_MW_z1&quot;
+                        }
+                    }
+                },
+                {
+                    &quot;location&quot;: &quot;MIDAT&quot;,
+                    &quot;id&quot;: &quot;elec_MIDAT&quot;,
+                    &quot;demand&quot;: {
+                        &quot;timeseries&quot;: {
+                            &quot;path&quot;: &quot;system/demand.csv&quot;,
+                            &quot;header&quot;: &quot;Demand_MW_z2&quot;
+                        }
+                    }
+                },
+                {
+                    &quot;location&quot;: &quot;NE&quot;,
+                    &quot;id&quot;: &quot;elec_NE&quot;,
+                    &quot;demand&quot;: {
+                        &quot;timeseries&quot;: {
+                            &quot;path&quot;: &quot;system/demand.csv&quot;,
+                            &quot;header&quot;: &quot;Demand_MW_z3&quot;
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            &quot;type&quot;: &quot;Hydrogen&quot;,
+            &quot;instance_data&quot;: [
+                {
+                    &quot;location&quot;: null,
+                    &quot;min_nsd&quot;: [
+                        0
+                    ],
+                    &quot;timedata&quot;: null,
+                    &quot;max_nsd&quot;: [
+                        0
+                    ],
+                    &quot;price&quot;: [
+                    ],
+                    &quot;price_nsd&quot;: [
+                        0
+                    ],
+                    &quot;max_supply&quot;: [
+                        0
+                    ],
+                    &quot;price_supply&quot;: [
+                        0
+                    ],
+                    &quot;price_unmet_policy&quot;: {
+                    },
+                    &quot;constraints&quot;: {
+                    },
+                    &quot;rhs_policy&quot;: {
+                    },
+                    &quot;id&quot;: null,
+                    &quot;demand&quot;: [
+                    ]
+                }
+            ]
+        }
+    ]
+}</code></pre><p>Macro will add all default fields to the new Node. Details on each of these fields can be found here. Most fields can be deleted if you do not want to assign a non-default value. The only field which should not be deleted is the &quot;id&quot; field.</p><p>In the future we will add features to allow several Nodes of the same Commodity to be added at once with global data, as well as tools to automatically group Nodes with the same parameters.</p><h2 id="Giving-a-Node-an-ID"><a class="docs-heading-anchor" href="#Giving-a-Node-an-ID">Giving a Node an ID</a><a id="Giving-a-Node-an-ID-1"></a><a class="docs-heading-anchor-permalink" href="#Giving-a-Node-an-ID" title="Permalink"></a></h2><p>Each Node must have a unique ID. This can be assigned by entering a name / identifier as a string in the Nodes file (<code>system/nodes.json</code>, by default).</p><p>Macro does not currently have a way to check if an ID is already in use. This is something we are investigating as a future feature. In the meantime, we recommend using your code editors search features to see if a preferred ID is already in use.</p><h2 id="Adding-data-and-constraints"><a class="docs-heading-anchor" href="#Adding-data-and-constraints">Adding data and constraints</a><a id="Adding-data-and-constraints-1"></a><a class="docs-heading-anchor-permalink" href="#Adding-data-and-constraints" title="Permalink"></a></h2><p>You should parameterize your new Node by adding data and constraints to the relevant fields of the JSON file.</p><p>Details on the Node fields can be found in <a href="../Manual/Nodes.html#Nodes">the Nodes page of the manual</a>.</p><p>Details on adding timeseries data can be found here.</p><h2 id="Assing-the-Node-to-a-Location"><a class="docs-heading-anchor" href="#Assing-the-Node-to-a-Location">Assing the Node to a Location</a><a id="Assing-the-Node-to-a-Location-1"></a><a class="docs-heading-anchor-permalink" href="#Assing-the-Node-to-a-Location" title="Permalink"></a></h2><p>It is recommended to add Nodes to a Location whenever the design of your System allows. This will allow you to use several features which simplify the process of connecting a Node to Assets and other Nodes.</p><p>To assign a Node to a Location, input the Location name as a string in the &quot;location&quot; field of the Node.</p><p><a href="user_add_location.html#Adding-a-Location-to-a-System">Adding a Location to a System</a> details how to add new Locations.</p><p>In the future, we will add additional features to allow Locations and their constituent Nodes to be added with one template function call.</p><script type="module">import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+mermaid.initialize({
+    startOnLoad: true,
+    theme: "neutral"
+});
+</script></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="user_add_commodity.html">« Adding Commodities</a><a class="docs-footer-nextpage" href="user_add_location.html">Adding Locations »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.10.2 on <span class="colophon-date" title="Monday 5 May 2025 07:05">Monday 5 May 2025</span>. Using Julia version 1.11.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
