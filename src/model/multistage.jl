@@ -4,6 +4,7 @@ function carry_over_capacities!(system::System, system_prev::System; perfect_for
         a_prev_index = findfirst(id.(system_prev.assets).==id(a))
         if isnothing(a_prev_index)
             @info("Skipping asset $(id(a)) as it was not present in the previous stage")
+            validate_existing_capacity(a)
         else
             a_prev = system_prev.assets[a_prev_index];
             carry_over_capacities!(a, a_prev ; perfect_foresight)
@@ -281,5 +282,17 @@ function evaluate_vtheta_in_expression(m::Model, expr::Symbol, subop_sol::Dict, 
         return value(x -> theta_to_cost[x], m[expr])
     else
         return value(x -> theta_to_cost[x], m[expr][stage_index])
+    end
+end
+
+function validate_existing_capacity(asset::AbstractAsset)
+    for t in fieldnames(typeof(asset))
+        if isa(getfield(asset, t), AbstractEdge) || isa(getfield(asset, t), AbstractStorage)
+            if existing_capacity(getfield(asset, t)) > 0
+                msg = " -- Asset with id: \"$(id(asset))\" has existing capacity equal to $(existing_capacity(getfield(asset,t)))"
+                msg *= "\nbut it was not present in the previous stage. Please double check that the input data is correct."
+                @warn(msg)
+            end
+        end
     end
 end
