@@ -1,5 +1,5 @@
 function solve_stages(stages::Stages, opt::O) where O <: Union{Optimizer, Dict{Symbol, Dict{Symbol, Any}}}
-    solve_stages(stages, opt, expansion_mode(stages),solution_algorithm(stages))
+    solve_stages(stages, opt, expansion_mode(stages), solution_algorithm(stages))
 end
 
 ####### single stage expansion and perfect foresight expansion #######
@@ -77,5 +77,9 @@ function solve_stages(stages::Stages, opt::Dict{Symbol, Dict{Symbol, Any}}, expa
     update_with_planning_solution!(stages, results.planning_sol.values)
 
     return (stages, BendersResults(results, subproblems))
+end
+
+function solve_stages(stages::Stages, opt::Dict{Symbol, Dict{Symbol, Any}}, ::Myopic, ::Benders)
+    error("Myopic expansion is currently not supported with Benders decomposition. Please use Monolithic expansion instead.")
 end
 
