@@ -1,9 +1,13 @@
+# Constants for file paths
+const STAGE_SETTINGS_FILENAME = "stage_settings.json"
+const BENDERS_SETTINGS_FILEPATH = "settings/benders_settings.json"
+
 function default_stage_settings()
     return Dict(
         :StageLengths => [1],
         :WACC => 0.,
         :ExpansionMode => "SingleStage",
-        :SolutionAlgorithm => "Monolithic",
+        :SolutionAlgorithm => "Monolithic"
     )
 end
 
@@ -20,13 +24,58 @@ function default_benders_settings()
     )
 end
 
+"""
+    try_load_benders_settings(path::AbstractString)::Union{AbstractDict{Symbol,Any}, Nothing}
+
+Attempts to load Benders settings from the given path. Returns the settings if found, nothing otherwise.
+"""
+function try_load_benders_settings(path::AbstractString)::Union{AbstractDict{Symbol,Any}, Nothing}
+    benders_path = joinpath(path, BENDERS_SETTINGS_FILEPATH)
+    if isfile(benders_path)
+        @debug("Loading Benders settings from default location: $benders_path")
+        return read_file(benders_path)
+    end
+    return nothing
+end
+
+"""
+    load_benders_settings(settings::AbstractDict{Symbol,Any}, path::AbstractString)::AbstractDict{Symbol,Any}
+
+Load Benders settings from a file. First checks if a specific path is provided in the settings,
+otherwise looks for benders_settings.json in the settings directory. Handles both absolute and relative paths.
+"""
+function load_benders_settings(settings::AbstractDict{Symbol,Any}, path::AbstractString)::AbstractDict{Symbol,Any}
+    # Try to load from specified path if provided
+    if haskey(settings, :BendersSettings) && 
+       isa(settings[:BendersSettings], AbstractDict) && 
+       haskey(settings[:BendersSettings], :path)
+
+        benders_path = rel_or_abs_path(settings[:BendersSettings][:path], path)
+        if isfile(benders_path)
+            @info("Loading Benders settings from path: $benders_path")
+            settings[:BendersSettings] = read_file(benders_path)
+            return settings
+        end
+        
+        @warn("Benders settings file not found at either absolute path '$(settings[:BendersSettings][:path])' or relative path '$benders_path'")
+    end
+
+    # Otherwise, try to load from default location defined as BENDERS_SETTINGS_FILEPATH
+    benders_settings = try_load_benders_settings(path)
+    if !isnothing(benders_settings)
+        settings[:BendersSettings] = benders_settings
+    end
+
+    return settings
+end
+
 function configure_stages(
     path::AbstractString,
     rel_path::AbstractString,
 )
     path = rel_or_abs_path(path, rel_path)
     if isdir(path)
-        path = joinpath(path, "stage_settings.json")
+        path = joinpath(path, STAGE_SETTINGS_FILENAME)
     end
     
     if !isfile(path)
@@ -36,11 +85,9 @@ function configure_stages(
     # Load stage settings
     stage_settings = copy(read_file(path))
     
-    # Load benders settings if they exist
-    benders_path = joinpath(dirname(path), "benders_settings.json")
-    if isfile(benders_path)
-        benders_settings = read_file(benders_path)
-        stage_settings[:BendersSettings] = benders_settings
+    # Check for BendersSettings path if Benders is the solution algorithm
+    if stage_settings[:SolutionAlgorithm] == "Benders"
+        stage_settings = load_benders_settings(stage_settings, rel_path)
     end
     
     return configure_stages(stage_settings)
@@ -55,6 +102,15 @@ function configure_stages(
         path = rel_or_abs_path(stage_settings[:path], rel_path)
         return configure_stages(path, rel_path)
     else
+        # if Benders is the solution algorithm and BendersSettings is not specified 
+        # in the stage_settings, try to load the Benders settings from the default location
+        if stage_settings[:SolutionAlgorithm] == "Benders" && 
+            !haskey(stage_settings, :BendersSettings)
+            benders_settings = try_load_benders_settings(rel_path)
+            if !isnothing(benders_settings)
+                stage_settings[:BendersSettings] = benders_settings
+            end
+        end
         return configure_stages(stage_settings)
     end
 end
