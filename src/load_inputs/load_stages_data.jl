@@ -35,10 +35,10 @@ function load_stages(
         @info("Loading stages from $path")
         start_time = time()
 
-        systems_data = load_stages_data(path; lazy_load = lazy_load)
-        stages = generate_stages(path, systems_data)
+        stages_data = load_stages_data(path; lazy_load = lazy_load)
+        stages = generate_stages(path, stages_data)
 
-        @info("Done loading system. It took $(round(time() - start_time, digits=2)) seconds")
+        @info("Done loading stages. It took $(round(time() - start_time, digits=2)) seconds")
         return stages
     else
         msg = "No stages data found in $path. Either provide a path to a .JSON file or a directory containing a system_data.json file"

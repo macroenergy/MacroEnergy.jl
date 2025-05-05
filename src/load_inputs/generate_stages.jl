@@ -20,7 +20,7 @@ function generate_stages(
 
     prepare_stages!(systems, settings)
 
-    @info("Done loading stages. It took $(round(time() - start_time, digits=2)) seconds")
+    @info("Done generating stages. It took $(round(time() - start_time, digits=2)) seconds")
     return Stages(systems, settings)
 end
 
