@@ -1,0 +1,81 @@
+{
+    "NaturalGasEndUse": [
+        {
+            "type": "FuelsEndUse",
+            "global_data":{
+                "transforms": {
+                    "timedata": "NaturalGas",
+                    "constraints": {
+                            "BalanceConstraint": true
+                    }
+                },
+                "edges" :{
+                    "fuel_edge": {
+                        "commodity": "NaturalGas",
+                        "unidirectional": true,
+                        "has_capacity": false
+                    },
+                    "co2_edge": {
+                        "commodity": "CO2",
+                        "unidirectional": true,
+                        "has_capacity": false,
+                        "end_vertex": "co2_sink"
+                    },
+                    "fuel_demand_edge": {
+                        "commodity": "NaturalGas",
+                        "unidirectional": true,
+                        "has_capacity": false
+                    }
+                }
+            },
+            "instance_data":[
+                {
+                    "id": "SE_NG_End_Use",
+                    "transforms":{
+                        "emission_rate": 0.181048235160161
+                    },
+                    "edges":{
+                            "fuel_edge": {
+                                "start_vertex": "natgas_SE"
+                            },
+                            "fuel_demand_edge": {
+                                "end_vertex": "natgas_demand_SE"
+                            }
+                        }
+
+                },
+                {
+                    "id": "MIDAT_NG_End_Use",
+                    "transforms":{
+                        "emission_rate": 0.181048235160161
+                    },
+                    "edges":{
+                            "fuel_edge": {
+                                "start_vertex": "natgas_MIDAT"
+                            },
+                            "fuel_demand_edge": {
+                                "end_vertex": "natgas_demand_MIDAT"
+                            }
+                        }
+
+                },
+                {
+                    "id": "NE_NG_End_Use",
+                    "transforms":{
+                        "emission_rate": 0.181048235160161
+                    },
+                    "edges":{
+                            "fuel_edge": {
+                                "start_vertex": "natgas_NE"
+                            },
+                            "fuel_demand_edge": {
+                                "end_vertex": "natgas_demand_NE"
+                            }
+                        }
+
+                }
+            ]
+        }
+    ]
+
+}
