@@ -29,11 +29,11 @@ The documentation contains five main sections:
 
 - **[Getting Started](@ref)**: How to install Macro and run your first cases
 
-- **[Guides](@ref)**: Short guides intended to walk you through how to achieve specific tasks with Macro
+- **[Tutorials](@ref)**: Long-form guides with worked examples, intended to help you learn how to use Macro
+
+- **[Guides](@ref)**: Short guides which walk you through how to achieve specific tasks, intended to be a day-to-day reference when working with Macro
 
 - **[Manual](@ref)**: A detailed description of Macro's components and features
-
-- **[Tutorials](@ref)**: Long-form guides with worked examples, intended to help you learn how to use Macro
 
 - **[Reference](@ref "References")**: A function reference for Macro's API
 

@@ -16,6 +16,12 @@ const pages = [
         "What's Included With Macro" => "Getting Started/4_macro_repo_contents.md",
         "First Run" => "Getting Started/3_first_run.md",
     ],
+    "Tutorials" => [
+        "Introduction" => "Tutorials/tutorials_introduction.md",
+        "Getting Started" => "Tutorials/0_getting_started.md",
+        "Running Macro" => "Tutorials/1_running_macro.md",
+        "Multisector Modelling" => "Tutorials/2_multisector_modelling.md",
+    ],
     "Guides" => [
         "Introduction" => "Guides/guides_introduction.md",
         "User Guide" => [
@@ -75,12 +81,6 @@ const pages = [
             "Manual/assets/vre.md"
         ],
         "Model" => "Manual/Model.md"
-    ],
-    "Tutorials" => [
-        "Introduction" => "Tutorials/tutorials_introduction.md",
-        "Getting Started" => "Tutorials/0_getting_started.md",
-        "Running Macro" => "Tutorials/1_running_macro.md",
-        "Multisector Modelling" => "Tutorials/2_multisector_modelling.md",
     ],
     "How to contribute" => "how_to_contribute.md",
     "References" => [
