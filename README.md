@@ -21,7 +21,7 @@ We are working to publish a peer-reviewed paper describing Macro. In the meantim
 
 ```bibtex
 @misc{Macro2025,
-   author = {Ruaridh Macdonald and Filippo Pecci and Luca Bonaldo and Jun We Law and Yu Weng and Sambuddha Chakrabarti and Dharik Mallapragada and Jesse Jenkins},
+   author = {Ruaridh Macdonald and Filippo Pecci and Luca Bonaldo and Jun Wen Law and Yu Weng and Sambuddha Chakrabarti and Dharik Mallapragada and Jesse Jenkins},
    month = {5},
    title = {MacroEnergy.jl},
    url = {https://github.com/macroenergy/MacroEnergy.jl},
