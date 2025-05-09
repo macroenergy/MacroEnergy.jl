@@ -23,7 +23,7 @@ function default_data(t::Type{GasStorage}, id=missing, style="full")
 end
 
 function full_default_data(::Type{GasStorage}, id=missing)
-    return Dict{Symbol,Any}(
+    return OrderedDict{Symbol,Any}(
         :id => id,
         :transforms => @transform_data(
             :timedata => "Electricity",
@@ -77,9 +77,10 @@ function full_default_data(::Type{GasStorage}, id=missing)
 end
 
 function simple_default_data(::Type{GasStorage}, id=missing)
-    return Dict{Symbol,Any}(
+    return OrderedDict{Symbol,Any}(
         :id => id,
         :location => missing,
+        :storage_commodity => missing,
         :timedata => "Electricity",
         :storage_can_expand => true,
         :storage_can_retire => true,
@@ -102,6 +103,33 @@ function simple_default_data(::Type{GasStorage}, id=missing)
         :charge_electricity_consumption => 0.0,
         :discharge_electricity_consumption => 0.0,
     )
+end
+
+function set_commodity!(::Type{GasStorage}, commodity::Type{<:Commodity}, data::AbstractDict{Symbol,Any})
+    edge_keys = [
+        :charge_edge,
+        :discharge_edge,
+        :external_charge_edge,
+        :external_discharge_edge,
+    ]
+    if haskey(data, :storage_commodity)
+        data[:storage_commodity] = string(commodity)
+    end
+    if haskey(data, :storage)
+        if haskey(data[:storage], :commodity)
+            data[:storage][:commodity] = string(commodity)
+        end
+    end
+    if haskey(data, :edges)
+        for edge_key in edge_keys
+            if haskey(data[:edges], edge_key)
+                if haskey(data[:edges][edge_key], :commodity)
+                    data[:edges][edge_key][:commodity] = string(commodity)
+                end
+            end
+        end
+    end
+    return nothing
 end
 
 function make(asset_type::Type{GasStorage}, data::AbstractDict{Symbol,Any}, system::System)

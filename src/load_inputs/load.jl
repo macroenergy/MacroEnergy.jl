@@ -21,15 +21,21 @@ function load!(system::System, data::AbstractDict{Symbol,Any})::Nothing
         # println("Loading system data")
         load_system_data!(system, data)
 
-        # Check that data has only :type and :instance_data fields
-    elseif data_is_single_instance(data)
-        data_type = check_and_convert_type(data)
-        load_time_series_data!(system, data) # substitute ts file paths with actual vectors of data
-        add!(system, make(data_type, data[:instance_data], system))
-
     elseif data_has_global_data(data)
         # println("Expanding global data")
-        load!(system, expand_instances(data))
+        load!(system, merge_global_data(data))
+
+    # Check that data has only :type and :instance_data fields
+    elseif data_has_only_instance_data(data)
+        if isa(data[:instance_data], AbstractDict{Symbol,Any})
+            data_type = check_and_convert_type(data)
+            load_time_series_data!(system, data) # substitute ts file paths with actual vectors of data
+            add!(system, make(data_type, data[:instance_data], system))
+        elseif isa(data[:instance_data], AbstractVector{<:AbstractDict{Symbol,Any}})
+            load!(system, expand_instances(data))
+        else
+            throw(ArgumentError("Instance data is not a dictionary or vector of dictionaries"))
+        end
 
     elseif data_is_filepath(data)
         # println("Loading data from file")
@@ -61,7 +67,7 @@ function load!(system::System, data)::Nothing
     return nothing
 end
 
-function expand_instances(data::AbstractDict{Symbol,Any})
+function merge_global_data(data::AbstractDict{Symbol,Any})
     instances = Vector{Dict{Symbol,Any}}()
     type = data[:type]
     for (instance_idx, instance_data) in enumerate(data[:instance_data])
@@ -69,6 +75,15 @@ function expand_instances(data::AbstractDict{Symbol,Any})
         # haskey(instance_data, :id) ? instance_id = Symbol(instance_data[:id]) : instance_id = default_asset_name(instance_idx, a_name)
         # instance_data[:id], _ = make_asset_id(instance_id, asset_data)
         # asset_data[instance_data[:id]] = make_asset(a_type, instance_data, time_data, nodes)
+        push!(instances, Dict{Symbol,Any}(:type => type, :instance_data => instance_data))
+    end
+    return instances
+end
+
+function expand_instances(data::AbstractDict{Symbol,Any})
+    instances = Vector{Dict{Symbol,Any}}()
+    type = data[:type]
+    for instance_data in data[:instance_data]
         push!(instances, Dict{Symbol,Any}(:type => type, :instance_data => instance_data))
     end
     return instances
@@ -87,7 +102,7 @@ function check_and_convert_type(data::AbstractDict{Symbol,Any}, m::Module = Macr
     return getfield(m, type)
 end
 
-function data_is_single_instance(data::AbstractDict{Symbol,Any})::Bool
+function data_has_only_instance_data(data::AbstractDict{Symbol,Any})::Bool
     # Check that data has only :type and :instance_data fields
     # We could also check the types of the fields
     entries = collect(keys(data))

@@ -7,7 +7,20 @@ mutable struct System <: AbstractSystem
     locations::Vector{Union{Node, Location}}
 end
 
-asset_ids(system::System) = map(x -> x.id, system.assets)
+function asset_ids(system::System; source::String="assets")
+    if source == "assets"
+        if isempty(system.assets)
+            @warn("System does not have any assets. Set source to 'inputs' to load assets from the input files.")
+            return Set{AssetId}()
+        end
+        return map(x -> x.id, system.assets)
+    elseif source == "inputs"
+        return asset_ids_from_dir(system)
+    else
+        @error("Invalid source $source. Must be 'assets' or 'inputs'")
+        return Set{AssetId}()
+    end
+end
 location_ids(system::System) = map(x -> x.id, system.locations)
 
 function set_data_dirpath!(system::System, data_dirpath::String)
@@ -121,4 +134,73 @@ function edges_with_capacity_variables(system::System; return_ids_map::Bool=fals
     else
         return edges_with_capacity_variables(system.assets)
     end
+end
+
+function asset_ids_from_file(asset_file::AbstractString, ids::Set{AssetId}=Set{AssetId}())
+    if !isfile(asset_file)
+        @error("Asset file $asset_file not found")
+        return Set{AssetId}()
+    end
+    asset_data = load_inputs(asset_file)
+    for asset_type in values(asset_data)
+        ids = asset_ids_from_file(asset_type, ids)
+    end
+    return ids
+end
+
+function asset_ids_from_file(asset_type::Dict{Symbol,Any}, ids::Set{AssetId}=Set{AssetId}())
+    if isa(asset_type[:instance_data], Dict{Symbol,Any})
+        asset_type[:instance_data] = [asset_type[:instance_data]]
+    end
+    for asset in asset_type[:instance_data]
+        if !haskey(asset, :id)
+            @warn("Asset $(asset_type[:type]) does not have an id. Skipping...")
+            continue
+        end
+        asset_id = AssetId(asset[:id])
+        if asset_id ∈ ids
+            @warn("Duplicate asset id $asset_id. Skipping...")
+            continue
+        end
+        push!(ids, asset_id)
+    end
+    return ids
+end
+
+function asset_ids_from_file(data::AbstractVector, ids::Set{AssetId}=Set{AssetId}())
+    for asset_type in data
+        ids = asset_ids_from_file(asset_type, ids)
+    end
+    return ids
+end
+
+function asset_ids_from_dir(dirpath::AbstractString, ids::Set{AssetId}=Set{AssetId}())
+    for (root, dirs, files) in Base.Filesystem.walkdir(dirpath)
+        for file in files
+            if endswith(file, ".json") || endswith(file, ".csv")
+                ids = asset_ids_from_file(joinpath(root, file), ids)
+            end
+        end
+    end
+    return ids
+end
+
+function asset_ids_from_dir(system::System, ids::Set{AssetId}=Set{AssetId}())
+    system_data = load_system_data(joinpath(system.data_dirpath, "system_data.json"); lazy_load = true)
+    assets_dir = joinpath(system.data_dirpath, system_data[:assets][:path])
+    if !isdir(assets_dir)
+        @error("Assets directory $assets_dir not found")
+        return Set{AssetId}()
+    end
+    return asset_ids_from_dir(assets_dir, ids)
+end
+
+function unique_id(base_id::AssetId, existing_ids::Union{Set{AssetId},AbstractVector{AssetId}})
+    id = base_id
+    i = 1
+    while id ∈ existing_ids
+        id = AssetId(string(base_id, "_", i))
+        i += 1
+    end
+    return id
 end
