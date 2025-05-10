@@ -67,17 +67,13 @@ function load_commodities(data::AbstractVector{<:AbstractString}, rel_path::Abst
 end
 
 function load_commodities(commodities::AbstractVector{<:Any}, rel_path::AbstractString=""; write_subcommodities::Bool=false)
-    subcommodities_path = joinpath(rel_path, "tmp", "subcommodities.jl")
-    if isfile(subcommodities_path)
-        @info(" ++ Loading pre-defined user commodities")
-        @debug(" -- Loading subcommodities from file $(subcommodities_path)")
-        include(subcommodities_path)
-    end
+    subcommodities_path = load_subcommodities_from_file()
     register_commodity_types!()
 
     macro_commodities = commodity_types()
-    sub_commodities = Vector{Dict{Symbol,Any}}()
+    all_sub_commodities = Vector{Dict{Symbol,Any}}()
     commodity_keys = unique!([MacroEnergy.typesymbol(commodity) for commodity in values(macro_commodities)])
+
     for commodity in commodities
         if isa(commodity, Symbol)
             if commodity ∉ keys(macro_commodities)
@@ -88,13 +84,7 @@ function load_commodities(commodities::AbstractVector{<:Any}, rel_path::Abstract
                 error("Unknown commodity: $commodity")
             end
         elseif isa(commodity, Dict) && haskey(commodity, :name) && haskey(commodity, :acts_like)
-            if Symbol(commodity[:name]) ∉ commodity_keys
-                @debug("Adding commodity $(commodity[:name]) to list of subcommodities to be added")
-                push!(sub_commodities, commodity)
-            else
-                @debug("Commodity $(commodity[:name]) already exists")
-                continue
-            end
+            push!(all_sub_commodities, commodity)
         else
             error("Invalid commodity format: $commodity")
         end
@@ -102,23 +92,22 @@ function load_commodities(commodities::AbstractVector{<:Any}, rel_path::Abstract
 
     subcommodities_lines = String[]
 
-    for commodity in sub_commodities
+    for commodity in all_sub_commodities
         @debug("Iterating over user-defined subcommodities")
         new_name = Symbol(commodity[:name])
+        parent_name = Symbol(commodity[:acts_like])
+        if write_subcommodities
+            @debug("Will write subcommodity $(new_name) to file")
+            push!(subcommodities_lines, make_commodity(new_name, parent_name))
+        end
         if new_name in keys(commodity_types())
             @debug("Commodity $(commodity[:name]) already exists")
             continue
         end
-        parent_name = Symbol(commodity[:acts_like])
         commodity_keys = keys(commodity_types())
         if parent_name ∈ commodity_keys
             @debug("Adding subcommodity $(new_name), which acts like commodity $(parent_name)")
-            subcommodity_string = make_commodity(new_name, parent_name)
             COMMODITY_TYPES[new_name] = getfield(MacroEnergy, new_name)
-            if write_subcommodities
-                @debug("Will write subcommodity $(new_name) to file")
-                push!(subcommodities_lines, subcommodity_string)
-            end
         else
             error("Unknown parent commodity: $parent_name")
         end
@@ -162,4 +151,14 @@ function validate_commodities(
         error("Unknown commodities: $(setdiff(commodities, keys(macro_commodities)))")
     end
     return nothing
+end
+
+function load_subcommodities_from_file(path::AbstractString=ME_DEPOT_PATH)
+    subcommodities_path = joinpath(path, "subcommodities.jl")
+    if isfile(subcommodities_path)
+        @info(" ++ Loading pre-defined user commodities")
+        @debug(" -- Loading subcommodities from file $(subcommodities_path)")
+        include(subcommodities_path)
+    end
+    return subcommodities_path
 end

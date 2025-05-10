@@ -3,9 +3,10 @@ function load_time_data(
     commodities::Dict{Symbol,DataType},
     rel_path::AbstractString
 )
+    stage_index = get(data, :StageIndex, 1)
     if haskey(data, :path)
         path = rel_or_abs_path(data[:path], rel_path)
-        return load_time_data(path, commodities, rel_path)
+        return load_time_data(path, commodities, rel_path, stage_index)
     else
         return load_time_data(data, commodities)
     end
@@ -14,7 +15,8 @@ end
 function load_time_data(
     path::AbstractString,
     commodities::Dict{Symbol,DataType},
-    rel_path::AbstractString
+    rel_path::AbstractString,
+    stage_index::Int = 1
 )
     path = rel_or_abs_path(path, rel_path)
     if isdir(path)
@@ -28,6 +30,7 @@ function load_time_data(
     time_data = copy(JSON3.read(path))
     haskey(time_data, :PeriodMap) && load_period_map!(time_data, rel_path)
     validate_and_set_default_total_hours_modeled!(time_data::AbstractDict{Symbol,Any})
+    time_data[:StageIndex] = stage_index
     return load_time_data(time_data, commodities)
 end
 
@@ -158,6 +161,7 @@ function create_commodity_timedata(
     return TimeData{type}(;
         time_interval = time_interval,
         hours_per_timestep = hours_per_timestep,
+        stage_index = get(time_data, :StageIndex, 1),
         subperiods = subperiods,
         subperiod_indices = unique_rep_periods,
         subperiod_weights = Dict(unique_rep_periods .=> weights),
@@ -192,12 +196,13 @@ function get_weights(period_map::Dict{Int64, Int64}, unique_rep_periods::Vector{
 
     if is_identity_mapping
         @warn "Using default weights = 1 as no period map provided and each period maps to itself"
-        return [1.0 for _ in unique_rep_periods]
+        unscaled_weights = [1.0 for _ in unique_rep_periods]
+    else
+
+        rep_periods = collect(values(period_map))    # list of rep periods for each subperiod
+
+        unscaled_weights = Int[length(findall(rep_periods .== p)) for p in unique_rep_periods]
     end
-
-    rep_periods = collect(values(period_map))    # list of rep periods for each subperiod
-
-    unscaled_weights = Int[length(findall(rep_periods .== p)) for p in unique_rep_periods]
 
     weight_scaling_factor = total_hours_modeled / (sum(unscaled_weights) * hours_per_subperiod)
 

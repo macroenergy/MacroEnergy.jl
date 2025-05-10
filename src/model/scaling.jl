@@ -1,6 +1,6 @@
 function scaling!(y::Union{AbstractVertex,AbstractEdge})
     atts_vec = attributes_to_scale(y)
-
+    ScalingFactor = 1e3
     for f in atts_vec
         setfield!(y, f, getfield(y, f) / ScalingFactor)
     end
@@ -51,4 +51,28 @@ function /(d::Dict, factor::Float64)
         d[k] = v / factor
     end
     return d
+end
+
+# MacroEnergyScaling.scale_constraints!
+function scale_constraints!(system::System, model::Model)
+    if system.settings.ConstraintScaling
+        @info "Scaling constraints and RHS"
+        scale_constraints!(model)
+    end
+    return nothing
+end
+
+# MacroEnergyScaling.scale_constraints!
+function scale_constraints!(systems::Vector{System}, models::Vector{Model})
+    @assert length(systems) == length(models)
+    for (system, model) in zip(systems, models)
+        scale_constraints!(system, model)
+    end
+    return nothing
+end
+
+# MacroEnergyScaling.scale_constraints!
+function scale_constraints!(stages::Stages, models::Vector{Model})
+    scale_constraints!(stages.systems, models)
+    return nothing
 end
