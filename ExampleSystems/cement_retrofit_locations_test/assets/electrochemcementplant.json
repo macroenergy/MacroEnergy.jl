@@ -1,0 +1,57 @@
+{
+    "ElectrochemCementPlant": [
+        {
+            "type": "ElectrochemCementPlant",
+            "global_data": {
+                "nodes": {},
+                "transforms": {
+                    "id": "echem_cement",
+                    "timedata": "Cement",
+                    "elec_cement_rate": 2.1,
+                    "constraints": {
+                        "BalanceConstraint": true
+                    }
+                },
+                "edges":{
+                    "elec_edge":{
+                        "type": "Electricity",
+                        "unidirectional": true,
+                        "has_capacity": false
+                    },
+                    "cement_edge":{
+                        "type": "Cement",
+                        "unidirectional": true,
+                        "has_capacity": true,
+                        "can_retire": false,
+                        "can_expand": true,
+                        "capacity_size": 114.15,
+                        "investment_cost": 10000,
+                        "fixed_om_cost": 20.3775,
+                        "variable_om_cost": 0,
+                        "is_retrofit": true,
+                        "retrofit_id": 1,
+                        "retrofit_efficiency": 0.9,
+                        "end_vertex": "cement_produced"
+                    }
+                }
+            },
+            "instance_data": [
+                {
+                    "id": "echem_cement_MA",
+                    "location": "MA",
+                    "existing_capacity": 0
+                },
+                {
+                    "id": "echem_cement_CT",
+                    "location": "CT",
+                    "existing_capacity": 0
+                },
+                {
+                    "id": "echem_cement_ME",
+                    "location": "ME",
+                    "existing_capacity": 0
+                }
+            ]
+        }
+    ]
+}

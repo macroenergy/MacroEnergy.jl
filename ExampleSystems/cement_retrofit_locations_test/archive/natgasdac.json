@@ -1,0 +1,278 @@
+{
+    "NaturalGasDAC": [
+        {
+            "type": "NaturalGasDAC",
+            "global_data":{
+                "transforms": {
+                    "timedata": "NaturalGas",
+                    "emission_rate": 0.001810482,
+                    "capture_rate": 0.179237753,
+                    "electricity_production": 0.13,
+                    "fuel_consumption": 3.05,
+                    "constraints": {
+                            "BalanceConstraint": true
+                    }
+                },
+                "edges" :{
+                    "co2_edge": {
+                        "type": "CO2",
+                        "unidirectional": true,
+                        "has_capacity": true,
+                        "start_vertex": "co2_sink",
+                        "can_retire": true,
+                        "can_expand": true,
+                        "integer_decisions": false,
+                        "uc": false,
+                        "constraints": {
+                            "CapacityConstraint": true,
+                            "RampingLimitConstraint": true
+                        },
+                        "existing_capacity": 0.0,
+                        "investment_cost": 869000.00,
+                        "fixed_om_cost": 384000.00,
+                        "variable_om_cost": 58.41,
+                        "ramp_up_fraction": 1.0,
+                        "ramp_down_fraction": 1.0
+                    },
+                    "co2_emission_edge": {
+                        "type": "CO2",
+                        "unidirectional": true,
+                        "has_capacity": false,
+                        "end_vertex": "co2_sink"
+                    },
+                    "ng_edge": {
+                        "type": "NaturalGas",
+                        "unidirectional": true,
+                        "has_capacity": false,
+                        "start_vertex": "ng_source"
+                    },
+                    "elec_edge": {
+                        "type": "Electricity",
+                        "unidirectional": true,
+                        "has_capacity": false
+                    },
+                    "co2_captured_edge": {
+                        "type": "CO2Captured",
+                        "unidirectional": true,
+                        "has_capacity": false,
+                        "end_vertex": "co2_captured_sink"
+                    }
+                }
+            },
+            "instance_data":[
+                {
+                    "id": "solvent_wNGCC_dac_MA",
+                    "edges":{
+                            "co2_edge": {
+                                "availability": {
+                                "timeseries": {
+                                    "path": "assets/availability.csv",
+                                    "header": "solvent_wNGCC_dac_MA"
+                                    }
+                                }
+                            },
+                            "ng_edge": {
+                                "price": {
+                                    "timeseries": {
+                                        "path": "assets/fuel_prices.csv",
+                                        "header": "natgas_MA"
+                                    }
+                                }
+                            },
+                            "elec_edge":{
+                                "end_vertex": "elec_MA"
+                            }
+                        }
+
+                },
+                {
+                    "id": "solvent_wNGCC_dac_CT",
+                    "edges":{
+                            "co2_edge": {
+                                "availability": {
+                                "timeseries": {
+                                    "path": "assets/availability.csv",
+                                    "header": "solvent_wNGCC_dac_CT"
+                                    }
+                                }
+                            },
+                            "ng_edge": {
+                                "price": {
+                                    "timeseries": {
+                                        "path": "assets/fuel_prices.csv",
+                                        "header": "natgas_CT"
+                                    }
+                                }
+                            },
+                            "elec_edge":{
+                                "end_vertex": "elec_CT"
+                            }
+                        }
+
+                },
+                {
+                    "id": "solvent_wNGCC_dac_ME",
+                    "edges":{
+                            "co2_edge": {
+                                "availability": {
+                                "timeseries": {
+                                    "path": "assets/availability.csv",
+                                    "header": "solvent_wNGCC_dac_ME"
+                                    }
+                                }
+                            },
+                            "ng_edge": {
+                                "price": {
+                                    "timeseries": {
+                                        "path": "assets/fuel_prices.csv",
+                                        "header": "natgas_ME"
+                                    }
+                                }
+                            },
+                            "elec_edge":{
+                                "end_vertex": "elec_ME"
+                            }
+                        }
+
+                }
+            ]
+        },
+        {
+            "type": "NaturalGasDAC",
+            "global_data":{
+                "transforms": {
+                    "timedata": "NaturalGas",
+                    "emission_rate": 0.018104824,
+                    "capture_rate": 0.162943412,
+                    "electricity_production": 0.0,
+                    "fuel_consumption": 6.64,
+                    "constraints": {
+                            "BalanceConstraint": true
+                    }
+                },
+                "edges" :{
+                    "co2_edge": {
+                        "type": "CO2",
+                        "unidirectional": true,
+                        "has_capacity": true,
+                        "start_vertex": "co2_sink",
+                        "can_retire": true,
+                        "can_expand": true,
+                        "uc": false,
+                        "constraints": {
+                            "CapacityConstraint": true,
+                            "RampingLimitConstraint": true
+                        },
+                        "existing_capacity": 0.0,
+                        "investment_cost": 2140000.00,
+                        "fixed_om_cost": 1180000.00,
+                        "variable_om_cost": 61.00,
+                        "ramp_up_fraction": 1.0,
+                        "ramp_down_fraction": 1.0
+                    },
+                    "co2_emission_edge": {
+                        "type": "CO2",
+                        "unidirectional": true,
+                        "has_capacity": false,
+                        "end_vertex": "co2_sink"
+                    },
+                    "ng_edge": {
+                        "type": "NaturalGas",
+                        "unidirectional": true,
+                        "has_capacity": false,
+                        "start_vertex": "ng_source"
+                    },
+                    "elec_edge": {
+                        "type": "Electricity",
+                        "unidirectional": true,
+                        "has_capacity": false
+                    },
+                    "co2_captured_edge": {
+                        "type": "CO2Captured",
+                        "unidirectional": true,
+                        "has_capacity": false,
+                        "end_vertex": "co2_captured_sink"
+                    }
+                }
+            },
+            "instance_data":[
+                {
+                    "id": "sorbent_wNGCC_dac_MA",
+                    "edges":{
+                            "co2_edge": {
+                                "availability": {
+                                "timeseries": {
+                                    "path": "assets/availability.csv",
+                                    "header": "sorbent_wNGCC_dac_MA"
+                                    }
+                                }
+                            },
+                            "ng_edge": {
+                                "price": {
+                                    "timeseries": {
+                                        "path": "assets/fuel_prices.csv",
+                                        "header": "natgas_MA"
+                                    }
+                                }
+                            },
+                            "elec_edge":{
+                                "end_vertex": "elec_MA"
+                            }
+                        }
+
+                },
+                {
+                    "id": "sorbent_wNGCC_dac_CT",
+                    "edges":{
+                            "co2_edge": {
+                                "availability": {
+                                "timeseries": {
+                                    "path": "assets/availability.csv",
+                                    "header": "sorbent_wNGCC_dac_CT"
+                                    }
+                                }
+                            },
+                            "ng_edge": {
+                                "price": {
+                                    "timeseries": {
+                                        "path": "assets/fuel_prices.csv",
+                                        "header": "natgas_CT"
+                                    }
+                                }
+                            },
+                            "elec_edge":{
+                                "end_vertex": "elec_CT"
+                            }
+                        }
+
+                },
+                {
+                    "id": "sorbent_wNGCC_dac_ME",
+                    "edges":{
+                            "co2_edge": {
+                                "availability": {
+                                "timeseries": {
+                                    "path": "assets/availability.csv",
+                                    "header": "sorbent_wNGCC_dac_ME"
+                                    }
+                                }
+                            },
+                            "ng_edge": {
+                                "price": {
+                                    "timeseries": {
+                                        "path": "assets/fuel_prices.csv",
+                                        "header": "natgas_ME"
+                                    }
+                                }
+                            },
+                            "elec_edge":{
+                                "end_vertex": "elec_ME"
+                            }
+                        }
+
+                }
+            ]
+        }
+    ]
+
+}

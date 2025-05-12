@@ -1,0 +1,53 @@
+{
+    "line": [
+        {
+            "type": "PowerLine",
+            "global_data": {
+                "edges": {
+                    "elec_edge": {
+                        "commodity": "Electricity",
+                        "has_capacity": true,
+                        "unidirectional": false,
+                        "can_expand": true,
+                        "can_retire": false,
+                        "integer_decisions": false,
+                        "constraints": {
+                            "CapacityConstraint": true,
+                            "MaxCapacityConstraint": true
+                        }
+                    }
+                }
+            },
+            "instance_data": [
+                {
+                    "id": "SE_to_MIDAT",
+                    "edges": {
+                        "elec_edge": {
+                            "start_vertex": "elec_SE",
+                            "end_vertex": "elec_MIDAT",
+                            "distance": 491.4512001,
+                            "existing_capacity": 5552,
+                            "max_capacity": 27760,
+                            "investment_cost": 40219,
+                            "loss_fraction": 0.04914512
+                        }
+                    }
+                },
+                {
+                    "id": "MIDAT_to_NE",
+                    "edges": {
+                        "elec_edge": {
+                            "start_vertex": "elec_MIDAT",
+                            "end_vertex": "elec_NE",
+                            "distance": 473.6625536,
+                            "existing_capacity": 1915,
+                            "max_capacity": 9575,
+                            "investment_cost": 62316,
+                            "loss_fraction": 0.047366255
+                        }
+                    }
+                }
+            ]
+        }
+    ]
+}

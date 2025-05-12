@@ -27,6 +27,9 @@ abstract type Coal <: Commodity end ## MWh
 abstract type Biomass <: Commodity end ## tonnes
 abstract type Uranium <: Commodity end ## MWh
 abstract type LiquidFuels <: Commodity end ## MWh
+abstract type Cement <: Commodity end ## tonnes
+abstract type CementMaterials <: Commodity end ## tonnes
+abstract type CementFuel <: Commodity end ## tonnes
 
 ## Time data types
 abstract type AbstractTimeData{T<:Commodity} end
@@ -117,6 +120,9 @@ include("model/assets/syntheticliquidfuels.jl")
 
 include("model/assets/co2injection.jl")
 
+include("model/assets/cementplant.jl")
+include("model/assets/electrochemcementplant.jl")
+
 include_all_in_folder("model/constraints")
 
 include("config/configure_settings.jl")
@@ -129,6 +135,8 @@ include("benders_utilities.jl")
 
 include("model/scaling.jl")
 
+include("model/retrofit.jl")
+
 include("write_outputs/capacity.jl")
 include("write_outputs/flow.jl")
 include("write_outputs/write_output_utilities.jl")
@@ -140,6 +148,8 @@ export AbstractAsset,
     BalanceConstraint,
     Battery,
     Biomass,
+    CementPlant,
+    ElectrochemCementPlant,
     Coal,
     BECCSElectricity,
     BECCSHydrogen,
@@ -215,6 +225,9 @@ export AbstractAsset,
     write_costs,
     write_dataframe,
     write_flow,
-    write_results
+    write_results,
+    Cement,
+    CementMaterials,
+    CementFuel
     
 end # module MacroEnergy
