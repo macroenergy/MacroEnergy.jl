@@ -42,7 +42,7 @@ macro AbstractEdgeBaseAttributes()
         startup_fuel_balance_id::Symbol = $edge_defaults[:startup_fuel_balance_id]
         retirement_period::Int64 = $edge_defaults[:retirement_period]
         wacc::Float64 = settings.DiscountRate
-        annualized_investment_cost::Float64 = $edge_defaults[:annualized_investment_cost]
+        annualized_investment_cost::Union{Missing,Float64} = $edge_defaults[:annualized_investment_cost]
     end)
 end
 

@@ -83,7 +83,7 @@ function storage_default_data()
         :lifetime => 1,
         :wacc => 0.0,
         :retirement_period =>0,
-        :annualized_investment_cost => 0.0
+        :annualized_investment_cost => missing
     )
 end
 
