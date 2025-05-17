@@ -53,4 +53,4 @@ Once your model has been thoroughly debugged and tested in the REPL, you can swi
 
 Both workflows can be used interchangeably at this stage, depending on your needs.
 
-In the [next section](@ref Debugging and Testing), you'll find several useful methods and utilities for working with new models in Macro.
+In the [next section](@ref Debugging and Testing a Macro Model), you'll find several useful methods and utilities for working with new models in Macro.
