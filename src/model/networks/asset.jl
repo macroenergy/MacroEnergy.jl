@@ -1,3 +1,20 @@
+"""
+    id(asset::AbstractAsset)
+
+Get the unique identifier (ID) of an asset.
+
+# Arguments
+- `asset`: An asset object that is a subtype of AbstractAsset
+
+# Returns
+- A Symbol representing the asset's unique identifier
+
+# Examples
+```julia
+thermal_plant = get_asset_by_id(system, :SE_natural_gas)
+asset_id = id(thermal_plant)  # Returns the ID of the thermal plant
+```
+"""
 id(asset::AbstractAsset) = asset.id
 
 """
@@ -19,6 +36,20 @@ function struct_info(asset::T) where T
     return struct_info(typeof(asset))
 end
 
+"""
+    print_struct_info(asset::AbstractAsset)
+
+Print fields and types of a given asset.
+
+# Arguments
+- `asset`: An asset object that is a subtype of AbstractAsset
+
+# Examples
+```julia
+thermal_plant = get_asset_by_id(system, :SE_natural_gas_fired_combined_cycle_1)
+print_struct_info(thermal_plant)  # Prints the fields and types of the asset
+```
+"""
 function print_struct_info(asset::AbstractAsset)
     info = struct_info(typeof(asset))
     print_struct_info(info) 
@@ -40,14 +71,65 @@ function get_assets_sametype(assets::Vector{AbstractAsset}, asset_type::T) where
     return filter(a -> typeof(a) == asset_type, assets)
 end
 
+"""
+    get_component_by_fieldname(asset::AbstractAsset, fieldname::Symbol)
+
+Get a component of an asset by its field name (i.e., fieldname of the asset `struct`).
+
+# Arguments
+- `asset`: An asset object that is a subtype of AbstractAsset
+- `fieldname`: Symbol representing the field name of the component to get (i.e., fieldname of the asset `struct`)
+
+# Returns
+- The component object stored in the specified field
+
+# Examples
+```julia
+elec_edge = get_component_by_fieldname(thermal_plant, :elec_edge)
+```
+"""
 function get_component_by_fieldname(asset::AbstractAsset, fieldname::Symbol)
     return getfield(asset, fieldname)
 end
 
+"""
+    get_component_ids(asset::AbstractAsset)
+
+Get the IDs of all components in an asset.
+
+# Arguments
+- `asset`: An asset object that is a subtype of AbstractAsset
+
+# Returns
+- A vector of Symbols representing the IDs of all components in the asset
+
+# Examples
+```julia
+component_ids = get_component_ids(thermal_plant)
+```
+"""
 function get_component_ids(asset::AbstractAsset)
     return [id(getfield(asset, t)) for t in fieldnames(typeof(asset))]
 end
 
+"""
+    get_component_by_id(asset::AbstractAsset, component_id::Symbol)
+
+Find a component (e.g., edges, storages, transformations) of an asset by its ID.
+
+# Arguments
+- `asset`: An asset object that is a subtype of AbstractAsset
+- `component_id`: Symbol representing the ID of the component to find
+
+# Returns
+- The component object if found
+- `nothing` if no component with the given ID exists
+
+# Examples
+```julia
+elec_edge = get_component_by_id(thermal_plant, :SE_natural_gas_elec_edge)
+```
+"""
 function get_component_by_id(asset::AbstractAsset, component_id::Symbol)
     for t in fieldnames(typeof(asset))
         component = getfield(asset, t)
@@ -57,6 +139,27 @@ function get_component_by_id(asset::AbstractAsset, component_id::Symbol)
     end
     return nothing
 end
+
+"""
+    get_edges(asset::AbstractAsset; return_ids_map::Bool=false)
+    get_edges(assets::Vector{<:AbstractAsset}; return_ids_map::Bool=false)
+
+Get all edges from an asset or a vector of assets. If `return_ids_map=true`, a `Dict` is also returned mapping edge ids to the corresponding asset objects.
+
+# Arguments
+- `asset` or `assets`: An asset object or vector of assets that are subtypes of AbstractAsset
+- `return_ids_map`: If true, also return a Dict mapping edge IDs to their corresponding assets (default: false)
+
+# Returns
+- If `return_ids_map=false`: A vector of edges
+- If `return_ids_map=true`: A tuple of (vector of edges, Dict mapping edge IDs to assets)
+
+# Examples
+```julia
+# Get all edges from a single asset
+edges = get_edges(thermal_plant)
+```
+"""
 
 # The following functions are used to extract all the edges from an Asset or a Vector of Assets
 # If return_ids_map=True, a `Dict` is also returned mapping edge ids to the corresponding asset objects.

@@ -2,6 +2,27 @@
 # Functions for the user to load a system based on JSON files
 ###### ###### ###### ###### ###### ######
 
+"""
+    load_system(path::AbstractString = pwd(); lazy_load::Bool=true)
+
+Load a system from the `system_data.json` file or directory containing the system data.
+
+# Arguments
+- `path::AbstractString = pwd()`: The path to the `system_data.json` file or directory containing the system data.
+- `lazy_load::Bool=true`: Whether to lazy load the system data.
+
+# Returns
+- A `System` object containing the case data.
+
+# Examples
+```julia
+system = load_system("path/to/system_data.json")
+```
+
+```julia
+system = load_system("path/to/system_data_directory")
+```
+"""
 function load_system(
     path::AbstractString = pwd();
     lazy_load::Bool=true,
