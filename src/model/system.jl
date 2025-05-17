@@ -22,6 +22,7 @@ function asset_ids(system::System; source::String="assets")
     end
 end
 location_ids(system::System) = map(x -> x.id, system.locations)
+get_asset_types(system::System) = map(x -> typeof(x), system.assets)
 
 function set_data_dirpath!(system::System, data_dirpath::String)
     system.data_dirpath = data_dirpath
