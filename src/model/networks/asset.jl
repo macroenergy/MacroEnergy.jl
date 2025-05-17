@@ -6,12 +6,13 @@ id(asset::AbstractAsset) = asset.id
     Return a vector of tuples with the field names and types of a struct.
 """
 function struct_info(::Type{T}, include_id::Bool=false) where T
+    field_names = Base.fieldnames(T)
+    field_types = T.types
     if include_id
-        names = Base.fieldnames(T)
+        return [(field_names[idx], field_types[idx]) for idx in eachindex(field_names)]
     else
-        names = fieldnames(T)
+        return [(field_names[idx], field_types[idx]) for idx in eachindex(field_names) if field_names[idx] != :id]
     end
-    return [(names[idx], x) for (idx, x) in enumerate(T.types)]
 end
 
 function struct_info(asset::T) where T
@@ -28,7 +29,7 @@ function print_struct_info(asset::Type{<:AbstractAsset})
     print_struct_info(info) 
 end
 
-function print_struct_info(info::Vector{Tuple{Symbol, DataType}})
+function print_struct_info(info::Vector{Tuple{Symbol, Type}})
     for (name, type) in info
         println("Field: $name, Type: $type")
     end    
@@ -37,6 +38,24 @@ end
 # The following functions are used to extract all the assets of a given type from a System or a Vector of Assets
 function get_assets_sametype(assets::Vector{AbstractAsset}, asset_type::T) where T<:Type{<:AbstractAsset}
     return filter(a -> typeof(a) == asset_type, assets)
+end
+
+function get_component_by_fieldname(asset::AbstractAsset, fieldname::Symbol)
+    return getfield(asset, fieldname)
+end
+
+function get_component_ids(asset::AbstractAsset)
+    return [id(getfield(asset, t)) for t in fieldnames(typeof(asset))]
+end
+
+function get_component_by_id(asset::AbstractAsset, component_id::Symbol)
+    for t in fieldnames(typeof(asset))
+        component = getfield(asset, t)
+        if isequal(id(component), component_id)
+            return component
+        end
+    end
+    return nothing
 end
 
 # The following functions are used to extract all the edges from an Asset or a Vector of Assets
