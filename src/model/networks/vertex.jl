@@ -26,11 +26,15 @@ macro AbstractVertexBaseAttributes()
     )
 end
 
-id(v::AbstractVertex) = v.id;
-balance_ids(v::AbstractVertex) = collect(keys(v.balance_data));
-balance_data(v::AbstractVertex, i::Symbol) = v.balance_data[i];
-
-get_balance(v::AbstractVertex, i::Symbol) = v.operation_expr[i];
-get_balance(v::AbstractVertex, i::Symbol, t::Int64) = get_balance(v, i)[t];
-
-all_constraints(v::AbstractVertex) = v.constraints;
+id(v::AbstractVertex) = v.id
+balance_ids(v::AbstractVertex) = collect(keys(v.balance_data))
+balance_data(v::AbstractVertex, i::Symbol) = v.balance_data[i]
+get_balance(v::AbstractVertex, i::Symbol) = v.operation_expr[i]
+get_balance(v::AbstractVertex, i::Symbol, t::Int64) = get_balance(v, i)[t]
+all_constraints(v::AbstractVertex) = v.constraints
+all_constraints_types(v::AbstractVertex) = [typeof(c) for c in all_constraints(v)]
+function get_constraint_by_type(v::AbstractVertex, constraint_type::Type{<:AbstractTypeConstraint})
+    constraints = all_constraints(v)
+    matches = filter(c -> typeof(c) == constraint_type, constraints)
+    return length(matches) == 1 ? matches[1] : length(matches) > 1 ? matches : nothing
+end
