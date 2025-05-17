@@ -14,4 +14,4 @@ It is organized into the following sections:
 
 - [Suggested Development Workflow](@ref): A recommended workflow for developing new sectors and assets.
 
-- [Debugging and Testing](@ref): Guidance on how to debug and test new sectors and assets.
+- [Debugging and Testing a Macro Model](@ref): Guidance on how to debug and test new sectors and assets.

@@ -104,7 +104,8 @@ MacroEnergy.set_optimizer(model, HiGHS.Optimizer);
 ### `optimize!`
 Solves the optimization model.
 ```@repl utils
-MacroEnergy.optimize!(model);
+MacroEnergy.set_silent(model) # hide
+MacroEnergy.optimize!(model)
 ```
 
 The following set of functions can be used to retrieve the optimal values of some variables in the model.

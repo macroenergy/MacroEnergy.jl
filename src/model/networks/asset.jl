@@ -140,6 +140,8 @@ function get_component_by_id(asset::AbstractAsset, component_id::Symbol)
     return nothing
 end
 
+# The following functions are used to extract all the edges from an Asset or a Vector of Assets
+# If return_ids_map=True, a `Dict` is also returned mapping edge ids to the corresponding asset objects.
 """
     get_edges(asset::AbstractAsset; return_ids_map::Bool=false)
     get_edges(assets::Vector{<:AbstractAsset}; return_ids_map::Bool=false)
@@ -160,9 +162,6 @@ Get all edges from an asset or a vector of assets. If `return_ids_map=true`, a `
 edges = get_edges(thermal_plant)
 ```
 """
-
-# The following functions are used to extract all the edges from an Asset or a Vector of Assets
-# If return_ids_map=True, a `Dict` is also returned mapping edge ids to the corresponding asset objects.
 get_edges(asset::AbstractAsset; return_ids_map::Bool=false) = return_ids_map ? get_macro_objs_with_map(asset, AbstractEdge) : get_macro_objs(asset, AbstractEdge)
 get_edges(assets::Vector{<:AbstractAsset}; return_ids_map::Bool=false) = return_ids_map ? get_macro_objs_with_map(assets, AbstractEdge) : get_macro_objs(assets, AbstractEdge)
 
