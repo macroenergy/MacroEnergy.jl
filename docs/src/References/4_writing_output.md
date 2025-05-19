@@ -58,3 +58,8 @@ MacroEnergy.write_dataframe
 ```@docs
 MacroEnergy.write_results
 ```
+
+## `MacroEnergy.write_outputs`
+```@docs
+MacroEnergy.MacroEnergy.write_outputs
+```

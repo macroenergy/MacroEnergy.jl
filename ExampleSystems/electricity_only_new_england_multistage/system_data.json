@@ -1,0 +1,67 @@
+{
+    "case": [
+        {
+            "commodities": {
+                "path": "system/commodities.json"
+            },
+            "locations": {
+                "path": "locations"
+            },
+            "settings": {
+                "path": "settings/macro_settings.json"
+            },
+            "nodes": {
+                "path": "system/nodes_1.json"
+            },
+            "assets": {
+                "path": "assets/assets_1"
+            },
+            "time_data": {
+                "path": "system/time_data.json"
+            }
+        },
+        {
+            "commodities": {
+                "path": "system/commodities.json"
+            },
+            "locations": {
+                "path": "locations"
+            },
+            "settings": {
+                "path": "settings/macro_settings.json"
+            },
+            "nodes": {
+                "path": "system/nodes_2.json"
+            },
+            "assets": {
+                "path": "assets/assets_2"
+            },
+            "time_data": {
+                "path": "system/time_data.json"
+            }
+        },
+        {
+            "commodities": {
+                "path": "system/commodities.json"
+            },
+            "locations": {
+                "path": "locations"
+            },
+            "settings": {
+                "path": "settings/macro_settings.json"
+            },
+            "nodes": {
+                "path": "system/nodes_3.json"
+            },
+            "assets": {
+                "path": "assets/assets_3"
+            },
+            "time_data": {
+                "path": "system/time_data.json"
+            }
+        }
+    ],
+    "settings": {
+        "path": "settings/case_settings.json"
+    }
+}

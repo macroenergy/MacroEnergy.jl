@@ -158,7 +158,7 @@ get_commodity_name(obj::Storage) = typesymbol(commodity_type(obj))
 # e.g., "capacity" for capacity variables, "flow" for flow variables, etc.
 function get_commodity_subtype(f::Function)
     field_name = Symbol(f)
-    if any(field_name .== (:capacity, :new_capacity, :retired_capacity))
+    if any(field_name .== (:capacity, :new_capacity, :retired_capacity, :existing_capacity))
         return :capacity
     # elseif f == various cost # TODO: implement this
     #     return :cost
@@ -204,7 +204,7 @@ get_unit(obj::T, f::Function) where {T<:Union{Node,Storage}} = unit(commodity_ty
 # - Variable cost
 # - Fixed cost
 # - Total cost
-function prepare_costs(model::Model, scaling::Float64=1.0)
+function prepare_costs(model::Union{Model,NamedTuple}, scaling::Float64=1.0)
     fixed_cost = value(model[:eFixedCost])
     variable_cost = value(model[:eVariableCost])
     total_cost = fixed_cost + variable_cost
@@ -919,4 +919,348 @@ function find_available_filepath(filepath::AbstractString; max_attempts::Int=999
     path = dirname(filepath)
     filename = basename(filepath)
     return find_available_filepath(path, filename; max_attempts=max_attempts)
+end
+
+function write_outputs(results_dir::AbstractString, system::System, model::Model)
+    
+    # Capacity results
+    write_capacity(joinpath(results_dir, "capacity.csv"), system)
+    
+    # Cost results
+    write_costs(joinpath(results_dir, "undiscounted_costs.csv"), system, model)
+
+    # Flow results
+    write_flow(joinpath(results_dir, "flows.csv"), system)
+
+    return nothing
+end
+
+"""
+Write results when using Monolithic as solution algorithm.
+"""
+function write_outputs(case_path::AbstractString, case::Case, model::Model)
+    num_periods =number_of_periods(case)
+    periods = get_periods(case)
+    for (period_idx,period) in enumerate(periods)
+        @info("Writing results for period $period_idx")
+        compute_undiscounted_costs!(model, period, get_settings(case))
+
+        ## Create results directory to store the results
+        if num_periods > 1
+            # Create a directory for each period
+            results_dir = joinpath(case_path, "results_period_$period_idx")
+        else
+            # Create a directory for the single period
+            results_dir = joinpath(case_path, "results")
+        end
+        mkpath(results_dir)
+        write_outputs(results_dir, period, model)
+        write_discounted_costs(joinpath(results_dir, "costs.csv"), period, model; period_index=period_idx)
+    end
+
+    return nothing
+end
+
+"""
+Write results when using Myopic as solution algorithm. 
+"""
+function write_outputs(case_path::AbstractString, case::Case, myopic_results::MyopicResults)
+    num_periods = number_of_periods(case);
+    periods = get_periods(case)
+    for (period_idx, period) in enumerate(periods)
+        @info("Writing results for period $period_idx")
+        compute_total_myopic_costs!(myopic_results.models[period_idx], period, get_settings(case))
+        compute_undiscounted_costs!(myopic_results.models[period_idx], period, get_settings(case))
+        ## Create results directory to store the results
+        if num_periods > 1
+            # Create a directory for each period
+            results_dir = joinpath(case_path, "results_period_$period_idx")
+        else
+            # Create a directory for the single period
+            results_dir = joinpath(case_path, "results")
+        end
+        mkpath(results_dir)
+        
+        write_outputs(results_dir, period, myopic_results.models[period_idx])
+        write_discounted_costs(joinpath(results_dir, "costs.csv"), period, myopic_results.models[period_idx]; period_index=period_idx)
+    end
+
+    return nothing
+end
+
+"""
+Write results when using Benders as solution algorithm.
+"""
+function write_outputs(case_path::AbstractString, case::Case, bd_results::BendersResults)
+
+    settings = get_settings(case);
+    num_periods = number_of_periods(case);
+    periods = get_periods(case);
+
+    period_to_subproblem_map, _ = get_period_to_subproblem_mapping(periods)
+
+    # get the flow results from the operational subproblems
+    flow_df = collect_flow_results(case, bd_results)
+
+    for (period_idx, period) in enumerate(periods)
+        @info("Writing results for period $period_idx")
+        ## Create results directory to store the results
+        if num_periods > 1
+            # Create a directory for each period
+            results_dir = joinpath(case_path, "results_period_$period_idx")
+        else
+            # Create a directory for the single period
+            results_dir = joinpath(case_path, "results")
+        end
+        mkpath(results_dir)
+
+        # subproblem indices for the current period
+        subop_indices_period = period_to_subproblem_map[period_idx]
+
+        # Note: period has been updated with the capacity values in planning_solution at the end of function solve_case
+        # Capacity results
+        write_capacity(joinpath(results_dir, "capacity.csv"), period)
+
+        # Flow results
+        write_flows(results_dir, period, flow_df[subop_indices_period])
+        
+        # Cost results
+        costs = prepare_costs_benders(period, bd_results, subop_indices_period, settings)
+        write_costs(joinpath(results_dir, "undiscounted_costs.csv"), period, costs)
+        write_discounted_costs(joinpath(results_dir, "costs.csv"), period, costs)
+    end
+
+    return nothing
+end
+
+function prepare_costs_benders(system::System, 
+    bd_results::BendersResults, 
+    subop_indices::Vector{Int64}, 
+    settings::NamedTuple
+    )
+    planning_problem = bd_results.planning_problem
+    subop_sol = bd_results.subop_sol
+    planning_variable_values = bd_results.planning_sol.values
+
+    compute_undiscounted_costs!(planning_problem, system, settings)
+
+    # Evaluate the fixed cost expressions in the planning problem. Note that this expression has been re-built
+    # in compute_undiscounted_costs! to utilize undiscounted costs and the Benders planning solutions that are 
+    # stored in system. So, no need to re-evaluate the expression on planning_variable_values.
+    fixed_cost = value(planning_problem[:eFixedCost])
+    # Evaluate the discounted fixed cost expression on the Benders planning solutions
+    discounted_fixed_cost = value(x -> planning_variable_values[name(x)], planning_problem[:eDiscountedFixedCost])
+
+    # evaluate the variable cost expressions using the subproblem solutions
+    variable_cost = evaluate_vtheta_in_expression(planning_problem, :eVariableCost, subop_sol, subop_indices)
+    discounted_variable_cost = evaluate_vtheta_in_expression(planning_problem, :eDiscountedVariableCost, subop_sol, subop_indices)
+
+    return (
+        eFixedCost = fixed_cost,
+        eVariableCost = variable_cost,
+        eDiscountedFixedCost = discounted_fixed_cost,
+        eDiscountedVariableCost = discounted_variable_cost
+    )
+end
+    
+"""
+Collect flow results from all subproblems, handling distributed case.
+"""
+function collect_flow_results(case::Case, bd_results::BendersResults)
+    if case.settings.BendersSettings[:Distributed]
+        return collect_distributed_flows(bd_results)
+    else
+        return collect_local_flows(bd_results)
+    end
+end
+
+"""
+Collect flow results from subproblems on distributed workers.
+"""
+function collect_distributed_flows(bd_results::BendersResults)
+    p_id = workers()
+    np_id = length(p_id)
+    flow_df = Vector{Vector{DataFrame}}(undef, np_id)
+    @sync for i in 1:np_id
+        @async flow_df[i] = @fetchfrom p_id[i] get_local_expressions(get_optimal_flow, DistributedArrays.localpart(bd_results.op_subproblem))
+    end
+    return reduce(vcat, flow_df)
+end
+
+"""
+Collect flow results from local subproblems.
+"""
+function collect_local_flows(bd_results::BendersResults)
+    flow_df = Vector{DataFrame}(undef, length(bd_results.op_subproblem))
+    for i in eachindex(bd_results.op_subproblem)
+        system = bd_results.op_subproblem[i][:system_local]
+        flow_df[i] = get_optimal_flow(system)
+    end
+    return flow_df
+end
+
+
+function write_flows(results_dir::AbstractString, system::System, flow_dfs::Vector{DataFrame})
+    file_path = joinpath(results_dir, "flows.csv")
+    @info("Writing flow results to $file_path")
+    flow_results = reduce(vcat, flow_dfs)
+    
+    # Reshape if wide layout requested
+    layout = get_output_layout(system, :Flow)
+    if layout == "wide"
+        flow_results = reshape_wide(flow_results, :time, :component_id, :value)
+    end
+    write_dataframe(file_path, flow_results)
+end
+
+function get_local_expressions(optimal_getter::Function, subproblems_local::Vector{Dict{Any,Any}})
+    @assert isdefined(MacroEnergy, Symbol(optimal_getter))
+    n_local_subprob = length(subproblems_local)
+    expr_df = Vector{DataFrame}(undef, n_local_subprob)
+    for s in eachindex(subproblems_local)
+        expr_df[s] = optimal_getter(subproblems_local[s][:system_local])
+    end
+    return expr_df
+end
+
+function compute_undiscounted_costs!(model::Model, system::System, settings::NamedTuple)
+    
+    period_lengths = collect(settings.PeriodLengths)
+    discount_rate = settings.DiscountRate
+    period_index = system.time_data[:Electricity].period_index;
+    
+    unregister(model,:eDiscountedFixedCost)
+    model[:eDiscountedFixedCost] = model[:eFixedCostByPeriod][period_index]
+
+    undo_discount_fixed_costs!(system, settings)
+    unregister(model,:eFixedCost)
+    model[:eFixedCost] = AffExpr(0.0)
+    compute_fixed_costs!(system, model)
+
+    cum_years = sum(period_lengths[i] for i in 1:period_index-1; init=0);
+    discount_factor = 1/( (1 + discount_rate)^cum_years)
+    opexmult = sum([1 / (1 + discount_rate)^(i) for i in 1:period_lengths[period_index]])
+
+    unregister(model,:eDiscountedVariableCost)
+    model[:eDiscountedVariableCost] = model[:eVariableCostByPeriod][period_index]
+    model[:eVariableCost] = period_lengths[period_index]*model[:eVariableCostByPeriod][period_index]/(discount_factor * opexmult)
+
+end
+
+function compute_total_myopic_costs!(model::Model, system::System, settings::NamedTuple)
+    
+    add_costs_not_seen_by_myopic!(system, settings)
+    unregister(model,:eFixedCost)
+    model[:eFixedCost] = AffExpr(0.0)
+    compute_fixed_costs!(system, model)
+
+end
+
+function write_discounted_costs(
+    file_path::AbstractString, 
+    system::System, 
+    model::Union{Model,NamedTuple};
+    period_index::Int64=1,
+    scaling::Float64=1.0, 
+    drop_cols::Vector{<:AbstractString}=String[]
+)
+    @info "Writing discounted costs to $file_path"
+
+    # Get costs and determine layout (wide or long)
+    costs = get_optimal_discounted_costs(model,period_index; scaling)
+    layout = get_output_layout(system, :Costs)
+
+    if layout == "wide"
+        default_drop_cols = ["commodity", "commodity_subtype", "zone", "resource_id", "component_id", "type"]
+        # Only use default_drop_cols if user didn't specify any
+        drop_cols = isempty(drop_cols) ? default_drop_cols : drop_cols
+        costs = reshape_wide(costs)
+    end
+
+    write_dataframe(file_path, costs, drop_cols)
+    return nothing
+end
+
+function get_optimal_discounted_costs(model::Union{Model,NamedTuple}, period_index::Int64; scaling::Float64=1.0)
+    @debug " -- Getting optimal discounted costs for the system."
+    costs = prepare_discounted_costs(model, period_index, scaling)
+    df = convert_to_dataframe(costs)
+    df[!, (!isa).(eachcol(df), Vector{Missing})] # remove missing columns
+end
+
+function prepare_discounted_costs(model::Union{Model,NamedTuple}, period_index::Int64, scaling::Float64=1.0)
+    fixed_cost = value(model[:eDiscountedFixedCost])
+    variable_cost = value(model[:eDiscountedVariableCost])
+    total_cost = fixed_cost + variable_cost
+    OutputRow[
+        OutputRow(
+            :all,
+            :cost,
+            :all,
+            :all,
+            :all,
+            :Cost,
+            :DiscountedFixedCost,
+            missing,
+            missing,
+            missing,
+            fixed_cost * scaling^2,
+            # :USD,
+        ),
+        OutputRow(
+            :all,
+            :cost,
+            :all,
+            :all,
+            :all,
+            :Cost,
+            :DiscountedVariableCost,
+            missing,
+            missing,
+            missing,
+            variable_cost * scaling^2,
+            # :USD,
+        ),
+        OutputRow(
+            :all,
+            :cost,
+            :all,
+            :all,
+            :all,
+            :Cost,
+            :DiscountedTotalCost,
+            missing,
+            missing,
+            missing,
+            total_cost * scaling^2,
+            # :USD,
+        )
+    ]
+end
+
+
+"""
+Evaluate the expression `expr` for a specific period using operational subproblem solutions.
+
+# Arguments
+- `m::Model`: JuMP model containing vTHETA variables and the expression `expr` to evaluate
+- `expr::Symbol`: The expression to evaluate
+- `subop_sol::Dict`: Dictionary mapping subproblem indices to their operational costs
+- `subop_indices::Vector{Int64}`: The subproblem indices to evaluate
+
+# Returns
+The evaluated expression for the specified period 
+"""
+function evaluate_vtheta_in_expression(m::Model, expr::Symbol, subop_sol::Dict, subop_indices::Vector{Int64})
+    @assert haskey(m, expr)
+    
+    # Create mapping from theta variables to their operational costs for this period
+    theta_to_cost = Dict(
+        m[:vTHETA][w] => subop_sol[w].op_cost 
+        for w in subop_indices
+    )
+    
+    # Evaluate the expression `expr` using the mapping
+    return value(x -> theta_to_cost[x], m[expr])
+    
 end
