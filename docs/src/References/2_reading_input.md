@@ -39,6 +39,11 @@ MacroEnergy.load_default_system_data
 MacroEnergy.load_json_inputs
 ```
 
+## `load_system`
+```@docs
+MacroEnergy.load_system
+```
+
 ## `load_system_data`
 ```@docs
 MacroEnergy.load_system_data

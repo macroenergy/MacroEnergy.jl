@@ -1,4 +1,5 @@
 using MacroEnergy
+using HiGHS
 import MacroEnergy: AbstractEdge, AbstractStorage, Model
 using Documenter
 using DocumenterMermaid
@@ -39,9 +40,13 @@ const pages = [
             "Exploring the Asset library" => "Guides/User Guide/user_using_asset_libary.md"
         ],
         "Modeler Guide" => [
-            "Creating a Sector" => "Guides/Modeler Guide/modeler_build_sectors.md",
-            "Creating an Asset" => "Guides/Modeler Guide/modeler_build_asset.md",
-            "How to Create an Example Case" => "Guides/Modeler Guide/3_create_example_case.md",
+            "Introduction" => "Guides/Modeler Guide/modeler_introduction.md",
+            "Energy System Graph-Based Representation" => "Guides/Modeler Guide/modeler_es_graph.md",
+            "Creating a New Sector" => "Guides/Modeler Guide/modeler_build_sectors.md",
+            "Creating a New Asset" => "Guides/Modeler Guide/modeler_build_asset.md",
+            "Creating a New Example Case" => "Guides/Modeler Guide/modeler_create_example_case.md",
+            "Suggested Development Workflow" => "Guides/Modeler Guide/modeler_workflow.md",
+            "Debugging and Testing" => "Guides/Modeler Guide/modeler_debugging_testing.md",
         ],
         "Developer Guide" => [
             "Creating a Constraint" => "Guides/Developer Guide/dev_create_constraint.md",

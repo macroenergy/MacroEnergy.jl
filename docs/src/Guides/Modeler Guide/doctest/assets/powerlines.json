@@ -1,0 +1,34 @@
+{
+    "line": [
+        {
+            "type": "PowerLine",
+            "global_data": {
+                "elec_constraints": {
+                    "MaxCapacityConstraint": true
+                }
+            },
+            "instance_data": [
+                {
+                    "id": "SE_to_MIDAT",
+                    "line_origin": "elec_SE",
+                    "line_dest": "elec_MIDAT",
+                    "distance": 491.4512001,
+                    "existing_capacity": 5552,
+                    "max_capacity": 27760,
+                    "investment_cost": 40219,
+                    "loss_fraction": 0.04914512
+                },
+                {
+                    "id": "MIDAT_to_NE",
+                    "line_origin": "elec_MIDAT",
+                    "line_dest": "elec_NE",
+                    "distance": 473.6625536,
+                    "existing_capacity": 1915,
+                    "max_capacity": 9575,
+                    "investment_cost": 62316,
+                    "loss_fraction": 0.047366255
+                }
+            ]
+        }
+    ]
+}

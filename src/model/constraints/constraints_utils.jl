@@ -1,9 +1,6 @@
-constraint_value(c::AbstractTypeConstraint) = c.constraint_dict[:constraint_value];
-
-constraint_dual(c::AbstractTypeConstraint) = c.constraint_dict[:constraint_dual];
-
-constraint_ref(c::AbstractTypeConstraint) = c.contraint_dict[:constraint_ref];
-
+constraint_value(c::AbstractTypeConstraint) = c.constraint_value;
+constraint_dual(c::AbstractTypeConstraint) = c.constraint_dual;
+constraint_ref(c::AbstractTypeConstraint) = c.constraint_ref;
 
 function add_constraints_by_type!(system::System, model::Model, constraint_type::DataType)
 

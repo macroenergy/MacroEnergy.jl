@@ -144,6 +144,12 @@ edges_with_capacity_variables(edges::Vector{<:AbstractEdge}) =
 
 ######### Edge interface #########
 all_constraints(e::AbstractEdge) = e.constraints;
+all_constraints_types(e::AbstractEdge) = [typeof(c) for c in all_constraints(e)]
+function get_constraint_by_type(e::AbstractEdge, constraint_type::Type{<:AbstractTypeConstraint})
+    constraints = all_constraints(e)
+    matches = filter(c -> typeof(c) == constraint_type, constraints)
+    return length(matches) == 1 ? matches[1] : length(matches) > 1 ? matches : nothing
+end
 availability(e::AbstractEdge) = e.availability;
 function availability(e::AbstractEdge, t::Int64)
     a = availability(e)
