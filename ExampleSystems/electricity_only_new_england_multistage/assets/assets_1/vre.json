@@ -76,7 +76,10 @@
                 "edges": {
                     "edge": {
                         "can_retire": true,
-                        "max_capacity": -1,
+                        "max_capacity": 50000,
+                        "learning_parameter":0.33,
+                        "capacity_initial":5000,
+                        "investment_cost_init": 1529678.812,
                         "can_expand": true,
                         "constraints": {
                             "CapacityConstraint": true
@@ -104,7 +107,7 @@
                 "edges": {
                     "edge": {
                         "can_retire": true,
-                        "max_capacity": 30000,
+                        "max_capacity": 60000,
                         "learning_parameter":0.33,
                         "capacity_initial":5000,
                         "investment_cost_init": 1529678.812,

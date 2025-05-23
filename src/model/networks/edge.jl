@@ -283,7 +283,6 @@ function planning_model!(e::AbstractEdge, model::Model)
             error("Maximum capacity not specified for learning technology")
         end
         
-        # TODO move segment definition out of planning model
         # Number of segments
         N = 5
         # Define exogenous points describing the piece-wise linear curve (cumulative cost as a function of cumulative capacity added)
@@ -316,9 +315,9 @@ function planning_model!(e::AbstractEdge, model::Model)
         @constraint(model, [k in 1:N], cumulative_experience(e)[k] >= x_points[k]*segments_sos1(e)[k])
 
         @constraint(model, [k in 1:N], cumulative_experience(e)[k] <= x_points[k+1]*segments_sos1(e)[k])
-        # println("points")
-        # println(x_points)
-        # println(y_points)
+        println("points")
+        println(x_points)
+        println(y_points)
         # Slopes
         # All slopes on PWL curve
         e.pwl_cost_slopes = @expression(model, [k in 1:N], (y_points[k+1] - y_points[k])/(x_points[k+1]-x_points[k]))
@@ -341,13 +340,14 @@ function planning_model!(e::AbstractEdge, model::Model)
             # Linearize 
             # e.segments_sos1_prev = segments_sos1_track(e, cost_stage)
             # e.aux_new_capacity = @variable(model, [k in 1:N], lower_bound = 0.0)
-            # M_capacity = max_capacity(e)
+            # Upper bound on new capacity in a given period
+            # M_capacity = 20e3 #max_capacity(e)
             
             # @constraint(model, [k in 1:N], e.new_capacity - e.aux_new_capacity[k] >= 0)
             # @constraint(model, [k in 1:N], e.new_capacity - e.aux_new_capacity[k] <= M_capacity*(1-segments_sos1_prev(e)[k]))
             # @constraint(model, [k in 1:N], e.aux_new_capacity[k] <= M_capacity*e.segments_sos1_prev[k])
             # e.slope_times_capacity_linear = @expression(model, sum(e.pwl_cost_slopes[k]*e.aux_new_capacity[k] for k in 1:N))
-             # Enf of linearization
+            # Enf of linearization
         end
     else
         e.endog_investment_cost = annualized_investment_cost(e)
