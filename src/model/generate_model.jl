@@ -226,6 +226,11 @@ function carry_over_capacities!(y::Union{AbstractEdge,AbstractStorage},y_prev::U
             if perfect_foresight
                 y.new_capacity_track[prev_period] = new_capacity_track(y_prev,prev_period)
                 y.retired_capacity_track[prev_period] = retired_capacity_track(y_prev,prev_period)
+                # Learning
+                if learning_parameter(y) != 0.0
+                    y.learning_pwl_track[prev_period] = learning_pwl_track(y_prev, prev_period)
+                    y.segments_sos1_track[prev_period] = segments_sos1_track(y_prev,prev_period)
+                end
             else
                 y.new_capacity_track[prev_period] = value(new_capacity_track(y_prev,prev_period))
                 y.retired_capacity_track[prev_period] = value(retired_capacity_track(y_prev,prev_period))
@@ -257,6 +262,7 @@ function compute_annualized_costs!(y::Union{AbstractEdge,AbstractStorage})
     if isnothing(annualized_investment_cost(y))
         annualization_factor = wacc(y)>0 ? wacc(y) / (1 - (1 + wacc(y))^-capital_recovery_period(y))  : 1.0
         y.annualized_investment_cost = investment_cost(y) * annualization_factor;
+        # y.annualized_investment_cost = investment_cost(y) * annualization_factor;
     end
 end
 
@@ -291,7 +297,11 @@ function discount_fixed_costs!(y::Union{AbstractEdge,AbstractStorage},settings::
         payment_years_remaining = min(capital_recovery_period(y), model_years_remaining);
     end
 
-    y.annualized_investment_cost = annualized_investment_cost(y) * sum(1 / (1 + settings.DiscountRate)^s for s in 1:payment_years_remaining; init=0);
+    # y.annualized_investment_cost = annualized_investment_cost(y) * sum(1 / (1 + settings.DiscountRate)^s for s in 1:payment_years_remaining; init=0);
+
+    y.annuities_mult = sum(1 / (1 + settings.DiscountRate)^s for s in 1:payment_years_remaining; init=0);
+
+    # y.investment_cost_init = investment_cost_init(y) * sum(1 / (1 + settings.DiscountRate)^s for s in 1:payment_years_remaining; init=0);
     
     opexmult = sum([1 / (1 + settings.DiscountRate)^(i) for i in 1:settings.PeriodLengths[period_index(y)]])
 

@@ -5,7 +5,8 @@ function run_case(
     # Monolithic or Myopic
     optimizer::DataType=HiGHS.Optimizer,
     optimizer_env::Any=missing,
-    optimizer_attributes::Tuple=("BarConvTol" => 1e-3, "Crossover" => 0, "Method" => 2),
+    # optimizer_attributes::Tuple=("BarConvTol" => 1e-3, "Crossover" => 0, "Method" => 2),
+    optimizer_attributes::Tuple=("PreSOS1BigM" => 0),
     # Benders
     planning_optimizer::DataType=HiGHS.Optimizer,
     subproblem_optimizer::DataType=HiGHS.Optimizer,
