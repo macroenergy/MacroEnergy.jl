@@ -31,7 +31,7 @@ import MacroEnergy:
     get_optimal_new_capacity,
     get_optimal_retired_capacity,
     get_optimal_flow,
-    get_optimal_costs,
+    get_optimal_undiscounted_costs,
     write_capacity,
     write_costs,
     write_flow,
@@ -283,8 +283,8 @@ function test_writing_outputs(system, model)
     @test_nowarn get_optimal_flow(system)
     @test_nowarn get_optimal_flow(system.assets[1], scaling=1.0)
     @test_nowarn get_optimal_flow(system.assets[1].elec_edge, scaling=1.0)
-    @test_nowarn get_optimal_costs(model)
-    @test_nowarn get_optimal_costs(model, scaling=2.0)
+    @test_nowarn get_optimal_undiscounted_costs(model)
+    @test_nowarn get_optimal_undiscounted_costs(model, scaling=2.0)
     @test_nowarn write_capacity(joinpath(@__DIR__, "test_capacity.csv"), system)
     @test_nowarn write_costs(joinpath(@__DIR__, "test_costs.csv"), system, model, scaling=2.0)
     @test_nowarn write_flow(joinpath(@__DIR__, "test_flow.csv"), system)

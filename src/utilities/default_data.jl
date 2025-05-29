@@ -16,6 +16,7 @@ function edge_default_data()
         :existing_capacity => 0.0,
         :min_capacity => 0.0,
         :max_capacity => Inf,
+        :max_new_capacity => Inf,
         :integer_decisions => false,
         :loss_fraction => Float64[],
         :efficiency => 1.0,
@@ -32,7 +33,12 @@ function edge_default_data()
         :startup_cost => 0.0,
         :startup_fuel => 0.0,
         :startup_fuel_consumption => 0.0,
-        :startup_fuel_balance_id => :none
+        :startup_fuel_balance_id => :none,
+        :lifetime => 1,
+        :capital_recovery_period => 1,
+        :wacc => 0.0,
+        :retirement_period => 0,
+        :annualized_investment_cost => nothing
     )
 end
 
@@ -63,6 +69,7 @@ function storage_default_data()
         :existing_capacity => 0.0,
         :min_capacity => 0.0,
         :max_capacity => Inf,
+        :max_new_capacity => Inf,
         :min_duration => 0.0,
         :max_duration => 0.0,
         :min_storage_level => 0.0,
@@ -72,6 +79,11 @@ function storage_default_data()
         :investment_cost => 0.0,
         :fixed_om_cost => 0.0,
         :variable_om_cost => 0.0,
+        :capital_recovery_period => 1,
+        :lifetime => 1,
+        :wacc => 0.0,
+        :retirement_period =>0,
+        :annualized_investment_cost => nothing
     )
 end
 

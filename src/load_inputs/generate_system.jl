@@ -38,3 +38,15 @@ function generate_system!(system::System, system_data::AbstractDict{Symbol,Any})
     @info("Done generating system. It took $(round(time() - start_time, digits=2)) seconds")
     return nothing
 end
+
+function generate_system!(
+    periods::Vector{System},
+    file_path::AbstractString;
+    lazy_load::Bool = true,
+)::Nothing
+    # Load the system data file
+    @info("Generating system from $file_path")
+    system_data = load_system_data(file_path, system.data_dirpath; lazy_load = lazy_load)
+    generate_system!(periods, system_data)
+    return nothing
+end

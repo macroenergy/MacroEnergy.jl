@@ -70,7 +70,7 @@ To only view the results, we can use the following functions:
 get_optimal_capacity(system)
 get_optimal_retired_capacity(system)
 get_optimal_flows(system)
-get_optimal_costs(model)
+get_optimal_undiscounted_costs(model)
 get_optimal_flows(system)
 ```
 
