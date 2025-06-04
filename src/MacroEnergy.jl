@@ -29,6 +29,7 @@ abstract type Coal <: Commodity end ## MWh
 abstract type Biomass <: Commodity end ## tonnes
 abstract type Uranium <: Commodity end ## MWh
 abstract type LiquidFuels <: Commodity end ## MWh
+abstract type Cement <: Commodity end ## tonnes
 
 ## Time data types
 abstract type AbstractTimeData{T<:Commodity} end
@@ -119,6 +120,8 @@ include("model/assets/syntheticliquidfuels.jl")
 
 include("model/assets/co2injection.jl")
 
+include("model/assets/cementplant.jl")
+
 include_all_in_folder("model/constraints")
 
 include("config/configure_settings.jl")
@@ -143,6 +146,7 @@ export AbstractAsset,
     Battery,
     Biomass,
     Coal,
+    Cement,
     BECCSElectricity,
     BECCSHydrogen,
     BECCSGasoline,
