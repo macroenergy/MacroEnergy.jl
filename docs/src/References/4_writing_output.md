@@ -14,9 +14,9 @@ MacroEnergy.collect_results
 MacroEnergy.get_optimal_capacity
 ```
 
-## `get_optimal_costs`
+## `get_optimal_discounted_costs`
 ```@docs
-MacroEnergy.get_optimal_costs
+MacroEnergy.get_optimal_discounted_costs
 ```
 
 ## `get_optimal_flow`
@@ -57,4 +57,9 @@ MacroEnergy.write_dataframe
 ## `write_results`
 ```@docs
 MacroEnergy.write_results
+```
+
+## `MacroEnergy.write_outputs`
+```@docs
+MacroEnergy.MacroEnergy.write_outputs
 ```

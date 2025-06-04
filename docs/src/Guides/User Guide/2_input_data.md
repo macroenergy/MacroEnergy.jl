@@ -137,7 +137,7 @@ This file contains the data related to the time resolution for each sector. The 
         "Sector_2": <Integer>,
         ...
     },
-    "PeriodMap": {
+    "SubPeriodMap": {
         "path": <String>, // relative path to the period map file
     },
     "TotalHoursModeled": <Integer> // units: hours
@@ -149,7 +149,7 @@ This file contains the data related to the time resolution for each sector. The 
 | PeriodLength | Integer | Total number of **hours** in the simulation. |
 | HoursPerTimeStep | Integer | Number of **hours** in each time step **for each sector**. |
 | HoursPerSubperiod | Integer | Number of **hours** in each subperiod **for each sector**. |
-| PeriodMap | String | Relative path to the period map file. For an example of the period map file, see [Period_map.csv](https://github.com/macroenergy/Macro/blob/main/ExampleSystems/eastern_us_three_zones/system/Period_map.csv). |
+| SubPeriodMap | String | Relative path to the period map file. For an example of the period map file, see [Period_map.csv](https://github.com/macroenergy/Macro/blob/main/ExampleSystems/eastern_us_three_zones/system/Period_map.csv). |
 | TotalHoursModeled | Integer | Total number of **hours** modeled. **Note**: When using representative periods, this parameter is used to compute the weight of each subperiod. |
 
 !!! note "Subperiods"
@@ -176,7 +176,7 @@ This file contains the data related to the time resolution for each sector. The 
         "Uranium": 168,
         "Coal": 168
     },
-    "PeriodMap": {
+    "SubPeriodMap": {
         "path": "three_weeks/Period_map.csv"
     },
     "TotalHoursModeled": 8760

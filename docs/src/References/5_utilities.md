@@ -168,3 +168,23 @@ MacroEnergy.struct_info
 ```@docs
 MacroEnergy.timestepbefore
 ```
+
+## `collect_flow_results`
+```@docs
+MacroEnergy.collect_flow_results
+```
+
+## `collect_local_flows`
+```@docs
+MacroEnergy.collect_local_flows
+```
+
+## `collect_distributed_flows`
+```@docs
+MacroEnergy.collect_distributed_flows
+```
+
+## `evaluate_vtheta_in_expression`
+```@docs
+MacroEnergy.evaluate_vtheta_in_expression
+```

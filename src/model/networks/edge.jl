@@ -8,25 +8,30 @@ macro AbstractEdgeBaseAttributes()
         availability::Vector{Float64} = Float64[]
         can_expand::Bool = $edge_defaults[:can_expand]
         can_retire::Bool = $edge_defaults[:can_retire]
-        capacity::AffExpr = AffExpr(0.0)
+        capacity::Union{JuMPVariable,AffExpr,Float64} = AffExpr(0.0)
         capacity_size::Float64 = $edge_defaults[:capacity_size]
+        capital_recovery_period::Int64 = $edge_defaults[:capital_recovery_period]
         constraints::Vector{AbstractTypeConstraint} = Vector{AbstractTypeConstraint}()
         distance::Float64 = $edge_defaults[:distance]
-        existing_capacity::Float64 = $edge_defaults[:existing_capacity]
+        existing_capacity::Union{JuMPVariable,AffExpr,Float64,Int64} = $edge_defaults[:existing_capacity]
         fixed_om_cost::Float64 = $edge_defaults[:fixed_om_cost]
         flow::JuMPVariable = Vector{VariableRef}()
         has_capacity::Bool = $edge_defaults[:has_capacity]
         integer_decisions::Bool = $edge_defaults[:integer_decisions]
         investment_cost::Float64 = $edge_defaults[:investment_cost]
+        lifetime::Int64 = $edge_defaults[:lifetime]
         loss_fraction::Vector{Float64} = $edge_defaults[:loss_fraction]
         max_capacity::Float64 = $edge_defaults[:max_capacity]
+        max_new_capacity::Float64 = $edge_defaults[:max_new_capacity]
         min_capacity::Float64 = $edge_defaults[:min_capacity]
         min_flow_fraction::Float64 = $edge_defaults[:min_flow_fraction]
-        new_capacity::AffExpr = AffExpr(0.0)
+        new_capacity::Union{AffExpr,Float64} = AffExpr(0.0)
+        new_capacity_track::Dict{Int64,AffExpr} = Dict(1 => AffExpr(0.0))
         new_units::Union{JuMPVariable,Float64} = 0.0
         ramp_down_fraction::Float64 = $edge_defaults[:ramp_down_fraction]
         ramp_up_fraction::Float64 = $edge_defaults[:ramp_up_fraction]
-        retired_capacity::AffExpr = AffExpr(0.0)
+        retired_capacity::Union{AffExpr,Float64} = AffExpr(0.0)
+        retired_capacity_track::Dict{Int64,AffExpr} = Dict(1 => AffExpr(0.0))
         retired_units::Union{JuMPVariable,Float64} = 0.0
         unidirectional::Bool = $edge_defaults[:unidirectional]
         variable_om_cost::Float64 = $edge_defaults[:variable_om_cost]
@@ -35,6 +40,9 @@ macro AbstractEdgeBaseAttributes()
         startup_cost::Float64 = $edge_defaults[:startup_cost]
         startup_fuel_consumption::Float64 = $edge_defaults[:startup_fuel_consumption]
         startup_fuel_balance_id::Symbol = $edge_defaults[:startup_fuel_balance_id]
+        retirement_period::Int64 = $edge_defaults[:retirement_period]
+        wacc::Union{Missing,Float64} = missing
+        annualized_investment_cost::Union{Nothing,Float64} = $edge_defaults[:annualized_investment_cost]
     end)
 end
 
@@ -60,7 +68,7 @@ end
     - flow::Union{JuMPVariable,Vector{Float64}}: Flow of commodity `T` through the edge at each timestep
     - has_capacity::Bool: Whether the edge has capacity variables
     - integer_decisions::Bool: Whether capacity decisions must be integer
-    - investment_cost::Float64: Cost per unit of new capacity
+    - investment_cost::Float64: CAPEX per unit of new capacity
     - loss_fraction::Vector{Float64}: Fraction of flow lost during transmission, it can be time-dependent.
     - max_capacity::Float64: Maximum allowed capacity
     - min_capacity::Float64: Minimum required capacity
@@ -168,6 +176,7 @@ can_expand(e::AbstractEdge) = e.can_expand;
 can_retire(e::AbstractEdge) = e.can_retire;
 capacity(e::AbstractEdge) = e.capacity;
 capacity_size(e::AbstractEdge) = e.capacity_size;
+capital_recovery_period(e::AbstractEdge) = e.capital_recovery_period;
 commodity_type(e::AbstractEdge{T}) where {T} = T;
 end_vertex(e::AbstractEdge) = e.end_vertex;
 existing_capacity(e::AbstractEdge) = e.existing_capacity;
@@ -178,6 +187,7 @@ has_capacity(e::AbstractEdge) = e.has_capacity;
 id(e::AbstractEdge) = e.id;
 integer_decisions(e::AbstractEdge) = e.integer_decisions;
 investment_cost(e::AbstractEdge) = e.investment_cost;
+lifetime(e::AbstractEdge) = e.lifetime;
 loss_fraction(e::AbstractEdge) = e.loss_fraction;
 function loss_fraction(e::AbstractEdge, t::Int64)
     a = loss_fraction(e)
@@ -190,29 +200,32 @@ function loss_fraction(e::AbstractEdge, t::Int64)
     end
 end
 max_capacity(e::AbstractEdge) = e.max_capacity;
+max_new_capacity(e::AbstractEdge) = e.max_new_capacity;
 min_capacity(e::AbstractEdge) = e.min_capacity;
 min_flow_fraction(e::AbstractEdge) = e.min_flow_fraction;
 new_capacity(e::AbstractEdge) = e.new_capacity;
+new_capacity_track(e::AbstractEdge) = e.new_capacity_track;
+#### Note that edge "e" may not be present in the inputs for all case
+new_capacity_track(e::AbstractEdge,s::Int64) =  (haskey(new_capacity_track(e),s) == false) ? 0.0 : e.new_capacity_track[s];
 new_units(e::AbstractEdge) = e.new_units;
 ramp_down_fraction(e::AbstractEdge) = e.ramp_down_fraction;
 ramp_up_fraction(e::AbstractEdge) = e.ramp_up_fraction;
 retired_capacity(e::AbstractEdge) = e.retired_capacity;
+retired_capacity_track(e::AbstractEdge) = e.retired_capacity_track;
+#### Note that edge "e" may not be present in the inputs for all case
+retired_capacity_track(e::AbstractEdge,s::Int64) =  (haskey(retired_capacity_track(e),s) == false) ? 0.0 : e.retired_capacity_track[s];
 retired_units(e::AbstractEdge) = e.retired_units;
+retirement_period(e::AbstractEdge) = e.retirement_period;
 start_vertex(e::AbstractEdge)::AbstractVertex = e.start_vertex;
 variable_om_cost(e::AbstractEdge) = e.variable_om_cost;
+wacc(e::AbstractEdge) = e.wacc;
+annualized_investment_cost(e::AbstractEdge) = e.annualized_investment_cost;
 ##### End of Edge interface #####
-
 
 function add_linking_variables!(e::AbstractEdge, model::Model)
 
     if has_capacity(e)
-        e.new_units = @variable(model, lower_bound = 0.0, base_name = "vNEWUNIT_$(id(e))")
-
-        e.retired_units = @variable(model, lower_bound = 0.0, base_name = "vRETUNIT_$(id(e))")
-
-        e.new_capacity = @expression(model, capacity_size(e) * new_units(e))
-        
-        e.retired_capacity = @expression(model, capacity_size(e) * retired_units(e))
+        e.capacity = @variable(model, lower_bound = 0.0, base_name = "vCAP_$(id(e))_period$(period_index(e))")
     end
 
     return nothing
@@ -222,10 +235,25 @@ end
 function define_available_capacity!(e::AbstractEdge, model::Model)
 
     if has_capacity(e)
-        e.capacity = @expression(
-            model,
-            new_capacity(e) - retired_capacity(e) + existing_capacity(e)
-        )
+        
+        e.new_units = @variable(model, lower_bound = 0.0, base_name = "vNEWUNIT_$(id(e))_period$(period_index(e))")
+
+        e.retired_units = @variable(model, lower_bound = 0.0, base_name = "vRETUNIT_$(id(e))_period$(period_index(e))")
+
+        e.new_capacity = @expression(model, capacity_size(e) * new_units(e))
+        
+        e.retired_capacity = @expression(model, capacity_size(e) * retired_units(e))
+
+        e.new_capacity_track[period_index(e)] = new_capacity(e);
+        
+        e.retired_capacity_track[period_index(e)] = retired_capacity(e);
+
+        @constraint(model, capacity(e) == new_capacity(e) - retired_capacity(e) + existing_capacity(e))
+
+        # e.capacity = @expression(
+        #     model,
+        #     new_capacity(e) - retired_capacity(e) + existing_capacity(e)
+        # )
     end
 
     return nothing
@@ -242,11 +270,6 @@ function planning_model!(e::AbstractEdge, model::Model)
             if integer_decisions(e)
                 set_integer(new_units(e))
             end
-            add_to_expression!(
-                model[:eFixedCost],
-                investment_cost(e),
-                new_capacity(e),
-            )
         end
 
         if !can_retire(e)
@@ -257,17 +280,43 @@ function planning_model!(e::AbstractEdge, model::Model)
             end
         end
 
-        if fixed_om_cost(e) > 0
-            add_to_expression!(model[:eFixedCost], fixed_om_cost(e), capacity(e))
-        end
-
         @constraint(model, retired_capacity(e) <= existing_capacity(e))
 
     end
 
+    compute_fixed_costs!(e, model)
 
     return nothing
 
+end
+
+function compute_investment_costs!(e::AbstractEdge, model::Model)
+    if has_capacity(e)
+        if can_expand(e)
+            add_to_expression!(
+                    model[:eInvestmentFixedCost],
+                    annualized_investment_cost(e),
+                    new_capacity(e),
+                )
+        end
+    end
+end
+
+function compute_om_fixed_costs!(e::AbstractEdge, model::Model)
+    if has_capacity(e)
+        if fixed_om_cost(e) > 0
+            add_to_expression!(
+                model[:eOMFixedCost],
+                fixed_om_cost(e),
+                capacity(e),
+            )
+        end
+    end
+end
+
+function compute_fixed_costs!(e::AbstractEdge, model::Model)
+    compute_investment_costs!(e, model)
+    compute_om_fixed_costs!(e, model)
 end
 
 function operation_model!(e::Edge, model::Model)
@@ -277,10 +326,10 @@ function operation_model!(e::Edge, model::Model)
             model,
             [t in time_interval(e)],
             lower_bound = 0.0,
-            base_name = "vFLOW_$(id(e))"
+            base_name = "vFLOW_$(id(e))_period$(period_index(e))"
         )
     else
-        e.flow = @variable(model, [t in time_interval(e)], base_name = "vFLOW_$(id(e))")
+        e.flow = @variable(model, [t in time_interval(e)], base_name = "vFLOW_$(id(e))_period$(period_index(e))")
     end
 
     update_balances!(e, model)
@@ -331,7 +380,7 @@ end
     - flow::Union{JuMPVariable,Vector{Float64}}: Flow of commodity through the edge at each timestep
     - has_capacity::Bool: Whether the edge has capacity variables
     - integer_decisions::Bool: Whether capacity decisions must be integer
-    - investment_cost::Float64: Cost per unit of new capacity
+    - investment_cost::Float64: CAPEX per unit of new capacity
     - loss_fraction::Float64: Fraction of flow lost during transmission
     - max_capacity::Float64: Maximum allowed capacity
     - min_capacity::Float64: Minimum required capacity
@@ -433,28 +482,28 @@ function operation_model!(e::EdgeWithUC, model::Model)
         model,
         [t in time_interval(e)],
         lower_bound = 0.0,
-        base_name = "vFLOW_$(id(e))"
+        base_name = "vFLOW_$(id(e))_period$(period_index(e))"
     )
 
     e.ucommit = @variable(
         model,
         [t in time_interval(e)],
         lower_bound = 0.0,
-        base_name = "vCOMMIT_$(id(e))"
+        base_name = "vCOMMIT_$(id(e))_period$(period_index(e))"
     )
 
     e.ustart = @variable(
         model,
         [t in time_interval(e)],
         lower_bound = 0.0,
-        base_name = "vSTART_$(id(e))"
+        base_name = "vSTART_$(id(e))_period$(period_index(e))"
     )
 
     e.ushut = @variable(
         model,
         [t in time_interval(e)],
         lower_bound = 0.0,
-        base_name = "vSHUT_$(id(e))"
+        base_name = "vSHUT_$(id(e))_period$(period_index(e))"
     )
 
     update_balances!(e, model)
@@ -571,8 +620,8 @@ function update_balance_start!(e::AbstractEdge, model::Model)
         effective_flow = @expression(model, [t in time_interval(e)], flow(e, t))
 
     else
-        flow_pos = @variable(model, [t in time_interval(e)], lower_bound = 0.0, base_name = "vFLOWPOS_$(id(e))")
-        flow_neg = @variable(model, [t in time_interval(e)], lower_bound = 0.0, base_name = "vFLOWNEG_$(id(e))")
+        flow_pos = @variable(model, [t in time_interval(e)], lower_bound = 0.0, base_name = "vFLOWPOS_$(id(e))_period$(period_index(e))")
+        flow_neg = @variable(model, [t in time_interval(e)], lower_bound = 0.0, base_name = "vFLOWNEG_$(id(e))_period$(period_index(e))")
 
         @constraint(model, [t in time_interval(e)], flow_pos[t] - flow_neg[t] == flow(e, t))
 
@@ -599,9 +648,9 @@ function update_balance_end!(e::AbstractEdge, model::Model)
     if e.unidirectional == true
         effective_flow = @expression(model, [t in time_interval(e)], (1-loss_fraction(e,t)) * flow(e, t))
     else
-
-        flow_pos = @variable(model, [t in time_interval(e)], lower_bound = 0.0, base_name = "vFLOWPOS_$(id(e))")
-        flow_neg = @variable(model, [t in time_interval(e)], lower_bound = 0.0, base_name = "vFLOWNEG_$(id(e))")
+    
+        flow_pos = @variable(model, [t in time_interval(e)], lower_bound = 0.0, base_name = "vFLOWPOS_$(id(e))_period$(period_index(e))")
+        flow_neg = @variable(model, [t in time_interval(e)], lower_bound = 0.0, base_name = "vFLOWNEG_$(id(e))_period$(period_index(e))")
 
         @constraint(model, [t in time_interval(e)], flow_pos[t] - flow_neg[t] == flow(e, t))
 

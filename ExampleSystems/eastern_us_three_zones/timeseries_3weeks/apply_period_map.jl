@@ -6,15 +6,15 @@ using DataFrames
 using YAML
 using JSON3
 
-period_map = CSV.read(joinpath(@__DIR__, "Period_map.csv"),DataFrame)
+subperiod_map = CSV.read(joinpath(@__DIR__, "Period_map.csv"),DataFrame)
 path_to_full_timeseries = joinpath(dirname(@__DIR__), "timeseries_full_year/")
 
-rep_periods = unique(sort(period_map,3).Rep_Period);
+rep_periods = unique(sort(subperiod_map,3).Rep_Period);
 
 tdr_settings = YAML.load_file(joinpath(@__DIR__, "time_domain_reduction_settings.yml"))
 timesteps_per_rep_period = tdr_settings["TimestepsPerRepPeriod"]
 
-weights_unscaled = [length(findall(period_map[:,:Rep_Period].==p)) for p in rep_periods]
+weights_unscaled = [length(findall(subperiod_map[:,:Rep_Period].==p)) for p in rep_periods]
 weight_total = tdr_settings["WeightTotal"]
 
 weights = weight_total*weights_unscaled/sum(weights_unscaled)

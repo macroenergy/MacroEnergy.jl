@@ -130,10 +130,10 @@ retired_capacity = MacroEnergy.get_optimal_retired_capacity(system);
 retired_capacity[!, [:commodity, :resource_id, :value]]
 ```
 
-### [`get_optimal_costs`](@ref)
+### [`get_optimal_discounted_costs`](@ref)
 Fetches all the system costs.
 ```@repl utils
-costs = MacroEnergy.get_optimal_costs(model);
+costs = MacroEnergy.get_optimal_discounted_costs(model);
 costs[!, [:variable, :value]]
 ```
 

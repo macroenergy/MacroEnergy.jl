@@ -53,3 +53,13 @@ MacroEnergy.load_system_data
 ```@docs
 MacroEnergy.prep_system_data
 ```
+
+## `load_benders_settings`
+```@docs
+MacroEnergy.load_benders_settings
+```
+
+## `try_load_benders_settings`
+```@docs
+MacroEnergy.try_load_benders_settings
+```

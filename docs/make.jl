@@ -36,7 +36,7 @@ const pages = [
             "Configuring Settings" => "Guides/User Guide/user_settings.md",
             "Running Models" => "Guides/User Guide/user_run_model.md",
             "Writing Results" => "Guides/User Guide/user_write_results.md",
-            "Using Multi-Stage Models" => "Guides/User Guide/user_multistage.md",
+            "Using Multi-Period Models" => "Guides/User Guide/user_multiperiod.md",
             "Exploring the Asset library" => "Guides/User Guide/user_using_asset_libary.md"
         ],
         "Modeler Guide" => [

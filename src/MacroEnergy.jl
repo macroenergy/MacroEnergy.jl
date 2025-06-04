@@ -11,8 +11,17 @@ using Revise
 using InteractiveUtils
 using Printf: @printf
 using MacroEnergyScaling
+using MacroEnergySolvers
+using Pkg
+using DistributedArrays
+using Distributed
+using ClusterManagers
+using Gurobi
 using GitHub
 using Markdown
+
+import MacroEnergyScaling: scale_constraints!
+import JuMP: set_optimizer, set_optimizer_attributes
 
 import Base: /, push!, merge!
 
@@ -53,7 +62,19 @@ abstract type OperationConstraint <: AbstractTypeConstraint end
 abstract type PolicyConstraint <: OperationConstraint end
 abstract type PlanningConstraint <: AbstractTypeConstraint end
 
+## Solution algorithms
+
+abstract type AbstractSolutionAlgorithm end
+struct Benders <: AbstractSolutionAlgorithm end
+struct Monolithic <: AbstractSolutionAlgorithm end
+struct Myopic <: AbstractSolutionAlgorithm end
+solution_algorithm(::AbstractSolutionAlgorithm) = Monolithic() # default to monolithic
+solution_algorithm(::Benders) = Benders()
+solution_algorithm(::Monolithic) = Monolithic()
+solution_algorithm(::Myopic) = Myopic()
+
 # global constants
+const ME_DEPOT_PATH = joinpath(homedir(), ".macroenergy")
 const H2_MWh = 33.33 # MWh per tonne of H2
 const NG_MWh = 0.29307107 # MWh per MMBTU of NG 
 const AssetId = Symbol
@@ -61,6 +82,22 @@ const JuMPConstraint =
     Union{Array,Containers.DenseAxisArray,Containers.SparseAxisArray,ConstraintRef}
 const JuMPVariable =
     Union{Array,Containers.DenseAxisArray,Containers.SparseAxisArray,VariableRef}
+
+# Load subcommodities from file when MacroEnergy is loaded
+# Also load the Gurobi environment
+const GRB_ENV = Ref{Gurobi.Env}()
+function __init__()
+    isdir(ME_DEPOT_PATH) && load_subcommodities_from_file(ME_DEPOT_PATH)
+    try
+        GRB_ENV[] = Gurobi.Env()
+    catch e
+        if isa(e, ErrorException) && occursin("Gurobi Error", string(e))
+            @debug "Gurobi is not available."
+        else
+            rethrow(e)
+        end
+    end
+end
 
 function include_all_in_folder(folder::AbstractString, root_path::AbstractString=@__DIR__)
     base_path = joinpath(root_path, folder)
@@ -74,9 +111,9 @@ function include_all_in_folder(folder::AbstractString, root_path::AbstractString
     return nothing
 end
 
+# include files
 include_all_in_folder("utilities")
 
-# include files
 include("model/units.jl")
 include("model/time_management.jl")
 include("model/networks/vertex.jl")
@@ -87,7 +124,15 @@ include("model/networks/location.jl")
 include("model/networks/edge.jl")
 include("model/networks/asset.jl")
 include("model/system.jl")
+include("model/case.jl")
 include("model/networks/macroobject.jl")
+include("model/generate_model.jl")
+include("model/optimizer.jl")
+include("model/scaling.jl")
+include("model/solver.jl")
+include("model/myopic.jl")
+include_all_in_folder("model/constraints")
+include_all_in_folder("model/benders")
 
 include("model/assets/battery.jl")
 include("model/assets/electrolyzer.jl")
@@ -97,10 +142,8 @@ include("model/assets/thermalhydrogen.jl")
 include("model/assets/thermalpower.jl")
 include("model/assets/powerline.jl")
 include("model/assets/vre.jl")
-
 include("model/assets/thermalhydrogenccs.jl")
 include("model/assets/thermalpowerccs.jl")
-
 include("model/assets/natgasdac.jl")
 include("model/assets/electricdac.jl")
 include("model/assets/beccselectricity.jl")
@@ -110,35 +153,21 @@ include("model/assets/beccsliquidfuels.jl")
 include("model/assets/beccsnaturalgas.jl")
 include("model/assets/hydrores.jl")
 include("model/assets/mustrun.jl")
-
 include("model/assets/fossilfuelsupstream.jl")
 include("model/assets/fuelsenduse.jl")
-
 include("model/assets/syntheticnaturalgas.jl")
 include("model/assets/syntheticliquidfuels.jl")
-
 include("model/assets/co2injection.jl")
 
-include_all_in_folder("model/constraints")
-
 include("config/configure_settings.jl")
+include("config/case_settings.jl")
+include_all_in_folder("load_inputs")
 
-include_all_in_folder("load_inputs/")
-
-include("generate_model.jl")
-
-include("benders_utilities.jl")
-
-include("model/scaling.jl")
-
-include("write_outputs/capacity.jl")
-include("write_outputs/flow.jl")
-include("write_outputs/write_output_utilities.jl")
-include("write_outputs/costs.jl")
-include("write_outputs/write_system_data.jl")
+include_all_in_folder("write_outputs/")
 
 export AbstractAsset,
     AbstractTypeConstraint,
+    AgeBasedRetirementConstraint,
     BalanceConstraint,
     Battery,
     Biomass,
@@ -166,7 +195,7 @@ export AbstractAsset,
     FuelsEndUse,
     GasStorage,
     get_optimal_capacity, 
-    get_optimal_costs,
+    get_optimal_discounted_costs,
     get_optimal_flow,
     get_optimal_new_capacity,
     get_optimal_retired_capacity,
@@ -174,8 +203,11 @@ export AbstractAsset,
     Hydrogen,
     LongDurationStorage,
     LongDurationStorageImplicitMinMaxConstraint,
+    LongDurationStorageChangeConstraint,
     LiquidFuels,
+    load_subcommodities_from_file,
     MaxCapacityConstraint,
+    MaxNewCapacityConstraint,
     MaxNonServedDemandConstraint,
     MaxNonServedDemandPerSegmentConstraint,
     MaxStorageLevelConstraint,
