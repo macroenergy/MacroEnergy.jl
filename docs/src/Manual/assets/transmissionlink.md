@@ -1,25 +1,25 @@
-# Power Line
+# Transmission Link
 
 ## Graph structure
-A power line is represented in Macro using the following graph structure:
+A transmission link represents the lossy transport of a commodity between two nodes. For example, an electricity transmission link is represented in Macro using the following graph structure:
 
 ```@raw html
 <img width="400" src="../../images/powerline.png" />
 ```
 
-A power line asset is very simple and is made of:
+A transmission link is very simple and is made of:
 
 - 1 `Edge` component:
-    - 1 `Electricity` `Edge`, representing the flow of electricity between two nodes.
+    - 1 `Transmission` `Edge`, representing the commodity flow (in this case electricity) between two nodes.
             
 ## Attributes
-The structure of the input file for a power line asset follows the graph representation. Each `global_data` and `instance_data` will look like this:
+The structure of the input file for a transmission link asset follows the graph representation. Each `global_data` and `instance_data` will look like this:
 
 ```json
 {
     "edges":{
-        "elec_edge": {
-            // ... elec_edge-specific attributes ...
+        "transmission_edge": {
+            // ... transmission_edge-specific attributes ...
         }
     }
 }
@@ -30,7 +30,7 @@ The definition of the `Edge` object can be found here [MacroEnergy.Edge](@ref).
 
 | **Attribute** | **Type** | **Values** | **Default** | **Description** |
 |:--------------| :------: |:------: | :------: |:-------|
-| **type** | `String` | `Electricity` | Required | Commodity flowing through the edge. |
+| **type** | `String` | Commodity of the edge. E.g. `Electricity`. | Required | Commodity flowing through the edge. |
 | **start_vertex** | `String` | Any electricity node id present in the system | Required | ID of the starting vertex of the edge. The node must be present in the `nodes.json` file. E.g. "elec\_node\_1". |
 | **end_vertex** | `String` | Any electricity node id present in the system | Required | ID of the ending vertex of the edge. The node must be present in the `nodes.json` file. E.g. "elec\_node\_2". |
 | **constraints** | `Dict{String,Bool}` | Any Macro constraint type for Edges | `CapacityConstraint` | List of constraints applied to the edge. E.g. `{"CapacityConstraint": true}`. |
@@ -58,9 +58,9 @@ The following is an example of the input file for a power line asset that create
 
 ```json
 {
-    "line": [
+    "link": [
         {
-            "type": "PowerLine",
+            "type": "TransmissionLink",
             "global_data": {
                 "edges": {
                     "elec_edge": {
@@ -81,7 +81,7 @@ The following is an example of the input file for a power line asset that create
                 {
                     "id": "SE_to_MIDAT",
                     "edges": {
-                        "elec_edge": {
+                        "transmission_edge": {
                             "start_vertex": "elec_SE",
                             "end_vertex": "elec_MIDAT",
                             "distance": 491.4512001,
@@ -95,7 +95,7 @@ The following is an example of the input file for a power line asset that create
                 {
                     "id": "MIDAT_to_NE",
                     "edges": {
-                        "elec_edge": {
+                        "transmission_edge": {
                             "start_vertex": "elec_MIDAT",
                             "end_vertex": "elec_NE",
                             "distance": 473.6625536,

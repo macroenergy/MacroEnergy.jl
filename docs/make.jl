@@ -77,7 +77,7 @@ const pages = [
             "Manual/assets/hydropower.md",
             "Manual/assets/mustrun.md",
             "Manual/assets/natgasdaq.md",
-            "Manual/assets/powerline.md",
+            "Manual/assets/transmissionlink.md",
             "Manual/assets/thermalhydrogen.md",
             "Manual/assets/thermalpower.md",
             "Manual/assets/vre.md"

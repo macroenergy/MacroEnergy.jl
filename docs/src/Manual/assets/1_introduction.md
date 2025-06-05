@@ -80,10 +80,10 @@ The current library includes the following assets:
 <a href="natgasdaq.html"><img width="450" src="../../images/natgasdac.png" /></a>
 ```
 
-- [Power Line](@ref)
+- [Transmission Link](@ref)
 
 ```@raw html
-<a href="powerline.html"><img width="220" src="../../images/powerline.png" /></a>
+<a href="transmissionlink.html"><img width="220" src="../../images/powerline.png" /></a>
 ```
 
 - [Thermal Hydrogen Plant (with and without CCS)](@ref)
