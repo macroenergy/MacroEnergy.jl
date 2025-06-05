@@ -3,6 +3,7 @@
 **MacroEnergy.jl** is an open-source software project and contributions are welcome! This guide is a quickstart guide to help you contribute to the project.
 
 ## Opening an issue
+
 The most straightforward way to contribute to MacroEnergy.jl is to provide feedback directly on the [issues page](https://github.com/MacroEnergy/MacroEnergy.jl/issues). By clicking on the `New issue` button, you will see four types of issues you can open:
 
 - [`Bug Report`](https://github.com/macroenergy/MacroEnergy.jl/issues/new?template=bug_report.yml) - for reporting bugs and errors
@@ -23,6 +24,7 @@ The second way to contribute to MacroEnergy.jl is to open a [pull request](https
    - This creates your own copy of the repository where you can make changes.
 
 3. **Clone your fork**:
+
    ```bash
    # Replace YOUR-USERNAME with your GitHub username
    git clone https://github.com/YOUR-USERNAME/MacroEnergy.jl.git
@@ -30,6 +32,7 @@ The second way to contribute to MacroEnergy.jl is to open a [pull request](https
    ```
 
 4. **Add the original repository as upstream**:
+
    ```bash
    # This allows you to keep your fork in sync with the main repository
    git remote add upstream https://github.com/macroenergy/MacroEnergy.jl.git
@@ -38,6 +41,7 @@ The second way to contribute to MacroEnergy.jl is to open a [pull request](https
    ```
 
 5. **Create a new branch** for your changes:
+
    ```bash
    # Get the latest changes from the main repository
    git checkout main
@@ -52,6 +56,7 @@ The second way to contribute to MacroEnergy.jl is to open a [pull request](https
     The recommended name for the branch is `<user_id>/<short_description>`, where `<user_id>` can be a short version of your name or a nickname, and `<short_description>` is a short description of the changes you are making.
 
 6. **Make your changes** and commit them (this step can be done multiple times, each for a different change):
+
    ```bash
    # Stage your changes
    git add .
@@ -63,6 +68,7 @@ The second way to contribute to MacroEnergy.jl is to open a [pull request](https
    ```
 
 7. **Push to your fork**:
+
    ```bash
    # Push your branch to your fork
    git push origin your-branch-name
@@ -74,6 +80,7 @@ The second way to contribute to MacroEnergy.jl is to open a [pull request](https
 ### How to open a PR (once the changes are in a good state)
 
 8. **Create a Pull Request**:
+
    - Go to your fork on GitHub
    - Click "New Pull Request"
    - Select your branch
@@ -82,6 +89,7 @@ The second way to contribute to MacroEnergy.jl is to open a [pull request](https
    - Submit the PR
 
 9. **Keep your fork up to date** (every time a PR is merged into the upstream repository):
+
    ```bash
    # Fetch the latest changes from the main repository
    git fetch upstream
@@ -95,6 +103,7 @@ The second way to contribute to MacroEnergy.jl is to open a [pull request](https
    # Push the updated main branch to your fork
    git push origin main
    ```
+   
 Alternatively, use the `Sync fork` button in the GitHub website.
 
 !!! note "Updating a PR"

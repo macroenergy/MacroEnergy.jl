@@ -22,7 +22,7 @@ macro AbstractEdgeBaseAttributes()
         # Endogenous investment cost
         endog_investment_cost::AffExpr = 0.0
         lifetime::Int64 = $edge_defaults[:lifetime]
-        loss_fraction::Float64 = $edge_defaults[:loss_fraction]
+        loss_fraction::Vector{Float64} = $edge_defaults[:loss_fraction]
         max_capacity::Float64 = $edge_defaults[:max_capacity]
         max_new_capacity::Float64 = $edge_defaults[:max_new_capacity]
         min_capacity::Float64 = $edge_defaults[:min_capacity]
@@ -43,7 +43,7 @@ macro AbstractEdgeBaseAttributes()
         startup_fuel_consumption::Float64 = $edge_defaults[:startup_fuel_consumption]
         startup_fuel_balance_id::Symbol = $edge_defaults[:startup_fuel_balance_id]
         retirement_period::Int64 = $edge_defaults[:retirement_period]
-        wacc::Float64 = settings.DiscountRate
+        wacc::Union{Missing,Float64} = missing
         annualized_investment_cost::Union{Nothing,Float64} = $edge_defaults[:annualized_investment_cost]
         # Learning
         learning_parameter::Float64 = 0.0
@@ -85,7 +85,7 @@ end
     - has_capacity::Bool: Whether the edge has capacity variables
     - integer_decisions::Bool: Whether capacity decisions must be integer
     - investment_cost::Float64: CAPEX per unit of new capacity
-    - loss_fraction::Float64: Fraction of flow lost during transmission
+    - loss_fraction::Vector{Float64}: Fraction of flow lost during transmission, it can be time-dependent.
     - max_capacity::Float64: Maximum allowed capacity
     - min_capacity::Float64: Minimum required capacity
     - min_flow_fraction::Float64: Minimum flow as fraction of capacity
@@ -143,6 +143,9 @@ function make_edge(
             delete!(filtered_data, key)
         end
     end
+    if haskey(filtered_data,:loss_fraction) && !isa(filtered_data[:loss_fraction], Vector{Float64})
+        filtered_data[:loss_fraction] = [filtered_data[:loss_fraction]];
+    end    
     _edge = Edge{commodity}(;
         id = id,
         timedata = time_data,
@@ -168,6 +171,12 @@ edges_with_capacity_variables(edges::Vector{<:AbstractEdge}) =
 
 ######### Edge interface #########
 all_constraints(e::AbstractEdge) = e.constraints;
+all_constraints_types(e::AbstractEdge) = [typeof(c) for c in all_constraints(e)]
+function get_constraint_by_type(e::AbstractEdge, constraint_type::Type{<:AbstractTypeConstraint})
+    constraints = all_constraints(e)
+    matches = filter(c -> typeof(c) == constraint_type, constraints)
+    return length(matches) == 1 ? matches[1] : length(matches) > 1 ? matches : nothing
+end
 availability(e::AbstractEdge) = e.availability;
 function availability(e::AbstractEdge, t::Int64)
     a = availability(e)
@@ -197,6 +206,16 @@ investment_cost(e::AbstractEdge) = e.investment_cost;
 investment_cost_init(e::AbstractEdge) = e.investment_cost_init;
 lifetime(e::AbstractEdge) = e.lifetime;
 loss_fraction(e::AbstractEdge) = e.loss_fraction;
+function loss_fraction(e::AbstractEdge, t::Int64)
+    a = loss_fraction(e)
+    if isempty(a)
+        return 0.0
+    elseif length(a) == 1
+        return a[1]
+    else
+        return a[t]
+    end
+end
 max_capacity(e::AbstractEdge) = e.max_capacity;
 max_new_capacity(e::AbstractEdge) = e.max_new_capacity;
 min_capacity(e::AbstractEdge) = e.min_capacity;
@@ -385,7 +404,7 @@ function planning_model!(e::AbstractEdge, model::Model)
 
 end
 
-function compute_fixed_costs!(e::AbstractEdge, model::Model)
+function compute_investment_costs!(e::AbstractEdge, model::Model)
     if has_capacity(e)
         if can_expand(e)
 
@@ -410,14 +429,24 @@ function compute_fixed_costs!(e::AbstractEdge, model::Model)
             #         new_capacity(e),
             #     )
         end
+    end
+end
+
+function compute_om_fixed_costs!(e::AbstractEdge, model::Model)
+    if has_capacity(e)
         if fixed_om_cost(e) > 0
             add_to_expression!(
-                model[:eFixedCost],
+                model[:eOMFixedCost],
                 fixed_om_cost(e),
                 capacity(e),
             )
         end
     end
+end
+
+function compute_fixed_costs!(e::AbstractEdge, model::Model)
+    compute_investment_costs!(e, model)
+    compute_om_fixed_costs!(e, model)
 end
 
 function operation_model!(e::Edge, model::Model)
@@ -716,7 +745,7 @@ function update_balance_start!(e::AbstractEdge, model::Model)
 
     v = start_vertex(e)
 
-    if loss_fraction(e) == 0 || e.unidirectional == true
+    if e.unidirectional == true
 
         effective_flow = @expression(model, [t in time_interval(e)], flow(e, t))
 
@@ -732,7 +761,7 @@ function update_balance_start!(e::AbstractEdge, model::Model)
             @constraint(model, [t in time_interval(e)], flow_pos[t] + flow_neg[t] <= availability(e, t) * capacity(e))
         end
 
-        effective_flow = @expression(model, [t in time_interval(e)], flow_pos[t] - (1 - loss_fraction(e)) * flow_neg[t])
+        effective_flow = @expression(model, [t in time_interval(e)], flow_pos[t] - (1 - loss_fraction(e,t)) * flow_neg[t])
     end
 
     for i in balance_ids(v)
@@ -746,8 +775,8 @@ function update_balance_end!(e::AbstractEdge, model::Model)
 
     v = end_vertex(e)
 
-    if loss_fraction(e) == 0 || e.unidirectional == true
-        effective_flow = @expression(model, [t in time_interval(e)], flow(e, t))
+    if e.unidirectional == true
+        effective_flow = @expression(model, [t in time_interval(e)], (1-loss_fraction(e,t)) * flow(e, t))
     else
     
         flow_pos = @variable(model, [t in time_interval(e)], lower_bound = 0.0, base_name = "vFLOWPOS_$(id(e))_period$(period_index(e))")
@@ -761,7 +790,7 @@ function update_balance_end!(e::AbstractEdge, model::Model)
             @constraint(model, [t in time_interval(e)], flow_pos[t] + flow_neg[t] <= availability(e, t) * capacity(e))
         end
 
-        effective_flow = @expression(model, [t in time_interval(e)], (1 - loss_fraction(e)) * flow_pos[t] - flow_neg[t])
+        effective_flow = @expression(model, [t in time_interval(e)], (1 - loss_fraction(e,t)) * flow_pos[t] - flow_neg[t])
 
     end
 

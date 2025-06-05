@@ -63,7 +63,7 @@ Alternatively, you can directly add names to the locations.json file. However, i
 
 The next step is to let Macro know which Nodes are part of your new Location.  
 
-In your Nodes file (at system/nodes.json by default), add a "location" field to the instance data of each Node you would like to include, and the name of the Location. [A guide on how to add a Node to a System can be found here.](@ref "Adding a Node to a System")
+In your Nodes file (at `system/nodes.json` by default), add a "location" field to the instance data of each Node you would like to include, and the name of the Location. [You can find a guide on how to add a Node to a System here.](@ref "Adding a Node to a System")
 
 For example, if you have a three-Location system and each Location requires an Electricity Node, you could add the following:
 
@@ -125,7 +125,7 @@ The Location information must be added to the instance data, not the global data
 
 To include two or more Nodes of the same Commodity at a single Node, you must use sub-Commodities to define additional versions of the Commodity.
 
-You can learn more about sub-Commodities here.
+[You can learn more about sub-Commodities here.](@ref "Creating a new sub-Commodity")
 
 For example, if you wish to differentiate between high and low emission electricity, you could create two sub-Commodities: LowEmissElectricity, and HighEmissElectricity. Now, you can add Electricity, LowEmissElectricity, and HighEmissElectricity to a Location:
 

@@ -72,19 +72,25 @@ function load_commodities(commodities::AbstractVector{<:Any}, rel_path::Abstract
 
     macro_commodities = commodity_types()
     all_sub_commodities = Vector{Dict{Symbol,Any}}()
+    system_commodities = Vector{Symbol}();
     commodity_keys = unique!([MacroEnergy.typesymbol(commodity) for commodity in values(macro_commodities)])
 
     for commodity in commodities
         if isa(commodity, Symbol)
             if commodity ∉ keys(macro_commodities)
                 error("Unknown commodity: $commodity")
+            else
+                push!(system_commodities, commodity)
             end
         elseif isa(commodity, AbstractString)
             if Symbol(commodity) ∉ keys(macro_commodities)
                 error("Unknown commodity: $commodity")
+            else
+                push!(system_commodities, Symbol(commodity))
             end
         elseif isa(commodity, Dict) && haskey(commodity, :name) && haskey(commodity, :acts_like)
             push!(all_sub_commodities, commodity)
+            push!(system_commodities, Symbol(commodity[:name]))
         else
             error("Invalid commodity format: $commodity")
         end
@@ -124,7 +130,10 @@ function load_commodities(commodities::AbstractVector{<:Any}, rel_path::Abstract
         close(io)
         @debug(" -- Done writing subcommodities")
     end
-    return commodity_types()
+    # get the list of all commodities available
+    macro_commodity_types = commodity_types();
+    # return a dictionary of system commodities Dict{Symbol, DataType}
+    return Dict(k=>macro_commodity_types[k] for k in system_commodities)
 end
 
 load_commodities(commodities::AbstractVector{<:AbstractString}) =

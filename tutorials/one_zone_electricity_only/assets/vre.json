@@ -3,60 +3,36 @@
         {
             "type": "VRE",
             "global_data": {
-                "nodes": {},
-                "transforms": {
-                    "timedata": "Electricity"
-                },
-                "edges": {
-                    "edge": {
-                        "type": "Electricity",
-                        "unidirectional": true,
-                        "can_expand": true,
-                        "can_retire": false,
-                        "has_capacity": true,
-                        "constraints": {
-                            "CapacityConstraint": true
-                        }
-                    }
-                },
-                "storage": {}
+                "elec_can_expand": true,
+                "elec_can_retire": false,
+                "elec_constraints": {
+                    "CapacityConstraint": true
+                }
             },
             "instance_data": [
                 {
-                    "nodes": {},
-                    "id": "SE_utilitypv_class1_moderate_70_0_2_1",
-                    "edges": {
-                        "edge": {
-                            "fixed_om_cost": 15390.48615,
-                            "investment_cost": 49950.17548,
-                            "end_vertex": "elec_SE",
-                            "availability": {
-                                "timeseries": {
-                                    "path": "assets/availability.csv",
-                                    "header": "SE_utilitypv_class1_moderate_70_0_2_1"
-                                }
-                            }
+                    "id": "NE_utilitypv_class1_moderate_70_0_2_6",
+                    "location": "NE",
+                    "fixed_om_cost": 15390.48615,
+                    "investment_cost": 49950.17548,
+                    "availability": {
+                        "timeseries": {
+                            "path": "system/availability.csv",
+                            "header": "NE_utilitypv_class1_moderate_70_0_2_6"
                         }
-                    },
-                    "storage": {}
+                    }
                 },
                 {
-                    "nodes": {},
-                    "id": "SE_landbasedwind_class4_moderate_70_1",
-                    "edges": {
-                        "edge": {
-                            "fixed_om_cost": 34568.125,
-                            "investment_cost": 68099.00274,
-                            "end_vertex": "elec_SE",
-                            "availability": {
-                                "timeseries": {
-                                    "path": "assets/availability.csv",
-                                    "header": "SE_landbasedwind_class4_moderate_70_1"
-                                }
-                            }
+                    "id": "NE_landbasedwind_class4_moderate_70_7",
+                    "location": "NE",
+                    "fixed_om_cost": 34568.125,
+                    "investment_cost": 68099.00274,
+                    "availability": {
+                        "timeseries": {
+                            "path": "system/availability.csv",
+                            "header": "NE_landbasedwind_class4_moderate_70_7"
                         }
-                    },
-                    "storage": {}
+                    }
                 }
             ]
         }

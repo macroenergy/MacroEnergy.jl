@@ -1,34 +1,4 @@
 """
-    get_optimal_costs(model::Union{Model,NamedTuple}; scaling::Float64=1.0)
-
-Get the total, fixed, and variable costs for the system.
-
-# Arguments
-- `model::Union{Model,NamedTuple}`: The optimal model after the optimization
-- `scaling::Float64`: The scaling factor for the results
-# Returns
-- `DataFrame`: A dataframe containing the total, fixed, and variable costs for the system, with missing columns removed
-
-# Example
-```julia
-get_optimal_costs(model)
-3×8 DataFrame
- Row │ commodity  commodity_subtype  zone    resource_id  component_id  type    variable      value   
-     │ Symbol     Symbol             Symbol  Symbol       Symbol        Symbol  Symbol        Float64 
-─────┼───────────────────────────────────────────────────────────────────────────────────────────────
-   1 │ all        cost               all     all          all           Cost    FixedCost     22471.1
-   2 │ all        cost               all     all          all           Cost    VariableCost  14316.2
-   3 │ all        cost               all     all          all           Cost    TotalCost     36787.3
-```
-"""
-function get_optimal_costs(model::Union{Model,NamedTuple}; scaling::Float64=1.0)
-    @debug " -- Getting optimal costs for the system."
-    costs = prepare_costs(model, scaling)
-    df = convert_to_dataframe(costs)
-    df[!, (!isa).(eachcol(df), Vector{Missing})] # remove missing columns
-end
-
-"""
     write_costs(
         file_path::AbstractString, 
         system::System, 
@@ -53,14 +23,15 @@ The extension of the file determines the format of the file.
 function write_costs(
     file_path::AbstractString, 
     system::System, 
-    model::Union{Model,NamedTuple}; 
+    model::Union{Model,NamedTuple};
+    period_index::Int64=1,
     scaling::Float64=1.0, 
     drop_cols::Vector{<:AbstractString}=String[]
 )
-    @info "Writing costs to $file_path"
+    @info "Writing discounted costs to $file_path"
 
     # Get costs and determine layout (wide or long)
-    costs = get_optimal_costs(model; scaling)
+    costs = get_optimal_discounted_costs(model,period_index; scaling)
     layout = get_output_layout(system, :Costs)
 
     if layout == "wide"
@@ -77,14 +48,15 @@ end
 function write_undiscounted_costs(
     file_path::AbstractString, 
     system::System, 
-    model::Union{Model,NamedTuple}; 
+    model::Union{Model,NamedTuple};
+    period_index::Int64=1,
     scaling::Float64=1.0, 
     drop_cols::Vector{<:AbstractString}=String[]
 )
     @info "Writing undiscounted costs to $file_path"
 
     # Get costs and determine layout (wide or long)
-    costs = get_optimal_costs(model; scaling)
+    costs = get_optimal_undiscounted_costs(model,period_index; scaling)
     layout = get_output_layout(system, :Costs)
 
     if layout == "wide"
@@ -111,5 +83,21 @@ function compute_fixed_costs!(a::AbstractAsset, model::Model)
 end
 
 function compute_fixed_costs!(g::Union{Node,Transformation},model::Model)
+    return nothing
+end
+
+function compute_investment_costs!(system::System, model::Model)
+    for a in system.assets
+        compute_investment_costs!(a, model)
+    end
+end
+
+function compute_investment_costs!(a::AbstractAsset, model::Model)
+    for t in fieldnames(typeof(a))
+        compute_investment_costs!(getfield(a, t), model)
+    end
+end
+
+function compute_investment_costs!(g::Union{Node,Transformation},model::Model)
     return nothing
 end

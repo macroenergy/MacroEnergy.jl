@@ -14,6 +14,8 @@ function generate_model(case::Case)
     @variable(model, vREF == 1)
 
     fixed_cost = Dict()
+    om_fixed_cost = Dict()
+    investment_cost = Dict()
     variable_cost = Dict()
 
     for (period_idx,system) in enumerate(periods)
@@ -21,6 +23,8 @@ function generate_model(case::Case)
         @info(" -- Period $period_idx")
 
         model[:eFixedCost] = AffExpr(0.0)
+        model[:eInvestmentFixedCost] = AffExpr(0.0)
+        model[:eOMFixedCost] = AffExpr(0.0)
         model[:eVariableCost] = AffExpr(0.0)
 
         @info(" -- Adding linking variables")
@@ -43,8 +47,13 @@ function generate_model(case::Case)
         @info(" -- Generating operational model")
         operation_model!(system, model)
 
+        model[:eFixedCost] = model[:eInvestmentFixedCost] + model[:eOMFixedCost]
         fixed_cost[period_idx] = model[:eFixedCost];
+        investment_cost[period_idx] = model[:eInvestmentFixedCost];
+        om_fixed_cost[period_idx] = model[:eOMFixedCost];
 	    unregister(model,:eFixedCost)
+        unregister(model,:eInvestmentFixedCost)
+        unregister(model,:eOMFixedCost)
 
         variable_cost[period_idx] = model[:eVariableCost];
         unregister(model,:eVariableCost)
@@ -61,6 +70,10 @@ function generate_model(case::Case)
     discount_factor = 1 ./ ( (1 + discount_rate) .^ cum_years)
 
     @expression(model, eFixedCostByPeriod[s in 1:num_periods], discount_factor[s] * fixed_cost[s])
+
+    @expression(model, eInvestmentFixedCostByPeriod[s in 1:num_periods], discount_factor[s] * investment_cost[s])
+
+    @expression(model, eOMFixedCostByPeriod[s in 1:num_periods], discount_factor[s] * om_fixed_cost[s])
 
     @expression(model, eFixedCost, sum(eFixedCostByPeriod[s] for s in 1:num_periods))
 
@@ -246,30 +259,33 @@ function carry_over_capacities!(n::Node,n_prev::Node; perfect_foresight::Bool = 
     return nothing
 end
 
-function compute_annualized_costs!(system::System)
+function compute_annualized_costs!(system::System,settings::NamedTuple)
     for a in system.assets
-        compute_annualized_costs!(a)
+        compute_annualized_costs!(a,settings)
     end
 end
 
-function compute_annualized_costs!(a::AbstractAsset)
+function compute_annualized_costs!(a::AbstractAsset,settings::NamedTuple)
     for t in fieldnames(typeof(a))
-        compute_annualized_costs!(getfield(a, t))
+        compute_annualized_costs!(getfield(a, t),settings)
     end
 end
 
-function compute_annualized_costs!(y::Union{AbstractEdge,AbstractStorage})
+function compute_annualized_costs!(y::Union{AbstractEdge,AbstractStorage},settings::NamedTuple)
     if isnothing(annualized_investment_cost(y))
+        if ismissing(wacc(y))
+            y.wacc = settings.DiscountRate;
+        end
         annualization_factor = wacc(y)>0 ? wacc(y) / (1 - (1 + wacc(y))^-capital_recovery_period(y))  : 1.0
         y.annualized_investment_cost = investment_cost(y) * annualization_factor;
         # y.annualized_investment_cost = investment_cost(y) * annualization_factor;
     end
 end
 
-function compute_annualized_costs!(g::Transformation)
+function compute_annualized_costs!(g::Transformation,settings::NamedTuple)
     return nothing
 end
-function compute_annualized_costs!(n::Node)
+function compute_annualized_costs!(n::Node,settings::NamedTuple)
     return nothing
 end
 
@@ -289,12 +305,15 @@ function discount_fixed_costs!(y::Union{AbstractEdge,AbstractStorage},settings::
     
     # Number of years of payments that are remaining
     model_years_remaining = sum(settings.PeriodLengths[period_index(y):end]; init = 0);
-    
-    # Myopic only considers costs within modeled period. Costs that are thus omitted will be added after model run when reporting results for both discounted and undiscounted costs.
+
+    # Myopic only considers costs within modeled period. Costs that are consequently omitted will be added after the model run when reporting results
     if isa(solution_algorithm(settings[:SolutionAlgorithm]), Myopic)
         payment_years_remaining = min(capital_recovery_period(y), settings.PeriodLengths[period_index(y)]);
-    else
+    elseif isa(solution_algorithm(settings[:SolutionAlgorithm]), Monolithic) || isa(solution_algorithm(settings[:SolutionAlgorithm]), Benders)
         payment_years_remaining = min(capital_recovery_period(y), model_years_remaining);
+    else
+        # Placeholder for other future cases like rolling horizon
+        nothing
     end
 
     # y.annualized_investment_cost = annualized_investment_cost(y) * sum(1 / (1 + settings.DiscountRate)^s for s in 1:payment_years_remaining; init=0);
@@ -308,6 +327,7 @@ function discount_fixed_costs!(y::Union{AbstractEdge,AbstractStorage},settings::
     y.fixed_om_cost = fixed_om_cost(y) * opexmult
 
 end
+
 function discount_fixed_costs!(g::Transformation,settings::NamedTuple)
     return nothing
 end
@@ -331,9 +351,11 @@ function undo_discount_fixed_costs!(y::Union{AbstractEdge,AbstractStorage},setti
     # Number of years of payments that are remaining
     model_years_remaining = sum(settings.PeriodLengths[period_index(y):end]; init = 0);
     
-    # As undiscounting only concerns reporting of results, we include all annuities within the modeling horizon (as opposed to the if statement in discount_fixed_costs)
-    payment_years_remaining = min(capital_recovery_period(y), settings.PeriodLengths[period_index(y)]);
+    # Include all annuities within the modeling horizon for all cases (including Myopic), since undiscounting only concerns reporting of results 
+    payment_years_remaining = min(capital_recovery_period(y), model_years_remaining);
+
     y.annualized_investment_cost = payment_years_remaining * annualized_investment_cost(y) / sum(1 / (1 + settings.DiscountRate)^s for s in 1:payment_years_remaining; init=0);
+
     opexmult = sum([1 / (1 + settings.DiscountRate)^(i) for i in 1:settings.PeriodLengths[period_index(y)]])
     y.fixed_om_cost = settings.PeriodLengths[period_index(y)]*fixed_om_cost(y) / opexmult
 end
@@ -350,14 +372,18 @@ function add_costs_not_seen_by_myopic!(system::System, settings::NamedTuple)
     end
 end
 
-function add_costs_not_seen_by_myopic!(y::Union{AbstractEdge,AbstractStorage},settings::NamedTuple)
-    # Number of years of payments that are remaining
+function add_costs_not_seen_by_myopic!(y::Union{AbstractEdge,AbstractStorage}, settings::NamedTuple)
+    
     model_years_remaining = sum(settings.PeriodLengths[period_index(y):end]; init = 0);
+    payment_years_remaining = min(capital_recovery_period(y), model_years_remaining);
 
-    if isa(solution_algorithm(settings[:SolutionAlgorithm]), Myopic)
-        payment_years_remaining = min(capital_recovery_period(y), model_years_remaining);
-        y.annualized_investment_cost = payment_years_remaining * annualized_investment_cost(y) / sum(1 / (1 + settings.DiscountRate)^s for s in 1:payment_years_remaining; init=0);
-    end
+    # Need to get the coefficient used by the model
+    payment_years_remaining_myopic = min(capital_recovery_period(y), settings.PeriodLengths[period_index(y)]);
+
+    total_mult = sum(1 / (1 + settings.DiscountRate)^s for s in 1:payment_years_remaining; init=0)
+    myopic_mult = sum(1 / (1 + settings.DiscountRate)^s for s in 1:payment_years_remaining_myopic; init=0)
+
+    y.annualized_investment_cost = annualized_investment_cost(y) * total_mult/myopic_mult;
 end
 
 function add_costs_not_seen_by_myopic!(a::AbstractAsset,settings::NamedTuple)

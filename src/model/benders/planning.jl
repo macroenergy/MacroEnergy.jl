@@ -38,12 +38,16 @@ function generate_planning_problem(case::Case)
     number_of_periods = length(periods)
 
     fixed_cost = Dict()
+    om_fixed_cost = Dict()
+    investment_cost = Dict()
 
     for (period_idx,system) in enumerate(periods)
 
         @info(" -- Period $period_idx")
 
         model[:eFixedCost] = AffExpr(0.0)
+        model[:eInvestmentFixedCost] = AffExpr(0.0)
+        model[:eOMFixedCost] = AffExpr(0.0)
 
         @info(" -- Adding linking variables")
         add_linking_variables!(system, model) 
@@ -62,8 +66,13 @@ function generate_planning_problem(case::Case)
             carry_over_capacities!(periods[period_idx+1], system)
         end
 
+        model[:eFixedCost] = model[:eInvestmentFixedCost] + model[:eOMFixedCost]
         fixed_cost[period_idx] = model[:eFixedCost];
-        unregister(model,:eFixedCost)
+        investment_cost[period_idx] = model[:eInvestmentFixedCost];
+        om_fixed_cost[period_idx] = model[:eOMFixedCost];
+	    unregister(model,:eFixedCost)
+        unregister(model,:eInvestmentFixedCost)
+        unregister(model,:eOMFixedCost)
 
     end
 
@@ -81,11 +90,15 @@ function generate_planning_problem(case::Case)
     @expression(model, eFixedCostByPeriod[s in 1:number_of_periods], discount_factor[s] * fixed_cost[s])
     @expression(model, eFixedCost, sum(eFixedCostByPeriod[s] for s in 1:number_of_periods))
 
+    @expression(model, eInvestmentFixedCostByPeriod[s in 1:number_of_periods], discount_factor[s] * investment_cost[s])
+
+    @expression(model, eOMFixedCostByPeriod[s in 1:number_of_periods], discount_factor[s] * om_fixed_cost[s])
+
     period_to_subproblem_map, subproblem_indices = get_period_to_subproblem_mapping(periods);
 
     @variable(model, vTHETA[w in subproblem_indices] .>= 0)
 
-    opexmult = [sum([1 / (1 + discount_rate)^(i - 1) for i in 1:period_lengths[s]]) for s in 1:number_of_periods]
+    opexmult = [sum([1 / (1 + discount_rate)^(i) for i in 1:period_lengths[s]]) for s in 1:number_of_periods]
 
     @expression(model, eVariableCostByPeriod[s in 1:number_of_periods], discount_factor[s] * opexmult[s] * sum(vTHETA[w] for w in period_to_subproblem_map[s]))
     @expression(model, eApproximateVariableCost, sum(eVariableCostByPeriod[s] for s in 1:number_of_periods))

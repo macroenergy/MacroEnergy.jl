@@ -17,6 +17,8 @@ using DistributedArrays
 using Distributed
 using ClusterManagers
 using Gurobi
+using GitHub
+using Markdown
 
 import MacroEnergyScaling: scale_constraints!
 import JuMP: set_optimizer, set_optimizer_attributes
@@ -193,7 +195,7 @@ export AbstractAsset,
     FuelsEndUse,
     GasStorage,
     get_optimal_capacity, 
-    get_optimal_costs,
+    get_optimal_discounted_costs,
     get_optimal_flow,
     get_optimal_new_capacity,
     get_optimal_retired_capacity,
@@ -247,6 +249,17 @@ export AbstractAsset,
     write_costs,
     write_dataframe,
     write_flow,
-    write_results
+    write_results,
+    template_system,
+    template_node,
+    template_location,
+    template_asset,
+    template_subcommodity,
+    asset_ids,
+    asset_ids_from_dir,
+    list_examples,
+    download_example,
+    example_readme,
+    example_contents
     
 end # module MacroEnergy

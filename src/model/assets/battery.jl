@@ -14,7 +14,7 @@ function default_data(t::Type{Battery}, id=missing, style="full")
 end
 
 function full_default_data(::Type{Battery}, id=missing)
-    return Dict{Symbol,Any}(
+    return OrderedDict{Symbol,Any}(
         :id => id,
         :storage => @storage_data(
             :commodity => "Electricity",
@@ -47,7 +47,7 @@ function full_default_data(::Type{Battery}, id=missing)
 end
 
 function simple_default_data(::Type{Battery}, id=missing)
-    return Dict{Symbol,Any}(
+    return OrderedDict{Symbol,Any}(
         :id => id,
         :location => missing,
         :storage_can_expand => true,

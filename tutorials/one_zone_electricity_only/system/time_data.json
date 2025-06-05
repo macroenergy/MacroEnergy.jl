@@ -9,5 +9,7 @@
         "Electricity": 8760,
         "NaturalGas": 8760,
         "CO2": 8760
-    }
+    },
+    "NumberOfSubperiods": 1,
+    "TotalHoursModeled": 8760
 }

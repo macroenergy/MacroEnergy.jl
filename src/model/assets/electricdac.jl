@@ -15,7 +15,7 @@ function default_data(t::Type{ElectricDAC}, id=missing, style="full")
 end
 
 function full_default_data(::Type{ElectricDAC}, id=missing)
-    return Dict{Symbol,Any}(
+    return OrderedDict{Symbol,Any}(
         :id => id,
         :transforms => @transform_data(
             :timedata => "Electricity",
@@ -46,7 +46,7 @@ function full_default_data(::Type{ElectricDAC}, id=missing)
 end
 
 function simple_default_data(::Type{ElectricDAC}, id=missing)
-    return Dict{Symbol,Any}(
+    return OrderedDict{Symbol,Any}(
         :id => id,
         :location => missing,
         :can_expand => true,

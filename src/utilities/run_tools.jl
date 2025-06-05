@@ -1,4 +1,3 @@
-# Monolithic
 function run_case(
     case_path::AbstractString=@__DIR__;
     lazy_load::Bool=true,

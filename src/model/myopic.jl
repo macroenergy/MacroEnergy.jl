@@ -6,6 +6,8 @@ function run_myopic_iteration!(case::Case, opt::Optimizer)
     periods = get_periods(case)
     num_periods = number_of_periods(case)
     fixed_cost = Dict()
+    om_fixed_cost = Dict()
+    investment_cost = Dict()
     variable_cost = Dict()
     models = Vector{Model}(undef, num_periods)
 
@@ -26,7 +28,8 @@ function run_myopic_iteration!(case::Case, opt::Optimizer)
         @variable(model, vREF == 1)
 
         model[:eFixedCost] = AffExpr(0.0)
-
+        model[:eInvestmentFixedCost] = AffExpr(0.0)
+        model[:eOMFixedCost] = AffExpr(0.0)
         model[:eVariableCost] = AffExpr(0.0)
 
         @info(" -- Adding linking variables")
@@ -43,13 +46,22 @@ function run_myopic_iteration!(case::Case, opt::Optimizer)
 
         # Express myopic cost in present value from perspective of start of modeling horizon, in consistency with Monolithic version
 
+        model[:eFixedCost] = model[:eInvestmentFixedCost] + model[:eOMFixedCost]
         fixed_cost[period_idx] = model[:eFixedCost];
+        investment_cost[period_idx] = model[:eInvestmentFixedCost];
+        om_fixed_cost[period_idx] = model[:eOMFixedCost];
 	    unregister(model,:eFixedCost)
+        unregister(model,:eInvestmentFixedCost)
+        unregister(model,:eOMFixedCost)
         
         variable_cost[period_idx] = model[:eVariableCost];
         unregister(model,:eVariableCost)
     
         @expression(model, eFixedCostByPeriod[period_idx], discount_factor[period_idx] * fixed_cost[period_idx])
+
+        @expression(model, eInvestmentFixedCostByPeriod[period_idx], discount_factor[period_idx] * investment_cost[period_idx])
+
+        @expression(model, eOMFixedCostByPeriod[period_idx], discount_factor[period_idx] * om_fixed_cost[period_idx])
     
         @expression(model, eFixedCost, eFixedCostByPeriod[period_idx])
         

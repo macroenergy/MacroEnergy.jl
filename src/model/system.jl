@@ -7,8 +7,81 @@ mutable struct System <: AbstractSystem
     locations::Vector{Union{Node, Location}}
 end
 
-asset_ids(system::System) = map(x -> x.id, system.assets)
+"""
+    asset_ids(system::System; source::String="assets")
+
+Get the set of asset IDs from a system, either from loaded assets or input files.
+
+# Arguments
+- `system::System`: The system to get asset IDs from
+- `source::String`: The source to get asset IDs from. Can be either:
+  - `"assets"` (default): Get IDs from already loaded assets in the system
+  - `"inputs"`: Get IDs from input files
+
+# Returns
+- `Set{AssetId}`: A set of asset IDs
+
+# Examples
+```julia
+# Get IDs from loaded assets
+ids = asset_ids(system)
+```
+
+# Notes
+- If `source="assets"` and no assets are loaded, a warning is issued
+- If an invalid source is provided, an error is thrown
+"""
+function asset_ids(system::System; source::String="assets")
+    if source == "assets"
+        if isempty(system.assets)
+            @warn("System does not have any assets. Set source to 'inputs' to load assets from the input files.")
+            return Set{AssetId}()
+        end
+        return map(x -> x.id, system.assets)
+    elseif source == "inputs"
+        return asset_ids_from_dir(system)
+    else
+        @error("Invalid source $source. Must be 'assets' or 'inputs'")
+        return Set{AssetId}()
+    end
+end
+
+"""
+    location_ids(system::System)
+
+Get a vector of the IDs of all locations in the system.
+
+# Arguments
+- `system`: A System object containing various locations
+
+# Returns
+- A vector of Symbols representing the IDs of all locations in the system
+
+# Examples
+```julia
+ids = location_ids(system)
+```
+"""
 location_ids(system::System) = map(x -> x.id, system.locations)
+
+"""
+    get_asset_types(system::System)
+
+Get a vector of the types of all assets in the system.
+
+# Arguments
+- `system`: A System object containing various assets
+
+# Returns
+- A vector of DataTypes representing the type of each asset in the system
+
+# Examples
+```julia
+asset_types = get_asset_types(system)
+unique(asset_types)  # Get unique asset types in the system
+```
+"""
+get_asset_types(system::System) = map(x -> typeof(x), system.assets)
 
 function set_data_dirpath!(system::System, data_dirpath::String)
     system.data_dirpath = data_dirpath
@@ -34,6 +107,28 @@ function empty_system(data_dirpath::String)
     )
 end
 
+"""
+    get_asset_by_id(system::System, id::Symbol)
+
+Find an asset in the system by its ID.
+
+# Arguments
+- `system`: A System object containing various assets
+- `id`: Symbol representing the ID of the asset to find
+
+# Returns
+- The asset object if found
+- `nothing` if no asset with the given ID exists
+
+# Examples
+```julia
+# Find a battery asset
+battery = get_asset_by_id(system, :battery_SE)
+
+# Find a thermal power plant
+thermal_plant = get_asset_by_id(system, :natural_gas_SE)
+```
+"""
 function get_asset_by_id(system::System, id::Symbol)
     for asset in system.assets
         if asset.id == id
@@ -52,6 +147,26 @@ function find_locations(system::System, id::Symbol)
     return nothing
 end
 
+"""
+    find_node(nodes_list::Vector{Union{Node, Location}}, id::Symbol, commodity::Union{Missing,DataType}=missing)
+
+Search for a node with the specified `id` and optional `commodity` type in a list of nodes and locations.
+
+# Arguments
+- `nodes_list`: Vector of nodes and locations to search through
+- `id`: Symbol representing the ID of the node to find
+- `commodity`: Optional DataType specifying the commodity type of the node (default: missing)
+
+# Returns
+- The found node if it exists
+- Throws an error if no matching node is found
+
+# Examples
+```julia
+# Find a node by ID only
+node = find_node(system.locations, :co2_sink)
+```
+"""
 function find_node(nodes_list::Vector{Union{Node, Location}}, id::Symbol, commodity::Union{Missing,DataType}=missing)
     @debug "Finding node $id of commodity $commodity"
     for node in nodes_list
@@ -101,6 +216,28 @@ function find_node(location::Location, id::Symbol, commodity::Union{Missing,Data
 end
 
 # The following functions are used to extract all the assets of a given type from a System or a Vector of Assets
+"""
+    get_assets_sametype(system::System, asset_type::T) where T<:Type{<:AbstractAsset}
+
+Get all assets of a specific type from the system.
+
+# Arguments
+- `system`: A System object containing various assets
+- `asset_type`: The type of assets to retrieve (must be a subtype of AbstractAsset)
+
+# Returns
+- A vector of assets of the specified type
+
+# Examples
+```julia
+# Get all battery assets
+batteries = get_assets_sametype(system, Battery)
+battery = batteries[1]  # first battery in the list
+
+# Get all natural gas thermal power plants
+thermal_plants = get_assets_sametype(system, ThermalPower{NaturalGas})
+```
+"""
 get_assets_sametype(system::System, asset_type::T) where T<:Type{<:AbstractAsset} = get_assets_sametype(system.assets, asset_type)
 
 # Function to extract all the nodes, edges, storages, and transformations from a system
@@ -121,4 +258,73 @@ function edges_with_capacity_variables(system::System; return_ids_map::Bool=fals
     else
         return edges_with_capacity_variables(system.assets)
     end
+end
+
+function asset_ids_from_file(asset_file::AbstractString, ids::Set{AssetId}=Set{AssetId}())
+    if !isfile(asset_file)
+        @error("Asset file $asset_file not found")
+        return Set{AssetId}()
+    end
+    asset_data = load_inputs(asset_file)
+    for asset_type in values(asset_data)
+        ids = asset_ids_from_file(asset_type, ids)
+    end
+    return ids
+end
+
+function asset_ids_from_file(asset_type::Dict{Symbol,Any}, ids::Set{AssetId}=Set{AssetId}())
+    if isa(asset_type[:instance_data], Dict{Symbol,Any})
+        asset_type[:instance_data] = [asset_type[:instance_data]]
+    end
+    for asset in asset_type[:instance_data]
+        if !haskey(asset, :id)
+            @warn("Asset $(asset_type[:type]) does not have an id. Skipping...")
+            continue
+        end
+        asset_id = AssetId(asset[:id])
+        if asset_id ∈ ids
+            @warn("Duplicate asset id $asset_id. Skipping...")
+            continue
+        end
+        push!(ids, asset_id)
+    end
+    return ids
+end
+
+function asset_ids_from_file(data::AbstractVector, ids::Set{AssetId}=Set{AssetId}())
+    for asset_type in data
+        ids = asset_ids_from_file(asset_type, ids)
+    end
+    return ids
+end
+
+function asset_ids_from_dir(dirpath::AbstractString, ids::Set{AssetId}=Set{AssetId}())
+    for (root, dirs, files) in Base.Filesystem.walkdir(dirpath)
+        for file in files
+            if endswith(file, ".json") || endswith(file, ".csv")
+                ids = asset_ids_from_file(joinpath(root, file), ids)
+            end
+        end
+    end
+    return ids
+end
+
+function asset_ids_from_dir(system::System, ids::Set{AssetId}=Set{AssetId}())
+    system_data = load_system_data(joinpath(system.data_dirpath, "system_data.json"); lazy_load = true)
+    assets_dir = joinpath(system.data_dirpath, system_data[:assets][:path])
+    if !isdir(assets_dir)
+        @error("Assets directory $assets_dir not found")
+        return Set{AssetId}()
+    end
+    return asset_ids_from_dir(assets_dir, ids)
+end
+
+function unique_id(base_id::AssetId, existing_ids::Union{Set{AssetId},AbstractVector{AssetId}})
+    id = base_id
+    i = 1
+    while id ∈ existing_ids
+        id = AssetId(string(base_id, "_", i))
+        i += 1
+    end
+    return id
 end

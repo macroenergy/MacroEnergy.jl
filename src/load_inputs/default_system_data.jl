@@ -1,7 +1,7 @@
 function default_system_data()
     return Dict{Symbol,Any}(
         :assets => Dict{Symbol,Any}(:path => "assets"),
-        :locations => Dict{Symbol,Any}(:path => "system/locations"),
+        :locations => Dict{Symbol,Any}(:path => "system/locations.json"),
         :nodes => Dict{Symbol,Any}(:path => "system/nodes.json"),
         :commodities => Dict{Symbol,Any}(:path => "system/commodities.json"),
         :time_data => Dict{Symbol,Any}(:path => "system/time_data.json"),

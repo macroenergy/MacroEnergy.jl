@@ -66,7 +66,7 @@ function add_model_constraint!(ct::LongDurationStorageImplicitMinMaxConstraint, 
         tstart = Dict(n => first(get_subperiod(g,subperiod_map(g,n))) for n in N)
 
         stor_balance_expr = @expression(model, [n in N], 
-            (1 - loss_fraction(g))*storage_initial(g, n) 
+            (1 - loss_fraction(g,tstart[n]))*storage_initial(g, n) 
             + balance_data(charge_edge, g, :storage)*flow(charge_edge,tstart[n])
             - balance_data(discharge_edge, g, :storage)*flow(discharge_edge,tstart[n])
         )

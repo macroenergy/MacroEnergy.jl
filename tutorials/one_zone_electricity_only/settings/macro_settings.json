@@ -1,4 +1,6 @@
 {
   "ConstraintScaling": true,
-  "WriteSubcommodities": true
+  "WriteSubcommodities": true,
+  "OverwriteResults": true,
+  "OutputLayout": "wide"
 }

@@ -102,7 +102,7 @@ Our time data file is then:
     },
     "TotalHoursModeled": 8760,
     "NumberOfSubperiods": 10,
-    "PeriodMap": {
+    "SubPeriodMap": {
         "path": "system/Period_map.csv"
     }
 }

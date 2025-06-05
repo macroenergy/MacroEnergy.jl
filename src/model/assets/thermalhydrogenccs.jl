@@ -20,7 +20,7 @@ function default_data(t::Type{ThermalHydrogenCCS}, id=missing, style="full")
 end
 
 function full_default_data(::Type{ThermalHydrogenCCS}, id=missing)
-    return Dict{Symbol,Any}(
+    return OrderedDict{Symbol,Any}(
         :id => id,
         :transforms => @transform_data(
             :timedata => "Hydrogen",
@@ -62,7 +62,7 @@ function full_default_data(::Type{ThermalHydrogenCCS}, id=missing)
 end
 
 function simple_default_data(::Type{ThermalHydrogenCCS}, id=missing)
-    return Dict{Symbol, Any}(
+    return OrderedDict{Symbol,Any}(
         :id => id,
         :location => missing,
         :can_expand => true,
@@ -87,6 +87,22 @@ function simple_default_data(::Type{ThermalHydrogenCCS}, id=missing)
         :ramp_up_fraction => 0.0,
         :ramp_down_fraction => 0.0,
     )
+end
+
+function set_commodity!(::Type{ThermalHydrogenCCS}, commodity::Type{<:Commodity}, data::AbstractDict{Symbol,Any})
+    edge_keys = [:fuel_edge]
+    if haskey(data, :fuel_commodity)
+        data[:fuel_commodity] = string(commodity)
+    end
+    if haskey(data, :edges)
+        for edge_key in edge_keys
+            if haskey(data[:edges], edge_key)
+                if haskey(data[:edges][edge_key], :commodity)
+                    data[:edges][edge_key][:commodity] = string(commodity)
+                end
+            end
+        end
+    end
 end
 
 """

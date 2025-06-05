@@ -7,11 +7,12 @@
             },
             "instance_data": [
                 {
-                    "id": "natgas_SE",
+                    "id": "natgas_NE",
+                    "location": "NE",
                     "price": {
                         "timeseries": {
                             "path": "system/fuel_prices.csv",
-                            "header": "natgas_SE"
+                            "header": "natgas_NE"
                         }
                     }
                 }
@@ -27,7 +28,8 @@
             },
             "instance_data": [
                 {
-                    "id": "elec_SE",
+                    "id": "elec_NE",
+                    "location": "NE",
                     "demand": {
                         "timeseries": {
                             "path": "system/demand.csv",

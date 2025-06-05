@@ -18,6 +18,7 @@ import MacroEnergy:
     AbstractAsset,
     AbstractTypeConstraint,
     load_system,
+    load_case,
     read_file,
     generate_model,
     set_optimizer,
@@ -31,9 +32,13 @@ import MacroEnergy:
     get_optimal_new_capacity,
     get_optimal_retired_capacity,
     get_optimal_flow,
-    get_optimal_costs,
+    create_discounted_cost_expressions!,
+    compute_undiscounted_costs!,
+    get_optimal_discounted_costs,
+    get_optimal_undiscounted_costs,
     write_capacity,
     write_costs,
+    write_undiscounted_costs,
     write_flow,
     write_results,
     typesymbol
@@ -44,7 +49,7 @@ include("test_timedata.jl")
 const test_path = joinpath(@__DIR__, "test_inputs")
 const system_data_true_path = joinpath(@__DIR__, "test_inputs/system_data_true.json")
 const optim = is_gurobi_available() ? Gurobi.Optimizer : HiGHS.Optimizer
-const obj_true = 6.2353192538993225e10
+const obj_true = 1.5512721762979626e11
 
 function test_configure_settings(data::NamedTuple, data_true::T) where {T<:JSON3.Object}
     @test data.ConstraintScaling == data_true.ConstraintScaling
@@ -220,7 +225,7 @@ function test_load(s_in::AbstractStorage{T}, s_true::S) where {T<:Commodity,S<:J
     @test s_in.min_storage_level == get(s_true, :min_storage_level, 0.0)
     @test s_in.min_duration == get(s_true, :min_duration, 0.0)
     @test s_in.max_duration == get(s_true, :max_duration, 0.0)
-    @test s_in.loss_fraction == get(s_true, :loss_fraction, 0.0)
+    @test s_in.loss_fraction == Float64[]
     test_load(s_in.constraints, get(s_true, :constraints, Vector{AbstractTypeConstraint}()))
     return nothing
 end
@@ -259,21 +264,23 @@ function test_load_inputs()
 end
 
 function test_model_generation_and_optimization()
-    system = load_system(test_path)
-    model = generate_model(system)
+    case = load_case(test_path)
+    model = generate_model(case)
     set_optimizer(model, optim)
     optimize!(model)
     macro_objval = objective_value(model)
 
     @test macro_objval ≈ obj_true
 
-    test_writing_outputs(system, model)
+    test_writing_outputs(case, model)
 
     return nothing
 end
 
-function test_writing_outputs(system, model)
-    @test_nowarn collect_results(system, model)
+function test_writing_outputs(case,model)
+    system = case.systems[1];
+    settings = case.settings;
+    @test_nowarn collect_results(system, model, settings)
     @test_nowarn get_optimal_capacity(system)
     @test_nowarn get_optimal_new_capacity(system)
     @test_nowarn get_optimal_retired_capacity(system)
@@ -283,18 +290,24 @@ function test_writing_outputs(system, model)
     @test_nowarn get_optimal_flow(system)
     @test_nowarn get_optimal_flow(system.assets[1], scaling=1.0)
     @test_nowarn get_optimal_flow(system.assets[1].elec_edge, scaling=1.0)
-    @test_nowarn get_optimal_costs(model)
-    @test_nowarn get_optimal_costs(model, scaling=2.0)
+    @test_nowarn create_discounted_cost_expressions!(model,system,settings)
+    @test_nowarn compute_undiscounted_costs!(model, system, settings)
+    @test_nowarn get_optimal_discounted_costs(model,1)
+    @test_nowarn get_optimal_discounted_costs(model,1,scaling=2.0)
+    @test_nowarn get_optimal_undiscounted_costs(model,1)
+    @test_nowarn get_optimal_undiscounted_costs(model,1, scaling=2.0)
     @test_nowarn write_capacity(joinpath(@__DIR__, "test_capacity.csv"), system)
-    @test_nowarn write_costs(joinpath(@__DIR__, "test_costs.csv"), system, model, scaling=2.0)
+    @test_nowarn write_costs(joinpath(@__DIR__, "test_costs.csv"), system, model)
+    @test_nowarn write_undiscounted_costs(joinpath(@__DIR__, "test_undiscountedcosts.csv"), system, model)
     @test_nowarn write_flow(joinpath(@__DIR__, "test_flow.csv"), system)
-    @test_nowarn write_results(joinpath(@__DIR__, "test_outputs.csv.gz"), system, model)
-    @test_nowarn write_results(joinpath(@__DIR__, "test_outputs.parquet"), system, model)
-    @test_throws ArgumentError write_results("test.zip", system, model)
+    @test_nowarn write_results(joinpath(@__DIR__, "test_outputs.csv.gz"), system, model, settings)
+    @test_nowarn write_results(joinpath(@__DIR__, "test_outputs.parquet"), system, model, settings)
+    @test_throws ArgumentError write_results("test.zip", system, model, settings)
     rm(joinpath(@__DIR__, "test_outputs.csv.gz"))   # clean up
     rm(joinpath(@__DIR__, "test_outputs.parquet"))  # clean up
     rm(joinpath(@__DIR__, "test_capacity.csv"))     # clean up
     rm(joinpath(@__DIR__, "test_costs.csv"))        # clean up
+    rm(joinpath(@__DIR__, "test_undiscountedcosts.csv"))        # clean up
     rm(joinpath(@__DIR__, "test_flow.csv"))         # clean up
     return nothing
 end 

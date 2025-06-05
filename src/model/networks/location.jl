@@ -42,7 +42,7 @@ end
 function load_locations!(system::AbstractSystem, rel_or_abs_path::String, data::AbstractDict{Symbol, Any})
     if haskey(data, :path)
         data = eager_load_json_inputs(data, rel_or_abs_path)
-        if isa(data, AbstractDict) && haskey(data, :locations)
+        if isa(data, AbstractDict) && haskey(data, :locations) && !isempty(data[:locations])
             load_locations!(system, rel_or_abs_path, data[:locations])
         end
     else

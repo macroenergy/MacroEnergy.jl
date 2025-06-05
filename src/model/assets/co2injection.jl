@@ -14,7 +14,7 @@ function default_data(t::Type{CO2Injection}, id=missing, style="full")
 end
 
 function full_default_data(::Type{CO2Injection}, id=missing)
-    return Dict{Symbol, Any}(
+    return OrderedDict{Symbol,Any}(
         id => id,
         :transforms => @transform_data(
             :constraints => Dict{Symbol,Bool}(
@@ -41,7 +41,7 @@ function full_default_data(::Type{CO2Injection}, id=missing)
 end
 
 function simple_default_data(::Type{CO2Injection}, id=missing)
-    return Dict{Symbol, Any}(
+    return OrderedDict{Symbol,Any}(
         :id => id,
         :location => missing,
         :can_expand => false,

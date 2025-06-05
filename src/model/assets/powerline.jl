@@ -12,7 +12,7 @@ function default_data(t::Type{PowerLine}, id=missing, style="full")
 end
 
 function full_default_data(::Type{PowerLine}, id=missing)
-    return Dict{Symbol,Any}(
+    return OrderedDict{Symbol,Any}(
         :id => id,
         :edges => Dict{Symbol,Any}(
             :elec_edge => @edge_data(
@@ -31,7 +31,7 @@ function full_default_data(::Type{PowerLine}, id=missing)
 end
 
 function simple_default_data(::Type{PowerLine}, id=missing)
-    return Dict{Symbol,Any}(
+    return OrderedDict{Symbol,Any}(
         :id => id,
         :location => missing,
         :can_expand => true,

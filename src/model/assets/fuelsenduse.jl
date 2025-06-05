@@ -18,7 +18,7 @@ function default_data(t::Type{FuelsEndUse}, id=missing, style="full")
 end
 
 function full_default_data(::Type{FuelsEndUse}, id=missing)
-    return Dict{Symbol, Any}(
+    return OrderedDict{Symbol,Any}(
         :id => id,
         :transforms => @transform_data(
             :timedata => "LiquidFuels",
@@ -44,7 +44,7 @@ function full_default_data(::Type{FuelsEndUse}, id=missing)
 end
 
 function simple_default_data(::Type{FuelsEndUse}, id=missing)
-    return Dict{Symbol, Any}(
+    return OrderedDict{Symbol,Any}(
         :id => id,
         :location => missing,
         :co2_sink => missing,
@@ -54,6 +54,26 @@ function simple_default_data(::Type{FuelsEndUse}, id=missing)
         :fuel_demand_end_vertex => missing,
         :timedata => "LiquidFuels",
     )
+end
+
+function set_commodity!(::Type{FuelsEndUse}, commodity::Type{<:Commodity}, data::AbstractDict{Symbol,Any})
+    edge_keys = [:fuel_edge, :fuel_demand_edge,]
+    if haskey(data, :fuel_commodity)
+        data[:fuel_commodity] = string(commodity)
+    end
+    if haskey(data, :fuel_demand_commodity)
+        data[:fuel_demand_commodity] = string(commodity)
+    end
+    if haskey(data, :edges)
+        for edge_key in edge_keys
+            if haskey(data[:edges], edge_key)
+                if haskey(data[:edges][edge_key], :commodity)
+                    data[:edges][edge_key][:commodity] = string(commodity)
+                end
+            end
+        end
+    end
+    return nothing
 end
 
 function make(asset_type::Type{FuelsEndUse}, data::AbstractDict{Symbol,Any}, system::System)

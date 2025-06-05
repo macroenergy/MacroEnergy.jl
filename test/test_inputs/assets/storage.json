@@ -36,7 +36,6 @@
                     "can_retire": false,
                     "investment_cost": 22494,
                     "fixed_om_cost": 5622,
-                    "loss_fraction": 0.0,
                     "min_duration": 1,
                     "max_duration": 10,
                     "constraints": {
