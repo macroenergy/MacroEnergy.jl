@@ -231,7 +231,7 @@ function collect_results(system::System, model::Model, settings::NamedTuple, per
     edges, edge_asset_map = get_edges(system, return_ids_map=true)
 
     # capacity variables 
-    field_list = (capacity, new_capacity, retired_capacity)
+    field_list = (capacity, new_capacity, retired_capacity, endog_annualized_cost)
     edges_with_capacity = edges_with_capacity_variables(edges)
     edges_with_capacity_asset_map = filter(edge -> edge[1] in id.(edges_with_capacity), edge_asset_map)
     ecap = get_optimal_vars(edges_with_capacity, field_list, scaling, edges_with_capacity_asset_map)

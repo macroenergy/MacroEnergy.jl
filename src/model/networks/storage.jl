@@ -36,8 +36,10 @@ macro AbstractStorageBaseAttributes()
         annualized_investment_cost::Union{Nothing,Float64} = $storage_defaults[:annualized_investment_cost]
         learning_parameter::Float64 = 0.0
         investment_cost_init::Float64 = 0.0
-        capacity_initial::Float64 = 0.0
+        cumulative_capacity_init::Float64 = 0.0
         annuities_mult::Float64 = 0.0
+        annualization_factor::Float64 = 0.0
+        endog_annualized_cost::Float64 = 0.0
     end)
 end
 
@@ -175,6 +177,8 @@ annualized_investment_cost(g::AbstractStorage) = g.annualized_investment_cost;
 learning_parameter(g::AbstractStorage) = g.learning_parameter;
 investment_cost_init(g::AbstractStorage) = g.investment_cost_init;
 annuities_mult(g::AbstractStorage) = g.annuities_mult;
+annualization_factor(g::AbstractStorage) = g.annualization_factor;
+endog_annualized_cost(g::AbstractStorage) = g.endog_annualized_cost;
 
 function add_linking_variables!(g::Storage, model::Model)
     if has_capacity(g)
@@ -208,8 +212,9 @@ end
 
 function planning_model!(g::Storage, model::Model)
 
-    g.annualized_investment_cost = annualized_investment_cost(g)*annuities_mult(g)
-    
+    g.annualized_investment_cost = investment_cost(g)*annualization_factor(g)*annuities_mult(g)
+    g.endog_annualized_cost = annualized_investment_cost(g)
+
     if !g.can_expand
         fix(new_units(g), 0.0; force = true)
     end

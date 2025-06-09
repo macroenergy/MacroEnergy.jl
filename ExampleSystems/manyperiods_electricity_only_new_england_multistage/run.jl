@@ -3,7 +3,7 @@ using Gurobi
 
 (system, model) = run_case(@__DIR__; 
                     optimizer=Gurobi.Optimizer,
-                    optimizer_attributes=("Method" => 2, "Crossover" => 0, "BarConvTol" => 1e-3));
+                    optimizer_attributes=("Method" => 2, "Crossover" => 0, "BarConvTol" => 1e-3,  "PreSOS1BigM" => 0));
 # (system, model) = run_case(@__DIR__; 
 #                     optimizer=Gurobi.Optimizer,
 #                     optimizer_attributes=("BarConvTol"=>1e-3, "Crossover" => 0, "Method" => 2, "PreSOS1BigM" => 0));

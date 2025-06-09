@@ -34,7 +34,7 @@
                 "path": "system/nodes_2.json"
             },
             "assets": {
-                "path": "assets/assets_2"
+                "path": "assets/assets_1"
             },
             "time_data": {
                 "path": "system/time_data.json"
@@ -54,7 +54,7 @@
                 "path": "system/nodes_3.json"
             },
             "assets": {
-                "path": "assets/assets_3"
+                "path": "assets/assets_1"
             },
             "time_data": {
                 "path": "system/time_data.json"

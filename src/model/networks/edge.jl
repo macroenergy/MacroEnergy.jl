@@ -47,7 +47,7 @@ macro AbstractEdgeBaseAttributes()
         annualized_investment_cost::Union{Nothing,Float64} = $edge_defaults[:annualized_investment_cost]
         # Learning
         learning_parameter::Float64 = 0.0
-        capacity_initial::Float64 = 0.0
+        cumulative_capacity_init::Float64 = 0.0
         investment_cost_init::Float64 = 0.0
         segments_sos1::JuMPVariable = Vector{VariableRef}()
         segments_sos1_track::Dict{Int64,Union{JuMPVariable}} = Dict(1 => Vector{VariableRef}())
@@ -57,8 +57,11 @@ macro AbstractEdgeBaseAttributes()
         learning_pwl_slope::AffExpr = AffExpr(0.0)
         learning_pwl_track::Dict{Int64,AffExpr} = Dict(1=>AffExpr(0.0))
         pwl_cost_slopes::JuMPVariable = Vector{VariableRef}()
-        slope_times_capacity_linear::AffExpr = AffExpr(0.0)
+        annualized_investment_cost_with_learning::AffExpr = AffExpr(0.0)
         annuities_mult::Float64 = 0.0
+        annualization_factor::Float64 = 0.0
+        endog_annualized_cost::AffExpr = AffExpr(0.0)
+        cumulative_external_capacity::Float64 = 0.0
     end)
 end
 
@@ -239,7 +242,7 @@ wacc(e::AbstractEdge) = e.wacc;
 annualized_investment_cost(e::AbstractEdge) = e.annualized_investment_cost;
 # Learning
 learning_parameter(e::AbstractEdge) = e.learning_parameter;
-capacity_initial(e::AbstractEdge) = e.capacity_initial;
+cumulative_capacity_init(e::AbstractEdge) = e.cumulative_capacity_init;
 endog_investment_cost(e::AbstractEdge) = e.endog_investment_cost;
 segments_sos1_prev(e::AbstractEdge) = e.segments_sos1_prev;
 segments_sos1(e::AbstractEdge) = e.segments_sos1;
@@ -251,8 +254,11 @@ segments_sos1_track(e::AbstractEdge) = e.segments_sos1_track;
 segments_sos1_track(e::AbstractEdge,s::Int64) =  (haskey(segments_sos1_track(e),s) == false) ? 0.0 : e.segments_sos1_track[s];
 pwl_cost_slopes(e::AbstractEdge) = e.pwl_cost_slopes;
 aux_new_capacity(e::AbstractEdge) = e.aux_new_capacity;
-slope_times_capacity_linear(e::AbstractEdge) = e.slope_times_capacity_linear;
+annualized_investment_cost_with_learning(e::AbstractEdge) = e.annualized_investment_cost_with_learning;
 annuities_mult(e::AbstractEdge) = e.annuities_mult;
+annualization_factor(e::AbstractEdge) = e.annualization_factor;
+endog_annualized_cost(e::AbstractEdge) = e.endog_annualized_cost;
+cumulative_external_capacity(e::AbstractEdge) = e.cumulative_external_capacity;
 ##### End of Edge interface #####
 
 function add_linking_variables!(e::AbstractEdge, model::Model)
@@ -295,6 +301,8 @@ end
 
 function planning_model!(e::AbstractEdge, model::Model)
 
+    e.annualized_investment_cost = investment_cost(e)*annualization_factor(e)
+
     # Endogenous learning MARK: Learning
     if learning_parameter(e) != 0.0
         # Check if we have maximum capacity
@@ -309,11 +317,11 @@ function planning_model!(e::AbstractEdge, model::Model)
         y_points = zeros(N+1)
         # Define points
         for k in 1:N+1
-            segment_length = (max_capacity(e)-capacity_initial(e))/N
-            x_points[k] = (k-1)*(segment_length)+capacity_initial(e)
-            cost_point = annualized_investment_cost(e)*(x_points[k]/capacity_initial(e))^(-learning_parameter(e))
+            segment_length = (max_capacity(e)-cumulative_capacity_init(e))/N
+            x_points[k] = (k-1)*(segment_length)+cumulative_capacity_init(e)
+            cost_point = annualized_investment_cost(e)*(x_points[k]/cumulative_capacity_init(e))^(-learning_parameter(e))
             # Estimate cost from fixed capacity points
-            y_points[k] = (1/(1-learning_parameter(e)))*(x_points[k]*cost_point-annualized_investment_cost(e)*capacity_initial(e))
+            y_points[k] = (1/(1-learning_parameter(e)))*(x_points[k]*cost_point-annualized_investment_cost(e)*cumulative_capacity_init(e))
         end
 
         # SOS1 variables for piece-wise linearization
@@ -329,7 +337,7 @@ function planning_model!(e::AbstractEdge, model::Model)
         cost_stage = curr_stage - 1
 
         # Set cumulative_experience as sum of existing capacity and all new capacity
-        @constraint(model, sum(cumulative_experience(e)[k] for k in 1:N) == sum(new_capacity_track(e,k) for k=1:curr_stage) + capacity_initial(e))
+        @constraint(model, sum(cumulative_experience(e)[k] for k in 1:N) == sum(new_capacity_track(e,k) for k=1:curr_stage) + cumulative_external_capacity(e))
 
         # Constraints ensuring segments_sos1 is chosen based on capacity decision
         @constraint(model, [k in 1:N], cumulative_experience(e)[k] >= x_points[k]*segments_sos1(e)[k])
@@ -350,31 +358,34 @@ function planning_model!(e::AbstractEdge, model::Model)
         
         # Update investment cost
         if curr_stage == 1
-            e.endog_investment_cost = annualized_investment_cost(e)
-            # print(e.endog_investment_cost)
-
+            # e.endog_investment_cost = annualized_investment_cost(e)
+            e.annualized_investment_cost_with_learning = annualized_investment_cost(e)*new_capacity(e)
+            e.endog_annualized_cost = annualized_investment_cost(e)
             e.segments_sos1_prev = segments_sos1_track(e, curr_stage)
 
         else
-            e.endog_investment_cost = learning_pwl_track(e, cost_stage)
+            # e.endog_investment_cost = learning_pwl_track(e, cost_stage)*annualization_factor(e)
             
             # Linearize 
             e.segments_sos1_prev = segments_sos1_track(e, cost_stage)
             e.aux_new_capacity = @variable(model, [k in 1:N], lower_bound = 0.0)
             # Upper bound on new capacity in a given period
-            M_capacity = max_new_capacity(e)/2
+            big_M_capacity = max_new_capacity(e)
             
             @constraint(model, [k in 1:N], e.new_capacity - e.aux_new_capacity[k] >= 0)
-            @constraint(model, [k in 1:N], e.new_capacity - e.aux_new_capacity[k] <= M_capacity*(1-segments_sos1_prev(e)[k]))
-            @constraint(model, [k in 1:N], e.aux_new_capacity[k] <= M_capacity*e.segments_sos1_prev[k])
-            e.slope_times_capacity_linear = @expression(model, sum(e.pwl_cost_slopes[k]*e.aux_new_capacity[k] for k in 1:N))
+            @constraint(model, [k in 1:N], e.new_capacity - e.aux_new_capacity[k] <= big_M_capacity*(1-segments_sos1_prev(e)[k]))
+            @constraint(model, [k in 1:N], e.aux_new_capacity[k] <= big_M_capacity*e.segments_sos1_prev[k])
+            e.annualized_investment_cost_with_learning = @expression(model, sum(e.pwl_cost_slopes[k]*e.aux_new_capacity[k] for k in 1:N))
+
+            e.endog_annualized_cost = @expression(model, sum(e.pwl_cost_slopes[k]*e.segments_sos1_prev[k] for k in 1:N))
             # Enf of linearization
         end
     else
-        e.endog_investment_cost = annualized_investment_cost(e)
+        e.endog_annualized_cost = annualized_investment_cost(e)
+        # e.endog_investment_cost = annualized_investment_cost(e)
     end
     
-    e.endog_investment_cost = endog_investment_cost(e)*annuities_mult(e)
+    # e.endog_investment_cost = endog_investment_cost(e)*annuities_mult(e)
 
     ### End of learning formulation
 
@@ -415,7 +426,7 @@ function compute_investment_costs!(e::AbstractEdge, model::Model)
             
             # Linearized version
             if learning_parameter(e) != 0.0
-                model[:eInvestmentFixedCost] += e.slope_times_capacity_linear*annuities_mult(e)
+                model[:eInvestmentFixedCost] += e.annualized_investment_cost_with_learning*annuities_mult(e)
             else
                 # Non learning
                 add_to_expression!(

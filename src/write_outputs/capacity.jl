@@ -92,6 +92,8 @@ get_optimal_retired_capacity(system)
 """
 get_optimal_retired_capacity(system::System; scaling::Float64=1.0) = get_optimal_capacity_by_field(system, retired_capacity, scaling)
 
+get_endog_costs(system::System; scaling::Float64=1.0) = get_optimal_capacity_by_field(system, endog_annualized_cost, scaling)
+
 get_existing_capacity(system::System) = get_optimal_capacity_by_field(system, existing_capacity)
 
 get_optimal_capacity(asset::AbstractAsset; scaling::Float64=1.0) = get_optimal_capacity_by_field(asset, capacity, scaling)
@@ -239,7 +241,8 @@ function write_capacity_all_periods(
             capacity_results = get_optimal_capacity(system; scaling)
             new_capacity_results = get_optimal_new_capacity(system; scaling)
             retired_capacity_results = get_optimal_retired_capacity(system; scaling)
-            all_capacity_results = vcat(capacity_results, new_capacity_results, retired_capacity_results)
+            endog_costs = get_endog_costs(system; scaling)
+            all_capacity_results = vcat(capacity_results, new_capacity_results, retired_capacity_results, endog_costs)
 
             system_number = findfirst(==(system), case.systems)
             period_number_vector = fill(system_number, nrow(all_capacity_results))
