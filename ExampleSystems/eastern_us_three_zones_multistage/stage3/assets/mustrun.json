@@ -1,0 +1,80 @@
+{
+    "mustrun": [
+        {
+            "type": "MustRun",
+            "global_data": {
+                "nodes": {},
+                "transforms": {
+                    "timedata": "Electricity"
+                    },
+                "edges": {
+                    "elec_edge": {
+                        "unidirectional": true,
+                        "can_expand": false,
+                        "can_retire": false,
+                        "has_capacity": true,
+                        "constraints": {
+                            "MustRunConstraint": true
+                        }
+                    }
+                }
+            },
+            "instance_data": [
+                {
+                    "id": "SE_small_hydroelectric_1",
+                    "edges": {
+                        "elec_edge": {
+                            "end_vertex": "elec_SE",
+                            "existing_capacity": 249.895,
+                            "capacity_size": 1.219,
+                            "fixed_om_cost": 45648,
+                            "availability": {
+                                "timeseries": {
+                                    "path": "system/availability.csv",
+                                    "header": "SE_small_hydroelectric_1"
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "id": "MIDAT_small_hydroelectric_1",
+                    "edges": {
+                        "elec_edge": {
+                            "end_vertex": "elec_MIDAT",
+                            "existing_capacity": 263.268,
+                            "capacity_size": 1.236,
+                            "fixed_om_cost": 45648,
+                            "availability": {
+                                "timeseries": {
+                                    "path": "system/availability.csv",
+                                    "header": "MIDAT_small_hydroelectric_1"
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "id": "NE_small_hydroelectric_1",
+                    "edges": {
+                        "elec_edge": {
+                            "end_vertex": "elec_NE",
+                            "existing_capacity": 834.494,
+                            "capacity_size": 1.051,
+                            "fixed_om_cost": 45648,
+                            "availability": {
+                                "timeseries": {
+                                    "path": "system/availability.csv",
+                                    "header": "NE_small_hydroelectric_1"
+                                }
+                            }
+                        }
+                    }
+                }
+                
+            ]
+        }
+    ]
+
+
+}

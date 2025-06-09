@@ -916,6 +916,11 @@ function write_outputs(case_path::AbstractString, case::Case, model::Model)
         write_outputs(results_dir, period, model)
     end
 
+    results_dir = joinpath(case_path, "results_all_periods/")
+    mkpath(results_dir)
+
+    write_capacity_all_periods(results_dir, case)
+
     return nothing
 end
 

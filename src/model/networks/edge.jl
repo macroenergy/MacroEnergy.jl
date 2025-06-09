@@ -318,6 +318,7 @@ function planning_model!(e::AbstractEdge, model::Model)
 
         # SOS1 variables for piece-wise linearization
         e.segments_sos1 = @variable(model, [k in 1:N], lower_bound = 0.0, base_name = "vSOS1SEG_$(id(e))_stage$(period_index(e))_seg_$k")
+        @constraint(model, [k in 1:N], segments_sos1(e)[k] <= 1)
         @constraint(model, sum(segments_sos1(e)[k] for k in 1:N) == 1)
         # SOS1 constraint ensuring only one value is nonzero
         @constraint(model, segments_sos1(e) in SOS1())
@@ -349,23 +350,24 @@ function planning_model!(e::AbstractEdge, model::Model)
         
         # Update investment cost
         if curr_stage == 1
-            e.endog_investment_cost = investment_cost(e)
+            e.endog_investment_cost = annualized_investment_cost(e)
             # print(e.endog_investment_cost)
 
             e.segments_sos1_prev = segments_sos1_track(e, curr_stage)
 
         else
             e.endog_investment_cost = learning_pwl_track(e, cost_stage)
-            # Linearize 
-            # e.segments_sos1_prev = segments_sos1_track(e, cost_stage)
-            # e.aux_new_capacity = @variable(model, [k in 1:N], lower_bound = 0.0)
-            # Upper bound on new capacity in a given period
-            # M_capacity = 20e3 #max_capacity(e)
             
-            # @constraint(model, [k in 1:N], e.new_capacity - e.aux_new_capacity[k] >= 0)
-            # @constraint(model, [k in 1:N], e.new_capacity - e.aux_new_capacity[k] <= M_capacity*(1-segments_sos1_prev(e)[k]))
-            # @constraint(model, [k in 1:N], e.aux_new_capacity[k] <= M_capacity*e.segments_sos1_prev[k])
-            # e.slope_times_capacity_linear = @expression(model, sum(e.pwl_cost_slopes[k]*e.aux_new_capacity[k] for k in 1:N))
+            # Linearize 
+            e.segments_sos1_prev = segments_sos1_track(e, cost_stage)
+            e.aux_new_capacity = @variable(model, [k in 1:N], lower_bound = 0.0)
+            # Upper bound on new capacity in a given period
+            M_capacity = max_new_capacity(e)/2
+            
+            @constraint(model, [k in 1:N], e.new_capacity - e.aux_new_capacity[k] >= 0)
+            @constraint(model, [k in 1:N], e.new_capacity - e.aux_new_capacity[k] <= M_capacity*(1-segments_sos1_prev(e)[k]))
+            @constraint(model, [k in 1:N], e.aux_new_capacity[k] <= M_capacity*e.segments_sos1_prev[k])
+            e.slope_times_capacity_linear = @expression(model, sum(e.pwl_cost_slopes[k]*e.aux_new_capacity[k] for k in 1:N))
             # Enf of linearization
         end
     else
@@ -409,20 +411,23 @@ function compute_investment_costs!(e::AbstractEdge, model::Model)
         if can_expand(e)
 
             # Nonlinear
-            model[:eFixedCost] += endog_investment_cost(e)*new_capacity(e)
+            # model[:eInvestmentFixedCost] += endog_investment_cost(e)*new_capacity(e)
             
             # Linearized version
-            # if learning_parameter(e) != 0.0
-            #     model[:eFixedCost] += e.slope_times_capacity_linear
-            # else
-            #     # Non learning
-            #     add_to_expression!(
-            #     model[:eFixedCost],
-            #     investment_cost(e),
-            #     new_capacity(e),
-            # )
-            # end
+            if learning_parameter(e) != 0.0
+                model[:eInvestmentFixedCost] += e.slope_times_capacity_linear*annuities_mult(e)
+            else
+                # Non learning
+                add_to_expression!(
+                model[:eInvestmentFixedCost],
+                annualized_investment_cost(e)*annuities_mult(e),
+                new_capacity(e),
+            )
+            end
+            ### End of linearized version
 
+
+            # Old 
             # add_to_expression!(
             #         model[:eFixedCost],
             #         annualized_investment_cost(e),

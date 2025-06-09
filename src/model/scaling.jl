@@ -30,15 +30,15 @@ function attributes_to_scale(n::Node)
 end
 
 function attributes_to_scale(e::Edge)
-    return [:capacity_size, :existing_capacity, :fixed_om_cost, :investment_cost, :investment_cost_init, :capacity_initial, :max_capacity, :min_capacity, :variable_om_cost]
+    return [:capacity_size, :existing_capacity, :fixed_om_cost, :investment_cost, :investment_cost_init, :capacity_initial, :max_capacity, :max_new_capacity, :min_capacity, :variable_om_cost]
 end
 
 function attributes_to_scale(e::EdgeWithUC)
-    return [:capacity_size, :existing_capacity, :fixed_om_cost, :investment_cost, :investment_cost_init, :capacity_initial, :max_capacity, :min_capacity, :variable_om_cost, :startup_cost]
+    return [:capacity_size, :existing_capacity, :fixed_om_cost, :investment_cost, :investment_cost_init, :capacity_initial, :max_capacity, :max_new_capacity, :min_capacity, :variable_om_cost, :startup_cost]
 end
 
 function attributes_to_scale(g::AbstractStorage)
-    return [:capacity_size,:existing_capacity,:fixed_om_cost,:investment_cost, :investment_cost_init, :capacity_initial, :max_capacity, :min_capacity]
+    return [:capacity_size,:existing_capacity,:fixed_om_cost,:investment_cost, :investment_cost_init, :capacity_initial, :max_capacity, :max_new_capacity, :min_capacity]
 end
 
 function attributes_to_scale(t::Transformation)
