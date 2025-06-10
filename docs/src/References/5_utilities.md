@@ -168,3 +168,45 @@ MacroEnergy.struct_info
 ```@docs
 MacroEnergy.timestepbefore
 ```
+
+# Functions for downloading examples
+
+## `authenticate_github`
+```@docs
+MacroEnergy.authenticate_github
+```
+
+## `download_example`
+```@docs
+MacroEnergy.download_example
+```
+
+## `download_examples`
+```@docs
+MacroEnergy.download_examples
+```
+
+## `download_gh`
+```@docs
+MacroEnergy.download_gh
+```
+
+## `example_contents`
+```@docs
+MacroEnergy.example_contents
+```
+
+## `example_readme`
+```@docs
+MacroEnergy.example_readme
+```
+
+## `find_example`
+```@docs
+MacroEnergy.find_example
+```
+
+## `list_examples`
+```@docs
+MacroEnergy.list_examples
+```
