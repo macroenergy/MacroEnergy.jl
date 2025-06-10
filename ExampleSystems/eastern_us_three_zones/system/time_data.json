@@ -20,7 +20,7 @@
         "CO2Captured": 1
     },
     "NumberOfSubperiods": 3,
-    "PeriodMap": {
+    "SubPeriodMap": {
         "path": "system/Period_map.csv"
     },
     "TotalHoursModeled": 8760

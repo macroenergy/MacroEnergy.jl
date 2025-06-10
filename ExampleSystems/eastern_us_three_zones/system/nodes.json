@@ -576,7 +576,7 @@
                     "id": "gasoline_demand_SE",
                     "demand": {
                         "timeseries": {
-                            "path": "system/demand.csv",
+                            "path": "system/demand fuel.csv",
                             "header": "Demand_Gasoline_z1"
                         }
                     }
@@ -585,7 +585,7 @@
                     "id": "gasoline_demand_MIDAT",
                     "demand": {
                         "timeseries": {
-                            "path": "system/demand.csv",
+                            "path": "system/demand fuel.csv",
                             "header": "Demand_Gasoline_z2"
                         }
                     }
@@ -594,7 +594,7 @@
                     "id": "gasoline_demand_NE",
                     "demand": {
                         "timeseries": {
-                            "path": "system/demand.csv",
+                            "path": "system/demand fuel.csv",
                             "header": "Demand_Gasoline_z3"
                         }
                     }
@@ -687,7 +687,7 @@
                     "id": "jetfuel_demand_SE",
                     "demand": {
                         "timeseries": {
-                            "path": "system/demand.csv",
+                            "path": "system/demand fuel.csv",
                             "header": "Demand_JetFuel_z1"
                         }
                     }
@@ -696,7 +696,7 @@
                     "id": "jetfuel_demand_MIDAT",
                     "demand": {
                         "timeseries": {
-                            "path": "system/demand.csv",
+                            "path": "system/demand fuel.csv",
                             "header": "Demand_JetFuel_z2"
                         }
                     }
@@ -705,7 +705,7 @@
                     "id": "jetfuel_demand_NE",
                     "demand": {
                         "timeseries": {
-                            "path": "system/demand.csv",
+                            "path": "system/demand fuel.csv",
                             "header": "Demand_JetFuel_z3"
                         }
                     }
@@ -798,7 +798,7 @@
                     "id": "diesel_demand_SE",
                     "demand": {
                         "timeseries": {
-                            "path": "system/demand.csv",
+                            "path": "system/demand fuel.csv",
                             "header": "Demand_Diesel_z1"
                         }
                     }
@@ -807,7 +807,7 @@
                     "id": "diesel_demand_MIDAT",
                     "demand": {
                         "timeseries": {
-                            "path": "system/demand.csv",
+                            "path": "system/demand fuel.csv",
                             "header": "Demand_Diesel_z2"
                         }
                     }
@@ -816,7 +816,7 @@
                     "id": "diesel_demand_NE",
                     "demand": {
                         "timeseries": {
-                            "path": "system/demand.csv",
+                            "path": "system/demand fuel.csv",
                             "header": "Demand_Diesel_z3"
                         }
                     }

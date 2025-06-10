@@ -92,9 +92,12 @@ get_optimal_retired_capacity(system)
 """
 get_optimal_retired_capacity(system::System; scaling::Float64=1.0) = get_optimal_capacity_by_field(system, retired_capacity, scaling)
 
+get_existing_capacity(system::System) = get_optimal_capacity_by_field(system, existing_capacity)
+
 get_optimal_capacity(asset::AbstractAsset; scaling::Float64=1.0) = get_optimal_capacity_by_field(asset, capacity, scaling)
 get_optimal_new_capacity(asset::AbstractAsset; scaling::Float64=1.0) = get_optimal_capacity_by_field(asset, new_capacity, scaling)
 get_optimal_retired_capacity(asset::AbstractAsset; scaling::Float64=1.0) = get_optimal_capacity_by_field(asset, retired_capacity, scaling)
+get_existing_capacity(asset::AbstractAsset; scaling::Float64=1.0) = get_optimal_capacity_by_field(asset, existing_capacity, scaling)
 
 """
     write_capacity(

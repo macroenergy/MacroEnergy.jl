@@ -130,7 +130,7 @@ function add_linking_variables!(n::Node, model::Model)
             n.policy_budgeting_vars[Symbol(string(ct_type) * "_Budget")] = @variable(
                 model,
                 [w in subperiod_indices(n)],
-                base_name = "v" * string(ct_type) * "_Budget_$(id(n))"
+                base_name = "v" * string(ct_type) * "_Budget_$(id(n))_period$(period_index(n))"
             )
         end
     end
@@ -181,7 +181,7 @@ function operation_model!(n::Node, model::Model)
             model,
             [s in segments_non_served_demand(n), t in time_interval(n)],
             lower_bound = 0.0,
-            base_name = "vNSD_$(id(n))"
+            base_name = "vNSD_$(id(n))_period$(period_index(n))"
         )
         for t in time_interval(n)
             w = current_subperiod(n,t)
@@ -203,7 +203,7 @@ function operation_model!(n::Node, model::Model)
             [s in supply_segments(n) ,t in time_interval(n)],
             lower_bound = 0.0,
             upper_bound = max_supply(n,s),
-            base_name = "vSUPPLY_$(id(n))"
+            base_name = "vSUPPLY_$(id(n))_period$(period_index(n))"
         )
 
         for t in time_interval(n)

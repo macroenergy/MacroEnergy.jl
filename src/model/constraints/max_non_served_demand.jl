@@ -25,7 +25,6 @@ function add_model_constraint!(ct::MaxNonServedDemandConstraint, n::Node, model:
             demand(n, t)
         )
     else
-        @show max_non_served_demand(n)
         @warn "MaxNonServedDemandConstraint required for a node that does not have a non-served demand variable so Macro will not create this constraint"
     end
 

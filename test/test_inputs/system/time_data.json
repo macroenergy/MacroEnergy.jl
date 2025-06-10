@@ -18,5 +18,8 @@
         "Uranium": 1
     },
     "NumberOfSubperiods" : 3,
+    "SubPeriodMap": {
+        "path": "system/Period_map.csv"
+    },
     "TotalHoursModeled": 8760
 }
