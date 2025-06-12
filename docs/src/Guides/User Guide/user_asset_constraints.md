@@ -4,13 +4,20 @@ One of Macro's most powerful features is the ability to enable and disable const
 
 This guide documents all available constraints and explains how to enable them in your system.
 
-!!! tip "Examples"
-    For all the examples below, we will refer to both the reduced and full input formats.
+!!! tip "Important - Attribute Prefixes"
+    The **prefix** before `_constraints` (and all other attributes) in the JSON input file varies depending on the component of the asset that the constraint is applied to. Some examples are:
+    - `transform_constraints`: constraints on the conversion component of an asset
+    - `storage_constraints`: constraints on the storage component of an asset
+    - `elec_constraints`: constraints on the power input/output component of an asset
+    - `discharge_constraints`: constraints on the discharging component of an asset
+    - etc.
+
+    Throughout this guide, we show examples with different prefixes to illustrate this variety. When implementing constraints for your specific asset, make sure to review [this example case](https://github.com/macroenergy/MacroEnergy.jl/tree/main/ExampleSystems/eastern_us_three_zones_reduced/assets) or the asset definition in the [Macro Asset Library](@ref) to make sure you use the correct prefix for your asset type.
 
 ## Balance Constraint
 *Note: Enabled by default in all assets in the [Macro Asset Library](@ref)*
 
-The balance constraint ensures that the sum of inflows and outflows at any **transformation** or **storage** component of an asset equals zero at each time step.
+The balance constraint ensures that the sum of inflows and outflows at any component of an asset equals zero at each time step.
 
 !!! note "Formulation"
     ```math
@@ -32,29 +39,13 @@ While enabled by default in all assets in the [Macro Asset Library](@ref), the u
 }
 ```
 
-Or, in the full input format:
-```json
-{
-    "transform": {
-        "constraints": {
-            "BalanceConstraint": true/false
-        }
-    },
-    "storage": {
-        "constraints": {
-            "BalanceConstraint": true/false
-        }
-    }
-}
-```
-
 ## Capacity Constraint
 *Note: Enabled by default in all assets in the [Macro Asset Library](@ref)*
 
-The capacity constraint ensures that the flow of a commodity through an **edge** of an asset (e.g, power output) does not exceed the nameplate capacity (multiplied by its availability factor).
+The capacity constraint ensures that the **flow** of a commodity through an edge of an asset (e.g, power output) does not exceed the nameplate capacity (multiplied by its availability factor).
 
 
-!!! note "Formulation"
+!!! note "Formulation - Assets without unit commitment"
     For unidirectional edges, the constraint takes this form:
     ```math
     \begin{aligned}
@@ -71,27 +62,23 @@ The capacity constraint ensures that the flow of a commodity through an **edge**
 
     where `sign(e)` is the sign of the flow of the edge, which is `1` for positive flows and `-1` for negative flows.
 
-**Edges with Unit Commitment**
 
-For unidirectional edges:
-
-!!! note "Formulation"
+!!! note "Formulation - Assets with unit commitment"
+    Unidirectional edges:
     ```math
     \begin{aligned}
         \sum_{t \in \text{time\_interval(e)}} \text{flow(e, t)} \leq \text{availability(e, t)} \times \text{capacity(e)} \times \text{ucommit(e, t)}
     \end{aligned}
     ```
 
-For bidirectional edges:
-
-!!! note "Formulation"
+    Bidirectional edges:
     ```math
     \begin{aligned}
         \text{sign(e)} \times \text{flow(e, t)} \leq \text{availability(e, t)} \times \text{capacity(e)} \times \text{ucommit(e, t)}
     \end{aligned}
     ```
 
-where `sign(e)` is the sign of the flow of the edge, which is `1` for positive flows and `-1` for negative flows.
+    where `sign(e)` is the sign of the flow of the edge, which is `1` for positive flows and `-1` for negative flows.
 
 The capacity constraint is enabled by default in all assets in the [Macro Asset Library](@ref). The user can enable/disable it by adding these lines to their asset's JSON input file:
 
@@ -99,19 +86,6 @@ The capacity constraint is enabled by default in all assets in the [Macro Asset 
 {
     "elec_constraints": {
         "CapacityConstraint": true/false
-    }
-}
-```
-
-Or, in the full input format:
-```json
-{
-    "edges": {
-        "elec_edge": {
-            "constraints": {
-                "CapacityConstraint": true/false
-            }
-        }
     }
 }
 ```
@@ -138,7 +112,7 @@ As a reminder, users can define the availability as a time series in the asset's
 ```
 
 ## Maximum Capacity
-The maximum capacity constraint enforces that the capacity of an **edge** or **storage** of an asset does not exceed the `max_capacity` attribute as specified in the JSON input file.
+The maximum capacity constraint enforces that the **capacity** of an edge or storage of an asset does not exceed the `max_capacity` attribute as specified in the JSON input file.
 
 !!! note "Formulation"
     ```math
@@ -154,7 +128,6 @@ To enable this constraint:
 1. Add the `MaxCapacityConstraint` to the list of constraints in the JSON input file of the asset and set it to `true`.
 2. Add a value to the `max_capacity` attribute of the asset.
 
-**Example** (reduced input format):
 ```json
 {
     "elec_constraints": {
@@ -164,22 +137,8 @@ To enable this constraint:
 }
 ```
 
-**Example** (full input format):
-```json
-{
-    "edges": {
-        "elec_edge": {
-            "constraints": {
-                "MaxCapacityConstraint": true
-            },
-            "max_capacity": 27760
-        }
-    }
-}
-```
-
 ## Minimum Capacity
-The minimum capacity constraint enforces that the capacity of an **edge** or **storage** of an asset is greater than or equal to the `min_capacity` attribute as specified in the JSON input file.
+The minimum capacity constraint enforces that the **capacity** of an edge or storage of an asset is greater than or equal to the `min_capacity` attribute as specified in the JSON input file.
 
 !!! note "Formulation"
     ```math
@@ -195,7 +154,6 @@ To enable this constraint:
 1. Add the `MinCapacityConstraint` to the list of constraints in the JSON input file of the asset and set it to `true`.
 2. Add a value to the `min_capacity` attribute of the asset.
 
-**Example** (reduced input format):
 ```json
 {
     "elec_constraints": {
@@ -205,22 +163,8 @@ To enable this constraint:
 }
 ```
 
-**Example** (full input format):
-```json
-{
-    "edges": {
-        "elec_edge": {  
-            "constraints": {
-                "MinCapacityConstraint": true
-            },
-            "min_capacity": 100
-        }
-    }
-}
-```
-
 ## Minimum Flow Constraint
-The minimum flow constraint enforces that the flow of a commodity in an **edge** does not exceed a user-defined fraction of the capacity of the edge (`min_flow_fraction` attribute).
+The minimum flow constraint enforces that the **flow** of a commodity in an edge does not exceed a user-defined fraction of the capacity of the edge (specified using the `min_flow_fraction` attribute).
 
 !!! note "Formulation"
     ```math
@@ -244,7 +188,6 @@ To enable this constraint:
 1. Add the `MinFlowConstraint` to the list of constraints in the JSON input file of the asset and set it to `true`.
 2. Add a value to the `min_flow_fraction` attribute of the asset.
 
-**Example** (reduced input format):
 ```json
 {
     "elec_constraints": {
@@ -254,25 +197,11 @@ To enable this constraint:
 }
 ```
 
-**Example** (full input format):
-```json
-{
-    "edges": {
-        "elec_edge": {
-            "constraints": {
-                "MinFlowConstraint": true
-            },
-            "min_flow_fraction": 0.5
-        }
-    }
-}
-```
-
 !!! warning "Unidirectional Edges Only"
     This constraint is available only for unidirectional edges.
 
 ## Minimum Up/Down Time (Unit Commitment)
-The minimum up/down time constraint enforces that **edges** with unit commitment must be on/off for a minimum number of time steps (specified using the `min_up_time`/`min_down_time` attribute).
+The minimum up/down time constraint enforces that edges with unit commitment must be on/off for a minimum number of time steps (specified using the `min_up_time`/`min_down_time` attribute).
 
 !!! note "Formulation"
     ```math
@@ -293,7 +222,6 @@ To enable this constraint:
 1. Add the `MinUpTimeConstraint`/`MinDownTimeConstraint` to the list of constraints in the JSON input file of the asset and set it to `true`.
 2. Add a value to the `min_up_time`/`min_down_time` attribute of the asset.
 
-**Example** (reduced input format):
 ```json
 {
     "elec_constraints": {
@@ -305,27 +233,11 @@ To enable this constraint:
 }
 ```
 
-**Example** (full input format):
-```json
-{
-    "edges": {
-        "elec_edge": {
-            "constraints": {
-                "MinUpTimeConstraint": true,
-                "MinDownTimeConstraint": true
-            },
-            "min_up_time": 6,
-            "min_down_time": 6
-        }
-    }
-}
-```
-
 !!! warning "Min up/down time duration - subperiods"
     This constraint will throw an error if the minimum up/down time is longer than the length of one subperiod.
 
 ## Must Run Constraint
-The must run constraint forces an **edge** to operate at its full capacity (adjusted by availability) at all times.
+The must run constraint forces an edge to operate at its full capacity (adjusted by availability) at all times.
 
 !!! note "Formulation"
     ```math
@@ -341,7 +253,6 @@ To enable this constraint:
 1. Add the `MustRunConstraint` to the list of constraints in the JSON input file of the asset and set it to `true`.
 2. (optional) Add a time series with the availability of the edge.
 
-**Example** (reduced input format):
 ```json
 {
     "elec_constraints": {
@@ -356,43 +267,11 @@ To enable this constraint:
 }
 ```
 
-**Example** (full input format):
-```json
-{
-    "edges": {
-        "elec_edge": {
-            "constraints": {
-                "MustRunConstraint": true
-            },
-            "availability": {
-                "timeseries": {
-                    "path": "system/availability.csv",
-                    "header": "<asset_id>"
-                }
-            }
-        }
-    }
-}
-```
-
 !!! warning "Must run constraint"
     This constraint is available only for unidirectional edges.
 
 ## Ramping Limit Constraint (RampUp/RampDown)
-The ramping limits constraint restricts how quickly the flow through an **edge** can change between consecutive time steps. The maximum rate of change is defined as a fraction of the edge's capacity (`ramp_up_fraction`/`ramp_down_fraction`).
-
-
-!!! note "Formulation - Assets with unit commitment"
-    ```math
-    \begin{aligned}
-        \text{flow(e, t)} - \text{flow(e, t-1)} - \text{ramp\_up\_fraction(e)} \times \text{capacity\_size(e)} \times (\text{ucommit(e, t)} - \text{ustart(e, t)}) + \text{min(availability(e, t), max(min\_flow\_fraction(e), ramp\_up\_fraction(e)))} \times \text{capacity\_size(e)} \times \text{ustart(e, t)} - \text{min\_flow\_fraction(e)} \times \text{capacity\_size(e)} \times \text{ushut(e, t)} \leq 0
-    \end{aligned}
-    ```
-    ```math
-    \begin{aligned}
-        \text{flow(e, t-1)} - \text{flow(e, t)} - \text{ramp\_down\_fraction(e)} \times \text{capacity\_size(e)} \times (\text{ucommit(e, t)} - \text{ustart(e, t)}) - \text{min\_flow\_fraction(e)} \times \text{capacity\_size(e)} \times \text{ustart(e, t)} + \text{min(availability(e, t), max(min\_flow\_fraction(e), ramp\_down\_fraction(e)))} \times \text{capacity\_size(e)} \times \text{ushut(e, t)} \leq 0
-    \end{aligned}
-    ```
+The ramping limits constraint restricts how quickly the **flow** through an edge can change between consecutive time steps. The maximum rate of change is defined as a fraction of the edge's capacity (`ramp_up_fraction`/`ramp_down_fraction`).
 
 !!! note "Formulation - Assets without unit commitment"
     ```math
@@ -406,12 +285,23 @@ The ramping limits constraint restricts how quickly the flow through an **edge**
     \end{aligned}
     ```
 
+!!! note "Formulation - Assets with unit commitment"
+    ```math
+    \begin{aligned}
+        \text{flow(e, t)} - \text{flow(e, t-1)} - \text{ramp\_up\_fraction(e)} \times \text{capacity\_size(e)} \times (\text{ucommit(e, t)} - \text{ustart(e, t)}) + \text{min(availability(e, t), max(min\_flow\_fraction(e), ramp\_up\_fraction(e)))} \times \text{capacity\_size(e)} \times \text{ustart(e, t)} - \text{min\_flow\_fraction(e)} \times \text{capacity\_size(e)} \times \text{ushut(e, t)} \leq 0
+    \end{aligned}
+    ```
+    ```math
+    \begin{aligned}
+        \text{flow(e, t-1)} - \text{flow(e, t)} - \text{ramp\_down\_fraction(e)} \times \text{capacity\_size(e)} \times (\text{ucommit(e, t)} - \text{ustart(e, t)}) - \text{min\_flow\_fraction(e)} \times \text{capacity\_size(e)} \times \text{ustart(e, t)} + \text{min(availability(e, t), max(min\_flow\_fraction(e), ramp\_down\_fraction(e)))} \times \text{capacity\_size(e)} \times \text{ushut(e, t)} \leq 0
+    \end{aligned}
+    ```
+
 To enable this constraint:
 
 1. Add the `RampingLimitConstraint` to the list of constraints in the JSON input file of the asset and set it to `true`.
 2. Add a value to the `ramp_up_fraction`/`ramp_down_fraction` attribute of the asset.
 
-**Example** (reduced input format):
 ```json
 {
     "elec_constraints": {
@@ -422,25 +312,10 @@ To enable this constraint:
 }
 ```
 
-**Example** (full input format):
-```json
-{
-    "edges": {
-        "elec_edge": {
-            "constraints": {
-                "RampingLimitConstraint": true
-            },
-            "ramp_up_fraction": 0.6,
-            "ramp_down_fraction": 0.6
-        }
-    }
-}
-```
-
 ## Storage Capacity Constraint
 *Note: Enabled by default for batteries and gas storage assets*
 
-This constraint ensures that the storage level of a **storage** component of an asset never exceeds its total energy capacity.
+This constraint ensures that the **storage level** of a storage component of an asset never exceeds its total energy capacity.
 
 !!! note "Formulation"
     ```math
@@ -455,7 +330,6 @@ As mentioned above, this constraint is enabled by default for batteries and gas 
 
 1. Add the `StorageCapacityConstraint` to the list of constraints in the JSON input file of the asset and set it to `true`.
 
-**Example** (reduced input format):
 ```json
 {
     "storage_constraints": {
@@ -464,19 +338,8 @@ As mentioned above, this constraint is enabled by default for batteries and gas 
 }
 ```
 
-**Example** (full input format):
-```json
-{
-    "storage": {
-        "constraints": {
-            "StorageCapacityConstraint": true
-        }
-    }
-}
-```
-
 ## Maximum Storage Level
-The maximum storage level constraint enforces that the storage level of a **storage** component of an asset does not exceed the `capacity` times the `max_storage_level` attribute as specified in the JSON input file.
+The maximum storage level constraint enforces that the **storage level** of a storage component of an asset does not exceed the `capacity` times the `max_storage_level` attribute as specified in the JSON input file.
 
 !!! note "Formulation"
     ```math
@@ -492,7 +355,6 @@ To enable this constraint:
 1. Add the `MaxStorageLevelConstraint` to the list of constraints in the JSON input file of the asset and set it to `true`.
 2. Add a value to the `max_storage_level` attribute of the asset.
 
-**Example** (reduced input format):
 ```json
 {
     "storage_constraints": {
@@ -502,20 +364,8 @@ To enable this constraint:
 }
 ```
 
-**Example** (full input format):
-```json
-{
-    "storage": {
-        "constraints": {
-            "MaxStorageLevelConstraint": true
-        },
-        "max_storage_level": 1
-    }
-}
-```
-
 ## Minimum Storage Level
-The minimum storage level constraint enforces that the storage level of a **storage** of an asset does not exceed the `capacity` times the `min_storage_level` attribute as specified in the JSON input file.   
+The minimum storage level constraint enforces that the **storage level** of a storage component of an asset does not exceed the `capacity` times the `min_storage_level` attribute as specified in the JSON input file.   
 
 !!! note "Formulation"
     ```math
@@ -531,25 +381,12 @@ To enable this constraint:
 1. Add the `MinStorageLevelConstraint` to the list of constraints in the JSON input file of the asset and set it to `true`.
 2. Add a value to the `min_storage_level` attribute of the asset.
 
-**Example** (reduced input format):
 ```json
 {
     "storage_constraints": {
         "MinStorageLevelConstraint": true
     },
     "min_storage_level": 0.3
-}
-```
-
-**Example** (full input format):
-```json
-{
-    "storage": {
-        "constraints": {
-            "MinStorageLevelConstraint": true
-        },
-        "min_storage_level": 0.3
-    }
 }
 ```
 
@@ -564,15 +401,11 @@ The storage charge/discharge ratio constraint links the capacity of the charging
     \end{aligned}
     ```
 
-!!! warning "Constraint Application Scope"
-    This constraint is applied to the storage component of the asset, not to the individual charging and discharging edges.
-
 To enable this constraint:
 
 1. Add the `StorageChargeDischargeRatioConstraint` to the list of constraints in the JSON input file of the asset and set it to `true`.
 2. Add a value to the `charge_discharge_ratio` attribute of the asset.
 
-**Example** (reduced input format):
 ```json
 {
     "storage_constraints": {
@@ -582,17 +415,8 @@ To enable this constraint:
 }
 ```
 
-**Example** (full input format):
-```json
-{
-    "storage": {
-        "constraints": {
-            "StorageChargeDischargeRatioConstraint": true
-        },
-        "storage_charge_discharge_ratio": 0.5
-    }
-}
-```
+!!! warning "Constraint Application Scope"
+    As noted above, this constraint is applied to the storage component of the asset, not to the individual charging and discharging edges.
 
 ## Storage Discharge Limit Constraint
 *Note: Enabled by default for batteries.*
@@ -610,10 +434,6 @@ To enable this constraint:
 
 1. Add the `StorageDischargeLimitConstraint` to the list of constraints in the JSON input file of the asset and set it to `true`.
 
-!!! warning "Constraint Application Scope"
-    This constraint is applied to discharging edges only.
-
-**Example** (reduced input format):
 ```json
 {
     "discharge_constraints": {
@@ -622,18 +442,8 @@ To enable this constraint:
 }
 ```
 
-**Example** (full input format):
-```json
-{
-    "edges": {
-        "discharge_edge": { 
-            "constraints": {
-                "StorageDischargeLimitConstraint": true
-            }
-        }
-    }
-}
-```
+!!! warning "Constraint Application Scope"
+    This constraint is applied to discharging edges only.
 
 ## Storage Maximum/Minimum Duration Constraint
 This constraint limits the maximum/minimum energy capacity that can be stored relative to the discharging capacity. The limit is specified in the `max_duration`/`min_duration` attribute as a number of time steps.
@@ -653,9 +463,8 @@ This constraint limits the maximum/minimum energy capacity that can be stored re
 To enable this constraint:
 
 1. Add the `StorageMaxDurationConstraint`/`StorageMinDurationConstraint` to the list of constraints in the JSON input file of the asset and set it to `true`.
-2. Add a value to the `storage_max_duration`/`storage_min_duration` (reduced input format) or `max_duration`/`min_duration` attribute of the asset (full input format).
+2. Add a value to the `storage_max_duration`/`storage_min_duration` attribute of the asset.
 
-**Example** (reduced input format):
 ```json
 {
     "storage_constraints": {
@@ -663,19 +472,6 @@ To enable this constraint:
     },
     "storage_max_duration": 10,
     "storage_min_duration": 1
-}
-```
-
-**Example** (full input format):
-```json
-{
-    "storage": {
-        "constraints": {
-            "StorageMaximumDurationConstraint": true
-        },
-        "max_duration": 10,
-        "min_duration": 1
-    }
 }
 ```
 
@@ -689,14 +485,10 @@ This constraint ensures that for symmetric storage systems, the maximum simultan
     \end{aligned}
     ```
 
-!!! warning "Constraint Application Scope"
-    This constraint is applied to the discharging edge of the asset.
-
 To enable this constraint:
 
 1. Add the `StorageSymmetricCapacityConstraint` to the list of constraints in the JSON input file of the asset and set it to `true`.
 
-**Example** (reduced input format):
 ```json
 {
     "discharge_constraints": {
@@ -705,18 +497,8 @@ To enable this constraint:
 }
 ```
 
-**Example** (full input format):
-```json
-{
-    "edges": {
-        "discharge_edge": {
-            "constraints": {
-                "StorageSymmetricCapacityConstraint": true
-            }
-        }
-    }
-}
-```
+!!! warning "Constraint Application Scope"
+    This constraint is applied to the discharging edge of the asset.
 
 ## Minimum Storage Outflow
 
@@ -739,25 +521,12 @@ To enable this constraint:
 1. Add the `MinStorageOutflowConstraint` to the list of constraints in the JSON input file of the asset and set it to `true`.
 2. Add a value to the `min_outflow_fraction` attribute of the asset.
 
-**Example** (reduced input format):
 ```json
 {
     "storage_constraints": {
         "MinStorageOutflowConstraint": true
     },
     "min_outflow_fraction": 0.1
-}
-```
-
-**Example** (full input format):
-```json
-{
-    "storage": {
-        "constraints": {
-            "MinStorageOutflowConstraint": true
-        },
-        "min_outflow_fraction": 0.1
-    }
 }
 ```
 
@@ -769,7 +538,6 @@ This set of constraints manages storage levels for **long duration storage syste
 This constraint is enabled by default for batteries, gas storage, and hydro reservoirs when `long_duration` is set to `true` in the asset JSON input file. To enable/disable this constraint for other assets, use the following:
 1. Add the `LongDurationStorageImplicitMinMaxConstraint` to the list of constraints in the JSON input file of the asset and set it to `true`.
 
-**Example** (reduced input format):
 ```json
 {
     "storage_long_duration": true,
@@ -778,16 +546,3 @@ This constraint is enabled by default for batteries, gas storage, and hydro rese
     }
 }
 ```
-
-**Example** (full input format):
-```json
-{
-    "storage": {
-        "long_duration": true,
-        "constraints": {
-            "LongDurationStorageImplicitMinMaxConstraint": true/false
-        }
-    }
-}
-```
-
