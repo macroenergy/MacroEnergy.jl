@@ -1,3 +1,3 @@
-Type,id,elec_constraints--MaxCapacityConstraint,max_capacity,loss_fraction,existing_capacity,investment_cost,distance,line_origin,line_dest
-PowerLine,SE_to_MIDAT,true,27760,0.04914512,5552,40219,491.4512001,elec_SE,elec_MIDAT
-PowerLine,MIDAT_to_NE,true,9575,0.047366255,1915,62316,473.6625536,elec_MIDAT,elec_NE
+Type,id,transmission_constraints--MaxCapacityConstraint,max_capacity,loss_fraction,existing_capacity,investment_cost,distance,transmission_origin,transmission_dest
+TransmissionLink,SE_to_MIDAT,true,27760,0.04914512,5552,40219,491.4512001,elec_SE,elec_MIDAT
+TransmissionLink,MIDAT_to_NE,true,9575,0.047366255,1915,62316,473.6625536,elec_MIDAT,elec_NE

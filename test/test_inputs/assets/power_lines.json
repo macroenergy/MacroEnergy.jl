@@ -1,10 +1,10 @@
 {
-    "line": [
+    "link": [
         {
-            "type": "PowerLine",
+            "type": "TransmissionLink",
             "global_data": {
                 "edges": {
-                    "elec_edge": {
+                    "transmission_edge": {
                         "commodity": "Electricity",
                         "has_capacity": true,
                         "unidirectional": false,
@@ -21,7 +21,7 @@
                 {
                     "id": "MA_to_CT",
                     "edges": {
-                        "elec_edge": {
+                        "transmission_edge": {
                             "start_vertex": "elec_MA",
                             "end_vertex": "elec_CT",
                             "distance": 123.0584,
@@ -34,7 +34,7 @@
                 {
                     "id": "MA_to_ME",
                     "edges": {
-                        "elec_edge": {
+                        "transmission_edge": {
                             "start_vertex": "elec_MA",
                             "end_vertex": "elec_ME",
                             "distance": 196.5385,

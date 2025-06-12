@@ -1,7 +1,7 @@
 {
-    "line": [
+    "link": [
         {
-            "type": "PowerLine",
+            "type": "TransmissionLink",
             "global_data": {
                 "elec_constraints": {
                     "MaxCapacityConstraint": true
@@ -10,8 +10,8 @@
             "instance_data": [
                 {
                     "id": "SE_to_MIDAT",
-                    "line_origin": "elec_SE",
-                    "line_dest": "elec_MIDAT",
+                    "transmission_origin": "elec_SE",
+                    "transmission_dest": "elec_MIDAT",
                     "distance": 491.4512001,
                     "existing_capacity": 5552,
                     "max_capacity": 27760,
@@ -20,8 +20,8 @@
                 },
                 {
                     "id": "MIDAT_to_NE",
-                    "line_origin": "elec_MIDAT",
-                    "line_dest": "elec_NE",
+                    "transmission_origin": "elec_MIDAT",
+                    "transmission_dest": "elec_NE",
                     "distance": 473.6625536,
                     "existing_capacity": 1915,
                     "max_capacity": 9575,

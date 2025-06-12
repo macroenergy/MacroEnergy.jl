@@ -29242,13 +29242,13 @@
             }
         },
         {
-            "type": "PowerLine",
+            "type": "TransmissionLink",
             "instance_data": {
                 "storage": {
                 },
                 "id": "MA_to_CT",
                 "edges": {
-                    "elec_edge": {
+                    "transmission_edge": {
                         "new_capacity": 0,
                         "integer_decisions": false,
                         "can_retire": false,
@@ -29291,13 +29291,13 @@
             }
         },
         {
-            "type": "PowerLine",
+            "type": "TransmissionLink",
             "instance_data": {
                 "storage": {
                 },
                 "id": "MA_to_ME",
                 "edges": {
-                    "elec_edge": {
+                    "transmission_edge": {
                         "new_capacity": 0,
                         "integer_decisions": false,
                         "can_retire": false,

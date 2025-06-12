@@ -492,7 +492,7 @@ The `assets` folder contains all the files that define the resources and technol
 **Format**: JSON
 
 Similar to the `nodes.json` file, each asset file has the following three main parameters:
-- `type`: The type of the asset (e.g. "Battery", "FuelCell", "PowerLine", etc.).
+- `type`: The type of the asset (e.g. "Battery", "FuelCell", "TransmissionLink", etc.).
 - `global_data`: attributes that are the same for all the assets of the same type (e.g., unit commitment constraints applied to all the power plants).
 - `instance_data`: attributes that are different for each asset of the same type (e.g., investment costs, lifetime, etc.).
 

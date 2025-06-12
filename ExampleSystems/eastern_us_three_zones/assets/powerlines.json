@@ -1,10 +1,10 @@
 {
-    "line": [
+    "link": [
         {
-            "type": "PowerLine",
+            "type": "TransmissionLink",
             "global_data": {
                 "edges": {
-                    "elec_edge": {
+                    "transmission_edge": {
                         "commodity": "Electricity",
                         "has_capacity": true,
                         "unidirectional": false,
@@ -22,7 +22,7 @@
                 {
                     "id": "SE_to_MIDAT",
                     "edges": {
-                        "elec_edge": {
+                        "transmission_edge": {
                             "start_vertex": "elec_SE",
                             "end_vertex": "elec_MIDAT",
                             "distance": 491.4512001,
@@ -36,7 +36,7 @@
                 {
                     "id": "MIDAT_to_NE",
                     "edges": {
-                        "elec_edge": {
+                        "transmission_edge": {
                             "start_vertex": "elec_MIDAT",
                             "end_vertex": "elec_NE",
                             "distance": 473.6625536,
