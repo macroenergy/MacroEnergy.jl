@@ -1,0 +1,245 @@
+{
+    "BECCS_Electricity": [
+        {
+            "type": "BECCSElectricity",
+            "global_data":{
+                "transforms": {
+                    "timedata": "Biomass",
+                    "constraints": {
+                            "BalanceConstraint": true
+                    }
+                },
+                "edges":{
+                    "elec_edge":{
+                        "commodity": "Electricity",
+                        "unidirectional": true,
+                        "has_capacity": false
+                    },
+                    "biomass_edge":{
+                        "commodity": "Biomass",
+                        "unidirectional": true,
+                        "has_capacity": true,
+                        "can_expand": true,
+                        "can_retire": true,
+                        "integer_decisions": false,
+                        "constraints": {
+                            "CapacityConstraint": true,
+                            "MinFlowConstraint": true
+                        }
+                    },
+                    "co2_edge":{
+                        "commodity": "CO2",
+                        "unidirectional": true,
+                        "has_capacity": false,
+                        "start_vertex": "co2_sink"
+                    },
+                    "co2_emission_edge": {
+                        "commodity": "CO2",
+                        "unidirectional": true,
+                        "has_capacity": false,
+                        "end_vertex": "co2_sink"
+                    },
+                    "co2_captured_edge": {
+                        "commodity": "CO2Captured",
+                        "unidirectional": true,
+                        "has_capacity": false
+                    }
+                }
+            },
+            "instance_data":[
+                {
+                    "id": "SE_BECCS_Electricity_Herb",
+                    "transforms": {
+                        "electricity_production": 1.606568331,
+                        "capture_rate": 1.600244,
+                        "co2_content":1.717,
+                        "emission_rate":0.116756
+                    },
+                    "edges": {
+                        "biomass_edge": {
+                            "commodity": "Biomass_Herb",
+                            "start_vertex": "bioherb_SE",
+                            "availability": {
+                                "timeseries": {
+                                    "path": "system/availability.csv",
+                                    "header": "SE_BECCS_Electricity_Herb"
+                                    }
+                                },
+                                "investment_cost": 765260.16,
+                                "fixed_om_cost": 212409.12,
+                                "variable_om_cost": 47.2,
+                                "capacity_size": 400,
+                                "min_flow_fraction": 0.4
+                        },
+                        "elec_edge": {
+                            "end_vertex": "elec_SE"
+                        },
+                        "co2_captured_edge": {
+                            "end_vertex": "co2_captured_SE"
+                        }
+                    }
+                },
+                {
+                    "id": "MIDAT_BECCS_Electricity_Herb",
+                    "transforms": {
+                        "electricity_production": 1.606568331,
+                        "capture_rate": 1.600244,
+                        "co2_content":1.717,
+                        "emission_rate":0.116756
+                    },
+                    "edges": {
+                        "biomass_edge": {
+                            "commodity": "Biomass_Herb",
+                            "start_vertex": "bioherb_MIDAT",
+                            "availability": {
+                                "timeseries": {
+                                    "path": "system/availability.csv",
+                                    "header": "MIDAT_BECCS_Electricity_Herb"
+                                    }
+                                },
+                                "investment_cost": 765260.16,
+                                "fixed_om_cost": 212409.12,
+                                "variable_om_cost": 47.2,
+                                "capacity_size": 400,
+                                "min_flow_fraction": 0.4
+                        },
+                        "elec_edge": {
+                            "end_vertex": "elec_MIDAT"
+                        },
+                        "co2_captured_edge": {
+                            "end_vertex": "co2_captured_MIDAT"
+                        }
+                    }
+                },
+                {
+                    "id": "NE_BECCS_Electricity_Herb",
+                    "transforms": {
+                        "electricity_production": 1.606568331,
+                        "capture_rate": 1.600244,
+                        "co2_content":1.717,
+                        "emission_rate":0.116756
+                    },
+                    "edges": {
+                        "biomass_edge": {
+                            "commodity": "Biomass_Herb",
+                            "start_vertex": "bioherb_NE",
+                            "availability": {
+                                "timeseries": {
+                                    "path": "system/availability.csv",
+                                    "header": "NE_BECCS_Electricity_Herb"
+                                    }
+                                },
+                                "investment_cost": 765260.16,
+                                "fixed_om_cost": 212409.12,
+                                "variable_om_cost": 47.2,
+                                "capacity_size": 400,
+                                "min_flow_fraction": 0.4
+                        },
+                        "elec_edge": {
+                            "end_vertex": "elec_NE"
+                        },
+                        "co2_captured_edge": {
+                            "end_vertex": "co2_captured_NE"
+                        }
+                    }
+                },
+                {
+                    "id": "SE_BECCS_Electricity_Wood",
+                    "transforms": {
+                        "electricity_production": 1.606568331,
+                        "capture_rate": 1.600244,
+                        "co2_content":1.717,
+                        "emission_rate":0.116756
+                    },
+                    "edges": {
+                        "biomass_edge": {
+                            "commodity": "Biomass_Wood",
+                            "start_vertex": "biowood_SE",
+                            "availability": {
+                                "timeseries": {
+                                    "path": "system/availability.csv",
+                                    "header": "SE_BECCS_Electricity_Wood"
+                                    }
+                                },
+                                "investment_cost": 765260.16,
+                                "fixed_om_cost": 212409.12,
+                                "variable_om_cost": 47.2,
+                                "capacity_size": 400,
+                                "min_flow_fraction": 0.4
+                        },
+                        "elec_edge": {
+                            "end_vertex": "elec_SE"
+                        },
+                        "co2_captured_edge": {
+                            "end_vertex": "co2_captured_SE"
+                        }
+                    }
+                },
+                {
+                    "id": "MIDAT_BECCS_Electricity_Wood",
+                    "transforms": {
+                        "electricity_production": 1.606568331,
+                        "capture_rate": 1.600244,
+                        "co2_content":1.717,
+                        "emission_rate":0.116756
+                    },
+                    "edges": {
+                        "biomass_edge": {
+                            "commodity": "Biomass_Wood",
+                            "start_vertex": "biowood_MIDAT",
+                            "availability": {
+                                "timeseries": {
+                                    "path": "system/availability.csv",
+                                    "header": "MIDAT_BECCS_Electricity_Wood"
+                                    }
+                                },
+                                "investment_cost": 765260.16,
+                                "fixed_om_cost": 212409.12,
+                                "variable_om_cost": 47.2,
+                                "capacity_size": 400,
+                                "min_flow_fraction": 0.4
+                        },
+                        "elec_edge": {
+                            "end_vertex": "elec_MIDAT"
+                        },
+                        "co2_captured_edge": {
+                            "end_vertex": "co2_captured_MIDAT"
+                        }
+                    }
+                },
+                {
+                    "id": "NE_BECCS_Electricity_Wood",
+                    "transforms": {
+                        "electricity_production": 1.606568331,
+                        "capture_rate": 1.600244,
+                        "co2_content":1.717,
+                        "emission_rate":0.116756
+                    },
+                    "edges": {
+                        "biomass_edge": {
+                            "commodity": "Biomass_Wood",
+                            "start_vertex": "biowood_NE",
+                            "availability": {
+                                "timeseries": {
+                                    "path": "system/availability.csv",
+                                    "header": "NE_BECCS_Electricity_Wood"
+                                    }
+                                },
+                                "investment_cost": 765260.16,
+                                "fixed_om_cost": 212409.12,
+                                "variable_om_cost": 47.2,
+                                "capacity_size": 400,
+                                "min_flow_fraction": 0.4
+                        },
+                        "elec_edge": {
+                            "end_vertex": "elec_NE"
+                        },
+                        "co2_captured_edge": {
+                            "end_vertex": "co2_captured_NE"
+                        }
+                    }
+                }
+            ]
+        }
+    ]
+}

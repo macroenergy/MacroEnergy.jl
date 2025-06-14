@@ -92,9 +92,12 @@ get_optimal_retired_capacity(system)
 """
 get_optimal_retired_capacity(system::System; scaling::Float64=1.0) = get_optimal_capacity_by_field(system, retired_capacity, scaling)
 
+get_optimal_retrofitted_capacity(system::System; scaling::Float64=1.0) = get_optimal_capacity_by_field(system, retrofitted_capacity, scaling)
+
 get_optimal_capacity(asset::AbstractAsset; scaling::Float64=1.0) = get_optimal_capacity_by_field(asset, capacity, scaling)
 get_optimal_new_capacity(asset::AbstractAsset; scaling::Float64=1.0) = get_optimal_capacity_by_field(asset, new_capacity, scaling)
 get_optimal_retired_capacity(asset::AbstractAsset; scaling::Float64=1.0) = get_optimal_capacity_by_field(asset, retired_capacity, scaling)
+get_optimal_retrofitted_capacity(asset::AbstractAsset; scaling::Float64=1.0) = get_optimal_capacity_by_field(asset, retrofitted_capacity, scaling)
 
 """
     write_capacity(
@@ -161,12 +164,13 @@ function write_capacity(
     capacity_results = get_optimal_capacity(system; scaling)
     new_capacity_results = get_optimal_new_capacity(system; scaling)
     retired_capacity_results = get_optimal_retired_capacity(system; scaling)
-    all_capacity_results = vcat(capacity_results, new_capacity_results, retired_capacity_results)
+    retrofitted_capacity_results = get_optimal_retrofitted_capacity(system; scaling)
+    all_capacity_results = vcat(capacity_results, new_capacity_results, retired_capacity_results, retrofitted_capacity_results)
     
     # Reshape the dataframe based on the requested format
     layout = get_output_layout(system, :Capacity)
     all_capacity_results = layout == "wide" ? reshape_wide(all_capacity_results) : all_capacity_results
-    
+
     commodities_in_df = string.(collect(Set(all_capacity_results.commodity)))
     asset_types_in_df = string.(collect(Set(all_capacity_results.type)))
     ## filter the dataframe based on the requested commodity and asset type

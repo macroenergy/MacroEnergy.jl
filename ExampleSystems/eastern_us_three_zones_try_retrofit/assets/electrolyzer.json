@@ -1,0 +1,104 @@
+{
+   "electrolyzer": [
+        {   
+            "type": "Electrolyzer",
+            "global_data":{
+                "nodes": {},
+                "transforms": {
+                    "timedata": "Electricity",
+                    "constraints": {
+                            "BalanceConstraint": true
+                    }
+                },
+                "edges": {
+                    "h2_edge": {
+                        "commodity": "Hydrogen",
+                        "unidirectional": true,
+                        "has_capacity": true,
+                        "can_retire": true,
+                        "can_expand": true,
+                        "constraints": {
+                                "CapacityConstraint": true,
+                                "RampingLimitConstraint": true,
+                                "MinFlowConstraint": true
+                            }
+                    },
+                    "elec_edge": {
+                        "commodity": "Electricity",
+                        "unidirectional": true,
+                        "has_capacity": false
+                    }
+                }
+            },
+            "instance_data":[
+                {
+                    "id": "SE_Electrolyzer",
+                    "transforms":{
+                        "efficiency_rate": 0.87455595
+                    },
+                    "edges":{
+                            "elec_edge": {
+                                "start_vertex": "elec_SE"
+                            },
+                            "h2_edge": {
+                                "end_vertex": "h2_SE",
+                                "existing_capacity": 0,
+                                "investment_cost": 41139.12592,
+                                "fixed_om_cost": 1174.680271,
+                                "variable_om_cost": 0.0,
+                                "capacity_size": 1.5756,
+                                "ramp_up_fraction": 1,
+                                "ramp_down_fraction": 1,
+                                "min_flow_fraction":0.1
+                        }
+                        }
+                },
+                {
+                    "id": "MIDAT_Electrolyzer",
+                    "transforms":{
+                        "efficiency_rate": 0.87455595
+                    },
+                    "edges":{
+                            "elec_edge": {
+                                "start_vertex": "elec_MIDAT"
+                            },
+                            "h2_edge": {
+                                "end_vertex": "h2_MIDAT",
+                                "existing_capacity": 0,
+                                "investment_cost": 41139.12592,
+                                "fixed_om_cost": 1174.680271,
+                                "variable_om_cost": 0.0,
+                                "capacity_size": 1.5756,
+                                "ramp_up_fraction": 1,
+                                "ramp_down_fraction": 1,
+                                "min_flow_fraction":0.1
+                            }
+                        }
+                },
+                {
+                    "id": "NE_Electrolyzer",
+                    "transforms":{
+                        "efficiency_rate": 0.87455595
+                    },
+                    "edges":{
+                            "elec_edge": {
+                                "start_vertex": "elec_NE"
+                            },
+                            "h2_edge": {
+                                "end_vertex": "h2_NE",
+                                "existing_capacity": 0,
+                                "investment_cost": 41139.12592,
+                                "fixed_om_cost": 1174.680271,
+                                "variable_om_cost": 0.0,
+                                "capacity_size": 1.5756,
+                                "ramp_up_fraction": 1,
+                                "ramp_down_fraction": 1,
+                                "min_flow_fraction":0.1
+                            }
+                        }
+                }
+            ]
+
+        }
+    ]
+}

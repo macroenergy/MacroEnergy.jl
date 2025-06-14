@@ -1,0 +1,71 @@
+{
+    "CementPlant": [
+        {
+            "type": "CementPlant",
+            "global_data": {
+                "fuel_commodity": "NaturalGas",
+                "nodes": {},
+                "transforms": {
+                    "id": "traditional_cement",
+                    "timedata": "Cement",
+                    "fuel_cement_rate": 0.9156,
+                    "elec_cement_rate": 0.128,
+                    "emission_rate": 0.77,
+                    "constraints": {
+                        "BalanceConstraint": true
+                    }
+                },
+                "edges":{
+                    "elec_edge":{
+                        "type": "Electricity",
+                        "unidirectional": true,
+                        "has_capacity": false
+                    },
+                    "cement_edge":{
+                        "type": "Cement",
+                        "unidirectional": true,
+                        "has_capacity": true,
+                        "can_retire": true,
+                        "can_expand": true,
+                        "capacity_size": 114.15,
+                        "investment_cost": 20279.68,
+                        "fixed_om_cost": 20.3775,
+                        "variable_om_cost": 0,
+                        "can_retrofit": true,
+                        "retrofit_id": 1,
+                        "end_vertex": "cement_produced"
+                    },
+                    "fuel_edge": {
+                        "type": "NaturalGas",
+                        "unidirectional": true,
+                        "has_capacity": false,
+                        "start_vertex": "ng_source"
+                    },
+                    "co2_edge": {
+                        "type": "CO2",
+                        "unidirectional": true,
+                        "has_capacity": false,
+                        "end_vertex": "cement_co2_sink"
+                    }
+                }
+            },
+            "instance_data": [
+                {
+                    "id": "cement_MA",
+                    "location": "MA",
+                    "existing_capacity": 100
+                },
+                {
+                    "id": "cement_CT",
+                    "location": "CT",
+                    "existing_capacity": 100
+                },
+                {
+                    "id": "cement_ME",
+                    "location": "ME",
+                    "existing_capacity": 100
+                }
+            ]
+        }
+    ]
+}

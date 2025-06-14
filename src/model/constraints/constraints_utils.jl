@@ -14,6 +14,10 @@ function add_constraints_by_type!(system::System, model::Model, constraint_type:
         end
     end
 
+    if constraint_type == PlanningConstraint
+        add_retrofit_constraints!(system, model)
+    end
+
 end
 
 function add_constraints_by_type!(

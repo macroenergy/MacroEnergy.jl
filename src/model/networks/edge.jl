@@ -8,6 +8,7 @@ macro AbstractEdgeBaseAttributes()
         availability::Vector{Float64} = Float64[]
         can_expand::Bool = $edge_defaults[:can_expand]
         can_retire::Bool = $edge_defaults[:can_retire]
+        can_retrofit::Bool = $edge_defaults[:can_retrofit]
         capacity::AffExpr = AffExpr(0.0)
         capacity_size::Float64 = $edge_defaults[:capacity_size]
         constraints::Vector{AbstractTypeConstraint} = Vector{AbstractTypeConstraint}()
@@ -18,7 +19,9 @@ macro AbstractEdgeBaseAttributes()
         has_capacity::Bool = $edge_defaults[:has_capacity]
         integer_decisions::Bool = $edge_defaults[:integer_decisions]
         investment_cost::Float64 = $edge_defaults[:investment_cost]
-        loss_fraction::Vector{Float64} = $edge_defaults[:loss_fraction]
+        is_retrofit::Bool = $edge_defaults[:is_retrofit]
+        location::Union{Missing, String} = $edge_defaults[:location]
+        loss_fraction::Float64 = $edge_defaults[:loss_fraction]
         max_capacity::Float64 = $edge_defaults[:max_capacity]
         min_capacity::Float64 = $edge_defaults[:min_capacity]
         min_flow_fraction::Float64 = $edge_defaults[:min_flow_fraction]
@@ -28,6 +31,10 @@ macro AbstractEdgeBaseAttributes()
         ramp_up_fraction::Float64 = $edge_defaults[:ramp_up_fraction]
         retired_capacity::AffExpr = AffExpr(0.0)
         retired_units::Union{JuMPVariable,Float64} = 0.0
+        retrofit_efficiency::Union{Missing,Float64} = $edge_defaults[:retrofit_efficiency]
+        retrofit_id::Union{Missing,Symbol} = $edge_defaults[:retrofit_id]
+        retrofitted_capacity::AffExpr = AffExpr(0.0)
+        retrofitted_units::Union{JuMPVariable,Float64} = 0.0
         unidirectional::Bool = $edge_defaults[:unidirectional]
         variable_om_cost::Float64 = $edge_defaults[:variable_om_cost]
         min_down_time::Int64 = $edge_defaults[:min_down_time]
@@ -113,6 +120,11 @@ function make_edge(
     filtered_data = Dict{Symbol, Any}(
         k => v for (k,v) in data if k in edge_kwargs
     )
+    
+    if !ismissing(get(filtered_data, :retrofit_id, missing))
+        filtered_data[:retrofit_id] = Symbol(filtered_data[:retrofit_id])
+    end
+
     remove_keys = [:id, :start_vertex, :end_vertex, :timedata]
     for key in remove_keys
         if haskey(filtered_data, key)
@@ -166,6 +178,7 @@ function availability(e::AbstractEdge, t::Int64)
 end
 can_expand(e::AbstractEdge) = e.can_expand;
 can_retire(e::AbstractEdge) = e.can_retire;
+can_retrofit(e::AbstractEdge) = e.can_retrofit;
 capacity(e::AbstractEdge) = e.capacity;
 capacity_size(e::AbstractEdge) = e.capacity_size;
 commodity_type(e::AbstractEdge{T}) where {T} = T;
@@ -178,6 +191,7 @@ has_capacity(e::AbstractEdge) = e.has_capacity;
 id(e::AbstractEdge) = e.id;
 integer_decisions(e::AbstractEdge) = e.integer_decisions;
 investment_cost(e::AbstractEdge) = e.investment_cost;
+is_retrofit(e::AbstractEdge) = e.is_retrofit;
 loss_fraction(e::AbstractEdge) = e.loss_fraction;
 function loss_fraction(e::AbstractEdge, t::Int64)
     a = loss_fraction(e)
@@ -198,6 +212,10 @@ ramp_down_fraction(e::AbstractEdge) = e.ramp_down_fraction;
 ramp_up_fraction(e::AbstractEdge) = e.ramp_up_fraction;
 retired_capacity(e::AbstractEdge) = e.retired_capacity;
 retired_units(e::AbstractEdge) = e.retired_units;
+retrofit_efficiency(e::AbstractEdge) = e.retrofit_efficiency;
+retrofit_id(e::AbstractEdge) = e.retrofit_id;
+retrofitted_capacity(e::AbstractEdge) = e.retrofitted_capacity;
+retrofitted_units(e::AbstractEdge) = e.retrofitted_units;
 start_vertex(e::AbstractEdge)::AbstractVertex = e.start_vertex;
 variable_om_cost(e::AbstractEdge) = e.variable_om_cost;
 ##### End of Edge interface #####
@@ -215,6 +233,11 @@ function add_linking_variables!(e::AbstractEdge, model::Model)
         e.retired_capacity = @expression(model, capacity_size(e) * retired_units(e))
     end
 
+    if can_retrofit(e)
+        e.retrofitted_units = @variable(model, lower_bound = 0.0, base_name = "vRETROFITUNIT_$(id(e))")
+        e.retrofitted_capacity = @expression(model, capacity_size(e) * retrofitted_units(e))
+    end   
+
     return nothing
 
 end
@@ -226,6 +249,10 @@ function define_available_capacity!(e::AbstractEdge, model::Model)
             model,
             new_capacity(e) - retired_capacity(e) + existing_capacity(e)
         )
+    end
+
+    if can_retrofit(e)
+        add_to_expression!(capacity(e), -1, retrofitted_capacity(e))
     end
 
     return nothing
@@ -261,7 +288,14 @@ function planning_model!(e::AbstractEdge, model::Model)
             add_to_expression!(model[:eFixedCost], fixed_om_cost(e), capacity(e))
         end
 
-        @constraint(model, retired_capacity(e) <= existing_capacity(e))
+        if can_retrofit(e)
+            @constraint(model, retrofitted_capacity(e) + retired_capacity(e) <= existing_capacity(e))
+            if integer_decisions(e)
+                set_integer(retrofitted_units(e))
+            end
+        else
+            @constraint(model, retired_capacity(e) <= existing_capacity(e))
+        end
 
     end
 
@@ -382,6 +416,9 @@ function make_edge_UC(
     filtered_data = Dict{Symbol,Any}(
         k => v for (k, v) in data if k in edge_kwargs
     )
+    if !ismissing(get(filtered_data, :retrofit_id, missing))
+        filtered_data[:retrofit_id] = Symbol(filtered_data[:retrofit_id])
+    end
     remove_keys = [:id, :start_vertex, :end_vertex, :timedata]
     for key in remove_keys
         if haskey(filtered_data, key)

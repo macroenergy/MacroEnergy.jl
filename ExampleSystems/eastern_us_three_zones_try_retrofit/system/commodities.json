@@ -1,0 +1,21 @@
+{
+    "commodities": [
+        "Electricity",
+        "NaturalGas",
+        {"name": "Fossil_NaturalGas", "acts_like": "NaturalGas"},
+        "CO2",
+        "Hydrogen",
+        "CO2Captured",
+        "Biomass",
+        {"name": "Biomass_Wood", "acts_like": "Biomass"},
+        {"name": "Biomass_Herb", "acts_like": "Biomass"},
+        "Uranium",
+        "LiquidFuels",
+        {"name": "Gasoline", "acts_like": "LiquidFuels"},
+        {"name": "JetFuel", "acts_like": "LiquidFuels"},
+        {"name": "Diesel", "acts_like": "LiquidFuels"},
+        {"name": "Fossil_Gasoline", "acts_like": "LiquidFuels"},
+        {"name": "Fossil_JetFuel", "acts_like": "LiquidFuels"},
+        {"name": "Fossil_Diesel", "acts_like": "LiquidFuels"}
+    ]
+}

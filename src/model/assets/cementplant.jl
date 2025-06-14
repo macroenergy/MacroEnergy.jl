@@ -145,6 +145,7 @@ function make(asset_type::Type{CementPlant}, data::AbstractDict{Symbol,Any}, sys
             (data[:edges][fuel_edge_key], key),
             (data[:edges][fuel_edge_key], Symbol("fuel_", key)),
             (data, Symbol("fuel_", key)),
+            (data, key),
         ]
     )
 
@@ -203,6 +204,7 @@ function make(asset_type::Type{CementPlant}, data::AbstractDict{Symbol,Any}, sys
             (data[:edges][co2_emissions_edge_key], key),
             (data[:edges][co2_emissions_edge_key], Symbol("co2_", key)),
             (data, Symbol("co2_", key)),
+            (data, key),
         ]
     )
     co2_emissions_start_node = cement_transform
