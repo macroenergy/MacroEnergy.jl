@@ -4,7 +4,7 @@
             "transforms": {
             },
             "edges": {
-                "elec_edge": {
+                "transmission_edge": {
                     "unidirectional": false,
                     "has_capacity": true,
                     "commodity": "Electricity",
@@ -18,7 +18,7 @@
             {
                 "id": "MA_to_CT",
                 "edges": {
-                    "elec_edge": {
+                    "transmission_edge": {
                         "can_retire": false,
                         "constraints": {
                             "CapacityConstraint": true,
@@ -39,7 +39,7 @@
             {
                 "id": "MA_to_ME",
                 "edges": {
-                    "elec_edge": {
+                    "transmission_edge": {
                         "can_retire": false,
                         "constraints": {
                             "CapacityConstraint": true,
@@ -58,6 +58,6 @@
                 }
             }
         ],
-        "type": "PowerLine"
+        "type": "TransmissionLink"
     }
 }
