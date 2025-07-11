@@ -2,7 +2,7 @@
 
 ## Contents
 
-[Overview](@ref battery_overview) | [Asset Structure](@ref battery_asset_structure) | [Symmetric and Asymmetric Battery](@ref battery_symmetric_and_asymmetric) | [Input File (Standard Format)](@ref battery_input_file) | [Types - Asset Structure](@ref battery_types) | [Constructors](@ref battery_constructors) | [Examples](@ref battery_examples) | [Best Practices](@ref battery_best_practices) | [Advanced JSON/CSV Input Format](@ref battery_advanced_json_csv_input_format)
+[Overview](@ref battery_overview) | [Asset Structure](@ref battery_asset_structure) | [Symmetric and Asymmetric Battery](@ref battery_symmetric_and_asymmetric) | [Input File (Standard Format)](@ref battery_input_file) | [Types - Asset Structure](@ref battery_type_definition) | [Constructors](@ref battery_constructors) | [Examples](@ref battery_examples) | [Best Practices](@ref battery_best_practices) | [Input File (Advanced Format)](@ref battery_advanced_json_csv_input_format)
 
 ## [Overview](@id battery_overview)
 
@@ -39,7 +39,7 @@ The user can configure the battery asset to be symmetric or asymmetric simply by
 
 ## [Input File (Standard Format)](@id battery_input_file)
 
-The easiest way to include a battery asset in a model is to create a new file (either JSON or CSV) and place it in the `assets` directory together with the other assets. This file can either be created manually, or using the `template_asset` function, as shown in the [Adding an Asset to a System](@ref) section of the User Guide. The file will be automatically loaded when you run your Macro model. 
+The easiest way to include a battery asset in a model is to create a new file (either JSON or CSV) and place it in the `assets` directory together with the other assets. 
 
 ```
 your_case/
@@ -52,10 +52,45 @@ your_case/
 └── ...
 ```
 
+This file can either be created manually, or using the `template_asset` function, as shown in the [Adding an Asset to a System](@ref) section of the User Guide. The file will be automatically loaded when you run your Macro model. 
+
+The following is an example of a battery asset input file:
+```json
+{
+    "elec_stor": [
+        {
+            "type": "Battery",
+            "global_data": {
+                "storage_constraints": {
+                    "StorageMinDurationConstraint": true,
+                    "StorageMaxDurationConstraint": true,
+                }
+            },
+            "instance_data": [
+                {
+                    "id": "battery_1_SE",
+                    "location": "SE",
+                    "storage_investment_cost": 10000,
+                    "storage_fixed_om_cost": 500,
+                    "storage_max_duration": 10,
+                    "storage_min_duration": 1,
+                    "discharge_investment_cost": 20000,
+                    "discharge_fixed_om_cost": 1000,
+                    "discharge_variable_om_cost": 1,
+                    "charge_variable_om_cost": 1,
+                    "discharge_efficiency": 0.95,
+                    "charge_efficiency": 0.95
+                }
+            ]
+        }
+    ]
+}
+```
+
 !!! tip "Global Data vs Instance Data"
     When working with JSON input files, the `global_data` field can be used to group data that is common to all instances of the same asset type. This is useful for setting constraints that are common to all instances of the same asset type and avoid repeating the same data for each instance. See the [Examples](@ref "battery_examples") section below for an example.
 
-The following table summarizes the attributes that can be set for a battery asset.
+The following tables outlines the attributes that can be set for a battery asset.
 
 ### Essential Attributes
 | Field | Type | Description |
@@ -112,7 +147,7 @@ Users can refer to the [Adding Asset Constraints to a System](@ref) section of t
 | `discharge_existing_capacity` | Float64 | Initial installed discharge capacity | MWh/hr | 0.0 |
 | `discharge_capacity_size` | Float64 | Unit size for capacity decisions | - | 1.0 |
 
-#### Asymmetric battery
+##### Asymmetric battery
 If the battery is asymmetric, the following investment parameters are also used:
 
 | Field | Type | Description | Units | Default |
@@ -123,7 +158,10 @@ If the battery is asymmetric, the following investment parameters are also used:
 | `charge_existing_capacity` | Float64 | Initial installed charge capacity | MWh/hr | 0.0 |
 | `charge_capacity_size` | Float64 | Unit size for capacity decisions | - | 1.0 |
 
-#### Additional capacity constraints
+#### Additional Investment Parameters
+
+**Maximum and minimum capacity constraints**
+
 If [`MaxCapacityConstraint`](@ref max_capacity_constraint_ref) or [`MinCapacityConstraint`](@ref min_capacity_constraint_ref) are added to the constraints dictionary for any of the three components, the following parameters are used by Macro:
 
 | Field | Type | Description | Units | Default |
@@ -157,7 +195,7 @@ If [`MaxCapacityConstraint`](@ref max_capacity_constraint_ref) or [`MinCapacityC
 | `charge_variable_om_cost` | Float64 | Variable O&M costs of the charge edge | \$/MWh | 0.0 |
 
 
-#### Asymmetric battery
+##### Asymmetric battery
 If the battery is asymmetric, the following economic parameters are also used:
 
 | Field | Type | Description | Units | Default |
@@ -227,7 +265,7 @@ If [`RampingLimitConstraint`](@ref ramping_limits_constraint_ref) is added to th
 | `charge_ramp_up_fraction` | Float64 | Maximum increase in charge between timesteps | fraction | 1.0 |
 | `charge_ramp_down_fraction` | Float64 | Maximum decrease in charge between timesteps | fraction | 1.0 |
 
-## [Types - Asset Structure](@id battery_types)
+## [Types - Asset Structure](@id battery_type_definition)
 
 The `Battery` asset is defined as follows:
 
@@ -262,7 +300,7 @@ make(asset_type::Type{Battery}, data::AbstractDict{Symbol,Any}, system::System)
 ## [Examples](@id battery_examples)
 This section contains examples of how to use the battery asset in a Macro model.
 
-### Two batteries in the same zone (SE)
+### Two batteries in the same zone "SE"
 
 **JSON Format:**
 
@@ -318,8 +356,8 @@ Note that the `global_data` field is used to set the fields and constraints that
 
 | Type | id | location | storage\_constraints--StorageMinDurationConstraint | storage\_constraints--StorageMaxDurationConstraint | storage\_investment\_cost | storage\_fixed\_om\_cost | storage\_max\_duration | storage\_min\_duration | discharge\_investment\_cost | discharge\_fixed\_om\_cost | discharge\_variable\_om\_cost | charge\_variable\_om\_cost | discharge\_efficiency | charge\_efficiency |
 |------|----|----------|--------------------------------------------------|--------------------------------------------------|------------------------|---------------------|---------------------|---------------------|---------------------------|------------------------|---------------------------|------------------------|---------------------|-------------------|
-| Battery | battery_1_SE | SE | true | true | 10000 | 500 | 10 | 1 | 20000 | 1000 | 1 | 1 | 0.95 | 0.95 |
-| Battery | battery_2_SE | SE | true | true | 15000 | 800 | 4 | 1 | 25000 | 1200 | 1.2 | 1.2 | 0.92 | 0.92 |
+| Battery | battery\_1\_SE | SE | true | true | 10000 | 500 | 10 | 1 | 20000 | 1000 | 1 | 1 | 0.95 | 0.95 |
+| Battery | battery\_2\_SE | SE | true | true | 15000 | 800 | 4 | 1 | 25000 | 1200 | 1.2 | 1.2 | 0.92 | 0.92 |
 
 ### Pumped Hydro Storage
 This example shows a pumped hydro storage asset with a fixed discharge and storage capacity (capacity cannot be expanded or retired).
@@ -360,22 +398,25 @@ This example shows a pumped hydro storage asset with a fixed discharge and stora
 
 | Type | id | location | discharge\_can\_expand | discharge\_can\_retire | storage\_can\_expand | storage\_can\_retire | discharge\_constraints--MinFlowConstraint | discharge\_capacity\_size | discharge\_existing\_capacity | discharge\_fixed\_om\_cost | discharge\_min\_flow\_fraction | discharge\_efficiency | charge\_efficiency |
 |------|----|----------|---------------------|---------------------|-------------------|-------------------|------------------------------------------|------------------------|------------------------------|------------------------|------------------------------|---------------------|-------------------|
-| Battery | pumpedhydro_SE | SE | false | false | false | false | true | 200 | 5000 | 40000 | 0.5 | 0.87 | 0.87 |
+| Battery | pumpedhydro\_SE | SE | false | false | false | false | true | 200 | 5000 | 40000 | 0.5 | 0.87 | 0.87 |
 
 ## [Best Practices](@id battery_best_practices)
 
-1. **Use meaningful IDs**: Choose descriptive identifiers that indicate location and technology type
-2. **Use global data for common constraints**: Use the `global_data` field to set the fields and constraints that are common to all instances of the same asset type.
-3. **Set realistic efficiencies**: Make sure the efficiencies are realistic for the technology being modeled
+1. **Use global data for common constraints**: Use the `global_data` field to set the fields and constraints that are common to all instances of the same asset type.
+2. **Set realistic efficiencies**: Make sure the efficiencies are realistic for the technology being modeled
+3. **Use meaningful IDs**: Choose descriptive identifiers that indicate location and technology type
 4. **Consider duration constraints**: Set appropriate min/max duration based on technology
 5. **Use constraints selectively**: Only enable constraints that are necessary for your modeling needs
 6. **Validate costs**: Ensure investment and O&M costs are in appropriate units and time periods
 7. **Test configurations**: Start with simple configurations and gradually add complexity
 
-## TO BE UPDATED
-## [Advanced JSON/CSV Input Format](@id battery_advanced_json_csv_input_format)
+## [Input File (Advanced Format)](@id battery_advanced_json_csv_input_format)
 
-As for all the other assets, the structure of the input file for a battery asset follows the graph representation. Each `global_data` and `instance_data` will look like this:
+Macro provides an advanced format for defining battery assets, offering users and modelers detailed control over asset specifications. This format builds upon the standard format and is ideal for those who need more comprehensive customization.
+
+To understand the advanced format, consider the [graph representation](@ref battery_asset_structure) and the [type definition](@ref battery_type_definition) of a battery asset. The input file mirrors this hierarchical structure.
+
+A battery asset in Macro is composed of a storage component, represented by a `Storage` object, and two edges (charge and discharge), each represented by an `Edge` object. The input file for a battery asset is therefore organized as follows:
 
 ```json
 {
@@ -392,79 +433,9 @@ As for all the other assets, the structure of the input file for a battery asset
     }
 }
 ```
-where the possible attributes that the user can set are reported in the following tables. 
+Each top-level key (e.g., "storage" or "edges") denotes a component type. The second-level keys either specify the attributes of the component (when there is a single instance) or identify the instances of the component (e.g., "discharge_edge" or "charge_edge") when there are multiple instances. For multiple instances, a third-level key details the attributes for each instance.
 
-### Storage component
-The definition of the `Storage` object can be found here [MacroEnergy.Storage](@ref).
-
-| **Attribute** | **Type** | **Values** | **Default** | **Description** |
-|:--------------| :------: |:------: | :------: |:-------|
-| **commodity** | `String` | `Electricity` | Required | Commodity being stored. |
-| **constraints** | `Dict{String,Bool}` | Any Macro constraint type for storage | `BalanceConstraint`, `StorageCapacityConstraint`, `StorageSymmetricCapacityConstraint` | List of constraints applied to the storage. E.g. `{"BalanceConstraint": true}`. |
-| **can_expand** | `Bool` | `Bool` | `false` | Whether the storage is eligible for capacity expansion. |
-| **can\_retire** | `Bool` | `Bool` | `false` | Whether the storage is eligible for capacity retirement. |
-| **charge\_discharge\_ratio** | `Float64` | `Float64` | `1.0` | Ratio between charging and discharging rates. |
-| **existing\_capacity** | `Float64` | `Float64` | `0.0` | Initial installed storage capacity (MWh). |
-| **fixed\_om\_cost** | `Float64` | `Float64` | `0.0` | Fixed operations and maintenance cost (USD/MWh-year). |
-| **investment\_cost** | `Float64` | `Float64` | `0.0` | Annualized investment cost of the energy capacity for a storage technology (USD/MWh-year). |
-| **long\_duration** | `Bool` | `Bool` | `false` | Whether the storage is a long-duration storage. (**Note**: if `true`, the model will add the long-duration storage constraints to the storage). |
-| **loss\_fraction** | `Float64` | Number $\in$ [0,1] | `0.0` | Fraction of stored commodity lost per timestep. |
-| **max\_capacity** | `Float64` | `Float64` | `Inf` | Maximum allowed storage capacity (MWh). |
-| **max\_duration** | `Float64` | `Float64` | `0.0` | Maximum ratio of installed energy to discharged capacity that can be installed (hours).|
-| **max\_storage\_level** | `Float64` | `Float64` | `1.0` | Maximum storage level as a fraction of capacity. |
-| **min\_capacity** | `Float64` | `Float64` | `0.0` | Minimum allowed storage capacity (MWh). |
-| **min\_duration** | `Float64` | `Float64` | `0.0` | Minimum ratio of installed energy to discharged capacity that can be installed (hours).|
-| **min\_outflow\_fraction** | `Float64` | `Float64` | `0.0` | Minimum outflow as a fraction of capacity. |
-| **min\_storage\_level** | `Float64` | `Float64` | `0.0` | Minimum storage level as a fraction of capacity. |
-
-!!! tip "Default constraints"
-    As noted in the above table, the **default constraints** for the storage component of the battery are the following:
-
-    - [Balance constraint](@ref balance_constraint_ref)
-    - [Storage capacity constraint](@ref storage_capacity_constraint_ref)
-    - [Storage symmetric capacity constraint](@ref storage_symmetric_capacity_constraint_ref)
-
-
-    If the storage is a long-duration storage, the following additional constraints are applied:
-    - [Long-duration storage constraints](@ref long_duration_storage_constraints_ref)
-
-### Charge and discharge edges
-Both the charge and discharge edges are represented by the same set of attributes. The definition of the `Edge` object can be found here [MacroEnergy.Edge](@ref).
-
-| **Attribute** | **Type** | **Values** | **Default** | **Description** |
-|:--------------| :------: |:------: | :------: |:-------|
-| **type** | `String` | `Electricity` | Required | Commodity of the edge. E.g. "Electricity". |
-| **start_vertex** | `String` | Any electricity node id present in the system | Required | ID of the starting vertex of the edge. The node must be present in the `nodes.json` file. E.g. "elec\_node\_1". |
-| **end_vertex** | `String` | Any electricity node id present in the system | Required | ID of the ending vertex of the edge. The node must be present in the `nodes.json` file. E.g. "elec\_node\_2". |
-| **constraints** | `Dict{String,Bool}` | Any Macro constraint type for Edges | Empty for charge edge, check box below for discharge edge | List of constraints applied to the edge. E.g. `{"CapacityConstraint": true}`. |
-| **can_expand** | `Bool` | `Bool` | `false` | Whether the edge is eligible for capacity expansion. |
-| **can_retire** | `Bool` | `Bool` | `false` | Whether the edge is eligible for capacity retirement. |
-| **efficiency** | `Float64` | Number $\in$ [0,1] | `1.0` | Efficiency of the charging/discharging process. |
-| **existing_capacity** | `Float64` | `Float64` | `0.0` | Existing capacity of the edge in MW. |
-| **fixed\_om\_cost** | `Float64` | `Float64` | `0.0` | Fixed operations and maintenance cost (USD/MW-year). |
-| **has\_capacity** | `Bool` | `Bool` | `false` | Whether capacity variables are created for the edge. |
-| **integer\_decisions** | `Bool` | `Bool` | `false` | Whether capacity variables are integers. |
-| **investment\_cost** | `Float64` | `Float64` | `0.0` | Annualized capacity investment cost (USD/MW-year) |
-| **max\_capacity** | `Float64` | `Float64` | `Inf` | Maximum allowed capacity of the edge (MW). **Note: add the `MaxCapacityConstraint` to the constraints dictionary to activate this constraint**. |
-| **min\_capacity** | `Float64` | `Float64` | `0.0` | Minimum allowed capacity of the edge (MW). **Note: add the `MinCapacityConstraint` to the constraints dictionary to activate this constraint**. |
-| **min\_flow\_fraction** | `Float64` | Number $\in$ [0,1] | `0.0` | Minimum flow of the edge as a fraction of the total capacity. **Note: add the `MinFlowConstraint` to the constraints dictionary to activate this constraint**. |
-| **ramp\_down\_fraction** | `Float64` | Number $\in$ [0,1] | `1.0` | Maximum decrease in flow between two time steps, reported as a fraction of the capacity. **Note: add the `RampingLimitConstraint` to the constraints dictionary to activate this constraint**. |
-| **ramp\_up\_fraction** | `Float64` | Number $\in$ [0,1] | `1.0` | Maximum increase in flow between two time steps, reported as a fraction of the capacity. **Note: add the `RampingLimitConstraint` to the constraints dictionary to activate this constraint**. |
-| **unidirectional** | `Bool` | `Bool` | `false` | Whether the edge is unidirectional. |
-| **variable\_om\_cost** | `Float64` | `Float64` | `0.0` | Variable operation and maintenance cost (USD/MWh). |
-
-!!! tip "Efficiency"
-    The efficiency of the charging/discharging process can be set in the `charge_edge` and `discharge_edge` parts of the input file. These parameters are used, for example, in the [Balance constraint](@ref balance_constraint_ref) to balance the charge and discharge flows. 
-
-!!! tip "Default constraints - discharge edge"
-    The **default constraints** for the discharge edge are the following:
-
-    - [Capacity constraint](@ref capacity_constraint_ref)
-    - [Storage discharge limit constraint](@ref storage_discharge_limit_constraint_ref)
-    - [Ramping limits constraint](@ref ramping_limits_constraint_ref)
-
-## Example
-The following is an example of the input file for a battery asset that creates three batteries, one in each of the SE, MIDAT and NE regions.
+Below is an example of an input file for a battery asset that sets up three batteries, located in the SE, MIDAT, and NE regions.
 
 ```json
 {
@@ -477,9 +448,6 @@ The following is an example of the input file for a battery asset that creates t
                     "can_expand": true,
                     "can_retire": false,
                     "constraints": {
-                        "BalanceConstraint": true,
-                        "StorageCapacityConstraint": true,
-                        "StorageSymmetricCapacityConstraint": true,
                         "StorageMinDurationConstraint": true,
                         "StorageMaxDurationConstraint": true,
                     }
@@ -523,9 +491,9 @@ The following is an example of the input file for a battery asset that creates t
                         }
                     },
                     "storage": {
-                        "existing_capacity_storage": 0.0,
-                        "fixed_om_cost_storage": 2541.19,
-                        "investment_cost_storage": 9656.002735,
+                        "existing_capacity": 0.0,
+                        "fixed_om_cost": 2541.19,
+                        "investment_cost": 9656.002735,
                         "max_duration": 10,
                         "min_duration": 1
                     }
@@ -549,9 +517,9 @@ The following is an example of the input file for a battery asset that creates t
                         }
                     },
                     "storage": {
-                        "existing_capacity_storage": 0.0,
-                        "fixed_om_cost_storage": 2541.19,
-                        "investment_cost_storage": 9656.002735,
+                        "existing_capacity": 0.0,
+                        "fixed_om_cost": 2541.19,
+                        "investment_cost": 9656.002735,
                         "max_duration": 10,
                         "min_duration": 1
                     }
@@ -575,9 +543,9 @@ The following is an example of the input file for a battery asset that creates t
                         }
                     },
                     "storage": {
-                        "existing_capacity_storage": 0.0,
-                        "fixed_om_cost_storage": 2541.19,
-                        "investment_cost_storage": 9656.002735,
+                        "existing_capacity": 0.0,
+                        "fixed_om_cost": 2541.19,
+                        "investment_cost": 9656.002735,
                         "max_duration": 10,
                         "min_duration": 1
                     }
@@ -587,3 +555,9 @@ The following is an example of the input file for a battery asset that creates t
     ]
 }
 ```
+
+Here are some important points regarding the example above:
+
+- The `global_data` field is utilized to define attributes and constraints that apply universally to all instances of a particular asset type.
+- The `start_vertex` and `end_vertex` fields indicate the nodes to which the charge and discharge edges are connected. These nodes must be defined in the `nodes.json` file.
+- For a comprehensive list of attributes that can be configured for the storage and edge components, refer to the [storage](@ref manual-storage-fields) and [edges](@ref manual-edges-fields) pages of the Macro manual.

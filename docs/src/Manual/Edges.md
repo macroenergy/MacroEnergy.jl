@@ -2,7 +2,7 @@
 
 ## Contents
 
-[Overview](@ref "manual-edges-overview") | [Fields](@ref "Edge Fields") | [Types](@ref "manual-edges-types") | [Constructors](@ref "manual-edges-constructors") | [Methods](@ref "manual-edges-methods") | [Examples](@ref "manual-edges-examples")
+[Overview](@ref "manual-edges-overview") | [Fields](@ref "manual-edges-fields") | [Types](@ref "manual-edges-types") | [Constructors](@ref "manual-edges-constructors") | [Methods](@ref "manual-edges-methods") | [Examples](@ref "manual-edges-examples")
 
 ## [Overview](@id manual-edges-overview)
 
@@ -36,7 +36,7 @@ It is not currently possible to define `Edges` outside of Assets using the stand
 - **Investment**: Edges can have investment costs associated with investments and operation
 - **Time Dependence**: Support time-varying parameters and constraints
 
-## Edge Fields
+## [Edge Fields](@id manual-edges-fields)
 
 `Edges` have the following fields. When running a model, the fields are set by the input files. When creating an Asset, the defaults below can can be altered using the `@edge_data` macro. The internal fields are used by Macro and are not intended to be set by users in most circumstances.
 
