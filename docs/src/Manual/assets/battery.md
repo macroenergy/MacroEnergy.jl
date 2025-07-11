@@ -402,7 +402,7 @@ This example shows a pumped hydro storage asset with a fixed discharge and stora
 
 ## [Best Practices](@id battery_best_practices)
 
-1. **Use global data for common constraints**: Use the `global_data` field to set the fields and constraints that are common to all instances of the same asset type.
+1. **Use global data for common fields and constraints**: Use the `global_data` field to set the fields and constraints that are common to all instances of the same asset type.
 2. **Set realistic efficiencies**: Make sure the efficiencies are realistic for the technology being modeled
 3. **Use meaningful IDs**: Choose descriptive identifiers that indicate location and technology type
 4. **Consider duration constraints**: Set appropriate min/max duration based on technology
@@ -556,7 +556,7 @@ Below is an example of an input file for a battery asset that sets up three batt
 }
 ```
 
-Here are some important points regarding the example above:
+### Key Points
 
 - The `global_data` field is utilized to define attributes and constraints that apply universally to all instances of a particular asset type.
 - The `start_vertex` and `end_vertex` fields indicate the nodes to which the charge and discharge edges are connected. These nodes must be defined in the `nodes.json` file.
