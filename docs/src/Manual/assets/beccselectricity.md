@@ -1,8 +1,25 @@
 # BECCS Electricity
 
-## Graph structure
+## Contents
 
-Bioenergy with carbon capture and storage (BECCS) that produces electricity is represented in Macro using the following graph structure:
+[Overview](@ref beccselectricity_overview) | [Asset Structure](@ref beccselectricity_asset_structure) | [Flow Equations](@ref beccselectricity_flow_equations) | [Input File (Standard Format)](@ref beccselectricity_input_file) | [Types - Asset Structure](@ref beccselectricity_type_definition) | [Constructors](@ref beccselectricity_constructors) | [Examples](@ref beccselectricity_examples) | [Best Practices](@ref beccselectricity_best_practices) | [Input File (Advanced Format)](@ref beccselectricity_advanced_json_csv_input_format)
+
+## [Overview](@id beccselectricity_overview)
+
+BECCS Electricity assets in Macro represent Bioenergy with Carbon Capture and Storage (BECCS) technologies that produce electricity from biomass while capturing CO2. These assets are defined using either JSON or CSV input files placed in the `assets` directory, typically named `beccs_electricity.json` or `beccs_electricity.csv`.
+
+## [Asset Structure](@id beccselectricity_asset_structure)
+
+A BECCS electricity asset consists of one transformation component and five edge components:
+
+1. **Biomass Edge**: Incoming edge representing biomass supply
+2. **CO2 Edge**: Incoming edge representing CO2 absorption from atmosphere
+3. **Transformation Component**: Balances flows of biomass, CO2, electricity, and CO2 captured
+4. **Electricity Edge**: Outgoing edge representing electricity production
+5. **CO2 Captured Edge**: Outgoing edge representing captured CO2
+6. **CO2 Emission Edge**: Outgoing edge representing CO2 emissions from the process
+
+Here is a graphical representation of the BECCS electricity asset:
 
 ```mermaid
 %%{init: {'theme': 'base', 'themeVariables': { 'background': '#D1EBDE' }}}%%
@@ -15,38 +32,340 @@ flowchart LR
     A --> E((Captured CO2))
     A --> F((Electricity))
  end
- legend@{img: "../../images/battery.png", w: 120, h: 100, constraint: "off"}
-       BECCSElectricity ~~~ legend
     style A fill:black,stroke:black,color:black;
-    style B r:40,fill:palegreen,stroke:black,color:black,stroke-dasharray: 3,5;
-    style C r:40,fill:lightgray,stroke:black,color:black,font-size: 12, stroke-dasharray: 3,5;
-    style D r:40,fill:lightgray,stroke:black,color:black, font-size: 12,stroke-dasharray: 3,5;
-    style E r:40,fill:lightgray,stroke:black,color:black, font-size: 12,stroke-dasharray: 3,5;
-    style F r:40,fill:orange,stroke:black,color:black, font-size: 12, stroke-dasharray: 3,5;
+    style B r:55px,fill:palegreen,stroke:black,color:black, stroke-dasharray: 3,5;
+    style C r:55px,fill:lightgray,stroke:black,color:black, stroke-dasharray: 3,5;
+    style D r:55px,fill:lightgray,stroke:black,color:black, stroke-dasharray: 3,5;
+    style E r:55px,fill:lightgray,stroke:black,color:black, stroke-dasharray: 3,5;
+    style F r:55px,fill:orange,stroke:black,color:black, stroke-dasharray: 3,5;
 
     linkStyle 0 stroke:palegreen, stroke-width: 3px;
     linkStyle 1,2,3 stroke:lightgray, stroke-width: 3px;
     linkStyle 4 stroke:orange, stroke-width: 3px;
-
-    style legend fill:white
 ```
 
-```@raw html
-<img width="400" src="../../images/beccselec.png" />
+## [Flow Equations](@id beccselectricity_flow_equations)
+The BECCS electricity asset follows these stoichiometric relationships:
+
+```math
+\begin{aligned}
+\phi_{elec} &= \phi_{biomass} \cdot \epsilon_{elec\_prod} \\
+\phi_{co2} &= -\phi_{biomass} \cdot \epsilon_{co2\_content} \\
+\phi_{co2} &= \phi_{biomass} \cdot \epsilon_{emission\_rate} \\
+\phi_{co2\_captured} &= \phi_{biomass} \cdot \epsilon_{capture\_rate} \\
+\end{aligned}
 ```
 
-A BECCS electricity asset is made of:
+Where:
+- ``\phi`` represents the flow of each commodity
+- ``\epsilon`` represents the stoichiometric coefficients defined in the table below (see table [Conversion Process Parameters](@ref beccselectricity_conversion_process_parameters))
 
-- 1 `Transformation` component, representing the BECCS process.
-- 5 `Edge` components:
-    - 1 **incoming** `Biomass` `Edge`, representing the biomass supply.
-    - 1 **incoming** `CO2` `Edge`, representing the CO2 that is absorbed by the biomass.
-    - 1 **outgoing** `Electricity` `Edge`, representing the electricity production.
-    - 1 **outgoing** `CO2Captured` `Edge`, representing the CO2 that is captured.
-    - 1 **outgoing** `CO2` `Edge`, representing the CO2 that is emitted.
+## [Input File (Standard Format)](@id beccselectricity_input_file)
 
-## Attributes
-The structure of the input file for a BECCS electricity asset follows the graph representation. Each `global_data` and `instance_data` will look like this:
+The easiest way to include a BECCS electricity asset in a model is to create a new file (either JSON or CSV) and place it in the `assets` directory together with the other assets.
+
+```
+your_case/
+├── assets/
+│   ├── beccs_electricity.json    # or beccs_electricity.csv
+│   ├── other_assets.json
+│   └── ...
+├── system/
+├── settings/
+└── ...
+```
+
+This file can either be created manually, or using the `template_asset` function, as shown in the [Adding an Asset to a System](@ref) section of the User Guide. The file will be automatically loaded when you run your Macro model.
+
+The following is an example of a BECCS electricity asset input file:
+
+```json
+{
+    "BECCS_Electricity": [
+        {
+            "type": "BECCSElectricity",
+            "global_data": {
+                "biomass_constraints": {
+                    "MinFlowConstraint": true
+                },
+                "capacity_size": 400,
+                "investment_cost": 765260.16,
+                "fixed_om_cost": 212409.12,
+                "variable_om_cost": 47.2,
+                "emission_rate": 0.116756,
+                "co2_content": 1.717,
+                "capture_rate": 1.600244,
+                "electricity_production": 1.606568331,
+                "min_flow_fraction": 0.4,
+                "co2_sink": "co2_sink"
+            },
+            "instance_data": [
+                {
+                    "id": "SE_BECCS_Electricity_Herb",
+                    "location": "SE",
+                    "biomass_commodity": "Biomass_Herb",
+                    "availability": {
+                        "timeseries": {
+                            "path": "system/availability.csv",
+                            "header": "SE_BECCS_Electricity_Herb"
+                        }
+                    }
+                }
+            ]
+        }
+    ]
+}
+```
+
+!!! tip "Global Data vs Instance Data"
+    When working with JSON input files, the `global_data` field can be used to group data that is common to all instances of the same asset type. This is useful for setting constraints that are common to all instances of the same asset type and avoid repeating the same data for each instance. See the [Examples](@ref "beccselectricity_examples") section below for an example.
+
+The following tables outline the attributes that can be set for a BECCS electricity asset.
+
+### Essential Attributes
+| Field | Type | Description |
+|--------------|---------|------------|
+| `Type` | String | Asset type identifier: "BECCSElectricity" |
+| `id` | String | Unique identifier for the BECCS electricity instance |
+| `location` | String | Geographic location/node identifier |
+| `biomass_commodity` | String | Commodity identifier for the biomass supply (can be a sub-commodity of `Biomass`) |
+| `co2_sink` | String | ID of a CO2 sink vertex (has to be defined in the nodes input file) |
+
+### [Conversion Process Parameters](@id beccselectricity_conversion_process_parameters)
+The following set of parameters control the conversion process and stoichiometry of the BECCS electricity asset (see [Flow Equations](@ref beccselectricity_flow_equations) for more details).
+
+| Field | Type | Description | Units | Default |
+|--------------|---------|------------|----------------|----------|
+| `electricity_production` | Float64 | Electricity production per unit biomass | $MWh/t_{Biomass}$ | 0.0 |
+| `capture_rate` | Float64 | CO2 capture rate per unit biomass | $t_{CO2}/t_{Biomass}$ | 1.0 |
+| `co2_content` | Float64 | CO2 content in biomass | $t_{CO2}/t_{Biomass}$ | 0.0 |
+| `emission_rate` | Float64 | CO2 emission rate per unit biomass | $t_{CO2}/t_{Biomass}$ | 1.0 |
+
+### [Constraints Configuration](@id "beccselectricity_constraints")
+BECCS electricity assets can have different constraints applied to them, and the user can configure them using the following fields:
+
+| Field | Type | Description |
+|--------------|---------|------------|
+| `transform_constraints` | Dict{String,Bool} | List of constraints applied to the transformation component. |
+| `biomass_constraints` | Dict{String,Bool} | List of constraints applied to the biomass edge. |
+| `co2_constraints` | Dict{String,Bool} | List of constraints applied to the CO2 edge. |
+| `co2_emission_constraints` | Dict{String,Bool} | List of constraints applied to the CO2 emission edge. |
+| `co2_captured_constraints` | Dict{String,Bool} | List of constraints applied to the CO2 captured edge. |
+
+For example, if the user wants to apply the [`BalanceConstraint`](@ref balance_constraint_ref) to the transformation component and the [`CapacityConstraint`](@ref capacity_constraint_ref) to the biomass edge, the constraints fields should be set as follows:
+
+```json
+{
+    "transform_constraints": {
+        "BalanceConstraint": true
+    },
+    "biomass_constraints": {
+        "CapacityConstraint": true
+    }
+}
+```
+
+#### Default constraints
+To simplify the input file and the asset configuration, the following constraints are applied to the BECCS electricity asset by default:
+
+- [Balance constraint](@ref balance_constraint_ref) (applied to the transformation component)
+- [Capacity constraint](@ref capacity_constraint_ref) (applied to the biomass edge)
+
+Users can refer to the [Adding Asset Constraints to a System](@ref) section of the User Guide for a list of all the constraints that can be applied to the different components of a BECCS electricity asset.
+
+### Investment Parameters
+| Field | Type | Description | Units | Default |
+|--------------|---------|------------|----------------|----------|
+| `can_retire` | Boolean | Whether BECCS electricity asset capacity can be retired | - | true |
+| `can_expand` | Boolean | Whether BECCS electricity asset capacity can be expanded | - | true |
+| `existing_capacity` | Float64 | Initial installed BECCS electricity asset capacity | MW | 0.0 |
+| `capacity_size` | Float64 | Unit size for capacity decisions | - | 1.0 |
+
+#### Additional Investment Parameters
+
+**Maximum and minimum capacity constraints**
+
+If [`MaxCapacityConstraint`](@ref max_capacity_constraint_ref) or [`MinCapacityConstraint`](@ref min_capacity_constraint_ref) are added to the constraints dictionary for the biomass edge, the following parameters are used by Macro:
+
+| Field | Type | Description | Units | Default |
+|--------------|---------|------------|----------------|----------|
+| `max_capacity` | Float64 | Maximum allowed BECCS electricity asset capacity | MW | Inf |
+| `min_capacity` | Float64 | Minimum allowed BECCS electricity asset capacity | MW | 0.0 |
+
+### Economic Parameters
+| Field | Type | Description | Units | Default |
+|--------------|---------|------------|----------------|----------|
+| `investment_cost` | Float64 | CAPEX per unit BECCS electricity asset capacity | \$/MW/yr | 0.0 |
+| `fixed_om_cost` | Float64 | Fixed O&M costs of the BECCS electricity asset | \$/MW/yr | 0.0 |
+| `variable_om_cost` | Float64 | Variable O&M costs of the BECCS electricity asset | \$/MWh | 0.0 |
+
+### Operational Parameters
+| Field | Type | Description | Units | Default |
+|--------------|---------|------------|----------------|----------|
+| `availability` | Dict | Path to availability file and column name | - | Empty |
+
+#### Additional Operational Parameters
+
+**Minimum flow constraint**
+
+If [`MinFlowConstraint`](@ref min_flow_constraint_ref) is added to the constraints dictionary for the biomass edge, the following parameter is used:
+
+| Field | Type | Description | Units | Default |
+|--------------|---------|------------|----------------|----------|
+| `min_flow_fraction` | Float64 | Minimum flow as fraction of capacity | fraction | 0.0 |
+
+## [Types - Asset Structure](@id beccselectricity_type_definition)
+
+The `BECCSElectricity` asset is defined as follows:
+
+```julia
+struct BECCSElectricity <: AbstractAsset
+    id::AssetId
+    transformation::Transformation
+    biomass_edge::Edge{<:Biomass}
+    co2_edge::Edge{<:CO2}
+    elec_edge::Edge{<:Electricity}
+    co2_captured_edge::Edge{<:CO2Captured}
+    co2_emission_edge::Edge{<:CO2}
+end
+```
+
+## [Constructors](@id beccselectricity_constructors)
+
+### Default constructor
+
+```julia
+BECCSElectricity(id::AssetId, transformation::Transformation, biomass_edge::Edge{<:Biomass}, co2_edge::Edge{<:CO2}, elec_edge::Edge{<:Electricity}, co2_captured_edge::Edge{<:CO2Captured}, co2_emission_edge::Edge{<:CO2})
+```
+
+### Factory constructor
+```julia
+make(asset_type::Type{BECCSElectricity}, data::AbstractDict{Symbol,Any}, system::System)
+```
+
+| Field | Type | Description |
+|--------------|---------|------------|
+| `asset_type` | `Type{BECCSElectricity}` | Macro type of the asset |
+| `data` | `AbstractDict{Symbol,Any}` | Dictionary containing the input data for the asset |
+| `system` | `System` | System to which the asset belongs |
+
+## [Examples](@id beccselectricity_examples)
+This section contains examples of how to use the BECCS electricity asset in a Macro model.
+
+### Simple BECCS Electricity Asset
+This example shows a single BECCS electricity asset with fixed capacity.
+
+**JSON Format:**
+```json
+{
+    "BECCS_Electricity": [
+        {
+            "type": "BECCSElectricity",
+            "instance_data": [
+                {
+                    "id": "Fixed_BECCS_Electricity_SE",
+                    "location": "SE",
+                    "biomass_commodity": "Biomass_Herb",
+                    "co2_sink": "co2_sink",
+                    "electricity_production": 1.6,
+                    "capture_rate": 1.5,
+                    "co2_content": 1.8,
+                    "emission_rate": 0.3,
+                    "existing_capacity": 500.0,
+                    "fixed_om_cost": 150000.0,
+                    "variable_om_cost": 40.0
+                }
+            ]
+        }
+    ]
+}
+```
+
+**CSV Format:**
+
+| Type | id | location | biomass\_commodity | co2\_sink | electricity\_production | capture\_rate | co2\_content | emission\_rate | existing\_capacity | fixed\_om\_cost | variable\_om\_cost |
+|------|----|----------|---------------------|------------------------------------------|---------------------------|--------------------------------|------------------------------|---------------------------|---------------------------|------------------------------------------------|---------------------------|
+| BECCSElectricity | Fixed\_BECCS\_Electricity\_SE | SE | Biomass_Herb | co2_sink | 1.6 | 1.5 | 1.8 | 0.3 | 500.0 | 150000.0 | 40.0 |
+
+### Two BECCS Electricity Assets in the SE Region with Different Biomass Types
+
+**JSON Format:**
+
+Note that the `global_data` field is used to set the fields and constraints that are common to all instances of the same asset type.
+
+```json
+{
+    "BECCS_Electricity": [
+        {
+            "type": "BECCSElectricity",
+            "global_data": {
+                "biomass_constraints": {
+                    "MinFlowConstraint": true
+                },
+                "co2_sink": "co2_sink",
+                "electricity_production": 1.606568331,
+                "capture_rate": 1.600244,
+                "co2_content": 1.717,
+                "emission_rate": 0.116756,
+                "investment_cost": 765260.16,
+                "fixed_om_cost": 212409.12,
+                "variable_om_cost": 47.2,
+                "capacity_size": 400,
+                "min_flow_fraction": 0.4
+            },
+            "instance_data": [
+                {
+                    "id": "SE_BECCS_Electricity_Herb",
+                    "location": "SE",
+                    "biomass_commodity": "Biomass_Herb",
+                    "availability": {
+                        "timeseries": {
+                            "path": "system/availability.csv",
+                            "header": "SE_BECCS_Electricity_Herb"
+                        }
+                    }
+                },
+                {
+                    "id": "SE_BECCS_Electricity_Wood",
+                    "location": "SE",
+                    "biomass_commodity": "Biomass_Wood",
+                    "availability": {
+                        "timeseries": {
+                            "path": "system/availability.csv",
+                            "header": "SE_BECCS_Electricity_Wood"
+                        }
+                    }
+                }
+            ]
+        }
+    ]
+}
+```
+
+**CSV Format:**
+
+|Type|id|fixed\_om\_cost|capture\_rate|electricity\_production|capacity\_size|co2\_sink|emission\_rate|variable\_om\_cost|investment\_cost|min\_flow\_fraction|co2\_content|biomass\_constraints--MinFlowConstraint|location|biomass\_commodity|availability--timeseries--path|availability--timeseries--header |
+|------|----|----------|---------------------|------------------------------------------|---------------------------|--------------------------------|------------------------------|---------------------------|---------------------------|------------------------------------------------|---------------------------|------------------------|------------------------|------------------------|--------------------------------|------------------------|
+BECCSElectricity | SE\_BECCS\_Electricity\_Herb | 212409.12 | 1.600244 | 1.606568331 | 400 | co2\_sink | 0.116756 | 47.2 | 765260.16 | 0.4 | 1.717 | true | SE | Biomass\_Herb | system/availability.csv | SE\_BECCS\_Electricity\_Herb
+BECCSElectricity | SE\_BECCS\_Electricity\_Wood | 212409.12 | 1.600244 | 1.606568331 | 400 | co2\_sink | 0.116756 | 47.2 | 765260.16 | 0.4 | 1.717 | true | SE | Biomass\_Wood | system/availability.csv | SE\_BECCS\_Electricity\_Wood
+
+## [Best Practices](@id beccselectricity_best_practices)
+
+1. **Use global data for common fields and constraints**: Use the `global_data` field to set the fields and constraints that are common to all instances of the same asset type.
+2. **Set realistic stoichiometric coefficients**: Ensure the transformation parameters reflect actual technology performance
+3. **Use meaningful IDs**: Choose descriptive identifiers that indicate location and biomass type
+4. **Consider availability profiles**: Use availability time series to model seasonal variations in biomass supply
+5. **Validate costs**: Ensure investment and O&M costs are in appropriate units and time periods
+6. **Test configurations**: Start with simple configurations and gradually add complexity
+7. **Monitor CO2 balance**: Ensure the CO2 capture and emission rates are consistent with the overall system CO2 balance
+
+## [Input File (Advanced Format)](@id beccselectricity_advanced_json_csv_input_format)
+
+Macro provides an advanced format for defining BECCS electricity assets, offering users and modelers detailed control over asset specifications. This format builds upon the standard format and is ideal for those who need more comprehensive customization.
+
+To understand the advanced format, consider the [graph representation](@ref beccselectricity_asset_structure) and the [type definition](@ref beccselectricity_type_definition) of a BECCS electricity asset. The input file mirrors this hierarchical structure.
+
+A BECCS electricity asset in Macro is composed of a transformation component, represented by a `Transformation` object, and five edges, each represented by an `Edge` object. The input file for a BECCS electricity asset is therefore organized as follows:
 
 ```json
 {
@@ -72,75 +391,10 @@ The structure of the input file for a BECCS electricity asset follows the graph 
     }
 }
 ```
-where the possible attributes that the user can set are reported in the following tables. 
 
-### Transformation
-The definition of the transformation object can be found here [MacroEnergy.Transformation](@ref).
+Each top-level key (e.g., "transforms" or "edges") denotes a component type. The second-level keys either specify the attributes of the component (when there is a single instance) or identify the instances of the component (e.g., "biomass_edge", "elec_edge", etc.) when there are multiple instances. For multiple instances, a third-level key details the attributes for each instance.
 
-| **Attribute** | **Type** | **Values** | **Default** | **Description/Units** |
-|:--------------| :------: |:------: | :------: |:-------|
-| **timedata**  | `String` | Any Macro commodity type | Required | Time resolution for the time series data linked to the transformation. E.g. "Biomass". |
-| **constraints** | `Dict{String,Bool}` | Any Macro constraint type for vertices | `BalanceConstraint` | List of constraints applied to the transformation. E.g. `{"BalanceConstraint": true}`. |
-| **capture_rate** $\epsilon_{co2\_capture\_rate}$ | `Float64` | `Float64` | 1.0 | $t_{CO2}/t_{Biomass}$ |
-| **co2_content** $\epsilon_{co2}$ | `Float64` | `Float64` | 0.0 | $t_{CO2}/t_{Biomass}$ |
-| **electricity_production** $\epsilon_{elec\_prod}$ | `Float64` | `Float64` | 1.0 | $MWh_{elec}/t_{Biomass}$ |
-| **emission_rate** $\epsilon_{emission\_rate}$ | `Float64` | `Float64` | 1.0 | $t_{CO2}/t_{Biomass}$ |
-
-!!! tip "Default constraints"
-    The **default constraint** for the transformation part of the BECCS electricity asset is the following:
-    - [Balance constraint](@ref balance_constraint_ref)
-
-#### Flow equations
-In the following equations, $\phi$ is the flow of the commodity and $\epsilon$ is the stoichiometric coefficient defined in the transformation table below.
-
-!!! note "BECCSElectricity"
-    ```math
-    \begin{aligned}
-    \phi_{elec} &= \phi_{biomass} \cdot \epsilon_{elec\_prod} \\
-    \phi_{co2} &= -\phi_{biomass} \cdot \epsilon_{co2} \\
-    \phi_{co2} &= \phi_{biomass} \cdot \epsilon_{emission\_rate} \\
-    \phi_{co2\_captured} &= \phi_{biomass} \cdot \epsilon_{co2\_capture\_rate} \\
-    \end{aligned}
-    ```
-
-### Asset Edges
-!!! warning "Asset expansion"
-    As a modeling decision, only the `Biomass` edge is allowed to expand. Consequently, the `has_capacity` and `constraints` attributes can only be set for the `Biomass` edge. For all other edges, these attributes are pre-set to false and an empty list, respectively, to ensure proper modeling of the asset.
-
-!!! warning "Directionality"
-    The `unidirectional` attribute is only available for the `Biomass` edge. For the other edges, this attribute is pre-set to `true` to ensure the correct modeling of the asset. 
-
-All the edges are represented by the same set of attributes. The definition of the `Edge` object can be found here [MacroEnergy.Edge](@ref).
-
-| **Attribute** | **Type** | **Values** | **Default** | **Description** |
-|:--------------| :------: |:------: | :------: |:-------|
-| **type** | `String` | Any Macro commodity type matching the commodity of the edge| Required | Commodity of the edge. E.g. "Electricity". |
-| **start_vertex** | `String` | Any node id present in the system matching the commodity of the edge | Required | ID of the starting vertex of the edge. The node must be present in the `nodes.json` file. E.g. "elec\_node\_1". |
-| **end_vertex** | `String` | Any node id present in the system matching the commodity of the edge | Required | ID of the ending vertex of the edge. The node must be present in the `nodes.json` file. E.g. "elec\_node\_2". |
-| **constraints** | `Dict{String,Bool}` | Any Macro constraint type for Edges | Check box below | List of constraints applied to the edge. E.g. `{"CapacityConstraint": true}`. |
-| **availability** | `Dict` | Availability file path and header | Empty | Path to the availability file and column name for the availability time series to link to the edge. E.g. `{"timeseries": {"path": "assets/availability.csv", "header": "SE_BECCS_Electricity_Herb"}}`.|
-| **can_expand** | `Bool` | `Bool` | `false` | Whether the edge is eligible for capacity expansion. |
-| **can_retire** | `Bool` | `Bool` | `false` | Whether the edge is eligible for capacity retirement. |
-| **capacity_size** | `Float64` | `Float64` | `1.0` | Size of the edge capacity. |
-| **existing_capacity** | `Float64` | `Float64` | `0.0` | Existing capacity of the edge in MW. |
-| **fixed\_om\_cost** | `Float64` | `Float64` | `0.0` | Fixed operations and maintenance cost (USD/MW-year). |
-| **has\_capacity** | `Bool` | `Bool` | `false` | Whether capacity variables are created for the edge **(only available for the `Biomass` edge)**. |
-| **integer\_decisions** | `Bool` | `Bool` | `false` | Whether capacity variables are integers. |
-| **investment\_cost** | `Float64` | `Float64` | `0.0` | Annualized capacity investment cost (USD/MW-year) |
-| **loss\_fraction** | `Float64` | Number $\in$ [0,1] | `0.0` | Fraction of transmission loss. |
-| **max\_capacity** | `Float64` | `Float64` | `Inf` | Maximum allowed capacity of the edge (MW). **Note: add the `MaxCapacityConstraint` to the constraints dictionary to activate this constraint**. |
-| **min\_capacity** | `Float64` | `Float64` | `0.0` | Minimum allowed capacity of the edge (MW). **Note: add the `MinCapacityConstraint` to the constraints dictionary to activate this constraint**. |
-| **min\_flow\_fraction** | `Float64` | Number $\in$ [0,1] | `0.0` | Minimum flow of the edge as a fraction of the total capacity. **Note: add the `MinFlowConstraint` to the constraints dictionary to activate this constraint**. |
-| **ramp\_down\_fraction** | `Float64` | Number $\in$ [0,1] | `1.0` | Maximum decrease in flow between two time steps, reported as a fraction of the capacity. **Note: add the `RampingLimitConstraint` to the constraints dictionary to activate this constraint**. |
-| **ramp\_up\_fraction** | `Float64` | Number $\in$ [0,1] | `1.0` | Maximum increase in flow between two time steps, reported as a fraction of the capacity. **Note: add the `RampingLimitConstraint` to the constraints dictionary to activate this constraint**. |
-| **unidirectional** | `Bool` | `Bool` | `false` | Whether the edge is unidirectional **(only available for the `Biomass` edge)**. |
-| **variable\_om\_cost** | `Float64` | `Float64` | `0.0` | Variable operation and maintenance cost (USD/MWh). |
-
-!!! tip "Default constraints"
-    The only **default constraint** for the edges of the BECCS electricity asset is the [Capacity constraint](@ref capacity_constraint_ref) applied to the `Biomass` edge. 
-
-## Example
-The following is an example of the input file for a BECCS electricity asset that creates six BECCS electricity assets, two in each of the SE, MIDAT and NE regions.
+Below is an example of an input file for a BECCS electricity asset that sets up a single asset in the SE region with detailed edge specifications.
 
 ```json
 {
@@ -149,24 +403,19 @@ The following is an example of the input file for a BECCS electricity asset that
             "type": "BECCSElectricity",
             "global_data": {
                 "transforms": {
+                    "commodity": "Biomass",
                     "timedata": "Biomass",
                     "constraints": {
                         "BalanceConstraint": true
                     }
                 },
                 "edges": {
-                    "elec_edge": {
-                        "type": "Electricity",
-                        "unidirectional": true,
-                        "has_capacity": false
-                    },
                     "biomass_edge": {
                         "type": "Biomass",
                         "unidirectional": true,
                         "has_capacity": true,
                         "can_expand": true,
                         "can_retire": true,
-                        "integer_decisions": false,
                         "constraints": {
                             "CapacityConstraint": true,
                             "MinFlowConstraint": true
@@ -175,20 +424,22 @@ The following is an example of the input file for a BECCS electricity asset that
                     "co2_edge": {
                         "type": "CO2",
                         "unidirectional": true,
-                        "has_capacity": false,
-                        "start_vertex": "co2_sink"
+                        "has_capacity": false
                     },
-                    "co2_emission_edge": {
-                        "type": "CO2",
+                    "elec_edge": {
+                        "type": "Electricity",
                         "unidirectional": true,
-                        "has_capacity": false,
-                        "end_vertex": "co2_sink"
+                        "has_capacity": false
                     },
                     "co2_captured_edge": {
                         "type": "CO2Captured",
                         "unidirectional": true,
-                        "has_capacity": false,
-                        "end_vertex": "co2_captured_sink"
+                        "has_capacity": false
+                    },
+                    "co2_emission_edge": {
+                        "type": "CO2",
+                        "unidirectional": true,
+                        "has_capacity": false
                     }
                 }
             },
@@ -210,154 +461,24 @@ The following is an example of the input file for a BECCS electricity asset that
                                     "header": "SE_BECCS_Electricity_Herb"
                                 }
                             },
+                            "existing_capacity": 0.0,
                             "investment_cost": 696050.2868,
                             "fixed_om_cost": 193228.9157,
                             "variable_om_cost": 42.93975904,
                             "capacity_size": 400,
                             "min_flow_fraction": 0.4
+                        },
+                        "co2_edge": {
+                            "start_vertex": "co2_sink"
                         },
                         "elec_edge": {
                             "end_vertex": "elec_SE"
-                        }
-                    }
-                },
-                {
-                    "id": "MIDAT_BECCS_Electricity_Herb",
-                    "transforms": {
-                        "electricity_production": 1.656626506,
-                        "capture_rate": 1.5313914,
-                        "co2_content": 1.76022,
-                        "emission_rate": 0.2288286
-                    },
-                    "edges": {
-                        "biomass_edge": {
-                            "start_vertex": "bioherb_MIDAT",
-                            "availability": {
-                                "timeseries": {
-                                    "path": "assets/availability.csv",
-                                    "header": "MIDAT_BECCS_Electricity_Herb"
-                                }
-                            },
-                            "investment_cost": 696050.2868,
-                            "fixed_om_cost": 193228.9157,
-                            "variable_om_cost": 42.93975904,
-                            "capacity_size": 400,
-                            "min_flow_fraction": 0.4
                         },
-                        "elec_edge": {
-                            "end_vertex": "elec_MIDAT"
-                        }
-                    }
-                },
-                {
-                    "id": "NE_BECCS_Electricity_Herb",
-                    "transforms": {
-                        "electricity_production": 1.656626506,
-                        "capture_rate": 1.5313914,
-                        "co2_content": 1.76022,
-                        "emission_rate": 0.2288286
-                    },
-                    "edges": {
-                        "biomass_edge": {
-                            "start_vertex": "bioherb_NE",
-                            "availability": {
-                                "timeseries": {
-                                    "path": "assets/availability.csv",
-                                    "header": "NE_BECCS_Electricity_Herb"
-                                }
-                            },
-                            "investment_cost": 696050.2868,
-                            "fixed_om_cost": 193228.9157,
-                            "variable_om_cost": 42.93975904,
-                            "capacity_size": 400,
-                            "min_flow_fraction": 0.4
+                        "co2_captured_edge": {
+                            "end_vertex": "co2_captured_sink"
                         },
-                        "elec_edge": {
-                            "end_vertex": "elec_NE"
-                        }
-                    }
-                },
-                {
-                    "id": "SE_BECCS_Electricity_Wood",
-                    "transforms": {
-                        "electricity_production": 1.656626506,
-                        "capture_rate": 1.5313914,
-                        "co2_content": 1.76022,
-                        "emission_rate": 0.2288286
-                    },
-                    "edges": {
-                        "biomass_edge": {
-                            "start_vertex": "biowood_SE",
-                            "availability": {
-                                "timeseries": {
-                                    "path": "assets/availability.csv",
-                                    "header": "SE_BECCS_Electricity_Wood"
-                                }
-                            },
-                            "investment_cost": 696050.2868,
-                            "fixed_om_cost": 193228.9157,
-                            "variable_om_cost": 42.93975904,
-                            "capacity_size": 400,
-                            "min_flow_fraction": 0.4
-                        },
-                        "elec_edge": {
-                            "end_vertex": "elec_SE"
-                        }
-                    }
-                },
-                {
-                    "id": "MIDAT_BECCS_Electricity_Wood",
-                    "transforms": {
-                        "electricity_production": 1.656626506,
-                        "capture_rate": 1.5313914,
-                        "co2_content": 1.76022,
-                        "emission_rate": 0.2288286
-                    },
-                    "edges": {
-                        "biomass_edge": {
-                            "start_vertex": "biowood_MIDAT",
-                            "availability": {
-                                "timeseries": {
-                                    "path": "assets/availability.csv",
-                                    "header": "MIDAT_BECCS_Electricity_Wood"
-                                }
-                            },
-                            "investment_cost": 696050.2868,
-                            "fixed_om_cost": 193228.9157,
-                            "variable_om_cost": 42.93975904,
-                            "capacity_size": 400,
-                            "min_flow_fraction": 0.4
-                        },
-                        "elec_edge": {
-                            "end_vertex": "elec_MIDAT"
-                        }
-                    }
-                },
-                {
-                    "id": "NE_BECCS_Electricity_Wood",
-                    "transforms": {
-                        "electricity_production": 1.656626506,
-                        "capture_rate": 1.5313914,
-                        "co2_content": 1.76022,
-                        "emission_rate": 0.2288286
-                    },
-                    "edges": {
-                        "biomass_edge": {
-                            "start_vertex": "biowood_NE",
-                            "availability": {
-                                "timeseries": {
-                                    "path": "assets/availability.csv",
-                                    "header": "NE_BECCS_Electricity_Wood"
-                                }
-                            },
-                            "investment_cost": 696050.2868,
-                            "fixed_om_cost": 193228.9157,
-                            "variable_om_cost": 42.93975904,
-                            "capacity_size": 400,
-                            "min_flow_fraction": 0.4
-                        },
-                        "elec_edge": {
-                            "end_vertex": "elec_NE"
+                        "co2_emission_edge": {
+                            "end_vertex": "co2_sink"
                         }
                     }
                 }
@@ -366,3 +487,21 @@ The following is an example of the input file for a BECCS electricity asset that
     ]
 }
 ```
+
+### Key Points
+- The `global_data` field is utilized to define attributes and constraints that apply universally to all instances of a particular asset type.
+- The `start_vertex` and `end_vertex` fields indicate the nodes to which the edges are connected. These nodes must be defined in the `nodes.json` file.
+- By default, only the biomass edge is allowed to have capacity variables and constraints, as this represents the main capacity decision for the BECCS facility. However, the user can add capacity variables and constraints to the other edges as well.
+- The biomass edge uses availability time series to model seasonal variations in biomass supply.
+- For a comprehensive list of attributes that can be configured for the transformation and edge components, refer to the [transformation](@ref manual-transformation-fields) and [edges](@ref manual-edges-fields) pages of the Macro manual.
+
+!!! tip "Prefixes"
+    Users can apply prefixes to adjust parameters for the components of a BECCS electricity asset, even when using the standard format. For instance, `co2_can_retire` will adjust the `can_retire` parameter for the CO2 edge, and `co2_existing_capacity` will adjust the `existing_capacity` parameter for the CO2 edge.
+    Below are the prefixes available for modifying parameters for the components of a BECCS electricity asset:
+    - `transform_` for the transformation component
+    - `biomass_` for the biomass edge
+    - `co2_` for the CO2 edge
+    - `co2_emission_` for the CO2 emission edge
+    - `co2_captured_` for the CO2 captured edge
+    - `elec_` for the electricity edge
+    
