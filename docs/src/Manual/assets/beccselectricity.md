@@ -253,7 +253,7 @@ make(asset_type::Type{BECCSElectricity}, data::AbstractDict{Symbol,Any}, system:
 This section contains examples of how to use the BECCS electricity asset in a Macro model.
 
 ### Simple BECCS Electricity Asset
-This example shows a single BECCS electricity asset with fixed capacity.
+This example shows a single BECCS electricity asset with existing capacity using `Biomass_Herb` as the biomass commodity.
 
 **JSON Format:**
 ```json
