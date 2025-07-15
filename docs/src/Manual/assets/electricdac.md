@@ -1,22 +1,366 @@
 # Electric DAC
 
-## Graph structure
-An electric direct air capture (DAC) asset is represented in Macro using the following graph structure:
+## Contents
 
-```@raw html
-<img width="400" src="../../images/elecdac.png" />
+[Overview](@ref electricdac_overview) | [Asset Structure](@ref electricdac_asset_structure) | [Flow Equations](@ref electricdac_flow_equations) | [Input File (Standard Format)](@ref electricdac_input_file) | [Types - Asset Structure](@ref electricdac_type_definition) | [Constructors](@ref electricdac_constructors) | [Examples](@ref electricdac_examples) | [Best Practices](@ref electricdac_best_practices) | [Input File (Advanced Format)](@ref electricdac_advanced_json_csv_input_format)
+
+## [Overview](@id electricdac_overview)
+
+Electric DAC (Direct Air Capture) assets in Macro represent carbon capture technologies that use electricity to capture CO₂ directly from the atmosphere. These assets are defined using either JSON or CSV input files placed in the `assets` directory, typically named `electricdac.json` or `electricdac.csv`.
+
+## [Asset Structure](@id electricdac_asset_structure)
+
+An electric DAC asset consists of one transformation component and three edge components:
+
+1. **Transformation Component**: Balances flows of electricity, CO₂, and CO₂ captured
+2. **Electricity Edge**: Incoming edge representing electricity consumption
+3. **CO₂ Edge**: Incoming edge representing CO₂ absorption from atmosphere
+4. **CO₂ Captured Edge**: Outgoing edge representing captured CO₂
+
+Here is a graphical representation of the electric DAC asset:
+
+```mermaid
+%%{init: {'theme': 'base', 'themeVariables': { 'background': '#D1EBDE' }}}%%
+flowchart LR
+  subgraph ElectricDAC
+    direction BT
+    A((Electricity)) e1@--> C{{..}}
+    B((CO₂)) e2@--> C
+    C e3@--> D((CO₂ Captured))
+    e1@{ animate: true }
+    e2@{ animate: true }
+    e3@{ animate: true }
+  end
+  
+  style A r:55px,fill:#FFD700,stroke:black,color:black, stroke-dasharray: 3,5;
+  style B r:55px,fill:lightgray,stroke:black,color:black, stroke-dasharray: 3,5;
+  style C fill:black,stroke:black,color:black;
+  style D r:55px,fill:lightgray,stroke:black,color:black, stroke-dasharray: 3,5;
+
+  linkStyle 0 stroke:#FFD700, stroke-width: 2px, stroke-dasharray: 5 5;
+  linkStyle 1 stroke:lightgray, stroke-width: 2px;
+  linkStyle 2 stroke:lightgray, stroke-width: 2px;
+
+
 ```
 
-An electric DAC asset is made of:
+## [Flow Equations](@id electricdac_flow_equations)
+The electric DAC asset follows these stoichiometric relationships:
 
-- 1 `Transformation` component, representing the DAC process.
-- 3 `Edge` components:
-    - 1 **incoming** `Electricity` `Edge`, representing the electricity consumption.
-    - 1 **incoming** `CO2` `Edge`, representing the CO2 that is captured.
-    - 1 **outgoing** `CO2 Captured` `Edge`, representing the CO2 that is captured.
+```math
+\begin{aligned}
+\phi_{elec} &= \phi_{co2\_captured} \cdot \epsilon_{elec\_consumption} \\
+\phi_{co2} &= \phi_{co2\_captured} \\
+\end{aligned}
+```
 
-## Attributes
-The structure of the input file for an electric DAC asset follows the graph representation. Each `global_data` and `instance_data` will look like this:
+Where:
+- ``\phi`` represents the flow of each commodity
+- ``\epsilon`` represents the stoichiometric coefficients defined in the table below (see table [Conversion Process Parameters](@ref electricdac_conversion_process_parameters))
+
+## [Input File (Standard Format)](@id electricdac_input_file)
+
+The easiest way to include an electric DAC asset in a model is to create a new file (either JSON or CSV) and place it in the `assets` directory together with the other assets.
+
+```
+your_case/
+├── assets/
+│   ├── electricdac.json    # or electricdac.csv
+│   ├── other_assets.json
+│   └── ...
+├── system/
+├── settings/
+└── ...
+```
+
+This file can either be created manually, or using the `template_asset` function, as shown in the [Adding an Asset to a System](@ref) section of the User Guide. The file will be automatically loaded when you run your Macro model.
+
+The following is an example of an electric DAC asset input file:
+
+```json
+{
+    "ElectricDAC": [
+        {
+            "type": "ElectricDAC",
+            "instance_data": [
+                {
+                    "id": "SE_Sorbent_DAC",
+                    "location": "SE",
+                    "investment_cost": 1050000,
+                    "fixed_om_cost": 837000,
+                    "variable_om_cost": 24.64,
+                    "electricity_consumption": 4.38,
+                    "co2_sink": "co2_sink"
+                }
+            ]
+        }
+    ]
+}
+```
+
+!!! tip "Global Data vs Instance Data"
+    When working with JSON input files, the `global_data` field can be used to group data that is common to all instances of the same asset type. This is useful for setting constraints that are common to all instances of the same asset type and avoid repeating the same data for each instance. See the [Examples](@ref "electricdac_examples") section below for an example.
+
+The following tables outline the attributes that can be set for an electric DAC asset.
+
+### Essential Attributes
+| Field | Type | Description |
+|--------------|---------|------------|
+| `Type` | String | Asset type identifier: "ElectricDAC" |
+| `id` | String | Unique identifier for the electric DAC instance |
+| `location` | String | Geographic location/node identifier |
+
+### [Conversion Process Parameters](@id electricdac_conversion_process_parameters)
+The following parameters control the conversion process and stoichiometry of the electricdac asset (see [Flow Equations](@ref electricdac_flow_equations) for more details).
+
+| Field | Type | Description | Units | Default |
+|--------------|---------|------------|----------------|----------|
+| `electricity_consumption` | Float64 | Electricity consumption per unit CO₂ captured | $MWh_{elec}/t_{CO₂}$ | 0.0 |
+
+### [Constraints Configuration](@id "electricdac_constraints")
+Electric DAC assets can have different constraints applied to them, and the user can configure them using the following fields:
+
+| Field | Type | Description |
+|--------------|---------|------------|
+| `transform_constraints` | Dict{String,Bool} | List of constraints applied to the transformation component. |
+| `co2_constraints` | Dict{String,Bool} | List of constraints applied to the CO₂ edge. |
+| `elec_constraints` | Dict{String,Bool} | List of constraints applied to the electricity edge. |
+| `co2_captured_constraints` | Dict{String,Bool} | List of constraints applied to the CO₂ captured edge. |
+
+For example, if the user wants to apply the [`BalanceConstraint`](@ref balance_constraint_ref) to the transformation component and the [`CapacityConstraint`](@ref capacity_constraint_ref) to the CO₂ edge, the constraints fields should be set as follows:
+
+```json
+{
+    "transform_constraints": {
+        "BalanceConstraint": true
+    },
+    "co2_constraints": {
+        "CapacityConstraint": true
+    }
+}
+```
+
+#### Default constraints
+To simplify the input file and the asset configuration, the following constraints are applied to the electric DAC asset by default:
+
+- [Balance constraint](@ref balance_constraint_ref) (applied to the transformation component)
+- [Capacity constraint](@ref capacity_constraint_ref) (applied to the CO₂ edge)
+
+Users can refer to the [Adding Asset Constraints to a System](@ref) section of the User Guide for a list of all the constraints that can be applied to an electric DAC asset.
+
+### Investment Parameters
+| Field | Type | Description | Units | Default |
+|--------------|---------|------------|----------------|----------|
+| `can_retire` | Boolean | Whether electric DAC asset capacity can be retired | - | false |
+| `can_expand` | Boolean | Whether electric DAC asset capacity can be expanded | - | false |
+| `existing_capacity` | Float64 | Initial installed electric DAC asset capacity | MW | 0.0 |
+| `capacity_size` | Float64 | Unit size for capacity decisions | - | 1.0 |
+
+#### Additional Investment Parameters
+
+**Maximum and minimum capacity constraints**
+
+If [`MaxCapacityConstraint`](@ref max_capacity_constraint_ref) or [`MinCapacityConstraint`](@ref min_capacity_constraint_ref) are added to the constraints dictionary for the CO₂ edge, the following parameters are used by Macro:
+
+| Field | Type | Description | Units | Default |
+|--------------|---------|------------|----------------|----------|
+| `max_capacity` | Float64 | Maximum allowed electric DAC asset capacity | MW | Inf |
+| `min_capacity` | Float64 | Minimum allowed electric DAC asset capacity | MW | 0.0 |
+
+### Economic Parameters
+| Field | Type | Description | Units | Default |
+|--------------|---------|------------|----------------|----------|
+| `investment_cost` | Float64 | CAPEX per unit electric DAC asset capacity | \$/MW/yr | 0.0 |
+| `fixed_om_cost` | Float64 | Fixed O&M costs of the electric DAC asset | \$/MW/yr | 0.0 |
+| `variable_om_cost` | Float64 | Variable O&M costs of the electric DAC asset | \$/MWh | 0.0 |
+
+### Operational Parameters
+| Field | Type | Description | Units | Default |
+|--------------|---------|------------|----------------|----------|
+| `availability` | Dict | Path to availability file and column name | - | Empty |
+
+#### Additional Operational Parameters
+
+**Minimum flow constraint**
+
+If [`MinFlowConstraint`](@ref min_flow_constraint_ref) is added to the constraints dictionary for the CO₂ edge, the following parameter is used:
+
+| Field | Type | Description | Units | Default |
+|--------------|---------|------------|----------------|----------|
+| `min_flow_fraction` | Float64 | Minimum flow as fraction of capacity | fraction | 0.0 |
+
+**Ramping limit constraint**
+
+If [`RampingLimitConstraint`](@ref ramping_limits_constraint_ref) is added to the constraints dictionary for the CO₂ edge, the following parameters are used:
+
+| Field | Type | Description | Units | Default |
+|--------------|---------|------------|----------------|----------|
+| `ramp_up_fraction` | Float64 | Maximum increase in flow between timesteps | fraction | 1.0 |
+| `ramp_down_fraction` | Float64 | Maximum decrease in flow between timesteps | fraction | 1.0 |
+
+## [Types - Asset Structure](@id electricdac_type_definition)
+
+The `ElectricDAC` asset is defined as follows:
+
+```julia
+struct ElectricDAC <: AbstractAsset
+    id::AssetId
+    transformation::Transformation
+    elec_edge::Edge{<:Electricity}
+    co2_edge::Edge{<:CO2}
+    co2_captured_edge::Edge{<:CO2Captured}
+end
+```
+
+## [Constructors](@id electricdac_constructors)
+
+### Default constructor
+
+```julia
+ElectricDAC(id::AssetId, transformation::Transformation, elec_edge::Edge{<:Electricity}, co2_edge::Edge{<:CO2}, co2_captured_edge::Edge{<:CO2Captured})
+```
+
+### Factory constructor
+```julia
+make(asset_type::Type{ElectricDAC}, data::AbstractDict{Symbol,Any}, system::System)
+```
+
+| Field | Type | Description |
+|--------------|---------|------------|
+| `asset_type` | `Type{ElectricDAC}` | Macro type of the asset |
+| `data` | `AbstractDict{Symbol,Any}` | Dictionary containing the input data for the asset |
+| `system` | `System` | System to which the asset belongs |
+
+## [Examples](@id electricdac_examples)
+This section contains examples of how to use the electric DAC asset in a Macro model.
+
+### Simple Electric DAC Asset
+This example shows a single electric DAC asset with ramping limits and availability time series.
+
+**JSON Format:**
+```json
+{
+    "ElectricDAC": [
+        {
+            "type": "ElectricDAC",
+            "instance_data": [
+                {
+                    "id": "SE_Sorbent_DAC",
+                    "location": "SE",
+                    "investment_cost": 1050000,
+                    "fixed_om_cost": 837000,
+                    "variable_om_cost": 24.64,
+                    "electricity_consumption": 4.38,
+                    "co2_sink": "co2_sink",
+                    "co2_constraints": {
+                        "RampingLimitConstraint": true
+                    },
+                    "ramp_up_fraction": 1.0,
+                    "ramp_down_fraction": 1.0,
+                    "availability": {
+                        "timeseries": {
+                            "path": "system/availability.csv",
+                            "header": "SE_Sorbent_DAC"
+                        }
+                    }
+                }
+            ]
+        }
+    ]
+}
+```
+
+**CSV Format:**
+
+| Type | id | location | investment\_cost | fixed\_om\_cost | variable\_om\_cost | electricity\_consumption | co2\_sink | co2\_constraints--RampingLimitConstraint | ramp\_up\_fraction | ramp\_down\_fraction | availability--timeseries--path | availability--timeseries--header |
+|------|----|----------|----------------|----------------|----------------|----------------|----------------|----------------|----------------|----------------|----------------|----------------|
+| ElectricDAC | SE\_Sorbent\_DAC | SE | 1050000 | 837000 | 24.64 | 4.38 | co2\_sink | true | 1.0 | 1.0 | system/availability.csv | SE\_Sorbent\_DAC |
+
+### Multiple Electric DAC Assets in Different Zones
+
+**JSON Format:**
+
+Note that the `global_data` field is used to set the fields and constraints that are common to all instances of the same asset type.
+
+```json
+{
+    "ElectricDAC": [
+        {
+            "type": "ElectricDAC",
+            "global_data": {
+                "electricity_consumption": 4.38,
+                "co2_sink": "co2_sink",
+                "co2_constraints": {
+                    "RampingLimitConstraint": true
+                },
+                "investment_cost": 1050000,
+                "fixed_om_cost": 837000,
+                "variable_om_cost": 24.64,
+                "ramp_up_fraction": 1.0,
+                "ramp_down_fraction": 1.0
+            },
+            "instance_data": [
+                {
+                    "id": "SE_Sorbent_DAC",
+                    "location": "SE",
+                    "availability": {
+                        "timeseries": {
+                            "path": "system/availability.csv",
+                            "header": "SE_Sorbent_DAC"
+                        }
+                    }
+                },
+                {
+                    "id": "MIDAT_Sorbent_DAC",
+                    "location": "MIDAT",
+                    "availability": {
+                        "timeseries": {
+                            "path": "system/availability.csv",
+                            "header": "MIDAT_Sorbent_DAC"
+                        }
+                    }
+                },
+                {
+                    "id": "NE_Sorbent_DAC",
+                    "location": "NE",
+                    "availability": {
+                        "timeseries": {
+                            "path": "system/availability.csv",
+                            "header": "NE_Sorbent_DAC"
+                        }
+                    }
+                }
+            ]
+        }
+    ]
+}
+```
+
+**CSV Format:**
+
+| Type | id | location | investment\_cost | fixed\_om\_cost | variable\_om\_cost | electricity\_consumption | co2\_sink | co2\_constraints--RampingLimitConstraint | ramp\_up\_fraction | ramp\_down\_fraction | availability--timeseries--path | availability--timeseries--header |
+|------|----|----------|----------------|----------------|----------------|----------------|----------------|----------------|----------------|----------------|----------------|----------------|
+| ElectricDAC | SE\_Sorbent\_DAC | SE | 1050000 | 837000 | 24.64 | 4.38 | co2\_sink | true | 1.0 | 1.0 | system/availability.csv | SE\_Sorbent\_DAC |
+| ElectricDAC | MIDAT\_Sorbent\_DAC | MIDAT | 1050000 | 837000 | 24.64 | 4.38 | co2\_sink | true | 1.0 | 1.0 | system/availability.csv | MIDAT\_Sorbent\_DAC |
+| ElectricDAC | NE\_Sorbent\_DAC | NE | 1050000 | 837000 | 24.64 | 4.38 | co2\_sink | true | 1.0 | 1.0 | system/availability.csv | NE\_Sorbent\_DAC |
+
+## [Best Practices](@id electricdac_best_practices)
+
+1. **Use global data for common fields and constraints**: Use the `global_data` field to set the fields and constraints that are common to all instances of the same asset type.
+2. **Set realistic electricity consumption**: Ensure electricity consumption per unit CO₂ captured reflects actual technology performance
+3. **Use meaningful IDs**: Choose descriptive identifiers that indicate location and technology type
+4. **Consider availability profiles**: Use availability time series to model operational constraints
+5. **Validate costs**: Ensure investment and O&M costs are in appropriate units
+6. **Test configurations**: Start with simple configurations and gradually add complexity
+7. **Monitor CO₂ balance**: Ensure the CO₂ capture flows are consistent with the overall system CO₂ balance
+
+## [Input File (Advanced Format)](@id electricdac_advanced_json_csv_input_format)
+
+Macro provides an advanced format for defining electric DAC assets, offering users and modelers detailed control over asset specifications. This format builds upon the standard format and is ideal for those who need more comprehensive customization.
+
+To understand the advanced format, consider the [graph representation](@ref electricdac_asset_structure) and the [type definition](@ref electricdac_type_definition) of an electric DAC asset. The input file mirrors this hierarchical structure.
+
+An electric DAC asset in Macro is composed of a transformation component, represented by a `Transformation` object, and three edges, each represented by an `Edge` object. The input file for an electric DAC asset is therefore organized as follows:
 
 ```json
 {
@@ -37,63 +381,9 @@ The structure of the input file for an electric DAC asset follows the graph repr
 }
 ```
 
-### Transformation
+Each top-level key (e.g., "transforms" or "edges") denotes a component type. The second-level keys either specify the attributes of the component (when there is a single instance) or identify the instances of the component (e.g., "elec\_edge", "co2\_edge", etc.) when there are multiple instances. For multiple instances, a third-level key details the attributes for each instance.
 
-The definition of the transformation object can be found here [MacroEnergy.Transformation](@ref).
-
-| **Attribute** | **Type** | **Values** | **Default** | **Description/Units** |
-|:--------------| :------: |:------: | :------: |:-------|
-| **timedata** | `String` | `String` | Required | Time resolution for the time series data linked to the transformation. E.g. "Electricity". |
-| **constraints** | `Dict{String,Bool}` | Any Macro constraint type for vertices| `BalanceConstraint` | List of constraints applied to the transformation. E.g. `{"BalanceConstraint": true}`. |
-| **electricity_consumption** $\epsilon_{elec\_consumption}$ | `Float64` | `Float64` | 0.0 | $MWh_{elec}/t_{CO2}$ |
-
-!!! tip "Default constraints"
-    The **default constraint** for the transformation part of the ElectricDAC asset is the following:
-    - [Balance constraint](@ref balance_constraint_ref)
-
-#### Flow equations
-In the following equations, $\phi$ is the flow of the commodity and $\epsilon$ is the stoichiometric coefficient defined in the transformation table below.
-
-!!! note "ElectricDAC"
-    ```math
-    \begin{aligned}
-    \phi_{elec} &= \phi_{co2\_captured} \cdot \epsilon_{elec\_consumption} \\
-    \phi_{co2} &= \phi_{co2\_captured} \\
-    \end{aligned}
-    ```
-
-### Edge
-Both the incoming and outgoing edges are represented by the same set of attributes. The definition of the `Edge` object can be found here [MacroEnergy.Edge](@ref).
-
-| **Attribute** | **Type** | **Values** | **Default** | **Description** |
-|:--------------| :------: |:------: | :------: |:-------|
-| **type** | `String` | Any Macro commodity type matching the commodity of the edge | Required | Commodity of the edge. E.g. "Electricity". |
-| **start_vertex** | `String` | Any node id present in the system matching the commodity of the edge | Required | ID of the starting vertex of the edge. The node must be present in the `nodes.json` file. E.g. "elec\_node\_1". |
-| **end_vertex** | `String` | Any node id present in the system matching the commodity of the edge | Required | ID of the ending vertex of the edge. The node must be present in the `nodes.json` file. E.g. "elec\_node\_2". |
-| **constraints** | `Dict{String,Bool}` | Any Macro constraint type for Edges | Check box below | List of constraints applied to the edge. E.g. `{"CapacityConstraint": true}`. |
-| **availability** | `Dict` | Availability file path and header | Empty | Path to the availability file and column name for the availability time series to link to the edge. E.g. `{"timeseries": {"path": "assets/availability.csv", "header": "Availability_MW_z1"}}`.|
-| **can_expand** | `Bool` | `Bool` | `false` | Whether the edge is eligible for capacity expansion. |
-| **can_retire** | `Bool` | `Bool` | `false` | Whether the edge is eligible for capacity retirement. |
-| **capacity_size** | `Float64` | `Float64` | `1.0` | Size of the edge capacity. |
-| **existing_capacity** | `Float64` | `Float64` | `0.0` | Existing capacity of the edge in MW. |
-| **fixed\_om\_cost** | `Float64` | `Float64` | `0.0` | Fixed operations and maintenance cost (USD/MW-year). |
-| **has\_capacity** | `Bool` | `Bool` | `false` | Whether capacity variables are created for the edge. |
-| **integer\_decisions** | `Bool` | `Bool` | `false` | Whether capacity variables are integers. |
-| **investment\_cost** | `Float64` | `Float64` | `0.0` | Annualized capacity investment cost (USD/MW-year) |
-| **loss\_fraction** | `Float64` | Number $\in$ [0,1] | `0.0` | Fraction of transmission loss. |
-| **max\_capacity** | `Float64` | `Float64` | `Inf` | Maximum allowed capacity of the edge (MW). **Note: add the `MaxCapacityConstraint` to the constraints dictionary to activate this constraint**. |
-| **min\_capacity** | `Float64` | `Float64` | `0.0` | Minimum allowed capacity of the edge (MW). **Note: add the `MinCapacityConstraint` to the constraints dictionary to activate this constraint**. |
-| **min\_flow\_fraction** | `Float64` | Number $\in$ [0,1] | `0.0` | Minimum flow of the edge as a fraction of the total capacity. **Note: add the `MinFlowConstraint` to the constraints dictionary to activate this constraint**. |
-| **ramp\_down\_fraction** | `Float64` | Number $\in$ [0,1] | `1.0` | Maximum decrease in flow between two time steps, reported as a fraction of the capacity. **Note: add the `RampingLimitConstraint` to the constraints dictionary to activate this constraint**. |
-| **ramp\_up\_fraction** | `Float64` | Number $\in$ [0,1] | `1.0` | Maximum increase in flow between two time steps, reported as a fraction of the capacity. **Note: add the `RampingLimitConstraint` to the constraints dictionary to activate this constraint**. |
-| **unidirectional** | `Bool` | `Bool` | `false` | Whether the edge is unidirectional. |
-| **variable\_om\_cost** | `Float64` | `Float64` | `0.0` | Variable operation and maintenance cost (USD/MWh). |
-
-!!! tip "Default constraints"
-    The only **default constraint** for the edges of the ElectricDAC asset is the [Capacity constraint](@ref capacity_constraint_ref) applied to the CO2 edge. 
-
-## Example
-The following is an example of the input file for an ElectricDAC asset that creates three electric DAC units, each for a different region.
+Below is an example of an input file for an electric DAC asset that sets up a single instance at three different locations, SE, MIDAT, and NE.
 
 ```json
 {
@@ -109,7 +399,7 @@ The following is an example of the input file for an ElectricDAC asset that crea
                 },
                 "edges": {
                     "co2_edge": {
-                        "type": "CO2",
+                        "commodity": "CO2",
                         "unidirectional": true,
                         "has_capacity": true,
                         "start_vertex": "co2_sink",
@@ -123,21 +413,20 @@ The following is an example of the input file for an ElectricDAC asset that crea
                         "integer_decisions": false
                     },
                     "elec_edge": {
-                        "type": "Electricity",
+                        "commodity": "Electricity",
                         "unidirectional": true,
                         "has_capacity": false
                     },
                     "co2_captured_edge": {
-                        "type": "CO2Captured",
+                        "commodity": "CO2Captured",
                         "unidirectional": true,
-                        "has_capacity": false,
-                        "end_vertex": "co2_captured_sink"
+                        "has_capacity": false
                     }
                 }
             },
             "instance_data": [
                 {
-                    "id": "SE_Solvent_DAC",
+                    "id": "SE_Sorbent_DAC",
                     "transforms": {
                         "electricity_consumption": 4.38
                     },
@@ -145,24 +434,27 @@ The following is an example of the input file for an ElectricDAC asset that crea
                         "co2_edge": {
                             "availability": {
                                 "timeseries": {
-                                    "path": "assets/availability.csv",
-                                    "header": "SE_Solvent_DAC"
+                                    "path": "system/availability.csv",
+                                    "header": "SE_Sorbent_DAC"
                                 }
                             },
                             "existing_capacity": 0.0,
-                            "investment_cost": 939000.00,
-                            "fixed_om_cost": 747000.00,
-                            "variable_om_cost": 22.00,
+                            "investment_cost": 1050000,
+                            "fixed_om_cost": 837000,
+                            "variable_om_cost": 24.64,
                             "ramp_up_fraction": 1.0,
                             "ramp_down_fraction": 1.0
                         },
                         "elec_edge": {
                             "start_vertex": "elec_SE"
+                        },
+                        "co2_captured_edge": {
+                            "end_vertex": "co2_captured_SE"
                         }
                     }
                 },
                 {
-                    "id": "MIDAT_Solvent_DAC",
+                    "id": "MIDAT_Sorbent_DAC",
                     "transforms": {
                         "electricity_consumption": 4.38
                     },
@@ -170,24 +462,27 @@ The following is an example of the input file for an ElectricDAC asset that crea
                         "co2_edge": {
                             "availability": {
                                 "timeseries": {
-                                    "path": "assets/availability.csv",
-                                    "header": "MIDAT_Solvent_DAC"
+                                    "path": "system/availability.csv",
+                                    "header": "MIDAT_Sorbent_DAC"
                                 }
                             },
                             "existing_capacity": 0.0,
-                            "investment_cost": 939000.00,
-                            "fixed_om_cost": 747000.00,
-                            "variable_om_cost": 22.00,
+                            "investment_cost": 1050000,
+                            "fixed_om_cost": 837000,
+                            "variable_om_cost": 24.64,
                             "ramp_up_fraction": 1.0,
                             "ramp_down_fraction": 1.0
                         },
                         "elec_edge": {
                             "start_vertex": "elec_MIDAT"
+                        },
+                        "co2_captured_edge": {
+                            "end_vertex": "co2_captured_MIDAT"
                         }
                     }
                 },
                 {
-                    "id": "NE_Solvent_DAC",
+                    "id": "NE_Sorbent_DAC",
                     "transforms": {
                         "electricity_consumption": 4.38
                     },
@@ -195,19 +490,22 @@ The following is an example of the input file for an ElectricDAC asset that crea
                         "co2_edge": {
                             "availability": {
                                 "timeseries": {
-                                    "path": "assets/availability.csv",
-                                    "header": "NE_Solvent_DAC"
+                                    "path": "system/availability.csv",
+                                    "header": "NE_Sorbent_DAC"
                                 }
                             },
                             "existing_capacity": 0.0,
-                            "investment_cost": 939000.00,
-                            "fixed_om_cost": 747000.00,
-                            "variable_om_cost": 22.00,
+                            "investment_cost": 1050000,
+                            "fixed_om_cost": 837000,
+                            "variable_om_cost": 24.64,
                             "ramp_up_fraction": 1.0,
                             "ramp_down_fraction": 1.0
                         },
                         "elec_edge": {
                             "start_vertex": "elec_NE"
+                        },
+                        "co2_captured_edge": {
+                            "end_vertex": "co2_captured_NE"
                         }
                     }
                 }
@@ -216,3 +514,11 @@ The following is an example of the input file for an ElectricDAC asset that crea
     ]
 }
 ```
+
+### Key Points
+
+- The `global_data` field is utilized to define attributes and constraints that apply universally to all instances of a particular asset type.
+- The `start_vertex` and `end_vertex` fields indicate the nodes to which the edges are connected. These nodes must be defined in the `nodes.json` file.
+- Only the CO₂ edge is allowed to have capacity variables and constraints, as this represents the main capacity decision for the DAC facility.
+- The CO₂ edge uses availability time series to model operational constraints.
+- For a comprehensive list of attributes that can be configured for the transformation and edge components, refer to the [transformation](@ref manual-transformation-fields) and [edges](@ref manual-edges-fields) pages of the Macro manual.
