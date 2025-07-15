@@ -1,21 +1,332 @@
 # Electrolyzer
 
-## Graph structure
-An electrolyzer asset is represented in Macro using the following graph structure:
+## Contents
 
-```@raw html
-<img width="400" src="../../images/electrolyzer.png" />
+[Overview](@ref electrolyzer_overview) | [Asset Structure](@ref electrolyzer_asset_structure) | [Flow Equations](@ref electrolyzer_flow_equations) | [Input File (Standard Format)](@ref electrolyzer_input_file) | [Types - Asset Structure](@ref electrolyzer_type_definition) | [Constructors](@ref electrolyzer_constructors) | [Examples](@ref electrolyzer_examples) | [Best Practices](@ref electrolyzer_best_practices) | [Input File (Advanced Format)](@ref electrolyzer_advanced_json_csv_input_format)
+
+## [Overview](@id electrolyzer_overview)
+
+Electrolyzer assets in Macro represent hydrogen production technologies that convert electricity into hydrogen through electrolysis. These assets are defined using either JSON or CSV input files placed in the `assets` directory, typically named with descriptive identifiers like `electrolyzer.json` or `h2_production.json`.
+
+## [Asset Structure](@id electrolyzer_asset_structure)
+
+An electrolyzer asset consists of three main components:
+
+1. **Transformation Component**: Balances the electricity and hydrogen flows
+2. **Electricity Edge**: Represents the electricity consumption from the grid
+3. **Hydrogen Edge**: Represents the hydrogen production flow
+
+Here is a graphical representation of the electrolyzer asset:
+
+```mermaid
+%%{init: {'theme': 'base', 'themeVariables': { 'background': '#D1EBDE' }}}%%
+flowchart LR
+  subgraph Electrolyzer
+  direction BT
+  A((Electricity)) e1@--> B{{..}}
+  B e2@--> C((Hydrogen))
+  e1@{ animate: true }
+  e2@{ animate: true }
+ end
+    style A r:55px,fill:#FFD700,stroke:black,color:black,stroke-dasharray: 3,5;
+    style B fill:black,stroke:black,color:black;
+    style C r:55px,fill:lightblue,stroke:black,color:black,stroke-dasharray: 3,5;
+
+    linkStyle 0 stroke:#FFD700, stroke-width: 2px, stroke-dasharray: 5 5;
+    linkStyle 1 stroke:lightblue, stroke-width: 2px, stroke-dasharray: 5 5;
 ```
 
-An electrolyzer asset is made of:
+## [Flow Equations](@id electrolyzer_flow_equations)
+In the following equations, $\phi$ is the flow of the commodity and $\epsilon$ is the stoichiometric coefficient defined in the transformation table above (see [Conversion Process Parameters](@ref electrolyzer_conversion_process_parameters)).
 
-- 1 `Transformation` component, representing the electrolysis process.
-- 2 `Edge` components:
-    - 1 **incoming** `Electricity` `Edge`, representing the electricity consumption.
-    - 1 **outgoing** `Hydrogen` `Edge`, representing the hydrogen production.
+!!! note "Electrolyzer"
+    ```math
+    \begin{aligned}
+    \phi_{h2} &= \phi_{elec} \cdot \epsilon_{efficiency} \\
+    \end{aligned}
+    ```
 
-## Attributes
-The structure of the input file for an electrolyzer asset follows the graph representation. Each `global_data` and `instance_data` will look like this:
+## [Input File (Standard Format)](@id electrolyzer_input_file)
+
+The easiest way to include an electrolyzer asset in a model is to create a new file (either JSON or CSV) and place it in the `assets` directory together with the other assets. 
+
+```
+your_case/
+├── assets/
+│   ├── electrolyzer.json    # or electrolyzer.csv
+│   ├── other_assets.json
+│   └── ...
+├── system/
+├── settings/
+└── ...
+```
+
+This file can either be created manually, or using the `template_asset` function, as shown in the [Adding an Asset to a System](@ref) section of the User Guide. The file will be automatically loaded when you run your Macro model. 
+
+The following is an example of an electrolyzer asset input file:
+```json
+{
+    "electrolyzer": [
+        {
+            "type": "Electrolyzer",
+            "instance_data": [
+                {
+                    "id": "SE_Electrolyzer",
+                    "location": "SE",
+                    "capacity_size": 1.5756,
+                    "investment_cost": 41139.12592,
+                    "fixed_om_cost": 1174.680271,
+                    "variable_om_cost": 0.0,
+                    "efficiency_rate": 0.87455595,
+                    "h2_constraints": {
+                        "MinFlowConstraint": true,
+                        "RampingLimitConstraint": true
+                    },
+                    "min_flow_fraction": 0.1,
+                    "ramp_up_fraction": 1,
+                    "ramp_down_fraction": 1
+                }
+            ]
+        }
+    ]
+}
+```
+
+!!! tip "Global Data vs Instance Data"
+    When working with JSON input files, the `global_data` field can be used to group data that is common to all instances of the same asset type. This is useful for setting constraints that are common to all instances of the same asset type and avoid repeating the same data for each instance. See the [Examples](@ref "electrolyzer_examples") section below for an example.
+
+The following tables outline the attributes that can be set for an electrolyzer asset.
+
+### Essential Attributes
+| Field | Type | Description |
+|--------------|---------|------------|
+| `Type` | String | Asset type identifier: "Electrolyzer" |
+| `id` | String | Unique identifier for the electrolyzer instance |
+| `location` | String | Geographic location/node identifier |
+
+### [Conversion Process Parameters](@id electrolyzer_conversion_process_parameters)
+The following set of parameters control the conversion process and stoichiometry of the electrolyzer asset (see [Flow Equations](@ref electrolyzer_flow_equations) for more details).
+
+| Field | Type | Description | Units | Default |
+|--------------|---------|------------|----------------|----------|
+| `efficiency_rate` | Float64 | Electrolysis efficiency | $MWh_{h2}/MWh_{elec}$ | 1.0 |
+
+### [Constraints configuration](@id "electrolyzer_constraints")
+Electrolyzer assets can have different constraints applied to them, and the user can configure them using the following fields:
+
+| Field | Type | Description |
+|--------------|---------|------------|
+| `transform_constraints` | Dict{String,Bool} | List of constraints applied to the transformation component. |
+| `h2_constraints` | Dict{String,Bool} | List of constraints applied to the hydrogen edge. |
+| `elec_constraints` | Dict{String,Bool} | List of constraints applied to the electricity edge. |
+
+#### Default constraints
+To simplify the input file and the asset configuration, the following constraints are applied to the electrolyzer asset by default:
+
+- [Balance constraint](@ref balance_constraint_ref) (applied to the transformation component)
+- [Capacity constraint](@ref capacity_constraint_ref) (applied to the hydrogen edge)
+
+Users can refer to the [Adding Asset Constraints to a System](@ref) section of the User Guide for a list of all the constraints that can be applied to an electrolyzer asset.
+
+### Investment Parameters
+| Field | Type | Description | Units | Default |
+|--------------|---------|------------|----------------|----------|
+| `can_retire` | Boolean | Whether electrolyzer capacity can be retired | - | false |
+| `can_expand` | Boolean | Whether electrolyzer capacity can be expanded | - | false |
+| `existing_capacity` | Float64 | Initial installed electrolyzer capacity | MW | 0.0 |
+| `capacity_size` | Float64 | Unit size for capacity decisions | - | 1.0 |
+
+#### Additional Investment Parameters
+
+**Maximum and minimum capacity constraints**
+
+If [`MaxCapacityConstraint`](@ref max_capacity_constraint_ref) or [`MinCapacityConstraint`](@ref min_capacity_constraint_ref) are added to the constraints dictionary for the hydrogen edge, the following parameters are used by Macro:
+
+| Field | Type | Description | Units | Default |
+|--------------|---------|------------|----------------|----------|
+| `max_capacity` | Float64 | Maximum allowed electrolyzer capacity | MW | Inf |
+| `min_capacity` | Float64 | Minimum allowed electrolyzer capacity | MW | 0.0 |
+
+### Economic Parameters
+| Field | Type | Description | Units | Default |
+|--------------|---------|------------|----------------|----------|
+| `investment_cost` | Float64 | CAPEX per unit electrolyzer capacity | \$/MW | 0.0 |
+| `annualized_investment_cost` | Union{Nothing,Float64} | Annualized CAPEX | \$/MW/yr | calculated |
+| `fixed_om_cost` | Float64 | Fixed O&M costs | \$/MW/yr | 0.0 |
+| `variable_om_cost` | Float64 | Variable O&M costs | \$/MWh | 0.0 |
+| `wacc` | Float64 | Weighted average cost of capital | fraction | 0.0 |
+| `lifetime` | Int | Asset lifetime in years | years | 1 |
+| `capital_recovery_period` | Int | Investment recovery period | years | 1 |
+| `retirement_period` | Int | Retirement period | years | 1 |
+
+### Operational Parameters
+| Field | Type | Description | Units | Default |
+|--------------|---------|------------|----------------|----------|
+| `availability` | Dict | Path to availability file and column name | - | Empty |
+
+#### Additional Operational Parameters
+
+**Minimum flow constraint**
+
+If [`MinFlowConstraint`](@ref min_flow_constraint_ref) is added to the constraints dictionary for the hydrogen edge, the following parameter is used:
+
+| Field | Type | Description | Units | Default |
+|--------------|---------|------------|----------------|----------|
+| `min_flow_fraction` | Float64 | Minimum flow as fraction of capacity | fraction | 0.0 |
+
+**Ramping limit constraint**
+
+If [`RampingLimitConstraint`](@ref ramping_limits_constraint_ref) is added to the constraints dictionary for the hydrogen edge, the following parameters are used:
+
+| Field | Type | Description | Units | Default |
+|--------------|---------|------------|----------------|----------|
+| `ramp_up_fraction` | Float64 | Maximum increase in flow between timesteps | fraction | 1.0 |
+| `ramp_down_fraction` | Float64 | Maximum decrease in flow between timesteps | fraction | 1.0 |
+
+## [Types - Asset Structure](@id electrolyzer_type_definition)
+
+The `Electrolyzer` asset is defined as follows:
+
+```julia
+struct Electrolyzer <: AbstractAsset
+    id::AssetId
+    transformation::AbstractTransformation{<:Hydrogen}
+    elec_edge::Edge{<:Electricity}
+    h2_edge::Edge{<:Hydrogen}
+end
+```
+
+## [Constructors](@id electrolyzer_constructors)
+
+### Default constructor
+
+```julia
+Electrolyzer(id::AssetId, transformation::AbstractTransformation{<:Hydrogen}, elec_edge::Edge{<:Electricity}, h2_edge::Edge{<:Hydrogen})
+```
+
+### Factory constructor
+```julia
+make(asset_type::Type{Electrolyzer}, data::AbstractDict{Symbol,Any}, system::System)
+```
+
+| Field | Type | Description |
+|--------------|---------|------------|
+| `asset_type` | `Type{Electrolyzer}` | Macro type of the asset |
+| `data` | `AbstractDict{Symbol,Any}` | Dictionary containing the input data for the asset |
+| `system` | `System` | System to which the asset belongs |
+
+## [Examples](@id electrolyzer_examples)
+This section contains examples of how to use the electrolyzer asset in a Macro model.
+
+### Single electrolyzer in a single zone
+
+This example shows a single electrolyzer in a single zone, SE, with ramping limits and minimum flow constraints.
+
+**JSON Format:**
+
+```json
+{
+    "electrolyzer": [
+        {
+            "type": "Electrolyzer",
+            "instance_data": [
+                {
+                    "id": "SE_Electrolyzer",
+                    "location": "SE",
+                    "investment_cost": 41139.12592,
+                    "fixed_om_cost": 1174.680271,
+                    "variable_om_cost": 0.0,
+                    "capacity_size": 1.5756,
+                    "efficiency_rate": 0.87455595,
+                    "h2_constraints": {
+                        "RampingLimitConstraint": true,
+                        "MinFlowConstraint": true
+                    },
+                    "ramp_up_fraction": 1,
+                    "ramp_down_fraction": 1,
+                    "min_flow_fraction": 0.1
+                }
+            ]
+        }
+    ]
+}
+```
+
+**CSV Format:**
+
+| Type | id | location | investment\_cost | fixed\_om\_cost | variable\_om\_cost | efficiency\_rate | h2\_constraints--RampingLimitConstraint | h2\_constraints--MinFlowConstraint | capacity\_size | ramp\_up\_fraction | ramp\_down\_fraction | min\_flow\_fraction |
+|------|----|----------|----------------|----------------|----------------|----------------|----------------|----------------|----------------|----------------|----------------|----------------|
+| Electrolyzer | SE\_Electrolyzer | SE | 41139.12592 | 1174.680271 | 0.0 | 0.87455595 | true | true | 1.5756 | 1 | 1 | 0.1 |
+
+### Multiple electrolyzers in different zones
+
+**JSON Format:**
+
+Note that the `global_data` field is used to set the fields and constraints that are common to all instances of the same asset type.
+
+```json
+{
+    "electrolyzer": [
+        {
+            "type": "Electrolyzer",
+            "global_data": {
+                "h2_constraints": {
+                    "RampingLimitConstraint": true,
+                    "MinFlowConstraint": true
+                },
+                "efficiency_rate": 0.87455595,
+                "investment_cost": 41139.12592,
+                "fixed_om_cost": 1174.680271,
+                "variable_om_cost": 0.0,
+                "capacity_size": 1.5756,
+                "ramp_up_fraction": 1,
+                "ramp_down_fraction": 1,
+                "min_flow_fraction": 0.1
+            },
+            "instance_data": [
+                {
+                    "id": "SE_Electrolyzer",
+                    "location": "SE"
+                },
+                {
+                    "id": "MIDAT_Electrolyzer",
+                    "location": "MIDAT"
+                },
+                {
+                    "id": "NE_Electrolyzer",
+                    "location": "NE"
+                }
+            ]
+        }
+    ]
+}
+```
+
+**CSV Format:**
+
+| Type | id | location | investment\_cost | fixed\_om\_cost | variable\_om\_cost | efficiency\_rate | h2\_constraints--RampingLimitConstraint | h2\_constraints--MinFlowConstraint | capacity\_size | ramp\_up\_fraction | ramp\_down\_fraction | min\_flow\_fraction |
+|------|----|----------|----------------|----------------|----------------|----------------|----------------|----------------|----------------|----------------|----------------|----------------|
+| Electrolyzer | SE\_Electrolyzer | SE | 41139.12592 | 1174.680271 | 0.0 | 0.87455595 | true | true | 1.5756 | 1 | 1 | 0.1 |
+| Electrolyzer | MIDAT\_Electrolyzer | MIDAT | 41139.12592 | 1174.680271 | 0.0 | 0.87455595 | true | true | 1.5756 | 1 | 1 | 0.1 |
+| Electrolyzer | NE\_Electrolyzer | NE | 41139.12592 | 1174.680271 | 0.0 | 0.87455595 | true | true | 1.5756 | 1 | 1 | 0.1 |
+
+## [Best Practices](@id electrolyzer_best_practices)
+
+1. **Use global data for common fields and constraints**: Use the `global_data` field to set the fields and constraints that are common to all instances of the same asset type.
+2. **Set realistic efficiency rates**: Ensure the electrolysis efficiency is accurate for the technology being modeled
+3. **Use meaningful IDs**: Choose descriptive identifiers that indicate location and technology type
+4. **Consider operational constraints**: Set appropriate ramp rates and minimum flow fractions based on technology characteristics
+5. **Use constraints selectively**: Only enable constraints that are necessary for your modeling needs
+6. **Validate costs**: Ensure investment and O&M costs are in appropriate units
+7. **Test configurations**: Start with simple configurations and gradually add complexity
+
+## [Input File (Advanced Format)](@id electrolyzer_advanced_json_csv_input_format)
+
+Macro provides an advanced format for defining electrolyzer assets, offering users and modelers detailed control over asset specifications. This format builds upon the standard format and is ideal for those who need more comprehensive customization.
+
+To understand the advanced format, consider the [graph representation](@ref electrolyzer_asset_structure) and the [type definition](@ref electrolyzer_type_definition) of an electrolyzer asset. The input file mirrors this hierarchical structure.
+
+An electrolyzer asset in Macro is composed of a transformation component, represented by a `Transformation` object, and two edges (electricity and hydrogen), each represented by an `Edge` object. The input file for an electrolyzer asset is therefore organized as follows:
 
 ```json
 {
@@ -27,67 +338,15 @@ The structure of the input file for an electrolyzer asset follows the graph repr
             // ... elec_edge-specific attributes ...
         },
         "h2_edge": {
-            // ... co2_edge-specific attributes ...
+            // ... h2_edge-specific attributes ...
         }
     }
 }
 ```
 
-### Transformation
-The definition of the transformation object can be found here [MacroEnergy.Transformation](@ref).
+Each top-level key (e.g., "transforms" or "edges") denotes a component type. The second-level keys either specify the attributes of the component (when there is a single instance) or identify the instances of the component when there are multiple instances.
 
-| **Attribute** | **Type** | **Values** | **Default** | **Description/Units** |
-|:--------------| :------: |:------: | :------: |:-------|
-| **timedata** | `String` | `String` | Required | Time resolution for the time series data linked to the transformation. E.g. "Hydrogen". |
-| **constraints** | `Dict{String,Bool}` | Any Macro constraint type for vertices | `BalanceConstraint` | List of constraints applied to the transformation. E.g. `{"BalanceConstraint": true}`. |
-| **efficiency_rate** $\epsilon_{efficiency}$ | `Float64` | `Float64` | 1.0 | $MWh_{h2}/MWh_{elec}$ |
-
-!!! tip "Default constraints"
-    The **default constraint** for the transformation part of the electrolyzer asset is the following:
-    - [Balance constraint](@ref balance_constraint_ref)
-
-#### Flow equations
-In the following equations, $\phi$ is the flow of the commodity and $\epsilon$ is the stoichiometric coefficient defined in the transformation table below.
-
-!!! note "Electrolyzer"
-    ```math
-    \begin{aligned}
-    \phi_{h2} &= \phi_{elec} \cdot \epsilon_{efficiency} \\
-    \end{aligned}
-    ```
-
-### Asset Edges
-Both the electricity and hydrogen edges are represented by the same set of attributes. The definition of the `Edge` object can be found here [MacroEnergy.Edge](@ref).
-
-| **Attribute** | **Type** | **Values** | **Default** | **Description** |
-|:--------------| :------: |:------: | :------: |:-------|
-| **type** | `String` | Any Macro commodity type matching the commodity of the edge | Required | Commodity of the edge. E.g. "Electricity". |
-| **start_vertex** | `String` | Any node id present in the system matching the commodity of the edge | Required | ID of the starting vertex of the edge. The node must be present in the `nodes.json` file. E.g. "elec\_node\_1". |
-| **end_vertex** | `String` | Any node id present in the system matching the commodity of the edge | Required | ID of the ending vertex of the edge. The node must be present in the `nodes.json` file. E.g. "elec\_node\_2". |
-| **constraints** | `Dict{String,Bool}` | Any Macro constraint type for Edges | Check box below | List of constraints applied to the edge. E.g. `{"CapacityConstraint": true}`. |
-| **availability** | `Dict` | Availability file path and header | Empty | Path to the availability file and column name for the availability time series to link to the edge. E.g. `{"timeseries": {"path": "assets/availability.csv", "header": "SE_Electrolyzer"}}`.|
-| **can_expand** | `Bool` | `Bool` | `false` | Whether the edge is eligible for capacity expansion. |
-| **can_retire** | `Bool` | `Bool` | `false` | Whether the edge is eligible for capacity retirement. |
-| **capacity_size** | `Float64` | `Float64` | `1.0` | Size of the edge capacity. |
-| **existing_capacity** | `Float64` | `Float64` | `0.0` | Existing capacity of the edge in MW. |
-| **fixed\_om\_cost** | `Float64` | `Float64` | `0.0` | Fixed operations and maintenance cost (USD/MW-year). |
-| **has\_capacity** | `Bool` | `Bool` | `false` | Whether capacity variables are created for the edge. |
-| **integer\_decisions** | `Bool` | `Bool` | `false` | Whether capacity variables are integers. |
-| **investment\_cost** | `Float64` | `Float64` | `0.0` | Annualized capacity investment cost (USD/MW-year) |
-| **loss\_fraction** | `Float64` | Number $\in$ [0,1] | `0.0` | Fraction of transmission loss. |
-| **max\_capacity** | `Float64` | `Float64` | `Inf` | Maximum allowed capacity of the edge (MW). **Note: add the `MaxCapacityConstraint` to the constraints dictionary to activate this constraint**. |
-| **min\_capacity** | `Float64` | `Float64` | `0.0` | Minimum allowed capacity of the edge (MW). **Note: add the `MinCapacityConstraint` to the constraints dictionary to activate this constraint**. |
-| **min\_flow\_fraction** | `Float64` | Number $\in$ [0,1] | `0.0` | Minimum flow of the edge as a fraction of the total capacity. **Note: add the `MinFlowConstraint` to the constraints dictionary to activate this constraint**. |
-| **ramp\_down\_fraction** | `Float64` | Number $\in$ [0,1] | `1.0` | Maximum decrease in flow between two time steps, reported as a fraction of the capacity. **Note: add the `RampingLimitConstraint` to the constraints dictionary to activate this constraint**. |
-| **ramp\_up\_fraction** | `Float64` | Number $\in$ [0,1] | `1.0` | Maximum increase in flow between two time steps, reported as a fraction of the capacity. **Note: add the `RampingLimitConstraint` to the constraints dictionary to activate this constraint**. |
-| **unidirectional** | `Bool` | `Bool` | `false` | Whether the edge is unidirectional. |
-| **variable\_om\_cost** | `Float64` | `Float64` | `0.0` | Variable operation and maintenance cost (USD/MWh). |
-
-!!! tip "Default constraints"
-    The only **default constraint** for the edges of the electrolyzer asset is the [Capacity constraint](@ref capacity_constraint_ref) applied to the hydrogen edge. 
-
-## Example
-The following is an example of the input file for an electrolyzer asset that creates three electrolyzers, each for each of the SE, MIDAT and NE regions.
+Below is an example of an input file for an electrolyzer asset that sets up multiple electrolyzers across different regions:
 
 ```json
 {
@@ -95,28 +354,23 @@ The following is an example of the input file for an electrolyzer asset that cre
         {
             "type": "Electrolyzer",
             "global_data": {
-                "nodes": {},
                 "transforms": {
-                    "timedata": "Electricity",
-                    "constraints": {
-                        "BalanceConstraint": true
-                    }
+                    "timedata": "Electricity"
                 },
                 "edges": {
                     "h2_edge": {
-                        "type": "Hydrogen",
+                        "commodity": "Hydrogen",
                         "unidirectional": true,
                         "has_capacity": true,
                         "can_retire": true,
                         "can_expand": true,
                         "constraints": {
-                            "CapacityConstraint": true,
                             "RampingLimitConstraint": true,
                             "MinFlowConstraint": true
                         }
                     },
                     "elec_edge": {
-                        "type": "Electricity",
+                        "commodity": "Electricity",
                         "unidirectional": true,
                         "has_capacity": false
                     }
@@ -126,7 +380,7 @@ The following is an example of the input file for an electrolyzer asset that cre
                 {
                     "id": "SE_Electrolyzer",
                     "transforms": {
-                        "efficiency_rate": 0.875111139
+                        "efficiency_rate": 0.87455595
                     },
                     "edges": {
                         "elec_edge": {
@@ -135,10 +389,10 @@ The following is an example of the input file for an electrolyzer asset that cre
                         "h2_edge": {
                             "end_vertex": "h2_SE",
                             "existing_capacity": 0,
-                            "investment_cost": 41112.53426,
-                            "fixed_om_cost": 1052.480877,
+                            "investment_cost": 41139.12592,
+                            "fixed_om_cost": 1174.680271,
                             "variable_om_cost": 0.0,
-                            "capacity_size": 1.5752,
+                            "capacity_size": 1.5756,
                             "ramp_up_fraction": 1,
                             "ramp_down_fraction": 1,
                             "min_flow_fraction": 0.1
@@ -148,7 +402,7 @@ The following is an example of the input file for an electrolyzer asset that cre
                 {
                     "id": "MIDAT_Electrolyzer",
                     "transforms": {
-                        "efficiency_rate": 0.875111139
+                        "efficiency_rate": 0.87455595
                     },
                     "edges": {
                         "elec_edge": {
@@ -157,10 +411,10 @@ The following is an example of the input file for an electrolyzer asset that cre
                         "h2_edge": {
                             "end_vertex": "h2_MIDAT",
                             "existing_capacity": 0,
-                            "investment_cost": 41112.53426,
-                            "fixed_om_cost": 1052.480877,
+                            "investment_cost": 41139.12592,
+                            "fixed_om_cost": 1174.680271,
                             "variable_om_cost": 0.0,
-                            "capacity_size": 1.5752,
+                            "capacity_size": 1.5756,
                             "ramp_up_fraction": 1,
                             "ramp_down_fraction": 1,
                             "min_flow_fraction": 0.1
@@ -170,7 +424,7 @@ The following is an example of the input file for an electrolyzer asset that cre
                 {
                     "id": "NE_Electrolyzer",
                     "transforms": {
-                        "efficiency_rate": 0.875111139
+                        "efficiency_rate": 0.87455595
                     },
                     "edges": {
                         "elec_edge": {
@@ -179,10 +433,10 @@ The following is an example of the input file for an electrolyzer asset that cre
                         "h2_edge": {
                             "end_vertex": "h2_NE",
                             "existing_capacity": 0,
-                            "investment_cost": 41112.53426,
-                            "fixed_om_cost": 1052.480877,
+                            "investment_cost": 41139.12592,
+                            "fixed_om_cost": 1174.680271,
                             "variable_om_cost": 0.0,
-                            "capacity_size": 1.5752,
+                            "capacity_size": 1.5756,
                             "ramp_up_fraction": 1,
                             "ramp_down_fraction": 1,
                             "min_flow_fraction": 0.1
@@ -194,3 +448,10 @@ The following is an example of the input file for an electrolyzer asset that cre
     ]
 }
 ```
+
+### Key Points
+
+- The `global_data` field is utilized to define attributes and constraints that apply universally to all instances of a particular asset type.
+- The `start_vertex` and `end_vertex` fields indicate the nodes to which the edges are connected. These nodes must be defined in the `nodes.json` file.
+- The hydrogen edge has capacity variables and can be expanded or retired.
+- For a comprehensive list of attributes that can be configured for the transformation and edge components, refer to the [transformation](@ref manual-transformation-fields) and [edges](@ref manual-edges-fields) pages of the Macro manual.
