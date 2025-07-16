@@ -1,60 +1,260 @@
 # Transmission Link
 
-## Graph structure
-A transmission link represents the lossy transport of a commodity between two nodes. For example, an electricity transmission link is represented in Macro using the following graph structure:
+## Contents
 
-```@raw html
-<img width="400" src="../../images/powerline.png" />
+[Overview](@ref transmissionlink_overview) | [Asset Structure](@ref transmissionlink_asset_structure) | [Input File (Standard Format)](@ref transmissionlink_input_file) | [Types - Asset Structure](@ref transmissionlink_type_definition) | [Constructors](@ref transmissionlink_constructors) | [Examples](@ref transmissionlink_examples) | [Best Practices](@ref transmissionlink_best_practices) | [Input File (Advanced Format)](@ref transmissionlink_advanced_json_csv_input_format)
+
+## [Overview](@id transmissionlink_overview)
+
+Transmission Link assets in Macro represent a general commodity transmission infrastructure that links various geographic regions or nodes. These assets are specified using JSON or CSV input files located in the `assets` directory, usually named with descriptive identifiers such as `transmissions.json` or `transmissions.csv`.
+
+## [Asset Structure](@id transmissionlink_asset_structure)
+
+A Transmission Link asset consists of one main component:
+
+1. **Transmission Edge**: Represents the flow of a commodity between two nodes with capacity constraints and losses
+
+Here is a graphical representation of the Transmission Link asset:
+
+```mermaid
+%%{init: {'theme': 'base', 'themeVariables': { 'background': '#D1EBDE' }}}%%
+flowchart LR
+  subgraph TransmissionLink
+  direction LR
+    A((Commodity)) e1@-->|Transmission| B((Commodity))
+ end
+    style A r:40,fill:#FFD700,stroke:black,color:black,stroke-dasharray: 3,5;
+    style B fill:#FFD700,stroke:black,color:black;
+    linkStyle 0,1 stroke:#FFD700, stroke-width: 2px;
 ```
 
-A transmission link is very simple and is made of:
+## [Input File (Standard Format)](@id transmissionlink_input_file)
 
-- 1 `Edge` component:
-    - 1 `Transmission` `Edge`, representing the commodity flow (in this case electricity) between two nodes.
-            
-## Attributes
-The structure of the input file for a transmission link asset follows the graph representation. Each `global_data` and `instance_data` will look like this:
+The easiest way to include a Transmission Link asset in a model is to create a new file (either JSON or CSV) and place it in the `assets` directory together with the other assets. 
+
+```
+your_case/
+├── assets/
+│   ├── transmissions.json    # or transmissions.csv
+│   ├── other_assets.json
+│   └── ...
+├── system/
+├── settings/
+└── ...
+```
+
+This file can either be created manually, or using the `template_asset` function, as shown in the [Adding an Asset to a System](@ref) section of the User Guide. The file will be automatically loaded when you run your Macro model. 
+
+The following is an example of a Transmission Link asset input file:
+```json
+{
+    "link": [
+        {
+            "type": "TransmissionLink",
+            "global_data": {
+                "transmission_constraints": {
+                    "MaxCapacityConstraint": true
+                }
+            },
+            "instance_data": [
+                {
+                    "id": "SE_to_MIDAT",
+                    "commodity": "Electricity",
+                    "transmission_origin": "elec_SE",
+                    "transmission_dest": "elec_MIDAT",
+                    "distance": 491.4512001,
+                    "existing_capacity": 5552,
+                    "max_capacity": 27760,
+                    "investment_cost": 40219,
+                    "loss_fraction": 0.04914512
+                }
+            ]
+        }
+    ]
+}
+```
+
+!!! tip "Global Data vs Instance Data"
+    When working with JSON input files, the `global_data` field can be used to group data that is common to all instances of the same asset type. This is useful for setting constraints that are common to all instances of the same asset type and avoid repeating the same data for each instance. See the [Examples](@ref "transmissionlink_examples") section below for an example.
+
+The following tables outline the attributes that can be set for a Transmission Link asset.
+
+### Essential Attributes
+| Field | Type | Description |
+|--------------|---------|------------|
+| `Type` | String | Asset type identifier: "TransmissionLink" |
+| `id` | String | Unique identifier for the Transmission Link instance |
+| `commodity` | String | Commodity type being transmitted (e.g., "Electricity") |
+| `transmission_origin` | String | Origin node identifier |
+| `transmission_dest` | String | Destination node identifier |
+
+### [Constraints configuration](@id transmissionlink_constraints)
+Transmission Link assets can have different constraints applied to them, and the user can configure them using the following fields:
+
+| Field | Type | Description |
+|--------------|---------|------------|
+| `transmission_constraints` | Dict{String,Bool} | List of constraints applied to the transmission edge. |
+
+#### Default constraints
+To simplify the input file and the asset configuration, the following constraints are applied to the Transmission Link asset by default:
+
+- [Capacity constraint](@ref capacity_constraint_ref) (applied to the transmission edge)
+
+Users can refer to the [Adding Asset Constraints to a System](@ref) section of the User Guide for a list of all the constraints that can be applied to a Transmission Link asset.
+
+### Investment Parameters
+| Field | Type | Description | Units | Default |
+|--------------|---------|------------|----------------|----------|
+| `can_retire` | Boolean | Whether capacity can be retired | - | true |
+| `can_expand` | Boolean | Whether capacity can be expanded | - | false |
+| `existing_capacity` | Float64 | Initial installed capacity | MW | 0.0 |
+| `capacity_size` | Float64 | Unit size for capacity decisions | - | 1.0 |
+
+#### Additional Investment Parameters
+
+**Maximum and minimum capacity constraints**
+
+If [`MaxCapacityConstraint`](@ref max_capacity_constraint_ref) or [`MinCapacityConstraint`](@ref min_capacity_constraint_ref) are added to the constraints dictionary for the transmission edge, the following parameters are used by Macro:
+
+| Field | Type | Description | Units | Default |
+|--------------|---------|------------|----------------|----------|
+| `max_capacity` | Float64 | Maximum allowed capacity | MW | Inf |
+| `min_capacity` | Float64 | Minimum allowed capacity | MW | 0.0 |
+
+### Economic Parameters
+| Field | Type | Description | Units | Default |
+|--------------|---------|------------|----------------|----------|
+| `investment_cost` | Float64 | CAPEX per unit capacity | \$/MW | 0.0 |
+| `annualized_investment_cost` | Union{Nothing,Float64} | Annualized CAPEX | \$/MW/yr | calculated |
+| `fixed_om_cost` | Float64 | Fixed O&M costs | \$/MW/yr | 0.0 |
+| `variable_om_cost` | Float64 | Variable O&M costs | \$/MWh | 0.0 |
+| `wacc` | Float64 | Weighted average cost of capital | fraction | 0.0 |
+| `lifetime` | Int | Asset lifetime in years | years | 1 |
+| `capital_recovery_period` | Int | Investment recovery period | years | 1 |
+| `retirement_period` | Int | Retirement period | years | 1 |
+
+### Operational Parameters
+| Field | Type | Description | Units | Default |
+|--------------|---------|------------|----------------|----------|
+| `distance` | Float64 | Distance between nodes | km | 0.0 |
+| `loss_fraction` | Float64 | Fraction of power lost during transmission | fraction | 0.0 |
+| `unidirectional` | Boolean | Whether the transmission is unidirectional | - | false |
+
+## [Types - Asset Structure](@id transmissionlink_type_definition)
+
+The `TransmissionLink` asset is defined as follows:
+
+```julia
+struct TransmissionLink{T} <: AbstractAsset
+    id::AssetId
+    transmission_edge::Edge{<:T}
+end
+```
+
+## [Constructors](@id transmissionlink_constructors)
+
+### Default constructor
+
+```julia
+TransmissionLink(id::AssetId, transmission_edge::Edge{<:T})
+```
+
+### Factory constructor
+```julia
+make(asset_type::Type{TransmissionLink}, data::AbstractDict{Symbol,Any}, system::System)
+```
+
+| Field | Type | Description |
+|--------------|---------|------------|
+| `asset_type` | `Type{TransmissionLink}` | Macro type of the asset |
+| `data` | `AbstractDict{Symbol,Any}` | Dictionary containing the input data for the asset |
+| `system` | `System` | System to which the asset belongs |
+
+## [Examples](@id transmissionlink_examples)
+This section contains examples of how to use the Transmission Link asset in a Macro model.
+
+### Multiple Transmission Links between different zones
+
+**JSON Format:**
+
+Note that the `global_data` field is used to set the fields and constraints that are common to all instances of the same asset type.
 
 ```json
 {
-    "edges":{
+    "link": [
+        {
+            "type": "TransmissionLink",
+            "global_data": {
+                "transmission_constraints": {
+                    "MaxCapacityConstraint": true
+                }
+            },
+            "instance_data": [
+                {
+                    "id": "SE_to_MIDAT",
+                    "commodity": "Electricity",
+                    "transmission_origin": "elec_SE",
+                    "transmission_dest": "elec_MIDAT",
+                    "distance": 491.4512001,
+                    "existing_capacity": 5552,
+                    "max_capacity": 27760,
+                    "investment_cost": 40219,
+                    "loss_fraction": 0.04914512
+                },
+                {
+                    "id": "MIDAT_to_NE",
+                    "commodity": "Electricity",
+                    "transmission_origin": "elec_MIDAT",
+                    "transmission_dest": "elec_NE",
+                    "distance": 473.6625536,
+                    "existing_capacity": 1915,
+                    "max_capacity": 9575,
+                    "investment_cost": 62316,
+                    "loss_fraction": 0.047366255
+                }
+            ]
+        }
+    ]
+}
+```
+
+**CSV Format:**
+
+| Type | id | commodity | transmission\_origin | transmission\_dest | distance | existing\_capacity | max\_capacity | investment\_cost | loss\_fraction | transmission\_constraints--MaxCapacityConstraint |
+|------|----|-----------|---------------------|-------------------|----------|-------------------|---------------|------------------|----------------|--------------------------------------------------|
+| TransmissionLink | SE\_to\_MIDAT | Electricity | elec\_SE | elec\_MIDAT | 491.4512001 | 5552 | 27760 | 40219 | 0.04914512 | true |
+| TransmissionLink | MIDAT\_to\_NE | Electricity | elec\_MIDAT | elec\_NE | 473.6625536 | 1915 | 9575 | 62316 | 0.047366255 | true |
+
+## [Best Practices](@id transmissionlink_best_practices)
+
+1. **Use global data for common fields and constraints**: Use the `global_data` field to set the fields and constraints that are common to all instances of the same asset type.
+2. **Set realistic transmission losses**: Ensure loss fractions reflect actual transmission line characteristics
+3. **Use meaningful IDs**: Choose descriptive identifiers that indicate origin and destination nodes
+4. **Consider capacity constraints**: Set appropriate maximum capacity limits based on technology and distance
+5. **Use constraints selectively**: Only enable constraints that are necessary for your modeling needs
+6. **Validate costs**: Ensure investment and O&M costs are in appropriate units
+7. **Test configurations**: Start with simple configurations and gradually add complexity
+
+## [Input File (Advanced Format)](@id transmissionlink_advanced_json_csv_input_format)
+
+Macro provides an advanced format for defining Transmission Link assets, offering users and modelers detailed control over asset specifications. This format builds upon the standard format and is ideal for those who need more comprehensive customization.
+
+To understand the advanced format, consider the [graph representation](@ref transmissionlink_asset_structure) and the [type definition](@ref transmissionlink_type_definition) of a Transmission Link asset. The input file mirrors this hierarchical structure.
+
+A Transmission Link asset in Macro is composed of a single transmission edge, represented by an `Edge` object. The input file for a Transmission Link asset is therefore organized as follows:
+
+```json
+{
+    "edges": {
         "transmission_edge": {
             // ... transmission_edge-specific attributes ...
         }
     }
 }
 ```
+Each top-level key (e.g., "edges") denotes a component type. The second-level keys either specify the attributes of the component (when there is a single instance) or identify the instances of the component (e.g., "transmission_edge") when there are multiple instances. For multiple instances, a third-level key details the attributes for each instance.
 
-### Asset Edges
-The definition of the `Edge` object can be found here [MacroEnergy.Edge](@ref).
-
-| **Attribute** | **Type** | **Values** | **Default** | **Description** |
-|:--------------| :------: |:------: | :------: |:-------|
-| **type** | `String` | Commodity of the edge. E.g. `Electricity`. | Required | Commodity flowing through the edge. |
-| **start_vertex** | `String` | Any electricity node id present in the system | Required | ID of the starting vertex of the edge. The node must be present in the `nodes.json` file. E.g. "elec\_node\_1". |
-| **end_vertex** | `String` | Any electricity node id present in the system | Required | ID of the ending vertex of the edge. The node must be present in the `nodes.json` file. E.g. "elec\_node\_2". |
-| **constraints** | `Dict{String,Bool}` | Any Macro constraint type for Edges | `CapacityConstraint` | List of constraints applied to the edge. E.g. `{"CapacityConstraint": true}`. |
-| **can_expand** | `Bool` | `Bool` | `false` | Whether the edge is eligible for capacity expansion. |
-| **can_retire** | `Bool` | `Bool` | `false` | Whether the edge is eligible for capacity retirement. |
-| **distance** | `Float64` | `Float64` | `0.0` | Distance between the start and end vertex of the edge. |
-| **existing_capacity** | `Float64` | `Float64` | `0.0` | Existing capacity of the edge in MW. |
-| **fixed\_om\_cost** | `Float64` | `Float64` | `0.0` | Fixed operations and maintenance cost (USD/MW-year). |
-| **has\_capacity** | `Bool` | `Bool` | `false` | Whether capacity variables are created for the edge. |
-| **integer\_decisions** | `Bool` | `Bool` | `false` | Whether capacity variables are integers. |
-| **investment\_cost** | `Float64` | `Float64` | `0.0` | Annualized capacity investment cost (USD/MW-year) |
-| **loss\_fraction** | `Float64` | Number $\in$ [0,1] | `0.0` | Fraction of transmission loss. |
-| **max\_capacity** | `Float64` | `Float64` | `Inf` | Maximum allowed capacity of the edge (MW). **Note: add the `MaxCapacityConstraint` to the constraints dictionary to activate this constraint**. |
-| **min\_capacity** | `Float64` | `Float64` | `0.0` | Minimum allowed capacity of the edge (MW). **Note: add the `MinCapacityConstraint` to the constraints dictionary to activate this constraint**. |
-| **min\_flow\_fraction** | `Float64` | Number $\in$ [0,1] | `0.0` | Minimum flow of the edge as a fraction of the total capacity. **Note: add the `MinFlowConstraint` to the constraints dictionary to activate this constraint**. |
-| **ramp\_down\_fraction** | `Float64` | Number $\in$ [0,1] | `1.0` | Maximum decrease in flow between two time steps, reported as a fraction of the capacity. **Note: add the `RampingLimitConstraint` to the constraints dictionary to activate this constraint**. |
-| **ramp\_up\_fraction** | `Float64` | Number $\in$ [0,1] | `1.0` | Maximum increase in flow between two time steps, reported as a fraction of the capacity. **Note: add the `RampingLimitConstraint` to the constraints dictionary to activate this constraint**. |
-| **variable\_om\_cost** | `Float64` | `Float64` | `0.0` | Variable operation and maintenance cost (USD/MWh). |
-
-!!! tip "Default constraints"
-    The **default constraint** for power lines is the [Capacity constraint](@ref capacity_constraint_ref). 
-
-## Example
-The following is an example of the input file for a power line asset that creates two power lines, one connecting the SE and MIDAT regions, and one connecting the MIDAT and NE regions.
+Below is an example of an input file for a Transmission Link asset that sets up two transmission lines between different regions.
 
 ```json
 {
@@ -63,8 +263,8 @@ The following is an example of the input file for a power line asset that create
             "type": "TransmissionLink",
             "global_data": {
                 "edges": {
-                    "elec_edge": {
-                        "type": "Electricity",
+                    "transmission_edge": {
+                        "commodity": "Electricity",
                         "has_capacity": true,
                         "unidirectional": false,
                         "can_expand": true,
@@ -86,8 +286,8 @@ The following is an example of the input file for a power line asset that create
                             "end_vertex": "elec_MIDAT",
                             "distance": 491.4512001,
                             "existing_capacity": 5552,
-                            "max_capacity": 33312,
-                            "investment_cost": 35910,
+                            "max_capacity": 27760,
+                            "investment_cost": 40219,
                             "loss_fraction": 0.04914512
                         }
                     }
@@ -100,8 +300,8 @@ The following is an example of the input file for a power line asset that create
                             "end_vertex": "elec_NE",
                             "distance": 473.6625536,
                             "existing_capacity": 1915,
-                            "max_capacity": 11490,
-                            "investment_cost": 55639,
+                            "max_capacity": 9575,
+                            "investment_cost": 62316,
                             "loss_fraction": 0.047366255
                         }
                     }
@@ -111,3 +311,9 @@ The following is an example of the input file for a power line asset that create
     ]
 }
 ```
+
+### Key Points
+
+- The `global_data` field is utilized to define attributes and constraints that apply universally to all instances of a particular asset type.
+- The `start_vertex` and `end_vertex` fields indicate the nodes to which the transmission edge is connected. These nodes must be defined in the `nodes.json` file.
+- For a comprehensive list of attributes that can be configured for the edge component, refer to the [edges](@ref manual-edges-fields) page of the Macro manual.
