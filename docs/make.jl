@@ -76,7 +76,6 @@ const pages = [
             "Manual/assets/electrolyzer.md",
             "Manual/assets/fuelcell.md",
             "Manual/assets/gasstorage.md",
-            "Manual/assets/hydrogenline.md",
             "Manual/assets/hydropower.md",
             "Manual/assets/mustrun.md",
             "Manual/assets/natgasdaq.md",
