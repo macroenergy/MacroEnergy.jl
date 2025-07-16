@@ -1,37 +1,431 @@
 # Hydro Reservoir
 
-## Graph structure
-A hydroelectric reservoir is represented in Macro using the following graph structure:
+## Contents
 
-```@raw html
-<img width="400" src="../../images/hydrores.png" />
+[Overview](@ref hydropower_overview) | [Asset Structure](@ref hydropower_asset_structure) | [Input File (Standard Format)](@ref hydropower_input_file) | [Types - Asset Structure](@ref hydropower_type_definition) | [Constructors](@ref hydropower_constructors) | [Examples](@ref hydropower_examples) | [Best Practices](@ref hydropower_best_practices) | [Input File (Advanced Format)](@ref hydropower_advanced_json_csv_input_format)
+
+## [Overview](@id hydropower_overview)
+
+Hydro Reservoir assets in Macro represent hydroelectric storage systems that can store and release water to generate electricity. These assets are defined using either JSON or CSV input files placed in the `assets` directory, typically named `hydrores.json` or `hydrores.csv`.
+
+## [Asset Structure](@id hydropower_asset_structure)
+
+A hydro reservoir asset consists of one storage component and three edge components:
+
+1. **Storage Component**: Represents the hydroelectric reservoir that stores water
+2. **Inflow Edge**: Incoming edge representing water inflow to the reservoir
+3. **Discharge Edge**: Outgoing edge representing electricity production from water release
+4. **Spillage Edge**: Outgoing edge representing water spillage when reservoir is full
+
+Here is a graphical representation of the hydro reservoir asset:
+
+```mermaid
+%%{init: {'theme': 'base', 'themeVariables': { 'background': '#D1EBDE' }}}%%
+flowchart LR
+  subgraph HydroRes
+    direction LR
+    A((Electricity)) e1@--> B[Storage] e2@--> C((Electricity))
+    B e3@--> A
+    e1@{ animate: true }
+    e2@{ animate: true }
+    e3@{ animate: true }
+  end
+  
+  style A r:55px,fill:#FFD700,stroke:black,color:black,stroke-dasharray: 3,5;
+  style B fill:#FFD700,stroke:black,color:black;
+  style C r:55px,fill:#FFD700,stroke:black,color:black,stroke-dasharray: 3,5;
+
+  linkStyle 0 stroke:#FFD700, stroke-width: 2px;
+  linkStyle 1 stroke:#FFD700, stroke-width: 2px;
+  linkStyle 2 stroke:#FFD700, stroke-width: 2px;
 ```
 
-A hydroelectric reservoir asset is made of:
+## [Input File (Standard Format)](@id hydropower_input_file)
 
-- 1 `Electricity` `Storage` component, representing the hydroelectric reservoir.
-- 3 `Edge` components:
-    - 1 **incoming** `Electricity` `Edge`, representing the electricity supply.
-    - 1 **outgoing** `Electricity` `Edge`, representing the electricity production.
-    - 1 **outgoing** `Electricity` `Edge`, representing the spillage.
+The easiest way to include a hydro reservoir asset in a model is to create a new file (either JSON or CSV) and place it in the `assets` directory together with the other assets.
 
-## Flow equation
-In the following equation, $\phi$ is the flow of the commodity.
+```
+your_case/
+├── assets/
+│   ├── hydrores.json    # or hydrores.csv
+│   ├── other_assets.json
+│   └── ...
+├── system/
+├── settings/
+└── ...
+```
 
-!!! note "HydroRes"
-    ```math
-    \begin{aligned}
-    \phi_{in} &= \phi_{out} + \phi_{spill} \\
-    \end{aligned}
-    ```
+This file can either be created manually, or using the `template_asset` function, as shown in the [Adding an Asset to a System](@ref) section of the User Guide. The file will be automatically loaded when you run your Macro model.
 
-## Attributes
-The structure of the input file for a hydroelectric reservoir asset follows the graph representation. Each `global_data` and `instance_data` will look like this:
+The following example illustrates a hydro reservoir asset input file that is fixed in capacity and cannot be expanded or retired:
 
 ```json
 {
-    "transforms":{
-        // ... transformation-specific attributes ...
+    "hydrores": [
+        {
+            "type": "HydroRes",
+            "instance_data": [
+                {
+                    "id": "MIDAT_conventional_hydroelectric_1",
+                    "location": "MIDAT",
+                    "hydro_source": "hydro_source",
+                    "discharge_can_expand": false,
+                    "discharge_can_retire": false,
+                    "inflow_can_expand": false,
+                    "inflow_can_retire": false,
+                    "storage_can_expand": false,
+                    "storage_can_retire": false,
+                    "storage_constraints": {
+                        "MinStorageOutflowConstraint": true
+                    },
+                    "storage_min_outflow_fraction": 0.109311313,
+                    "storage_charge_discharge_ratio": 1.0,
+                    "discharge_capacity_size": 29.853,
+                    "discharge_existing_capacity": 2806.182,
+                    "discharge_fixed_om_cost": 45648,
+                    "discharge_efficiency": 1.0,
+                    "inflow_availability": {
+                        "timeseries": {
+                            "path": "system/availability.csv",
+                            "header": "MIDAT_conventional_hydroelectric_1"
+                        }
+                    }
+                }
+            ]
+        }
+    ]
+}
+```
+
+!!! tip "Global Data vs Instance Data"
+    When working with JSON input files, the `global_data` field can be used to group data that is common to all instances of the same asset type. This is useful for setting constraints that are common to all instances of the same asset type and avoid repeating the same data for each instance. See the [Examples](@ref "hydropower_examples") section below for an example.
+
+The following tables outline the attributes that can be set for a hydro reservoir asset.
+
+### Essential Attributes
+| Field | Type | Description |
+|--------------|---------|------------|
+| `Type` | String | Asset type identifier: "HydroRes" |
+| `id` | String | Unique identifier for the hydro reservoir instance |
+| `location` | String | Geographic location/node identifier |
+| `hydro_source` | String | ID of the electricity node in the system that represents the hydro source |
+
+### [Constraints Configuration](@id "hydropower_constraints")
+Hydro reservoir assets can have different constraints applied to them, and the user can configure them using the following fields:
+
+| Field | Type | Description |
+|--------------|---------|------------|
+| `storage_constraints` | Dict{String,Bool} | List of constraints applied to the storage component. |
+| `discharge_constraints` | Dict{String,Bool} | List of constraints applied to the discharge edge. |
+| `charge_constraints` | Dict{String,Bool} | List of constraints applied to the inflow edge. |
+| `spill_constraints` | Dict{String,Bool} | List of constraints applied to the spillage edge. |
+
+For example, if the user wants to apply the [`LongDurationStorageImplicitMinMaxConstraint`](@ref long_duration_storage_constraints_ref) to the storage component and the [`RampingLimitConstraint`](@ref ramping_limits_constraint_ref) to the discharge edge, the constraints fields should be set as follows:
+
+```json
+{
+    "storage_constraints": {
+        "LongDurationStorageImplicitMinMaxConstraint": true
+    },
+    "discharge_constraints": {
+        "RampingLimitConstraint": true
+    }
+}
+```
+
+#### Default constraints
+To simplify the input file and the asset configuration, the following constraints are applied to the hydro reservoir asset by default:
+
+- [Balance constraint](@ref balance_constraint_ref) (applied to the storage component)
+- [Storage charge discharge ratio constraint](@ref storage_charge_discharge_ratio_constraint_ref) (applied to the storage component)
+- [Must run constraint](@ref must_run_constraint_ref) (applied to the inflow edge)
+- [Capacity constraint](@ref capacity_constraint_ref) (applied to the discharge edge)
+
+If the storage is a long-duration storage, the following additional constraints are applied:
+- [Long-duration storage constraints](@ref long_duration_storage_constraints_ref) (applied to the storage component)
+
+Users can refer to the [Adding Asset Constraints to a System](@ref) section of the User Guide for a list of all the constraints that can be applied to a hydro reservoir asset.
+
+### Investment Parameters
+| Field | Type | Description | Units | Default |
+|--------------|---------|------------|----------------|----------|
+| `storage_can_retire` | Boolean | Whether storage capacity can be retired | - | false |
+| `storage_can_expand` | Boolean | Whether storage capacity can be expanded | - | false |
+| `storage_existing_capacity` | Float64 | Initial installed storage capacity | MWh | 0.0 |
+| `discharge_can_retire` | Boolean | Whether discharge edge capacity can be retired | - | false |
+| `discharge_can_expand` | Boolean | Whether discharge edge capacity can be expanded | - | false |
+| `discharge_existing_capacity` | Float64 | Initial installed discharge edge capacity | MW | 0.0 |
+| `discharge_capacity_size` | Float64 | Unit size for capacity decisions | - | 1.0 |
+| `charge_can_retire` | Boolean | Whether charge edge capacity can be retired | - | false |
+| `charge_can_expand` | Boolean | Whether charge edge capacity can be expanded | - | false |
+| `charge_existing_capacity` | Float64 | Initial installed charge edge capacity | MW | 0.0 |
+| `charge_capacity_size` | Float64 | Unit size for capacity decisions | - | 1.0 |
+
+#### Additional Investment Parameters
+
+**Maximum and minimum capacity constraints**
+
+If [`MaxCapacityConstraint`](@ref max_capacity_constraint_ref) or [`MinCapacityConstraint`](@ref min_capacity_constraint_ref) are added to the constraints dictionary for the storage or discharge edge, the following parameters are used by Macro:
+
+| Field | Type | Description | Units | Default |
+|--------------|---------|------------|----------------|----------|
+| `storage_max_capacity` | Float64 | Maximum allowed storage capacity | MWh | Inf |
+| `storage_min_capacity` | Float64 | Minimum allowed storage capacity | MWh | 0.0 |
+| `discharge_max_capacity` | Float64 | Maximum allowed discharge edge capacity | MW | Inf |
+| `discharge_min_capacity` | Float64 | Minimum allowed discharge edge capacity | MW | 0.0 |
+| `charge_max_capacity` | Float64 | Maximum allowed charge edge capacity | MW | Inf |
+| `charge_min_capacity` | Float64 | Minimum allowed charge edge capacity | MW | 0.0 |
+
+### Economic Parameters
+| Field | Type | Description | Units | Default |
+|--------------|---------|------------|----------------|----------|
+| `storage_investment_cost` | Float64 | CAPEX per unit storage capacity | \$/MWh/yr | 0.0 |
+| `storage_fixed_om_cost` | Float64 | Fixed O&M costs of the storage component | \$/MWh/yr | 0.0 |
+| `discharge_investment_cost` | Float64 | CAPEX per unit discharge edge capacity | \$/MW/yr | 0.0 |
+| `discharge_fixed_om_cost` | Float64 | Fixed O&M costs of the discharge edge | \$/MW/yr | 0.0 |
+| `discharge_variable_om_cost` | Float64 | Variable O&M costs of the discharge edge | \$/MWh | 0.0 |
+| `charge_investment_cost` | Float64 | CAPEX per unit charge edge capacity | \$/MW/yr | 0.0 |
+| `charge_fixed_om_cost` | Float64 | Fixed O&M costs of the charge edge | \$/MW/yr | 0.0 |
+| `charge_variable_om_cost` | Float64 | Variable O&M costs of the charge edge | \$/MWh | 0.0 |
+
+### Operational Parameters
+| Field | Type | Description | Units | Default |
+|--------------|---------|------------|----------------|----------|
+| `inflow_availability` | Dict | Path to availability file and column name | - | Empty |
+
+#### Additional Operational Parameters
+
+**Minimum Storage Outflow Constraint**
+
+If [`MinStorageOutflowConstraint`](@ref min_storage_outflow_constraint_ref) is added to the constraints dictionary for the storage component, the following parameters are used:
+
+| Field | Type | Description | Units | Default |
+|--------------|---------|------------|----------------|----------|
+| `storage_min_outflow_fraction` | Float64 | Minimum outflow as a fraction of capacity | fraction | 0.0 |
+
+**Storage Charge Discharge Ratio Constraint**
+
+If [`StorageChargeDischargeRatioConstraint`](@ref storage_charge_discharge_ratio_constraint_ref) is added to the constraints dictionary for the storage component, the following parameters are used:
+
+| Field | Type | Description | Units | Default |
+|--------------|---------|------------|----------------|----------|
+| `storage_charge_discharge_ratio` | Float64 | Ratio between charging and discharging flows | fraction | 1.0 |
+
+**Ramping limit constraint**
+
+If [`RampingLimitConstraint`](@ref ramping_limits_constraint_ref) is added to the constraints dictionary for the discharge edge, the following parameters are used:
+
+| Field | Type | Description | Units | Default |
+|--------------|---------|------------|----------------|----------|
+| `discharge_ramp_up_fraction` | Float64 | Maximum increase in flow between timesteps | fraction | 1.0 |
+| `discharge_ramp_down_fraction` | Float64 | Maximum decrease in flow between timesteps | fraction | 1.0 |
+
+## [Types - Asset Structure](@id hydropower_type_definition)
+
+The `HydroRes` asset is defined as follows:
+
+```julia
+struct HydroRes <: AbstractAsset
+    id::AssetId
+    hydrostor::AbstractStorage{<:Electricity}
+    discharge_edge::Edge{<:Electricity}
+    inflow_edge::Edge{<:Electricity}
+    spill_edge::Edge{<:Electricity}
+end
+```
+
+## [Constructors](@id hydropower_constructors)
+
+### Default constructor
+
+```julia
+HydroRes(id::AssetId, storage::AbstractStorage{<:Electricity}, inflow_edge::Edge{<:Electricity}, discharge_edge::Edge{<:Electricity}, spill_edge::Edge{<:Electricity})
+```
+
+### Factory constructor
+```julia
+make(asset_type::Type{HydroRes}, data::AbstractDict{Symbol,Any}, system::System)
+```
+
+| Field | Type | Description |
+|--------------|---------|------------|
+| `asset_type` | `Type{HydroRes}` | Macro type of the asset |
+| `data` | `AbstractDict{Symbol,Any}` | Dictionary containing the input data for the asset |
+| `system` | `System` | System to which the asset belongs |
+
+## [Examples](@id hydropower_examples)
+This section contains examples of how to use the hydro reservoir asset in a Macro model.
+
+### Simple Hydro Reservoir with Fixed Capacity
+This example shows a hydro reservoir asset with existing and fixed capacity (capacity cannot be expanded or retired), minimum outflow fraction of 0.1, and an availability time series for the inflow edge loaded from a CSV file.
+
+**JSON Format:**
+```json
+{
+    "hydrores": [
+        {
+            "type": "HydroRes",
+            "instance_data": [
+                {
+                    "id": "Fixed_Hydro_SE",
+                    "location": "SE",
+                    "hydro_source": "hydro_source",
+                    "discharge_can_expand": false,
+                    "discharge_can_retire": false,
+                    "inflow_can_expand": false,
+                    "inflow_can_retire": false,
+                    "storage_can_expand": false,
+                    "storage_can_retire": false,
+                    "storage_constraints": {
+                        "MinStorageOutflowConstraint": true
+                    },
+                    "storage_min_outflow_fraction": 0.1,
+                    "storage_charge_discharge_ratio": 1.0,
+                    "discharge_capacity_size": 1.0,
+                    "discharge_existing_capacity": 1000.0,
+                    "discharge_fixed_om_cost": 10000.0,
+                    "discharge_efficiency": 1.0,
+                    "inflow_availability": {
+                        "timeseries": {
+                            "path": "system/availability.csv",
+                            "header": "Fixed_Hydro_SE"
+                        }
+                    }
+                }
+            ]
+        }
+    ]
+}
+```
+
+**CSV Format:**
+
+| Type | id | location | hydro\_source | discharge\_can\_expand | discharge\_can\_retire | inflow\_can\_expand | inflow\_can\_retire | storage\_can\_expand | storage\_can\_retire | storage\_constraints--MinStorageOutflowConstraint | storage\_min\_outflow\_fraction | storage\_charge\_discharge\_ratio | discharge\_capacity\_size | discharge\_existing\_capacity | discharge\_fixed\_om\_cost | discharge\_efficiency | inflow\_availability--timeseries--path | inflow\_availability--timeseries--header |
+|------|----|----------|-------------------|-------------------|-------------------|----------------------------------------|------------------------------------------------|------------------------------|--------------------------------|------------------------------|---------------------------|---------------------------|---------|------------------------------------------------|--------------------------------|---------------------------|---------------------------|---------------------------|
+| HydroRes | Fixed\_Hydro\_SE | SE | hydro\_source | false | false | false | false | false | false | true | 0.1 | 1.0 | 1.0 | 1000.0 | 10000.0 | 1.0 | system/availability.csv | Fixed\_Hydro\_SE |
+
+### Multiple Hydro Reservoir Assets in Different Zones
+
+This example shows three hydro reservoir assets with existing and fixed capacity (capacity cannot be expanded or retired) located in the MIDAT, NE, and SE regions.
+
+**JSON Format:**
+
+Note that the `global_data` field is used to set the fields and constraints that are common to all instances of the same asset type.
+
+```json
+{
+    "hydrores": [
+        {
+            "type": "HydroRes",
+            "global_data": {
+                "hydro_source": "hydro_source",
+                "discharge_constraints": {
+                    "RampingLimitConstraint": true
+                },
+                "discharge_can_expand": false,
+                "discharge_can_retire": false,
+                "inflow_can_expand": false,
+                "inflow_can_retire": false,
+                "storage_can_expand": false,
+                "storage_can_retire": false,
+                "storage_long_duration": true,
+                "storage_constraints": {
+                    "MinStorageOutflowConstraint": true,
+                    "LongDurationStorageImplicitMinMaxConstraint": true
+                }
+            },
+            "instance_data": [
+                {
+                    "id": "MIDAT_conventional_hydroelectric_1",
+                    "location": "MIDAT",
+                    "storage_min_outflow_fraction": 0.109311313,
+                    "storage_charge_discharge_ratio": 1.0,
+                    "discharge_capacity_size": 29.853,
+                    "discharge_existing_capacity": 2806.182,
+                    "discharge_fixed_om_cost": 45648,
+                    "discharge_ramp_down_fraction": 0.83,
+                    "discharge_ramp_up_fraction": 0.83,
+                    "discharge_efficiency": 1.0,
+                    "inflow_availability": {
+                        "timeseries": {
+                            "path": "system/availability.csv",
+                            "header": "MIDAT_conventional_hydroelectric_1"
+                        }
+                    }
+                },
+                {
+                    "id": "NE_conventional_hydroelectric_1",
+                    "location": "NE",
+                    "storage_min_outflow_fraction": 0.095,
+                    "storage_charge_discharge_ratio": 1.0,
+                    "discharge_capacity_size": 24.13,
+                    "discharge_existing_capacity": 4729.48,
+                    "discharge_fixed_om_cost": 45648,
+                    "discharge_ramp_down_fraction": 0.083,
+                    "discharge_ramp_up_fraction": 0.083,
+                    "discharge_efficiency": 1.0,
+                    "inflow_availability": {
+                        "timeseries": {
+                            "path": "system/availability.csv",
+                            "header": "NE_conventional_hydroelectric_1"
+                        }
+                    }
+                },
+                {
+                    "id": "SE_conventional_hydroelectric_1",
+                    "location": "SE",
+                    "storage_min_outflow_fraction": 0.135129141,
+                    "storage_charge_discharge_ratio": 1.0,
+                    "discharge_capacity_size": 31.333,
+                    "discharge_existing_capacity": 11123.215,
+                    "discharge_fixed_om_cost": 45648,
+                    "discharge_ramp_down_fraction": 0.083,
+                    "discharge_ramp_up_fraction": 0.083,
+                    "discharge_efficiency": 1.0,
+                    "inflow_availability": {
+                        "timeseries": {
+                            "path": "system/availability.csv",
+                            "header": "SE_conventional_hydroelectric_1"
+                        }
+                    }
+                }
+            ]
+        }
+    ]
+}
+```
+
+**CSV Format:**
+
+| Type | id | location | hydro\_source | discharge\_can\_expand | discharge\_can\_retire | inflow\_can\_expand | inflow\_can\_retire | storage\_can\_expand | storage\_can\_retire | storage\_constraints--MinStorageOutflowConstraint | storage\_min\_outflow\_fraction | storage\_charge\_discharge\_ratio | discharge\_capacity\_size | discharge\_existing\_capacity | discharge\_fixed\_om\_cost | discharge\_ramp\_down\_fraction | discharge\_ramp\_up\_fraction | discharge\_efficiency | inflow\_availability--timeseries--path | inflow\_availability--timeseries--header |
+|------|----|----------|-------------------|-------------------|-------------------|----------------------------------------|------------------------------------------------|------------------------------|--------------------------------|------------------------------|---------------------------|---------------------------|---------|------------------------------------------------|--------------------------------|---------------------------|---------------------------|---------------------------|---------------------------|---------------------------|
+| HydroRes | MIDAT\_conventional\_hydroelectric\_1 | MIDAT | hydro\_source | false | false | false | false | false | false | true | 0.109311313 | 1.0 | 29.853 | 2806.182 | 45648 | 0.83 | 0.83 | 1.0 | system/availability.csv | MIDAT\_conventional\_hydroelectric\_1 |
+| HydroRes | NE\_conventional\_hydroelectric\_1 | NE | hydro\_source | false | false | false | false | false | false | true | 0.095 | 1.0 | 24.13 | 4729.48 | 45648 | 0.083 | 0.083 | 1.0 | system/availability.csv | NE\_conventional\_hydroelectric\_1 |
+| HydroRes | SE\_conventional\_hydroelectric\_1 | SE | hydro\_source | false | false | false | false | false | false | true | 0.135129141 | 1.0 | 31.333 | 11123.215 | 45648 | 0.083 | 0.083 | 1.0 | system/availability.csv | SE\_conventional\_hydroelectric\_1 |
+
+## [Best Practices](@id hydropower_best_practices)
+
+1. **Use global data for common constraints**: Use the `global_data` field to set the fields and constraints that are common to all instances of the same asset type.
+2. **Set realistic minimum outflow fractions**: These should reflect environmental and operational requirements
+3. **Use meaningful IDs**: Choose descriptive identifiers that indicate location and technology type
+4. **Consider availability profiles**: Use availability time series to model seasonal variations in water inflow
+5. **Set appropriate ramping limits**: These should reflect the actual operational characteristics of the hydro plant
+6. **Validate costs**: Ensure investment and O&M costs are in appropriate units and time periods
+7. **Test configurations**: Start with simple configurations and gradually add complexity
+8. **Monitor water balance**: Ensure the inflow, discharge, and spillage flows are consistent
+
+## [Input File (Advanced Format)](@id hydropower_advanced_json_csv_input_format)
+
+Macro provides an advanced format for defining hydro reservoir assets, offering users and modelers detailed control over asset specifications. This format builds upon the standard format and is ideal for those who need more comprehensive customization.
+
+To understand the advanced format, consider the [graph representation](@ref hydropower_asset_structure) and the [type definition](@ref hydropower_type_definition) of a hydro reservoir asset. The input file mirrors this hierarchical structure.
+
+A hydro reservoir asset in Macro is composed of a storage component, represented by a `Storage` object, and three edges, each represented by an `Edge` object. The input file for a hydro reservoir asset is therefore organized as follows:
+
+```json
+{
+    "storage":{
+        // ... storage-specific attributes ...
     },
     "edges":{
         "inflow_edge": {
@@ -40,94 +434,41 @@ The structure of the input file for a hydroelectric reservoir asset follows the 
         "discharge_edge": {
             // ... discharge_edge-specific attributes ...
         },
-        "spillage_edge": {
-            // ... spillage_edge-specific attributes ...
+        "spill_edge": {
+            // ... spill_edge-specific attributes ...
         }
     }
 }
 ```
 
-### Storage component
-The definition of the `Storage` object can be found here [MacroEnergy.Storage](@ref).
+Each top-level key (e.g., "storage" or "edges") denotes a component type. The second-level keys either specify the attributes of the component (when there is a single instance) or identify the instances of the component (e.g., "inflow_edge", "discharge_edge", "spill_edge") when there are multiple instances. For multiple instances, a third-level key details the attributes for each instance.
 
-| **Attribute** | **Type** | **Values** | **Default** | **Description** |
-|:--------------| :------: |:------: | :------: |:-------|
-| **commodity** | `String` | `Electricity` | Required | Commodity being stored. |
-| **constraints** | `Dict{String,Bool}` | Any Macro constraint type for storage | `BalanceConstraint`, `StorageCapacityConstraint` | List of constraints applied to the storage. E.g. `{"BalanceConstraint": true}`. |
-| **can_expand** | `Bool` | `Bool` | `false` | Whether the storage is eligible for capacity expansion. |
-| **can\_retire** | `Bool` | `Bool` | `false` | Whether the storage is eligible for capacity retirement. |
-| **charge\_discharge\_ratio** | `Float64` | `Float64` | `1.0` | Ratio between charging and discharging rates. |
-| **existing\_capacity\_storage** | `Float64` | `Float64` | `0.0` | Initial installed storage capacity (MWh). |
-| **fixed\_om\_cost\_storage** | `Float64` | `Float64` | `0.0` | Fixed operations and maintenance cost (USD/MWh-year). |
-| **investment\_cost\_storage** | `Float64` | `Float64` | `0.0` | Annualized investment cost of the energy capacity for a storage technology (USD/MWh-year). |
-| **long\_duration** | `Bool` | `Bool` | `false` | Whether the storage is a long-duration storage. **Note**: if `true`, the long-duration storage constraint will be applied. |
-| **max\_capacity\_storage** | `Float64` | `Float64` | `Inf` | Maximum allowed storage capacity (MWh). |
-| **max\_duration** | `Float64` | `Float64` | `0.0` | Maximum ratio of installed energy to discharged capacity that can be installed (hours).|
-| **min\_capacity\_storage** | `Float64` | `Float64` | `0.0` | Minimum allowed storage capacity (MWh). |
-| **min\_duration** | `Float64` | `Float64` | `0.0` | Minimum ratio of installed energy to discharged capacity that can be installed (hours).|
-| **min\_outflow\_fraction** | `Float64` | `Float64` | `0.0` | Minimum outflow as a fraction of capacity. |
-| **min\_storage\_level** | `Float64` | `Float64` | `0.0` | Minimum storage level as a fraction of capacity. |
-| **max\_storage\_level** | `Float64` | `Float64` | `1.0` | Maximum storage level as a fraction of capacity. |
-| **storage\_loss\_fraction** | `Float64` | Number $\in$ [0,1] | `0.0` | Fraction of stored commodity lost per timestep. |
+Below is an example of an input file for a hydro reservoir asset that sets up a single asset in the SE region with detailed edge specifications.
 
-!!! tip "Default constraints"
-    The **default constraints** for the storage component of the hydroelectric reservoir are the following:
-
-    - [Balance constraint](@ref balance_constraint_ref)
-
-    If the storage is a long-duration storage, the following additional constraints are applied:
-    - [Long-duration storage constraints](@ref long_duration_storage_constraints_ref)
-
-### Asset Edges (discharge\_edge, inflow\_edge, spillage\_edge)
-!!! warning "Asset expansion"
-    As a modeling decision, the following conditions are implemented:
-    - Only charge and discharge edges are allowed to expand (i.e., they have the `has_capacity` attribute set to `true`). In contrast, this attribute is pre-set to `false` for the `spillage_edge`.
-    - The `can_retire` and `can_expand` attributes of the `inflow_edge` are set to match those of the `discharge_edge`.
-
-!!! warning "Directionality"
-    All the three edges are unidirectional by construction.
-
-!!! warning "Capacity parameters"
-    The user only needs to specify `capacity_size` and `existing_capacity` for the `discharge_edge`, as the model will automatically apply the same values to the `inflow_edge`.
-
-All the edges have the same set of attributes. The definition of the `Edge` object can be found here [MacroEnergy.Edge](@ref).
-
-| **Attribute** | **Type** | **Values** | **Default** | **Description** |
-|:--------------| :------: |:------: | :------: |:-------|
-| **type** | `String` | `Electricity` | Required | Commodity of the edge. |
-| **start_vertex** | `String` | Any electricity node id present in the system | Required | ID of the starting vertex of the edge. The node must be present in the `nodes.json` file. E.g. "elec\_node\_1". |
-| **end_vertex** | `String` | Any electricity node id present in the system | Required | ID of the ending vertex of the edge. The node must be present in the `nodes.json` file. E.g. "elec\_node\_2". |
-| **constraints** | `Dict{String,Bool}` | Any Macro constraint type for Edges | Empty | List of constraints applied to the edge. E.g. `{"CapacityConstraint": true}`. |
-| **can_expand** | `Bool` | `Bool` | `false` | Whether the edge is eligible for capacity expansion. **Note**: only available for charge and discharge edges. |
-| **can_retire** | `Bool` | `Bool` | `false` | Whether the edge is eligible for capacity retirement. **Note**: only available for charge and discharge edges. |
-| **capacity_size** | `Float64` | `Float64` | `1.0` | Size of the edge capacity. **Note**: discharge edge only. The model will automatically apply the same values to the inflow edge. |
-| **existing_capacity** | `Float64` | `Float64` | `0.0` | Existing capacity of the edge in MW. **Note**: discharge edge only. The model will automatically apply the same values to the inflow edge. |
-| **fixed\_om\_cost** | `Float64` | `Float64` | `0.0` | Fixed operations and maintenance cost (USD/MW-year). |
-| **has\_capacity** | `Bool` | `Bool` | `false` | Whether capacity variables are created for the edge. |
-| **integer\_decisions** | `Bool` | `Bool` | `false` | Whether capacity variables are integers. |
-| **investment\_cost** | `Float64` | `Float64` | `0.0` | Annualized capacity investment cost (USD/MW-year) |
-| **max\_capacity** | `Float64` | `Float64` | `Inf` | Maximum allowed capacity of the edge (MW). **Note: add the `MaxCapacityConstraint` to the constraints dictionary to activate this constraint**. |
-| **min\_capacity** | `Float64` | `Float64` | `0.0` | Minimum allowed capacity of the edge (MW). **Note: add the `MinCapacityConstraint` to the constraints dictionary to activate this constraint**. |
-| **min\_flow\_fraction** | `Float64` | Number $\in$ [0,1] | `0.0` | Minimum flow of the edge as a fraction of the total capacity. **Note: add the `MinFlowConstraint` to the constraints dictionary to activate this constraint**. |
-| **ramp\_down\_fraction** | `Float64` | Number $\in$ [0,1] | `1.0` | Maximum decrease in flow between two time steps, reported as a fraction of the capacity. **Note: add the `RampingLimitConstraint` to the constraints dictionary to activate this constraint**. |
-| **ramp\_up\_fraction** | `Float64` | Number $\in$ [0,1] | `1.0` | Maximum increase in flow between two time steps, reported as a fraction of the capacity. **Note: add the `RampingLimitConstraint` to the constraints dictionary to activate this constraint**. |
-| **variable\_om\_cost** | `Float64` | `Float64` | `0.0` | Variable operation and maintenance cost (USD/MWh). |
-
-!!! tip "Default constraints"
-    **Default constraints** for the edges of the hydroelectric reservoir are only applied to the inflow edge. These constraints are:
-
-    - [Must run constraint](@ref must_run_constraint_ref)
-    - [Storage charge discharge ratio constraint](@ref storage_charge_discharge_ratio_constraint_ref)
-
-## Example
-The following input file example shows how to create a hydroelectric reservoir asset in each of the three zones SE, MIDAT and NE.
 ```json
 {
     "hydrores": [
         {
             "type": "HydroRes",
             "global_data": {
+                "storage": {
+                    "commodity": "Electricity",
+                    "can_expand": false,
+                    "can_retire": false,
+                    "constraints": {
+                        "MinStorageOutflowConstraint": true
+                    }
+                },
                 "edges": {
+                    "inflow_edge": {
+                        "type": "Electricity",
+                        "unidirectional": true,
+                        "start_vertex": "hydro_source",
+                        "has_capacity": true,
+                        "constraints": {
+                            "MustRunConstraint": true
+                        }
+                    },
                     "discharge_edge": {
                         "type": "Electricity",
                         "unidirectional": true,
@@ -139,15 +480,6 @@ The following input file example shows how to create a hydroelectric reservoir a
                             "RampingLimitConstraint": true
                         }
                     },
-                    "inflow_edge": {
-                        "type": "Electricity",
-                        "unidirectional": true,
-                        "start_vertex": "hydro_source",
-                        "has_capacity": true,
-                        "constraints": {
-                            "MustRunConstraint": true
-                        }
-                    },
                     "spill_edge": {
                         "type": "Electricity",
                         "unidirectional": true,
@@ -156,85 +488,16 @@ The following input file example shows how to create a hydroelectric reservoir a
                         "can_retire": false,
                         "has_capacity": false
                     }
-                },
-                "storage": {
-                    "commodity": "Electricity",
-                    "can_expand": false,
-                    "can_retire": false,
-                    "constraints": {
-                        "MinStorageOutflowConstraint": true,
-                        "StorageChargeDischargeRatioConstraint": true,
-                        "BalanceConstraint": true
-                    }
                 }
             },
             "instance_data": [
                 {
-                    "id": "MIDAT_conventional_hydroelectric_1",
-                    "edges": {
-                        "discharge_edge": {
-                            "end_vertex": "elec_MIDAT",
-                            "capacity_size": 29.853,
-                            "existing_capacity": 2806.182,
-                            "fixed_om_cost": 45648,
-                            "ramp_down_fraction": 0.83,
-                            "ramp_up_fraction": 0.83,
-                            "efficiency": 1.0
-                        },
-                        "inflow_edge": {
-                            "efficiency": 1.0,
-                            "availability": {
-                                "timeseries": {
-                                    "path": "assets/availability.csv",
-                                    "header": "MIDAT_conventional_hydroelectric_1"
-                                }
-                            }
-                        }
-                    },
-                    "storage": {
-                        "min_outflow_fraction": 0.109311313,
-                        "charge_discharge_ratio": 1.0
-                    }
-                },
-                {
-                    "id": "NE_conventional_hydroelectric_1",
-                    "edges": {
-                        "discharge_edge": {
-                            "end_vertex": "elec_NE",
-                            "capacity_size": 24.13,
-                            "existing_capacity": 4729.48,
-                            "fixed_om_cost": 45648,
-                            "ramp_down_fraction": 0.083,
-                            "ramp_up_fraction": 0.083,
-                            "efficiency": 1.0
-                        },
-                        "inflow_edge": {
-                            "efficiency": 1.0,
-                            "availability": {
-                                "timeseries": {
-                                    "path": "assets/availability.csv",
-                                    "header": "NE_conventional_hydroelectric_1"
-                                }
-                            }
-                        }
-                    },
-                    "storage": {
-                        "min_outflow_fraction": 0.095,
-                        "charge_discharge_ratio": 1.0
-                    }
-                },
-                {
                     "id": "SE_conventional_hydroelectric_1",
+                    "storage": {
+                        "min_outflow_fraction": 0.135129141,
+                        "charge_discharge_ratio": 1.0
+                    },
                     "edges": {
-                        "discharge_edge": {
-                            "end_vertex": "elec_SE",
-                            "capacity_size": 31.333,
-                            "existing_capacity": 11123.215,
-                            "fixed_om_cost": 45648,
-                            "ramp_down_fraction": 0.083,
-                            "ramp_up_fraction": 0.083,
-                            "efficiency": 1.0
-                        },
                         "inflow_edge": {
                             "efficiency": 1.0,
                             "availability": {
@@ -243,11 +506,16 @@ The following input file example shows how to create a hydroelectric reservoir a
                                     "header": "SE_conventional_hydroelectric_1"
                                 }
                             }
+                        },
+                        "discharge_edge": {
+                            "end_vertex": "elec_SE",
+                            "capacity_size": 31.333,
+                            "existing_capacity": 11123.215,
+                            "fixed_om_cost": 45648,
+                            "ramp_down_fraction": 0.083,
+                            "ramp_up_fraction": 0.083,
+                            "efficiency": 1.0
                         }
-                    },
-                    "storage": {
-                        "min_outflow_fraction": 0.135129141,
-                        "charge_discharge_ratio": 1.0
                     }
                 }
             ]
@@ -255,3 +523,19 @@ The following input file example shows how to create a hydroelectric reservoir a
     ]
 }
 ```
+
+### Key Points
+
+- The `global_data` field is utilized to define attributes and constraints that apply universally to all instances of a particular asset type.
+- The `start_vertex` and `end_vertex` fields indicate the nodes to which the edges are connected. These nodes must be defined in the `nodes.json` file.
+- By default, both the discharge and inflow edges are allowed to have capacity variables and constraints, as this represents the main capacity decision for the hydro facility.
+- The inflow edge uses availability time series to model seasonal variations in water inflow.
+- For a comprehensive list of attributes that can be configured for the storage and edge components, refer to the [storage](@ref manual-storage-fields) and [edges](@ref manual-edges-fields) pages of the Macro manual.
+
+!!! tip "Prefixes"
+    Users can apply prefixes to adjust parameters for the components of a hydro reservoir asset, even when using the standard format. For instance, `discharge_can_retire` will adjust the `can_retire` parameter for the discharge edge, and `discharge_existing_capacity` will adjust the `existing_capacity` parameter for the discharge edge.
+    Below are the prefixes available for modifying parameters for the components of a hydro reservoir asset:
+    - `storage_` for the storage component
+    - `discharge_` for the discharge edge
+    - `inflow_` for the inflow edge
+    - `spill_` for the spill edge
