@@ -243,7 +243,7 @@ Note that the `global_data` field is used to set the fields that are common to a
 | MustRun | MIDAT\_small\_hydroelectric\_1 | MIDAT | false | false | 45648 | 263.268 | 1.236 | system/availability.csv | MIDAT\_small\_hydroelectric\_1 |
 | MustRun | NE\_small\_hydroelectric\_1 | NE | false | false | 45648 | 834.494 | 1.051 | system/availability.csv | NE\_small\_hydroelectric\_1 |
 
-## [Best Practices](@ref mustrun_best_practices)
+## [Best Practices](@id mustrun_best_practices)
 
 1. **Use global data for common fields**: Use the `global_data` field to set the fields that are common to all instances of the same asset type.
 2. **Set realistic availability profiles**: Ensure availability profiles reflect actual operational constraints
@@ -253,7 +253,7 @@ Note that the `global_data` field is used to set the fields that are common to a
 6. **Validate costs**: Ensure investment and O&M costs are in appropriate units
 7. **Test configurations**: Start with simple configurations and gradually add complexity
 
-## [Input File (Advanced Format)](@ref mustrun_advanced_json_csv_input_format)
+## [Input File (Advanced Format)](@id mustrun_advanced_json_csv_input_format)
 
 Macro provides an advanced format for defining must-run assets, offering users and modelers detailed control over asset specifications. This format builds upon the standard format and is ideal for those who need more comprehensive customization.
 
@@ -361,4 +361,4 @@ Below is an example of an input file for a must-run asset that sets up three sma
 
 - The `global_data` field is utilized to define attributes and constraints that apply universally to all instances of a particular asset type.
 - The `end_vertex` field indicates the node to which the electricity edge is connected. This node must be defined in the `nodes.json` file.
-- For a comprehensive list of attributes that can be configured for the transformation and edge components, refer to the [transformations](@ref manual-transformations-fields) and [edges](@ref manual-edges-fields) pages of the Macro manual.
+- For a comprehensive list of attributes that can be configured for the transformation and edge components, refer to the [transformations](@ref manual-transformation-fields) and [edges](@ref manual-edges-fields) pages of the Macro manual.

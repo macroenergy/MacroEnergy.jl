@@ -38,7 +38,7 @@ flowchart LR
     e5@{ animate: true }
   end
   
-    style A fill:#005F6A,stroke:black,color:black;
+    style A r:55px,fill:#005F6A,stroke:black,color:black;
     style B r:55px,fill:lightgray,stroke:black,color:black, stroke-dasharray: 3,5;
     style C r:55px,fill:black,stroke:black,color:black, stroke-dasharray: 3,5;
     style D r:55px,fill:#FFD700,stroke:black,color:black, stroke-dasharray: 3,5;
@@ -229,7 +229,7 @@ struct NaturalGasDAC <: AbstractAsset
 end
 ```
 
-## [Constructors](@ref natgasdaq_constructors)
+## [Constructors](@id natgasdaq_constructors)
 
 ### Default constructor
 
@@ -379,7 +379,7 @@ Note that the `global_data` field is used to set the fields and constraints that
 7. **Test configurations**: Start with simple configurations and gradually add complexity
 8. **Account for emissions**: Include both direct emissions and electricity production in the model
 
-## [Input File (Advanced Format)](@ref natgasdaq_advanced_json_csv_input_format)
+## [Input File (Advanced Format)](@id natgasdaq_advanced_json_csv_input_format)
 
 Macro provides an advanced format for defining Natural Gas DAC assets, offering users and modelers detailed control over asset specifications. This format builds upon the standard format and is ideal for those who need more comprehensive customization.
 

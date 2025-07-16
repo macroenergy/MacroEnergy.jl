@@ -642,6 +642,18 @@ Below is an example of an input file for a gas storage asset that sets a single 
 
 - The `global_data` field is utilized to define attributes and constraints that apply universally to all instances of a particular asset type.
 - The `start_vertex` and `end_vertex` fields indicate the nodes to which the edges are connected. These nodes must be defined in the `nodes.json` file.
-- Both charge and discharge edges can have capacity variables and constraints, representing the power capacity of the storage system.
+- By default, both charge and discharge edges can have capacity variables and constraints, representing the power capacity of the storage system.
 - The storage component represents the energy capacity of the storage facility.
 - For a comprehensive list of attributes that can be configured for the storage, transformation, and edge components, refer to the [storage](@ref manual-storage-fields), [transformation](@ref manual-transformation-fields), and [edges](@ref manual-edges-fields) pages of the Macro manual.
+
+!!! tip "Prefixes"
+    Users can apply prefixes to adjust parameters for the components of a gas storage asset, even when using the standard format. For instance, `discharge_can_retire` will adjust the `can_retire` parameter for the discharge edge, and `discharge_existing_capacity` will adjust the `existing_capacity` parameter for the discharge edge.
+    Below are the prefixes available for modifying parameters for the components of a gas storage asset:
+    - `transform_` for the transformation component
+    - `storage_` for the storage component
+    - `discharge_` for the discharge edge
+    - `charge_` for the charge edge
+    - `discharge_elec_` for the discharge electricity edge
+    - `charge_elec_` for the charge electricity edge
+    - `external_discharge_` for the external discharge edge
+    - `external_charge_` for the external charge edge

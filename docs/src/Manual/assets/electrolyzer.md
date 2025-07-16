@@ -22,7 +22,7 @@ Here is a graphical representation of the electrolyzer asset:
 %%{init: {'theme': 'base', 'themeVariables': { 'background': '#D1EBDE' }}}%%
 flowchart LR
   subgraph Electrolyzer
-  direction BT
+  direction LR
   A((Electricity)) e1@--> B{{..}}
   B e2@--> C((Hydrogen))
   e1@{ animate: true }
@@ -453,5 +453,5 @@ Below is an example of an input file for an electrolyzer asset that sets up mult
 
 - The `global_data` field is utilized to define attributes and constraints that apply universally to all instances of a particular asset type.
 - The `start_vertex` and `end_vertex` fields indicate the nodes to which the edges are connected. These nodes must be defined in the `nodes.json` file.
-- The hydrogen edge has capacity variables and can be expanded or retired.
+- By default, the hydrogen edge has capacity variables and can be expanded or retired.
 - For a comprehensive list of attributes that can be configured for the transformation and edge components, refer to the [transformation](@ref manual-transformation-fields) and [edges](@ref manual-edges-fields) pages of the Macro manual.

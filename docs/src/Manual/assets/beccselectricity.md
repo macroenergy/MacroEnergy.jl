@@ -26,22 +26,27 @@ Here is a graphical representation of the BECCS electricity asset:
 flowchart LR
   subgraph BECCSElectricity
   direction BT
-    B((Biomass)) --> A{{..}}
-    C((CO2 Source)) --> A
-    A --> D((Emitted CO2))
-    A --> E((Captured CO2))
-    A --> F((Electricity))
+    B((Biomass)) e1@--> A{{..}}
+    C((CO2 Source)) e2@--> A
+    A e3@--> D((Emitted CO2))
+    A e4@--> E((Captured CO2))
+    A e5@--> F((Electricity))
+    e1@{ animate: true }
+    e2@{ animate: true }
+    e3@{ animate: true }
+    e4@{ animate: true }
+    e5@{ animate: true }
  end
     style A fill:black,stroke:black,color:black;
     style B r:55px,fill:palegreen,stroke:black,color:black, stroke-dasharray: 3,5;
     style C r:55px,fill:lightgray,stroke:black,color:black, stroke-dasharray: 3,5;
     style D r:55px,fill:lightgray,stroke:black,color:black, stroke-dasharray: 3,5;
     style E r:55px,fill:lightgray,stroke:black,color:black, stroke-dasharray: 3,5;
-    style F r:55px,fill:orange,stroke:black,color:black, stroke-dasharray: 3,5;
+    style F r:55px,fill:#FFD700,stroke:black,color:black, stroke-dasharray: 3,5;
 
-    linkStyle 0 stroke:palegreen, stroke-width: 3px;
-    linkStyle 1,2,3 stroke:lightgray, stroke-width: 3px;
-    linkStyle 4 stroke:orange, stroke-width: 3px;
+    linkStyle 0 stroke:palegreen, stroke-width: 2px;
+    linkStyle 1,2,3 stroke:lightgray, stroke-width: 2px;
+    linkStyle 4 stroke:#FFD700, stroke-width: 2px;
 ```
 
 ## [Flow Equations](@id beccselectricity_flow_equations)
@@ -355,7 +360,7 @@ BECCSElectricity | SE\_BECCS\_Electricity\_Wood | 212409.12 | 1.600244 | 1.60656
 2. **Set realistic stoichiometric coefficients**: Ensure the transformation parameters reflect actual technology performance
 3. **Use meaningful IDs**: Choose descriptive identifiers that indicate location and biomass type
 4. **Consider availability profiles**: Use availability time series to model seasonal variations in biomass supply
-5. **Validate costs**: Ensure investment and O&M costs are in appropriate units and time periods
+5. **Validate costs**: Ensure investment and O&M costs are in appropriate units
 6. **Test configurations**: Start with simple configurations and gradually add complexity
 7. **Monitor CO2 balance**: Ensure the CO2 capture and emission rates are consistent with the overall system CO2 balance
 

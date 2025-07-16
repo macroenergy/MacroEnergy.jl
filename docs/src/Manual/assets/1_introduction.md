@@ -56,12 +56,6 @@ The current library includes the following assets:
 <a href="gasstorage.html"><img width="400" src="../../images/gas_storage.png" /></a>
 ```
 
-- [Hydrogen Line](@ref)
-
-```@raw html
-<a href="hydrogenline.html"><img width="220" src="../../images/h2line.png" /></a>
-```
-
 - [Hydro Reservoir](@ref)
 
 ```@raw html
@@ -98,7 +92,7 @@ The current library includes the following assets:
 <a href="thermalpower.html"><img width="380" src="../../images/thermalpower.png" /></a>
 ```
 
-- [Variable Renewable Energy resources (VRE)](@ref)
+- [Variable Renewable Energy resources (VRE)](@ref vre)
 
 ```@raw html
 <a href="vre.html"><img width="300" src="../../images/vre.png" /></a>

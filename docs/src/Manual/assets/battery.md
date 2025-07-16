@@ -23,12 +23,14 @@ Here is a graphical representation of the battery asset:
 flowchart LR
   subgraph Battery
   direction BT
-  A((Electricity)):::node1
-    A--Charge--> B[Storage] --Discharge--> A
+    A((Electricity)) e1@-->|Charge| B[Storage]
+    B e2@-->|Discharge| A
+    e1@{ animate: true }
+    e2@{ animate: true }
  end
-    style A  r:40,fill:orange,stroke:black,color:black,stroke-dasharray: 3,5;
-    style B fill:orange,stroke:black,color:black;
-    linkStyle 0,1 stroke:orange, stroke-width: 3px;
+    style A  r:55px,fill:#FFD700,stroke:black,color:black,stroke-dasharray: 3,5;
+    style B fill:#FFD700,stroke:black,color:black;
+    linkStyle 0,1 stroke:#FFD700, stroke-width: 2px;
 ```
 
 ## [Symmetric and Asymmetric Battery](@id battery_symmetric_and_asymmetric)
@@ -214,11 +216,18 @@ If the battery is asymmetric, the following economic parameters are also used:
 ### Operational Parameters
 | Field | Type | Description | Units | Default |
 |--------------|---------|------------|----------------|----------|
-| `storage_max_duration` | Float64 | Maximum storage duration | hours | 0.0 |
-| `storage_min_duration` | Float64 | Minimum storage duration | hours | 0.0 |
 | `storage_loss_fraction` | Float64 | Fraction of stored energy lost per timestep | fraction | 0.0 |
 
 #### Additional Operational Parameters
+
+**Storage duration constraints**
+
+If [`StorageMaxDurationConstraint`](@ref storage_max_duration_constraint_ref) or [`StorageMinDurationConstraint`](@ref storage_min_duration_constraint_ref) are added to the constraints dictionary for the storage component, the following parameters are used:
+
+| Field | Type | Description | Units | Default |
+|--------------|---------|------------|----------------|----------|
+| `storage_max_duration` | Float64 | Maximum storage duration | hours | 0.0 |
+| `storage_min_duration` | Float64 | Minimum storage duration | hours | 0.0 |
 
 **Maximum and minimum storage level constraints**
 
@@ -407,7 +416,7 @@ This example shows a pumped hydro storage asset with a fixed discharge and stora
 3. **Use meaningful IDs**: Choose descriptive identifiers that indicate location and technology type
 4. **Consider duration constraints**: Set appropriate min/max duration based on technology
 5. **Use constraints selectively**: Only enable constraints that are necessary for your modeling needs
-6. **Validate costs**: Ensure investment and O&M costs are in appropriate units and time periods
+6. **Validate costs**: Ensure investment and O&M costs are in appropriate units
 7. **Test configurations**: Start with simple configurations and gradually add complexity
 
 ## [Input File (Advanced Format)](@id battery_advanced_json_csv_input_format)
@@ -556,7 +565,7 @@ Below is an example of an input file for a battery asset that sets up three batt
 }
 ```
 
-### Key Points
+Here are some important points regarding the example above:
 
 - The `global_data` field is utilized to define attributes and constraints that apply universally to all instances of a particular asset type.
 - The `start_vertex` and `end_vertex` fields indicate the nodes to which the charge and discharge edges are connected. These nodes must be defined in the `nodes.json` file.

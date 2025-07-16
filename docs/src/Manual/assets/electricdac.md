@@ -352,7 +352,6 @@ Note that the `global_data` field is used to set the fields and constraints that
 4. **Consider availability profiles**: Use availability time series to model operational constraints
 5. **Validate costs**: Ensure investment and O&M costs are in appropriate units
 6. **Test configurations**: Start with simple configurations and gradually add complexity
-7. **Monitor CO₂ balance**: Ensure the CO₂ capture flows are consistent with the overall system CO₂ balance
 
 ## [Input File (Advanced Format)](@id electricdac_advanced_json_csv_input_format)
 
@@ -519,6 +518,6 @@ Below is an example of an input file for an electric DAC asset that sets up a si
 
 - The `global_data` field is utilized to define attributes and constraints that apply universally to all instances of a particular asset type.
 - The `start_vertex` and `end_vertex` fields indicate the nodes to which the edges are connected. These nodes must be defined in the `nodes.json` file.
-- Only the CO₂ edge is allowed to have capacity variables and constraints, as this represents the main capacity decision for the DAC facility.
+- By default, only the CO₂ edge is allowed to have capacity variables and constraints, as this represents the main capacity decision for the DAC facility.
 - The CO₂ edge uses availability time series to model operational constraints.
 - For a comprehensive list of attributes that can be configured for the transformation and edge components, refer to the [transformation](@ref manual-transformation-fields) and [edges](@ref manual-edges-fields) pages of the Macro manual.

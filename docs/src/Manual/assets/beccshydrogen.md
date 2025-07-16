@@ -27,25 +27,33 @@ Here is a graphical representation of the BECCS hydrogen asset:
 flowchart LR
   subgraph BECCSHydrogen
   direction BT
-    B((Biomass)) --> A{{..}}
-    C((CO₂ Source)) --> A
-    D((Electricity)) --> A
-    A --> E((Hydrogen))
-    A --> F((Captured CO₂))
-    A --> G((Emitted CO₂))
+    B((Biomass)) e1@--> A{{..}}
+    C((CO₂ Source)) e2@--> A
+    D((Electricity)) e3@--> A
+    A e4@--> E((Hydrogen))
+    A e5@--> F((Captured CO₂))
+    A e6@--> G((Emitted CO₂))
+    e1@{ animate: true }
+    e2@{ animate: true }
+    e3@{ animate: true }
+    e4@{ animate: true }
+    e5@{ animate: true }
+    e6@{ animate: true }
  end
     style A fill:black,stroke:black,color:black;
     style B r:55px,fill:palegreen,stroke:black,color:black, stroke-dasharray: 3,5;
     style C r:55px,fill:lightgray,stroke:black,color:black, stroke-dasharray: 3,5;
-    style D r:55px,fill:yellow,stroke:black,color:black, stroke-dasharray: 3,5;
+    style D r:55px,fill:#FFD700,stroke:black,color:black, stroke-dasharray: 3,5;
     style E r:55px,fill:lightblue,stroke:black,color:black, stroke-dasharray: 3,5;
     style F r:55px,fill:lightgray,stroke:black,color:black, stroke-dasharray: 3,5;
     style G r:55px,fill:lightgray,stroke:black,color:black, stroke-dasharray: 3,5;
 
-    linkStyle 0 stroke:palegreen, stroke-width: 3px;
-    linkStyle 1,2 stroke:lightgray, stroke-width: 3px;
-    linkStyle 3 stroke:lightblue, stroke-width: 3px;
-    linkStyle 4,5 stroke:lightgray, stroke-width: 3px;
+    linkStyle 0 stroke:palegreen, stroke-width: 2px;
+    linkStyle 1 stroke:lightgray, stroke-width: 2px;
+    linkStyle 2 stroke:#FFD700, stroke-width: 2px;
+    linkStyle 3 stroke:lightgray, stroke-width: 2px;
+    linkStyle 4 stroke:lightgray, stroke-width: 2px;
+    linkStyle 5 stroke:lightgray, stroke-width: 2px;
 ```
 
 ## [Flow Equations](@id beccshydrogen_flow_equations)
@@ -433,7 +441,7 @@ Note that the `global_data` field is used to set the fields and constraints that
 2. **Set realistic stoichiometric coefficients**: Ensure the transformation parameters reflect actual technology performance
 3. **Use meaningful IDs**: Choose descriptive identifiers that indicate location and biomass type
 4. **Consider availability profiles**: Use availability time series to model seasonal variations in biomass supply
-5. **Validate costs**: Ensure investment and O&M costs are in appropriate units and time periods
+5. **Validate costs**: Ensure investment and O&M costs are in appropriate units
 6. **Test configurations**: Start with simple configurations and gradually add complexity
 7. **Monitor CO₂ balance**: Ensure the CO₂ capture and emission rates are consistent with the overall system CO₂ balance
 
@@ -475,7 +483,7 @@ A BECCS hydrogen asset in Macro is composed of a transformation component, repre
 
 Each top-level key (e.g., "transforms" or "edges") denotes a component type. The second-level keys either specify the attributes of the component (when there is a single instance) or identify the instances of the component (e.g., "biomass_edge", "h2_edge", etc.) when there are multiple instances. For multiple instances, a third-level key details the attributes for each instance.
 
-Below is an example of an input file for a BECCS hydrogen asset that sets up a single asset in the SE region with detailed edge specifications.
+Below is an example of an input file for a BECCS hydrogen asset that sets up a pair of assets (one with `Biomass_Herb` and one with `Biomass_Wood`) in the SE, MIDAT, and NE regions.
 
 ```json
 {
@@ -757,7 +765,7 @@ Below is an example of an input file for a BECCS hydrogen asset that sets up a s
 
 - The `global_data` field is utilized to define attributes and constraints that apply universally to all instances of a particular asset type.
 - The `start_vertex` and `end_vertex` fields indicate the nodes to which the edges are connected. These nodes must be defined in the `nodes.json` file.
-- Only the biomass edge is allowed to have capacity variables and constraints, as this represents the main capacity decision for the BECCS facility.
+- By default, only the biomass edge is allowed to have capacity variables and constraints, as this represents the main capacity decision for the BECCS facility.
 - The biomass edge uses availability time series to model seasonal variations in biomass supply.
 - For a comprehensive list of attributes that can be configured for the transformation and edge components, refer to the [transformation](@ref manual-transformation-fields) and [edges](@ref manual-edges-fields) pages of the Macro manual.
 
