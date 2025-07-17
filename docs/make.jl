@@ -67,7 +67,7 @@ const pages = [
         "Locations" => "Manual/Locations.md",
         "Constraints" => "Manual/Constraints.md",
         "Commodities" => "Manual/Commodities.md",
-        "Assets" => "Manual/assets/1_introduction.md",
+        "Assets" => "Manual/Assets.md",
         "Asset Library" => [
             "Manual/assets/battery.md",
             "Manual/assets/beccselectricity.md",
