@@ -6,7 +6,7 @@
 
 ## [Overview](@id electrolyzer_overview)
 
-Electrolyzer assets in Macro represent hydrogen production technologies that convert electricity into hydrogen through electrolysis. These assets are defined using either JSON or CSV input files placed in the `assets` directory, typically named with descriptive identifiers like `electrolyzer.json` or `h2_production.json`.
+Electrolyzer assets in Macro represent hydrogen production technologies that convert electricity into hydrogen through electrolysis. These assets are defined using either JSON or CSV input files placed in the `assets` directory, typically named with descriptive identifiers like `electrolyzer.json` or `electrolyzer.csv`.
 
 ## [Asset Structure](@id electrolyzer_asset_structure)
 
@@ -37,14 +37,17 @@ flowchart LR
 ```
 
 ## [Flow Equations](@id electrolyzer_flow_equations)
-In the following equations, $\phi$ is the flow of the commodity and $\epsilon$ is the stoichiometric coefficient defined in the transformation table above (see [Conversion Process Parameters](@ref electrolyzer_conversion_process_parameters)).
+The electrolyzer asset follows these stoichiometric relationships:
 
-!!! note "Electrolyzer"
-    ```math
-    \begin{aligned}
-    \phi_{h2} &= \phi_{elec} \cdot \epsilon_{efficiency} \\
-    \end{aligned}
-    ```
+```math
+\begin{aligned}
+\phi_{h2} &= \phi_{elec} \cdot \epsilon_{efficiency\_rate} \\
+\end{aligned}
+```
+
+Where:
+- ``\phi`` represents the flow of each commodity
+- ``\epsilon`` represents the efficiency rate defined in the table below (see [Conversion Process Parameters](@ref electrolyzer_conversion_process_parameters))
 
 ## [Input File (Standard Format)](@id electrolyzer_input_file)
 
@@ -109,7 +112,7 @@ The following set of parameters control the conversion process and stoichiometry
 
 | Field | Type | Description | Units | Default |
 |--------------|---------|------------|----------------|----------|
-| `efficiency_rate` | Float64 | Electrolysis efficiency | $MWh_{h2}/MWh_{elec}$ | 1.0 |
+| `efficiency_rate` | Float64 | Electrolysis efficiency | $MWh_{h2}/MWh_{elec}$ | 0.0 |
 
 ### [Constraints configuration](@id "electrolyzer_constraints")
 Electrolyzer assets can have different constraints applied to them, and the user can configure them using the following fields:
@@ -120,19 +123,19 @@ Electrolyzer assets can have different constraints applied to them, and the user
 | `h2_constraints` | Dict{String,Bool} | List of constraints applied to the hydrogen edge. |
 | `elec_constraints` | Dict{String,Bool} | List of constraints applied to the electricity edge. |
 
+Users can refer to the [Adding Asset Constraints to a System](@ref) section of the User Guide for a list of all the constraints that can be applied to the different components of an electrolyzer asset.
+
 #### Default constraints
 To simplify the input file and the asset configuration, the following constraints are applied to the electrolyzer asset by default:
 
 - [Balance constraint](@ref balance_constraint_ref) (applied to the transformation component)
 - [Capacity constraint](@ref capacity_constraint_ref) (applied to the hydrogen edge)
 
-Users can refer to the [Adding Asset Constraints to a System](@ref) section of the User Guide for a list of all the constraints that can be applied to an electrolyzer asset.
-
 ### Investment Parameters
 | Field | Type | Description | Units | Default |
 |--------------|---------|------------|----------------|----------|
-| `can_retire` | Boolean | Whether electrolyzer capacity can be retired | - | false |
-| `can_expand` | Boolean | Whether electrolyzer capacity can be expanded | - | false |
+| `can_retire` | Boolean | Whether electrolyzer capacity can be retired | - | true |
+| `can_expand` | Boolean | Whether electrolyzer capacity can be expanded | - | true |
 | `existing_capacity` | Float64 | Initial installed electrolyzer capacity | MW | 0.0 |
 | `capacity_size` | Float64 | Unit size for capacity decisions | - | 1.0 |
 
@@ -157,7 +160,7 @@ If [`MaxCapacityConstraint`](@ref max_capacity_constraint_ref) or [`MinCapacityC
 | `wacc` | Float64 | Weighted average cost of capital | fraction | 0.0 |
 | `lifetime` | Int | Asset lifetime in years | years | 1 |
 | `capital_recovery_period` | Int | Investment recovery period | years | 1 |
-| `retirement_period` | Int | Retirement period | years | 1 |
+| `retirement_period` | Int | Retirement period | years | 0 |
 
 ### Operational Parameters
 | Field | Type | Description | Units | Default |
@@ -190,9 +193,9 @@ The `Electrolyzer` asset is defined as follows:
 ```julia
 struct Electrolyzer <: AbstractAsset
     id::AssetId
-    transformation::AbstractTransformation{<:Hydrogen}
-    elec_edge::Edge{<:Electricity}
+    electrolyzer_transform::Transformation
     h2_edge::Edge{<:Hydrogen}
+    elec_edge::Edge{<:Electricity}
 end
 ```
 
@@ -201,7 +204,7 @@ end
 ### Default constructor
 
 ```julia
-Electrolyzer(id::AssetId, transformation::AbstractTransformation{<:Hydrogen}, elec_edge::Edge{<:Electricity}, h2_edge::Edge{<:Hydrogen})
+Electrolyzer(id::AssetId, electrolyzer_transform::Transformation, h2_edge::Edge{<:Hydrogen}, elec_edge::Edge{<:Electricity})
 ```
 
 ### Factory constructor
@@ -344,7 +347,7 @@ An electrolyzer asset in Macro is composed of a transformation component, repres
 }
 ```
 
-Each top-level key (e.g., "transforms" or "edges") denotes a component type. The second-level keys either specify the attributes of the component (when there is a single instance) or identify the instances of the component when there are multiple instances.
+Each top-level key (e.g., "transforms" or "edges") denotes a component type. The second-level keys either specify the attributes of the component (when there is a single instance) or identify the instances of the component (e.g., "elec\_edge", "h2\_edge", etc.) when there are multiple instances. For multiple instances, a third-level key details the attributes for each instance.
 
 Below is an example of an input file for an electrolyzer asset that sets up multiple electrolyzers across different regions:
 
@@ -453,5 +456,8 @@ Below is an example of an input file for an electrolyzer asset that sets up mult
 
 - The `global_data` field is utilized to define attributes and constraints that apply universally to all instances of a particular asset type.
 - The `start_vertex` and `end_vertex` fields indicate the nodes to which the edges are connected. These nodes must be defined in the `nodes.json` file.
-- By default, the hydrogen edge has capacity variables and can be expanded or retired.
+- By default, the hydrogen edge has capacity variables and can be expanded or retired (*see note below*).
 - For a comprehensive list of attributes that can be configured for the transformation and edge components, refer to the [transformation](@ref manual-transformation-fields) and [edges](@ref manual-edges-fields) pages of the Macro manual.
+
+!!! note "The `has_capacity` Edge Attribute"
+    The `has_capacity` attribute is a flag that indicates whether a specific edge of an asset has a capacity variable, allowing it to be expanded or retired. Typically, users do not need to manually adjust this flag, as the asset creators in Macro have already configured it correctly for each edge. However, advanced users can use this flag to override the default settings for each edge if needed.

@@ -9,7 +9,7 @@
 Thermal power plant assets in Macro represent electricity generation technologies that convert fuel into electricity through combustion or other thermal processes. These assets can include conventional thermal plants (coal, natural gas) and those with carbon capture and storage (CCS) capabilities. They are defined using either JSON or CSV input files placed in the `assets` directory, typically named with descriptive identifiers like `natgas_power.json`, `nuclear_power.json`, or `coal_power.json`.
 
 !!! note "CCS version"
-    Macro supports both the standard thermal power plant asset (described below) and a CCS version. The only difference between the two is the addition of a CO₂ captured edge.
+    Macro supports both the standard thermal power plant asset and a CCS version. The only difference between the two is the addition of a CO₂ captured edge.
 
 ## [Asset Structure](@id thermalpower_asset_structure)
 
@@ -37,11 +37,11 @@ flowchart LR
   e3@{animate: true}
   e4@{animate: true}
  end
-    style A r:55,fill:#005F6A,stroke:black,color:black,stroke-dasharray: 3,5;
-    style B fill:black,stroke:black,color:black;
-    style C r:55,fill:#FFD700,stroke:black,color:black,stroke-dasharray: 3,5;
-    style D r:55,fill:lightgray,stroke:black,color:black,stroke-dasharray: 3,5;
-    style E r:55,fill:lightgray,stroke:black,color:black,stroke-dasharray: 3,5;
+    style A r:55px,fill:#005F6A,stroke:black,color:white,stroke-dasharray: 3,5;
+    style B r:55px,fill:black,stroke:black,color:black,stroke-dasharray: 3,5;
+    style C r:55px,fill:#FFD700,stroke:black,color:black,stroke-dasharray: 3,5;
+    style D r:55px,fill:lightgray,stroke:black,color:black,stroke-dasharray: 3,5;
+    style E r:55px,fill:lightgray,stroke:black,color:black,stroke-dasharray: 3,5;
 
   linkStyle 0 stroke:#005F6A, stroke-width: 2px;
   linkStyle 1 stroke:#FFD700, stroke-width: 2px;
@@ -61,8 +61,8 @@ The thermal power plant asset follows these stoichiometric relationships:
 ```
 
 Where:
-- $\phi$ represents the flow of each commodity
-- $\epsilon$ represents the stoichiometric coefficients defined in the [Conversion Process Parameters](@ref thermalpower_conversion_process_parameters) section.
+- ``\phi`` represents the flow of each commodity
+- ``\epsilon`` represents the stoichiometric coefficients defined in the [Conversion Process Parameters](@ref thermalpower_conversion_process_parameters) section.
 
 ## [Input File (Standard Format)](@id thermalpower_input_file)
 
@@ -95,8 +95,6 @@ The following is an example of a thermal power plant asset input file with unit 
                     "uc": true,
                     "co2_sink": "co2_sink",
                     "elec_constraints": {
-                        "CapacityConstraint": true,
-                        "RampingLimitConstraint": true,
                         "MinFlowConstraint": true,
                         "MinUpTimeConstraint": true,
                         "MinDownTimeConstraint": true
@@ -144,9 +142,9 @@ The following set of parameters control the conversion process and stoichiometry
 
 | Field | Type | Description | Units | Default |
 |--------------|---------|------------|----------------|----------|
-| `fuel_consumption` | Float64 | Fuel consumption rate | MWh_fuel/MWh_elec | 1.0 |
-| `emission_rate` | Float64 | CO2 emission rate | t_CO2/MWh_fuel | 0.0 |
-| `capture_rate` | Float64 | CO2 capture rate (CCS only) | t_CO2/MWh_fuel | 0.0 |
+| `fuel_consumption` | Float64 | Fuel consumption rate | $MWh_{fuel}/MWh_{elec}$ | 1.0 |
+| `emission_rate` | Float64 | CO₂ emission rate | $t_{CO₂}/MWh_{fuel}$ | 0.0 |
+| `capture_rate` | Float64 | CO₂ capture rate (CCS only) | $t_{CO₂}/MWh_{fuel}$ | 1.0 |
 
 ### [Constraints Configuration](@id "thermalpower_constraints")
 Thermal power plant assets can have different constraints applied to them, and the user can configure them using the following fields:
@@ -172,6 +170,8 @@ For example, if the user wants to apply the [`BalanceConstraint`](@ref balance_c
 }
 ```
 
+Users can refer to the [Adding Asset Constraints to a System](@ref) section of the User Guide for a list of all the constraints that can be applied to the different components of a thermal power plant asset.
+
 #### Default constraints
 To simplify the input file and the asset configuration, the following constraints are applied to the thermal power plant asset by default:
 
@@ -182,13 +182,11 @@ To simplify the input file and the asset configuration, the following constraint
 **Unit commitment constraints** (when `uc` is set to `true`):
 - [Minimum up and down time constraint](@ref min_up_and_down_time_constraint_ref) (applied to the electricity edge)
 
-Users can refer to the [Adding Asset Constraints to a System](@ref) section of the User Guide for a list of all the constraints that can be applied to a thermal power plant asset.
-
 ### Investment Parameters
 | Field | Type | Description | Units | Default |
 |--------------|---------|------------|----------------|----------|
-| `can_retire` | Boolean | Whether capacity can be retired | - | false |
-| `can_expand` | Boolean | Whether capacity can be expanded | - | false |
+| `can_retire` | Boolean | Whether capacity can be retired | - | true |
+| `can_expand` | Boolean | Whether capacity can be expanded | - | true |
 | `existing_capacity` | Float64 | Initial installed capacity | MW | 0.0 |
 | `capacity_size` | Float64 | Unit size for capacity decisions | - | 1.0 |
 
@@ -214,7 +212,7 @@ If [`MaxCapacityConstraint`](@ref max_capacity_constraint_ref) or [`MinCapacityC
 | `wacc` | Float64 | Weighted average cost of capital | fraction | 0.0 |
 | `lifetime` | Int | Asset lifetime in years | years | 1 |
 | `capital_recovery_period` | Int | Investment recovery period | years | 1 |
-| `retirement_period` | Int | Retirement period | years | 1 |
+| `retirement_period` | Int | Retirement period | years | 0 |
 
 ### Operational Parameters
 | Field | Type | Description | Units | Default |
@@ -328,8 +326,6 @@ Note that the `global_data` field is used to set the fields and constraints that
                     "existing_capacity": 33632.288,
                     "capacity_size": 1051.009,
                     "elec_constraints": {
-                        "CapacityConstraint": true,
-                        "RampingLimitConstraint": true,
                         "MinFlowConstraint": true,
                         "MinUpTimeConstraint": true,
                         "MinDownTimeConstraint": true
@@ -353,9 +349,9 @@ Note that the `global_data` field is used to set the fields and constraints that
 
 **CSV Format:**
 
-| Type | id | location | timedata | fuel_commodity | fuel_start_vertex | co2_sink | uc | can_retire | can_expand | existing_capacity | capacity_size | elec_constraints | fuel_consumption | fixed_om_cost | variable_om_cost | startup_cost | startup_fuel_consumption | min_up_time | min_down_time | ramp_up_fraction | ramp_down_fraction | min_flow_fraction |
-|------|----|----------|---------------------|----------------------------------------|---------------------------|------------------------|----------------------|----------------------|---------------------------|------------------------|----------------------|----------------------|------------------------------------------|------------------------------------------|--------------------------------|--------------------------------|----------------------------------|---------------------|---------------------------|------------------------|---------------------|------------------------|---------------------|---------------------|---------------------|---------------------|---------------------|---------------------|---------------------|---------------------|---------------------|
-| ThermalPower | SE_nuclear_1 | SE | Uranium | uranium_source | co2_sink | true | true | false | 33632.288 | 1051.009 | CapacityConstraint | 3.064351108 | 199087.824 | 2.34 | 1000 | 0.0 | 36 | 36 | 0.25 | 0.25 | 0.5 | 
+| Type | id | location | timedata | fuel\_commodity | fuel\_start\_vertex | co2\_sink | uc | can\_retire | can\_expand | existing\_capacity | capacity\_size | elec\_constraints--MinFlowConstraint | elec\_constraints--MinUpTimeConstraint | elec\_constraints--MinDownTimeConstraint | fuel\_consumption | fixed\_om\_cost | variable\_om\_cost | startup\_cost | startup\_fuel\_consumption | min\_up\_time | min\_down\_time | ramp\_up\_fraction | ramp\_down\_fraction | min\_flow\_fraction |
+|------|----|----------|---------------------|----------------------------------------|---------------------------|------------------------|----------------------|----------------------|---------------------------|------------------------|----------------------|----------------------|------------------------------------------|------------------------------------------|--------------------------------|--------------------------------|----------------------------------|---------------------|---------------------------|------------------------|---------------------|------------------------|---------------------|---------------------|
+| ThermalPower | SE\_nuclear\_1 | SE | Uranium | Uranium| uranium\_source | co2\_sink | true | true | true | 33632.288 | 1051.009 | true | true | true | 3.064351108 | 199087.824 | 2.34 | 1000 | 0.0 | 36 | 36 | 0.25 | 0.25 | 0.5 | 
 
 ### Multiple Nuclear Power Plants in Different Zones with CCS
 
@@ -372,8 +368,6 @@ Note that the `global_data` field is used to set the fields and constraints that
                 "co2_sink": "co2_sink",
                 "uc": true,
                 "elec_constraints": {
-                    "CapacityConstraint": true,
-                    "RampingLimitConstraint": true,
                     "MinFlowConstraint": true,
                     "MinUpTimeConstraint": true,
                     "MinDownTimeConstraint": true
@@ -385,6 +379,7 @@ Note that the `global_data` field is used to set the fields and constraints that
                     "location": "MIDAT",
                     "emission_rate": 0.181048235160161,
                     "fuel_consumption": 2.249613533,
+                    "can_retire": true,
                     "can_expand": false,
                     "existing_capacity": 4026.4,
                     "investment_cost": 0.0,
@@ -447,11 +442,11 @@ Note that the `global_data` field is used to set the fields and constraints that
 
 **CSV Format:**
 
-| Type | id | location | timedata | fuel_commodity | fuel_start_vertex | co2_sink | uc | can_retire | can_expand | existing_capacity | capacity_size | elec_constraints | fuel_consumption | fixed_om_cost | variable_om_cost | startup_cost | startup_fuel_consumption | min_up_time | min_down_time | ramp_up_fraction | ramp_down_fraction | min_flow_fraction |
-|------|----|----------|---------------------|----------------------------------------|---------------------------|------------------------|----------------------|----------------------|---------------------------|------------------------|----------------------|----------------------|------------------------------------------|------------------------------------------|--------------------------------|--------------------------------|----------------------------------|---------------------|---------------------------|------------------------|---------------------|------------------------|---------------------|---------------------|---------------------|---------------------|---------------------|---------------------|---------------------|---------------------|---------------------|---------------------|
-| ThermalPower | MIDAT_natural_gas_fired_combined_cycle_1 | MIDAT | NaturalGas | NaturalGas | co2_sink | true | false | 4026.4 | 125.825 | CapacityConstraint | 2.249613533 | 16001 | 4.415 | 89.34 | 0.58614214 | 6 | 6 | 0.64 | 0.64 | 0.444 |
-| ThermalPower | NE_natural_gas_fired_combined_cycle_1 | NE | NaturalGas | NaturalGas | co2_sink | true | true | 6119.616 | 127.492 | CapacityConstraint | 2.511912141 | 16001 | 4.415 | 89.34 | 0.58614214 | 6 | 6 | 0.64 | 0.64 | 0.526 |
-| ThermalPower | SE_natural_gas_fired_combined_cycle_1 | SE | NaturalGas | NaturalGas | co2_sink | true | true | 26218.712 | 504.206 | CapacityConstraint | 2.132092034 | 9496 | 3.504 | 89.34 | 0.58614214 | 6 | 6 | 0.64 | 0.64 | 0.41 |
+| Type | id | location | timedata | fuel\_commodity | co2\_sink | uc | can\_retire | can\_expand | existing\_capacity | capacity\_size | elec\_constraints--MinFlowConstraint | elec\_constraints--MinUpTimeConstraint | elec\_constraints--MinDownTimeConstraint | fuel\_consumption | fixed\_om\_cost | variable\_om\_cost | startup\_cost | startup\_fuel\_consumption | min\_up\_time | min\_down\_time | ramp\_up\_fraction | ramp\_down\_fraction | min\_flow\_fraction |
+|------|----|----------|---------------------|----------------------------------------|---------------------------|------------------------|----------------------|----------------------|---------------------------|----------------------|----------------------|------------------------------------------|------------------------------------------|--------------------------------|--------------------------------|----------------------------------|---------------------|---------------------------|------------------------|---------------------|------------------------|---------------------|---------------------|
+| ThermalPower | MIDAT\_natural\_gas\_fired\_combined\_cycle\_1 | MIDAT | NaturalGas | NaturalGas | co2\_sink | true | true | false | 4026.4 | 125.825 | true | true | true | 2.249613533 | 16001 | 4.415 | 89.34 | 0.58614214 | 6 | 6 | 0.64 | 0.64 | 0.444 |
+| ThermalPower | NE\_natural\_gas\_fired\_combined\_cycle\_1 | NE | NaturalGas | NaturalGas | co2\_sink | true | true | false | 6119.616 | 127.492 | true | true | true | 2.511912141 | 16001 | 4.415 | 89.34 | 0.58614214 | 6 | 6 | 0.64 | 0.64 | 0.526 |
+| ThermalPower | SE\_natural\_gas\_fired\_combined\_cycle\_1 | SE | NaturalGas | NaturalGas | co2\_sink | true | true | false | 26218.712 | 504.206 | true | true | true | 2.132092034 | 9496 | 3.504 | 89.34 | 0.58614214 | 6 | 6 | 0.64 | 0.64 | 0.41 |
 
 ## [Best Practices](@id thermalpower_best_practices)
 
@@ -505,7 +500,6 @@ Below is an example of an input file for a thermal power plant asset that sets u
         {
             "type": "ThermalPower",
             "global_data": {
-                "nodes": {},
                 "transforms": {
                     "timedata": "NaturalGas",
                     "constraints": {
@@ -571,151 +565,6 @@ Below is an example of an input file for a thermal power plant asset that sets u
                     }
                 },
                 {
-                    "id": "MIDAT_natural_gas_fired_combined_cycle_2",
-                    "transforms": {
-                        "emission_rate": 0.181048235160161,
-                        "fuel_consumption": 2.002554621
-                    },
-                    "edges": {
-                        "elec_edge": {
-                            "end_vertex": "elec_MIDAT",
-                            "can_retire": true,
-                            "can_expand": false,
-                            "existing_capacity": 31802.922,
-                            "investment_cost": 0.0,
-                            "fixed_om_cost": 11965,
-                            "variable_om_cost": 3.452,
-                            "capacity_size": 588.943,
-                            "startup_cost": 89.34,
-                            "startup_fuel_consumption": 0.58614214,
-                            "min_up_time": 6,
-                            "min_down_time": 6,
-                            "ramp_up_fraction": 0.64,
-                            "ramp_down_fraction": 0.64,
-                            "min_flow_fraction": 0.38
-                        },
-                        "fuel_edge": {
-                            "start_vertex": "natgas_MIDAT"
-                        }
-                    }
-                },
-                {
-                    "id": "MIDAT_natural_gas_fired_combined_cycle_3",
-                    "transforms": {
-                        "emission_rate": 0.181048235160161,
-                        "fuel_consumption": 3.598619669
-                    },
-                    "edges": {
-                        "elec_edge": {
-                            "end_vertex": "elec_MIDAT",
-                            "can_retire": true,
-                            "can_expand": false,
-                            "existing_capacity": 1697.696,
-                            "investment_cost": 0.0,
-                            "fixed_om_cost": 11069.135,
-                            "variable_om_cost": 3.505,
-                            "capacity_size": 212.212,
-                            "startup_cost": 89.34,
-                            "startup_fuel_consumption": 0.58614214,
-                            "min_up_time": 6,
-                            "min_down_time": 6,
-                            "ramp_up_fraction": 0.64,
-                            "ramp_down_fraction": 0.64,
-                            "min_flow_fraction": 0.217
-                        },
-                        "fuel_edge": {
-                            "start_vertex": "natgas_MIDAT"
-                        }
-                    }
-                },
-                {
-                    "id": "MIDAT_natural_gas_fired_combined_cycle_4",
-                    "transforms": {
-                        "emission_rate": 0.181048235160161,
-                        "fuel_consumption": 2.101319572
-                    },
-                    "edges": {
-                        "elec_edge": {
-                            "end_vertex": "elec_MIDAT",
-                            "can_retire": true,
-                            "can_expand": false,
-                            "existing_capacity": 20288.499,
-                            "investment_cost": 0.0,
-                            "fixed_om_cost": 9496,
-                            "variable_om_cost": 3.504,
-                            "capacity_size": 614.803,
-                            "startup_cost": 89.34,
-                            "startup_fuel_consumption": 0.58614214,
-                            "min_up_time": 6,
-                            "min_down_time": 6,
-                            "ramp_up_fraction": 0.64,
-                            "ramp_down_fraction": 0.64,
-                            "min_flow_fraction": 0.39
-                        },
-                        "fuel_edge": {
-                            "start_vertex": "natgas_MIDAT"
-                        }
-                    }
-                },
-                {
-                    "id": "MIDAT_natural_gas_fired_combustion_turbine_1",
-                    "transforms": {
-                        "emission_rate": 0.181048235160161,
-                        "fuel_consumption": 3.443878144
-                    },
-                    "edges": {
-                        "elec_edge": {
-                            "end_vertex": "elec_MIDAT",
-                            "can_retire": true,
-                            "can_expand": false,
-                            "existing_capacity": 14508.75,
-                            "investment_cost": 0.0,
-                            "fixed_om_cost": 9573.46,
-                            "variable_om_cost": 5.071,
-                            "capacity_size": 116.07,
-                            "startup_cost": 115.842,
-                            "startup_fuel_consumption": 1.025748745,
-                            "min_up_time": 1,
-                            "min_down_time": 1,
-                            "ramp_up_fraction": 0.64,
-                            "ramp_down_fraction": 0.64,
-                            "min_flow_fraction": 0.505
-                        },
-                        "fuel_edge": {
-                            "start_vertex": "natgas_MIDAT"
-                        }
-                    }
-                },
-                {
-                    "id": "MIDAT_natural_gas_fired_combustion_turbine_2",
-                    "transforms": {
-                        "emission_rate": 0.181048235160161,
-                        "fuel_consumption": 3.004271539
-                    },
-                    "edges": {
-                        "elec_edge": {
-                            "end_vertex": "elec_MIDAT",
-                            "can_retire": true,
-                            "can_expand": false,
-                            "existing_capacity": 704.718,
-                            "investment_cost": 0.0,
-                            "fixed_om_cost": 13548,
-                            "variable_om_cost": 5.071,
-                            "capacity_size": 14.994,
-                            "startup_cost": 115.842,
-                            "startup_fuel_consumption": 1.025748745,
-                            "min_up_time": 1,
-                            "min_down_time": 1,
-                            "ramp_up_fraction": 0.64,
-                            "ramp_down_fraction": 0.64,
-                            "min_flow_fraction": 0.403
-                        },
-                        "fuel_edge": {
-                            "start_vertex": "natgas_MIDAT"
-                        }
-                    }
-                },
-                {
                     "id": "NE_natural_gas_fired_combined_cycle_1",
                     "transforms": {
                         "emission_rate": 0.181048235160161,
@@ -738,151 +587,6 @@ Below is an example of an input file for a thermal power plant asset that sets u
                             "ramp_up_fraction": 0.64,
                             "ramp_down_fraction": 0.64,
                             "min_flow_fraction": 0.526
-                        },
-                        "fuel_edge": {
-                            "start_vertex": "natgas_NE"
-                        }
-                    }
-                },
-                {
-                    "id": "NE_natural_gas_fired_combined_cycle_2",
-                    "transforms": {
-                        "emission_rate": 0.181048235160161,
-                        "fuel_consumption": 2.245803609
-                    },
-                    "edges": {
-                        "elec_edge": {
-                            "end_vertex": "elec_NE",
-                            "can_retire": true,
-                            "can_expand": false,
-                            "existing_capacity": 21225.12,
-                            "investment_cost": 0.0,
-                            "fixed_om_cost": 10223.482,
-                            "variable_om_cost": 3.488,
-                            "capacity_size": 442.19,
-                            "startup_cost": 89.34,
-                            "startup_fuel_consumption": 0.58614214,
-                            "min_up_time": 6,
-                            "min_down_time": 6,
-                            "ramp_up_fraction": 0.64,
-                            "ramp_down_fraction": 0.64,
-                            "min_flow_fraction": 0.409
-                        },
-                        "fuel_edge": {
-                            "start_vertex": "natgas_NE"
-                        }
-                    }
-                },
-                {
-                    "id": "NE_natural_gas_fired_combined_cycle_3",
-                    "transforms": {
-                        "emission_rate": 0.181048235160161,
-                        "fuel_consumption": 5.826545943
-                    },
-                    "edges": {
-                        "elec_edge": {
-                            "end_vertex": "elec_NE",
-                            "can_retire": true,
-                            "can_expand": false,
-                            "existing_capacity": 19.5,
-                            "investment_cost": 0.0,
-                            "fixed_om_cost": 16001,
-                            "variable_om_cost": 4.415,
-                            "capacity_size": 19.5,
-                            "startup_cost": 89.34,
-                            "startup_fuel_consumption": 0.58614214,
-                            "min_up_time": 6,
-                            "min_down_time": 6,
-                            "ramp_up_fraction": 0.64,
-                            "ramp_down_fraction": 0.64,
-                            "min_flow_fraction": 0.472
-                        },
-                        "fuel_edge": {
-                            "start_vertex": "natgas_NE"
-                        }
-                    }
-                },
-                {
-                    "id": "NE_natural_gas_fired_combined_cycle_4",
-                    "transforms": {
-                        "emission_rate": 0.181048235160161,
-                        "fuel_consumption": 0
-                    },
-                    "edges": {
-                        "elec_edge": {
-                            "end_vertex": "elec_NE",
-                            "can_retire": true,
-                            "can_expand": false,
-                            "existing_capacity": 296,
-                            "investment_cost": 0.0,
-                            "fixed_om_cost": 9496,
-                            "variable_om_cost": 3.504,
-                            "capacity_size": 148,
-                            "startup_cost": 89.34,
-                            "startup_fuel_consumption": 0.58614214,
-                            "min_up_time": 6,
-                            "min_down_time": 6,
-                            "ramp_up_fraction": 0.64,
-                            "ramp_down_fraction": 0.64,
-                            "min_flow_fraction": 0.472
-                        },
-                        "fuel_edge": {
-                            "start_vertex": "natgas_NE"
-                        }
-                    }
-                },
-                {
-                    "id": "NE_natural_gas_fired_combustion_turbine_1",
-                    "transforms": {
-                        "emission_rate": 0.181048235160161,
-                        "fuel_consumption": 3.321081365
-                    },
-                    "edges": {
-                        "elec_edge": {
-                            "end_vertex": "elec_NE",
-                            "can_retire": true,
-                            "can_expand": false,
-                            "existing_capacity": 1413.201,
-                            "investment_cost": 0.0,
-                            "fixed_om_cost": 13548,
-                            "variable_om_cost": 5.071,
-                            "capacity_size": 24.793,
-                            "startup_cost": 115.842,
-                            "startup_fuel_consumption": 1.025748745,
-                            "min_up_time": 1,
-                            "min_down_time": 1,
-                            "ramp_up_fraction": 0.64,
-                            "ramp_down_fraction": 0.64,
-                            "min_flow_fraction": 0.39
-                        },
-                        "fuel_edge": {
-                            "start_vertex": "natgas_NE"
-                        }
-                    }
-                },
-                {
-                    "id": "NE_natural_gas_fired_combustion_turbine_2",
-                    "transforms": {
-                        "emission_rate": 0.181048235160161,
-                        "fuel_consumption": 3.321081365
-                    },
-                    "edges": {
-                        "elec_edge": {
-                            "end_vertex": "elec_NE",
-                            "can_retire": true,
-                            "can_expand": false,
-                            "existing_capacity": 2341.199,
-                            "investment_cost": 0.0,
-                            "fixed_om_cost": 9896.045,
-                            "variable_om_cost": 5.071,
-                            "capacity_size": 80.731,
-                            "startup_cost": 115.842,
-                            "startup_fuel_consumption": 1.025748745,
-                            "min_up_time": 1,
-                            "min_down_time": 1,
-                            "ramp_up_fraction": 0.64,
-                            "ramp_down_fraction": 0.64,
-                            "min_flow_fraction": 0.367
                         },
                         "fuel_edge": {
                             "start_vertex": "natgas_NE"
@@ -917,325 +621,6 @@ Below is an example of an input file for a thermal power plant asset that sets u
                             "start_vertex": "natgas_SE"
                         }
                     }
-                },
-                {
-                    "id": "SE_natural_gas_fired_combined_cycle_2",
-                    "transforms": {
-                        "emission_rate": 0.181048235160161,
-                        "fuel_consumption": 2.266904726
-                    },
-                    "edges": {
-                        "elec_edge": {
-                            "end_vertex": "elec_SE",
-                            "can_retire": true,
-                            "can_expand": false,
-                            "existing_capacity": 4637.5,
-                            "investment_cost": 0.0,
-                            "fixed_om_cost": 16001,
-                            "variable_om_cost": 4.415,
-                            "capacity_size": 185.5,
-                            "startup_cost": 89.34,
-                            "startup_fuel_consumption": 0.58614214,
-                            "min_up_time": 6,
-                            "min_down_time": 6,
-                            "ramp_up_fraction": 0.64,
-                            "ramp_down_fraction": 0.64,
-                            "min_flow_fraction": 0.586
-                        },
-                        "fuel_edge": {
-                            "start_vertex": "natgas_SE"
-                        }
-                    }
-                },
-                {
-                    "id": "SE_natural_gas_fired_combined_cycle_3",
-                    "transforms": {
-                        "emission_rate": 0.181048235160161,
-                        "fuel_consumption": 2.042412287
-                    },
-                    "edges": {
-                        "elec_edge": {
-                            "end_vertex": "elec_SE",
-                            "can_retire": true,
-                            "can_expand": false,
-                            "existing_capacity": 42679.32,
-                            "investment_cost": 0.0,
-                            "fixed_om_cost": 11977.294,
-                            "variable_om_cost": 3.455,
-                            "capacity_size": 711.322,
-                            "startup_cost": 89.34,
-                            "startup_fuel_consumption": 0.58614214,
-                            "min_up_time": 6,
-                            "min_down_time": 6,
-                            "ramp_up_fraction": 0.64,
-                            "ramp_down_fraction": 0.64,
-                            "min_flow_fraction": 0.596
-                        },
-                        "fuel_edge": {
-                            "start_vertex": "natgas_SE"
-                        }
-                    }
-                },
-                {
-                    "id": "SE_natural_gas_fired_combined_cycle_4",
-                    "transforms": {
-                        "emission_rate": 0.181048235160161,
-                        "fuel_consumption": 2.999582401
-                    },
-                    "edges": {
-                        "elec_edge": {
-                            "end_vertex": "elec_SE",
-                            "can_retire": true,
-                            "can_expand": false,
-                            "existing_capacity": 6088.5,
-                            "investment_cost": 0.0,
-                            "fixed_om_cost": 11733.808,
-                            "variable_om_cost": 3.493,
-                            "capacity_size": 507.375,
-                            "startup_cost": 89.34,
-                            "startup_fuel_consumption": 0.58614214,
-                            "min_up_time": 6,
-                            "min_down_time": 6,
-                            "ramp_up_fraction": 0.64,
-                            "ramp_down_fraction": 0.64,
-                            "min_flow_fraction": 0.561
-                        },
-                        "fuel_edge": {
-                            "start_vertex": "natgas_SE"
-                        }
-                    }
-                },
-                {
-                    "id": "SE_natural_gas_fired_combustion_turbine_1",
-                    "transforms": {
-                        "emission_rate": 0.181048235160161,
-                        "fuel_consumption": 3.262760222
-                    },
-                    "edges": {
-                        "elec_edge": {
-                            "end_vertex": "elec_SE",
-                            "can_retire": true,
-                            "can_expand": false,
-                            "existing_capacity": 24934.14,
-                            "investment_cost": 0.0,
-                            "fixed_om_cost": 9518.439,
-                            "variable_om_cost": 5.071,
-                            "capacity_size": 138.523,
-                            "startup_cost": 115.842,
-                            "startup_fuel_consumption": 1.025748745,
-                            "min_up_time": 1,
-                            "min_down_time": 1,
-                            "ramp_up_fraction": 0.64,
-                            "ramp_down_fraction": 0.64,
-                            "min_flow_fraction": 0.472
-                        },
-                        "fuel_edge": {
-                            "start_vertex": "natgas_SE"
-                        }
-                    }
-                },
-                {
-                    "id": "SE_natural_gas_fired_combustion_turbine_2",
-                    "transforms": {
-                        "emission_rate": 0.181048235160161,
-                        "fuel_consumption": 3.020390447
-                    },
-                    "edges": {
-                        "elec_edge": {
-                            "end_vertex": "elec_SE",
-                            "can_retire": true,
-                            "can_expand": false,
-                            "existing_capacity": 683.209,
-                            "investment_cost": 0.0,
-                            "fixed_om_cost": 13548,
-                            "variable_om_cost": 5.071,
-                            "capacity_size": 22.039,
-                            "startup_cost": 115.842,
-                            "startup_fuel_consumption": 1.025748745,
-                            "min_up_time": 1,
-                            "min_down_time": 1,
-                            "ramp_up_fraction": 0.64,
-                            "ramp_down_fraction": 0.64,
-                            "min_flow_fraction": 0.326
-                        },
-                        "fuel_edge": {
-                            "start_vertex": "natgas_SE"
-                        }
-                    }
-                },
-                {
-                    "id": "SE_naturalgas_ccavgcf_moderate_0",
-                    "transforms": {
-                        "emission_rate": 0.181048235160161,
-                        "fuel_consumption": 1.864811218
-                    },
-                    "edges": {
-                        "elec_edge": {
-                            "end_vertex": "elec_SE",
-                            "can_retire": true,
-                            "can_expand": true,
-                            "existing_capacity": 0.0,
-                            "investment_cost": 57692.09836,
-                            "fixed_om_cost": 27800,
-                            "variable_om_cost": 1.85,
-                            "capacity_size": 573,
-                            "startup_cost": 61,
-                            "startup_fuel_consumption": 0.058614214,
-                            "min_up_time": 4,
-                            "min_down_time": 4,
-                            "ramp_up_fraction": 1,
-                            "ramp_down_fraction": 1,
-                            "min_flow_fraction": 0.3
-                        },
-                        "fuel_edge": {
-                            "start_vertex": "natgas_SE"
-                        }
-                    }
-                },
-                {
-                    "id": "SE_naturalgas_ctavgcf_moderate_0",
-                    "transforms": {
-                        "emission_rate": 0.181048235160161,
-                        "fuel_consumption": 2.847771587
-                    },
-                    "edges": {
-                        "elec_edge": {
-                            "end_vertex": "elec_SE",
-                            "can_retire": true,
-                            "can_expand": true,
-                            "existing_capacity": 0.0,
-                            "investment_cost": 51669.01214,
-                            "fixed_om_cost": 22800,
-                            "variable_om_cost": 6.94,
-                            "capacity_size": 237,
-                            "startup_cost": 140,
-                            "startup_fuel_consumption": 0.055683503,
-                            "min_up_time": 0,
-                            "min_down_time": 0,
-                            "ramp_up_fraction": 1,
-                            "ramp_down_fraction": 1,
-                            "min_flow_fraction": 0.25
-                        },
-                        "fuel_edge": {
-                            "start_vertex": "natgas_SE"
-                        }
-                    }
-                },
-                {
-                    "id": "MIDAT_naturalgas_ccavgcf_moderate_0",
-                    "transforms": {
-                        "emission_rate": 0.181048235160161,
-                        "fuel_consumption": 1.864811218
-                    },
-                    "edges": {
-                        "elec_edge": {
-                            "end_vertex": "elec_MIDAT",
-                            "can_retire": true,
-                            "can_expand": true,
-                            "existing_capacity": 0.0,
-                            "investment_cost": 67880.38343,
-                            "fixed_om_cost": 27800,
-                            "variable_om_cost": 1.85,
-                            "capacity_size": 573,
-                            "startup_cost": 61,
-                            "startup_fuel_consumption": 0.058614214,
-                            "min_up_time": 4,
-                            "min_down_time": 4,
-                            "ramp_up_fraction": 1,
-                            "ramp_down_fraction": 1,
-                            "min_flow_fraction": 0.3
-                        },
-                        "fuel_edge": {
-                            "start_vertex": "natgas_MIDAT"
-                        }
-                    }
-                },
-                {
-                    "id": "MIDAT_naturalgas_ctavgcf_moderate_0",
-                    "transforms": {
-                        "emission_rate": 0.181048235160161,
-                        "fuel_consumption": 2.847771587
-                    },
-                    "edges": {
-                        "elec_edge": {
-                            "end_vertex": "elec_MIDAT",
-                            "can_retire": true,
-                            "can_expand": true,
-                            "existing_capacity": 0.0,
-                            "investment_cost": 57602.08239,
-                            "fixed_om_cost": 22800,
-                            "variable_om_cost": 6.94,
-                            "capacity_size": 237,
-                            "startup_cost": 140,
-                            "startup_fuel_consumption": 0.055683503,
-                            "min_up_time": 0,
-                            "min_down_time": 0,
-                            "ramp_up_fraction": 1,
-                            "ramp_down_fraction": 1,
-                            "min_flow_fraction": 0.25
-                        },
-                        "fuel_edge": {
-                            "start_vertex": "natgas_MIDAT"
-                        }
-                    }
-                },
-                {
-                    "id": "NE_naturalgas_ccavgcf_moderate_0",
-                    "transforms": {
-                        "emission_rate": 0.181048235160161,
-                        "fuel_consumption": 1.864811218
-                    },
-                    "edges": {
-                        "elec_edge": {
-                            "end_vertex": "elec_NE",
-                            "can_retire": true,
-                            "can_expand": true,
-                            "existing_capacity": 0.0,
-                            "investment_cost": 82535.90352,
-                            "fixed_om_cost": 27800,
-                            "variable_om_cost": 1.85,
-                            "capacity_size": 573,
-                            "startup_cost": 61,
-                            "startup_fuel_consumption": 0.058614214,
-                            "min_up_time": 4,
-                            "min_down_time": 4,
-                            "ramp_up_fraction": 1,
-                            "ramp_down_fraction": 1,
-                            "min_flow_fraction": 0.3
-                        },
-                        "fuel_edge": {
-                            "start_vertex": "natgas_NE"
-                        }
-                    }
-                },
-                {
-                    "id": "NE_naturalgas_ctavgcf_moderate_0",
-                    "transforms": {
-                        "emission_rate": 0.181048235160161,
-                        "fuel_consumption": 2.847771587
-                    },
-                    "edges": {
-                        "elec_edge": {
-                            "end_vertex": "elec_NE",
-                            "can_retire": true,
-                            "can_expand": true,
-                            "existing_capacity": 0.0,
-                            "investment_cost": 68234.02532,
-                            "fixed_om_cost": 22800,
-                            "variable_om_cost": 6.94,
-                            "capacity_size": 237,
-                            "startup_cost": 140,
-                            "startup_fuel_consumption": 0.055683503,
-                            "min_up_time": 0,
-                            "min_down_time": 0,
-                            "ramp_up_fraction": 1,
-                            "ramp_down_fraction": 1,
-                            "min_flow_fraction": 0.25
-                        },
-                        "fuel_edge": {
-                            "start_vertex": "natgas_NE"
-                        }
-                    }
                 }
             ]
         }
@@ -1247,9 +632,12 @@ Below is an example of an input file for a thermal power plant asset that sets u
 
 - The `global_data` field is utilized to define attributes and constraints that apply universally to all instances of a particular asset type.
 - The `start_vertex` and `end_vertex` fields indicate the nodes to which the edges are connected. These nodes must be defined in the `nodes.json` file.
-- By default, only the electricity edge is allowed to expand as a modeling decision.
+- By default, only the electricity edge is allowed to expand as a modeling decision (*see note below*)
 - The electricity edge can have unit commitment operations enabled by setting the `uc` attribute to `true`.
 - For a comprehensive list of attributes that can be configured for the transformation and edge components, refer to the [transformation](@ref manual-transformation-fields) and [edges](@ref manual-edges-fields) pages of the Macro manual. 
+
+!!! note "The `has_capacity` Edge Attribute"
+    The `has_capacity` attribute is a flag that indicates whether a specific edge of an asset has a capacity variable, allowing it to be expanded or retired. Typically, users do not need to manually adjust this flag, as the asset creators in Macro have already configured it correctly for each edge. However, advanced users can use this flag to override the default settings for each edge if needed.
 
 !!! tip "Prefixes"
     Users can apply prefixes to adjust parameters for the components of a thermal power plant asset, even when using the standard format. For instance, `co2_can_retire` will adjust the `can_retire` parameter for the CO2 edge, and `co2_existing_capacity` will adjust the `existing_capacity` parameter for the CO2 edge.

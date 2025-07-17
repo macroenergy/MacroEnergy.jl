@@ -133,6 +133,7 @@ The following tables outline the attributes that can be set for a gas storage as
 | `location` | String | Geographic location/node identifier |
 | `storage_commodity` | String | Commodity identifier for the gas being stored |
 | `timedata` | String | Commodity identifier for the time resolution being used |
+| `storage_long_duration` | Boolean | Whether the storage is long-duration | - | false |
 
 ### [Conversion Process Parameters](@id gasstorage_conversion_process_parameters)
 The following set of parameters control the conversion process and stoichiometry of the gas storage asset (see [Flow Equations](@ref gasstorage_flow_equations) for more details).
@@ -141,8 +142,8 @@ The following set of parameters control the conversion process and stoichiometry
 |--------------|---------|------------|----------------|----------|
 | `charge_electricity_consumption` | Float64 | Electricity consumption per unit gas | $MWh_{elec}/MWh_{gas}$ | 0.0 |
 | `discharge_electricity_consumption` | Float64 | Electricity consumption per unit gas | $MWh_{elec}/MWh_{gas}$ | 0.0 |
-| `charge_efficiency` | Float64 | Efficiency of the charging process | fraction | 1.0 |
-| `discharge_efficiency` | Float64 | Efficiency of the discharging process | fraction | 1.0 |
+| `charge_efficiency` | Float64 | Efficiency of the charging of the storage component | fraction | 1.0 |
+| `discharge_efficiency` | Float64 | Efficiency of the discharging of the storage component | fraction | 1.0 |
 
 ### [Constraints Configuration](@id "gasstorage_constraints")
 Gas storage assets can have different constraints applied to them, and the user can configure them using the following fields:
@@ -173,6 +174,8 @@ For example, if the user wants to apply the [`StorageCapacityConstraint`](@ref s
 }
 ```
 
+Users can refer to the [Adding Asset Constraints to a System](@ref) section of the User Guide for a list of all the constraints that can be applied to a gas storage asset.
+
 #### Default constraints
 To simplify the input file and the asset configuration, the following constraints are applied to the gas storage asset by default:
 
@@ -180,10 +183,8 @@ To simplify the input file and the asset configuration, the following constraint
 - [Capacity constraint](@ref capacity_constraint_ref) (applied to both charge and discharge edges)
 - [Storage capacity constraint](@ref storage_capacity_constraint_ref) (applied to the storage component)
 
-If the storage is a long-duration storage, the following additional constraints are applied:
+If the storage is a long-duration storage (i.e., `"storage_long_duration": true` is set in the input file), the following additional constraints are applied by default:
 - [Long-duration storage constraints](@ref long_duration_storage_constraints_ref) (applied to the storage component)
-
-Users can refer to the [Adding Asset Constraints to a System](@ref) section of the User Guide for a list of all the constraints that can be applied to a gas storage asset.
 
 ### Investment Parameters
 | Field | Type | Description | Units | Default |
@@ -192,12 +193,12 @@ Users can refer to the [Adding Asset Constraints to a System](@ref) section of t
 | `storage_can_expand` | Boolean | Whether storage capacity can be expanded | - | false |
 | `storage_existing_capacity` | Float64 | Initial installed storage capacity | MWh | 0.0 |
 | `storage_capacity_size` | Float64 | Unit size for capacity decisions | - | 1.0 |
-| `charge_can_retire` | Boolean | Whether charge edge capacity can be retired | - | false |
-| `charge_can_expand` | Boolean | Whether charge edge capacity can be expanded | - | false |
+| `charge_can_retire` | Boolean | Whether charge edge capacity can be retired | - | true |
+| `charge_can_expand` | Boolean | Whether charge edge capacity can be expanded | - | true |
 | `charge_existing_capacity` | Float64 | Initial installed charge edge capacity | MW | 0.0 |
 | `charge_capacity_size` | Float64 | Unit size for capacity decisions | - | 1.0 |
-| `discharge_can_retire` | Boolean | Whether discharge edge capacity can be retired | - | false |
-| `discharge_can_expand` | Boolean | Whether discharge edge capacity can be expanded | - | false |
+| `discharge_can_retire` | Boolean | Whether discharge edge capacity can be retired | - | true |
+| `discharge_can_expand` | Boolean | Whether discharge edge capacity can be expanded | - | true |
 | `discharge_existing_capacity` | Float64 | Initial installed discharge edge capacity | MW | 0.0 |
 | `discharge_capacity_size` | Float64 | Unit size for capacity decisions | - | 1.0 |
 
@@ -261,14 +262,6 @@ If [`MaxStorageLevelConstraint`](@ref max_storage_level_constraint_ref) or [`Min
 | `storage_max_storage_level` | Float64 | Maximum storage level as fraction of capacity | fraction | 1.0 |
 | `storage_min_storage_level` | Float64 | Minimum storage level as fraction of capacity | fraction | 0.0 |
 
-**Long-duration storage constraint**
-
-If [`LongDurationStorageImplicitMinMaxConstraint`](@ref long_duration_storage_constraints_ref) is added to the constraints dictionary for the storage component, the following parameter is used:
-
-| Field | Type | Description | Default |
-|--------------|---------|------------|----------|
-| `storage_long_duration` | Boolean | Whether this is long-duration storage | false |
-
 **Minimum flow constraint**
 
 If [`MinFlowConstraint`](@ref min_flow_constraint_ref) is added to the constraints dictionary for the discharge edge, the following parameter is used:
@@ -330,7 +323,7 @@ make(asset_type::Type{GasStorage}, data::AbstractDict{Symbol,Any}, system::Syste
 This section contains examples of how to use the gas storage asset in a Macro model.
 
 ### Simple Gas Storage Asset
-This example shows a single gas storage asset with fixed capacity.
+This example shows a single gas storage asset with capacity that can only be expanded and not retired.
 
 **JSON Format:**
 ```json
@@ -500,7 +493,7 @@ A gas storage asset in Macro is composed of a storage component, represented by 
 }
 ```
 
-Each top-level key (e.g., "storage", "transforms", or "edges") denotes a component type. The second-level keys either specify the attributes of the component (when there is a single instance) or identify the instances of the component (e.g., "compressor_elec_edge", "charge_edge", etc.) when there are multiple instances. For multiple instances, a third-level key details the attributes for each instance.
+Each top-level key (e.g., "storage", "transforms", or "edges") denotes a component type. The second-level keys either specify the attributes of the component (when there is a single instance) or identify the instances of the component (e.g., "discharge\_elec\_edge", "charge\_edge", etc.) when there are multiple instances. For multiple instances, a third-level key details the attributes for each instance.
 
 Below is an example of an input file for a gas storage asset that sets a single instance of the asset in each of the three zones, SE, MIDAT, and NE.
 
@@ -642,9 +635,12 @@ Below is an example of an input file for a gas storage asset that sets a single 
 
 - The `global_data` field is utilized to define attributes and constraints that apply universally to all instances of a particular asset type.
 - The `start_vertex` and `end_vertex` fields indicate the nodes to which the edges are connected. These nodes must be defined in the `nodes.json` file.
-- By default, both charge and discharge edges can have capacity variables and constraints, representing the power capacity of the storage system.
+- By default, both charge and discharge edges can have capacity variables and constraints, representing the power capacity of the storage system (*see note below*).
 - The storage component represents the energy capacity of the storage facility.
 - For a comprehensive list of attributes that can be configured for the storage, transformation, and edge components, refer to the [storage](@ref manual-storage-fields), [transformation](@ref manual-transformation-fields), and [edges](@ref manual-edges-fields) pages of the Macro manual.
+
+!!! note "The `has_capacity` Edge Attribute"
+    The `has_capacity` attribute is a flag that indicates whether a specific edge of an asset has a capacity variable, allowing it to be expanded or retired. Typically, users do not need to manually adjust this flag, as the asset creators in Macro have already configured it correctly for each edge. However, advanced users can use this flag to override the default settings for each edge if needed.
 
 !!! tip "Prefixes"
     Users can apply prefixes to adjust parameters for the components of a gas storage asset, even when using the standard format. For instance, `discharge_can_retire` will adjust the `can_retire` parameter for the discharge edge, and `discharge_existing_capacity` will adjust the `existing_capacity` parameter for the discharge edge.

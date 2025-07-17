@@ -12,7 +12,7 @@ VRE (Variable Renewable Energy) assets in Macro represent electricity generation
 
 A VRE asset consists of two main components:
 
-1. **Transformation Component**: Balances the VRE resource with the electricity production
+1. **Transformation Component**
 2. **Electricity Edge**: Represents the electricity production flow to the grid
 
 Here is a graphical representation of the VRE asset:
@@ -22,13 +22,16 @@ Here is a graphical representation of the VRE asset:
 flowchart LR
   subgraph VRE
   direction LR
-  A((Energy Source)) e1@--> B{{...}}
+  A((Energy Source)) e1@--> B{{..}}
   B e2@--> C((Electricity))
+  e1@{ animate: true }
+  e2@{ animate: true }
  end
-    style A fill:#87CEEB,stroke:black,color:black;
-    style B fill:#FFD700,stroke:black,color:black;
-    style C r:40,fill:#FFD700,stroke:black,color:black,stroke-dasharray: 3,5;
-    linkStyle 0,1 stroke:#FFD700, stroke-width: 2px;
+    style A r:55px,fill:#FFD700,stroke:black,color:black,stroke-dasharray: 3,5;
+    style B r:55px,fill:black,stroke:black,color:black,stroke-dasharray: 3,5;
+    style C r:55px,fill:#FFD700,stroke:black,color:black,stroke-dasharray: 3,5;
+    linkStyle 0 stroke:#FFD700, stroke-width: 2px;
+    linkStyle 1 stroke:#FFD700, stroke-width: 2px;
 ```
 
 ## [Input File (Standard Format)](@id vre_input_file)
@@ -96,12 +99,12 @@ VRE assets can have different constraints applied to them, and the user can conf
 | `transform_constraints` | Dict{String,Bool} | List of constraints applied to the transformation component. |
 | `elec_constraints` | Dict{String,Bool} | List of constraints applied to the electricity edge. |
 
+Users can refer to the [Adding Asset Constraints to a System](@ref) section of the User Guide for a list of all the constraints that can be applied to a VRE asset.
+
 #### Default constraints
 To simplify the input file and the asset configuration, the following constraints are applied to the VRE asset by default:
 
 - [Balance constraint](@ref balance_constraint_ref) (applied to the transformation component)
-
-Users can refer to the [Adding Asset Constraints to a System](@ref) section of the User Guide for a list of all the constraints that can be applied to a VRE asset.
 
 ### Investment Parameters
 | Field | Type | Description | Units | Default |
@@ -132,7 +135,7 @@ If [`MaxCapacityConstraint`](@ref max_capacity_constraint_ref) or [`MinCapacityC
 | `wacc` | Float64 | Weighted average cost of capital | fraction | 0.0 |
 | `lifetime` | Int | Asset lifetime in years | years | 1 |
 | `capital_recovery_period` | Int | Investment recovery period | years | 1 |
-| `retirement_period` | Int | Retirement period | years | 1 |
+| `retirement_period` | Int | Retirement period | years | 0 |
 
 ### Operational Parameters
 | Field | Type | Description | Units | Default |

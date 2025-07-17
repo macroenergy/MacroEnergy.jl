@@ -25,7 +25,7 @@ flowchart LR
   A{{..}} e1@--> B((Electricity))
   e1@{ animate: true }
  end
-    style A fill:black,stroke:black,color:black;
+    style A r:55px,fill:black,stroke:black,color:black;
     style B r:55px,fill:#FFD700,stroke:black,color:black,stroke-dasharray: 3,5;
     
     linkStyle 0 stroke:#FFD700, stroke-width: 2px, stroke-dasharray: 5 5;
@@ -88,6 +88,8 @@ The following tables outline the attributes that can be set for a must-run asset
 | `id` | String | Unique identifier for the must-run instance |
 | `location` | String | Geographic location/node identifier |
 
+Users can refer to the [Adding Asset Constraints to a System](@ref) section of the User Guide for a list of all the constraints that can be applied to a must-run asset.
+
 ### [Constraints configuration](@id "mustrun_constraints")
 Must-run assets can have different constraints applied to them, and the user can configure them using the following fields:
 
@@ -101,8 +103,6 @@ To simplify the input file and the asset configuration, the following constraint
 
 - [Balance constraint](@ref balance_constraint_ref) (applied to the transformation component)
 - [Must run constraint](@ref must_run_constraint_ref) (applied to the electricity edge)
-
-Users can refer to the [Adding Asset Constraints to a System](@ref) section of the User Guide for a list of all the constraints that can be applied to a must-run asset.
 
 ### Investment Parameters
 | Field | Type | Description | Units | Default |
@@ -133,7 +133,7 @@ If [`MaxCapacityConstraint`](@ref max_capacity_constraint_ref) or [`MinCapacityC
 | `wacc` | Float64 | Weighted average cost of capital | fraction | 0.0 |
 | `lifetime` | Int | Asset lifetime in years | years | 1 |
 | `capital_recovery_period` | Int | Investment recovery period | years | 1 |
-| `retirement_period` | Int | Retirement period | years | 1 |
+| `retirement_period` | Int | Retirement period | years | 0 |
 
 ### Operational Parameters
 | Field | Type | Description | Units | Default |
@@ -273,7 +273,7 @@ A must-run asset in Macro is composed of a transformation component, represented
     }
 }
 ```
-Each top-level key (e.g., "transforms" or "edges") denotes a component type. The second-level keys either specify the attributes of the component (when there is a single instance) or identify the instances of the component (e.g., "elec_edge") when there are multiple instances. For multiple instances, a third-level key details the attributes for each instance.
+Each top-level key (such as "transforms" or "edges") represents a type of component. The second-level keys either define the attributes of the component (for storage and transformation components) or specify the instances of the component (for edges). For edges, a third-level key provides the attributes for each specific instance.
 
 Below is an example of an input file for a must-run asset that sets up three small hydroelectric plants in different regions.
 

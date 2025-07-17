@@ -22,10 +22,11 @@ flowchart LR
   subgraph TransmissionLink
   direction LR
     A((Commodity)) e1@-->|Transmission| B((Commodity))
+    e1@{ animate: true }
  end
     style A r:40,fill:#FFD700,stroke:black,color:black,stroke-dasharray: 3,5;
-    style B fill:#FFD700,stroke:black,color:black;
-    linkStyle 0,1 stroke:#FFD700, stroke-width: 2px;
+    style B r:40,fill:#FFD700,stroke:black,color:black,stroke-dasharray: 3,5;
+    linkStyle 0 stroke:#FFD700, stroke-width: 2px;
 ```
 
 ## [Input File (Standard Format)](@id transmissionlink_input_file)
@@ -51,11 +52,6 @@ The following is an example of a Transmission Link asset input file:
     "link": [
         {
             "type": "TransmissionLink",
-            "global_data": {
-                "transmission_constraints": {
-                    "MaxCapacityConstraint": true
-                }
-            },
             "instance_data": [
                 {
                     "id": "SE_to_MIDAT",
@@ -66,7 +62,10 @@ The following is an example of a Transmission Link asset input file:
                     "existing_capacity": 5552,
                     "max_capacity": 27760,
                     "investment_cost": 40219,
-                    "loss_fraction": 0.04914512
+                    "loss_fraction": 0.04914512,
+                    "transmission_constraints": {
+                        "MaxCapacityConstraint": true
+                    }
                 }
             ]
         }
@@ -95,18 +94,18 @@ Transmission Link assets can have different constraints applied to them, and the
 |--------------|---------|------------|
 | `transmission_constraints` | Dict{String,Bool} | List of constraints applied to the transmission edge. |
 
+Users can refer to the [Adding Asset Constraints to a System](@ref) section of the User Guide for a list of all the constraints that can be applied to a Transmission Link asset.
+
 #### Default constraints
 To simplify the input file and the asset configuration, the following constraints are applied to the Transmission Link asset by default:
 
 - [Capacity constraint](@ref capacity_constraint_ref) (applied to the transmission edge)
 
-Users can refer to the [Adding Asset Constraints to a System](@ref) section of the User Guide for a list of all the constraints that can be applied to a Transmission Link asset.
-
 ### Investment Parameters
 | Field | Type | Description | Units | Default |
 |--------------|---------|------------|----------------|----------|
-| `can_retire` | Boolean | Whether capacity can be retired | - | true |
-| `can_expand` | Boolean | Whether capacity can be expanded | - | false |
+| `can_retire` | Boolean | Whether capacity can be retired | - | false |
+| `can_expand` | Boolean | Whether capacity can be expanded | - | true |
 | `existing_capacity` | Float64 | Initial installed capacity | MW | 0.0 |
 | `capacity_size` | Float64 | Unit size for capacity decisions | - | 1.0 |
 
@@ -131,7 +130,7 @@ If [`MaxCapacityConstraint`](@ref max_capacity_constraint_ref) or [`MinCapacityC
 | `wacc` | Float64 | Weighted average cost of capital | fraction | 0.0 |
 | `lifetime` | Int | Asset lifetime in years | years | 1 |
 | `capital_recovery_period` | Int | Investment recovery period | years | 1 |
-| `retirement_period` | Int | Retirement period | years | 1 |
+| `retirement_period` | Int | Retirement period | years | 0 |
 
 ### Operational Parameters
 | Field | Type | Description | Units | Default |

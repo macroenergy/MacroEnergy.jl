@@ -123,6 +123,8 @@ For example, if the user wants to apply the [`StorageMinDurationConstraint`](@re
 }
 ```
 
+Users can refer to the [Adding Asset Constraints to a System](@ref) section of the User Guide for a list of all the constraints that can be applied to a battery asset.
+
 #### Default constraints
 To simplify the input file and the asset configuration, the following constraints are applied to the battery asset by default:
 
@@ -134,8 +136,6 @@ To simplify the input file and the asset configuration, the following constraint
 
 If the storage is a long-duration storage, the following additional constraints are applied:
 - [Long-duration storage constraints](@ref long_duration_storage_constraints_ref) (applied to the storage component)
-
-Users can refer to the [Adding Asset Constraints to a System](@ref) section of the User Guide for a list of all the constraints that can be applied to a battery asset.
 
 ### Investment Parameters
 | Field | Type | Description | Units | Default |
@@ -185,7 +185,7 @@ If [`MaxCapacityConstraint`](@ref max_capacity_constraint_ref) or [`MinCapacityC
 | `storage_wacc` | Float64 | Weighted average cost of capital | fraction | 0.0 |
 | `storage_lifetime` | Int | Asset lifetime in years | years | 1 |
 | `storage_capital_recovery_period` | Int | Investment recovery period | years | 1 |
-| `storage_retirement_period` | Int | Retirement period | years | 1 |
+| `storage_retirement_period` | Int | Retirement period | years | 0 |
 | `discharge_investment_cost` | Float64 | CAPEX per unit discharge capacity | \$/MW | 0.0 |
 | `discharge_annualized_investment_cost` | Union{Nothing,Float64} | Annualized CAPEX | \$/MW/yr | calculated |
 | `discharge_fixed_om_cost` | Float64 | Fixed O&M costs of the discharge edge | \$/MW/yr | 0.0 |
@@ -193,7 +193,7 @@ If [`MaxCapacityConstraint`](@ref max_capacity_constraint_ref) or [`MinCapacityC
 | `discharge_wacc` | Float64 | Weighted average cost of capital | fraction | 0.0 |
 | `discharge_lifetime` | Int | Asset lifetime in years | years | 1 |
 | `discharge_capital_recovery_period` | Int | Investment recovery period | years | 1 |
-| `discharge_retirement_period` | Int | Retirement period | years | 1 |
+| `discharge_retirement_period` | Int | Retirement period | years | 0 |
 | `charge_variable_om_cost` | Float64 | Variable O&M costs of the charge edge | \$/MWh | 0.0 |
 
 
@@ -235,7 +235,7 @@ If [`MaxStorageLevelConstraint`](@ref max_storage_level_constraint_ref) or [`Min
 
 | Field | Type | Description | Units | Default |
 |--------------|---------|------------|----------------|----------|
-| `storage_max_storage_level` | Float64 | Maximum storage level as fraction of capacity | fraction | 1.0 |
+| `storage_max_storage_level` | Float64 | Maximum storage level as fraction of capacity | fraction | 0.0 |
 | `storage_min_storage_level` | Float64 | Minimum storage level as fraction of capacity | fraction | 0.0 |
 
 **Storage charge/discharge ratio constraint**
@@ -442,7 +442,7 @@ A battery asset in Macro is composed of a storage component, represented by a `S
     }
 }
 ```
-Each top-level key (e.g., "storage" or "edges") denotes a component type. The second-level keys either specify the attributes of the component (when there is a single instance) or identify the instances of the component (e.g., "discharge_edge" or "charge_edge") when there are multiple instances. For multiple instances, a third-level key details the attributes for each instance.
+Each top-level key (e.g., "storage" or "edges") denotes a component type. The second-level keys either specify the attributes of the component (when there is a single instance) or identify the instances of the component (e.g., "discharge\_edge" or "charge\_edge") when there are multiple instances. For multiple instances, a third-level key details the attributes for each instance.
 
 Below is an example of an input file for a battery asset that sets up three batteries, located in the SE, MIDAT, and NE regions.
 
@@ -565,8 +565,11 @@ Below is an example of an input file for a battery asset that sets up three batt
 }
 ```
 
-Here are some important points regarding the example above:
+### Key Points
 
 - The `global_data` field is utilized to define attributes and constraints that apply universally to all instances of a particular asset type.
 - The `start_vertex` and `end_vertex` fields indicate the nodes to which the charge and discharge edges are connected. These nodes must be defined in the `nodes.json` file.
 - For a comprehensive list of attributes that can be configured for the storage and edge components, refer to the [storage](@ref manual-storage-fields) and [edges](@ref manual-edges-fields) pages of the Macro manual.
+
+!!! note "The `has_capacity` Edge Attribute"
+    The `has_capacity` attribute is a flag that indicates whether a specific edge of an asset has a capacity variable, allowing it to be expanded or retired. Typically, users do not need to manually adjust this flag, as the asset creators in Macro have already configured it correctly for each edge. However, advanced users can use this flag to override the default settings for each edge if needed.

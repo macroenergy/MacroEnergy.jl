@@ -17,8 +17,8 @@ A BECCS hydrogen asset consists of one transformation component and six edge com
 3. **Electricity Edge**: Incoming edge representing electricity consumption
 4. **Transformation Component**: Balances flows of biomass, CO₂, electricity, hydrogen, and CO₂ captured
 5. **Hydrogen Edge**: Outgoing edge representing hydrogen production
-6. **CO₂ Captured Edge**: Outgoing edge representing captured CO₂
-7. **CO₂ Emission Edge**: Outgoing edge representing CO₂ emissions from the process
+6. **CO₂ Emission Edge**: Outgoing edge representing CO₂ emissions from the process
+7. **CO₂ Captured Edge**: Outgoing edge representing captured CO₂
 
 Here is a graphical representation of the BECCS hydrogen asset:
 
@@ -31,8 +31,8 @@ flowchart LR
     C((CO₂ Source)) e2@--> A
     D((Electricity)) e3@--> A
     A e4@--> E((Hydrogen))
-    A e5@--> F((Captured CO₂))
-    A e6@--> G((Emitted CO₂))
+    A e5@--> F((Emitted CO₂))
+    A e6@--> G((Captured CO₂))
     e1@{ animate: true }
     e2@{ animate: true }
     e3@{ animate: true }
@@ -64,7 +64,7 @@ The BECCS hydrogen asset follows these stoichiometric relationships:
 \phi_{h2} &= \phi_{biomass} \cdot \epsilon_{h2\_prod} \\
 \phi_{elec} &= -\phi_{biomass} \cdot \epsilon_{elec\_cons} \\
 \phi_{co2} &= -\phi_{biomass} \cdot \epsilon_{co2\_content} \\
-\phi_{co2} &= \phi_{biomass} \cdot \epsilon_{emission\_rate} \\
+\phi_{co2\_emitted} &= \phi_{biomass} \cdot \epsilon_{emission\_rate} \\
 \phi_{co2\_captured} &= \phi_{biomass} \cdot \epsilon_{capture\_rate} \\
 \end{aligned}
 ```
@@ -193,13 +193,13 @@ For example, if the user wants to apply the [`BalanceConstraint`](@ref balance_c
 }
 ```
 
+Users can refer to the [Adding Asset Constraints to a System](@ref) section of the User Guide for a list of all the constraints that can be applied to the different components of a BECCS hydrogen asset.
+
 #### Default constraints
 To simplify the input file and the asset configuration, the following constraints are applied to the BECCS hydrogen asset by default:
 
 - [Balance constraint](@ref balance_constraint_ref) (applied to the transformation component)
 - [Capacity constraint](@ref capacity_constraint_ref) (applied to the biomass edge)
-
-Users can refer to the [Adding Asset Constraints to a System](@ref) section of the User Guide for a list of all the constraints that can be applied to the different components of a BECCS hydrogen asset.
 
 ### Investment Parameters
 | Field | Type | Description | Units | Default |
@@ -249,13 +249,13 @@ The `BECCSHydrogen` asset is defined as follows:
 ```julia
 struct BECCSHydrogen <: AbstractAsset
     id::AssetId
-    transformation::Transformation
+    beccs_transform::Transformation
     biomass_edge::Edge{<:Biomass}
-    co2_edge::Edge{<:CO2}
-    elec_edge::Edge{<:Electricity}
     h2_edge::Edge{<:Hydrogen}
-    co2_captured_edge::Edge{<:CO2Captured}
+    elec_edge::Edge{<:Electricity}
+    co2_edge::Edge{<:CO2}
     co2_emission_edge::Edge{<:CO2}
+    co2_captured_edge::Edge{<:CO2Captured}
 end
 ```
 
@@ -264,7 +264,7 @@ end
 ### Default constructor
 
 ```julia
-BECCSHydrogen(id::AssetId, transformation::Transformation, biomass_edge::Edge{<:Biomass}, co2_edge::Edge{<:CO2}, elec_edge::Edge{<:Electricity}, h2_edge::Edge{<:Hydrogen}, co2_captured_edge::Edge{<:CO2Captured}, co2_emission_edge::Edge{<:CO2})
+BECCSHydrogen(id::AssetId, beccs_transform::Transformation, biomass_edge::Edge{<:Biomass}, h2_edge::Edge{<:Hydrogen}, elec_edge::Edge{<:Electricity}, co2_edge::Edge{<:CO2}, co2_captured_edge::Edge{<:CO2Captured}, co2_emission_edge::Edge{<:CO2})
 ```
 
 ### Factory constructor
@@ -325,6 +325,8 @@ This example shows a single BECCS hydrogen asset with existing capacity using `B
 | BECCSHydrogen | SE\_BECCS\_H2\_Herb | SE | Biomass\_Herb | 2.996580638 | 0.0834 | 1.464601 | 1.717 | 0.252399 | 585304 | 66030 | 42.26 | 400 | co2\_sink | system/availability.csv | SE\_BECCS\_H2\_Herb |
 
 ### Multiple BECCS Hydrogen Assets in Different Zones
+
+This example shows how to create a set of BECCS hydrogen assets in different zones, with different biomass commodities (herb and wood).
 
 **JSON Format:**
 
@@ -481,7 +483,7 @@ A BECCS hydrogen asset in Macro is composed of a transformation component, repre
 }
 ```
 
-Each top-level key (e.g., "transforms" or "edges") denotes a component type. The second-level keys either specify the attributes of the component (when there is a single instance) or identify the instances of the component (e.g., "biomass_edge", "h2_edge", etc.) when there are multiple instances. For multiple instances, a third-level key details the attributes for each instance.
+Each top-level key (e.g., "transforms" or "edges") denotes a component type. The second-level keys either specify the attributes of the component (when there is a single instance) or identify the instances of the component (e.g., "biomass\_edge", "h2\_edge", etc.) when there are multiple instances. For multiple instances, a third-level key details the attributes for each instance.
 
 Below is an example of an input file for a BECCS hydrogen asset that sets up a pair of assets (one with `Biomass_Herb` and one with `Biomass_Wood`) in the SE, MIDAT, and NE regions.
 
@@ -765,9 +767,12 @@ Below is an example of an input file for a BECCS hydrogen asset that sets up a p
 
 - The `global_data` field is utilized to define attributes and constraints that apply universally to all instances of a particular asset type.
 - The `start_vertex` and `end_vertex` fields indicate the nodes to which the edges are connected. These nodes must be defined in the `nodes.json` file.
-- By default, only the biomass edge is allowed to have capacity variables and constraints, as this represents the main capacity decision for the BECCS facility.
+- By default, only the biomass edge is allowed to have capacity variables and constraints, as this represents the main capacity decision for the BECCS facility (*see note below*).
 - The biomass edge uses availability time series to model seasonal variations in biomass supply.
 - For a comprehensive list of attributes that can be configured for the transformation and edge components, refer to the [transformation](@ref manual-transformation-fields) and [edges](@ref manual-edges-fields) pages of the Macro manual.
+
+!!! note "The `has_capacity` Edge Attribute"
+    The `has_capacity` attribute is a flag that indicates whether a specific edge of an asset has a capacity variable, allowing it to be expanded or retired. Typically, users do not need to manually adjust this flag, as the asset creators in Macro have already configured it correctly for each edge. However, advanced users can use this flag to override the default settings for each edge if needed.
 
 !!! tip "Prefixes"
     Users can apply prefixes to adjust parameters for the components of a BECCS hydrogen asset, even when using the standard format. For instance, `co2_can_retire` will adjust the `can_retire` parameter for the CO2 edge, and `co2_existing_capacity` will adjust the `existing_capacity` parameter for the CO2 edge.

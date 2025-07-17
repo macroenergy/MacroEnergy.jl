@@ -6,7 +6,7 @@
 
 ## [Overview](@id fuelcell_overview)
 
-Fuel cell assets in Macro represent electricity generation technologies that convert hydrogen into electricity through electrochemical processes. These assets are defined using either JSON or CSV input files placed in the `assets` directory, typically named with descriptive identifiers like `fuelcell.json` or `h2_power.json`.
+Fuel cell assets in Macro represent electricity generation technologies that convert hydrogen into electricity through electrochemical processes. These assets are defined using either JSON or CSV input files placed in the `assets` directory, typically named with descriptive identifiers like `fuelcell.json` or `fuelcell.csv`.
 
 ## [Asset Structure](@id fuelcell_asset_structure)
 
@@ -40,7 +40,7 @@ The fuelcell asset follows these stoichiometric relationships:
 
 ```math
 \begin{aligned}
-\phi_{elec} &= \phi_{h2} \cdot \epsilon_{efficiency} \\
+\phi_{elec} &= \phi_{h2} \cdot \epsilon_{efficiency\_rate} \\
 \end{aligned}
 ```
 
@@ -114,19 +114,19 @@ Fuel cell assets can have different constraints applied to them, and the user ca
 | `elec_constraints` | Dict{String,Bool} | List of constraints applied to the electricity edge. |
 | `h2_constraints` | Dict{String,Bool} | List of constraints applied to the hydrogen edge. |
 
+Users can refer to the [Adding Asset Constraints to a System](@ref) section of the User Guide for a list of all the constraints that can be applied to a fuel cell asset.
+
 #### Default constraints
 To simplify the input file and the asset configuration, the following constraints are applied to the fuel cell asset by default:
 
 - [Balance constraint](@ref balance_constraint_ref) (applied to the transformation component)
 - [Capacity constraint](@ref capacity_constraint_ref) (applied to the electricity edge)
 
-Users can refer to the [Adding Asset Constraints to a System](@ref) section of the User Guide for a list of all the constraints that can be applied to a fuel cell asset.
-
 ### Investment Parameters
 | Field | Type | Description | Units | Default |
 |--------------|---------|------------|----------------|----------|
-| `can_retire` | Boolean | Whether fuel cell capacity can be retired | - | false |
-| `can_expand` | Boolean | Whether fuel cell capacity can be expanded | - | false |
+| `can_retire` | Boolean | Whether fuel cell capacity can be retired | - | true |
+| `can_expand` | Boolean | Whether fuel cell capacity can be expanded | - | true |
 | `existing_capacity` | Float64 | Initial installed fuel cell capacity | MW | 0.0 |
 | `capacity_size` | Float64 | Unit size for capacity decisions | - | 1.0 |
 
@@ -151,7 +151,7 @@ If [`MaxCapacityConstraint`](@ref max_capacity_constraint_ref) or [`MinCapacityC
 | `wacc` | Float64 | Weighted average cost of capital | fraction | 0.0 |
 | `lifetime` | Int | Asset lifetime in years | years | 1 |
 | `capital_recovery_period` | Int | Investment recovery period | years | 1 |
-| `retirement_period` | Int | Retirement period | years | 1 |
+| `retirement_period` | Int | Retirement period | years | 0 |
 
 ### Operational Parameters
 | Field | Type | Description | Units | Default |
@@ -184,7 +184,7 @@ The `FuelCell` asset is defined as follows:
 ```julia
 struct FuelCell <: AbstractAsset
     id::AssetId
-    transformation::AbstractTransformation{<:Electricity}
+    fuelcell_transform::Transformation
     h2_edge::Edge{<:Hydrogen}
     elec_edge::Edge{<:Electricity}
 end
@@ -195,7 +195,7 @@ end
 ### Default constructor
 
 ```julia
-FuelCell(id::AssetId, transformation::AbstractTransformation{<:Electricity}, h2_edge::Edge{<:Hydrogen}, elec_edge::Edge{<:Electricity})
+FuelCell(id::AssetId, fuelcell_transform::Transformation, h2_edge::Edge{<:Hydrogen}, elec_edge::Edge{<:Electricity})
 ```
 
 ### Factory constructor
@@ -315,7 +315,7 @@ A fuel cell asset in Macro is composed of a transformation component, represente
 }
 ```
 
-Each top-level key (e.g., "transforms" or "edges") denotes a component type. The second-level keys either specify the attributes of the component (when there is a single instance) or identify the instances of the component when there are multiple instances.
+Each top-level key (e.g., "transforms" or "edges") denotes a component type. The second-level keys either specify the attributes of the component (when there is a single instance) or identify the instances of the component (e.g., "elec\_edge", "h2\_edge", etc.) when there are multiple instances. For multiple instances, a third-level key details the attributes for each instance.
 
 Below is an example of an input file for a fuel cell asset that sets up multiple fuel cells across different regions:
 
@@ -396,5 +396,8 @@ Below is an example of an input file for a fuel cell asset that sets up multiple
 
 - The `global_data` field is utilized to define attributes and constraints that apply universally to all instances of a particular asset type.
 - The `start_vertex` and `end_vertex` fields indicate the nodes to which the edges are connected. These nodes must be defined in the `nodes.json` file.
-- By default, the electricity edge has capacity variables and can be expanded or retired.
+- By default, the electricity edge has capacity variables and can be expanded or retired (*see note below*).
 - For a comprehensive list of attributes that can be configured for the transformation and edge components, refer to the [transformation](@ref manual-transformation-fields) and [edges](@ref manual-edges-fields) pages of the Macro manual.
+
+!!! note "The `has_capacity` Edge Attribute"
+    The `has_capacity` attribute is a flag that indicates whether a specific edge of an asset has a capacity variable, allowing it to be expanded or retired. Typically, users do not need to manually adjust this flag, as the asset creators in Macro have already configured it correctly for each edge. However, advanced users can use this flag to override the default settings for each edge if needed.

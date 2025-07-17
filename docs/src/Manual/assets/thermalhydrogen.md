@@ -9,7 +9,7 @@
 Thermal Hydrogen assets in Macro represent hydrogen production technologies that use thermal processes, such as steam methane reforming (SMR) or other thermal conversion methods. These assets are defined using either JSON or CSV input files placed in the `assets` directory, typically named with descriptive identifiers like `thermalhydrogen.json` or `thermalhydrogen.csv`.
 
 !!! note "CCS version"
-    Macro supports both the standard thermal hydrogen plant asset (described below) and a CCS version. The only difference between the two is the addition of a CO₂ captured edge.
+    Macro supports both the standard thermal hydrogen plant asset and a CCS version. The only difference between the two is the addition of a CO₂ captured edge.
 
 ## [Asset Structure](@id thermalhydrogen_asset_structure)
 
@@ -41,19 +41,17 @@ flowchart LR
     e5@{ animate: true }
   end
   
-  style A r:55px,fill:#005F6A,stroke:black,color:black;
-  style B r:55px,fill:#FFD700,stroke:black,color:black;
+  style A r:55px,fill:#005F6A,stroke:black,color:white,stroke-dasharray: 3,5;
+  style B r:55px,fill:#FFD700,stroke:black,color:black,stroke-dasharray: 3,5;
   style C r:55px,fill:black,stroke:black,color:black, stroke-dasharray: 3,5;
-  style D r:55px,fill:lightblue,stroke:black,color:black, stroke-dasharray: 3,5;
-  style E r:55px,fill:lightgray,stroke:black,color:black, stroke-dasharray: 3,5;
-  style F r:55px,fill:lightgray,stroke:black,color:black, stroke-dasharray: 3,5;
+  style D r:55px,fill:lightblue,stroke:black,color:black,stroke-dasharray: 3,5;
+  style E r:55px,fill:lightgray,stroke:black,color:black,stroke-dasharray: 3,5;
+  style F r:55px,fill:lightgray,stroke:black,color:black,stroke-dasharray: 3,5;
 
   linkStyle 0 stroke:#005F6A, stroke-width: 2px;
   linkStyle 1 stroke:#FFD700, stroke-width: 2px;
-  linkStyle 2 stroke:black, stroke-width: 2px;
-  linkStyle 3 stroke:lightblue, stroke-width: 2px;
-  linkStyle 4 stroke:lightgray, stroke-width: 2px;
-  linkStyle 5 stroke:lightgray, stroke-width: 2px;
+  linkStyle 2 stroke:lightblue, stroke-width: 2px;
+  linkStyle 3,4 stroke:lightgray, stroke-width: 2px;
 ```
 
 ## [Flow Equations](@id thermalhydrogen_flow_equations)
@@ -69,8 +67,8 @@ The thermal hydrogen plant asset follows these stoichiometric relationships:
 ```
 
 Where:
-- $\phi$ represents the flow of each commodity
-- $\epsilon$ represents the stoichiometric coefficients defined in the [Conversion Process Parameters](@ref thermalhydrogen_conversion_process_parameters) section.
+- ``\phi`` represents the flow of each commodity
+- ``\epsilon`` represents the stoichiometric coefficients defined in the [Conversion Process Parameters](@ref thermalhydrogen_conversion_process_parameters) section.
 
 ## [Input File (Standard Format)](@id thermalhydrogen_input_file)
 
@@ -104,8 +102,6 @@ The following is an example of the input file for a thermal hydrogen plant asset
                     "co2_sink": "co2_sink",
                     "uc": true,
                     "h2_constraints": {
-                        "CapacityConstraint": true,
-                        "RampingLimitConstraint": true,
                         "MinFlowConstraint": true,
                         "MinUpTimeConstraint": true,
                         "MinDownTimeConstraint": true
@@ -151,6 +147,7 @@ The following tables outline the attributes that can be set for a thermal hydrog
 | `timedata` | String | Time resolution for time series data (default: "Hydrogen") |
 | `uc` | Boolean | Whether the asset has unit commitment operations |
 | `co2_sink` | String | CO₂ sink identifier |
+| `fuel_start_vertex` | String | Fuel start vertex identifier. This is **not required** if the fuel commodity is present in the location. |
 
 ### [Conversion Process Parameters](@id thermalhydrogen_conversion_process_parameters)
 The following set of parameters control the conversion process and stoichiometry of the thermal hydrogen plant asset (see [Flow Equations](@ref thermalhydrogen_flow_equations) for more details).
@@ -160,7 +157,7 @@ The following set of parameters control the conversion process and stoichiometry
 | `fuel_consumption` | Float64 | Fuel consumption per unit hydrogen | $MWh_{fuel}/MWh_{h2}$ | 1.0 |
 | `electricity_consumption` | Float64 | Electricity consumption per unit hydrogen | $MWh_{elec}/MWh_{h2}$ | 0.0 |
 | `emission_rate` | Float64 | CO₂ emission rate per unit fuel | $t_{CO₂}/MWh_{fuel}$ | 0.0 |
-| `capture_rate` | Float64 | CO₂ capture rate per unit fuel | $t_{CO₂}/MWh_{fuel}$ | 0.0 |
+| `capture_rate` | Float64 | CO₂ capture rate per unit fuel | $t_{CO₂}/MWh_{fuel}$ | 1.0 |
 
 ### [Constraints Configuration](@id "thermalhydrogen_constraints")
 Thermal hydrogen plant assets can have different constraints applied to them, and the user can configure them using the following fields:
@@ -187,6 +184,8 @@ For example, if the user wants to apply the [`BalanceConstraint`](@ref balance_c
 }
 ```
 
+Users can refer to the [Adding Asset Constraints to a System](@ref) section of the User Guide for a list of all the constraints that can be applied to the different components of a thermal hydrogen plant asset.
+
 #### Default constraints
 To simplify the input file and the asset configuration, the following constraints are applied to the thermal hydrogen plant asset by default:
 
@@ -196,8 +195,6 @@ To simplify the input file and the asset configuration, the following constraint
 
 **Unit commitment constraints** (when `uc` is set to `true`):
 - [Minimum up and down time constraint](@ref min_up_and_down_time_constraint_ref) (applied to the hydrogen edge)
-
-Users can refer to the [Adding Asset Constraints to a System](@ref) section of the User Guide for a list of all the constraints that can be applied to a thermal hydrogen plant asset.
 
 ### Investment Parameters
 | Field | Type | Description | Units | Default |
@@ -335,8 +332,6 @@ This example shows a thermal hydrogen plant with CCS capabilities and without un
                     "co2_sink": "co2_sink",
                     "uc": true,
                     "h2_constraints": {
-                        "CapacityConstraint": true,
-                        "RampingLimitConstraint": true,
                         "MinFlowConstraint": true,
                         "MinUpTimeConstraint": true,
                         "MinDownTimeConstraint": true
@@ -370,9 +365,9 @@ This example shows a thermal hydrogen plant with CCS capabilities and without un
 
 **CSV Format:**
 
-| Type | id | location | timedata | uc | h2_constraints--CapacityConstraint | h2_constraints--RampingLimitConstraint | h2_constraints--MinFlowConstraint | h2_constraints--MinUpTimeConstraint | h2_constraints--MinDownTimeConstraint | emission_rate | fuel_consumption | electricity_consumption | capture_rate | investment_cost | fixed_om_cost | variable_om_cost | capacity_size | startup_cost | min_up_time | min_down_time | ramp_up_fraction | ramp_down_fraction | min_flow_fraction |
-|------|----|----------|----------|----|--------------------------------|--------------------------------|--------------------------------|--------------------------------|--------------------------------|----------------|----------------|------------------------|--------------|----------------|----------------|----------------|--------------|--------------|--------------|--------------|----------------|----------------|----------------|
-| ThermalHydrogenCCS | SE\_Large\_SMR | SE | Hydrogen | true | true | true | true | true | true | 0.006879832936086124 | 1.300184721664035 | 0.051727 | 0.17416840222407487 | 72729.17926 | 30021.9427 | 6.942084285 | 791.739 | 0.253871541 | 3 | 3 | 0.5 | 0.5 | 0.85 |
+| Type | id | location | timedata | uc | h2\_constraints--MinFlowConstraint | h2\_constraints--MinUpTimeConstraint | h2\_constraints--MinDownTimeConstraint | emission\_rate | fuel\_consumption | electricity\_consumption | capture\_rate | investment\_cost | fixed\_om\_cost | variable\_om\_cost | capacity\_size | startup\_cost | min\_up\_time | min\_down\_time | ramp\_up\_fraction | ramp\_down\_fraction | min\_flow\_fraction |
+|------|----|----------|----------|----|--------------------------------|--------------------------------|--------------------------------|--------------------------------|--------------------------------|----------------|----------------|----------------|----------------|----------------|--------------|--------------|--------------|--------------|----------------|----------------|----------------|
+| ThermalHydrogenCCS | SE\_Large\_SMR | SE | Hydrogen | true | true | true | true | 0.006879832936086124 | 1.300184721664035 | 0.051727 | 0.17416840222407487 | 72729.17926 | 30021.9427 | 6.942084285 | 791.739 | 0.253871541 | 3 | 3 | 0.5 | 0.5 | 0.85 |
 
 ### Multiple Thermal Hydrogen withoutCCS Assets in Different Zones
 
@@ -390,8 +385,6 @@ Note that the `global_data` field is used to set the fields and constraints that
                 "co2_sink": "co2_sink",
                 "uc": true,
                 "h2_constraints": {
-                    "CapacityConstraint": true,
-                    "RampingLimitConstraint": true,
                     "MinFlowConstraint": true,
                     "MinUpTimeConstraint": true,
                     "MinDownTimeConstraint": true
@@ -449,11 +442,9 @@ Note that the `global_data` field is used to set the fields and constraints that
 
 **CSV Format:**
 
-| Type | id | location | timedata | uc | h2_constraints--CapacityConstraint | h2_constraints--RampingLimitConstraint | h2_constraints--MinFlowConstraint | h2_constraints--MinUpTimeConstraint | h2_constraints--MinDownTimeConstraint | emission_rate | fuel_consumption | electricity_consumption | capture_rate | investment_cost | fixed_om_cost | variable_om_cost | capacity_size | startup_cost | min_up_time | min_down_time | ramp_up_fraction | ramp_down_fraction | min_flow_fraction |
-|------|----|----------|----------|----|--------------------------------|--------------------------------|--------------------------------|--------------------------------|--------------------------------|----------------|----------------|------------------------|--------------|----------------|----------------|----------------|--------------|--------------|--------------|--------------|----------------|----------------|----------------|
-| ThermalHydrogen | SE\_Large\_SMR\_Non\_CCS | SE | Hydrogen | true | true | true | true | true | true | 0.181048235160161 | 1.3009661455954666 | 0.016404 | 0.0 | 29902.10236 | 13685.61723 | 2.250837989 | 1082.95 | 0.126968004 | 3 | 3 | 0.5 | 0.5 | 0.85 |
-| ThermalHydrogen | MIDAT\_Large\_SMR\_Non\_CCS | MIDAT | Hydrogen | true | true | true | true | true | true | 0.181048235160161 | 1.3009661455954666 | 0.016404 | 0.0 | 29902.10236 | 13685.61723 | 2.250837989 | 1082.95 | 0.126968004 | 3 | 3 | 0.5 | 0.5 | 0.85 |
-| ThermalHydrogen | NE\_Large\_SMR\_Non\_CCS | NE | Hydrogen | true | true | true | true | true | true | 0.181048235160161 | 1.3009661455954666 | 0.016404 | 0.0 | 29902.10236 | 13685.61723 | 2.250837989 | 1082.95 | 0.126968004 | 3 | 3 | 0.5 | 0.5 | 0.85 |
+| Type | id | location | timedata | uc | h2\_constraints--MinFlowConstraint | h2\_constraints--MinUpTimeConstraint | h2\_constraints--MinDownTimeConstraint | emission\_rate | fuel\_consumption | electricity\_consumption | capture\_rate | investment\_cost | fixed\_om\_cost | variable\_om\_cost | capacity\_size | startup\_cost | min\_up\_time | min\_down\_time | ramp\_up\_fraction | ramp\_down\_fraction | min\_flow\_fraction |
+|------|----|----------|----------|----|--------------------------------|--------------------------------|--------------------------------|--------------------------------|--------------------------------|----------------|----------------|----------------|----------------|----------------|--------------|--------------|--------------|--------------|----------------|----------------|----------------|
+| ThermalHydrogen | SE\_Large\_SMR\_Non\_CCS | SE | Hydrogen | true | true | true | true | 0.181048235160161 | 1.3009661455954666 | 0.016404 | 0.0 | 29902.10236 | 13685.61723 | 2.250837989 | 1082.95 | 0.126968004 | 3 | 3 | 0.5 | 0.5 | 0.85 |
 
 ## [Best Practices](@id thermalhydrogen_best_practices)
 
@@ -498,7 +489,7 @@ A thermal hydrogen plant asset in Macro is composed of a transformation componen
 }
 ```
 
-Each top-level key (e.g., "transforms" or "edges") denotes a component type. The second-level keys either specify the attributes of the component (when there is a single instance) or identify the instances of the component (e.g., "fuel_edge", "h2_edge", etc.) when there are multiple instances. For multiple instances, a third-level key details the attributes for each instance.
+Each top-level key (e.g., "transforms" or "edges") denotes a component type. The second-level keys either specify the attributes of the component (when there is a single instance) or identify the instances of the component (e.g., "fuel\_edge", "h2\_edge", etc.) when there are multiple instances. For multiple instances, a third-level key details the attributes for each instance.
 
 Below is an example of an input file for a thermal hydrogen CCS asset that sets up a single asset in the SE region with detailed edge specifications.
 
@@ -686,9 +677,12 @@ Below is an example of an input file for a thermal hydrogen CCS asset that sets 
 
 - The `global_data` field is utilized to define attributes and constraints that apply universally to all instances of a particular asset type.
 - The `start_vertex` and `end_vertex` fields indicate the nodes to which the edges are connected. These nodes must be defined in the `nodes.json` file.
-- By default, only the hydrogen edge is allowed to have capacity variables and constraints, as this represents the main capacity decision for the hydrogen production facility.
+- By default, only the hydrogen edge is allowed to have capacity variables and constraints, as this represents the main capacity decision for the hydrogen production facility (*see note below*).
 - Unit commitment operations can be enabled for the hydrogen edge to model detailed operational constraints.
 - For a comprehensive list of attributes that can be configured for the transformation and edge components, refer to the [transformation](@ref manual-transformation-fields) and [edges](@ref manual-edges-fields) pages of the Macro manual. 
+
+!!! note "The `has_capacity` Edge Attribute"
+    The `has_capacity` attribute is a flag that indicates whether a specific edge of an asset has a capacity variable, allowing it to be expanded or retired. Typically, users do not need to manually adjust this flag, as the asset creators in Macro have already configured it correctly for each edge. However, advanced users can use this flag to override the default settings for each edge if needed.
 
 !!! tip "Prefixes"
     Users can apply prefixes to adjust parameters for the components of a thermal hydrogen plant asset, even when using the standard format. For instance, `co2_can_retire` will adjust the `can_retire` parameter for the CO2 edge, and `co2_existing_capacity` will adjust the `existing_capacity` parameter for the CO2 edge.

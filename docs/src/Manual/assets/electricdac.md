@@ -23,7 +23,7 @@ Here is a graphical representation of the electric DAC asset:
 %%{init: {'theme': 'base', 'themeVariables': { 'background': '#D1EBDE' }}}%%
 flowchart LR
   subgraph ElectricDAC
-    direction BT
+    direction LR
     A((Electricity)) e1@--> C{{..}}
     B((CO₂)) e2@--> C
     C e3@--> D((CO₂ Captured))
@@ -109,6 +109,7 @@ The following tables outline the attributes that can be set for an electric DAC 
 | `Type` | String | Asset type identifier: "ElectricDAC" |
 | `id` | String | Unique identifier for the electric DAC instance |
 | `location` | String | Geographic location/node identifier |
+| `co2_sink` | String | CO₂ sink node identifier |
 
 ### [Conversion Process Parameters](@id electricdac_conversion_process_parameters)
 The following parameters control the conversion process and stoichiometry of the electricdac asset (see [Flow Equations](@ref electricdac_flow_equations) for more details).
@@ -140,19 +141,19 @@ For example, if the user wants to apply the [`BalanceConstraint`](@ref balance_c
 }
 ```
 
+Users can refer to the [Adding Asset Constraints to a System](@ref) section of the User Guide for a list of all the constraints that can be applied to the different components of an electric DAC asset.
+
 #### Default constraints
 To simplify the input file and the asset configuration, the following constraints are applied to the electric DAC asset by default:
 
 - [Balance constraint](@ref balance_constraint_ref) (applied to the transformation component)
 - [Capacity constraint](@ref capacity_constraint_ref) (applied to the CO₂ edge)
 
-Users can refer to the [Adding Asset Constraints to a System](@ref) section of the User Guide for a list of all the constraints that can be applied to an electric DAC asset.
-
 ### Investment Parameters
 | Field | Type | Description | Units | Default |
 |--------------|---------|------------|----------------|----------|
-| `can_retire` | Boolean | Whether electric DAC asset capacity can be retired | - | false |
-| `can_expand` | Boolean | Whether electric DAC asset capacity can be expanded | - | false |
+| `can_retire` | Boolean | Whether electric DAC asset capacity can be retired | - | true |
+| `can_expand` | Boolean | Whether electric DAC asset capacity can be expanded | - | true |
 | `existing_capacity` | Float64 | Initial installed electric DAC asset capacity | MW | 0.0 |
 | `capacity_size` | Float64 | Unit size for capacity decisions | - | 1.0 |
 
@@ -205,9 +206,9 @@ The `ElectricDAC` asset is defined as follows:
 ```julia
 struct ElectricDAC <: AbstractAsset
     id::AssetId
-    transformation::Transformation
-    elec_edge::Edge{<:Electricity}
+    electricdac_transform::Transformation
     co2_edge::Edge{<:CO2}
+    elec_edge::Edge{<:Electricity}
     co2_captured_edge::Edge{<:CO2Captured}
 end
 ```
@@ -217,7 +218,7 @@ end
 ### Default constructor
 
 ```julia
-ElectricDAC(id::AssetId, transformation::Transformation, elec_edge::Edge{<:Electricity}, co2_edge::Edge{<:CO2}, co2_captured_edge::Edge{<:CO2Captured})
+ElectricDAC(id::AssetId, electricdac_transform::Transformation, co2_edge::Edge{<:CO2}, elec_edge::Edge{<:Electricity}, co2_captured_edge::Edge{<:CO2Captured})
 ```
 
 ### Factory constructor
@@ -518,6 +519,17 @@ Below is an example of an input file for an electric DAC asset that sets up a si
 
 - The `global_data` field is utilized to define attributes and constraints that apply universally to all instances of a particular asset type.
 - The `start_vertex` and `end_vertex` fields indicate the nodes to which the edges are connected. These nodes must be defined in the `nodes.json` file.
-- By default, only the CO₂ edge is allowed to have capacity variables and constraints, as this represents the main capacity decision for the DAC facility.
+- By default, only the CO₂ edge is allowed to have capacity variables and constraints, as this represents the main capacity decision for the DAC facility (*see note below*).
 - The CO₂ edge uses availability time series to model operational constraints.
 - For a comprehensive list of attributes that can be configured for the transformation and edge components, refer to the [transformation](@ref manual-transformation-fields) and [edges](@ref manual-edges-fields) pages of the Macro manual.
+
+!!! note "The `has_capacity` Edge Attribute"
+    The `has_capacity` attribute is a flag that indicates whether a specific edge of an asset has a capacity variable, allowing it to be expanded or retired. Typically, users do not need to manually adjust this flag, as the asset creators in Macro have already configured it correctly for each edge. However, advanced users can use this flag to override the default settings for each edge if needed.
+
+!!! tip "Prefixes"
+    Users can apply prefixes to adjust parameters for the components of a electric DAC asset, even when using the standard format. For instance, `co2_can_retire` will adjust the `can_retire` parameter for the CO₂ edge, and `co2_existing_capacity` will adjust the `existing_capacity` parameter for the CO₂ edge.
+    Below are the prefixes available for modifying parameters for the components of a electric DAC asset:
+    - `transform_` for the transformation component
+    - `co2_` for the CO₂ edge
+    - `co2_captured_` for the CO₂ captured edge
+    - `elec_` for the electricity edge

@@ -6,7 +6,7 @@
 
 ## [Overview](@id hydropower_overview)
 
-Hydro Reservoir assets in Macro represent hydroelectric storage systems that can store and release water to generate electricity. These assets are defined using either JSON or CSV input files placed in the `assets` directory, typically named `hydrores.json` or `hydrores.csv`.
+Hydro Reservoir assets in Macro models hydroelectric storage systems that can store and release water to generate electricity. These assets are defined using either JSON or CSV input files placed in the `assets` directory, typically named `hydrores.json` or `hydrores.csv`.
 
 ## [Asset Structure](@id hydropower_asset_structure)
 
@@ -15,7 +15,7 @@ A hydro reservoir asset consists of one storage component and three edge compone
 1. **Storage Component**: Represents the hydroelectric reservoir that stores water
 2. **Inflow Edge**: Incoming edge representing water inflow to the reservoir
 3. **Discharge Edge**: Outgoing edge representing electricity production from water release
-4. **Spillage Edge**: Outgoing edge representing water spillage when reservoir is full
+4. **Spillage Edge**: Outgoing edge representing water spillage
 
 Here is a graphical representation of the hydro reservoir asset:
 
@@ -24,7 +24,7 @@ Here is a graphical representation of the hydro reservoir asset:
 flowchart LR
   subgraph HydroRes
     direction LR
-    A((Electricity)) e1@--> B[Storage] e2@--> C((Electricity))
+    A((Hydro Source)) e1@--> B[Storage] e2@--> C((Electricity))
     B e3@--> A
     e1@{ animate: true }
     e2@{ animate: true }
@@ -117,7 +117,7 @@ Hydro reservoir assets can have different constraints applied to them, and the u
 |--------------|---------|------------|
 | `storage_constraints` | Dict{String,Bool} | List of constraints applied to the storage component. |
 | `discharge_constraints` | Dict{String,Bool} | List of constraints applied to the discharge edge. |
-| `charge_constraints` | Dict{String,Bool} | List of constraints applied to the inflow edge. |
+| `inflow_constraints` | Dict{String,Bool} | List of constraints applied to the inflow edge. |
 | `spill_constraints` | Dict{String,Bool} | List of constraints applied to the spillage edge. |
 
 For example, if the user wants to apply the [`LongDurationStorageImplicitMinMaxConstraint`](@ref long_duration_storage_constraints_ref) to the storage component and the [`RampingLimitConstraint`](@ref ramping_limits_constraint_ref) to the discharge edge, the constraints fields should be set as follows:
@@ -133,6 +133,8 @@ For example, if the user wants to apply the [`LongDurationStorageImplicitMinMaxC
 }
 ```
 
+Users can refer to the [Adding Asset Constraints to a System](@ref) section of the User Guide for a list of all the constraints that can be applied to the different components of a hydro reservoir asset.
+
 #### Default constraints
 To simplify the input file and the asset configuration, the following constraints are applied to the hydro reservoir asset by default:
 
@@ -144,22 +146,20 @@ To simplify the input file and the asset configuration, the following constraint
 If the storage is a long-duration storage, the following additional constraints are applied:
 - [Long-duration storage constraints](@ref long_duration_storage_constraints_ref) (applied to the storage component)
 
-Users can refer to the [Adding Asset Constraints to a System](@ref) section of the User Guide for a list of all the constraints that can be applied to a hydro reservoir asset.
-
 ### Investment Parameters
 | Field | Type | Description | Units | Default |
 |--------------|---------|------------|----------------|----------|
 | `storage_can_retire` | Boolean | Whether storage capacity can be retired | - | false |
 | `storage_can_expand` | Boolean | Whether storage capacity can be expanded | - | false |
 | `storage_existing_capacity` | Float64 | Initial installed storage capacity | MWh | 0.0 |
-| `discharge_can_retire` | Boolean | Whether discharge edge capacity can be retired | - | false |
-| `discharge_can_expand` | Boolean | Whether discharge edge capacity can be expanded | - | false |
+| `discharge_can_retire` | Boolean | Whether discharge edge capacity can be retired | - | true |
+| `discharge_can_expand` | Boolean | Whether discharge edge capacity can be expanded | - | true |
 | `discharge_existing_capacity` | Float64 | Initial installed discharge edge capacity | MW | 0.0 |
 | `discharge_capacity_size` | Float64 | Unit size for capacity decisions | - | 1.0 |
-| `charge_can_retire` | Boolean | Whether charge edge capacity can be retired | - | false |
-| `charge_can_expand` | Boolean | Whether charge edge capacity can be expanded | - | false |
-| `charge_existing_capacity` | Float64 | Initial installed charge edge capacity | MW | 0.0 |
-| `charge_capacity_size` | Float64 | Unit size for capacity decisions | - | 1.0 |
+| `inflow_can_retire` | Boolean | Whether inflow edge capacity can be retired | - | true |
+| `inflow_can_expand` | Boolean | Whether inflow edge capacity can be expanded | - | true |
+| `inflow_existing_capacity` | Float64 | Initial installed inflow edge capacity | MW | 0.0 |
+| `inflow_capacity_size` | Float64 | Unit size for capacity decisions | - | 1.0 |
 
 #### Additional Investment Parameters
 
@@ -173,8 +173,8 @@ If [`MaxCapacityConstraint`](@ref max_capacity_constraint_ref) or [`MinCapacityC
 | `storage_min_capacity` | Float64 | Minimum allowed storage capacity | MWh | 0.0 |
 | `discharge_max_capacity` | Float64 | Maximum allowed discharge edge capacity | MW | Inf |
 | `discharge_min_capacity` | Float64 | Minimum allowed discharge edge capacity | MW | 0.0 |
-| `charge_max_capacity` | Float64 | Maximum allowed charge edge capacity | MW | Inf |
-| `charge_min_capacity` | Float64 | Minimum allowed charge edge capacity | MW | 0.0 |
+| `inflow_max_capacity` | Float64 | Maximum allowed inflow edge capacity | MW | Inf |
+| `inflow_min_capacity` | Float64 | Minimum allowed inflow edge capacity | MW | 0.0 |
 
 ### Economic Parameters
 | Field | Type | Description | Units | Default |
@@ -184,9 +184,8 @@ If [`MaxCapacityConstraint`](@ref max_capacity_constraint_ref) or [`MinCapacityC
 | `discharge_investment_cost` | Float64 | CAPEX per unit discharge edge capacity | \$/MW/yr | 0.0 |
 | `discharge_fixed_om_cost` | Float64 | Fixed O&M costs of the discharge edge | \$/MW/yr | 0.0 |
 | `discharge_variable_om_cost` | Float64 | Variable O&M costs of the discharge edge | \$/MWh | 0.0 |
-| `charge_investment_cost` | Float64 | CAPEX per unit charge edge capacity | \$/MW/yr | 0.0 |
-| `charge_fixed_om_cost` | Float64 | Fixed O&M costs of the charge edge | \$/MW/yr | 0.0 |
-| `charge_variable_om_cost` | Float64 | Variable O&M costs of the charge edge | \$/MWh | 0.0 |
+| `inflow_investment_cost` | Float64 | CAPEX per unit inflow edge capacity | \$/MW/yr | 0.0 |
+| `inflow_fixed_om_cost` | Float64 | Fixed O&M costs of the inflow edge | \$/MW/yr | 0.0 |
 
 ### Operational Parameters
 | Field | Type | Description | Units | Default |
@@ -239,7 +238,7 @@ end
 ### Default constructor
 
 ```julia
-HydroRes(id::AssetId, storage::AbstractStorage{<:Electricity}, inflow_edge::Edge{<:Electricity}, discharge_edge::Edge{<:Electricity}, spill_edge::Edge{<:Electricity})
+HydroRes(id::AssetId, hydrostor::AbstractStorage{<:Electricity}, discharge_edge::Edge{<:Electricity}, inflow_edge::Edge{<:Electricity}, spill_edge::Edge{<:Electricity})
 ```
 
 ### Factory constructor
@@ -412,7 +411,6 @@ Note that the `global_data` field is used to set the fields and constraints that
 5. **Set appropriate ramping limits**: These should reflect the actual operational characteristics of the hydro plant
 6. **Validate costs**: Ensure investment and O&M costs are in appropriate units and time periods
 7. **Test configurations**: Start with simple configurations and gradually add complexity
-8. **Monitor water balance**: Ensure the inflow, discharge, and spillage flows are consistent
 
 ## [Input File (Advanced Format)](@id hydropower_advanced_json_csv_input_format)
 
@@ -441,7 +439,7 @@ A hydro reservoir asset in Macro is composed of a storage component, represented
 }
 ```
 
-Each top-level key (e.g., "storage" or "edges") denotes a component type. The second-level keys either specify the attributes of the component (when there is a single instance) or identify the instances of the component (e.g., "inflow_edge", "discharge_edge", "spill_edge") when there are multiple instances. For multiple instances, a third-level key details the attributes for each instance.
+Each top-level key (e.g., "storage" or "edges") denotes a component type. The second-level keys either specify the attributes of the component (when there is a single instance) or identify the instances of the component (e.g., "discharge\_edge", "inflow\_edge", "spill\_edge") when there are multiple instances. For multiple instances, a third-level key details the attributes for each instance.
 
 Below is an example of an input file for a hydro reservoir asset that sets up a single asset in the SE region with detailed edge specifications.
 
@@ -528,7 +526,7 @@ Below is an example of an input file for a hydro reservoir asset that sets up a 
 
 - The `global_data` field is utilized to define attributes and constraints that apply universally to all instances of a particular asset type.
 - The `start_vertex` and `end_vertex` fields indicate the nodes to which the edges are connected. These nodes must be defined in the `nodes.json` file.
-- By default, both the discharge and inflow edges are allowed to have capacity variables and constraints, as this represents the main capacity decision for the hydro facility.
+- By default, both the discharge and inflow edges are allowed to have capacity variables and constraints, as this represents the main capacity decision for the hydro facility (*see note below*).
 - The inflow edge uses availability time series to model seasonal variations in water inflow.
 - For a comprehensive list of attributes that can be configured for the storage and edge components, refer to the [storage](@ref manual-storage-fields) and [edges](@ref manual-edges-fields) pages of the Macro manual.
 

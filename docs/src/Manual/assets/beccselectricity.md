@@ -6,18 +6,18 @@
 
 ## [Overview](@id beccselectricity_overview)
 
-BECCS Electricity assets in Macro represent Bioenergy with Carbon Capture and Storage (BECCS) technologies that produce electricity from biomass while capturing CO2. These assets are defined using either JSON or CSV input files placed in the `assets` directory, typically named `beccs_electricity.json` or `beccs_electricity.csv`.
+BECCS Electricity assets in Macro represent Bioenergy with Carbon Capture and Storage (BECCS) technologies that produce electricity from biomass while capturing CO₂. These assets are defined using either JSON or CSV input files placed in the `assets` directory, typically named `beccs_electricity.json` or `beccs_electricity.csv`.
 
 ## [Asset Structure](@id beccselectricity_asset_structure)
 
 A BECCS electricity asset consists of one transformation component and five edge components:
 
 1. **Biomass Edge**: Incoming edge representing biomass supply
-2. **CO2 Edge**: Incoming edge representing CO2 absorption from atmosphere
-3. **Transformation Component**: Balances flows of biomass, CO2, electricity, and CO2 captured
+2. **CO₂ Edge**: Incoming edge representing CO₂ absorption from atmosphere
+3. **Transformation Component**: Balances flows of biomass, CO₂, electricity, and CO₂ captured
 4. **Electricity Edge**: Outgoing edge representing electricity production
-5. **CO2 Captured Edge**: Outgoing edge representing captured CO2
-6. **CO2 Emission Edge**: Outgoing edge representing CO2 emissions from the process
+5. **CO₂ Emission Edge**: Outgoing edge representing CO₂ emissions from the process
+6. **CO₂ Captured Edge**: Outgoing edge representing captured CO₂
 
 Here is a graphical representation of the BECCS electricity asset:
 
@@ -27,10 +27,10 @@ flowchart LR
   subgraph BECCSElectricity
   direction BT
     B((Biomass)) e1@--> A{{..}}
-    C((CO2 Source)) e2@--> A
-    A e3@--> D((Emitted CO2))
-    A e4@--> E((Captured CO2))
-    A e5@--> F((Electricity))
+    C((CO₂ Source)) e2@--> A
+    A e5@--> D((Electricity))
+    A e3@--> E((Emitted CO₂))
+    A e4@--> F((Captured CO₂))
     e1@{ animate: true }
     e2@{ animate: true }
     e3@{ animate: true }
@@ -40,13 +40,13 @@ flowchart LR
     style A fill:black,stroke:black,color:black;
     style B r:55px,fill:palegreen,stroke:black,color:black, stroke-dasharray: 3,5;
     style C r:55px,fill:lightgray,stroke:black,color:black, stroke-dasharray: 3,5;
-    style D r:55px,fill:lightgray,stroke:black,color:black, stroke-dasharray: 3,5;
+    style D r:55px,fill:#FFD700,stroke:black,color:black, stroke-dasharray: 3,5;
     style E r:55px,fill:lightgray,stroke:black,color:black, stroke-dasharray: 3,5;
-    style F r:55px,fill:#FFD700,stroke:black,color:black, stroke-dasharray: 3,5;
+    style F r:55px,fill:lightgray,stroke:black,color:black, stroke-dasharray: 3,5;
 
     linkStyle 0 stroke:palegreen, stroke-width: 2px;
-    linkStyle 1,2,3 stroke:lightgray, stroke-width: 2px;
-    linkStyle 4 stroke:#FFD700, stroke-width: 2px;
+    linkStyle 1,3,4 stroke:lightgray, stroke-width: 2px;
+    linkStyle 2 stroke:#FFD700, stroke-width: 2px;
 ```
 
 ## [Flow Equations](@id beccselectricity_flow_equations)
@@ -55,8 +55,8 @@ The BECCS electricity asset follows these stoichiometric relationships:
 ```math
 \begin{aligned}
 \phi_{elec} &= \phi_{biomass} \cdot \epsilon_{elec\_prod} \\
-\phi_{co2} &= -\phi_{biomass} \cdot \epsilon_{co2\_content} \\
-\phi_{co2} &= \phi_{biomass} \cdot \epsilon_{emission\_rate} \\
+\phi_{co2} &= \phi_{biomass} \cdot \epsilon_{co2\_content} \\
+\phi_{co2\_emitted} &= \phi_{biomass} \cdot \epsilon_{emission\_rate} \\
 \phi_{co2\_captured} &= \phi_{biomass} \cdot \epsilon_{capture\_rate} \\
 \end{aligned}
 ```
@@ -134,7 +134,7 @@ The following tables outline the attributes that can be set for a BECCS electric
 | `id` | String | Unique identifier for the BECCS electricity instance |
 | `location` | String | Geographic location/node identifier |
 | `biomass_commodity` | String | Commodity identifier for the biomass supply (can be a sub-commodity of `Biomass`) |
-| `co2_sink` | String | ID of a CO2 sink vertex (has to be defined in the nodes input file) |
+| `co2_sink` | String | ID of a CO₂ sink vertex (has to be defined in the nodes input file) |
 
 ### [Conversion Process Parameters](@id beccselectricity_conversion_process_parameters)
 The following set of parameters control the conversion process and stoichiometry of the BECCS electricity asset (see [Flow Equations](@ref beccselectricity_flow_equations) for more details).
@@ -142,9 +142,9 @@ The following set of parameters control the conversion process and stoichiometry
 | Field | Type | Description | Units | Default |
 |--------------|---------|------------|----------------|----------|
 | `electricity_production` | Float64 | Electricity production per unit biomass | $MWh/t_{Biomass}$ | 0.0 |
-| `capture_rate` | Float64 | CO2 capture rate per unit biomass | $t_{CO2}/t_{Biomass}$ | 1.0 |
-| `co2_content` | Float64 | CO2 content in biomass | $t_{CO2}/t_{Biomass}$ | 0.0 |
-| `emission_rate` | Float64 | CO2 emission rate per unit biomass | $t_{CO2}/t_{Biomass}$ | 1.0 |
+| `capture_rate` | Float64 | CO₂ capture rate per unit biomass | $t_{CO2}/t_{Biomass}$ | 1.0 |
+| `co2_content` | Float64 | CO₂ content in biomass | $t_{CO2}/t_{Biomass}$ | 0.0 |
+| `emission_rate` | Float64 | CO₂ emission rate per unit biomass | $t_{CO2}/t_{Biomass}$ | 1.0 |
 
 ### [Constraints Configuration](@id "beccselectricity_constraints")
 BECCS electricity assets can have different constraints applied to them, and the user can configure them using the following fields:
@@ -153,9 +153,9 @@ BECCS electricity assets can have different constraints applied to them, and the
 |--------------|---------|------------|
 | `transform_constraints` | Dict{String,Bool} | List of constraints applied to the transformation component. |
 | `biomass_constraints` | Dict{String,Bool} | List of constraints applied to the biomass edge. |
-| `co2_constraints` | Dict{String,Bool} | List of constraints applied to the CO2 edge. |
-| `co2_emission_constraints` | Dict{String,Bool} | List of constraints applied to the CO2 emission edge. |
-| `co2_captured_constraints` | Dict{String,Bool} | List of constraints applied to the CO2 captured edge. |
+| `co2_constraints` | Dict{String,Bool} | List of constraints applied to the CO₂ edge. |
+| `co2_emission_constraints` | Dict{String,Bool} | List of constraints applied to the CO₂ emission edge. |
+| `co2_captured_constraints` | Dict{String,Bool} | List of constraints applied to the CO₂ captured edge. |
 
 For example, if the user wants to apply the [`BalanceConstraint`](@ref balance_constraint_ref) to the transformation component and the [`CapacityConstraint`](@ref capacity_constraint_ref) to the biomass edge, the constraints fields should be set as follows:
 
@@ -170,13 +170,13 @@ For example, if the user wants to apply the [`BalanceConstraint`](@ref balance_c
 }
 ```
 
+Users can refer to the [Adding Asset Constraints to a System](@ref) section of the User Guide for a list of all the constraints that can be applied to the different components of a BECCS electricity asset.
+
 #### Default constraints
 To simplify the input file and the asset configuration, the following constraints are applied to the BECCS electricity asset by default:
 
 - [Balance constraint](@ref balance_constraint_ref) (applied to the transformation component)
 - [Capacity constraint](@ref capacity_constraint_ref) (applied to the biomass edge)
-
-Users can refer to the [Adding Asset Constraints to a System](@ref) section of the User Guide for a list of all the constraints that can be applied to the different components of a BECCS electricity asset.
 
 ### Investment Parameters
 | Field | Type | Description | Units | Default |
@@ -226,12 +226,12 @@ The `BECCSElectricity` asset is defined as follows:
 ```julia
 struct BECCSElectricity <: AbstractAsset
     id::AssetId
-    transformation::Transformation
+    beccs_transform::Transformation
     biomass_edge::Edge{<:Biomass}
-    co2_edge::Edge{<:CO2}
     elec_edge::Edge{<:Electricity}
-    co2_captured_edge::Edge{<:CO2Captured}
+    co2_edge::Edge{<:CO2}
     co2_emission_edge::Edge{<:CO2}
+    co2_captured_edge::Edge{<:CO2Captured}
 end
 ```
 
@@ -240,7 +240,7 @@ end
 ### Default constructor
 
 ```julia
-BECCSElectricity(id::AssetId, transformation::Transformation, biomass_edge::Edge{<:Biomass}, co2_edge::Edge{<:CO2}, elec_edge::Edge{<:Electricity}, co2_captured_edge::Edge{<:CO2Captured}, co2_emission_edge::Edge{<:CO2})
+BECCSElectricity(id::AssetId, beccs_transform::Transformation, biomass_edge::Edge{<:Biomass}, co2_edge::Edge{<:CO2}, elec_edge::Edge{<:Electricity}, co2_captured_edge::Edge{<:CO2Captured}, co2_emission_edge::Edge{<:CO2})
 ```
 
 ### Factory constructor
@@ -362,7 +362,7 @@ BECCSElectricity | SE\_BECCS\_Electricity\_Wood | 212409.12 | 1.600244 | 1.60656
 4. **Consider availability profiles**: Use availability time series to model seasonal variations in biomass supply
 5. **Validate costs**: Ensure investment and O&M costs are in appropriate units
 6. **Test configurations**: Start with simple configurations and gradually add complexity
-7. **Monitor CO2 balance**: Ensure the CO2 capture and emission rates are consistent with the overall system CO2 balance
+7. **Monitor CO₂ balance**: Ensure the CO₂ capture and emission rates are consistent with the overall system CO₂ balance
 
 ## [Input File (Advanced Format)](@id beccselectricity_advanced_json_csv_input_format)
 
@@ -397,7 +397,7 @@ A BECCS electricity asset in Macro is composed of a transformation component, re
 }
 ```
 
-Each top-level key (e.g., "transforms" or "edges") denotes a component type. The second-level keys either specify the attributes of the component (when there is a single instance) or identify the instances of the component (e.g., "biomass_edge", "elec_edge", etc.) when there are multiple instances. For multiple instances, a third-level key details the attributes for each instance.
+Each top-level key (e.g., "transforms" or "edges") denotes a component type. The second-level keys either specify the attributes of the component (when there is a single instance) or identify the instances of the component (e.g., "biomass\_edge", "elec\_edge", etc.) when there are multiple instances. For multiple instances, a third-level key details the attributes for each instance.
 
 Below is an example of an input file for a BECCS electricity asset that sets up a single asset in the SE region with detailed edge specifications.
 
@@ -496,17 +496,20 @@ Below is an example of an input file for a BECCS electricity asset that sets up 
 ### Key Points
 - The `global_data` field is utilized to define attributes and constraints that apply universally to all instances of a particular asset type.
 - The `start_vertex` and `end_vertex` fields indicate the nodes to which the edges are connected. These nodes must be defined in the `nodes.json` file.
-- By default, only the biomass edge is allowed to have capacity variables and constraints, as this represents the main capacity decision for the BECCS facility. However, the user can add capacity variables and constraints to the other edges as well.
+- By default, only the biomass edge is allowed to have capacity variables and constraints, as this represents the main capacity decision for the BECCS facility. However, the user can add capacity variables and constraints to the other edges as well (*see note below*).
 - The biomass edge uses availability time series to model seasonal variations in biomass supply.
 - For a comprehensive list of attributes that can be configured for the transformation and edge components, refer to the [transformation](@ref manual-transformation-fields) and [edges](@ref manual-edges-fields) pages of the Macro manual.
 
+!!! note "The `has_capacity` Edge Attribute"
+    The `has_capacity` attribute is a flag that indicates whether a specific edge of an asset has a capacity variable, allowing it to be expanded or retired. Typically, users do not need to manually adjust this flag, as the asset creators in Macro have already configured it correctly for each edge. However, advanced users can use this flag to override the default settings for each edge if needed.
+
 !!! tip "Prefixes"
-    Users can apply prefixes to adjust parameters for the components of a BECCS electricity asset, even when using the standard format. For instance, `co2_can_retire` will adjust the `can_retire` parameter for the CO2 edge, and `co2_existing_capacity` will adjust the `existing_capacity` parameter for the CO2 edge.
+    Users can apply prefixes to adjust parameters for the components of a BECCS electricity asset, even when using the standard format. For instance, `co2_can_retire` will adjust the `can_retire` parameter for the CO₂ edge, and `co2_existing_capacity` will adjust the `existing_capacity` parameter for the CO₂ edge.
     Below are the prefixes available for modifying parameters for the components of a BECCS electricity asset:
     - `transform_` for the transformation component
     - `biomass_` for the biomass edge
-    - `co2_` for the CO2 edge
-    - `co2_emission_` for the CO2 emission edge
-    - `co2_captured_` for the CO2 captured edge
+    - `co2_` for the CO₂ edge
+    - `co2_emission_` for the CO₂ emission edge
+    - `co2_captured_` for the CO₂ captured edge
     - `elec_` for the electricity edge
     
