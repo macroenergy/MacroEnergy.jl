@@ -80,8 +80,7 @@ your_case/
 
 This file can either be created manually, or using the `template_asset` function, as shown in the [Adding an Asset to a System](@ref) section of the User Guide. The file will be automatically loaded when you run your Macro model.
 
-The following is an example of a new gas storage asset (initial capacity = 0) with charge and discharge efficiency = 1.0 and charge and discharge electricity consumption = 0.01 and 0.02 respectively.
-
+The following is an example of a gas storage asset input file:
 ```json
 {
     "h2stor": [
@@ -323,7 +322,7 @@ make(asset_type::Type{GasStorage}, data::AbstractDict{Symbol,Any}, system::Syste
 This section contains examples of how to use the gas storage asset in a Macro model.
 
 ### Simple Gas Storage Asset
-This example shows a single gas storage asset with capacity that can only be expanded and not retired.
+This example shows a new single asymmetric long-duration hydrogen storage asset located in the SE region with capacity that can only be expanded and not retired. The charge and discharge efficiency are set to 1.0, and the charge and discharge electricity consumption are set to 0.01 and 0.02, respectively. A `MinStorageLevelConstraint` constraint is applied to the storage component to ensure that the storage level is at least 30% of the capacity. A `RampingLimitConstraint` constraint is applied to the discharge edge with a ramping limit of 1.0. The storage component doesn't have losses.
 
 **JSON Format:**
 ```json
@@ -377,6 +376,8 @@ This example shows a single gas storage asset with capacity that can only be exp
 | GasStorage | SE\_Above\_ground\_storage | SE | Hydrogen | 0.01 | 0.02 | Hydrogen | true | false | 0 | 0.0 | 1.0 | 1 | 1 | false | 0 | 3219.236569 | 1.0 | false | 873.013307 | 28.75810056 | 0.0 | 0.3 | true | true | true | true |
 
 ### Multiple Hydrogen Storage Assets in Different Zones
+
+This example shows how to create a set of new asymmetric long-duration hydrogen storage assets in different zones (SE, MIDAT, and NE), with different costs, capacities, and efficiency rates. Ramp rates and minimum storage levels are set to 1.0 and 0.3, respectively for all storage assets.
 
 **JSON Format:**
 

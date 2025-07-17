@@ -311,6 +311,8 @@ This section contains examples of how to use the battery asset in a Macro model.
 
 ### Two batteries in the same zone "SE"
 
+This example shows two batteries in the same zone "SE" with different investment costs and O&M costs. The discharge efficiency and charge efficiency are set to 0.95 and 0.92, respectively. Both batteries have the [`StorageMinDurationConstraint`](@ref storage_min_duration_constraint_ref) and [`StorageMaxDurationConstraint`](@ref storage_max_duration_constraint_ref) constraints applied to the storage component.
+
 **JSON Format:**
 
 Note that the `global_data` field is used to set the fields and constraints that are common to all instances of the same asset type.
@@ -369,7 +371,7 @@ Note that the `global_data` field is used to set the fields and constraints that
 | Battery | battery\_2\_SE | SE | true | true | 15000 | 800 | 4 | 1 | 25000 | 1200 | 1.2 | 1.2 | 0.92 | 0.92 |
 
 ### Pumped Hydro Storage
-This example shows a pumped hydro storage asset with a fixed discharge and storage capacity (capacity cannot be expanded or retired).
+This example shows a pumped hydro storage asset with a fixed discharge and storage capacity (capacity cannot be expanded or retired) and a minimum discharge flow constraint of 0.5.
 
 **JSON Format:**
 ```json

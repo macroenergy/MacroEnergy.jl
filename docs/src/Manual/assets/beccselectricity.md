@@ -292,7 +292,9 @@ This example shows a single BECCS electricity asset with existing capacity using
 |------|----|----------|---------------------|------------------------------------------|---------------------------|--------------------------------|------------------------------|---------------------------|---------------------------|------------------------------------------------|---------------------------|
 | BECCSElectricity | Fixed\_BECCS\_Electricity\_SE | SE | Biomass_Herb | co2_sink | 1.6 | 1.5 | 1.8 | 0.3 | 500.0 | 150000.0 | 40.0 |
 
-### Two BECCS Electricity Assets in the SE Region with Different Biomass Types
+### Two BECCS Electricity Assets in the SE Region
+
+This example shows two BECCS electricity assets in the SE region with different biomass types. The biomass constraints are set to the [`MinFlowConstraint`](@ref min_flow_constraint_ref) constraint with a minimum flow fraction of 0.4, and the availability time series are set to the `SE_BECCS_Electricity_Herb` and `SE_BECCS_Electricity_Wood` time series.
 
 **JSON Format:**
 

@@ -326,7 +326,7 @@ This example shows a single BECCS hydrogen asset with existing capacity using `B
 
 ### Multiple BECCS Hydrogen Assets in Different Zones
 
-This example shows how to create a set of BECCS hydrogen assets in different zones, with different biomass commodities (herb and wood).
+This example shows how to create a set of BECCS hydrogen assets in different zones, with different biomass commodities (herb and wood). The biomass constraints are set to the [`MinFlowConstraint`](@ref min_flow_constraint_ref) constraint with a minimum flow fraction of 0.85, and the availability time series are set to the `SE_BECCS_H2_Herb`, `MIDAT_BECCS_H2_Herb`, `NE_BECCS_H2_Herb`, `SE_BECCS_H2_Wood`, `MIDAT_BECCS_H2_Wood`, and `NE_BECCS_H2_Wood` time series read from the `system/availability.csv` file.
 
 **JSON Format:**
 

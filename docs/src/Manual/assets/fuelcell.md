@@ -214,6 +214,8 @@ This section contains examples of how to use the fuel cell asset in a Macro mode
 
 ### Multiple fuel cells in different zones
 
+This example shows how to create a set of fuel cells in different zones (SE, MIDAT, and NE), with different costs, capacities, and efficiency rates. Ramp rates and minimum flow fractions are set to 1.0 and 0.1, respectively for all fuel cells.
+
 **JSON Format:**
 
 Note that the `global_data` field is used to set the fields and constraints that are common to all instances of the same asset type.

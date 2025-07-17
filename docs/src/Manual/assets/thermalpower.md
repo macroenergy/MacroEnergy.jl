@@ -81,7 +81,7 @@ your_case/
 
 This file can either be created manually, or using the `template_asset` function, as shown in the [Adding an Asset to a System](@ref) section of the User Guide. The file will be automatically loaded when you run your Macro model. 
 
-The following is an example of a thermal power plant asset input file with unit commitment enabled and burning natural gas.
+The following is an example of a thermal power plant asset input file with unit commitment enabled and burning natural gas:
 ```json
 {
     "NaturalGasPowerCCS": [
@@ -303,6 +303,8 @@ This section contains examples of how to use the thermal power plant asset in a 
 
 ### Nuclear Power Plant
 
+This example shows a nuclear power plant with unit commitment enabled and using uranium as fuel. The asset has an existing capacity that is only allowed to be retired. A `MinFlowConstraint` constraint is applied to the electricity edge with a minimum flow fraction of 0.5. A `MinUpTimeConstraint` and `MinDownTimeConstraint` constraint is applied to the electricity edge with a minimum up and down time of 36 hours. A `RampingLimitConstraint` constraint is applied to the electricity edge with a ramping limit of 0.25. The asset has an availability time series loaded from a CSV file.
+
 **JSON Format:**
 
 Note that the `global_data` field is used to set the fields and constraints that are common to all instances of the same asset type.
@@ -353,7 +355,9 @@ Note that the `global_data` field is used to set the fields and constraints that
 |------|----|----------|---------------------|----------------------------------------|---------------------------|------------------------|----------------------|----------------------|---------------------------|------------------------|----------------------|----------------------|------------------------------------------|------------------------------------------|--------------------------------|--------------------------------|----------------------------------|---------------------|---------------------------|------------------------|---------------------|------------------------|---------------------|---------------------|
 | ThermalPower | SE\_nuclear\_1 | SE | Uranium | Uranium| uranium\_source | co2\_sink | true | true | true | 33632.288 | 1051.009 | true | true | true | 3.064351108 | 199087.824 | 2.34 | 1000 | 0.0 | 36 | 36 | 0.25 | 0.25 | 0.5 | 
 
-### Multiple Nuclear Power Plants in Different Zones with CCS
+### Multiple Natural Gas Fired Combined Cycle Plants in Different Zones with CCS
+
+This example shows three natural gas fired combined cycle plants with unit commitment enabled and using natural gas as fuel. Each asset has an existing capacity that is only allowed to be retired. A `MinFlowConstraint` constraint is applied to the electricity edge with a minimum flow fraction of 0.444, 0.526, and 0.41. A `MinUpTimeConstraint` and `MinDownTimeConstraint` constraint is applied to the electricity edge with a minimum up and down time of 6 hours. A `RampingLimitConstraint` constraint is applied to the electricity edge with a ramping limit of 0.64. The asset has an availability time series loaded from a CSV file.
 
 **JSON Format:**
 

@@ -57,8 +57,7 @@ your_case/
 
 This file can either be created manually, or using the `template_asset` function, as shown in the [Adding an Asset to a System](@ref) section of the User Guide. The file will be automatically loaded when you run your Macro model.
 
-The following example illustrates a hydro reservoir asset input file that is fixed in capacity and cannot be expanded or retired:
-
+The following is an example of a hydro reservoir asset input file:
 ```json
 {
     "hydrores": [
@@ -256,7 +255,7 @@ make(asset_type::Type{HydroRes}, data::AbstractDict{Symbol,Any}, system::System)
 This section contains examples of how to use the hydro reservoir asset in a Macro model.
 
 ### Simple Hydro Reservoir with Fixed Capacity
-This example shows a hydro reservoir asset with existing and fixed capacity (capacity cannot be expanded or retired), minimum outflow fraction of 0.1, and an availability time series for the inflow edge loaded from a CSV file.
+This example shows a hydro reservoir asset with existing and fixed capacity (capacity cannot be expanded or retired), minimum outflow fraction of 0.1, and an availability time series for the inflow edge loaded from a CSV file. A `MinStorageOutflowConstraint` constraint is applied to the storage component to ensure that the outflow is at least 10% of the capacity.
 
 **JSON Format:**
 ```json
@@ -279,7 +278,6 @@ This example shows a hydro reservoir asset with existing and fixed capacity (cap
                         "MinStorageOutflowConstraint": true
                     },
                     "storage_min_outflow_fraction": 0.1,
-                    "storage_charge_discharge_ratio": 1.0,
                     "discharge_capacity_size": 1.0,
                     "discharge_existing_capacity": 1000.0,
                     "discharge_fixed_om_cost": 10000.0,
@@ -299,13 +297,13 @@ This example shows a hydro reservoir asset with existing and fixed capacity (cap
 
 **CSV Format:**
 
-| Type | id | location | hydro\_source | discharge\_can\_expand | discharge\_can\_retire | inflow\_can\_expand | inflow\_can\_retire | storage\_can\_expand | storage\_can\_retire | storage\_constraints--MinStorageOutflowConstraint | storage\_min\_outflow\_fraction | storage\_charge\_discharge\_ratio | discharge\_capacity\_size | discharge\_existing\_capacity | discharge\_fixed\_om\_cost | discharge\_efficiency | inflow\_availability--timeseries--path | inflow\_availability--timeseries--header |
-|------|----|----------|-------------------|-------------------|-------------------|----------------------------------------|------------------------------------------------|------------------------------|--------------------------------|------------------------------|---------------------------|---------------------------|---------|------------------------------------------------|--------------------------------|---------------------------|---------------------------|---------------------------|
-| HydroRes | Fixed\_Hydro\_SE | SE | hydro\_source | false | false | false | false | false | false | true | 0.1 | 1.0 | 1.0 | 1000.0 | 10000.0 | 1.0 | system/availability.csv | Fixed\_Hydro\_SE |
+| Type | id | location | hydro\_source | discharge\_can\_expand | discharge\_can\_retire | inflow\_can\_expand | inflow\_can\_retire | storage\_can\_expand | storage\_can\_retire | storage\_constraints--MinStorageOutflowConstraint | storage\_min\_outflow\_fraction |  discharge\_capacity\_size | discharge\_existing\_capacity | discharge\_fixed\_om\_cost | discharge\_efficiency | inflow\_availability--timeseries--path | inflow\_availability--timeseries--header |
+|------|----|----------|-------------------|-------------------|-------------------|----------------------------------------|------------------------------------------------|------------------------------|--------------------------------|---------------------------|---------------------------|---------|------------------------------------------------|--------------------------------|---------------------------|---------------------------|---------------------------|
+| HydroRes | Fixed\_Hydro\_SE | SE | hydro\_source | false | false | false | false | false | false | true | 0.1 | 1.0 | 1000.0 | 10000.0 | 1.0 | system/availability.csv | Fixed\_Hydro\_SE |
 
 ### Multiple Hydro Reservoir Assets in Different Zones
 
-This example shows three hydro reservoir assets with existing and fixed capacity (capacity cannot be expanded or retired) located in the MIDAT, NE, and SE regions.
+This example shows three hydro reservoir assets with existing and fixed capacity (capacity cannot be expanded or retired) located in the MIDAT, NE, and SE regions. A `RampingLimitConstraint` constraint is applied to the discharge edge with a ramping limit of 0.83. A `MinStorageOutflowConstraint` constraint is applied to the storage component to ensure that the outflow is at least 10% of the capacity. Finally, the storage component is set to be a long-duration storage with a `LongDurationStorageImplicitMinMaxConstraint` constraint applied to it.
 
 **JSON Format:**
 
@@ -338,7 +336,6 @@ Note that the `global_data` field is used to set the fields and constraints that
                     "id": "MIDAT_conventional_hydroelectric_1",
                     "location": "MIDAT",
                     "storage_min_outflow_fraction": 0.109311313,
-                    "storage_charge_discharge_ratio": 1.0,
                     "discharge_capacity_size": 29.853,
                     "discharge_existing_capacity": 2806.182,
                     "discharge_fixed_om_cost": 45648,
@@ -356,7 +353,6 @@ Note that the `global_data` field is used to set the fields and constraints that
                     "id": "NE_conventional_hydroelectric_1",
                     "location": "NE",
                     "storage_min_outflow_fraction": 0.095,
-                    "storage_charge_discharge_ratio": 1.0,
                     "discharge_capacity_size": 24.13,
                     "discharge_existing_capacity": 4729.48,
                     "discharge_fixed_om_cost": 45648,
@@ -374,7 +370,6 @@ Note that the `global_data` field is used to set the fields and constraints that
                     "id": "SE_conventional_hydroelectric_1",
                     "location": "SE",
                     "storage_min_outflow_fraction": 0.135129141,
-                    "storage_charge_discharge_ratio": 1.0,
                     "discharge_capacity_size": 31.333,
                     "discharge_existing_capacity": 11123.215,
                     "discharge_fixed_om_cost": 45648,
@@ -396,11 +391,11 @@ Note that the `global_data` field is used to set the fields and constraints that
 
 **CSV Format:**
 
-| Type | id | location | hydro\_source | discharge\_can\_expand | discharge\_can\_retire | inflow\_can\_expand | inflow\_can\_retire | storage\_can\_expand | storage\_can\_retire | storage\_constraints--MinStorageOutflowConstraint | storage\_min\_outflow\_fraction | storage\_charge\_discharge\_ratio | discharge\_capacity\_size | discharge\_existing\_capacity | discharge\_fixed\_om\_cost | discharge\_ramp\_down\_fraction | discharge\_ramp\_up\_fraction | discharge\_efficiency | inflow\_availability--timeseries--path | inflow\_availability--timeseries--header |
-|------|----|----------|-------------------|-------------------|-------------------|----------------------------------------|------------------------------------------------|------------------------------|--------------------------------|------------------------------|---------------------------|---------------------------|---------|------------------------------------------------|--------------------------------|---------------------------|---------------------------|---------------------------|---------------------------|---------------------------|
-| HydroRes | MIDAT\_conventional\_hydroelectric\_1 | MIDAT | hydro\_source | false | false | false | false | false | false | true | 0.109311313 | 1.0 | 29.853 | 2806.182 | 45648 | 0.83 | 0.83 | 1.0 | system/availability.csv | MIDAT\_conventional\_hydroelectric\_1 |
-| HydroRes | NE\_conventional\_hydroelectric\_1 | NE | hydro\_source | false | false | false | false | false | false | true | 0.095 | 1.0 | 24.13 | 4729.48 | 45648 | 0.083 | 0.083 | 1.0 | system/availability.csv | NE\_conventional\_hydroelectric\_1 |
-| HydroRes | SE\_conventional\_hydroelectric\_1 | SE | hydro\_source | false | false | false | false | false | false | true | 0.135129141 | 1.0 | 31.333 | 11123.215 | 45648 | 0.083 | 0.083 | 1.0 | system/availability.csv | SE\_conventional\_hydroelectric\_1 |
+| Type | id | location | hydro\_source | discharge\_can\_expand | discharge\_can\_retire | inflow\_can\_expand | inflow\_can\_retire | storage\_can\_expand | storage\_can\_retire | storage\_constraints--MinStorageOutflowConstraint | storage\_min\_outflow\_fraction | discharge\_capacity\_size | discharge\_existing\_capacity | discharge\_fixed\_om\_cost | discharge\_ramp\_down\_fraction | discharge\_ramp\_up\_fraction | discharge\_efficiency | inflow\_availability--timeseries--path | inflow\_availability--timeseries--header |
+|------|----|----------|-------------------|-------------------|-------------------|----------------------------------------|------------------------------------------------|------------------------------|--------------------------------|---------------------------|---------------------------|---------|------------------------------------------------|--------------------------------|---------------------------|---------------------------|---------------------------|---------------------------|---------------------------|
+| HydroRes | MIDAT\_conventional\_hydroelectric\_1 | MIDAT | hydro\_source | false | false | false | false | false | false | true | 0.109311313 | 29.853 | 2806.182 | 45648 | 0.83 | 0.83 | 1.0 | system/availability.csv | MIDAT\_conventional\_hydroelectric\_1 |
+| HydroRes | NE\_conventional\_hydroelectric\_1 | NE | hydro\_source | false | false | false | false | false | false | true | 0.095 | 24.13 | 4729.48 | 45648 | 0.083 | 0.083 | 1.0 | system/availability.csv | NE\_conventional\_hydroelectric\_1 |
+| HydroRes | SE\_conventional\_hydroelectric\_1 | SE | hydro\_source | false | false | false | false | false | false | true | 0.135129141 | 31.333 | 11123.215 | 45648 | 0.083 | 0.083 | 1.0 | system/availability.csv | SE\_conventional\_hydroelectric\_1 |
 
 ## [Best Practices](@id hydropower_best_practices)
 

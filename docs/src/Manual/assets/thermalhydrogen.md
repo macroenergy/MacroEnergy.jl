@@ -87,7 +87,7 @@ your_case/
 
 This file can either be created manually, or using the `template_asset` function, as shown in the [Adding an Asset to a System](@ref) section of the User Guide. The file will be automatically loaded when you run your Macro model.
 
-The following is an example of the input file for a thermal hydrogen plant asset with unit commitment operations:
+The following is an example of a thermal hydrogen plant asset input file:
 
 ```json
 {
@@ -316,7 +316,7 @@ make(asset_type::Type{ThermalHydrogenCCS}, data::AbstractDict{Symbol,Any}, syste
 This section contains examples of how to use the thermal hydrogen plant asset in a Macro model.
 
 ### Simple Thermal Hydrogen Plant with CCS
-This example shows a thermal hydrogen plant with CCS capabilities and without unit commitment.
+This example shows a thermal hydrogen plant with CCS capabilities, burning natural gas, and with unit commitment. A `MinFlowConstraint` constraint is applied to the hydrogen edge with a minimum flow fraction of 0.85. A `MinUpTimeConstraint` and `MinDownTimeConstraint` constraint is applied to the hydrogen edge with a minimum up and down time of 3 hours. A `RampingLimitConstraint` constraint is applied to the hydrogen edge with a ramping limit of 0.5. The asset has an availability time series loaded from a CSV file.
 
 **JSON Format:**
 ```json
@@ -370,6 +370,8 @@ This example shows a thermal hydrogen plant with CCS capabilities and without un
 | ThermalHydrogenCCS | SE\_Large\_SMR | SE | Hydrogen | true | true | true | true | 0.006879832936086124 | 1.300184721664035 | 0.051727 | 0.17416840222407487 | 72729.17926 | 30021.9427 | 6.942084285 | 791.739 | 0.253871541 | 3 | 3 | 0.5 | 0.5 | 0.85 |
 
 ### Multiple Thermal Hydrogen withoutCCS Assets in Different Zones
+
+This example shows three thermal hydrogen plant assets located in the SE, MIDAT, and NE regions. Each asset is burning natural gas, and has unit commitment enabled. A `MinFlowConstraint` constraint is applied to the hydrogen edge with a minimum flow fraction of 0.85. A `MinUpTimeConstraint` and `MinDownTimeConstraint` constraint is applied to the hydrogen edge with a minimum up and down time of 3 hours. A `RampingLimitConstraint` constraint is applied to the hydrogen edge with a ramping limit of 0.5. The asset has an availability time series loaded from a CSV file.
 
 **JSON Format:**
 
@@ -491,7 +493,7 @@ A thermal hydrogen plant asset in Macro is composed of a transformation componen
 
 Each top-level key (e.g., "transforms" or "edges") denotes a component type. The second-level keys either specify the attributes of the component (when there is a single instance) or identify the instances of the component (e.g., "fuel\_edge", "h2\_edge", etc.) when there are multiple instances. For multiple instances, a third-level key details the attributes for each instance.
 
-Below is an example of an input file for a thermal hydrogen CCS asset that sets up a single asset in the SE region with detailed edge specifications.
+Below is an example of an input file for a thermal hydrogen with CCS asset that sets up multiple thermal plants across different regions. 
 
 ```json
 {

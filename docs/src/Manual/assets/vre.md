@@ -178,6 +178,8 @@ This section contains examples of how to use the VRE asset in a Macro model.
 
 ### Multiple VRE assets in different zones (existing and new)
 
+This example shows how to define existing and new VRE assets in different zones. The existing VRE assets have initial capacity that is only allowed to be retired. The new VRE assets do not have an existing capacity but can be expanded. A `MaxCapacityConstraint` constraint is applied to the electricity edge with a maximum capacity determined by the `max_capacity` field.
+
 **JSON Format:**
 
 Note that the `global_data` field is used to set the fields and constraints that are common to all instances of the same asset type.

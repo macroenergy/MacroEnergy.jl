@@ -174,6 +174,8 @@ This section contains examples of how to use the Transmission Link asset in a Ma
 
 ### Multiple Transmission Links between different zones
 
+This example shows two transmission links between the SE and MIDAT regions, and the MIDAT and NE regions. Each transmission link has a maximum capacity constraint applied to it.
+
 **JSON Format:**
 
 Note that the `global_data` field is used to set the fields and constraints that are common to all instances of the same asset type.

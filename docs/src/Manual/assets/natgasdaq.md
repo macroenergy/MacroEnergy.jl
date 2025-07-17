@@ -91,25 +91,23 @@ The following is an example of a Natural Gas DAC asset input file:
     "NaturalGasDAC": [
         {
             "type": "NaturalGasDAC",
-            "global_data": {
-                "co2_constraints": {
-                    "RampingLimitConstraint": true
-                },
-                "co2_sink": "co2_sink",
-                "emission_rate": 0.001810482,
-                "capture_rate": 0.179237753,
-                "electricity_production": 0.125,
-                "fuel_consumption": 3.047059187,
-                "investment_cost": 973000,
-                "fixed_om_cost": 430000,
-                "variable_om_cost": 65.42,
-                "ramp_up_fraction": 1.0,
-                "ramp_down_fraction": 1.0
-            },
             "instance_data": [
                 {
                     "id": "SE_Solvent_DAC",
                     "location": "SE",
+                    "co2_sink": "co2_sink",
+                    "emission_rate": 0.001810482,
+                    "capture_rate": 0.179237753,
+                    "electricity_production": 0.125,
+                    "fuel_consumption": 3.047059187,
+                    "investment_cost": 973000,
+                    "fixed_om_cost": 430000,
+                    "variable_om_cost": 65.42,
+                    "co2_constraints": {
+                        "RampingLimitConstraint": true
+                    },
+                    "ramp_up_fraction": 1.0,
+                    "ramp_down_fraction": 1.0,
                     "availability": {
                         "timeseries": {
                             "path": "system/availability.csv",
@@ -252,7 +250,7 @@ make(asset_type::Type{NaturalGasDAC}, data::AbstractDict{Symbol,Any}, system::Sy
 This section contains examples of how to use the natural gas DAC asset in a Macro model.
 
 ### Fixed Capacity Natural Gas DAC
-This example shows a natural gas DAC asset with fixed capacity (capacity cannot be expanded or retired).
+This example shows a natural gas DAC asset located in the SE region. A `RampingLimitConstraint` constraint is applied to the CO₂ edge with a ramping limit of 1.0. The asset has an availability time series loaded from a CSV file.
 
 **JSON Format:**
 ```json
@@ -297,6 +295,8 @@ This example shows a natural gas DAC asset with fixed capacity (capacity cannot 
 | NaturalGasDAC | SE\_Solvent\_DAC | SE | co2\_sink | true | 0.001810482 | 0.179237753 | 0.125 | 3.047059187 | 973000 | 430000 | 65.42 | 1.0 | 1.0 | system/availability.csv | SE\_Solvent\_DAC |
 
 ### Multiple Natural Gas DAC assets in different zones
+
+This example shows three natural gas DAC assets located in the SE, MIDAT, and NE regions. A `RampingLimitConstraint` constraint is applied to the CO₂ edge with a ramping limit of 1.0. The asset has an availability time series loaded from a CSV file.
 
 **JSON Format:**
 
@@ -415,7 +415,7 @@ Each top-level key (e.g., "transforms" or "edges") denotes a component type. The
 
 Each top-level key (e.g., "transforms" or "edges") denotes a component type. The second-level keys either specify the attributes of the component (when there is a single instance) or identify the instances of the component (e.g., "co2\_edge", "co2\_emission\_edge", "natgas\_edge", "elec\_edge", "co2\_captured\_edge") when there are multiple instances. For multiple instances, a third-level key details the attributes for each instance.
 
-Below is an example of an input file for a natural gas DAC asset that sets up a single asset in the SE region with detailed edge specifications.
+Below is an example of an input file for a natural gas DAC asset that sets up multiple natural gas DAC assets across different regions. 
 
 ```json
 {
