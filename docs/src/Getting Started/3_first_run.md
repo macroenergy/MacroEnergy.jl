@@ -40,13 +40,13 @@ julia --project=. -e 'using MacroEnergy; download_example("multisector_three_zon
 Finally, execute the `run.jl` file present in the example folder. On a Unix-based machine, this will look like:
 
 ```bash
-julia --project=. ExampleSystems/eastern_us_three_zones/run.jl
+julia --project=. ExampleSystems/multisector_three_zones/run.jl
 ```
 
 On Windows, it will be:
 
 ```bash
-julia --project=. ExampleSystems\eastern_us_three_zones\run.jl
+julia --project=. ExampleSystems\multisector_three_zones\run.jl
 ```
 
 This will use Macro to solve the example system and save the results in the `results` directory. By default, Macro writes three files:
