@@ -12,9 +12,10 @@ This guide documents all available constraints and explains how to enable them i
     - `discharge_constraints`: constraints on the discharging component of an asset
     - etc.
 
-    Throughout this guide, we show examples with different prefixes to illustrate this variety. When implementing constraints for your specific asset, make sure to review [this example case](https://github.com/macroenergy/MacroEnergy.jl/tree/main/ExampleSystems/eastern_us_three_zones_reduced/assets) or the asset definition in the [Macro Asset Library](@ref) to make sure you use the correct prefix for your asset type.
+    Throughout this guide, we show examples with different prefixes to illustrate this variety. When implementing constraints for your specific asset, make sure to review [this example case](https://github.com/macroenergy/MacroEnergyExamples.jl/tree/main/examples/multisector_three_zones_reduced/assets) or the asset definition in the [Macro Asset Library](@ref) to make sure you use the correct prefix for your asset type.
 
 ## Balance Constraint
+
 *Note: Enabled by default in all assets in the [Macro Asset Library](@ref)*
 
 The balance constraint ensures that the sum of inflows and outflows at any component of an asset equals zero at each time step.

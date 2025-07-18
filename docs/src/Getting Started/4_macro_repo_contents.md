@@ -4,11 +4,9 @@ If you have downloaded or cloned the Macro code, rather than simply import it as
 
 ```ASCII
 MacroEnergy.jl
-├── ExampleSystems
 ├── docs
 ├── src
 ├── test
-├── tutorials
 ├── LICENSE
 └── Project.toml
 ```
@@ -17,10 +15,8 @@ You will probably see several other files and folders but you can ignore these. 
 
 The list below gives brief descriptions of the files and folders in the Macro repo.
 
-- ExampleSystems: This is a set of example systems which you can use to check that Macro runs on your system and see examples of different ways of describing a System.
 - docs: This contains Macro's documentation. You will have to add content here if you create a new Asset or feature.
 - src: This is the Macro source code. [Please follow this guide](@ref "Finding your way around the Macro repo") if you would like more information about the structure of the code.
 - test: These are automatic tests, run every time an update is made to the Macro GitHub repository. They help us check that updates have not introduced bugs and that existing features still work as expected.
-- tutorials: These are long-form examples of how to work with Macro, including worked examples in Jupyter notebooks.
 - LICENSE: Macro is released under an MIT license. These file gives the terms of the license.
 - Project.toml: Macro works using a Julia project environment. This is defined in the Project.toml file. It describes all the required Julia packages, their versions, and gives some information on the current version of Macro and its authors.

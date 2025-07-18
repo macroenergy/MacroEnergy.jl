@@ -83,7 +83,7 @@ As an example, this Node file (at `system/nodes.json`, by default) describes a H
 
 The most straightforward way of adding a new Node is to use the template functions.
 
-You can add one or more Node by providing the Nodes file as an argument:
+You can add one or more Node by providing the Nodes file as an argument. In these examples, we will assume your have created a system called `ExampleSystems/template_example` and that you have created an `assets` folder in that directory.
 
 ```julia
 julia> template_location("ExampleSystems/template_example/system/nodes.json", Electricity)

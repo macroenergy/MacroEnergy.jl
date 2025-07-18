@@ -1,6 +1,6 @@
 # Running Macro
 
-Once Macro is installed, the simplest way to get started is to run the example system provided in the `ExampleSystems` folder. It is a system with 3 zones in the eastern US, with the following sectors:
+Once Macro is installed, the simplest way to get started is to run the example system provided with Macro. We will use the `multisector_three_zones` example in the [MacroEnergyExamples.jl repository](https://github.com/macroenergy/MacroEnergyExamples.jl/tree/main/examples/multisector_three_zones). It is a system with 3 zones, modelled loosely on the Eastern USA, with the following sectors:
 
 - Electricity
 - Natural Gas
@@ -13,7 +13,31 @@ Once Macro is installed, the simplest way to get started is to run the example s
 !!! tip "Macro Input Data Description"
     The section [Macro Input Data](@ref) in the [User Guide](@ref) provides a detailed description of all the input files present in the example folder.
 
-To run the example, navigate to the `MacroEnergy.jl` folder and execute the `run.jl` file present in the example folder. On a Unix-based machine, this will look like:
+## Running a predefined example using Macro
+
+To run the example, navigate to the `MacroEnergy.jl` folder. You can then download the example by either downloading the files from the [MacroEnergyExamples.jl repository](https://github.com/macroenergy/MacroEnergyExamples.jl/tree/main/examples/multisector_three_zones) or using the example-download functions provided by Macro.
+
+### Downloading the example directly
+
+If you prefer to download the example directly from the repository, navigate to the link above and download the `multisector_three_zones` folder. Once downloaded, create an examples folder in your MacroEnergy.jl repository (we will call folder this `ExampleSystems` in our examples).
+
+### Downloading the example using Macro
+
+To download the example using Macro, you can use the `download_example` function. You can first list all available examples using the `list_examples` function:
+
+```bash
+julia --project=. -e 'using MacroEnergy; list_examples()'
+```
+
+Next, download the `multisector_three_zones` example using the `download_example` function:
+
+```bash
+julia --project=. -e 'using MacroEnergy; download_example("multisector_three_zones", "ExampleSystems")'
+```
+
+### Running the example
+
+Finally, execute the `run.jl` file present in the example folder. On a Unix-based machine, this will look like:
 
 ```bash
 julia --project=. ExampleSystems/eastern_us_three_zones/run.jl
@@ -33,7 +57,7 @@ This will use Macro to solve the example system and save the results in the `res
 
 Congratulations, you just ran your first Macro model! 🎉
 
-## Running Macro with user-defined cases
+## Running a user-defined case with Macro
 
 To run Macro with a user-defined case, you need to create a folder `MyCase` with a minimum of the following structure (customized cases can have additional files and folders (refer to the example cases, for specific details)):
 

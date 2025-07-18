@@ -9,7 +9,7 @@ end
 
 Constraint the CO2 emissions of CO2 on a CO2 node `n` to be less than or equal to the value of the `rhs_policy` for the `CO2CapConstraint` constraint type.
 If the `price_unmet_policy` is also specified, then a slack variable is added to the constraint to allow for the CO2 emissions to exceed the value of the `rhs_policy` by the amount specified in the `price_unmet_policy` for the `CO2CapConstraint` constraint type.
-Please check the example case in the `ExampleSystems` folder of Macro, or the [Macro Input Data](@ref) section of the documentation for more information on how to specify the `rhs_policy` and `price_unmet_policy` for the `CO2CapConstraint` constraint type.
+Please check the example case in the [MacroEnergyExamples.jl repository](https://github.com/macroenergy/MacroEnergyExamples.jl), or the [Macro Input Data](@ref) section of the documentation for more information on how to specify the `rhs_policy` and `price_unmet_policy` for the `CO2CapConstraint` constraint type.
 
 Therefore, the functional form of the constraint is:
 

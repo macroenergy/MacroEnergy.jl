@@ -1,4 +1,5 @@
 # Macro Input Data
+
 *Macro version 0.1.0*
 
 Macro input files are organized into **three** main directories:
@@ -7,7 +8,7 @@ Macro input files are organized into **three** main directories:
 - **[System folder](@ref)**: Contains all files related to the system, such as sectors, time resolution, nodes, demand, etc.
 - **[Assets folder](@ref)**: Contains all the files that define the assets, such as transmission lines, power plants, storage units, etc.
 
-In addition to these folders, the user should provide a [`system_data.json`](@ref) file that contains the paths to the input folders and files. 
+In addition to these folders, the user should provide a [`system_data.json`](@ref) file that contains the paths to the input folders and files.
 
 As a result, the folder structure for a Macro case should be as follows:
 
@@ -68,9 +69,11 @@ MacroCase
 In the following section, we will go through each folder and file in detail.
 
 ## Settings folder
+
 The `settings` folder currently contains only one file, `macro_settings.yml`, which contains the settings for the run.
 
 ### macro_settings.json
+
 **Format**: JSON
 
 | **Attribute** | **Values** | **Default** | **Description** |
@@ -81,6 +84,7 @@ The `settings` folder currently contains only one file, `macro_settings.yml`, wh
 | OutputDir | String | "results" | The directory where the results will be saved. |
 
 ## System folder
+
 The `system` folder currently contains five main files:
 
 - [commodities.json](@ref): Defines the sectors/commodities used in the system.
@@ -90,6 +94,7 @@ The `system` folder currently contains five main files:
 - [fuel_prices.csv](@ref): Contains the prices of fuels.
 
 ### commodities.json
+
 **Format**: JSON
 
 This file contains a list of sectors/commodities used in the system. The file is a list of string for each sector/commodity:
@@ -120,6 +125,7 @@ This file contains a list of sectors/commodities used in the system. The file is
 ```
 
 ### time_data.json
+
 **Format**: JSON
 
 This file contains the data related to the time resolution for each sector. The file is structured as follows:
@@ -149,7 +155,7 @@ This file contains the data related to the time resolution for each sector. The 
 | PeriodLength | Integer | Total number of **hours** in the simulation. |
 | HoursPerTimeStep | Integer | Number of **hours** in each time step **for each sector**. |
 | HoursPerSubperiod | Integer | Number of **hours** in each subperiod **for each sector**. |
-| SubPeriodMap | String | Relative path to the period map file. For an example of the period map file, see [Period_map.csv](https://github.com/macroenergy/Macro/blob/main/ExampleSystems/eastern_us_three_zones/system/Period_map.csv). |
+| SubPeriodMap | String | Relative path to the period map file. For an example of the period map file, see [Period_map.csv](https://github.com/macroenergy/MacroEnergyExamples.jl/blob/main/examples/multisector_three_zones/system/Period_map.csv). |
 | TotalHoursModeled | Integer | Total number of **hours** modeled. **Note**: When using representative periods, this parameter is used to compute the weight of each subperiod. |
 
 !!! note "Subperiods"
@@ -201,21 +207,22 @@ This file contains the data related to the time resolution for each sector. The 
 ```
 
 In this example, Macro uses the above input files to create the following parameters:
+
 - **Total time interval**: `[1:PeriodLength] = [1:504]`
 - **`HoursPerTimeStep`**: `1` for all sectors
 - **Subperiods**:
   1. `[1:168]`: first week
   2. `[169:336]`: second week
   3. `[337:504]`: third week
-- **Period map**: 
+- **Period map**:
     This file assigns each week of the `TotalHoursModeled` to one of the representative periods. 
-    For instance: 
+    For instance:
     - `week 1` -> `6th representative period`
     - `week 2` -> `6th representative period`
     - `week 3` -> `6th representative period`
     - `week 10` -> `17th representative period`
     - etc.
-- **Weight of each subperiod**: 
+- **Weight of each subperiod**:
   1. `[1:168]` -> `18.0495`
   2. `[169:336]` -> `21.0577`
   3. `[337:504]` -> `13.0357`
@@ -233,17 +240,20 @@ where $\alpha$ is a scaling factor defined as:
 ```math
 \alpha = \frac{TotalHoursModeled}{\sum_{i=1}^{N} HoursPerSubperiod * n_i}
 ```
+
 and $n_i$ is the number of times the $i$-th representative period is used in the period map to model periods, and $N$ is the total number of representative periods.
 
 !!! note "Weights without period map"
     If the period map is not provided, the weights are set to 1 for each representative period.
 
 ### nodes.json
+
 **Format**: JSON
 
-This file defines the regions/nodes for each sector. It is structured as a list of dictionaries, where each dictionary defines a network for a given sector. 
+This file defines the regions/nodes for each sector. It is structured as a list of dictionaries, where each dictionary defines a network for a given sector.
 
 Each dictionary has three main attributes:
+
 - `type`: The type of the network (e.g. "NaturalGas", "Electricity", etc.).
 - `global_data`: attributes that are the same for all the nodes in the network.
 - `instance_data`: attributes that are different for each node in the network.
@@ -298,6 +308,7 @@ The attributes that can be set for each node (either in `global_data` or `instan
     One of the main features of Macro is the ability to include constraints on the system from a pre-defined library of constraints (see [Macro Constraint Library](@ref) for more details). To include a constraint to a node, the user needs to add the constraint name to the `constraints` attribute of the node. The example below will show how to include constraints to node instances. 
 
 **Example**: the following is an example of a `nodes.json` file with both electricity, natural gas, CO2 and biomass sectors covering most of the attributes present above. The (multiplex)-network in the system is made of the following sub-networks:
+
 - NaturalGas (three nodes)
     - `natgas_SE`
     - `natgas_MIDAT`

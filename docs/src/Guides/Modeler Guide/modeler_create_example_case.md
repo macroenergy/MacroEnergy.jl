@@ -1,6 +1,6 @@
 # Creating a New Example Case
 
-The best way to get started is by reviewing the existing example cases in the Macro repository, located in the [`ExampleSystems`](https://github.com/macroenergy/MacroEnergy.jl/tree/main/ExampleSystems) folder.
+The best way to get started is by reviewing the existing example cases in the Macro repository, located in the [`MacroEnergyExamples.jl`](https://github.com/macroenergy/MacroEnergyExamples.jl/tree/main/examples) repo.
 
 As described in [Running Macro](@ref), an example case is a directory containing all the necessary data files to run the model. The folder should follow the structure outlined below:
 
@@ -45,4 +45,3 @@ MyCase
     1. Double-check that the keys in `commodities.json` and `time_data.json` exactly match the name of the new sector (i.e., the Julia abstract type name it was added to the model).
     2. Ensure that the values of the `type` keys in the node JSON entries match the name of the sector.
     3. For each asset JSON file, verify that the `type` key matches the Julia `struct` name created, and that the `commodity` keys in the `edges` and `storage` sections are correct.
-

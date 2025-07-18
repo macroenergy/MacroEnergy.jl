@@ -9,9 +9,9 @@ Adding a new Location to a System requires two steps:
 
 The Location list is a JSON file containing an array of Location names. Each name should be unique.
 
-The most straightforward way of adding a new Location is to use the template functions. 
+The most straightforward way of adding a new Location is to use the template functions.
 
-You can add one or more Locations by providing the Location file as an argument:
+You can add one or more Locations by providing the Location file as an argument. In this example, we will assume your have created a system called `ExampleSystems/template_example` and that you have created an `assets` folder in that directory.
 
 ```julia
 julia> template_location("ExampleSystems/template_example/system/locations.json", "Boston")

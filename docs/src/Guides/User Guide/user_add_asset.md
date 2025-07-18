@@ -12,7 +12,9 @@ Adding a new Asset to your System requires five steps:
 
 ### Adding a single Asset
 
-The best way to create a new Asset file is to use the template functions. If you wanted to add a `ThermalPower` Asset to your system, you could add it using the `template_asset` function, called with your System's asset folder:
+The best way to create a new Asset file is to use the template functions. If you wanted to add a `ThermalPower` Asset to your system, you could add it using the `template_asset` function, called with your System's asset folder.
+
+In these examples, we will assume your have created a system called `ExampleSystems/template_example` and that you have created an `assets` folder in that directory.
 
 ```julia
 julia> template_asset("ExampleSystems/template_example/assets", ThermalPower; style="simple", format="json")
