@@ -231,3 +231,61 @@ macro end_vertex(name, data, commodity, get_from_tuples)
         $name = find_node(system, Symbol(vertex), $commodity)
     end)
 end
+
+"""
+Returns the correct container specification for the selected type of JuMP Model
+"""
+function cont_specification(::Type{T}, kwarg...) where {T <: Any}
+    return DenseAxisArray{T}(undef, kwarg...)
+end
+
+"""
+Returns the correct container specification for the selected type of JuMP Model
+"""
+function cont_specification(::Type{Float64}, kwarg...)
+    cont = DenseAxisArray{Float64}(undef, kwarg...)
+    cont.data .= fill(NaN, size(cont.data))
+    return cont
+end
+
+"""
+Returns the correct container specification for the selected type of JuMP Model
+"""
+function sparse_cont_specification(::Type{T}, kwarg...) where {T <: JuMP.AbstractJuMPScalar}
+    indexes = Base.Iterators.product(kwarg...)
+    contents = Dict{eltype(indexes), T}(i => zero(T) for i in indexes)
+    return SparseAxisArray(contents)
+end
+
+function sparse_cont_specification(::Type{T}, kwarg...) where {T <: JuMP.VariableRef}
+    indexes = Base.Iterators.product(kwarg...)
+    contents = Dict{eltype(indexes), Union{Nothing, T}}(indexes .=> nothing)
+    return SparseAxisArray(contents)
+end
+
+function sparse_cont_specification(::Type{T}, kwarg...) where {T <: JuMP.ConstraintRef}
+    indexes = Base.Iterators.product(kwarg...)
+    contents = Dict{eltype(indexes), Union{Nothing, T}}(indexes .=> nothing)
+    return SparseAxisArray(contents)
+end
+
+function sparse_cont_specification(::Type{T}, kwarg...) where {T <: Number}
+    indexes = Base.Iterators.product(kwarg...)
+    contents = Dict{eltype(indexes), T}(indexes .=> zero(T))
+    return SparseAxisArray(contents)
+end
+
+function remove_undef!(expression_array::AbstractArray)
+    # iteration is deliberately unsupported for CartesianIndex
+    # Makes this code a bit hacky to be able to use isassigned with an array of arbitrary size.
+    for i in CartesianIndices(expression_array.data)
+        if !isassigned(expression_array.data, i.I...)
+            expression_array.data[i] = zero(eltype(expression_array))
+        end
+    end
+
+    return expression_array
+end
+
+remove_undef!(expression_array::SparseAxisArray) = expression_array
+

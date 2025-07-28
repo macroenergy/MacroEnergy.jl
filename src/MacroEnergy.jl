@@ -74,6 +74,9 @@ abstract type OperationConstraint <: AbstractTypeConstraint end
 abstract type PolicyConstraint <: OperationConstraint end
 abstract type PlanningConstraint <: AbstractTypeConstraint end
 
+#Variable types
+abstract type AbstractVariable end
+
 ## Solution algorithms
 
 abstract type AbstractSolutionAlgorithm end
