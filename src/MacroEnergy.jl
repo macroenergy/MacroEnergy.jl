@@ -140,6 +140,7 @@ end
 
 # include files
 include_all_in_folder("utilities")
+include_all_in_folder("optimization_container")
 
 include("model/units.jl")
 include("model/time_management.jl")
@@ -242,6 +243,45 @@ export AbstractAsset,
     DirectReductionElectricArcFurnaceCCS,
     Edge,
     EdgeWithUC,
+    # Edge Preallocation System exports
+    EdgeOptimizationManager,
+    EdgeVariableType,
+    EdgeConstraintType,
+    EdgeCapacityVariable,
+    EdgeFlowVariable,
+    EdgeNewCapacityVariable,
+    EdgeRetiredCapacityVariable,
+    EdgeNewUnitsVariable,
+    EdgeRetiredUnitsVariable,
+    EdgeCommitmentVariable,
+    EdgeStartupVariable,
+    EdgeShutdownVariable,
+    EdgeCapacityConstraint,
+    EdgeFlowConstraint,
+    EdgeVariableContainer,
+    EdgeConstraintContainer,
+    allocate_edge_variables!,
+    allocate_edge_constraints!,
+    preallocate_edge_variables!,
+    preallocate_edge_constraints!,
+    set_variable!,
+    get_variable,
+    set_constraint!,
+    get_constraint,
+    # End Edge Preallocation System exports
+    # MacroEnergy Optimization Container exports
+    MacroEnergyOptimizationContainer,
+    MacroEnergyObjectiveFunction,
+    MacroEnergyPrimalValuesCache,
+    MacroEnergyInitialConditionsData,
+    create_macro_energy_optimization_container,
+    get_objective_sense,
+    set_objective_sense!,
+    # MacroEnergy utilities exports
+    macro_energy_container_spec,
+    macro_energy_sparse_container_spec,
+    macro_energy_remove_undef!,
+    # End MacroEnergy utilities exports
     Electricity,
     Electrolyzer,
     ElectricDAC,

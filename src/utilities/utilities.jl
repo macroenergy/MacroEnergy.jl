@@ -1,3 +1,7 @@
+# Utility functions for MacroEnergy optimization containers
+using JuMP
+import JuMP.Containers: DenseAxisArray, SparseAxisArray
+
 function all_subtypes(m::Module, type::Symbol)::Dict{Symbol,DataType}
     types = Dict{Symbol,DataType}()
     for subtype in subtypes(getfield(m, type))
@@ -233,59 +237,59 @@ macro end_vertex(name, data, commodity, get_from_tuples)
 end
 
 """
-Returns the correct container specification for the selected type of JuMP Model
+Returns the correct container specification for MacroEnergy JuMP Models
 """
-function cont_specification(::Type{T}, kwarg...) where {T <: Any}
+function macro_energy_container_spec(::Type{T}, kwarg...) where {T <: Any}
     return DenseAxisArray{T}(undef, kwarg...)
 end
 
 """
-Returns the correct container specification for the selected type of JuMP Model
+Returns the correct container specification for MacroEnergy JuMP Models (Float64 specialization)
 """
-function cont_specification(::Type{Float64}, kwarg...)
+function macro_energy_container_spec(::Type{Float64}, kwarg...)
     cont = DenseAxisArray{Float64}(undef, kwarg...)
     cont.data .= fill(NaN, size(cont.data))
     return cont
 end
 
 """
-Returns the correct container specification for the selected type of JuMP Model
+Returns the correct sparse container specification for MacroEnergy JuMP Models
 """
-function sparse_cont_specification(::Type{T}, kwarg...) where {T <: JuMP.AbstractJuMPScalar}
+function macro_energy_sparse_container_spec(::Type{T}, kwarg...) where {T <: JuMP.AbstractJuMPScalar}
     indexes = Base.Iterators.product(kwarg...)
     contents = Dict{eltype(indexes), T}(i => zero(T) for i in indexes)
-    return SparseAxisArray(contents)
+    return JuMP.Containers.SparseAxisArray(contents)
 end
 
-function sparse_cont_specification(::Type{T}, kwarg...) where {T <: JuMP.VariableRef}
+function macro_energy_sparse_container_spec(::Type{T}, kwarg...) where {T <: JuMP.VariableRef}
     indexes = Base.Iterators.product(kwarg...)
     contents = Dict{eltype(indexes), Union{Nothing, T}}(indexes .=> nothing)
-    return SparseAxisArray(contents)
+    return JuMP.Containers.SparseAxisArray(contents)
 end
 
-function sparse_cont_specification(::Type{T}, kwarg...) where {T <: JuMP.ConstraintRef}
+function macro_energy_sparse_container_spec(::Type{T}, kwarg...) where {T <: JuMP.ConstraintRef}
     indexes = Base.Iterators.product(kwarg...)
     contents = Dict{eltype(indexes), Union{Nothing, T}}(indexes .=> nothing)
-    return SparseAxisArray(contents)
+    return JuMP.Containers.SparseAxisArray(contents)
 end
 
-function sparse_cont_specification(::Type{T}, kwarg...) where {T <: Number}
+function macro_energy_sparse_container_spec(::Type{T}, kwarg...) where {T <: Number}
     indexes = Base.Iterators.product(kwarg...)
     contents = Dict{eltype(indexes), T}(indexes .=> zero(T))
-    return SparseAxisArray(contents)
+    return JuMP.Containers.SparseAxisArray(contents)
 end
 
-function remove_undef!(expression_array::AbstractArray)
+function macro_energy_remove_undef!(expression_array::AbstractArray)
     # iteration is deliberately unsupported for CartesianIndex
     # Makes this code a bit hacky to be able to use isassigned with an array of arbitrary size.
-    for i in CartesianIndices(expression_array.data)
-        if !isassigned(expression_array.data, i.I...)
-            expression_array.data[i] = zero(eltype(expression_array))
+    for i in CartesianIndices(expression_array)
+        if !isassigned(expression_array, i.I...)
+            expression_array[i] = zero(eltype(expression_array))
         end
     end
 
     return expression_array
 end
 
-remove_undef!(expression_array::SparseAxisArray) = expression_array
+macro_energy_remove_undef!(expression_array::JuMP.Containers.SparseAxisArray) = expression_array
 

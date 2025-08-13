@@ -59,7 +59,7 @@ function initialize_local_subproblems!(system_local::Vector,subproblems_local::V
     end
 end
 
-function initialize_subproblems!(system_decomp::Vector,opt::Dict,distributed_bool::Bool,include_subproblem_slacks::Bool)
+function initialize_subproblems!(system_decomp::Vector, opt::Dict, distributed_bool::Bool, include_subproblem_slacks::Bool, use_preallocation::Bool=false)
     
     if distributed_bool
         subproblems, linking_variables_sub = initialize_dist_subproblems!(system_decomp,opt,include_subproblem_slacks)

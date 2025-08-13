@@ -1,12 +1,12 @@
-function solve_case(case::Case, opt::O) where O <: Union{Optimizer, Dict{Symbol, Dict{Symbol, Any}}}
-    solve_case(case, opt, solution_algorithm(case))
+function solve_case(case::Case, opt::O, use_preallocation::Bool=false) where O <: Union{Optimizer, Dict{Symbol, Dict{Symbol, Any}}}
+    solve_case(case, opt, solution_algorithm(case), use_preallocation)
 end
 
-function solve_case(case::Case, opt::Optimizer, ::Monolithic)
+function solve_case(case::Case, opt::Optimizer, ::Monolithic, use_preallocation::Bool=false)
 
     @info("*** Running simulation with monolithic solver ***")
     
-    model = generate_model(case)
+    model = generate_model(case, use_preallocation)
 
     set_optimizer(model, opt)
 
@@ -23,17 +23,17 @@ function solve_case(case::Case, opt::Optimizer, ::Monolithic)
 end
 
 ####### myopic expansion #######
-function solve_case(case::Case, opt::Optimizer, ::Myopic)
+function solve_case(case::Case, opt::Optimizer, ::Myopic, use_preallocation::Bool=false)
 
     @info("*** Running simulation with myopic iteration ***")
     
-    myopic_results = run_myopic_iteration!(case,opt)
+    models = run_myopic_iteration!(case, opt, use_preallocation)
 
     return (case, myopic_results)
 end
 
 ####### Benders decomposition algorithm #######
-function solve_case(case::Case, opt::Dict{Symbol, Dict{Symbol, Any}}, ::Benders)
+function solve_case(case::Case, opt::Dict{Symbol, Dict{Symbol, Any}}, ::Benders, use_preallocation::Bool=false)
 
     @info("*** Running simulation with Benders decomposition ***")
     bd_setup = get_settings(case).BendersSettings
@@ -42,9 +42,9 @@ function solve_case(case::Case, opt::Dict{Symbol, Dict{Symbol, Any}}, ::Benders)
     # Decomposed system
     periods_decomp = generate_decomposed_system(periods);
 
-    planning_problem = initialize_planning_problem!(case,opt[:planning])
+    planning_problem = initialize_planning_problem!(case, opt[:planning], use_preallocation)
 
-    subproblems, linking_variables_sub = initialize_subproblems!(periods_decomp,opt[:subproblems],bd_setup[:Distributed],bd_setup[:IncludeSubproblemSlacksAutomatically])
+    subproblems, linking_variables_sub = initialize_subproblems!(periods_decomp, opt[:subproblems], bd_setup[:Distributed], bd_setup[:IncludeSubproblemSlacksAutomatically], use_preallocation)
 
     results = MacroEnergySolvers.benders(planning_problem, subproblems, linking_variables_sub, Dict(pairs(bd_setup)))
 

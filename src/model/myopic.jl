@@ -2,7 +2,7 @@ struct MyopicResults
     models::Union{Vector{Model}, Nothing}
 end
 
-function run_myopic_iteration!(case::Case, opt::Optimizer)
+function run_myopic_iteration!(case::Case, opt::Optimizer, use_preallocation::Bool=false)
     periods = get_periods(case)
     num_periods = number_of_periods(case)
     fixed_cost = Dict()

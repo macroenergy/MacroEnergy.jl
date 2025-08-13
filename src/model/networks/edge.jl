@@ -264,59 +264,715 @@ function add_linking_variables!(e::AbstractEdge, model::Model)
 
 end
 
-struct ElectrolysisVariable <: AbstractVariable end
+# Custom Edge Variable and Constraint Preallocation System
 
-function add_variable!(
-    container::OptimizationContainer,
-    ::Type{ElectrolysisVariable}, 
-    ::LASCOPFGeneratorFormulation,
-    device::ElectrolysisVar 
-)
+"""
+    EdgeVariableType
 
-    _add_variable_container!(container, ElectrolysisVariable, ElectrolysisVar) # This prepares storage for the variable
-    # Then iterate over time steps and create the variable
-    for t in _PSim.get_time_steps(container)
-        var_name = _PSim.variable_name(ELectrolysisVariable, ElectrolysisVar, _PSim.get_name(device))
-        container.variables[var_name][t] = JuMP.@variable(_PSim.get_jump_model(container), base_name="$(var_name)_$(t)")
+Abstract type for identifying different edge variable types.
+"""
+abstract type EdgeVariableType end
+
+"""
+    EdgeConstraintType
+
+Abstract type for identifying different edge constraint types.
+"""
+abstract type EdgeConstraintType end
+
+# Edge Variable Types
+struct EdgeCapacityVariable <: EdgeVariableType end
+struct EdgeFlowVariable <: EdgeVariableType end
+struct EdgeNewCapacityVariable <: EdgeVariableType end
+struct EdgeRetiredCapacityVariable <: EdgeVariableType end
+struct EdgeNewUnitsVariable <: EdgeVariableType end
+struct EdgeRetiredUnitsVariable <: EdgeVariableType end
+struct EdgeCommitmentVariable <: EdgeVariableType end
+struct EdgeStartupVariable <: EdgeVariableType end
+struct EdgeShutdownVariable <: EdgeVariableType end
+
+# Edge Constraint Types
+struct EdgeCapacityConstraint <: EdgeConstraintType end
+struct EdgeFlowConstraint <: EdgeConstraintType end
+struct EdgeCommitmentConstraint <: EdgeConstraintType end
+struct EdgeRampConstraint <: EdgeConstraintType end
+
+"""
+    EdgeVariableContainer
+
+Container for storing edge optimization variables with metadata.
+"""
+mutable struct EdgeVariableContainer
+    variables::Dict{String, Any}
+    time_indexed::Bool
+    edge_ids::Vector{Symbol}
+    time_steps::Union{Vector{Int}, Nothing}
+    variable_type::EdgeVariableType
+    metadata::Dict{Symbol, Any}
+    
+    function EdgeVariableContainer(
+        variable_type::EdgeVariableType,
+        edge_ids::Vector{Symbol},
+        time_steps::Union{Vector{Int}, Nothing} = nothing;
+        metadata...
+    )
+        new(
+            Dict{String, Any}(),
+            time_steps !== nothing,
+            edge_ids,
+            time_steps,
+            variable_type,
+            Dict{Symbol, Any}(metadata...)
+        )
     end
 end
 
+"""
+    EdgeConstraintContainer
+
+Container for storing edge optimization constraints with metadata.
+"""
+mutable struct EdgeConstraintContainer
+    constraints::Dict{String, Any}
+    time_indexed::Bool
+    edge_ids::Vector{Symbol}
+    time_steps::Union{Vector{Int}, Nothing}
+    constraint_type::EdgeConstraintType
+    metadata::Dict{Symbol, Any}
+    
+    function EdgeConstraintContainer(
+        constraint_type::EdgeConstraintType,
+        edge_ids::Vector{Symbol},
+        time_steps::Union{Vector{Int}, Nothing} = nothing;
+        metadata...
+    )
+        new(
+            Dict{String, Any}(),
+            time_steps !== nothing,
+            edge_ids,
+            time_steps,
+            constraint_type,
+            Dict{Symbol, Any}(metadata...)
+        )
+    end
+end
+
+# Access methods for containers
+function get_variable(container::EdgeVariableContainer, edge_id::Symbol, time_step::Union{Int, Nothing} = nothing)
+    key = time_step === nothing ? string(edge_id) : "$(edge_id)_$(time_step)"
+    return container.variables[key]
+end
+
+function set_variable!(container::EdgeVariableContainer, edge_id::Symbol, variable, time_step::Union{Int, Nothing} = nothing)
+    key = time_step === nothing ? string(edge_id) : "$(edge_id)_$(time_step)"
+    container.variables[key] = variable
+    return variable
+end
+
+function get_constraint(container::EdgeConstraintContainer, edge_id::Symbol, time_step::Union{Int, Nothing} = nothing)
+    key = time_step === nothing ? string(edge_id) : "$(edge_id)_$(time_step)"
+    return container.constraints[key]
+end
+
+function set_constraint!(container::EdgeConstraintContainer, edge_id::Symbol, constraint, time_step::Union{Int, Nothing} = nothing)
+    key = time_step === nothing ? string(edge_id) : "$(edge_id)_$(time_step)"
+    container.constraints[key] = constraint
+    return constraint
+end
+
+"""
+    EdgeOptimizationManager
+
+Manager for edge variable and constraint preallocation in MacroEnergy.jl optimization models.
+"""
+mutable struct EdgeOptimizationManager
+    model::JuMP.Model
+    variable_containers::Dict{Type{<:EdgeVariableType}, EdgeVariableContainer}
+    constraint_containers::Dict{Type{<:EdgeConstraintType}, EdgeConstraintContainer}
+    time_horizon::Union{Vector{Int}, Nothing}
+    
+    function EdgeOptimizationManager(model::JuMP.Model, time_horizon::Union{Vector{Int}, Nothing} = nothing)
+        new(
+            model,
+            Dict{Type{<:EdgeVariableType}, EdgeVariableContainer}(),
+            Dict{Type{<:EdgeConstraintType}, EdgeConstraintContainer}(),
+            time_horizon
+        )
+    end
+end
+
+# Legacy constraint types for compatibility
 mutable struct NewCapacity <: AbstractTypeConstraint end
 mutable struct RetiredCapacity <: AbstractTypeConstraint end
 mutable struct NewUnits <: AbstractVariable end
 mutable struct RetiredUnits <: AbstractVariable end
-    # This is a placeholder for the LASCOPFGeneratorFormulation.
-    # You can add fields as needed for your specific implementation.
 
- # Defining Pg variable for formulation
-function _PSim.add_variable!(
-    container::_PSim.OptimizationContainer,
-    ::Type{_PSim.ActivePowerVariable}, # This is the type of variable you're adding
-    ::LASCOPFGeneratorFormulation,
-    device::PSY.ThermalGen # Assuming you're targeting PowerSystems ThermalGenerators
+# Custom Edge Variable Allocation Functions
+
+"""
+    allocate_edge_variables!(manager, variable_type, edges, time_steps=nothing)
+
+Allocate variables for edges using our custom EdgeOptimizationManager.
+"""
+function allocate_edge_variables!(
+    manager::EdgeOptimizationManager,
+    variable_type::Type{<:EdgeVariableType},
+    edges::Vector{<:AbstractEdge},
+    time_steps::Union{Vector{Int}, Nothing} = nothing
 )
-    # This function is called by PSI.jl when it's building the model
-    # for a ThermalGen with your LASCOPFGeneratorFormulation.
-    # You'll need to create the JuMP variable 'Pg' here.
+    edge_ids = [id(e) for e in edges]
+    time_steps = time_steps === nothing ? manager.time_horizon : time_steps
+    
+    container = EdgeVariableContainer(
+        variable_type(),
+        edge_ids,
+        time_steps,
+        description = "Variables for $(variable_type)"
+    )
+    
+    manager.variable_containers[variable_type] = container
+    
+    # Allocate variables based on type
+    if variable_type == EdgeCapacityVariable
+        _allocate_capacity_variables!(manager, container, edges)
+    elseif variable_type == EdgeFlowVariable
+        _allocate_flow_variables!(manager, container, edges, time_steps)
+    elseif variable_type == EdgeNewCapacityVariable
+        _allocate_new_capacity_variables!(manager, container, edges)
+    elseif variable_type == EdgeRetiredCapacityVariable
+        _allocate_retired_capacity_variables!(manager, container, edges)
+    elseif variable_type == EdgeNewUnitsVariable
+        _allocate_new_units_variables!(manager, container, edges)
+    elseif variable_type == EdgeRetiredUnitsVariable
+        _allocate_retired_units_variables!(manager, container, edges)
+    elseif variable_type == EdgeCommitmentVariable
+        _allocate_commitment_variables!(manager, container, edges, time_steps)
+    elseif variable_type == EdgeStartupVariable
+        _allocate_startup_variables!(manager, container, edges, time_steps)
+    elseif variable_type == EdgeShutdownVariable
+        _allocate_shutdown_variables!(manager, container, edges, time_steps)
+    else
+        error("Unknown edge variable type: $(variable_type)")
+    end
+    
+    return container
+end
 
-    # Refer to PowerSimulations.jl's add_variable! implementations for examples.
-    # You will likely call PSI._add_variable_container! and then create the JuMP variable.
-    # The container will store the variable, and you'll access it later.
+# Private allocation functions for each variable type
 
-    _PSim._add_variable_container!(container, _PSim.ActivePowerVariable, PSY.ThermalGen) # This prepares storage for the variable
-    # Then iterate over time steps and create the variable
-    for t in _PSim.get_time_steps(container)
-        var_name = _PSim.variable_name(PSI.ActivePowerVariable, PSY.ThermalGen, _PSim.get_name(device))
-        container.variables[var_name][t] = JuMP.@variable(_PSim.get_jump_model(container), base_name="$(var_name)_$(t)")
-        # You'll need to get PgMax/PgMin from the device here.
-        # This is where your custom GenSolver data might come into play,
-        # but typically device data comes from the PowerSystems model.
+function _allocate_capacity_variables!(manager::EdgeOptimizationManager, container::EdgeVariableContainer, edges::Vector{<:AbstractEdge})
+    model = manager.model
+    capacity_edges = [edge for edge in edges if has_capacity(edge)]
+    
+    if !isempty(capacity_edges)
+        edge_ids = [id(edge) for edge in capacity_edges]
+        
+        # Use macro_energy_container_spec to create the variable container
+        vars = macro_energy_container_spec(VariableRef, edge_ids)
+        
+        # Create variables using the container with JuMP syntax
+        for edge_id in edge_ids
+            vars[edge_id] = JuMP.@variable(
+                model,
+                lower_bound = 0.0,
+                base_name = "vCAP_$(edge_id)"
+            )
+        end
+        
+        # Store variables in our container and update edge objects
+        for edge in capacity_edges
+            edge_id = id(edge)
+            var = vars[edge_id]
+            set_variable!(container, edge_id, var)
+            edge.capacity = var
+        end
     end
 end
 
-# You'd do similar for PgNext and thetag
-# Note: thetag for a generator might need a custom variable type,
-# or you might tie it to the bus angle if that's what's meant.
+function _allocate_flow_variables!(manager::EdgeOptimizationManager, container::EdgeVariableContainer, edges::Vector{<:AbstractEdge}, time_steps::Union{Vector{Int}, Nothing})
+    model = manager.model
+    time_steps = time_steps === nothing ? [1] : time_steps
+    
+    if !isempty(edges) && !isempty(time_steps)
+        edge_ids = [id(edge) for edge in edges]
+        
+        # Use macro_energy_container_spec for efficient 2D allocation
+        vars = macro_energy_container_spec(VariableRef, edge_ids, time_steps)
+        
+        # Create variables for each edge and time step using the container
+        for edge in edges
+            edge_id = id(edge)
+            flow_vars = Vector{VariableRef}(undef, length(time_steps))
+            
+            for (idx, t) in enumerate(time_steps)
+                if edge.unidirectional
+                    vars[edge_id, t] = JuMP.@variable(
+                        model,
+                        lower_bound = 0.0,
+                        base_name = "vFLOW_$(edge_id)_$(t)"
+                    )
+                else
+                    vars[edge_id, t] = JuMP.@variable(
+                        model,
+                        base_name = "vFLOW_$(edge_id)_$(t)"
+                    )
+                end
+                
+                flow_vars[idx] = vars[edge_id, t]
+                set_variable!(container, edge_id, vars[edge_id, t], t)
+            end
+            
+            edge.flow = flow_vars
+        end
+    end
+end
+
+function _allocate_new_capacity_variables!(manager::EdgeOptimizationManager, container::EdgeVariableContainer, edges::Vector{<:AbstractEdge})
+    model = manager.model
+    capacity_edges = [edge for edge in edges if has_capacity(edge)]
+    
+    if !isempty(capacity_edges)
+        edge_ids = [id(edge) for edge in capacity_edges]
+        
+        # STEP 1: Create container using macro_energy_container_spec
+        vars = macro_energy_container_spec(VariableRef, edge_ids)
+        
+        # STEP 2: Populate the container with variables
+        for edge_id in edge_ids
+            vars[edge_id] = @variable(
+                model,
+                lower_bound = 0.0,
+                base_name = "vNEWCAP_$(edge_id)"
+            )
+        end
+        
+        # STEP 3: Store variables in our container and update edge objects
+        for edge in capacity_edges
+            edge_id = id(edge)
+            var = vars[edge_id]
+            set_variable!(container, edge_id, var)
+            edge.new_capacity = var
+        end
+    end
+end
+
+function _allocate_retired_capacity_variables!(manager::EdgeOptimizationManager, container::EdgeVariableContainer, edges::Vector{<:AbstractEdge})
+    model = manager.model
+    capacity_edges = [edge for edge in edges if has_capacity(edge)]
+    
+    if !isempty(capacity_edges)
+        edge_ids = [id(edge) for edge in capacity_edges]
+        
+        # STEP 1: Create container using macro_energy_container_spec
+        vars = macro_energy_container_spec(VariableRef, edge_ids)
+        
+        # STEP 2: Populate the container with variables
+        for edge_id in edge_ids
+            vars[edge_id] = @variable(
+                model,
+                lower_bound = 0.0,
+                base_name = "vRETCAP_$(edge_id)"
+            )
+        end
+        
+        # STEP 3: Store variables in our container and update edge objects
+        for edge in capacity_edges
+            edge_id = id(edge)
+            var = vars[edge_id]
+            set_variable!(container, edge_id, var)
+            edge.retired_capacity = var
+        end
+    end
+end
+
+function _allocate_new_units_variables!(manager::EdgeOptimizationManager, container::EdgeVariableContainer, edges::Vector{<:AbstractEdge})
+    model = manager.model
+    capacity_edges = [edge for edge in edges if has_capacity(edge)]
+    
+    if !isempty(capacity_edges)
+        edge_ids = [id(edge) for edge in capacity_edges]
+        
+        # STEP 1: Create container using macro_energy_container_spec
+        vars = macro_energy_container_spec(VariableRef, edge_ids)
+        
+        # STEP 2: Populate the container with variables
+        for edge_id in edge_ids
+            vars[edge_id] = @variable(
+                model,
+                lower_bound = 0.0,
+                base_name = "vNEWUNIT_$(edge_id)"
+            )
+        end
+        
+        # STEP 3: Store variables and set integer constraints if needed
+        for edge in capacity_edges
+            edge_id = id(edge)
+            var = vars[edge_id]
+            set_variable!(container, edge_id, var)
+            edge.new_units = var
+            
+            if integer_decisions(edge)
+                JuMP.set_integer(var)
+            end
+        end
+    end
+end
+
+function _allocate_retired_units_variables!(manager::EdgeOptimizationManager, container::EdgeVariableContainer, edges::Vector{<:AbstractEdge})
+    model = manager.model
+    capacity_edges = [edge for edge in edges if has_capacity(edge)]
+    
+    if !isempty(capacity_edges)
+        edge_ids = [id(edge) for edge in capacity_edges]
+        
+        # STEP 1: Create container using macro_energy_container_spec
+        vars = macro_energy_container_spec(VariableRef, edge_ids)
+        
+        # STEP 2: Populate the container with variables
+        for edge_id in edge_ids
+            vars[edge_id] = @variable(
+                model,
+                lower_bound = 0.0,
+                base_name = "vRETUNIT_$(edge_id)"
+            )
+        end
+        
+        # STEP 3: Store variables and set integer constraints if needed
+        for edge in capacity_edges
+            edge_id = id(edge)
+            var = vars[edge_id]
+            set_variable!(container, edge_id, var)
+            edge.retired_units = var
+            
+            if integer_decisions(edge)
+                JuMP.set_integer(var)
+            end
+        end
+    end
+end
+
+function _allocate_commitment_variables!(manager::EdgeOptimizationManager, container::EdgeVariableContainer, edges::Vector{<:AbstractEdge}, time_steps::Union{Vector{Int}, Nothing})
+    model = manager.model
+    time_steps = time_steps === nothing ? [1] : time_steps
+    
+    uc_edges = [edge for edge in edges if isa(edge, EdgeWithUC)]
+    
+    if !isempty(uc_edges) && !isempty(time_steps)
+        edge_ids = [id(edge) for edge in uc_edges]
+        
+        # STEP 1: Create 2D container using macro_energy_container_spec
+        vars = macro_energy_container_spec(VariableRef, edge_ids, time_steps)
+        
+        # STEP 2: Populate the container with variables
+        for edge_id in edge_ids
+            for t in time_steps
+                vars[edge_id, t] = @variable(
+                    model,
+                    binary = true,
+                    base_name = "vCOMMIT_$(edge_id)_$(t)"
+                )
+            end
+        end
+        
+        # STEP 3: Store variables and update edge objects
+        for edge in uc_edges
+            edge_id = id(edge)
+            commitment_vars = [vars[edge_id, t] for t in time_steps]
+            edge.commitment = commitment_vars
+            
+            for t in time_steps
+                set_variable!(container, edge_id, vars[edge_id, t], t)
+            end
+        end
+    end
+end
+
+function _allocate_startup_variables!(manager::EdgeOptimizationManager, container::EdgeVariableContainer, edges::Vector{<:AbstractEdge}, time_steps::Union{Vector{Int}, Nothing})
+    model = manager.model
+    time_steps = time_steps === nothing ? [1] : time_steps
+    
+    uc_edges = [edge for edge in edges if isa(edge, EdgeWithUC)]
+    
+    if !isempty(uc_edges) && !isempty(time_steps)
+        edge_ids = [id(edge) for edge in uc_edges]
+        
+        # STEP 1: Create 2D container using macro_energy_container_spec
+        vars = macro_energy_container_spec(VariableRef, edge_ids, time_steps)
+        
+        # STEP 2: Populate the container with variables
+        for edge_id in edge_ids
+            for t in time_steps
+                vars[edge_id, t] = @variable(
+                    model,
+                    binary = true,
+                    base_name = "vSTART_$(edge_id)_$(t)"
+                )
+            end
+        end
+        
+        # STEP 3: Store variables and update edge objects
+        for edge in uc_edges
+            edge_id = id(edge)
+            startup_vars = [vars[edge_id, t] for t in time_steps]
+            edge.ustart = startup_vars
+            
+            for t in time_steps
+                set_variable!(container, edge_id, vars[edge_id, t], t)
+            end
+        end
+    end
+end
+
+function _allocate_shutdown_variables!(manager::EdgeOptimizationManager, container::EdgeVariableContainer, edges::Vector{<:AbstractEdge}, time_steps::Union{Vector{Int}, Nothing})
+    model = manager.model
+    time_steps = time_steps === nothing ? [1] : time_steps
+    
+    uc_edges = [edge for edge in edges if isa(edge, EdgeWithUC)]
+    
+    if !isempty(uc_edges) && !isempty(time_steps)
+        edge_ids = [id(edge) for edge in uc_edges]
+        
+        # STEP 1: Create 2D container using macro_energy_container_spec
+        vars = macro_energy_container_spec(VariableRef, edge_ids, time_steps)
+        
+        # STEP 2: Populate the container with variables
+        for edge_id in edge_ids
+            for t in time_steps
+                vars[edge_id, t] = @variable(
+                    model,
+                    binary = true,
+                    base_name = "vSHUT_$(edge_id)_$(t)"
+                )
+            end
+        end
+        
+        # STEP 3: Store variables and update edge objects
+        for edge in uc_edges
+            edge_id = id(edge)
+            shutdown_vars = [vars[edge_id, t] for t in time_steps]
+            edge.ushut = shutdown_vars
+            
+            for t in time_steps
+                set_variable!(container, edge_id, vars[edge_id, t], t)
+            end
+        end
+    end
+end
+
+# Custom Edge Constraint Allocation Functions
+
+"""
+    allocate_edge_constraints!(manager, constraint_type, edges, time_steps=nothing)
+
+Allocate constraints for edges using our custom EdgeOptimizationManager.
+"""
+function allocate_edge_constraints!(
+    manager::EdgeOptimizationManager,
+    constraint_type::Type{<:EdgeConstraintType},
+    edges::Vector{<:AbstractEdge},
+    time_steps::Union{Vector{Int}, Nothing} = nothing
+)
+    edge_ids = [id(e) for e in edges]
+    time_steps = time_steps === nothing ? manager.time_horizon : time_steps
+    
+    container = EdgeConstraintContainer(
+        constraint_type(),
+        edge_ids,
+        time_steps,
+        description = "Constraints for $(constraint_type)"
+    )
+    
+    manager.constraint_containers[constraint_type] = container
+    
+    # Allocate constraints based on type
+    if constraint_type == EdgeCapacityConstraint
+        _allocate_capacity_constraints!(manager, container, edges)
+    elseif constraint_type == EdgeFlowConstraint
+        _allocate_flow_constraints!(manager, container, edges, time_steps)
+    elseif constraint_type == EdgeCommitmentConstraint
+        _allocate_commitment_constraints!(manager, container, edges, time_steps)
+    elseif constraint_type == EdgeRampConstraint
+        _allocate_ramp_constraints!(manager, container, edges, time_steps)
+    else
+        error("Unknown edge constraint type: $(constraint_type)")
+    end
+    
+    return container
+end
+
+# Private allocation functions for each constraint type
+
+function _allocate_capacity_constraints!(manager::EdgeOptimizationManager, container::EdgeConstraintContainer, edges::Vector{<:AbstractEdge})
+    model = manager.model
+    
+    for edge in edges
+        if has_capacity(edge)
+            # This is a placeholder - actual constraint implementation depends on model structure
+            # constraint = JuMP.@constraint(
+            #     model,
+            #     capacity(edge) >= min_capacity(edge)
+            # )
+            # set_constraint!(container, id(edge), constraint)
+        end
+    end
+end
+
+function _allocate_flow_constraints!(manager::EdgeOptimizationManager, container::EdgeConstraintContainer, edges::Vector{<:AbstractEdge}, time_steps::Union{Vector{Int}, Nothing})
+    model = manager.model
+    time_steps = time_steps === nothing ? [1] : time_steps
+    
+    for edge in edges
+        for t in time_steps
+            if has_capacity(edge)
+                # Flow constraint: flow(t) <= capacity * availability(t)
+                # This is a placeholder - actual constraint implementation depends on model structure
+                # constraint = JuMP.@constraint(
+                #     model,
+                #     flow(edge, t) <= capacity(edge) * availability(edge, t)
+                # )
+                # set_constraint!(container, id(edge), constraint, t)
+            end
+        end
+    end
+end
+
+function _allocate_commitment_constraints!(manager::EdgeOptimizationManager, container::EdgeConstraintContainer, edges::Vector{<:AbstractEdge}, time_steps::Union{Vector{Int}, Nothing})
+    model = manager.model
+    time_steps = time_steps === nothing ? [1] : time_steps
+    
+    for edge in edges
+        if isa(edge, EdgeWithUC)
+            for t in time_steps
+                # Commitment logic constraint: u_t - u_{t-1} = start_t - shut_t
+                # This is a placeholder - actual constraint implementation depends on model structure
+                # t_prev = max(1, t-1)  # Handle first time step
+                # constraint = JuMP.@constraint(
+                #     model,
+                #     ucommit(edge, t) - ucommit(edge, t_prev) == ustart(edge, t) - ushut(edge, t)
+                # )
+                # set_constraint!(container, id(edge), constraint, t)
+            end
+        end
+    end
+end
+
+function _allocate_ramp_constraints!(manager::EdgeOptimizationManager, container::EdgeConstraintContainer, edges::Vector{<:AbstractEdge}, time_steps::Union{Vector{Int}, Nothing})
+    model = manager.model
+    time_steps = time_steps === nothing ? [1] : time_steps
+    
+    for edge in edges
+        if ramp_up_fraction(edge) > 0.0 || ramp_down_fraction(edge) > 0.0
+            for t in time_steps[2:end]  # Skip first time step
+                # Ramp up constraint
+                if ramp_up_fraction(edge) > 0.0
+                    # constraint = JuMP.@constraint(
+                    #     model,
+                    #     flow(edge, t) - flow(edge, t-1) <= ramp_up_fraction(edge) * capacity(edge)
+                    # )
+                    # set_constraint!(container, id(edge), constraint, t)
+                end
+                
+                # Ramp down constraint
+                if ramp_down_fraction(edge) > 0.0
+                    # constraint = JuMP.@constraint(
+                    #     model,
+                    #     flow(edge, t-1) - flow(edge, t) <= ramp_down_fraction(edge) * capacity(edge)
+                    # )
+                    # set_constraint!(container, id(edge), constraint, t)
+                end
+            end
+        end
+    end
+end
+
+# Custom Edge Preallocation Utility Functions
+
+"""
+    preallocate_edge_variables!(manager, edges, time_steps=nothing)
+
+Convenience function to preallocate all edge variables using our custom EdgeOptimizationManager.
+"""
+function preallocate_edge_variables!(
+    manager::EdgeOptimizationManager,
+    edges::Vector{<:AbstractEdge},
+    time_steps::Union{Vector{Int}, Nothing} = nothing
+)
+    # Add capacity variables for edges that have capacity
+    capacity_edges = [e for e in edges if has_capacity(e)]
+    if !isempty(capacity_edges)
+        allocate_edge_variables!(manager, EdgeCapacityVariable, capacity_edges)
+        allocate_edge_variables!(manager, EdgeNewCapacityVariable, capacity_edges)
+        allocate_edge_variables!(manager, EdgeRetiredCapacityVariable, capacity_edges)
+        allocate_edge_variables!(manager, EdgeNewUnitsVariable, capacity_edges)
+        allocate_edge_variables!(manager, EdgeRetiredUnitsVariable, capacity_edges)
+    end
+    
+    # Add flow variables for all edges
+    allocate_edge_variables!(manager, EdgeFlowVariable, edges, time_steps)
+    
+    # Add unit commitment variables for EdgeWithUC
+    uc_edges = [e for e in edges if isa(e, EdgeWithUC)]
+    if !isempty(uc_edges)
+        allocate_edge_variables!(manager, EdgeCommitmentVariable, uc_edges, time_steps)
+        allocate_edge_variables!(manager, EdgeStartupVariable, uc_edges, time_steps)
+        allocate_edge_variables!(manager, EdgeShutdownVariable, uc_edges, time_steps)
+    end
+    
+    return nothing
+end
+
+"""
+    preallocate_edge_constraints!(manager, edges, time_steps=nothing)
+
+Convenience function to preallocate all edge constraints using our custom EdgeOptimizationManager.
+"""
+function preallocate_edge_constraints!(
+    manager::EdgeOptimizationManager,
+    edges::Vector{<:AbstractEdge},
+    time_steps::Union{Vector{Int}, Nothing} = nothing
+)
+    # Add capacity constraints
+    capacity_edges = [e for e in edges if has_capacity(e)]
+    if !isempty(capacity_edges)
+        allocate_edge_constraints!(manager, EdgeCapacityConstraint, capacity_edges)
+    end
+    
+    # Add flow constraints
+    allocate_edge_constraints!(manager, EdgeFlowConstraint, edges, time_steps)
+    
+    # Add unit commitment constraints
+    uc_edges = [e for e in edges if isa(e, EdgeWithUC)]
+    if !isempty(uc_edges)
+        allocate_edge_constraints!(manager, EdgeCommitmentConstraint, uc_edges, time_steps)
+    end
+    
+    # Add ramping constraints
+    ramp_edges = [e for e in edges if ramp_up_fraction(e) > 0.0 || ramp_down_fraction(e) > 0.0]
+    if !isempty(ramp_edges)
+        allocate_edge_constraints!(manager, EdgeRampConstraint, ramp_edges, time_steps)
+    end
+    
+    return nothing
+end
+
+"""
+    create_edge_optimization_manager(model, edges, time_steps=nothing)
+
+Create and set up an EdgeOptimizationManager with variables and constraints pre-allocated for the given edges.
+"""
+function create_edge_optimization_manager(
+    model::JuMP.Model,
+    edges::Vector{<:AbstractEdge},
+    time_steps::Union{Vector{Int}, Nothing} = nothing
+)
+    manager = EdgeOptimizationManager(model, time_steps)
+    
+    # Preallocate variables and constraints
+    preallocate_edge_variables!(manager, edges, time_steps)
+    preallocate_edge_constraints!(manager, edges, time_steps)
+    
+    return manager
+end
 
 function define_available_capacity!(e::AbstractEdge, model::Model)
 

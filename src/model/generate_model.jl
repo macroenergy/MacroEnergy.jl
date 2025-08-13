@@ -1,17 +1,46 @@
 
-function generate_model(case::Case)
+function generate_model(case::Case, use_preallocation::Bool=false)
 
     periods = get_periods(case)
     settings = get_settings(case)
     num_periods = number_of_periods(case)
 
-    @info("Generating model")
+    @info("Generating model$(use_preallocation ? " with preallocation" : "")")
 
     start_time = time();
 
     model = Model()
 
     @variable(model, vREF == 1)
+
+    # Initialize edge optimization managers for preallocation if requested
+    edge_managers = Dict{Int, Any}()
+    if use_preallocation
+        @info(" -- Initializing preallocation managers")
+        for (period_idx, system) in enumerate(periods)
+            # Collect all edges from this period
+            all_edges = AbstractEdge[]
+            for asset in system.assets
+                for field_name in fieldnames(typeof(asset))
+                    field_value = getfield(asset, field_name)
+                    if isa(field_value, AbstractEdge)
+                        push!(all_edges, field_value)
+                    end
+                end
+            end
+            
+            if !isempty(all_edges)
+                time_horizon = collect(time_interval(all_edges[1]))
+                edge_managers[period_idx] = EdgeOptimizationManager(model, time_horizon)
+                
+                # Preallocate variables and constraints
+                preallocate_edge_variables!(edge_managers[period_idx], all_edges, time_horizon)
+                preallocate_edge_constraints!(edge_managers[period_idx], all_edges, time_horizon)
+                
+                @info("   -- Preallocated for $(length(all_edges)) edges, $(length(time_horizon)) time steps")
+            end
+        end
+    end
 
     fixed_cost = Dict()
     om_fixed_cost = Dict()

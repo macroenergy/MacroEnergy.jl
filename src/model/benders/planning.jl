@@ -1,5 +1,5 @@
 
-function initialize_planning_problem!(case::Case,opt::Dict)
+function initialize_planning_problem!(case::Case, opt::Dict, use_preallocation::Bool=false)
     
     planning_problem = generate_planning_problem(case);
 
