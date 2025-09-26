@@ -9,7 +9,7 @@ tags:
   - capacity expansion
   - optimization
 authors:
-  - name: Ruaridh R. Macdonald
+  - name: Ruaridh Macdonald
     orcid: 0000-0001-9034-6635
     corresponding: true
     equal-contrib: true
@@ -24,7 +24,6 @@ authors:
     affiliation: 3
   - name: Jun Wen Law
     orcid: 0009-0001-8766-3100
-    equal-contrib: true
     affiliation: 1
   - name: Anna X. Li
     orcid: 0000-0002-3435-3651
@@ -34,10 +33,12 @@ authors:
     affiliation: 4
   - name: Emil Dimanchev
     orcid: 0000-0001-8240-5922
-    affiliation: 4
+    affiliation: 3
   - name: Jonah Langleib
     orcid: 0000-0002-9949-1123
-    affiliation: 4
+    affiliation: 3
+  - name: Mohamed Atouife
+    affiliation: 3
   - name: Ruike Lyu
     orcid: 0000-0003-3749-1117
     affiliation: 3
@@ -68,19 +69,19 @@ bibliography: paper.bib
 
 # Summary
 
-MacroEnergy.jl (aka Macro) is an open-source framework for multi-sector capacity expansion modeling. It is written in Julia and uses the JuMP package to interface with a wide range of mathematical solvers. It enables researchers and practitioners to design and analyze energy and industrial systems that span electricity, fuels, heat, transport, and other sectors. The framework is organized around a small set of sector-agnostic components that can be combined into flexible graph structures, making it straightforward to extend to new technologies, policies, and commodities. Its companion packages support decomposition methods and other advanced techniques, allowing users to scale models across fine temporal and spatial resolutions. MacroEnergy.jl provides a versatile platform for studying energy transitions at the detail and scale demanded by modern research and policy.
+MacroEnergy.jl (aka Macro) is an open-source framework for multi-sector capacity expansion modeling. It is written in Julia [@bezanson2017julia] and uses the JuMP [@dunning2017jump] package to interface with a wide range of mathematical solvers. It enables researchers and practitioners to design and analyze energy and industrial systems that span electricity, fuels, heat, transport, and other sectors. The framework is organized around a small set of sector-agnostic components that can be combined into flexible graph structures, making it straightforward to extend to new technologies, policies, and commodities. Its companion packages support decomposition methods and other advanced techniques, allowing users to scale models across fine temporal and spatial resolutions. MacroEnergy.jl provides a versatile platform for studying energy transitions at the detail and scale demanded by modern research and policy.
 
 # Statement of Need
 
 The increasing complexity of energy systems necessitates advanced modeling tools to support decision-making in infrastructure planning, R&D decisions and policy design. This complexity comes from the challenge of ensuring the reliability of grids with large amounts of renewable generation and storage, increased coupling and electrification of energy-intensive sectors, greater diversity in the technologies and policies being deployed, and many other factors.
  
-Capacity expansion modelling frameworks; including PyPSA, TIMES, GenX, Calliope, Dolphyn, and others [REF: ReEDS, OSeMOSYS, SAM, TEMOA]; have improved substantially in recent years. A wider range of problems can now be solved thanks to improvements in the underlying formulations and solvers while access to richer data sources has enabled more realistic representations of resources, weather and demand. Looking ahead, further improvements are on the horizon, including non-linear technology formulations that capture richer trade-offs, tighter integration with integrated assessment models and other tools, and novel approaches to scaling up problem size. Despite this progress, most modeling frameworks remain centered on the electricity sector. To answer the next set of questions about the energy transition, frameworks must be able to accommodate a wide variety of technologies and policies which reach across sectors.
+Capacity expansion modelling frameworks; including PyPSA [@brown2017pypsa], TIMES [@loulou2005documentation], GenX [@jenkins2017enhanced], Calliope [@pfenninger2018calliope], Dolphyn [@he2024dolphyn], and others [@Brown_Regional_Energy_Deployment] [@howells2011osemosys], [@blair2014system], [@hunter2013modeling]; have improved substantially in recent years. A wider range of problems can now be solved thanks to improvements in the underlying formulations and solvers while access to richer data sources has enabled more realistic representations of resources, weather and demand. Looking ahead, further improvements are on the horizon, including non-linear technology formulations that capture richer trade-offs [@falth2023trade], tighter integration with integrated assessment models and other tools [@gotske2025first], and novel approaches to scaling up problem size [@pecci2025regularized]. Despite this progress, most modeling frameworks remain centered on the electricity sector. To answer the next set of questions about the energy transition, frameworks must be able to accommodate a wide variety of technologies and policies which reach across sectors.
  
 Most frameworks were built with one or a few sectors in mind, usually electricity. Extending them to new sectors often requires rewriting core routines or layering new modules on top, which complicates validation, obscures interactions across the system, and leaves the codebase hard to maintain. In addition, models remain architectured around their original sectors, making it problematic to exclude those sectors and quickly increasing the difficult and time required to add new features.
  
 MacroEnergy.jl was designed to overcome these limitations. Its architecture is based on a small set of sector-agnostic components that can be combined into graphs to represent networks, technologies, and policies in any sector. Features are largely independent of one another, allowing users to focus on how best to represent their technology or policy of interest, instead of working around the existing code.
  
-Modeling across coupled sectors greatly increases runtimes, often making problems intractable [REF: Parolin, 2025]. At the same time, recent studies suggest that robust electricity grid design requires models that span decades of operational data, resolve temporal dynamics at intervals as short as five minutes, and capture spatial heterogeneity at the county level. Techniques such as model compression and the use of representative periods can ease the computational burden, but eventually large-scale models reach the limits of what can be solved on a single computing node. To scale further, decomposition methods are essential. MacroEnergy.jl was designed with these challenges in mind. It’s data structures and graph-based representation of energy systems makes decompositions straightforward. It also has a suite a companion packages [REF] with decomposition algorithms and other tools to reduce runtimes. These design choices make high-resolution, multi-sector analysis computationally practical.
+Modeling across coupled sectors greatly increases runtimes, often making problems intractable [@parolin2025sectoral]. At the same time, recent studies suggest that robust electricity grid design requires models that span decades of operational data [@ruggles2024planning], resolve temporal dynamics at intervals as short as five minutes [@levin2024high], and capture spatial heterogeneity at the county level [@qiu2024decarbonized]. Techniques such as model compression and the use of representative periods can ease the computational burden, but eventually large-scale models reach the limits of what can be solved on a single computing node. To scale further, decomposition methods are essential. MacroEnergy.jl was designed with these challenges in mind. It’s data structures and graph-based representation of energy systems makes decompositions straightforward. It also has a suite a companion packages [@pecci2025MacroEnergySolvers] with decomposition algorithms and other tools to reduce runtimes. These design choices make high-resolution, multi-sector analysis computationally practical.
 
 # Use Cases
 
