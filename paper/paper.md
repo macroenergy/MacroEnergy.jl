@@ -12,39 +12,16 @@ authors:
   - name: Ruaridh Macdonald
     orcid: 0000-0001-9034-6635
     corresponding: true
-    equal-contrib: true
     affiliation: 1
   - name: Filippo Pecci
     orcid: 0000-0003-3200-0892
-    equal-contrib: true
     affiliation: 2
   - name: Luca Bonaldo
     orcid: 0009-0000-0650-0266
-    equal-contrib: true
     affiliation: 3
   - name: Jun Wen Law
     orcid: 0009-0001-8766-3100
     affiliation: 1
-  - name: Anna X. Li
-    orcid: 0000-0002-3435-3651
-    affiliation: 3
-  - name: Chaitanya Vuppanapalli
-    orcid: 0009-0003-6893-6366
-    affiliation: 4
-  - name: Emil Dimanchev
-    orcid: 0000-0001-8240-5922
-    affiliation: 3
-  - name: Jonah Langleib
-    orcid: 0000-0002-9949-1123
-    affiliation: 3
-  - name: Mohamed Atouife
-    affiliation: 3
-  - name: Ruike Lyu
-    orcid: 0000-0003-3749-1117
-    affiliation: 3
-  - name: Sambuddha Chakrabarti
-    orcid: 0000-0002-8916-5076
-    affiliation: 3
   - name: Yu Weng
     orcid: 0000-0003-3958-1546
     affiliation: 1
