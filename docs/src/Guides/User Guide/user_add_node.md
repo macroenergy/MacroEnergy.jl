@@ -221,7 +221,7 @@ You should parameterize your new Node by adding data and constraints to the rele
 
 Details on the Node fields can be found in [the Nodes page of the manual](@ref "Nodes").
 
-Details on adding timeseries data can be found here.
+Details on adding timeseries data can be found [here](@ref "Timeseries").
 
 ## Assing the Node to a Location
 
