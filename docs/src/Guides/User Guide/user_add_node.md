@@ -215,6 +215,39 @@ Each Node must have a unique ID. This can be assigned by entering a name / ident
 
 Macro does not currently have a way to check if an ID is already in use. This is something we are investigating as a future feature. In the meantime, we recommend using your code editors search features to see if a preferred ID is already in use.
 
+When you try to create a node with an ID that already exists, different things happen depending on the location and commodity:
+
+#### Same location, same commodity
+Macro will throw an error: `ERROR: A <Commodity> node already exists in the <Location> location.`
+
+**Solution:** Use a different ID.
+
+#### Different locations, same commodity
+**Node creation:**
+- If no other nodes of that commodity exist in those locations → Both nodes are created successfully
+- If other nodes of that commodity already exist in those locations → The error is thrown as above
+
+**Asset connections:**
+- Assets that reference only the location → They should connect to existing nodes automatically (no errors)
+- Assets that reference nodes explicitly (e.g., `TransmissionLink`, `GasStorage`) → They may connect to the wrong node (first one with that ID in the `nodes.json` file)
+
+#### Different locations, different commodities
+**Asset connections:**
+- If an asset references a node explicitly and the first node in the `nodes.json` file with that ID has the wrong commodity → An error is thrown:
+
+```
+ERROR: <Edge ID> cannot be connected to its <start/end> vertex, <vertex ID>.
+They have different commodities
+<Edge ID> is a <commodity> edge.
+<vertex ID> is a <commodity> vertex.
+```
+- If an asset references a node explicitly and the first node in the `nodes.json` file with that ID has the correct commodity → Connected to the first node with that ID (may be the wrong node)
+
+- Assets that don't reference nodes explicitly → They should be created successfully
+
+#### Recommendation
+**Always use unique IDs** to avoid these complications. If you must reuse IDs, be very careful about asset connections and test thoroughly.
+
 ## Adding data and constraints
 
 You should parameterize your new Node by adding data and constraints to the relevant fields of the JSON file.
