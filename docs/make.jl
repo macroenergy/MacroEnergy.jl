@@ -58,6 +58,7 @@ const pages = [
     "Manual" => [
         "Introduction" => "Manual/manual_introduction.md",
         "Inputs" => "Manual/Inputs.md",
+        "Timeseries" => "Manual/Timeseries.md",
         "Outputs" => "Manual/Outputs.md",
         "System" => "Manual/System.md",
         "Model" => "Manual/Model.md",
