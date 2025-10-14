@@ -71,7 +71,7 @@ The time data file defines the representative periods (aka subperiods) which Mac
 The latter is determined by two field:
 
 - HoursPerSubperiod: The number of hours in each representative period / subperiod.
-- HoursPerTimeStep: The number of time-steps per representative period / subperiod.
+- HoursPerTimeStep: The number of hours per operational time step in each representative period / subperiod.
 
 For now, all Commodities must have the same HoursPerSubperiod. In the future we will allow this to vary.
 
