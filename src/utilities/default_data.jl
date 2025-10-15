@@ -14,6 +14,7 @@ function edge_default_data()
         :can_retire => false,
         :can_retrofit => false,
         :capacity_reserve_margin_id => missing,
+        :capacity_reserve_margin_derate_factor => 1.0,
         :is_retrofit => false,
         :capacity_size => 1.0,
         :existing_capacity => 0.0,

@@ -12,6 +12,7 @@ macro AbstractEdgeBaseAttributes()
         capacity::Union{JuMPVariable,AffExpr,Float64} = AffExpr(0.0)
         capacity_size::Float64 = $edge_defaults[:capacity_size]
         capacity_reserve_margin_id::Union{Symbol,Missing}  = $edge_defaults[:capacity_reserve_margin_id]
+        capacity_reserve_margin_derate_factor::Float64 = $edge_defaults[:capacity_reserve_margin_derate_factor]
         capital_recovery_period::Int64 = $edge_defaults[:capital_recovery_period]
         constraints::Vector{AbstractTypeConstraint} = Vector{AbstractTypeConstraint}()
         distance::Float64 = $edge_defaults[:distance]
@@ -198,6 +199,7 @@ can_retrofit(e::AbstractEdge) = e.can_retrofit;
 capacity(e::AbstractEdge) = e.capacity;
 capacity_size(e::AbstractEdge) = e.capacity_size;
 capacity_reserve_margin_id(e::AbstractEdge) = e.capacity_reserve_margin_id;
+capacity_reserve_margin_derate_factor(e::AbstractEdge) = e.capacity_reserve_margin_derate_factor;
 capital_recovery_period(e::AbstractEdge) = e.capital_recovery_period;
 commodity_type(e::AbstractEdge{T}) where {T} = T;
 end_vertex(e::AbstractEdge) = e.end_vertex;
@@ -308,7 +310,7 @@ function planning_model!(e::AbstractEdge, model::Model)
         if !ismissing(capacity_reserve_margin_id(e)) 
             if capacity_reserve_margin_id(e) ∈ axes(model[:eCapacityReserveMargin])[1]
                 add_to_expression!(model[:eCapacityReserveMargin][capacity_reserve_margin_id(e)], 
-                                    capacity(e)
+                                    capacity_reserve_margin_derate_factor(e) * capacity(e)
                                 )
             else
                 error("Edge $(id(e)) is associated with an undefined capacity reserve margin constraint. Please double check the input data.")
