@@ -4,6 +4,12 @@ constraint_ref(c::AbstractTypeConstraint) = c.constraint_ref;
 
 function add_constraints_by_type!(system::System, model::Model, constraint_type::DataType)
 
+    for c in all_constraints(system)
+        if isa(c, constraint_type)
+            add_model_constraint!(c, system, model)
+        end
+    end
+
     for n in system.locations
         add_constraints_by_type!(n, model, constraint_type)
     end

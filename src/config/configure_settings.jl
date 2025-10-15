@@ -7,7 +7,8 @@ function default_settings()
         OutputLayout = "long",
         AutoCreateNodes = false,
         AutoCreateLocations = true,
-        Retrofitting = false
+        Retrofitting = false,
+        CapacityReserveMargin = Dict{Symbol,Float64}(),
     )
 end
 

@@ -96,6 +96,11 @@ end
 
 function planning_model!(system::System, model::Model)
 
+    if !isempty(system.settings.CapacityReserveMargin)
+        @info(" -- Including capacity reserve margins: $(keys(system.settings.CapacityReserveMargin))")
+        prepare_capacity_reserve_margin!(system, model)
+    end
+
     planning_model!.(system.locations, Ref(model))
 
     planning_model!.(system.assets, Ref(model))
@@ -416,4 +421,56 @@ function validate_existing_capacity(asset::AbstractAsset)
             end
         end
     end
+end
+
+function prepare_capacity_reserve_margin!(system::System, model::Model)
+
+    capacity_reserve_margin_nodes = get_capacity_reserve_margin_nodes(system)
+
+    capacity_reserve_margin_ids = keys(system.settings.CapacityReserveMargin)
+    
+    if capacity_reserve_margin_ids != keys(capacity_reserve_margin_nodes)
+        missing_ids = setdiff(capacity_reserve_margin_ids, keys(capacity_reserve_margin_nodes))
+        extra_ids = setdiff(keys(capacity_reserve_margin_nodes), capacity_reserve_margin_ids)
+        if !isempty(missing_ids)
+            msg  = " ++ Capacity reserve margin ids defined in settings but not associated with any node: $(collect(missing_ids)). Please double check the input data."
+            @error(msg)
+        end
+        if !isempty(extra_ids)
+            msg  = " ++ Capacity reserve margin ids associated with nodes but not defined in settings: $(collect(extra_ids)). Please double check the input data."
+            @error(msg)
+        end
+    end
+
+    peak_demand = Dict{Symbol,Float64}(k=> maximum(sum(demand(n) for n in capacity_reserve_margin_nodes[k])) for k in capacity_reserve_margin_ids)
+    
+    required_capacity = Dict{Symbol,Float64}(k=> (1 + system.settings.CapacityReserveMargin[k]) * peak_demand[k] for k in capacity_reserve_margin_ids)
+
+    if any(system.settings.CapacityReserveMargin[k] == 0.0 for k in capacity_reserve_margin_ids)
+        msg  = " ++ Capacity reserve margin with id: $k is set to 0.0"
+        @warn(msg)
+    end
+
+    @expression(model, eCapacityReserveMargin[k in capacity_reserve_margin_ids], -required_capacity[k]*AffExpr(1))
+
+    push!(system.constraints, CapacityReserveMarginConstraint())
+
+    return nothing
+    
+end
+
+function get_capacity_reserve_margin_nodes(system::System)
+    capacity_reserve_margin_nodes = Dict{Symbol,Vector{Node}}()
+    nodes = get_nodes(system)
+    for n in nodes
+        crm_id = capacity_reserve_margin_id(n)
+        if !ismissing(crm_id)
+            if !haskey(capacity_reserve_margin_nodes,crm_id)
+                capacity_reserve_margin_nodes[crm_id] = [n]
+            else
+                push!(capacity_reserve_margin_nodes[crm_id], n)
+            end
+        end
+    end
+    return capacity_reserve_margin_nodes
 end
