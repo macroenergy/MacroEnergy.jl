@@ -40,15 +40,16 @@ function make_retrofit_options(system::System, data::Dict{Symbol,Any})
 
 end 
 
-function add_retrofit_constraints!(system::System, model::Model)    
+function add_retrofit_constraints!(system::System, period_idx::Int, model::Model)    
     # Add retrofitting constraints
     
     can_retrofit_edges,is_retrofit_edges = get_retrofit_edges(system)
-
-    @constraint(model, cRetrofitCapacity[edge_id in keys(can_retrofit_edges)],
+    
+    @constraint(model, [edge_id in keys(can_retrofit_edges)],
         retrofitted_capacity(can_retrofit_edges[edge_id]) ==
         sum(new_capacity(is_retrofit_edges[retrofit_id]) / retrofit_efficiency(is_retrofit_edges[retrofit_id])
-        for retrofit_id in retrofit_id(can_retrofit_edges[edge_id]))
+        for retrofit_id in retrofit_id(can_retrofit_edges[edge_id])),
+        base_name = "cRetrofitCapacity_period$(period_idx)" 
     )
 
 end

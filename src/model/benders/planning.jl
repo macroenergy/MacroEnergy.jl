@@ -57,8 +57,10 @@ function generate_planning_problem(case::Case)
         @info(" -- Including age-based retirements")
         add_age_based_retirements!.(system.assets, model)
 
-        @info(" -- Adding retrofit constraints")
-        add_retrofit_constraints!(system, model)
+        if system.settings.Retrofitting
+            @info(" -- Adding retrofit constraints")
+            add_retrofit_constraints!(system, period_idx, model)
+        end
 
         if period_idx < number_of_periods
             @info(" -- Available capacity in period $(period_idx) is being carried over to period $(period_idx+1)")

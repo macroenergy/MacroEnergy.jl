@@ -69,7 +69,12 @@ function write_capacity(
     capacity_results = get_optimal_capacity(system; scaling)
     new_capacity_results = get_optimal_new_capacity(system; scaling)
     retired_capacity_results = get_optimal_retired_capacity(system; scaling)
-    all_capacity_results = vcat(capacity_results, new_capacity_results, retired_capacity_results)
+    if system.settings.Retrofitting
+        retrofitted_capacity_results = get_optimal_retrofitted_capacity(system; scaling)
+        all_capacity_results = vcat(capacity_results, new_capacity_results, retired_capacity_results, retrofitted_capacity_results)
+    else
+        all_capacity_results = vcat(capacity_results, new_capacity_results, retired_capacity_results)
+    end
 
     # Reshape the dataframe based on the requested format
     layout = get_output_layout(system, :Capacity)
@@ -205,6 +210,9 @@ get_optimal_retired_capacity(system)
 """
 get_optimal_retired_capacity(system::System; scaling::Float64=1.0) = get_optimal_capacity_by_field(system, retired_capacity, scaling)
 get_optimal_retired_capacity(asset::AbstractAsset; scaling::Float64=1.0) = get_optimal_capacity_by_field(asset, retired_capacity, scaling)
+
+get_optimal_retrofitted_capacity(system::System; scaling::Float64=1.0) = get_optimal_capacity_by_field(system, retrofitted_capacity, scaling)
+get_optimal_retrofitted_capacity(asset::AbstractAsset; scaling::Float64=1.0) = get_optimal_capacity_by_field(asset, retrofitted_capacity, scaling)
 
 get_existing_capacity(system::System) = get_optimal_capacity_by_field(system, existing_capacity)
 get_existing_capacity(asset::AbstractAsset; scaling::Float64=1.0) = get_optimal_capacity_by_field(asset, existing_capacity, scaling)

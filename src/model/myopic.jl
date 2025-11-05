@@ -138,6 +138,9 @@ function write_period_outputs(output_path::AbstractString, case::Case, system::S
         write_to_file(model, lp_filename)
     end
     
+    # Scaling factor for variable cost portion of objective function
+    discount_scaling = compute_variable_cost_discount_scaling(period_idx, get_settings(case))
+
     # Write all outputs for this period
-    write_outputs(results_dir, system, model)
+    write_outputs(results_dir, system, model, discount_scaling)
 end

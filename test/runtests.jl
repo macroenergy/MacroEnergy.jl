@@ -14,6 +14,14 @@ with_logger(test_logger) do
         include("test_output.jl")
     end
     
+    Test.@testset verbose = true "Dual Value Exports" begin
+        include("test_duals.jl")
+    end
+    
+    Test.@testset verbose = true "Benders Output Utilities" begin
+        include("test_benders_output_utilities.jl")
+    end
+    
     Test.@testset verbose = true "Myopic Functionality" begin
         include("test_myopic.jl")
     end

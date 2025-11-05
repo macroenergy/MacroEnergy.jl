@@ -1,7 +1,7 @@
 
 Base.@kwdef mutable struct StorageSymmetricCapacityConstraint <: OperationConstraint
     value::Union{Missing,Vector{Float64}} = missing
-    lagrangian_multiplier::Union{Missing,Vector{Float64}} = missing
+    constraint_dual::Union{Missing,Vector{Float64}} = missing
     constraint_ref::Union{Missing,JuMPConstraint} = missing
 end
 

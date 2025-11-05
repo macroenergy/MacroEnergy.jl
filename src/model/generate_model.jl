@@ -35,10 +35,10 @@ function generate_model(case::Case)
 
         @info(" -- Generating planning model")
         planning_model!(system, model)
-
-        @info(" -- Adding retrofit constraints")
-        add_retrofit_constraints!(system, model)
-
+        if system.settings.Retrofitting
+            @info(" -- Adding retrofit constraints")
+            add_retrofit_constraints!(system, period_idx, model)
+        end
         @info(" -- Including age-based retirements")
         add_age_based_retirements!.(system.assets, model)
 

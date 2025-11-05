@@ -1,6 +1,6 @@
 Base.@kwdef mutable struct CO2CapConstraint <: PolicyConstraint
     value::Union{Missing,Vector{Float64}} = missing
-    lagrangian_multiplier::Union{Missing,Vector{Float64}} = missing
+    constraint_dual::Union{Missing,Vector{Float64}} = missing
     constraint_ref::Union{Missing,JuMPConstraint} = missing
 end
 
@@ -64,6 +64,5 @@ function add_model_constraint!(ct::CO2CapConstraint, n::Node{CO2}, model::Model)
         subperiod_balance[w] <=
         n.policy_budgeting_vars[Symbol(string(ct_type) * "_Budget")][w]
     )
-
 
 end

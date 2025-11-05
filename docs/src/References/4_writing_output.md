@@ -34,16 +34,31 @@ MacroEnergy.get_optimal_new_capacity
 MacroEnergy.get_optimal_retired_capacity
 ```
 
+## `write_balance_duals`
+```@docs
+MacroEnergy.write_balance_duals
+```
+
 ## `write_capacity`
 
 ```@docs
 MacroEnergy.write_capacity
 ```
 
+## `write_co2_cap_duals`
+```@docs
+MacroEnergy.write_co2_cap_duals
+```
+
 ## `write_costs`
 
 ```@docs
 MacroEnergy.write_costs
+```
+
+## `write_duals`
+```@docs
+MacroEnergy.write_duals
 ```
 
 ## `write_flow`

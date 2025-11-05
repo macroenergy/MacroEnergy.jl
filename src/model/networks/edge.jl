@@ -335,10 +335,10 @@ function planning_model!(e::AbstractEdge, model::Model)
 
         if can_retrofit(e)
             @constraint(model, retrofitted_capacity(e) + retired_capacity(e) <= existing_capacity(e))
-        else
             if integer_decisions(e)
                 set_integer(retrofitted_units(e))
             end
+        else
             @constraint(model, retired_capacity(e) <= existing_capacity(e))
         end
 

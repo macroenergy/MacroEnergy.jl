@@ -37,11 +37,6 @@ function load_case(
 
         case_data = load_case_data(path; lazy_load = lazy_load)
         case = generate_case(path, case_data)
-
-        # Check that retrofitting isn't allowed if the case has multiple PeriodLengths
-        if (length(case.systems) > 1) && any(system -> system.settings.Retrofitting, case.systems)
-            @error("Retrofitting does not work yet for cases with multiple stages. Please set `Retrofitting` to `false` in the case settings.")
-        end
         
         return case
     else

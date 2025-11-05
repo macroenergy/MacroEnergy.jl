@@ -1,0 +1,130 @@
+{
+    "nodes": [
+        {
+            "global_data": {
+                "constraints": {
+                    "MaxNonServedDemandConstraint": true,
+                    "MaxNonServedDemandPerSegmentConstraint": true,
+                    "BalanceConstraint": true
+                },
+                "max_nsd": [
+                    1,
+                    0.04,
+                    0.024,
+                    0.003
+                ],
+                "time_interval": "Electricity",
+                "price_nsd": [
+                    50000,
+                    45000,
+                    27500.000000000004,
+                    10000
+                ]
+            },
+            "instance_data": [
+                {
+                    "demand": {
+                        "timeseries": {
+                            "header": "elec_demand_MA",
+                            "path": "system/demand.csv"
+                        }
+                    },
+                    "id": "elec_MA"
+                },
+                {
+                    "demand": {
+                        "timeseries": {
+                            "header": "elec_demand_CT",
+                            "path": "system/demand.csv"
+                        }
+                    },
+                    "id": "elec_CT"
+                },
+                {
+                    "demand": {
+                        "timeseries": {
+                            "header": "elec_demand_ME",
+                            "path": "system/demand.csv"
+                        }
+                    },
+                    "id": "elec_ME"
+                }
+            ],
+            "type": "Electricity"
+        },
+        {
+            "global_data": {
+                "time_interval": "NaturalGas"
+            },
+            "instance_data": [
+                {
+                    "price": [18.59617191],
+                    "id": "CT_NG"
+                },
+                {
+                    "price": [18.59617191],
+                    "id": "ME_NG"
+                },
+                {
+                    "price": [18.59617191],
+                    "id": "MA_NG"
+                }
+            ],
+            "type": "NaturalGas"
+        },
+        {
+            "global_data": {
+                "time_interval": "Uranium"
+            },
+            "instance_data": [
+            ],
+            "type": "Uranium"
+        },
+        {
+            "global_data": {
+                "time_interval": "CO2"
+            },
+            "instance_data": [
+                {
+                    "constraints": {
+                        "CO2CapConstraint": true
+                    },
+                    "rhs_policy": {
+                        "CO2CapConstraint": 18000
+                    },
+                    "id": "co2_sink_1"
+                },
+                {
+                    "constraints": {
+                        "CO2CapConstraint": true
+                    },
+                    "rhs_policy": {
+                        "CO2CapConstraint": 25000
+                    },
+                    "id": "co2_sink_2"
+                },
+                {
+                    "constraints": {
+                        "CO2CapConstraint": true
+                    },
+                    "rhs_policy": {
+                        "CO2CapConstraint": 25000
+                    },
+                    "id": "co2_sink_3"
+                }
+            ],
+            "type": "CO2"
+        },
+        {
+            "global_data": {
+                "time_interval": "Electricity"
+            },
+            "instance_data": [
+                {
+                    "id": "water_node"
+                }
+            ],
+            "type": "Electricity"
+        }
+    ]
+}

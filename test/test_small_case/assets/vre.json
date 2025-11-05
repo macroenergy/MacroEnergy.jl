@@ -1,0 +1,123 @@
+{
+    "VRE": {
+        "type": "VRE",
+        "global_data": {
+            "transforms": {
+                "timedata": "Electricity"
+            },
+            "edges": {
+                "edge": {
+                    "unidirectional": true,
+                    "has_capacity": true,
+                    "commodity": "Electricity"
+                }
+            }
+        },
+        "instance_data": [
+            {
+                "id": "MA_solar_pv",
+                "edges": {
+                    "edge": {
+                        "can_retire": true,
+                        "can_expand": true,
+                        "constraints": {
+                            "CapacityConstraint": true
+                        },
+                        "min_capacity": 0,
+                        "commodity": "Electricity",
+                        "fixed_om_cost": 18760,
+                        "end_vertex": "elec_MA",
+                        "investment_cost": 85300,
+                        "variable_om_cost": 0,
+                        "capacity_size": 1,
+                        "availability": {
+                            "timeseries": {
+                                "header": "MA_solar_pv",
+                                "path": "system/vre_availability.csv"
+                            }
+                        },
+                        "existing_capacity": 0
+                    }
+                }
+            },
+            {
+                "id": "CT_onshore_wind",
+                "edges": {
+                    "edge": {
+                        "can_retire": true,
+                        "can_expand": true,
+                        "constraints": {
+                            "CapacityConstraint": true
+                        },
+                        "min_capacity": 0,
+                        "commodity": "Electricity",
+                        "fixed_om_cost": 43205,
+                        "end_vertex": "elec_CT",
+                        "investment_cost": 97200,
+                        "variable_om_cost": 0.1,
+                        "capacity_size": 1,
+                        "availability": {
+                            "timeseries": {
+                                "header": "CT_onshore_wind",
+                                "path": "system/vre_availability.csv"
+                            }
+                        },
+                        "existing_capacity": 0
+                    }
+                }
+            },
+            {
+                "id": "CT_solar_pv",
+                "edges": {
+                    "edge": {
+                        "can_retire": true,
+                        "can_expand": true,
+                        "constraints": {
+                            "CapacityConstraint": true
+                        },
+                        "min_capacity": 0,
+                        "commodity": "Electricity",
+                        "fixed_om_cost": 18760,
+                        "end_vertex": "elec_CT",
+                        "investment_cost": 85300,
+                        "variable_om_cost": 0,
+                        "capacity_size": 1,
+                        "availability": {
+                            "timeseries": {
+                                "header": "CT_solar_pv",
+                                "path": "system/vre_availability.csv"
+                            }
+                        },
+                        "existing_capacity": 0
+                    }
+                }
+            },
+            {
+                "id": "ME_onshore_wind",
+                "edges": {
+                    "edge": {
+                        "can_retire": true,
+                        "can_expand": true,
+                        "constraints": {
+                            "CapacityConstraint": true
+                        },
+                        "min_capacity": 0,
+                        "commodity": "Electricity",
+                        "fixed_om_cost": 43205,
+                        "end_vertex": "elec_ME",
+                        "investment_cost": 97200,
+                        "variable_om_cost": 0.1,
+                        "capacity_size": 1,
+                        "availability": {
+                            "timeseries": {
+                                "header": "ME_onshore_wind",
+                                "path": "system/vre_availability.csv"
+                            }
+                        },
+                        "existing_capacity": 0
+                    }
+                }
+            }
+        ]
+    }
+}

@@ -52,3 +52,54 @@ function solve_case(case::Case, opt::Dict{Symbol, Dict{Symbol, Any}}, ::Benders)
 
     return (case, BendersResults(results, subproblems))
 end
+
+"""
+    ensure_duals_available!(model::Model)
+
+Ensure that dual values are available in the model. If the model has integer variables
+and duals are not available, fixes the integer variables and re-solves the LP model to 
+compute duals.
+
+# Arguments
+- `model::Model`: The JuMP model to ensure duals for
+
+# Throws
+- `ErrorException`: If the model is not solved and feasible or if the dual values are not 
+available after linearization
+
+# Notes
+- This function modifies the model in-place by fixing integer and binary variables to their 
+current values.
+- The model is solved again in silent mode to avoid redundant output
+"""
+function ensure_duals_available!(model::Model)
+    if has_duals(model)
+        @debug "Dual values available in the model"
+        return nothing
+    end
+
+    assert_is_solved_and_feasible(model)
+    
+    @info "Dual values not available in the model. Linearizing model and re-solving to compute duals."
+    
+    # Fix integer and binary variables to their current values
+    fix_discrete_variables(model);
+    
+    # Re-solve the LP model silently
+    was_silent = get_attribute(model, MOI.Silent())
+    set_silent(model)
+    optimize!(model)
+    
+    # Restore original silent setting if it was not already set
+    was_silent || unset_silent(model)
+    
+    # Verify that duals are now available
+    assert_is_solved_and_feasible(model)
+    if dual_status(model) != MOI.FEASIBLE_POINT
+        error("Model is not feasible after linearization.")
+    end
+    
+    @info "Linearization successful, dual values now available."
+    
+    return nothing
+end

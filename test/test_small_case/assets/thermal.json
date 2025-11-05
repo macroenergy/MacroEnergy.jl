@@ -1,0 +1,172 @@
+{
+    "ThermalPower": {
+        "type": "ThermalPower",
+        "global_data": {
+            "transforms": {
+                "constraints": {
+                    "BalanceConstraint": true
+                }
+            },
+            "edges": {
+                "co2_edge": {
+                    "unidirectional": true,
+                    "has_capacity": false
+                },
+                "elec_edge": {
+                    "unidirectional": true,
+                    "has_capacity": true
+                },
+                "fuel_edge": {
+                    "unidirectional": true,
+                    "has_capacity": false
+                }
+            }
+        },
+        "instance_data": [
+            {
+                "transforms": {
+                    "timedata": "NaturalGas",
+                    "fuel_consumption": 2.1775180500999998,
+                    "emission_rate": 0.181048235160161
+                },
+                "id": "MA_natural_gas_combined_cycle",
+                "edges": {
+                    "co2_edge": {
+                        "end_vertex": "co2_sink_1",
+                        "commodity": "CO2"
+                    },
+                    "elec_edge": {
+                        "can_retire": true,
+                        "min_up_time": 6,
+                        "can_expand": true,
+                        "min_flow_fraction": 0.468,
+                        "constraints": {
+                            "MinFlowConstraint": true,
+                            "RampingLimitConstraint": true,
+                            "CapacityConstraint": true,
+                            "MinDownTimeConstraint": true,
+                            "MinUpTimeConstraint": true
+                        },
+                        "min_capacity": 0,
+                        "commodity": "Electricity",
+                        "fixed_om_cost": 10287,
+                        "uc": true,
+                        "ramp_up_fraction": 0.64,
+                        "startup_cost": 91,
+                        "end_vertex": "elec_MA",
+                        "investment_cost": 65400,
+                        "variable_om_cost": 3.55,
+                        "startup_fuel_consumption": 0.58614214,
+                        "min_down_time": 6,
+                        "capacity_size": 250,
+                        "availability": [
+                            1
+                        ],
+                        "existing_capacity": 0,
+                        "ramp_down_fraction": 0.64
+                    },
+                    "fuel_edge": {
+                        "start_vertex": "MA_NG",
+                        "commodity": "NaturalGas"
+                    }
+                }
+            },
+            {
+                "transforms": {
+                    "timedata": "NaturalGas",
+                    "fuel_consumption": 2.0866660184,
+                    "emission_rate": 0.181048235160161
+                },
+                "id": "CT_natural_gas_combined_cycle",
+                "edges": {
+                    "co2_edge": {
+                        "end_vertex": "co2_sink_2",
+                        "commodity": "CO2"
+                    },
+                    "elec_edge": {
+                        "can_retire": true,
+                        "min_up_time": 6,
+                        "can_expand": true,
+                        "min_flow_fraction": 0.338,
+                        "constraints": {
+                            "MinFlowConstraint": true,
+                            "RampingLimitConstraint": true,
+                            "CapacityConstraint": true,
+                            "MinDownTimeConstraint": true,
+                            "MinUpTimeConstraint": true
+                        },
+                        "min_capacity": 0,
+                        "commodity": "Electricity",
+                        "fixed_om_cost": 9698,
+                        "uc": true,
+                        "ramp_up_fraction": 0.64,
+                        "startup_cost": 91,
+                        "end_vertex": "elec_CT",
+                        "investment_cost": 65400,
+                        "variable_om_cost": 3.57,
+                        "startup_fuel_consumption": 0.58614214,
+                        "min_down_time": 6,
+                        "capacity_size": 250,
+                        "availability": [
+                            1
+                        ],
+                        "existing_capacity": 0,
+                        "ramp_down_fraction": 0.64
+                    },
+                    "fuel_edge": {
+                        "start_vertex": "CT_NG",
+                        "commodity": "NaturalGas"
+                    }
+                }
+            },
+            {
+                "transforms": {
+                    "timedata": "NaturalGas",
+                    "fuel_consumption": 3.6985569033999997,
+                    "emission_rate": 0.181048235160161
+                },
+                "id": "ME_natural_gas_combined_cycle",
+                "edges": {
+                    "co2_edge": {
+                        "end_vertex": "co2_sink_3",
+                        "commodity": "CO2"
+                    },
+                    "elec_edge": {
+                        "can_retire": true,
+                        "min_up_time": 6,
+                        "can_expand": true,
+                        "min_flow_fraction": 0.474,
+                        "constraints": {
+                            "MinFlowConstraint": true,
+                            "RampingLimitConstraint": true,
+                            "CapacityConstraint": true,
+                            "MinDownTimeConstraint": true,
+                            "MinUpTimeConstraint": true
+                        },
+                        "min_capacity": 0,
+                        "commodity": "Electricity",
+                        "fixed_om_cost": 16291,
+                        "uc": true,
+                        "ramp_up_fraction": 0.64,
+                        "startup_cost": 91,
+                        "end_vertex": "elec_ME",
+                        "investment_cost": 65400,
+                        "variable_om_cost": 4.5,
+                        "startup_fuel_consumption": 0.58614214,
+                        "min_down_time": 6,
+                        "capacity_size": 250,
+                        "availability": [
+                            1
+                        ],
+                        "existing_capacity": 0,
+                        "ramp_down_fraction": 0.64
+                    },
+                    "fuel_edge": {
+                        "start_vertex": "ME_NG",
+                        "commodity": "NaturalGas"
+                    }
+                }
+            }
+        ]
+    }
+}

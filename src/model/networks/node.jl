@@ -8,6 +8,7 @@ macro AbstractNodeBaseAttributes()
         max_supply::Vector{Float64} = $node_defaults[:max_supply]
         non_served_demand::JuMPVariable = Matrix{VariableRef}(undef, 0, 0)
         policy_budgeting_vars::Dict = Dict()
+        policy_budgeting_constraints::Dict{DataType,JuMPConstraint} = Dict{DataType,JuMPConstraint}()  # Store policy budget constraint references
         policy_slack_vars::Dict = Dict()
         price::Vector{Float64} = Vector{Float64}()
         price_nsd::Vector{Float64} = $node_defaults[:price_nsd]
@@ -36,6 +37,7 @@ end
     - max_supply::Vector{Float64}: Maximum supply for each segment
     - non_served_demand::Union{JuMPVariable,Matrix{Float64}}: JuMP variables or matrix representing unmet demand
     - policy_budgeting_vars::Dict: Policy budgeting variables for constraints
+    - policy_budgeting_constraints::Dict{DataType,JuMPConstraint}: Policy budget constraint references (sum across subperiods, keyed by :ConstraintType)
     - policy_slack_vars::Dict: Policy slack variables for constraints
     - price::Union{Vector{Float64},Dict{Int64,Float64}}: Time series of prices
     - price_nsd::Vector{Float64}: Penalties for non-served demand by segment
@@ -111,6 +113,8 @@ non_served_demand(n::Node) = n.non_served_demand;
 non_served_demand(n::Node, s::Int64, t::Int64) = non_served_demand(n)[s, t];
 policy_budgeting_vars(n::Node) = n.policy_budgeting_vars;
 policy_slack_vars(n::Node) = n.policy_slack_vars;
+policy_budgeting_constraints(n::Node) = n.policy_budgeting_constraints;
+policy_budgeting_constraints(n::Node, c::DataType) = policy_budgeting_constraints(n)[c]
 price(n::Node) = n.price;
 price(n::Node, t::Int64) = length(price(n)) == 1 ? price(n)[1] : price(n)[t];
 price_non_served_demand(n::Node) = n.price_nsd;
@@ -158,7 +162,7 @@ function planning_model!(n::Node, model::Model)
         ct_all = findall(isa.(n.constraints, PolicyConstraint))
         for ct in ct_all
             ct_type = typeof(n.constraints[ct])
-            @constraint(
+            n.policy_budgeting_constraints[ct_type] = @constraint(
                 model,
                 sum(n.policy_budgeting_vars[Symbol(string(ct_type) * "_Budget")]) ==
                 rhs_policy(n, ct_type)
