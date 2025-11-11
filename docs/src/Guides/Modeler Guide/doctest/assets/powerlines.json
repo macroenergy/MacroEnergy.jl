@@ -3,6 +3,7 @@
         {
             "type": "TransmissionLink",
             "global_data": {
+                "commodity": "Electricity",
                 "elec_constraints": {
                     "MaxCapacityConstraint": true
                 }

@@ -4,7 +4,7 @@
             "type": "GasStorage",
             "global_data": {
                 "storage_commodity": "Hydrogen",
-                "storage_long_duration": true,
+                "storage_long_duration": false,
                 "storage_constraints": {
                     "StorageCapacityConstraint": true,
                     "BalanceConstraint": true,

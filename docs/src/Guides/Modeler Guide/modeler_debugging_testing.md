@@ -17,21 +17,23 @@ The following functions are organized with the following sections:
 - [Working with Transformations](@ref "Working with Transformations")
 - [Working with Storages](@ref "Working with Storages")
 - [Time Management](@ref "Time Management")
-- [Results Collection](@ref "Results Collection")
+- [Results Collection and Writing](@ref "Results Collection and Writing")
 
 ## Working with a System
 Let's start by loading a system from a case folder (you can find more information about the structure of this folder in the [Running Macro](@ref) section).
 
-### [`load_system`](@ref)
+### `load_case`
 ```@repl utils
 using MacroEnergy
 using HiGHS # hide
 using DataFrames # hide
-system = MacroEnergy.load_system("doctest");
+case = MacroEnergy.load_case("doctest");
+system = case.systems[1];
 ```
 
 ### `propertynames`
 The `propertynames` function in Julia can be used to retrieve the names of the fields of a `System` object, such as the data directory path, settings, and locations.
+
 ```@repl utils
 propertynames(system)
 ```
@@ -54,7 +56,7 @@ When interacting with a `System`, users might need to **retrieve information** a
 ### [`find_node`](@ref)
 Finds a node by its ID.
 ```@repl utils
-co2_node = MacroEnergy.find_node(system.locations, :co2_sink);
+co2_node = MacroEnergy.find_node(system.locations, :co2_sink)
 ```
 
 ### [`get_asset_types`](@ref)
@@ -92,7 +94,8 @@ thermal_plant = thermal_plants[1]; # first thermal power plant in the list
 ### `generate_model`
 Uses JuMP to generate the optimization model for the system data. 
 ```@repl utils
-model = MacroEnergy.generate_model(system);
+model = MacroEnergy.generate_model(case);
+MacroEnergy.set_silent(model) # hide
 ```
 
 ### `set_optimizer`
@@ -104,7 +107,6 @@ MacroEnergy.set_optimizer(model, HiGHS.Optimizer);
 ### `optimize!`
 Solves the optimization model.
 ```@repl utils
-MacroEnergy.set_silent(model) # hide
 MacroEnergy.optimize!(model)
 ```
 
@@ -130,12 +132,7 @@ retired_capacity = MacroEnergy.get_optimal_retired_capacity(system);
 retired_capacity[!, [:commodity, :resource_id, :value]]
 ```
 
-### [`get_optimal_discounted_costs`](@ref)
-Fetches all the system costs.
-```@repl utils
-costs = MacroEnergy.get_optimal_discounted_costs(model);
-costs[!, [:variable, :value]]
-```
+See the [Results Collection and Writing](@ref "Results Collection and Writing") section for more information on how to write the results to a file.
 
 ## Working with Nodes in a System
 Once a `System` object is loaded, and the model is generated, users can use the following functions to inspect the nodes in the system.
@@ -504,7 +501,7 @@ MacroEnergy.time_interval(edge)
 ### `period_map`
 Retrieves the period map of a vertex/edge.
 ```@repl utils
-MacroEnergy.period_map(vertex)
+MacroEnergy.subperiod_map(vertex)
 ```
 
 ### `modeled_subperiods`
@@ -535,28 +532,16 @@ MacroEnergy.subperiod_indices(vertex)
 ### `get_subperiod`
 Retrieves the subperiod of a vertex/edge for a given index.
 ```@repl utils
-MacroEnergy.get_subperiod(vertex, 6)
+MacroEnergy.get_subperiod(vertex, 2)
 ```
 
 ### `subperiod_weight`
 Retrieves the weight of a subperiod of a vertex/edge for a given index.
 ```@repl utils
-MacroEnergy.subperiod_weight(vertex, 17)
+MacroEnergy.subperiod_weight(vertex, 2)
 ```
 
-## Results Collection
-
-### [`collect_results`](@ref)
-Collects all the results from the model as a set of DataFrames:
-- All the capacity variables/expressions (capacity, new\_capacity, retired\_capacity)
-- All the flow variables (flow)
-- Non-served demand variables (non\_served\_demand)
-- Storage level variables (storage\_level)
-- Costs (costs)
-```@repl utils
-results = MacroEnergy.collect_results(system, model);
-first(results, 5)
-```
+## Results Collection and Writing
 
 ### [`reshape_wide`](@ref)
 Reshapes the results to wide format.
@@ -612,6 +597,9 @@ This function exports case and system settings to a JSON file, useful for debugg
 
 ### [`write_results`](@ref)
 
+!!! warning "write_results is a legacy function"
+    The `write_results` function is part of the legacy unified output system. For new code, consider using the specialized output functions instead.
+
 ```julia
 julia> write_results(file_path, system, model, settings, ext=".csv.gz")
 julia> write_results(file_path, system, model, settings, ext=".parquet")
@@ -624,9 +612,6 @@ This function creates multiple output files, one for each result type:
 - `file_path_storage_level.ext` - Storage levels
 - `file_path_discounted_costs.ext` - Discounted costs
 - `file_path_undiscounted_costs.ext` - Undiscounted costs
-
-!!! warning "Legacy Function"
-    This function is part of the legacy unified output system. For new code, consider using the specialized output functions instead.
 
 ```@meta
 DocTestSetup = nothing

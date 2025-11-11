@@ -60,7 +60,7 @@ function print_struct_info(asset::Type{<:AbstractAsset})
     print_struct_info(info) 
 end
 
-function print_struct_info(info::Vector{Tuple{Symbol, Type}})
+function print_struct_info(info::Vector{Tuple{Symbol, T}}) where T <: Union{Type, UnionAll}
     for (name, type) in info
         println("Field: $name, Type: $type")
     end    
