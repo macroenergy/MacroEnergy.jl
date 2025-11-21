@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Documenting an Asset · Macro</title><meta name="title" content="Documenting an Asset · Macro"/><meta property="og:title" content="Documenting an Asset · Macro"/><meta property="twitter:title" content="Documenting an Asset · Macro"/><meta name="description" content="Documentation for Macro."/><meta property="og:description" content="Documentation for Macro."/><meta property="twitter:description" content="Documentation for Macro."/><meta property="og:url" content="https://macroenergy.github.io/Macro/stable/Guides/Modeler Guide/modeler_add_docs_to_asset/"/><meta property="twitter:url" content="https://macroenergy.github.io/Macro/stable/Guides/Modeler Guide/modeler_add_docs_to_asset/"/><link rel="canonical" href="https://macroenergy.github.io/Macro/stable/Guides/Modeler Guide/modeler_add_docs_to_asset/"/><script data-outdated-warner src="../../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../../assets/documenter.js"></script><script src="../../../search_index.js"></script><script src="../../../siteinfo.js"></script><script src="../../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../../">Macro</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><input class="collapse-toggle" id="menuitem-1" type="checkbox"/><label class="tocitem" for="menuitem-1"><span class="docs-label">Welcome to Macro</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../">Introduction</a></li><li><a class="tocitem" href="../../../table_of_contents/">Table of contents</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-2" type="checkbox"/><label class="tocitem" for="menuitem-2"><span class="docs-label">Getting Started</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Getting Started/1_overview/">Overview</a></li><li><a class="tocitem" href="../../../Getting Started/2_installation/">Installation</a></li><li><a class="tocitem" href="../../../Getting Started/4_macro_repo_contents/">What&#39;s Included With Macro</a></li><li><a class="tocitem" href="../../../Getting Started/3_first_run/">First Run</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-3" type="checkbox"/><label class="tocitem" for="menuitem-3"><span class="docs-label">Tutorials</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Tutorials/tutorials_introduction/">Introduction</a></li><li><a class="tocitem" href="../../../Tutorials/0_getting_started/">Getting Started</a></li><li><a class="tocitem" href="../../../Tutorials/1_running_macro/">Running Macro</a></li><li><a class="tocitem" href="../../../Tutorials/2_multisector_modelling/">Multisector Modelling</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4" type="checkbox" checked/><label class="tocitem" for="menuitem-4"><span class="docs-label">Guides</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../guides_introduction/">Introduction</a></li><li><input class="collapse-toggle" id="menuitem-4-2" type="checkbox"/><label class="tocitem" for="menuitem-4-2"><span class="docs-label">User Guide</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../User Guide/user_build_system/">Create a System</a></li><li><a class="tocitem" href="../../User Guide/user_add_commodity/">Adding Commodities</a></li><li><a class="tocitem" href="../../User Guide/user_add_node/">Adding Nodes</a></li><li><a class="tocitem" href="../../User Guide/user_add_location/">Adding Locations</a></li><li><a class="tocitem" href="../../User Guide/user_add_asset/">Adding Assets</a></li><li><a class="tocitem" href="../../User Guide/user_policy_constraints/">Adding Policy constraints</a></li><li><a class="tocitem" href="../../User Guide/user_asset_constraints/">Adding Assets constraints</a></li><li><a class="tocitem" href="../../User Guide/user_settings/">Configuring Settings</a></li><li><a class="tocitem" href="../../User Guide/user_run_model/">Running Models</a></li><li><a class="tocitem" href="../../User Guide/user_write_results/">Writing Results</a></li><li><a class="tocitem" href="../../User Guide/user_multiperiod/">Using Multi-Period Models</a></li><li><a class="tocitem" href="../../User Guide/user_using_asset_libary/">Exploring the Asset library</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-3" type="checkbox" checked/><label class="tocitem" for="menuitem-4-3"><span class="docs-label">Modeler Guide</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../modeler_introduction/">Introduction</a></li><li><a class="tocitem" href="../modeler_es_graph/">Energy System Graph-Based Representation</a></li><li><a class="tocitem" href="../modeler_build_sectors/">Creating a New Sector</a></li><li><a class="tocitem" href="../modeler_build_asset/">Creating a New Asset</a></li><li class="is-active"><a class="tocitem" href>Documenting an Asset</a><ul class="internal"><li><a class="tocitem" href="#Overview"><span>Overview</span></a></li><li><a class="tocitem" href="#Prerequisites"><span>Prerequisites</span></a></li><li><a class="tocitem" href="#Documentation-Structure"><span>Documentation Structure</span></a></li><li><a class="tocitem" href="#Step-by-Step-Process"><span>Step-by-Step Process</span></a></li><li><a class="tocitem" href="#Documentation-Best-Practices"><span>Documentation Best Practices</span></a></li><li><a class="tocitem" href="#Updating-the-Asset-Library"><span>Updating the Asset Library</span></a></li><li><a class="tocitem" href="#Next-Steps"><span>Next Steps</span></a></li></ul></li><li><a class="tocitem" href="../modeler_create_example_case/">Creating a New Example Case</a></li><li><a class="tocitem" href="../modeler_workflow/">Suggested Development Workflow</a></li><li><a class="tocitem" href="../modeler_debugging_testing/">Debugging and Testing Tips</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-4" type="checkbox"/><label class="tocitem" for="menuitem-4-4"><span class="docs-label">Developer Guide</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Developer Guide/dev_create_constraint/">Creating a Constraint</a></li><li><a class="tocitem" href="../../Developer Guide/2_type_hierarchy/">Type Hierarchy</a></li></ul></li></ul></li><li><a class="tocitem" href="../../../Assets/assets_guide/">Assets</a></li><li><input class="collapse-toggle" id="menuitem-6" type="checkbox"/><label class="tocitem" for="menuitem-6"><span class="docs-label">Manual</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Manual/manual_introduction/">Introduction</a></li><li><a class="tocitem" href="../../../Manual/Inputs/">Inputs</a></li><li><a class="tocitem" href="../../../Manual/Timeseries/">Timeseries</a></li><li><a class="tocitem" href="../../../Manual/Outputs/">Outputs</a></li><li><a class="tocitem" href="../../../Manual/System/">System</a></li><li><a class="tocitem" href="../../../Manual/Model/">Model</a></li><li><a class="tocitem" href="../../../Manual/Sectors/">Sectors</a></li><li><a class="tocitem" href="../../../Manual/Edges/">Edges</a></li><li><a class="tocitem" href="../../../Manual/Nodes/">Nodes</a></li><li><a class="tocitem" href="../../../Manual/Storage/">Storage</a></li><li><a class="tocitem" href="../../../Manual/Transformations/">Transformations</a></li><li><a class="tocitem" href="../../../Manual/Locations/">Locations</a></li><li><a class="tocitem" href="../../../Manual/Constraints/">Constraints</a></li><li><a class="tocitem" href="../../../Manual/Commodities/">Commodities</a></li><li><a class="tocitem" href="../../../Manual/Assets/">Assets</a></li><li><input class="collapse-toggle" id="menuitem-6-16" type="checkbox"/><label class="tocitem" for="menuitem-6-16"><span class="docs-label">Asset Library</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Manual/assets/battery/">Battery</a></li><li><a class="tocitem" href="../../../Manual/assets/beccselectricity/">BECCS Electricity</a></li><li><a class="tocitem" href="../../../Manual/assets/beccshydrogen/">BECCS Hydrogen</a></li><li><a class="tocitem" href="../../../Manual/assets/electricdac/">Electric DAC</a></li><li><a class="tocitem" href="../../../Manual/assets/electricheating/">Electric Heating</a></li><li><a class="tocitem" href="../../../Manual/assets/electricsteam/">Electric Steam</a></li><li><a class="tocitem" href="../../../Manual/assets/electrolyzer/">Electrolyzer</a></li><li><a class="tocitem" href="../../../Manual/assets/fuelcell/">Fuel Cell</a></li><li><a class="tocitem" href="../../../Manual/assets/thermalheating/">Thermal Heating</a></li><li><a class="tocitem" href="../../../Manual/assets/thermalsteam/">Thermal Steam</a></li><li><a class="tocitem" href="../../../Manual/assets/gasstorage/">Gas Storage</a></li><li><a class="tocitem" href="../../../Manual/assets/hydropower/">Hydro Reservoir</a></li><li><a class="tocitem" href="../../../Manual/assets/integratedblastfurnacebasicoxygenfurnace/">Integrated Blast Furnace Basic Oxygen Furnace (with and without CCS)</a></li><li><a class="tocitem" href="../../../Manual/assets/integrateddirectreductionelectricarcfurnace/">Integrated Direct Reduction Electric Arc Furnace (with and without CCS)</a></li><li><a class="tocitem" href="../../../Manual/assets/mustrun/">Must Run</a></li><li><a class="tocitem" href="../../../Manual/assets/natgasdaq/">Natural Gas DAC</a></li><li><a class="tocitem" href="../../../Manual/assets/standalonelectricarcfurnace/">Electric Arc Furnace</a></li><li><a class="tocitem" href="../../../Manual/assets/thermalhydrogen/">Thermal Hydrogen Plant (with and without CCS)</a></li><li><a class="tocitem" href="../../../Manual/assets/thermalpower/">Thermal Power Plant (with and without CCS)</a></li><li><a class="tocitem" href="../../../Manual/assets/transmissionlink/">Transmission Link</a></li><li><a class="tocitem" href="../../../Manual/assets/vre/">Variable Renewable Energy Resources (VRE)</a></li></ul></li><li><a class="tocitem" href="../../../Manual/Financial_assumptions/">Financial Assumptions</a></li><li><a class="tocitem" href="../../../Manual/Multi_period_accounting/">Multi-Period Accounting</a></li></ul></li><li><a class="tocitem" href="../../../how_to_contribute/">How to contribute</a></li><li><input class="collapse-toggle" id="menuitem-8" type="checkbox"/><label class="tocitem" for="menuitem-8"><span class="docs-label">References</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../References/1_introduction/">Introduction</a></li><li><a class="tocitem" href="../../../References/2_reading_input/">Reading input data</a></li><li><a class="tocitem" href="../../../References/3_macro_objects/">Macro Objects</a></li><li><a class="tocitem" href="../../../References/4_writing_output/">Writing output data</a></li><li><a class="tocitem" href="../../../References/5_utilities/">Utilities</a></li><li><a class="tocitem" href="../../../References/ref_download_examples/">Downloading examples</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-9" type="checkbox"/><label class="tocitem" for="menuitem-9"><span class="docs-label">Appendix</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Appendix/TEA/">TEA</a></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Guides</a></li><li><a class="is-disabled">Modeler Guide</a></li><li class="is-active"><a href>Documenting an Asset</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Documenting an Asset</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/macroenergy/MacroEnergy.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/macroenergy/MacroEnergy.jl/blob/main/docs/src/Guides/Modeler Guide/modeler_add_docs_to_asset.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="modeler_add_docs_to_asset"><a class="docs-heading-anchor" href="#modeler_add_docs_to_asset">Adding Documentation for a New Asset</a><a id="modeler_add_docs_to_asset-1"></a><a class="docs-heading-anchor-permalink" href="#modeler_add_docs_to_asset" title="Permalink"></a></h1><p>After creating a new asset implementation, it&#39;s important to document it properly so that other users can understand how to use it. This guide will walk you through creating a documentation page for your new asset that follows the same structure and format as existing assets in the <a href="../../../Manual/Assets/#Macro-Asset-Library">Macro Asset Library</a>.</p><h2 id="Overview"><a class="docs-heading-anchor" href="#Overview">Overview</a><a id="Overview-1"></a><a class="docs-heading-anchor-permalink" href="#Overview" title="Permalink"></a></h2><p>Each asset in MacroEnergy.jl has a dedicated documentation page located in <code>docs/src/Manual/assets/</code> that provides comprehensive information about the asset&#39;s functionality, configuration, and usage. The documentation follows a consistent template structure to ensure clarity and ease of use.</p><h2 id="Prerequisites"><a class="docs-heading-anchor" href="#Prerequisites">Prerequisites</a><a id="Prerequisites-1"></a><a class="docs-heading-anchor-permalink" href="#Prerequisites" title="Permalink"></a></h2><p>Before creating documentation for your asset, ensure you have:</p><ul><li>Successfully implemented your asset following the <a href="../modeler_build_asset/#modeler_create_asset">Creating a New Asset</a> guide</li><li>Tested your asset to ensure it works correctly</li><li>Created a visual diagram of your asset&#39;s structure (recommended)</li></ul><h2 id="Documentation-Structure"><a class="docs-heading-anchor" href="#Documentation-Structure">Documentation Structure</a><a id="Documentation-Structure-1"></a><a class="docs-heading-anchor-permalink" href="#Documentation-Structure" title="Permalink"></a></h2><p>Each asset documentation page follows a consistent structure with the following sections:</p><ol><li><strong>Overview</strong> - Brief description of what the asset represents</li><li><strong>Asset Structure</strong> - Graphical representation showing components</li><li><strong>Flow Equations</strong> (where applicable) - Mathematical relationships between commodities</li><li><strong>Input File (Standard Format)</strong> - How to configure the asset</li><li><strong>Types - Asset Structure</strong> - Julia type definition</li><li><strong>Constructors</strong> - Julia constructors for the asset</li><li><strong>Examples</strong> - Practical examples and use cases</li><li><strong>Best Practices</strong> - Guidelines for effective usage</li><li><strong>Input File (Advanced Format)</strong> - Advanced configuration options (optional)</li></ol><h2 id="Step-by-Step-Process"><a class="docs-heading-anchor" href="#Step-by-Step-Process">Step-by-Step Process</a><a id="Step-by-Step-Process-1"></a><a class="docs-heading-anchor-permalink" href="#Step-by-Step-Process" title="Permalink"></a></h2><div class="admonition is-warning" id="Code-Examples-7e684061e40081d5"><header class="admonition-header">Code Examples<a class="admonition-anchor" href="#Code-Examples-7e684061e40081d5" title="Permalink"></a></header><div class="admonition-body"><p>The following examples show how to document a new asset called <code>MyNewAsset</code>. This example asset contains a <code>Transformation</code> component and two <code>Edge</code> components (one for <code>Electricity</code> and one for <code>Hydrogen</code>). Make sure to adapt these examples to match your specific asset&#39;s structure and components.</p></div></div><h3 id="Step-1:-Create-the-Documentation-File"><a class="docs-heading-anchor" href="#Step-1:-Create-the-Documentation-File">Step 1: Create the Documentation File</a><a id="Step-1:-Create-the-Documentation-File-1"></a><a class="docs-heading-anchor-permalink" href="#Step-1:-Create-the-Documentation-File" title="Permalink"></a></h3><p>Create a new markdown file in the <code>docs/src/Manual/assets/</code> directory with a descriptive name following the pattern of existing assets:</p><pre><code class="language-bash hljs"># Example file names:
+docs/src/Manual/assets/mynewasset.md
+docs/src/Manual/assets/thermalpower.md
+docs/src/Manual/assets/battery.md</code></pre><h3 id="Step-2:-Set-Up-the-Basic-Structure"><a class="docs-heading-anchor" href="#Step-2:-Set-Up-the-Basic-Structure">Step 2: Set Up the Basic Structure</a><a id="Step-2:-Set-Up-the-Basic-Structure-1"></a><a class="docs-heading-anchor-permalink" href="#Step-2:-Set-Up-the-Basic-Structure" title="Permalink"></a></h3><p>Start your documentation file with the following basic structure. Replace <code>MyNewAsset</code> and <code>mynewasset</code> with your actual asset name:</p><pre><code class="language-markdown hljs"># My New Asset
+
+## Contents
+
+[Overview](@ref mynewasset_overview) | [Asset Structure](@ref mynewasset_asset_structure) | [Flow Equations](@ref mynewasset_flow_equations) | [Input File (Standard Format)](@ref mynewasset_input_file) | [Types - Asset Structure](@ref mynewasset_type_definition) | [Constructors](@ref mynewasset_constructors) | [Examples](@ref mynewasset_examples) | [Best Practices](@ref mynewasset_best_practices) | [Input File (Advanced Format)](@ref mynewasset_advanced_json_csv_input_format)
+
+## [Overview](@id mynewasset_overview)
+
+My New Asset assets in Macro represent [specific technology or process] that [describe main function]. These assets are defined using either JSON or CSV input files placed in the `assets` directory, typically named with descriptive identifiers like `mynewasset.json` or `mynewasset.csv`.</code></pre><h3 id="Step-3:-Create-the-Asset-Structure-Section"><a class="docs-heading-anchor" href="#Step-3:-Create-the-Asset-Structure-Section">Step 3: Create the Asset Structure Section</a><a id="Step-3:-Create-the-Asset-Structure-Section-1"></a><a class="docs-heading-anchor-permalink" href="#Step-3:-Create-the-Asset-Structure-Section" title="Permalink"></a></h3><p>This section should include a mermaid diagram showing your asset&#39;s components and their connections:</p><pre><code class="language-markdown hljs">## [Asset Structure](@id mynewasset_asset_structure)
+
+A My New Asset asset consists of [X] main components:
+
+1. **Component 1**: Description of component
+2. **Component 2**: Description of component
+3. **Component 3**: Description of component
+
+Here is a graphical representation of the My New Asset asset:
+
+```mermaid
+%%{init: {&#39;theme&#39;: &#39;base&#39;, &#39;themeVariables&#39;: { &#39;background&#39;: &#39;#D1EBDE&#39; }}}%%
+flowchart LR
+  subgraph MyNewAsset
+  direction BT
+    A((Commodity1)) e1@--&gt;B{{..}}
+    B e2@--&gt;C((Commodity2))
+    e1@{ animate: true }
+    e2@{ animate: true }
+ end
+    style A font-size:19px,r:55px,fill:#FFD700,stroke:black,color:black,stroke-dasharray: 3,5;
+    style B fill:black,stroke:black,color:black;
+    style C font-size:19px,r:55px,fill:lightblue,stroke:black,color:black,stroke-dasharray: 3,5;
+    linkStyle 0,1 stroke:#FFD700, stroke-width: 2px;
+```</code></pre><p><strong>Mermaid Diagram Guidelines:</strong></p><ul><li>Use consistent styling for different commodity types:<ul><li>Electricity: <code>#FFD700</code> (gold)</li><li>Hydrogen: <code>lightblue</code></li><li>Natural Gas: <code>#005F6A</code> (dark blue-green)</li><li>CO₂: <code>lightgray</code></li><li>Biomass: <code>palegreen</code></li></ul></li><li>Use <code>{{..}}</code> for transformations</li><li>Use <code>[Storage]</code> for storage components</li><li>Use <code>((Commodity))</code> for external commodity nodes</li><li>Include animation with <code>@{ animate: true }</code></li><li>Adjust font and circle size to make the diagram more readable.</li></ul><p>Remember to update the mermaid diagram to match your asset&#39;s structure and components.</p><h3 id="Step-4:-Add-Flow-Equations-(if-applicable)"><a class="docs-heading-anchor" href="#Step-4:-Add-Flow-Equations-(if-applicable)">Step 4: Add Flow Equations (if applicable)</a><a id="Step-4:-Add-Flow-Equations-(if-applicable)-1"></a><a class="docs-heading-anchor-permalink" href="#Step-4:-Add-Flow-Equations-(if-applicable)" title="Permalink"></a></h3><p>If your asset has mathematical relationships between flows, document them here:</p><pre><code class="language-markdown hljs">## [Flow Equations](@id mynewasset_flow_equations)
+
+The My New Asset asset follows these stoichiometric relationships:
+
+```math
+\begin{aligned}
+\phi_{input} &amp;= \phi_{output} \cdot \epsilon_{efficiency} \\
+\phi_{emissions} &amp;= \phi_{input} \cdot \epsilon_{emission\_rate} \\
+\end{aligned}
+```
+
+Where:
+- ``\phi`` represents the flow of each commodity
+- ``\epsilon`` represents the stoichiometric coefficients defined in the [Conversion Process Parameters](@ref mynewasset_conversion_process_parameters) section.</code></pre><p><strong>Flow Equations Guidelines:</strong></p><ul><li>Ensure the coefficient names in your equations (e.g., <span>$\epsilon_{efficiency}$</span>) match the parameter names in your <strong>Conversion Process Parameters</strong> table (see <a href="#mynewasset_parameters">Step 6: Document Parameters</a>)</li><li>Use <span>$\phi_{commodity\_name}$</span> for commodity flows</li><li>Use <span>$\epsilon_{parameter\_name}$</span> for stoichiometric coefficients</li><li>List all variables used in the equations with clear descriptions</li><li>Ensure the equations are dimensionally consistent with the units specified in your parameter tables</li><li>Reference the parameter table where coefficients are defined</li></ul><p><strong>Example</strong>: If your parameter table includes <code>efficiency</code> and <code>emission_rate</code>, your equations should use <span>$\epsilon_{efficiency}$</span> and <span>$\epsilon_{emission\_rate}$</span> respectively.</p><h3 id="Step-5:-Document-Input-File-Format"><a class="docs-heading-anchor" href="#Step-5:-Document-Input-File-Format">Step 5: Document Input File Format</a><a id="Step-5:-Document-Input-File-Format-1"></a><a class="docs-heading-anchor-permalink" href="#Step-5:-Document-Input-File-Format" title="Permalink"></a></h3><p>This is one of the most important sections. Document how users can configure your asset:</p><pre><code class="language-markdown hljs">## [Input File (Standard Format)](@id mynewasset_input_file)
+
+The easiest way to include a My New Asset asset in a model is to create a new file (either JSON or CSV) and place it in the `assets` directory together with the other assets. 
+
+```
+your_case/
+├── assets/
+│   ├── mynewasset.json    # or mynewasset.csv
+│   ├── other_assets.json
+│   └── ...
+├── system/
+├── settings/
+└── ...
+```
+
+This file can either be created manually, or using the `template_asset` function, as shown in the [Adding an Asset to a System](@ref) section of the User Guide. The file will be automatically loaded when you run your Macro model. 
+
+The following is an example of a My New Asset asset input file:
+
+```json
+{
+    &quot;MyNewAsset&quot;: [
+        {
+            &quot;type&quot;: &quot;MyNewAsset&quot;,
+            &quot;instance_data&quot;: [
+                {
+                    &quot;id&quot;: &quot;mynewasset_1_SE&quot;,
+                    &quot;location&quot;: &quot;SE&quot;,
+                    &quot;efficiency&quot;: 0.8,
+                    &quot;investment_cost&quot;: 1000,
+                    &quot;fixed_om_cost&quot;: 50,
+                    &quot;variable_om_cost&quot;: 1
+                }
+            ]
+        }
+    ]
+}
+```
+
+!!! tip &quot;Global Data vs Instance Data&quot;
+    When working with JSON input files, the `global_data` field can be used to group data that is common to all instances of the same asset type. This is useful for setting constraints that are common to all instances of the same asset type and avoid repeating the same data for each instance. See the [Examples](@ref &quot;mynewasset_examples&quot;) section below for an example.</code></pre><p>Remember to update the example to match your asset&#39;s structure and components. The example above is only for illustrative purposes.</p><h3 id="mynewasset_parameters"><a class="docs-heading-anchor" href="#mynewasset_parameters">Step 6: Document Parameters</a><a id="mynewasset_parameters-1"></a><a class="docs-heading-anchor-permalink" href="#mynewasset_parameters" title="Permalink"></a></h3><p>Create comprehensive tables documenting all the parameters your asset accepts:</p><pre><code class="language-markdown hljs">The following tables outline the attributes that can be set for a My New Asset asset.
+
+#### Essential Attributes
+| Field | Type | Description |
+|--------------|---------|------------|
+| `Type` | String | Asset type identifier: &quot;MyNewAsset&quot; |
+| `id` | String | Unique identifier for the asset instance |
+| `location` | String | Geographic location/node identifier |
+
+#### [Conversion Process Parameters](@id mynewasset_conversion_process_parameters)
+| Field | Type | Description | Units | Default |
+|--------------|---------|------------|----------------|----------|
+| `efficiency` | Float64 | Conversion efficiency | fraction | 1.0 |
+| `parameter_name` | Float64 | Description of parameter | units | default-value |
+
+#### Investment Parameters
+| Field | Type | Description | Units | Default |
+|--------------|---------|------------|----------------|----------|
+| `can_retire` | Boolean | Whether capacity can be retired | - | true |
+| `can_expand` | Boolean | Whether capacity can be expanded | - | true |
+| `existing_capacity` | Float64 | Initial installed capacity | MW | 0.0 |
+| `capacity_size` | Float64 | Unit size for capacity decisions | - | 1.0 |
+
+#### Economic Parameters
+| Field | Type | Description | Units | Default |
+|--------------|---------|------------|----------------|----------|
+| `investment_cost` | Float64 | CAPEX per unit capacity | \$/MW | 0.0 |
+| `fixed_om_cost` | Float64 | Fixed O&amp;M costs | \$/MW/yr | 0.0 |
+| `variable_om_cost` | Float64 | Variable O&amp;M costs | \$/MWh | 0.0 |</code></pre><h3 id="Step-7:-Document-Constraints"><a class="docs-heading-anchor" href="#Step-7:-Document-Constraints">Step 7: Document Constraints</a><a id="Step-7:-Document-Constraints-1"></a><a class="docs-heading-anchor-permalink" href="#Step-7:-Document-Constraints" title="Permalink"></a></h3><p>Explain how constraints can be applied to your asset, and how to configure them. If some constraints are applied by default, explain them here.</p><pre><code class="language-markdown hljs">#### [Constraints Configuration](@id &quot;mynewasset_constraints&quot;)
+My New Asset assets can have different constraints applied to them, and the user can configure them using the following fields:
+
+| Field | Type | Description |
+|--------------|---------|------------|
+| `transform_constraints` | Dict{String,Bool} | List of constraints applied to the transformation component. |
+| `input_constraints` | Dict{String,Bool} | List of constraints applied to the input edge component. |
+| `output_constraints` | Dict{String,Bool} | List of constraints applied to the output edge component. |
+
+For example, if the user wants to apply the [`BalanceConstraint`](@ref balance_constraint_ref) to the transformation component and the [`CapacityConstraint`](@ref capacity_constraint_ref) to the input edge, the constraints fields should be set as follows:
+
+```json
+{
+    &quot;transform_constraints&quot;: {
+        &quot;BalanceConstraint&quot;: true
+    },
+    &quot;input_constraints&quot;: {
+        &quot;CapacityConstraint&quot;: true
+    }
+}
+```
+
+Users can refer to the [Adding Asset Constraints to a System](@ref) section of the User Guide for a list of all the constraints that can be applied to the different components of a My New Asset asset.
+
+#### Default constraints
+To simplify the input file and the asset configuration, the following constraints are applied to the My New Asset asset by default:
+
+- [Balance constraint](@ref balance_constraint_ref) (applied to the transformation component)
+- [Capacity constraint](@ref capacity_constraint_ref) (applied to the input edge)</code></pre><h3 id="Step-8:-Document-Type-Definition-and-Constructors"><a class="docs-heading-anchor" href="#Step-8:-Document-Type-Definition-and-Constructors">Step 8: Document Type Definition and Constructors</a><a id="Step-8:-Document-Type-Definition-and-Constructors-1"></a><a class="docs-heading-anchor-permalink" href="#Step-8:-Document-Type-Definition-and-Constructors" title="Permalink"></a></h3><pre><code class="language-markdown hljs">## [Types - Asset Structure](@id mynewasset_type_definition)
+
+The `MyNewAsset` asset is defined as follows:
+
+```julia
+struct MyNewAsset &lt;: AbstractAsset
+    id::AssetId
+    transform::Transformation
+    input_edge::Edge{Electricity}
+    output_edge::Edge{Hydrogen}
+end
+```
+
+## [Constructors](@id mynewasset_constructors)
+
+### Default constructor
+
+```julia
+MyNewAsset(id::AssetId, transform::Transformation, input_edge::Edge{Electricity}, output_edge::Edge{Hydrogen})
+```
+
+### Factory constructor
+```julia
+make(asset_type::Type{MyNewAsset}, data::AbstractDict{Symbol,Any}, system::System)
+```
+
+| Field | Type | Description |
+|--------------|---------|------------|
+| `asset_type` | `Type{MyNewAsset}` | Macro type of the asset |
+| `data` | `AbstractDict{Symbol,Any}` | Dictionary containing the input data for the asset |
+| `system` | `System` | System to which the asset belongs |</code></pre><p>Again, make sure to update the code blocks to match your asset&#39;s structure and components.</p><h3 id="Step-9:-Provide-Examples"><a class="docs-heading-anchor" href="#Step-9:-Provide-Examples">Step 9: Provide Examples</a><a id="Step-9:-Provide-Examples-1"></a><a class="docs-heading-anchor-permalink" href="#Step-9:-Provide-Examples" title="Permalink"></a></h3><p>Include practical examples showing different configurations:</p><pre><code class="language-markdown hljs">## [Examples](@id mynewasset_examples)
+
+This section contains examples of how to use the My New Asset asset in a Macro model.
+
+### Basic Configuration
+
+This example shows a basic My New Asset configuration with standard parameters.
+
+**JSON Format:**
+```json
+{
+    &quot;MyNewAsset&quot;: [
+        {
+            &quot;type&quot;: &quot;MyNewAsset&quot;,
+            &quot;instance_data&quot;: [
+                {
+                    &quot;id&quot;: &quot;mynewasset_1_SE&quot;,
+                    &quot;location&quot;: &quot;SE&quot;,
+                    &quot;efficiency&quot;: 0.8,
+                    &quot;investment_cost&quot;: 1000,
+                    &quot;fixed_om_cost&quot;: 50,
+                    &quot;variable_om_cost&quot;: 1
+                }
+            ]
+        }
+    ]
+}
+```
+
+**CSV Format:**
+
+| Type | id | location | efficiency | investment_cost | fixed_om_cost | variable_om_cost |
+|------|----|----------|------------|------------------|-----------------|-------------------|
+| MyNewAsset | mynewasset_SE | SE | 0.8 | 1000 | 50 | 1 |
+
+### Advanced Configuration with Global Data
+
+This example shows how to use global data to share common parameters across multiple instances.
+
+**JSON Format:**
+
+```json
+{
+    &quot;MyNewAsset&quot;: [
+        {
+            &quot;type&quot;: &quot;MyNewAsset&quot;,
+            &quot;global_data&quot;: {
+                &quot;investment_cost&quot;: 1000,
+                &quot;fixed_om_cost&quot;: 50,
+                &quot;variable_om_cost&quot;: 1
+            },
+            &quot;instance_data&quot;: [
+                {
+                    &quot;id&quot;: &quot;mynewasset_1_SE&quot;,
+                    &quot;location&quot;: &quot;SE&quot;,
+                    &quot;efficiency&quot;: 0.8
+                },
+                {
+                    &quot;id&quot;: &quot;mynewasset_2_SE&quot;,
+                    &quot;location&quot;: &quot;SE&quot;,
+                    &quot;efficiency&quot;: 0.85
+                }
+            ]
+        }
+    ]
+}
+```</code></pre><div class="admonition is-info" id="Handling-Special-Characters-267f575e5fb02215"><header class="admonition-header">Handling Special Characters<a class="admonition-anchor" href="#Handling-Special-Characters-267f575e5fb02215" title="Permalink"></a></header><div class="admonition-body"><p>When creating input files, especially in CSV format, pay attention to special characters like underscores (<code>_</code>). These characters might need to be escaped to prevent parsing errors. For example, the <code>fixed_om_cost</code> field should be written as <code>fixed\_om\_cost</code> to avoid being misinterpreted as italicized text.</p></div></div><h3 id="Step-10:-Add-Best-Practices"><a class="docs-heading-anchor" href="#Step-10:-Add-Best-Practices">Step 10: Add Best Practices</a><a id="Step-10:-Add-Best-Practices-1"></a><a class="docs-heading-anchor-permalink" href="#Step-10:-Add-Best-Practices" title="Permalink"></a></h3><p>Include a section on best practices for using your asset. This helps users avoid common mistakes and use the asset effectively:</p><pre><code class="language-markdown hljs">## [Best Practices](@id mynewasset_best_practices)
+
+When using My New Asset assets, consider the following best practices:
+
+1. **Efficiency Values**: Set realistic efficiency values based on technology specifications
+2. **Cost Parameters**: Use up-to-date cost data from reliable sources
+3. **Location Assignment**: Ensure locations correspond to existing nodes in your system
+4. **Capacity Planning**: Consider both existing and new capacity when setting parameters
+5. **Constraint Selection**: Choose constraints that reflect realistic operational limitations
+
+### Common Pitfalls to Avoid
+
+- **Missing Location**: Always specify a valid location for your asset
+- **Unrealistic Efficiency**: Avoid efficiency values above 1.0 or below 0.0
+- **Negative Costs**: Ensure all cost parameters are non-negative
+- **Missing Constraints**: Consider which constraints are necessary for realistic operation</code></pre><h3 id="Step-11:-Document-Advanced-Format-(optional)"><a class="docs-heading-anchor" href="#Step-11:-Document-Advanced-Format-(optional)">Step 11: Document Advanced Format (optional)</a><a id="Step-11:-Document-Advanced-Format-(optional)-1"></a><a class="docs-heading-anchor-permalink" href="#Step-11:-Document-Advanced-Format-(optional)" title="Permalink"></a></h3><p>This section is optional but recommended as it provides examples of advanced asset configuration using detailed JSON and CSV data formats. It&#39;s particularly useful for advanced users who need full control over asset configuration.</p><pre><code class="language-markdown hljs">## [Input File (Advanced Format)](@id mynewasset_advanced_json_csv_input_format)
+
+For advanced users, the My New Asset asset supports additional configuration options:
+
+### Advanced JSON Configuration
+
+```json
+{
+    &quot;MyNewAsset&quot;: [
+        {
+            &quot;type&quot;: &quot;MyNewAsset&quot;,
+            &quot;global_data&quot;: {
+                &quot;transforms&quot;: {
+                    &quot;constraints&quot;: {
+                    &quot;BalanceConstraint&quot;: true,
+                    &quot;CustomConstraint&quot;: true
+                },
+                &quot;edges&quot;: {
+                    &quot;output_edge&quot;: {
+                        &quot;commodity&quot;: &quot;Hydrogen&quot;,
+                        &quot;unidirectional&quot;: true,
+                        &quot;has_capacity&quot;: true,
+                        &quot;can_retire&quot;: true,
+                        &quot;can_expand&quot;: true,
+                        &quot;constraints&quot;: {
+                            &quot;CapacityConstraint&quot;: true,
+                            &quot;RampingLimitConstraint&quot;: true,
+                            &quot;MinFlowConstraint&quot;: true
+                        }
+                    },
+                    &quot;input_edge&quot;: {
+                        &quot;commodity&quot;: &quot;Electricity&quot;,
+                        &quot;unidirectional&quot;: true,
+                        &quot;has_capacity&quot;: false
+                    }
+                }
+            },
+            &quot;instance_data&quot;: [
+                {
+                    &quot;id&quot;: &quot;advanced_mynewasset_SE&quot;,
+                    &quot;transforms&quot;: {
+                        &quot;efficiency&quot;: 0.8
+                    },
+                    &quot;edges&quot;: {
+                        &quot;output_edge&quot;: {
+                            &quot;end_vertex&quot;: &quot;h2_SE&quot;,
+                            &quot;existing_capacity&quot;: 0,
+                            &quot;investment_cost&quot;: 1000,
+                            &quot;fixed_om_cost&quot;: 50,
+                            &quot;variable_om_cost&quot;: 1,
+                            &quot;capacity_size&quot;: 1,
+                            &quot;ramp_up_fraction&quot;: 0.5,
+                            &quot;ramp_down_fraction&quot;: 0.5
+                        },
+                        &quot;input_edge&quot;: {
+                            &quot;start_vertex&quot;: &quot;elec_SE&quot;
+                        }
+                    }
+                }
+            ]
+        }
+    ]
+}
+```
+</code></pre><h2 id="Documentation-Best-Practices"><a class="docs-heading-anchor" href="#Documentation-Best-Practices">Documentation Best Practices</a><a id="Documentation-Best-Practices-1"></a><a class="docs-heading-anchor-permalink" href="#Documentation-Best-Practices" title="Permalink"></a></h2><h3 id="1.-**Be-Comprehensive**"><a class="docs-heading-anchor" href="#1.-**Be-Comprehensive**">1. <strong>Be Comprehensive</strong></a><a id="1.-**Be-Comprehensive**-1"></a><a class="docs-heading-anchor-permalink" href="#1.-**Be-Comprehensive**" title="Permalink"></a></h3><ul><li>Document all parameters, even if they have default values</li><li>Include units for all parameters</li><li>Explain what each parameter controls</li></ul><h3 id="2.-**Provide-Examples**"><a class="docs-heading-anchor" href="#2.-**Provide-Examples**">2. <strong>Provide Examples</strong></a><a id="2.-**Provide-Examples**-1"></a><a class="docs-heading-anchor-permalink" href="#2.-**Provide-Examples**" title="Permalink"></a></h3><ul><li>Include both simple and complex examples</li><li>Show both JSON and CSV formats</li><li>Demonstrate common use cases</li></ul><h3 id="3.-**Use-Consistent-Formatting**"><a class="docs-heading-anchor" href="#3.-**Use-Consistent-Formatting**">3. <strong>Use Consistent Formatting</strong></a><a id="3.-**Use-Consistent-Formatting**-1"></a><a class="docs-heading-anchor-permalink" href="#3.-**Use-Consistent-Formatting**" title="Permalink"></a></h3><ul><li>Follow the existing documentation style</li><li>Use consistent table formatting</li><li>Maintain proper markdown syntax</li></ul><h3 id="4.-**Include-Visual-Elements**"><a class="docs-heading-anchor" href="#4.-**Include-Visual-Elements**">4. <strong>Include Visual Elements</strong></a><a id="4.-**Include-Visual-Elements**-1"></a><a class="docs-heading-anchor-permalink" href="#4.-**Include-Visual-Elements**" title="Permalink"></a></h3><ul><li>Create clear mermaid diagrams</li><li>Use consistent color coding for commodities</li><li>Show the asset structure clearly</li></ul><h3 id="5.-**Cross-Reference-Appropriately**"><a class="docs-heading-anchor" href="#5.-**Cross-Reference-Appropriately**">5. <strong>Cross-Reference Appropriately</strong></a><a id="5.-**Cross-Reference-Appropriately**-1"></a><a class="docs-heading-anchor-permalink" href="#5.-**Cross-Reference-Appropriately**" title="Permalink"></a></h3><ul><li>Link to related documentation sections</li><li>Reference constraint definitions</li><li>Point to user guides where relevant</li></ul><h2 id="Updating-the-Asset-Library"><a class="docs-heading-anchor" href="#Updating-the-Asset-Library">Updating the Asset Library</a><a id="Updating-the-Asset-Library-1"></a><a class="docs-heading-anchor-permalink" href="#Updating-the-Asset-Library" title="Permalink"></a></h2><p>After creating your documentation, you should update the Asset Library so that your new asset appears in the main asset list and the new page is accessible to other users.</p><ol><li><strong>Add your asset to the main <code>Assets.md</code> file</strong> in <code>docs/src/Manual/Assets.md</code></li><li><strong>Include a mermaid diagram</strong> in the asset list</li><li><strong>Ensure the asset name is correctly hyperlinked</strong> in the <code>Assets.md</code> file</li><li><strong>Update the table of contents</strong> if necessary</li><li><strong>Test the documentation</strong> by building the docs locally</li></ol><h3 id="Example-Addition-to-Assets.md"><a class="docs-heading-anchor" href="#Example-Addition-to-Assets.md">Example Addition to Assets.md</a><a id="Example-Addition-to-Assets.md-1"></a><a class="docs-heading-anchor-permalink" href="#Example-Addition-to-Assets.md" title="Permalink"></a></h3><pre><code class="language-markdown hljs">- [My New Asset](@ref)
+
+```mermaid
+%%{init: {&#39;theme&#39;: &#39;base&#39;, &#39;themeVariables&#39;: { &#39;background&#39;: &#39;#D1EBDE&#39; }}}%%
+flowchart LR
+  subgraph MyNewAsset
+  direction BT
+    A((Electricity)) e1@--&gt;|Input| B{{Transformation}}
+    B e2@--&gt;|Output| C((Hydrogen))
+    e1@{ animate: true }
+    e2@{ animate: true }
+ end
+    style A font-size:19px,r:55px,fill:#FFD700,stroke:black,color:black,stroke-dasharray: 3,5;
+    style B fill:black,stroke:black,color:black;
+    style C font-size:19px,r:55px,fill:lightblue,stroke:black,color:black,stroke-dasharray: 3,5;
+    linkStyle 0,1 stroke:#FFD700, stroke-width: 2px;
+```</code></pre><h3 id="Testing-Your-Documentation"><a class="docs-heading-anchor" href="#Testing-Your-Documentation">Testing Your Documentation</a><a id="Testing-Your-Documentation-1"></a><a class="docs-heading-anchor-permalink" href="#Testing-Your-Documentation" title="Permalink"></a></h3><ol><li><strong>Build the documentation locally</strong> to check for formatting errors:<pre><code class="language-bash hljs">julia --project=docs -e &#39;using Pkg; Pkg.develop(path=&quot;.&quot;); Pkg.instantiate(); include(&quot;docs/make.jl&quot;)&#39;</code></pre></li><li><strong>Open the <code>docs/build/index.html</code> file</strong> in your browser to view the documentation</li><li><strong>Verify all links work</strong> correctly</li><li><strong>Have others review</strong> the documentation for clarity and consistency</li><li><strong>Update as needed</strong> based on feedback and usage</li></ol><h2 id="Next-Steps"><a class="docs-heading-anchor" href="#Next-Steps">Next Steps</a><a id="Next-Steps-1"></a><a class="docs-heading-anchor-permalink" href="#Next-Steps" title="Permalink"></a></h2><p>After creating your asset documentation:</p><ol><li><strong>Submit a pull request</strong> with your documentation: <a href="../../../how_to_contribute/#opening_a_pr">Opening a PR</a></li><li><strong>Request review</strong> from other contributors: <a href="../../../how_to_contribute/#how_to_contribute">How to contribute guide</a></li><li><strong>Update related documentation</strong> if your asset affects other parts of the system</li><li><strong>Maintain the documentation</strong> as your asset evolves</li></ol><script type="module">import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+mermaid.initialize({
+    startOnLoad: true,
+    theme: "neutral"
+});
+</script></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../modeler_build_asset/">« Creating a New Asset</a><a class="docs-footer-nextpage" href="../modeler_create_example_case/">Creating a New Example Case »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.16.0 on <span class="colophon-date" title="Friday 21 November 2025 16:15">Friday 21 November 2025</span>. Using Julia version 1.12.1.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
