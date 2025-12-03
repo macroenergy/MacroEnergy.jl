@@ -1,11 +1,11 @@
 
-function generate_model(case::Case, use_preallocation::Bool=false)
+function generate_model(case::Case; use_preallocation::Bool=false)
 
     periods = get_periods(case)
     settings = get_settings(case)
     num_periods = number_of_periods(case)
 
-    @info("Generating model$(use_preallocation ? " with preallocation" : "")")
+    @info("Generating model")
 
     start_time = time();
 
@@ -13,7 +13,7 @@ function generate_model(case::Case, use_preallocation::Bool=false)
 
     @variable(model, vREF == 1)
 
-    # Initialize edge optimization managers for preallocation if requested
+    # Initialize preallocation managers if requested
     edge_managers = Dict{Int, Any}()
     if use_preallocation
         @info(" -- Initializing preallocation managers")
@@ -30,14 +30,17 @@ function generate_model(case::Case, use_preallocation::Bool=false)
             end
             
             if !isempty(all_edges)
-                time_horizon = collect(time_interval(all_edges[1]))
-                edge_managers[period_idx] = EdgeOptimizationManager(model, time_horizon)
+                # Create time horizon for this system
+                time_horizon = collect(system.time_data[:Electricity].time_interval)
+                
+                # Initialize edge optimization manager with preallocation
+                edge_managers[period_idx] = MacroEnergy.EdgeOptimizationManager(model, time_horizon)
                 
                 # Preallocate variables and constraints
-                preallocate_edge_variables!(edge_managers[period_idx], all_edges, time_horizon)
-                preallocate_edge_constraints!(edge_managers[period_idx], all_edges, time_horizon)
+                MacroEnergy.preallocate_edge_variables!(edge_managers[period_idx], all_edges, time_horizon)
+                MacroEnergy.preallocate_edge_constraints!(edge_managers[period_idx], all_edges, time_horizon)
                 
-                @info("   -- Preallocated for $(length(all_edges)) edges, $(length(time_horizon)) time steps")
+                @info("   -- Preallocated structures for $(length(all_edges)) edges, $(length(time_horizon)) time steps")
             end
         end
     end

@@ -1,7 +1,7 @@
 
-function initialize_planning_problem!(case::Case, opt::Dict, use_preallocation::Bool=false)
+function initialize_planning_problem!(case::Case, opt::Dict; use_preallocation::Bool=false)
     
-    planning_problem = generate_planning_problem(case);
+    planning_problem = generate_planning_problem(case; use_preallocation=use_preallocation);
 
     optimizer = create_optimizer(opt[:solver], opt_env(opt[:solver]), opt[:attributes])
 
@@ -18,7 +18,7 @@ function initialize_planning_problem!(case::Case, opt::Dict, use_preallocation::
 
 end
 
-function generate_planning_problem(case::Case)
+function generate_planning_problem(case::Case; use_preallocation::Bool=false)
 
     @info("Generating planning problem")
 

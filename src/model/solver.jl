@@ -1,12 +1,16 @@
-function solve_case(case::Case, opt::O, use_preallocation::Bool=false) where O <: Union{Optimizer, Dict{Symbol, Dict{Symbol, Any}}}
-    solve_case(case, opt, solution_algorithm(case), use_preallocation)
+function solve_case(case::Case, opt::O; use_preallocation::Bool=false) where O <: Union{Optimizer, Dict{Symbol, Dict{Symbol, Any}}}
+    solve_case(case, opt, solution_algorithm(case); use_preallocation=use_preallocation)
 end
 
-function solve_case(case::Case, opt::Optimizer, ::Monolithic, use_preallocation::Bool=false)
+function solve_case(case::Case, opt::Optimizer, ::Monolithic; use_preallocation::Bool=false)
 
     @info("*** Running simulation with monolithic solver ***")
     
-    model = generate_model(case, use_preallocation)
+    if use_preallocation
+        @info("Using preallocation for model generation")
+    end
+    
+    model = generate_model(case; use_preallocation=use_preallocation)
 
     set_optimizer(model, opt)
 
@@ -23,28 +27,37 @@ function solve_case(case::Case, opt::Optimizer, ::Monolithic, use_preallocation:
 end
 
 ####### myopic expansion #######
-function solve_case(case::Case, opt::Optimizer, ::Myopic, use_preallocation::Bool=false)
+function solve_case(case::Case, opt::Optimizer, ::Myopic; use_preallocation::Bool=false)
 
     @info("*** Running simulation with myopic iteration ***")
     
-    models = run_myopic_iteration!(case, opt, use_preallocation)
+    if use_preallocation
+        @info "Using preallocation for myopic model generation"
+    end
+    
+    models = run_myopic_iteration!(case, opt; use_preallocation=use_preallocation)
 
     return (case, myopic_results)
 end
 
 ####### Benders decomposition algorithm #######
-function solve_case(case::Case, opt::Dict{Symbol, Dict{Symbol, Any}}, ::Benders, use_preallocation::Bool=false)
+function solve_case(case::Case, opt::Dict{Symbol, Dict{Symbol, Any}}, ::Benders; use_preallocation::Bool=false)
 
     @info("*** Running simulation with Benders decomposition ***")
+    
+    if use_preallocation
+        @info "Using preallocation for Benders decomposition"
+    end
+    
     bd_setup = get_settings(case).BendersSettings
     periods = get_periods(case);
 
     # Decomposed system
     periods_decomp = generate_decomposed_system(periods);
 
-    planning_problem = initialize_planning_problem!(case, opt[:planning], use_preallocation)
+    planning_problem = initialize_planning_problem!(case, opt[:planning]; use_preallocation=use_preallocation)
 
-    subproblems, linking_variables_sub = initialize_subproblems!(periods_decomp, opt[:subproblems], bd_setup[:Distributed], bd_setup[:IncludeSubproblemSlacksAutomatically], use_preallocation)
+    subproblems, linking_variables_sub = initialize_subproblems!(periods_decomp, opt[:subproblems], bd_setup[:Distributed], bd_setup[:IncludeSubproblemSlacksAutomatically]; use_preallocation=use_preallocation)
 
     results = MacroEnergySolvers.benders(planning_problem, subproblems, linking_variables_sub, Dict(pairs(bd_setup)))
 

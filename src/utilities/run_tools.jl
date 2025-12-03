@@ -8,6 +8,8 @@ function run_case(
     log_file_path::AbstractString=joinpath(case_path, "$(basename(case_path)).log"),
     log_file_attribution::Bool=true,
     use_preallocation::Bool=false,  # New preallocation flag
+    # Preallocation option
+    use_preallocation::Bool=false,
     # Monolithic or Myopic
     optimizer::DataType=HiGHS.Optimizer,
     optimizer_env::Any=nothing,
@@ -45,6 +47,7 @@ function run_case(
         end
 
 <<<<<<< HEAD
+<<<<<<< HEAD
         # If Benders, create processes for subproblems optimization
         if isa(solution_algorithm(case), Benders)
             if case.settings.BendersSettings[:Distributed]
@@ -53,6 +56,9 @@ function run_case(
             end
 =======
     (case, solution) = solve_case(case, optimizer, use_preallocation)
+=======
+    (case, solution) = solve_case(case, optimizer; use_preallocation=use_preallocation)
+>>>>>>> eccf6566 (preallocation updates to benders/operations, benders/planning, generate_model, myopic, solver, and run_tools)
 
     if length(case.systems) ≥ 1
         case_path = create_output_path(case.systems[1], case_path)
