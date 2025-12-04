@@ -52,6 +52,10 @@ const pages = [
         "Developer Guide" => [
             "Creating a Constraint" => "Guides/Developer Guide/dev_create_constraint.md",
             "Type Hierarchy" => "Guides/Developer Guide/2_type_hierarchy.md",
+            "Preallocation in MacroEnergy" => "Guides/Developer Guide/PREALLOCATION_IMPLEMENTATION_SUMMARY.md",
+            "Container Specification for Preallocation" => "Guides/Developer Guide/CONTAINER_SPECIFICATION_DISCOVERY.md",
+            "Corrected Implementation Guide" => "Guides/Developer Guide/CORRECTED_IMPLEMENTATION_GUIDE.md",
+            "Task Completion Summary" => "Guides/Developer Guide/TASK_COMPLETION_SUMMARY.md",
         ],
     ],
     "Assets" => "Assets/assets_guide.md",
