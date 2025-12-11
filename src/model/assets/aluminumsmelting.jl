@@ -21,10 +21,10 @@ function full_default_data(::Type{AluminumSmelting}, id=missing)
         :id => id,
         :transforms => @transform_data(
             :timedata => "Aluminum",
-            :elec_aluminum_rate => 1.0,
-            :alumina_aluminum_rate => 1.0,
-            :graphite_aluminum_rate => 1.0,
-            :graphite_emissions_rate => 1.0,
+            :elec_aluminum_rate => 13.3,
+            :alumina_aluminum_rate => 1.93,
+            :graphite_aluminum_rate => 0.45,
+            :graphite_emissions_rate => 3.67,
             :constraints => Dict{Symbol, Bool}(
                 :BalanceConstraint => true,
             ),
@@ -38,7 +38,15 @@ function full_default_data(::Type{AluminumSmelting}, id=missing)
                 :has_capacity => true,
                 :can_retire => true,
                 :can_expand => true,
-                :can_retire => true,
+                :capacity_size => 1,
+                :investment_cost => 12000000,
+                :wacc => 0.039,
+                :lifetime => 20,
+                :capital_recovery_period => 20,
+                :fixed_om_cost => 2040000,
+                :variable_om_cost => 62,
+                :startup_cost => 1469798,
+                :uc => false,
                 :constraints => Dict{Symbol, Bool}(
                     :CapacityConstraint => true,
                 )
@@ -66,16 +74,19 @@ function simple_default_data(::Type{AluminumSmelting}, id=missing)
         :existing_capacity => 0.0,
         :capacity_size => 1.0,
         :timedata => "Aluminum",
-        :elec_aluminum_rate => 1.0,
-        :alumina_aluminum_rate => 1.0,
-        :graphite_aluminum_rate => 1.0,
-        :graphite_emissions_rate => 1.0,
+        :elec_aluminum_rate => 13.3,
+        :alumina_aluminum_rate => 1.93,
+        :graphite_aluminum_rate => 0.45,
+        :graphite_emissions_rate => 3.67,
         :co2_sink => missing,
         :uc => false,
-        :investment_cost => 0.0,
-        :fixed_om_cost => 0.0,
-        :variable_om_cost => 0.0,
-        :startup_cost => 0.0,
+        :investment_cost => 12000000,
+        :wacc => 0.039,
+        :lifetime => 20,
+        :capital_recovery_period => 20,
+        :fixed_om_cost => 2040000,
+        :variable_om_cost => 62,
+        :startup_cost => 1469798,
         :min_up_time => 0,
         :min_down_time => 0,
         :ramp_up_fraction => 0.0,
@@ -277,22 +288,22 @@ function make(asset_type::Type{AluminumSmelting}, data::AbstractDict{Symbol,Any}
             elec_edge.id => 1.0,
             alumina_edge.id => 0.0,
             graphite_edge.id => 0.0,
-            aluminum_edge.id => get(transform_data, :elec_aluminum_rate, 1.0)
+            aluminum_edge.id => get(transform_data, :elec_aluminum_rate, 13.3)
         ),
         :alumina_to_aluminum => Dict(
             elec_edge.id => 0.0,
             alumina_edge.id => 1.0,
             graphite_edge.id => 0.0,
-            aluminum_edge.id => get(transform_data, :alumina_aluminum_rate, 1.0)
+            aluminum_edge.id => get(transform_data, :alumina_aluminum_rate, 1.93)
         ),
         :graphite_to_aluminum => Dict(
             elec_edge.id => 0.0,
             alumina_edge.id => 0.0,
             graphite_edge.id => 1.0,
-            aluminum_edge.id => get(transform_data, :graphite_aluminum_rate, 1.0)
+            aluminum_edge.id => get(transform_data, :graphite_aluminum_rate, 0.45)
         ),
         :emissions => Dict(
-            graphite_edge.id => get(transform_data, :graphite_emissions_rate, 1.0),
+            graphite_edge.id => get(transform_data, :graphite_emissions_rate, 3.67),
             co2_edge.id => 1.0
         )
     )

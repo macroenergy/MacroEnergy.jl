@@ -25,7 +25,7 @@ function full_default_data(::Type{AluminumRefining}, id=missing)
         :id => id,
         :transforms => @transform_data(
             :timedata => "Aluminum",              # Time series data identifier
-            :elec_aluminum_rate => 1.0,           # Rate of electricity needed per unit of aluminum
+            :elec_aluminum_rate => 2.0,           # Rate of electricity needed per unit of aluminum
             :aluminumscrap_aluminum_rate => 1.05, # Rate of aluminum scrap needed per unit of aluminum (includes 5% loss)
             :aluminum_emissions_rate => 0.0,      # Emissions rate for aluminum production
             :constraints => Dict{Symbol, Bool}(
@@ -41,8 +41,15 @@ function full_default_data(::Type{AluminumRefining}, id=missing)
             :aluminum_edge => @edge_data(
                 :commodity=>"Aluminum",
                 :has_capacity => true,            # Edge has capacity constraints
-                :can_retire => true,              # Capacity can be retired
+                :can_retire => true,             # Capacity can be retired
                 :can_expand => true,              # Capacity can be expanded
+                :capacity_size => 1,
+                :investment_cost => 2400000,
+                :wacc => 0.039,
+                :lifetime => 20,
+                :capital_recovery_period => 20,
+                :fixed_om_cost => 420000,
+                :variable_om_cost => 123,
                 :constraints => Dict{Symbol, Bool}(
                     :CapacityConstraint => true,  # Enforces capacity constraints
                 )
@@ -62,16 +69,19 @@ function simple_default_data(::Type{AluminumRefining}, id=missing)
         :id => id,
         :location => missing,
         :can_expand => true,                      # Asset can be expanded
-        :can_retire => true,                      # Asset can be retired
+        :can_retire => true,                     # Asset can be retired
         :existing_capacity => 0.0,                # Initial capacity
         :capacity_size => 1.0,                    # Size of capacity units
         :timedata => "Aluminum",                  # Time series data identifier
-        :elec_aluminum_rate => 1.0,               # Rate of electricity needed per unit of aluminum
+        :elec_aluminum_rate => 2.0,               # Rate of electricity needed per unit of aluminum
         :aluminumscrap_aluminum_rate => 1.05,     # Rate of aluminum scrap needed per unit of aluminum
         :aluminum_emissions_rate => 0.0,          # Emissions rate for aluminum production
-        :investment_cost => 0.0,                  # Cost to build new capacity
-        :fixed_om_cost => 0.0,                    # Fixed operating and maintenance cost
-        :variable_om_cost => 0.0,                 # Variable operating and maintenance cost
+        :investment_cost => 2400000,              # Cost to build new capacity
+        :wacc => 0.039,
+        :lifetime => 20,
+        :capital_recovery_period => 20,
+        :fixed_om_cost => 420000,                 # Fixed operating and maintenance cost
+        :variable_om_cost => 123,                 # Variable operating and maintenance cost
     )
 end
 
@@ -195,12 +205,12 @@ function make(asset_type::Type{AluminumRefining}, data::AbstractDict{Symbol,Any}
         :elec_to_aluminum => Dict(
             elec_edge.id => 1.0,                  # Electricity input coefficient
             aluminumscrap_edge.id => 0.0,         # No direct conversion from electricity to aluminum scrap
-            aluminum_edge.id => get(transform_data, :elec_aluminum_rate, 1.0)  # Electricity needed per unit of aluminum
+            aluminum_edge.id => get(transform_data, :elec_aluminum_rate, 2.0)  # Electricity needed per unit of aluminum
         ),
         :aluminumscrap_to_aluminum => Dict(
             elec_edge.id => 0.0,                  # No direct conversion from aluminum scrap to electricity
             aluminumscrap_edge.id => 1.0,         # Aluminum scrap input coefficient
-            aluminum_edge.id => get(transform_data, :aluminumscrap_aluminum_rate, 1.0)  # Aluminum scrap needed per unit of aluminum
+            aluminum_edge.id => get(transform_data, :aluminumscrap_aluminum_rate, 1.05)  # Aluminum scrap needed per unit of aluminum
         )
     )
     return AluminumRefining(id, aluminumrefining_transform, elec_edge, aluminumscrap_edge, aluminum_edge)

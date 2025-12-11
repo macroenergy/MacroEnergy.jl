@@ -104,7 +104,7 @@ function write_outputs(case_path::AbstractString, case::Case, bd_results::Bender
             
             # Scaling factor to account for discounting in multi-period models
             discount_scaling = compute_variable_cost_discount_scaling(period_idx, settings)
-            write_duals(results_dir, period, discount_scaling)
+            write_duals_benders(results_dir, period, discount_scaling)
         end
     end
     write_settings(case, joinpath(case_path, "settings.json"))

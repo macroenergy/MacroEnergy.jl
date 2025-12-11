@@ -36,17 +36,18 @@ function create_user_additions_module(case_path::AbstractString=pwd())
     """
     module_path = user_additions_module_path(case_path)
     user_files = [
-        user_additions_subcommodities_path(case_path),
-        user_additions_assets_path(case_path)
+        ("commodities", user_additions_subcommodities_path(case_path)),
+        ("assets", user_additions_assets_path(case_path))
     ]
     mkpath(dirname(module_path))
     io = open(module_path, "w")
     println(io, "module $(USER_ADDITIONS_NAME)")
     println(io, "using $(@__MODULE__)")
-    for file in user_files
+    for (name, file) in user_files
         println(io, "")
-        println(io, "if isfile(\"$file\")")
-        println(io, "    include(\"$file\")")
+        println(io, "$(name)_path = raw\"$file\"")
+        println(io, "if isfile($(name)_path)")
+        println(io, "    include($(name)_path)")
         println(io, "end")
     end
     println(io, "")

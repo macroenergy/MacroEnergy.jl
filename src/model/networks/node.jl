@@ -265,6 +265,9 @@ function make(commodity::Type{<:Commodity}, input_data::AbstractDict{Symbol,Any}
     elseif any(isa.(node.constraints, CO2StorageConstraint))
         node.balance_data =
             get(data, :balance_data, Dict(:co2_storage => Dict{Symbol,Float64}()))
+    elseif any(isa.(node.constraints, AggregatedDemandConstraint))
+        node.balance_data =
+            get(data, :balance_data, Dict(:demand_flow => Dict{Symbol,Float64}()))
     else
         node.balance_data =
             get(data, :balance_data, Dict(:exogenous => Dict{Symbol,Float64}()))

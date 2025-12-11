@@ -155,7 +155,7 @@ function test_write_balance_duals(case, model)
         system = case.systems[1]
         
         # Create temporary directory for outputs
-        temp_dir = mktempdir()
+        temp_dir = abspath(mktempdir("."))
         
         try
             @test_logs (:info, "Writing balance constraint dual values to $(temp_dir)") write_balance_duals(temp_dir, system)
@@ -205,7 +205,7 @@ function test_write_co2_cap_duals(case, model)
         system = case.systems[1]
         
         # Create temporary directory for outputs
-        temp_dir = mktempdir()
+        temp_dir = abspath(mktempdir("."))
         
         try
             # Write CO2 cap duals
@@ -255,7 +255,7 @@ function test_write_duals(case, model)
         system = case.systems[1]
         
         # Create temporary directory for outputs
-        temp_dir = mktempdir()
+        temp_dir = abspath(mktempdir("."))
         
         try
             # Write all duals to CSV files

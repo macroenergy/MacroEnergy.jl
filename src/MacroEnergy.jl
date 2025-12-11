@@ -45,6 +45,11 @@ abstract type AluminumScrap <: Commodity end ## tonnes
 abstract type Alumina <: Commodity end ## tonnes
 abstract type Graphite <: Commodity end ## tonnes
 abstract type Bauxite <: Commodity end ## tonnes
+abstract type IronOre <: Commodity end ## tonnes
+abstract type SteelScrap <: Commodity end ## tonnes
+abstract type CrudeSteel <: Commodity end ## tonnes
+abstract type Heat <: Commodity end ## MWh
+abstract type Steam <: Commodity end ## MWh
 
 ## Time data types
 abstract type AbstractTimeData{T<:Commodity} end
@@ -182,6 +187,15 @@ include("model/assets/cementplant.jl")
 include("model/assets/aluminumrefining.jl")
 include("model/assets/aluminumsmelting.jl")
 include("model/assets/aluminaplant.jl")
+include("model/assets/integratedblastfurnacebasicoxygenfurnace.jl")
+include("model/assets/integratedblastfurnacebasicoxygenfurnaceccs.jl")
+include("model/assets/integrateddirectreductionelectricarcfurnace.jl")
+include("model/assets/integrateddirectreductionelectricarcfurnaceccs.jl")
+include("model/assets/standaloneelectricarcfurnace.jl")
+include("model/assets/thermalheating.jl")
+include("model/assets/electricheating.jl")
+include("model/assets/thermalsteam.jl")
+include("model/assets/electricsteam.jl")
 
 include("config/configure_settings.jl")
 include("config/case_settings.jl")
@@ -192,6 +206,7 @@ include_all_in_folder("write_outputs/")
 export AbstractAsset,
     AbstractTypeConstraint,
     AgeBasedRetirementConstraint,
+    AggregatedDemandConstraint,
     Alumina,
     Aluminum,
     AluminumScrap,
@@ -204,11 +219,14 @@ export AbstractAsset,
     Biomass,
     Coal,
     Cement,
+    CrudeSteel,
     BECCSElectricity,
     BECCSHydrogen,
     BECCSGasoline,
     BECCSLiquidFuels,
     BECCSNaturalGas,
+    BlastFurnaceBasicOxygenFurnace,
+    BlastFurnaceBasicOxygenFurnaceCCS,
     CO2,
     CO2CapConstraint,
     CO2Captured,
@@ -217,14 +235,21 @@ export AbstractAsset,
     CapacityConstraint,
     collect_results,
     Commodity,
+    DirectReductionElectricArcFurnace,
+    DirectReductionElectricArcFurnaceCCS,
     Edge,
     EdgeWithUC,
     Electricity,
     Electrolyzer,
     ElectricDAC,
+    ElectricArcFurnace,
+    ElectricHeating,
+    ElectricSteam,
     FossilFuelsUpstream,
     FuelCell,
     FuelsEndUse,
+    ThermalHeating,
+    ThermalSteam,
     GasStorage,
     Graphite,
     get_optimal_capacity, 
@@ -232,8 +257,10 @@ export AbstractAsset,
     get_optimal_flow,
     get_optimal_new_capacity,
     get_optimal_retired_capacity,
+    Heat,
     HydroRes,
     Hydrogen,
+    IronOre,
     LongDurationStorage,
     LongDurationStorageImplicitMinMaxConstraint,
     LongDurationStorageChangeConstraint,
@@ -261,6 +288,8 @@ export AbstractAsset,
     PolicyConstraint,
     RampingLimitConstraint,
     run_case,
+    Steam,
+    SteelScrap,
     Storage,
     StorageCapacityConstraint,
     StorageChargeDischargeRatioConstraint,

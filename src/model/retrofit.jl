@@ -1,4 +1,3 @@
-    
 function make_retrofit_options(system::System, data::Dict{Symbol,Any})
     # Make retrofitting assets for assets with retrofit_options
     if haskey(data[:instance_data], :retrofit_options)
@@ -38,9 +37,32 @@ function make_retrofit_options(system::System, data::Dict{Symbol,Any})
 
     end
 
-end 
+end
 
-function add_retrofit_constraints!(system::System, period_idx::Int, model::Model)    
+@doc raw"""
+    add_retrofit_constraints!(system::System, period_idx::Int, model::Model)
+
+For each edge $$e$$ that can be retrofitted, the functional form of the retrofitting constraint is:
+
+```math
+\begin{aligned}
+\text{retrofitted\_capacity}(e)
+\;=\;
+\sum_{r \in R}
+\frac{
+\text{new\_capacity}(r)
+}{
+\text{retrofit\_efficiency}(r)
+}
+\end{aligned}
+```
+
+Where $$e$$ is the edge that can be retrofitted, $$R$$ is the set of edges that are retrofit options for $$e$$, and $$r$$ is the retrofitting edge.
+
+!!! note "Turning on retrofitting in settings"
+    This constraint is only applied if the ```Retrofitting: true``` setting is set in ```macro_settings.json```.
+"""
+function add_retrofit_constraints!(system::System, period_idx::Int, model::Model)
     # Add retrofitting constraints
     
     can_retrofit_edges,is_retrofit_edges = get_retrofit_edges(system)

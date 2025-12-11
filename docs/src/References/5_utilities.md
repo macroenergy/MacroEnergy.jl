@@ -233,7 +233,7 @@ MacroEnergy.collect_distributed_constraint_duals
 
 ## `collect_local_constraint_duals`
 ```@docs
-MacroEnergy.collect_local_constraint_duals(::Vector{Dict{Any,Any}}, ::Type{<:MacroEnergy.AbstractTypeConstraint})
+MacroEnergy.collect_local_constraint_duals(::Vector{<:AbstractDict}, ::Type{MacroEnergy.AbstractTypeConstraint})
 MacroEnergy.collect_local_constraint_duals(::Vector{<:AbstractDict}, ::Type{MacroEnergy.BalanceConstraint})
 ```
 

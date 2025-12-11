@@ -45,6 +45,41 @@ function write_duals(
 end
 
 """
+    write_duals_benders(
+        results_dir::AbstractString,
+        system::System,
+        scaling::Float64=1.0
+    )
+
+Write dual values for Benders decomposition results.
+
+This function is slightly different than the one for other solution algorithms as the 
+dual values for balance constraints are already undiscounted (the objective function 
+for the operational subproblems is already undiscounted). 
+CO2 cap constraint duals come from the planning problem which is discounted (so scaling is applied).
+
+# Arguments
+- `results_dir::AbstractString`: Directory where CSV files will be written
+- `system::System`: The system containing solved constraints with dual values
+- `scaling::Float64`: Scaling factor for CO2 cap constraint duals (default is 1.0)
+"""
+function write_duals_benders(
+    results_dir::AbstractString,
+    system::System,
+    scaling::Float64=1.0
+)
+    @info "Writing constraint dual values to $results_dir"
+
+    # Note: with Benders, the duals for balance constraints don't need to be undiscounted
+    # as the objective function for the operational subproblems is already undiscounted
+    write_balance_duals(results_dir, system)
+    # Duals for CO2 cap constraints comes from the planning problem which is discounted
+    write_co2_cap_duals(results_dir, system, scaling)
+    
+    return nothing
+end
+
+"""
     write_balance_duals(results_dir::AbstractString, system::System, scaling::Float64=1.0)
 
 Write balance constraint dual values (marginal prices) to CSV file.
@@ -110,7 +145,7 @@ function write_balance_duals(
 
         # Compute subperiod weights for rescaling
         weights = Float64[subperiod_weight(node, current_subperiod(node, t)) for t in time_interval(node)]
-        
+
         # Rescale dual values by subperiod weights
         push!(balance_duals, duals_dict[:demand] ./ (weights .* scaling))
     end

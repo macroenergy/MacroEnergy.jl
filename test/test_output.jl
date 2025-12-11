@@ -667,7 +667,7 @@ function test_writing_output()
 
     @testset "get_output_dir Tests" begin
         # Create a temporary directory for testing
-        test_dir = mktempdir()
+        test_dir = abspath(mktempdir("."))
         
         # Create a mock system with different settings
         system1 = empty_system(test_dir)
@@ -711,7 +711,7 @@ function test_writing_output()
 
         @testset "choose_output_dir Tests" begin
             # Create a temporary directory for testing
-            test_dir = mktempdir()
+            test_dir = abspath(mktempdir("."))
             
             # Test with non-existing directory
             result = find_available_path(test_dir)
@@ -732,13 +732,13 @@ function test_writing_output()
             path_with_slash = joinpath(test_dir, "dirwithslash/")
             mkpath(path_with_slash)
             result = find_available_path(path_with_slash)
-            @test result == joinpath(test_dir, "dirwithslash/results_001")
+            @test result == joinpath(test_dir, "dirwithslash", "results_001")
             
             # Test with path containing spaces
             path_with_spaces = joinpath(test_dir, "my dir")
             mkpath(path_with_spaces)
             result = find_available_path(path_with_spaces)
-            @test result == joinpath(test_dir, "my dir/results_001")
+            @test result == joinpath(test_dir, "my dir", "results_001")
             
             # Cleanup
             rm(test_dir, recursive=true)

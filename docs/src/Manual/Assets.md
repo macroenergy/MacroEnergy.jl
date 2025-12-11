@@ -220,6 +220,82 @@ flowchart LR
   linkStyle 2 stroke:#FFD700, stroke-width: 2px;
 ```
 
+### [Integrated Blast Furnace Basic Oxygen Furnace (with and without CCS)](@ref)
+
+```mermaid
+%%{init: {'theme': 'base', 'themeVariables': { 'background': '#D1EBDE' }}}%%
+flowchart BT
+  subgraph BF-BOF
+  direction BT
+    A1(("**IronOre**")) e1@-->B{{"**BF-BOF**"}}
+    A2(("**MetCoal**")) e2@-->B{{"**BF-BOF**"}}
+    A3(("**ThermalCoal**")) e3@-->B{{"**BF-BOF**"}}
+    A4(("**SteelScrap**")) e4@-->B{{"**BF-BOF**"}}
+    A5(("**NaturalGas**")) e5@-->B{{"**BF-BOF**"}}
+    B{{"**BF-BOF**"}} e6@-->C1(("**Electricity**"))
+    B{{"**BF-BOF**"}} e7@-->C2(("**CrudeSteel**"))
+    B{{"**BF-BOF**"}} e8@-->C3(("**CO2**"))
+
+    e1@{ animate: true }
+    e2@{ animate: true }
+    e3@{ animate: true }
+    e4@{ animate: true }
+    e5@{ animate: true }
+    e6@{ animate: true }
+    e7@{ animate: true }
+    e8@{ animate: true }
+ end
+    style A1 font-size:15px,r:46px,fill:#A52A2A,stroke:black,color:black,stroke-dasharray: 3,5;
+    style A2 font-size:15px,r:46px,fill:#8B4513,stroke:black,color:black,stroke-dasharray: 3,5;
+    style A3 font-size:15px,r:46px,fill:#A0522D,stroke:black,color:black,stroke-dasharray: 3,5;
+    style A4 font-size:15px,r:46px,fill:#2874A6,stroke:black,color:black,stroke-dasharray: 3,5;
+    style A5 font-size:15px,r:46px,fill:#005F6A,stroke:black,color:black,stroke-dasharray: 3,5;
+    style B fill:white,stroke:black,color:black;
+    style C1 font-size:15px,r:46px,fill:#FFD700,stroke:black,color:black,stroke-dasharray: 3,5;
+    style C2 font-size:15px,r:46px,fill:#566573,stroke:black,color:black,stroke-dasharray: 3,5;
+    style C3 font-size:15px,r:46px,fill:lightgray,stroke:black,color:black,stroke-dasharray: 3,5;
+    linkStyle 0 stroke:#A52A2A, stroke-width: 2px;
+    linkStyle 1 stroke:#8B4513, stroke-width: 2px;
+    linkStyle 2 stroke:#A0522D, stroke-width: 2px;
+    linkStyle 3 stroke:#2874A6, stroke-width: 2px;
+    linkStyle 4 stroke:#005F6A, stroke-width: 2px;
+    linkStyle 5 stroke:#FFD700, stroke-width: 2px;
+    linkStyle 6 stroke:#566573, stroke-width: 2px;
+    linkStyle 7 stroke:lightgray, stroke-width: 2px;
+```
+
+### [Integrated Direct Reduction Electric Arc Furnace (with and without CCS)](@ref)
+```mermaid
+%%{init: {'theme': 'base', 'themeVariables': { 'background': '#D1EBDE' }}}%%
+flowchart BT
+  subgraph NG-DR-EAF
+  direction BT
+    A1(("**IronOre**")) e1@-->B{{"**NG-DR-EAF**"}}
+    A2(("**NaturalGas**")) e2@-->B{{"**NG-DR-EAF**"}}
+    A3(("**Electricity**")) e3@-->B{{"**NG-DR-EAF**"}}
+    B{{"**NG-DR-EAF**"}} e4@-->C1(("**CrudeSteel**"))
+    B{{"**NG-DR-EAF**"}} e5@-->C2(("**CO2**"))
+
+    e1@{ animate: true }
+    e2@{ animate: true }
+    e3@{ animate: true }
+    e4@{ animate: true }
+    e5@{ animate: true }
+ end
+    style A1 font-size:15px,r:45px,fill:#A52A2A,stroke:black,color:black,stroke-dasharray: 3,5;
+    style A2 font-size:15px,r:45px,fill:#005F6A,stroke:black,color:black,stroke-dasharray: 3,5;
+    style A3 font-size:15px,r:45px,fill:#FFD700,stroke:black,color:black,stroke-dasharray: 3,5;
+    style B fill:white,stroke:black,color:black;
+    style C1 font-size:15px,r:45px,fill:#566573,stroke:black,color:black,stroke-dasharray: 3,5;
+    style C2 font-size:15px,r:45px,fill:lightgray,stroke:black,color:black,stroke-dasharray: 3,5;
+
+    linkStyle 0 stroke:#A52A2A, stroke-width: 2px;
+    linkStyle 1 stroke:#005F6A, stroke-width: 2px;
+    linkStyle 2 stroke:#FFD700, stroke-width:2px;
+    linkStyle 3 stroke:#566573, stroke-width: 2px;
+    linkStyle 3 stroke:#696969, color:lightgray, stroke-width: 2px;
+```
+
 ### [Must Run](@ref)
 
 ```mermaid
@@ -266,6 +342,43 @@ flowchart LR
     linkStyle 2 stroke:#FFD700, stroke-width: 2px;
     linkStyle 3 stroke:lightgray, stroke-width: 2px;
     linkStyle 4 stroke:lightgray, stroke-width: 2px;
+```
+
+### [Electric Arc Furnace](@ref)
+```mermaid
+%%{init: {'theme': 'base', 'themeVariables': { 'background': '#D1EBDE' }}}%%
+flowchart BT
+  subgraph scrap-EAF
+  direction BT
+    A1(("**SteelScrap**")) e1@-->B{{"**scrap-EAF**"}}
+    A2(("**Electricity**")) e2@-->B{{"**scrap-EAF**"}}
+    A3(("**NaturalGas**")) e3@-->B{{"**scrap-EAF**"}}
+    A4(("**CarbonSource**")) e4@-->B{{"**scrap-EAF**"}}
+    B{{"**scrap-EAF**"}} e5@-->C1(("**CrudeSteel**"))
+    B{{"**scrap-EAF**"}} e6@-->C2(("**CO2**"))
+
+    e1@{ animate: true }
+    e2@{ animate: true }
+    e3@{ animate: true }
+    e4@{ animate: true }
+    e5@{ animate: true }
+    e6@{ animate: true }
+ end
+    style A1 font-size:15px,r:50px,fill:#2874A6,stroke:black,color:black,stroke-dasharray: 3,5;
+    style A2 font-size:15px,r:50px,fill:#FFD700,stroke:black,color:black,stroke-dasharray: 3,5;
+    style A3 font-size:15px,r:50px,fill:#005F6A,stroke:black,color:black,stroke-dasharray: 3,5;
+    style A4 font-size:15px,r:50px,fill:#8B4513,stroke:black,color:black,stroke-dasharray: 3,5;
+
+    style B fill:white,stroke:black,color:black;
+    style C1 font-size:15px,r:50px,fill:#566573,stroke:black,color:black,stroke-dasharray: 3,5;
+    style C2 font-size:15px,r:50px,fill:lightgray,stroke:black,color:black,stroke-dasharray: 3,5;
+
+    linkStyle 0 stroke:#2874A6, stroke-width: 2px;
+    linkStyle 1 stroke:#FFD700, stroke-width: 2px;
+    linkStyle 2 stroke:#005F6A, stroke-width: 2px;
+    linkStyle 3 stroke:#8B4513, stroke-width: 2px;
+    linkStyle 4 stroke:#566573, stroke-width: 2px;
+    linkStyle 5 stroke:lightgray, stroke-width: 2px
 ```
 
 ### [Transmission Link](@ref)
@@ -360,4 +473,99 @@ flowchart LR
     style C font-size:20px,r:55px,fill:#FFD700,stroke:black,color:black,stroke-dasharray: 3,5;
     linkStyle 0 stroke:#FFD700, stroke-width: 2px;
     linkStyle 1 stroke:#FFD700, stroke-width: 2px;
+```
+
+### [Thermal Heating](@ref)
+
+```mermaid
+%%{init: {'theme': 'base', 'themeVariables': { 'background': '#D1EBDE' }}}%%
+flowchart LR
+  subgraph ThermalHeating
+  direction BT
+  A((Fuel)) e1@ --> B{{..}}
+  B e2@ --> C((Heat))
+  B e3@ --> D((CO₂ Emitted))
+  e1@{animate: true}
+  e2@{animate: true}
+  e3@{animate: true}
+ end
+    style A r:55px,fill:#005F6A,stroke:black,color:white,stroke-dasharray: 3,5;
+    style B r:55px,fill:black,stroke:black,color:black,stroke-dasharray: 3,5;
+    style C font-size:19px,r:55px,fill:#FFA500,stroke:black,color:black,stroke-dasharray: 3,5;
+    style D font-size:17px,r:55px,fill:lightgray,stroke:black,color:black,stroke-dasharray: 3,5;
+
+  linkStyle 0 stroke:#005F6A, stroke-width: 2px;
+  linkStyle 1 stroke:#FFA500, stroke-width: 2px;
+  linkStyle 2 stroke:lightgray, stroke-width: 2px;
+```
+
+### [Electric Heating](@ref)
+
+```mermaid
+%%{init: {'theme': 'base', 'themeVariables': { 'background': '#E2F0FF' }}}%%
+flowchart LR
+  subgraph ElectricHeating
+  direction BT
+  A((Electricity)) e1@ --> B{{..}}
+  B e2@ --> C((Heat))
+  e1@{animate: true}
+  e2@{animate: true}
+ end
+    style A r:55px,fill:#0055A4,stroke:black,color:white,stroke-dasharray: 3,5;
+    style B r:55px,fill:black,stroke:black,color:black,stroke-dasharray: 3,5;
+    style C font-size:19px,r:55px,fill:#FFA500,stroke:black,color:black,stroke-dasharray: 3,5;
+
+  linkStyle 0 stroke:#0055A4, stroke-width: 2px;
+  linkStyle 1 stroke:#FFA500, stroke-width: 2px;
+
+```
+
+### [Thermal Steam](@ref)
+
+```mermaid
+%%{init: {'theme': 'base', 'themeVariables': { 'background': '#D1EBDE' }}}%%
+flowchart LR
+  subgraph ThermalSteam
+  direction BT
+  A((Fuel)) e1@ --> B{{..}}
+  B e2@ --> C((Steam))
+  B e3@ --> D((Electricity))
+  B e4@ --> E((CO₂ Emitted))
+  e1@{animate: true}
+  e2@{animate: true}
+  e3@{animate: true}
+  e4@{animate: true}
+ end
+    style A r:55px,fill:#005F6A,stroke:black,color:white,stroke-dasharray: 3,5;
+    style B r:55px,fill:black,stroke:black,color:black,stroke-dasharray: 3,5;
+    style C font-size:19px,r:55px,fill:#FFA500,stroke:black,color:black,stroke-dasharray: 3,5;
+    style D font-size:19px,r:55px,fill:#8EC7FF,stroke:black,color:black,stroke-dasharray: 3,5;
+    style E font-size:17px,r:55px,fill:lightgray,stroke:black,color:black,stroke-dasharray: 3,5;
+
+  linkStyle 0 stroke:#005F6A, stroke-width: 2px;
+  linkStyle 1 stroke:#FFA500, stroke-width: 2px;
+  linkStyle 2 stroke:#8EC7FF, stroke-width: 2px;
+  linkStyle 3 stroke:lightgray, stroke-width: 2px;
+
+```
+
+### [Electric Steam](@ref)
+
+```mermaid
+%%{init: {'theme': 'base', 'themeVariables': { 'background': '#E2F0FF' }}}%%
+flowchart LR
+  subgraph ElectricSteam
+  direction BT
+  A((Electricity)) e1@ --> B{{..}}
+  B e2@ --> C((Steam))
+  e1@{animate: true}
+  e2@{animate: true}
+ end
+    style A r:55px,fill:#0055A4,stroke:black,color:white,stroke-dasharray: 3,5;
+    style B r:55px,fill:black,stroke:black,color:black,stroke-dasharray: 3,5;
+    style C font-size:19px,r:55px,fill:#FFA500,stroke:black,color:black,stroke-dasharray: 3,5;
+
+  linkStyle 0 stroke:#0055A4, stroke-width: 2px;
+  linkStyle 1 stroke:#FFA500, stroke-width: 2px;
+
 ```

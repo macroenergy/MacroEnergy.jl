@@ -298,28 +298,14 @@ function test_writing_outputs(case,model)
     @test_nowarn get_optimal_discounted_costs(model,scaling=2.0)
     @test_nowarn get_optimal_undiscounted_costs(model)
     @test_nowarn get_optimal_undiscounted_costs(model, scaling=2.0)
-    @test_nowarn write_capacity(joinpath(@__DIR__, "test_capacity.csv"), system)
-    @test_nowarn write_costs(joinpath(@__DIR__, "test_costs.csv"), system, model)
-    @test_nowarn write_undiscounted_costs(joinpath(@__DIR__, "test_undiscountedcosts.csv"), system, model)
-    @test_nowarn write_flow(joinpath(@__DIR__, "test_flow.csv"), system)
-    @test_nowarn write_results(joinpath(@__DIR__, "test_outputs"), system, model, settings, ext=".csv.gz")
-    @test_nowarn write_results(joinpath(@__DIR__, "test_outputs"), system, model, settings, ext=".parquet")
-    rm(joinpath(@__DIR__, "test_outputs_capacity.csv.gz"))   # clean up
-    rm(joinpath(@__DIR__, "test_outputs_flow.csv.gz"))   # clean up
-    rm(joinpath(@__DIR__, "test_outputs_non_served_demand.csv.gz"))   # clean up
-    rm(joinpath(@__DIR__, "test_outputs_storage_level.csv.gz"))   # clean up
-    rm(joinpath(@__DIR__, "test_outputs_discounted_costs.csv.gz"))   # clean up
-    rm(joinpath(@__DIR__, "test_outputs_undiscounted_costs.csv.gz"))   # clean up
-    rm(joinpath(@__DIR__, "test_outputs_capacity.parquet"))   # clean up
-    rm(joinpath(@__DIR__, "test_outputs_flow.parquet"))  # clean up
-    rm(joinpath(@__DIR__, "test_outputs_non_served_demand.parquet"))   # clean up
-    rm(joinpath(@__DIR__, "test_outputs_storage_level.parquet"))   # clean up
-    rm(joinpath(@__DIR__, "test_outputs_discounted_costs.parquet"))   # clean up
-    rm(joinpath(@__DIR__, "test_outputs_undiscounted_costs.parquet"))   # clean up
-    rm(joinpath(@__DIR__, "test_capacity.csv"))     # clean up
-    rm(joinpath(@__DIR__, "test_costs.csv"))        # clean up
-    rm(joinpath(@__DIR__, "test_undiscountedcosts.csv"))        # clean up
-    rm(joinpath(@__DIR__, "test_flow.csv"))         # clean up
+    @test_nowarn write_capacity("test_capacity.csv", system)
+    @test_nowarn write_costs("test_costs.csv", system, model)
+    @test_nowarn write_undiscounted_costs("test_undiscountedcosts.csv", system, model)
+    @test_nowarn write_flow("test_flow.csv", system)
+    rm("test_capacity.csv")     # clean up
+    rm("test_costs.csv")        # clean up
+    rm("test_undiscountedcosts.csv")        # clean up
+    rm("test_flow.csv")         # clean up
     return nothing
 end 
 

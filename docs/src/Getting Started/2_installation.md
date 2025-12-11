@@ -1,13 +1,26 @@
 # Installation
 
+You can install Macro (aka. MacroEnergy.jl) using [installation steps](#installation-steps) below. If you wish to contribute to the development of Macro or modify its source code, please follow the [source code installation steps](#source-code-installation-steps).
+
+Note, you can use the user-additions features of Macro to add new commodities and assets without making changes to the source code. The most common reasons to modify the source code are to add new constraint types, add solution algorithms, or modify the outputs written. If you are unsure whether you need to modify the source code, please contact the Macro development team through [the MacroEnergy.jl issues page.](https://github.com/macroenergy/MacroEnergy.jl/issues)
+
 ## Requirements
 
-- **Julia** 1.9 or later
-- **Git** (to clone the repository)
+- **Julia** 1.9 or later. We recommend using the latest stable release of Julia. Installation instructions can be found on [the official Julia website](https://julialang.org/install/).
+- **Git**, to clone the repository.
 
 ## Installation steps
 
-To install Macro, we recommend following these steps:
+If you want to use Macro for your own projects without making any changes to the source code, you can install it using the Julia package manager. Open a Julia REPL and run the following commands:
+
+```julia
+using Pkg
+Pkg.add("MacroEnergy")
+```
+
+## Source code installation steps
+
+To download and install the Macro source code, we recommend following these steps:
 
 - **Clone the Macro repository**:
 
@@ -48,7 +61,7 @@ using MacroEnergy
 
 ## Editing the installation
 
-If the user wants to edit the installation, for example, to install a specific version of a dependency, they can do so by following the steps below:
+If you want to edit the installation, for example, to install a specific version of a dependent package, you can do so by following the steps below:
 
 - Run a Julia session with the Macro project environment activated:
 
@@ -64,7 +77,7 @@ $ cd MacroEnergy.jl
 $ julia
 ```
 
-Then, enter the `Pkg` mode by pressing `]`, and activate the project environment:
+Then, enter the package manager (aka. `Pkg`) mode by pressing `]`, and activate the project environment:
 
 ```julia
 ] activate .

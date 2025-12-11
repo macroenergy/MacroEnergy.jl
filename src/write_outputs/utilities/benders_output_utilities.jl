@@ -299,7 +299,7 @@ end
 """
     collect_distributed_constraint_duals(
         bd_results::BendersResults,
-        ::Type{<:AbstractTypeConstraint}
+        ::Type{BalanceConstraint}
     )
 
 # Arguments
@@ -463,8 +463,8 @@ descriptive `MethodError`.
 - `MethodError`: Always thrown to indicate the constraint type is not supported
 """
 function collect_local_constraint_duals(
-    subproblems_local::Vector{Dict{Any,Any}},
-    constraint_type::Type{<:AbstractTypeConstraint}
+    subproblems_local::Vector{<:AbstractDict},
+    constraint_type::Type{AbstractTypeConstraint}
 )
     throw(MethodError(collect_local_constraint_duals, 
         (typeof(subproblems_local), typeof(constraint_type)),

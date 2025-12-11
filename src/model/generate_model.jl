@@ -35,10 +35,12 @@ function generate_model(case::Case)
 
         @info(" -- Generating planning model")
         planning_model!(system, model)
+        
         if system.settings.Retrofitting
             @info(" -- Adding retrofit constraints")
             add_retrofit_constraints!(system, period_idx, model)
         end
+
         @info(" -- Including age-based retirements")
         add_age_based_retirements!.(system.assets, model)
 
@@ -166,8 +168,8 @@ function add_age_based_retirements!(a::AbstractAsset,model::Model)
 
     for t in fieldnames(typeof(a))
         y = getfield(a, t)
-        if isa(y,AbstractEdge) || isa(y,Storage)
-            if y.retirement_period > 0
+        if isa(y,AbstractEdge) || isa(y,AbstractStorage)
+            if y.retirement_period > 0 || y.min_retired_capacity > 0.0
                 push!(y.constraints, AgeBasedRetirementConstraint())
                 add_model_constraint!(y.constraints[end], y, model)
             end
