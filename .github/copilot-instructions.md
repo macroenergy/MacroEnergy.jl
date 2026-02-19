@@ -117,13 +117,31 @@ end
 
 When implementing a new feature or making significant code changes:
 1. **Implement the code change** following the project conventions and architecture patterns
-2. **Immediately invoke the `docs-agent` subagent** to handle all documentation updates
+2. **Write comprehensive tests** for all new code and features
+   - Use the `test-writer` subagent to write tests following MacroEnergy patterns
+   - Use the `runSubagent` tool with agent name `test-writer`
+   - Provide a clear description of the code being tested
+   - Tests must cover normal operation, edge cases, and error handling
+   - Run `Pkg.test("MacroEnergy")` to verify all tests pass
+3. **Immediately invoke the `docs-agent` subagent** to handle all documentation updates
    - Use the `runSubagent` tool with agent name `docs-agent`
    - Provide a clear description of what needs to be documented
    - The agent will update docstrings, Manual pages, Guides, and Tutorials as needed
-3. **Do not open a PR** until documentation updates are complete
+4. **Do not open a PR** until tests pass and documentation updates are complete
 
-This ensures that code and documentation stay synchronized and that PRs are complete before review.
+This ensures that code, tests, and documentation stay synchronized and that PRs are complete before review.
+
+### Testing Requirements
+
+**MANDATORY**: All new code and features must include comprehensive test coverage covering normal operation, edge cases, and error handling.
+
+**How to write tests**: Use the `test-writer` subagent with a description of the code to test. The agent will generate complete test files following MacroEnergy patterns.
+
+**Test validation**:
+- Register new test files in [test/runtests.jl](test/runtests.jl)
+- Run full suite before opening PR: `Pkg.test("MacroEnergy")`
+- All tests must pass on default HiGHS optimizer
+- Tests are part of PR validation; maintainers expect comprehensive coverage
 
 ### Before Opening a PR
 - Open an issue first to discuss proposed changes
@@ -144,14 +162,18 @@ See **docs-agent** instructions for detailed troubleshooting and patterns if the
 
 ### PR Requirements
 - **Code quality**: Review your code, add comments for complex logic
-- **Testing**: Include test coverage; provide example case (JSON/CSV/Julia files) with expected results
-- **Documentation**: **MANDATORY** - Documentation updates must be completed during implementation using the `docs-agent` (see Implementation Workflow above)
-  - All docstring updates for new/changed functions (use `@doc raw"""` format with Description, Arguments, Returns, Examples sections)
-  - All new exported functions/types must be included in `@autodocs` blocks in appropriate `References/` page
-  - Manual page updates if behavior changes (use unique header slugs, avoid duplicate `@ref` names)
-  - New or updated examples in Guides and Tutorials 
-  - **Validate**: Run `cd docs && julia make.jl` to ensure documentation builds without errors before opening PR
-  - PRs without completed documentation updates will not be reviewed
+- **Testing**: **MANDATORY** - Comprehensive test coverage for all new code and features
+  - Generate tests using the `test-writer` subagent
+  - All tests must pass: `Pkg.test("MacroEnergy")` before opening PR
+  - Register new test files in `test/runtests.jl`
+  - Insufficient test coverage will be requested in review
+- **Documentation**: **MANDATORY** - Documentation updates using the `docs-agent` (see Implementation Workflow above)
+  - All docstring updates for new/changed functions (use `@doc raw"""` format)
+  - All new exported functions/types in `@autodocs` blocks on appropriate `References/` page
+  - Manual page updates if behavior changes
+  - New or updated examples in Guides and Tutorials
+  - **Validate**: Run `cd docs && julia make.jl` before opening PR
+  - PRs without completed documentation will not be reviewed
 - **Focus**: Keep PRs small and focused on single changes
 - **Description**: Write clear motivation and highlight areas needing reviewer feedback
 - **Branch naming**: Follow `<user_id>/<short_description>` pattern
