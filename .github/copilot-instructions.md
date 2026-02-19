@@ -131,14 +131,26 @@ This ensures that code and documentation stay synchronized and that PRs are comp
 - Keep fork synced with upstream `main` branch
 - Full workflow documented in [docs/src/how_to_contribute.md](docs/src/how_to_contribute.md)
 
+### Documentation Validation Requirements
+
+**CRITICAL**: Before opening a PR, ensure documentation tests pass by running: `cd docs && julia make.jl`
+
+The documentation build validates:
+- Cross-reference anchors are unique within each file
+- All `@ref` targets have actual docstrings or headers
+- All exported functions are documented in `@autodocs` blocks
+
+See **docs-agent** instructions for detailed troubleshooting and patterns if the build fails.
+
 ### PR Requirements
 - **Code quality**: Review your code, add comments for complex logic
 - **Testing**: Include test coverage; provide example case (JSON/CSV/Julia files) with expected results
 - **Documentation**: **MANDATORY** - Documentation updates must be completed during implementation using the `docs-agent` (see Implementation Workflow above)
-  - This includes docstring updates for all new/changed functions
-  - Manual page updates if behavior changes
-  - New or updated examples in Guides and Tutorials
-  - API documentation in References section
+  - All docstring updates for new/changed functions (use `@doc raw"""` format with Description, Arguments, Returns, Examples sections)
+  - All new exported functions/types must be included in `@autodocs` blocks in appropriate `References/` page
+  - Manual page updates if behavior changes (use unique header slugs, avoid duplicate `@ref` names)
+  - New or updated examples in Guides and Tutorials 
+  - **Validate**: Run `cd docs && julia make.jl` to ensure documentation builds without errors before opening PR
   - PRs without completed documentation updates will not be reviewed
 - **Focus**: Keep PRs small and focused on single changes
 - **Description**: Write clear motivation and highlight areas needing reviewer feedback
