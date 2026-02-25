@@ -171,5 +171,7 @@ function write_period_outputs(
         write_duals(results_dir, system, discount_scaling)
     end
 
+    write_time_weights(results_dir, system)
+
     return nothing
 end

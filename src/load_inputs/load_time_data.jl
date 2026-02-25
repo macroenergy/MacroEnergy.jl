@@ -19,9 +19,9 @@ function load_time_data(
     period_index::Int = 1
 )
     path = rel_or_abs_path(path, rel_path)
-    if isdir(path)
-        path = joinpath(path, "time_data.json")
-    end
+
+    @info "Loading time data for period $(period_index) from: $(path)"
+
     # read in the list of commodities from the data directory
     isfile(path) || error("Time data not found at $(abspath(path))")
 
@@ -38,6 +38,7 @@ function load_time_data(
     time_data::AbstractDict{Symbol,Any},
     commodities::Dict{Symbol,DataType}
 )
+    @info "Loading time data..."
     # validate the time data
     validate_time_data(time_data, commodities)
 

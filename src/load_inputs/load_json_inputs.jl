@@ -21,7 +21,7 @@ function load_json_inputs(file_path::AbstractString; rel_path::AbstractString=di
     # if isempty(json_data)
     #     return Dict{Symbol, Any}(:path => file_path)
     # end
-    if !lazy_load
+    if !lazy_load || GLOBAL_TDR_FLAG[] == 1
         json_data = eager_load_json_inputs(json_data, rel_path)
         # if isempty(json_data)
         #     return Dict{Symbol, Any}(:path => file_path)
@@ -43,9 +43,25 @@ function eager_load_json_inputs(json_data::AbstractDict{Symbol, Any}, rel_path::
         if haskey(json_data, :path)
             return fetch_data(json_data[:path], json_data, rel_path, false)
         elseif haskey(json_data, :timeseries)
-            file_path = rel_or_abs_path(json_data[:timeseries][:path], rel_path)
-            return load_time_series_data(file_path, json_data[:timeseries][:header])
+            ts = json_data[:timeseries]
+        
+            if GLOBAL_TDR_FLAG[] == 1
+                # When TimeDomainReduction=1, TDR_path must exist
+                if !haskey(ts, :TDR_path)
+                    error("TimeDomainReduction=1 but TDR_path is missing for timeseries $(ts). Please update JSON.")
+                end
+        
+                # TDR = 1: Use TDR_path for timeseries in system/TDR_results folder
+                file_path = rel_or_abs_path(ts[:TDR_path], rel_path)
+            else
+                # TDR = 0: Use path for timeseries in system folder
+                file_path = rel_or_abs_path(ts[:path], rel_path)
+            end
+        
+            # Now load the selected time series
+            return load_time_series_data(file_path, ts[:header])
         end
+        
         for (key, value) in json_data
             if hasmethod(eager_load_json_inputs, (typeof(value), typeof(rel_path)))
                 json_data[key] = eager_load_json_inputs(value, rel_path)
