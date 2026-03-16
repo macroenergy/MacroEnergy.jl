@@ -51,6 +51,7 @@ end
 
 function make(asset_type::Type{MustRun}, data::AbstractDict{Symbol,Any}, system::System)
     id = AssetId(data[:id])
+    location = as_symbol_or_missing(get(data, :location, missing))
 
     @setup_data(asset_type, data, id)
 
@@ -68,6 +69,7 @@ function make(asset_type::Type{MustRun}, data::AbstractDict{Symbol,Any}, system:
     mustrun_transform = Transformation(;
         id = Symbol(id, "_", energy_key),
         timedata = system.time_data[Symbol(transform_data[:timedata])],
+        location = location,
     )
 
     elec_edge_key = :elec_edge

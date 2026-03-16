@@ -12,9 +12,12 @@ function edge_default_data()
         :has_capacity => false,
         :can_expand => false,
         :can_retire => false,
+        :can_retrofit => false,
+        :is_retrofit => false,
         :capacity_size => 1.0,
         :existing_capacity => 0.0,
         :min_capacity => 0.0,
+        :min_retired_capacity => 0.0,
         :max_capacity => Inf,
         :max_new_capacity => Inf,
         :integer_decisions => false,
@@ -23,6 +26,8 @@ function edge_default_data()
         :min_flow_fraction => 0.0,
         :ramp_up_fraction => 1.0,
         :ramp_down_fraction => 1.0,
+        :retrofit_efficiency => 1.0,
+        :retrofit_id => missing,
         :distance => 0.0,
         :investment_cost => 0.0,
         :fixed_om_cost => 0.0,
@@ -38,7 +43,13 @@ function edge_default_data()
         :capital_recovery_period => 1,
         :wacc => 0.0,
         :retirement_period => 0,
-        :annualized_investment_cost => nothing
+        :annualized_investment_cost => nothing,
+        :pv_period_investment_cost => nothing,
+        :cf_period_investment_cost => nothing,
+        :pv_period_fixed_om_cost => nothing,
+        :cf_period_fixed_om_cost => nothing,
+        :pv_period_variable_om_cost => nothing,
+        :cf_period_variable_om_cost => nothing
     )
 end
 
@@ -68,12 +79,13 @@ function storage_default_data()
         :capacity_size => 1.0,
         :existing_capacity => 0.0,
         :min_capacity => 0.0,
+        :min_retired_capacity => 0.0,
         :max_capacity => Inf,
         :max_new_capacity => Inf,
         :min_duration => 0.0,
         :max_duration => 0.0,
         :min_storage_level => 0.0,
-        :max_storage_level => 0.0,
+        :max_storage_level => 1.0,
         :min_outflow_fraction => 0.0,
         :loss_fraction => Float64[],
         :investment_cost => 0.0,
@@ -83,7 +95,13 @@ function storage_default_data()
         :lifetime => 1,
         :wacc => 0.0,
         :retirement_period =>0,
-        :annualized_investment_cost => nothing
+        :annualized_investment_cost => nothing,
+        :pv_period_investment_cost => nothing,
+        :cf_period_investment_cost => nothing,
+        :pv_period_fixed_om_cost => nothing,
+        :cf_period_fixed_om_cost => nothing,
+        :pv_period_variable_om_cost => nothing,
+        :cf_period_variable_om_cost => nothing
     )
 end
 

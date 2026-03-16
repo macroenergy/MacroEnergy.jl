@@ -6,13 +6,21 @@ function Base.getindex(macro_object::MacroObject, key::Symbol)
     return value.(getfield(macro_object, key))
 end
 
+function get_components(macro_object::MacroObject)
+    return [getfield(macro_object, name) for name in propertynames(macro_object) if name != :id]
+end
+
+function get_components_and_names(macro_object::MacroObject)
+    return [(getfield(macro_object, name), name) for name in propertynames(macro_object) if name != :id]
+end
+
 ## Helper/internal functions to extract MacroObjects from System
 # E.g., get_macro_objs(system, AbstractEdge)
 # E.g., get_macro_objs(asset, AbstractEdge, return_ids_map=true)
 # The return_ids_map is used to return a map of the MacroObjects to the asset they belong to
 get_macro_objs(system::System, T::Type{<:MacroObject}) = get_macro_objs(system.assets, T)
 get_macro_objs(assets::Vector{<:AbstractAsset}, T::Type{<:MacroObject}) =
-    reduce(vcat, [get_macro_objs(asset, T) for asset in assets])
+    reduce(vcat, [get_macro_objs(asset, T) for asset in assets]; init=T[])
 function get_macro_objs(asset::AbstractAsset, T::Type{<:MacroObject})
     objects = Vector{T}()
     for field_name in propertynames(asset)
@@ -35,7 +43,7 @@ function get_macro_objs_with_map(assets::Vector{<:AbstractAsset}, T::Type{<:Macr
         Base.merge!(asset_obj_map, object_map)
     end
 
-    return reduce(vcat, all_objects), asset_obj_map
+    return reduce(vcat, all_objects; init=T[]), asset_obj_map
 end
 function get_macro_objs_with_map(asset::AbstractAsset, T::Type{<:MacroObject})
     objects = get_macro_objs(asset, T)

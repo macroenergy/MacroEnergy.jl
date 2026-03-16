@@ -2,12 +2,14 @@ macro AbstractEdgeBaseAttributes()
     edge_defaults = edge_default_data()
     esc(quote
         id::Symbol
+        location::Union{Missing, Symbol} = $edge_defaults[:location]
         timedata::TimeData{T}
         start_vertex::AbstractVertex
         end_vertex::AbstractVertex
         availability::Vector{Float64} = Float64[]
         can_expand::Bool = $edge_defaults[:can_expand]
         can_retire::Bool = $edge_defaults[:can_retire]
+        can_retrofit::Bool = $edge_defaults[:can_retrofit]
         capacity::Union{JuMPVariable,AffExpr,Float64} = AffExpr(0.0)
         capacity_size::Float64 = $edge_defaults[:capacity_size]
         capital_recovery_period::Int64 = $edge_defaults[:capital_recovery_period]
@@ -19,11 +21,14 @@ macro AbstractEdgeBaseAttributes()
         has_capacity::Bool = $edge_defaults[:has_capacity]
         integer_decisions::Bool = $edge_defaults[:integer_decisions]
         investment_cost::Float64 = $edge_defaults[:investment_cost]
+        is_retrofit::Bool = $edge_defaults[:is_retrofit]
         lifetime::Int64 = $edge_defaults[:lifetime]
         loss_fraction::Vector{Float64} = $edge_defaults[:loss_fraction]
         max_capacity::Float64 = $edge_defaults[:max_capacity]
         max_new_capacity::Float64 = $edge_defaults[:max_new_capacity]
         min_capacity::Float64 = $edge_defaults[:min_capacity]
+        min_retired_capacity::Float64 = $edge_defaults[:min_retired_capacity]
+        min_retired_capacity_track::Float64 = 0.0
         min_flow_fraction::Float64 = $edge_defaults[:min_flow_fraction]
         new_capacity::Union{AffExpr,Float64} = AffExpr(0.0)
         new_capacity_track::Dict{Int64,AffExpr} = Dict(1 => AffExpr(0.0))
@@ -33,6 +38,11 @@ macro AbstractEdgeBaseAttributes()
         retired_capacity::Union{AffExpr,Float64} = AffExpr(0.0)
         retired_capacity_track::Dict{Int64,AffExpr} = Dict(1 => AffExpr(0.0))
         retired_units::Union{JuMPVariable,Float64} = 0.0
+        retrofit_efficiency::Union{Missing,Float64} = $edge_defaults[:retrofit_efficiency]
+        retrofit_id::Union{Missing, Vector{Symbol}} = $edge_defaults[:retrofit_id]
+        retrofitted_capacity::AffExpr = AffExpr(0.0)
+        retrofitted_capacity_track::Dict{Int64,AffExpr} = Dict(1 => AffExpr(0.0))
+        retrofitted_units::Union{JuMPVariable,Float64} = 0.0
         unidirectional::Bool = $edge_defaults[:unidirectional]
         variable_om_cost::Float64 = $edge_defaults[:variable_om_cost]
         min_down_time::Int64 = $edge_defaults[:min_down_time]
@@ -43,6 +53,12 @@ macro AbstractEdgeBaseAttributes()
         retirement_period::Int64 = $edge_defaults[:retirement_period]
         wacc::Union{Missing,Float64} = missing
         annualized_investment_cost::Union{Nothing,Float64} = $edge_defaults[:annualized_investment_cost]
+        pv_period_investment_cost::Union{Nothing,Float64} = $edge_defaults[:pv_period_investment_cost]
+        cf_period_investment_cost::Union{Nothing,Float64} = $edge_defaults[:cf_period_investment_cost]
+        pv_period_fixed_om_cost::Union{Nothing,Float64} = $edge_defaults[:pv_period_fixed_om_cost]
+        cf_period_fixed_om_cost::Union{Nothing,Float64} = $edge_defaults[:cf_period_fixed_om_cost]
+        pv_period_variable_om_cost::Union{Nothing,Float64} = $edge_defaults[:pv_period_variable_om_cost]
+        cf_period_variable_om_cost::Union{Nothing,Float64} = $edge_defaults[:cf_period_variable_om_cost]
     end)
 end
 
@@ -72,6 +88,7 @@ end
     - loss_fraction::Vector{Float64}: Fraction of flow lost during transmission, it can be time-dependent.
     - max_capacity::Float64: Maximum allowed capacity
     - min_capacity::Float64: Minimum required capacity
+    - min_retired_capacity::Float64: Minimum capacity that must be retired in this period
     - min_flow_fraction::Float64: Minimum flow as fraction of capacity
     - new_capacity::Union{JuMPVariable,Float64}: JuMP variable representing new capacity built
     - ramp_down_fraction::Float64: Maximum ramp-down rate as fraction of capacity
@@ -88,8 +105,20 @@ Base.@kwdef mutable struct Edge{T} <: AbstractEdge{T}
     @AbstractEdgeBaseAttributes()
 end
 
+commodity_type(::Type{AbstractEdge{T}}) where {T} = T
+function commodity_type(t::Type{AbstractEdge{<:T}}) where {T}
+    ub_type = t.var.ub
+    return commodity_type(AbstractEdge{ub_type})
+end
+commodity_type(::Type{Edge{T}}) where {T} = T
+function commodity_type(t::Type{Edge{<:T}}) where {T}
+    ub_type = t.var.ub
+    return commodity_type(Edge{ub_type})
+end
+
 function target_is_valid(commodity::Type{<:Commodity}, target::T) where T<:Union{Node, AbstractStorage}
-    if commodity <: commodity_type(target)
+    target_commodity = commodity_type(target)
+    if (commodity === target_commodity) || (commodity <: target_commodity)
         return true
     end
     return false
@@ -174,6 +203,7 @@ function availability(e::AbstractEdge, t::Int64)
 end
 can_expand(e::AbstractEdge) = e.can_expand;
 can_retire(e::AbstractEdge) = e.can_retire;
+can_retrofit(e::AbstractEdge) = e.can_retrofit;
 capacity(e::AbstractEdge) = e.capacity;
 capacity_size(e::AbstractEdge) = e.capacity_size;
 capital_recovery_period(e::AbstractEdge) = e.capital_recovery_period;
@@ -187,6 +217,7 @@ has_capacity(e::AbstractEdge) = e.has_capacity;
 id(e::AbstractEdge) = e.id;
 integer_decisions(e::AbstractEdge) = e.integer_decisions;
 investment_cost(e::AbstractEdge) = e.investment_cost;
+is_retrofit(e::AbstractEdge) = e.is_retrofit;
 lifetime(e::AbstractEdge) = e.lifetime;
 loss_fraction(e::AbstractEdge) = e.loss_fraction;
 function loss_fraction(e::AbstractEdge, t::Int64)
@@ -202,6 +233,8 @@ end
 max_capacity(e::AbstractEdge) = e.max_capacity;
 max_new_capacity(e::AbstractEdge) = e.max_new_capacity;
 min_capacity(e::AbstractEdge) = e.min_capacity;
+min_retired_capacity(e::AbstractEdge) = e.can_retire ? e.min_retired_capacity : 0.0;
+min_retired_capacity_track(e::AbstractEdge) = e.min_retired_capacity_track;
 min_flow_fraction(e::AbstractEdge) = e.min_flow_fraction;
 new_capacity(e::AbstractEdge) = e.new_capacity;
 new_capacity_track(e::AbstractEdge) = e.new_capacity_track;
@@ -216,10 +249,22 @@ retired_capacity_track(e::AbstractEdge) = e.retired_capacity_track;
 retired_capacity_track(e::AbstractEdge,s::Int64) =  (haskey(retired_capacity_track(e),s) == false) ? 0.0 : e.retired_capacity_track[s];
 retired_units(e::AbstractEdge) = e.retired_units;
 retirement_period(e::AbstractEdge) = e.retirement_period;
+retrofit_efficiency(e::AbstractEdge) = e.retrofit_efficiency;
+retrofit_id(e::AbstractEdge) = e.retrofit_id;
+retrofitted_capacity(e::AbstractEdge) = e.retrofitted_capacity;
+retrofitted_capacity_track(e::AbstractEdge) = e.retrofitted_capacity_track;
+retrofitted_capacity_track(e::AbstractEdge,s::Int64) = (haskey(retrofitted_capacity_track(e),s) == false) ? 0.0 : e.retrofitted_capacity_track[s];
+retrofitted_units(e::AbstractEdge) = e.retrofitted_units;
 start_vertex(e::AbstractEdge)::AbstractVertex = e.start_vertex;
 variable_om_cost(e::AbstractEdge) = e.variable_om_cost;
 wacc(e::AbstractEdge) = e.wacc;
 annualized_investment_cost(e::AbstractEdge) = e.annualized_investment_cost;
+pv_period_investment_cost(e::AbstractEdge) = e.pv_period_investment_cost;
+cf_period_investment_cost(e::AbstractEdge) = e.cf_period_investment_cost;
+pv_period_fixed_om_cost(e::AbstractEdge) = e.pv_period_fixed_om_cost;
+cf_period_fixed_om_cost(e::AbstractEdge) = e.cf_period_fixed_om_cost;
+pv_period_variable_om_cost(e::AbstractEdge) = e.pv_period_variable_om_cost;
+
 ##### End of Edge interface #####
 
 function add_linking_variables!(e::AbstractEdge, model::Model)
@@ -248,7 +293,19 @@ function define_available_capacity!(e::AbstractEdge, model::Model)
         
         e.retired_capacity_track[period_index(e)] = retired_capacity(e);
 
-        @constraint(model, capacity(e) == new_capacity(e) - retired_capacity(e) + existing_capacity(e))
+        if can_retrofit(e)
+
+            e.retrofitted_units = @variable(model, lower_bound = 0.0, base_name = "vRETROFITUNIT_$(id(e))_period$(period_index(e))")
+            
+            e.retrofitted_capacity = @expression(model, capacity_size(e) * retrofitted_units(e))
+
+            e.retrofitted_capacity_track[period_index(e)] = retrofitted_capacity(e)
+
+            @constraint(model, capacity(e) == new_capacity(e) - retired_capacity(e) - retrofitted_capacity(e) + existing_capacity(e))
+            
+        else
+            @constraint(model, capacity(e) == new_capacity(e) - retired_capacity(e) + existing_capacity(e))
+        end
 
         # e.capacity = @expression(
         #     model,
@@ -280,7 +337,14 @@ function planning_model!(e::AbstractEdge, model::Model)
             end
         end
 
-        @constraint(model, retired_capacity(e) <= existing_capacity(e))
+        if can_retrofit(e)
+            @constraint(model, retrofitted_capacity(e) + retired_capacity(e) <= existing_capacity(e))
+            if integer_decisions(e)
+                set_integer(retrofitted_units(e))
+            end
+        else
+            @constraint(model, retired_capacity(e) <= existing_capacity(e))
+        end
 
     end
 
@@ -290,33 +354,45 @@ function planning_model!(e::AbstractEdge, model::Model)
 
 end
 
-function compute_investment_costs!(e::AbstractEdge, model::Model)
+function compute_investment_costs!(e::AbstractEdge, model::Model, cost_type::Function=pv_period_investment_cost)
     if has_capacity(e)
         if can_expand(e)
             add_to_expression!(
-                    model[:eInvestmentFixedCost],
-                    annualized_investment_cost(e),
-                    new_capacity(e),
-                )
+                model[:eInvestmentFixedCost],
+                cost_type(e),
+                new_capacity(e),
+            )
         end
     end
 end
 
-function compute_om_fixed_costs!(e::AbstractEdge, model::Model)
+function compute_om_fixed_costs!(e::AbstractEdge, model::Model, cost_type::Function=pv_period_fixed_om_cost)
     if has_capacity(e)
         if fixed_om_cost(e) > 0
             add_to_expression!(
                 model[:eOMFixedCost],
-                fixed_om_cost(e),
+                cost_type(e),
                 capacity(e),
             )
         end
     end
 end
 
-function compute_fixed_costs!(e::AbstractEdge, model::Model)
-    compute_investment_costs!(e, model)
-    compute_om_fixed_costs!(e, model)
+function compute_fixed_costs!(e::AbstractEdge, model::Model, cost_type::Symbol=:PV)
+    allowed_cost_types = [:PV, :CF]
+    if !(cost_type in allowed_cost_types)
+        error("Invalid cost type: $cost_type. Allowed types are: $(allowed_cost_types)")
+    end
+    invesment_cost_function = Dict{Symbol, Function}(
+        :PV => pv_period_investment_cost,
+        :CF => cf_period_investment_cost
+    )
+    fom_cost_function = Dict{Symbol, Function}(
+        :PV => pv_period_fixed_om_cost,
+        :CF => cf_period_fixed_om_cost
+    )
+    compute_investment_costs!(e, model, invesment_cost_function[cost_type])
+    compute_om_fixed_costs!(e, model, fom_cost_function[cost_type])
 end
 
 function operation_model!(e::Edge, model::Model)
@@ -336,10 +412,11 @@ function operation_model!(e::Edge, model::Model)
 
     for t in time_interval(e)
         w = current_subperiod(e,t)
-        if variable_om_cost(e) > 0
+        vom_cost = variable_om_cost(e)
+        if vom_cost > 0
             add_to_expression!(
                 model[:eVariableCost],
-                subperiod_weight(e, w) * variable_om_cost(e),
+                subperiod_weight(e, w) * vom_cost,
                 flow(e, t),
             )
         end
@@ -412,6 +489,8 @@ Base.@kwdef mutable struct EdgeWithUC{T} <: AbstractEdge{T}
     ustart::JuMPVariable = Vector{VariableRef}()
 end
 
+commodity_type(::Type{EdgeWithUC{T}}) where {T} = T
+
 function make_edge_UC(
     id::Symbol,
     data::Dict{Symbol,Any},
@@ -478,6 +557,13 @@ function operation_model!(e::EdgeWithUC, model::Model)
         return nothing
     end
 
+    if !has_capacity(e)
+        error(
+            "UC is available only for edges with capacity, set has_capacity to True for edge $(id(e))",
+        )
+        return nothing
+    end
+
     e.flow = @variable(
         model,
         [t in time_interval(e)],
@@ -513,10 +599,11 @@ function operation_model!(e::EdgeWithUC, model::Model)
     for t in time_interval(e)
 
         w = current_subperiod(e,t)
-        if variable_om_cost(e) > 0
+        vom_cost = variable_om_cost(e)
+        if vom_cost > 0
             add_to_expression!(
                 model[:eVariableCost],
-                subperiod_weight(e, w) * variable_om_cost(e),
+                subperiod_weight(e, w) * vom_cost,
                 flow(e, t),
             )
         end
@@ -587,6 +674,19 @@ function balance_data(e::AbstractEdge, v::AbstractVertex, i::Symbol)
 
 end
 
+function lossy_edge(e::AbstractEdge)
+    a = loss_fraction(e)
+    if isempty(a)
+        return false
+    else
+        if any(a.>0.0)
+            return true
+        else
+            return false
+        end
+    end
+end
+
 function update_balances!(e::AbstractEdge, model::Model)
 
     update_balance_start!(e, model)
@@ -603,8 +703,12 @@ function update_startup_fuel_balance!(e::EdgeWithUC)
 
     i = startup_fuel_balance_id(e)
 
-    if i ∈ balance_ids(v)
-        add_to_expression!.(get_balance(v, i), -1 * startup_fuel_consumption(e) * capacity_size(e) * ustart(e))
+    if i ∈ balance_ids(v) && startup_fuel_consumption(e) > 0
+        balance_coeff = -1 * startup_fuel_consumption(e) * capacity_size(e)
+        balance_expr = get_balance(v,i)
+        for t in time_interval(e)
+            add_to_expression!(balance_expr[t], balance_coeff, ustart(e, t))
+        end
     end
 
     return nothing
@@ -619,7 +723,7 @@ function update_balance_start!(e::AbstractEdge, model::Model)
 
         effective_flow = @expression(model, [t in time_interval(e)], flow(e, t))
 
-    else
+    elseif e.unidirectional == false && lossy_edge(e)
         flow_pos = @variable(model, [t in time_interval(e)], lower_bound = 0.0, base_name = "vFLOWPOS_$(id(e))_period$(period_index(e))")
         flow_neg = @variable(model, [t in time_interval(e)], lower_bound = 0.0, base_name = "vFLOWNEG_$(id(e))_period$(period_index(e))")
 
@@ -632,12 +736,19 @@ function update_balance_start!(e::AbstractEdge, model::Model)
         end
 
         effective_flow = @expression(model, [t in time_interval(e)], flow_pos[t] - (1 - loss_fraction(e,t)) * flow_neg[t])
-    end
-
-    for i in balance_ids(v)
-        add_to_expression!.(get_balance(v, i),  -1 * balance_data(e, v, i) * effective_flow)
+    elseif e.unidirectional == false && !lossy_edge(e)
+        effective_flow = @expression(model, [t in time_interval(e)], flow(e, t))
     end
     
+    for i in balance_ids(v)
+        balance_coeff = -1 * balance_data(e, v, i)
+        balance_expr = get_balance(v,i)
+        if balance_coeff != 0.0
+            for t in time_interval(e)
+                add_to_expression!(balance_expr[t], balance_coeff, effective_flow[t])
+            end
+        end
+    end
 
 end
 
@@ -647,7 +758,7 @@ function update_balance_end!(e::AbstractEdge, model::Model)
 
     if e.unidirectional == true
         effective_flow = @expression(model, [t in time_interval(e)], (1-loss_fraction(e,t)) * flow(e, t))
-    else
+    elseif e.unidirectional == false && lossy_edge(e)
     
         flow_pos = @variable(model, [t in time_interval(e)], lower_bound = 0.0, base_name = "vFLOWPOS_$(id(e))_period$(period_index(e))")
         flow_neg = @variable(model, [t in time_interval(e)], lower_bound = 0.0, base_name = "vFLOWNEG_$(id(e))_period$(period_index(e))")
@@ -661,11 +772,18 @@ function update_balance_end!(e::AbstractEdge, model::Model)
         end
 
         effective_flow = @expression(model, [t in time_interval(e)], (1 - loss_fraction(e,t)) * flow_pos[t] - flow_neg[t])
-
+    elseif e.unidirectional == false && !lossy_edge(e)
+        effective_flow = @expression(model, [t in time_interval(e)], flow(e, t))
     end
 
     for i in balance_ids(v)
-        add_to_expression!.(get_balance(v, i),  balance_data(e, v, i) * effective_flow)
+        balance_coeff = balance_data(e, v, i)
+        balance_expr = get_balance(v,i)
+        if balance_coeff != 0.0
+            for t in time_interval(e)
+                 add_to_expression!(balance_expr[t], balance_coeff, effective_flow[t])
+            end
+        end
     end
     
 end

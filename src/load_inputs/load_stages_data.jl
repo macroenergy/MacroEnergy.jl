@@ -37,7 +37,7 @@ function load_case(
 
         case_data = load_case_data(path; lazy_load = lazy_load)
         case = generate_case(path, case_data)
-
+        
         return case
     else
         msg = "No case data found in $path. Either provide a path to a .JSON file or a directory containing a system_data.json file"

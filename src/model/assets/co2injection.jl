@@ -15,8 +15,9 @@ end
 
 function full_default_data(::Type{CO2Injection}, id=missing)
     return OrderedDict{Symbol,Any}(
-        id => id,
+        :id => id,
         :transforms => @transform_data(
+            :timedata => "CO2Captured",
             :constraints => Dict{Symbol,Bool}(
                 :BalanceConstraint => true,
             )
@@ -58,6 +59,7 @@ end
 
 function make(asset_type::Type{CO2Injection}, data::AbstractDict{Symbol,Any}, system::System)
     id = AssetId(data[:id])
+    location = as_symbol_or_missing(get(data, :location, missing))
 
     @setup_data(asset_type, data, id)
 
@@ -75,6 +77,7 @@ function make(asset_type::Type{CO2Injection}, data::AbstractDict{Symbol,Any}, sy
     co2injection_transform = Transformation(;
         id = Symbol(id, "_", co2injection_key),
         timedata = system.time_data[Symbol(transform_data[:timedata])],
+        location = location,
         constraints = transform_data[:constraints],
     )
 

@@ -446,6 +446,33 @@ To enable this constraint:
 !!! warning "Constraint Application Scope"
     This constraint is applied to discharging edges only.
 
+## Storage Charge Limit Constraint
+*Note: Enabled by default for batteries.*
+
+The storage charge limit constraint ensures that the flow through a charging edge (adjusted for efficiency) cannot exceed the available storage capacity at the previous time step.
+
+!!! note "Formulation"
+    ```math
+   \begin{aligned}
+      \text{efficiency(e)}\text{flow(e, t)} \leq \text{capacity(end\_vertex(e))} - \text{storage\_level(end\_vertex(e), timestepbefore(t, 1, subperiods(e)))}
+   \end{aligned}
+    ```
+
+To enable this constraint:
+
+1. Add the `StorageChargeLimitConstraint` to the list of constraints in the JSON input file of the asset and set it to `true`.
+
+```json
+{
+    "charge_constraints": {
+        "StorageChargeLimitConstraint": true
+    }
+}
+```
+
+!!! warning "Constraint Application Scope"
+    This constraint is applied to charging edges only.
+
 ## Storage Maximum/Minimum Duration Constraint
 This constraint limits the maximum/minimum energy capacity that can be stored relative to the discharging capacity. The limit is specified in the `max_duration`/`min_duration` attribute as a number of time steps.
 

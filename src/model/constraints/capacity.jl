@@ -1,6 +1,6 @@
 Base.@kwdef mutable struct CapacityConstraint <: OperationConstraint
     value::Union{Missing,Vector{Float64}} = missing
-    lagrangian_multiplier::Union{Missing,Vector{Float64}} = missing
+    constraint_dual::Union{Missing,Vector{Float64}} = missing
     constraint_ref::Union{Missing,JuMPConstraint} = missing
 end
 
@@ -26,20 +26,24 @@ If the edge is bidirectional, the constraint is:
 for each time `t` in `time_interval(e)` for the edge `e` and each `i` in `{0, 1}`. The function `availability` returns the time series of the capacity factor of the edge at time `t`.
 """
 function add_model_constraint!(ct::CapacityConstraint, e::Edge, model::Model)
+    
+    if has_capacity(e) 
+        if e.unidirectional
 
-    if e.unidirectional
-
-        ct.constraint_ref = @constraint(
-            model,
-            [t in time_interval(e)],
-            flow(e, t) <= availability(e, t) * capacity(e)
-        )
+            ct.constraint_ref = @constraint(
+                model,
+                [t in time_interval(e)],
+                flow(e, t) <= availability(e, t) * capacity(e)
+            )
+        else
+            ct.constraint_ref = @constraint(
+                model,
+                [i in [-1, 1], t in time_interval(e)],
+                i * flow(e, t) <= availability(e, t) * capacity(e)
+            )
+        end
     else
-        ct.constraint_ref = @constraint(
-            model,
-            [i in [-1, 1], t in time_interval(e)],
-            i * flow(e, t) <= availability(e, t) * capacity(e)
-        )
+       @warn "Trying to add CapacityConstraint to edge $(e.id) which has has_capacity=false. No constraint added."
     end
 
     return nothing
@@ -68,20 +72,11 @@ for each time `t` in `time_interval(e)` for the edge `e` and each `i` in `[-1, 1
 """
 function add_model_constraint!(ct::CapacityConstraint, e::EdgeWithUC, model::Model)
 
-    if e.unidirectional
-
-        ct.constraint_ref = @constraint(
-            model,
-            [t in time_interval(e)],
-            flow(e, t) <= availability(e, t) * capacity_size(e) * ucommit(e, t)
-        )
-    else
-        ct.constraint_ref = @constraint(
-            model,
-            [i in [-1, 1], t in time_interval(e)],
-            i * flow(e, t) <= availability(e, t) * capacity_size(e) * ucommit(e, t)
-        )
-    end
+    ct.constraint_ref = @constraint(
+        model,
+        [t in time_interval(e)],
+        flow(e, t) <= availability(e, t) * capacity_size(e) * ucommit(e, t)
+    )
 
     return nothing
 

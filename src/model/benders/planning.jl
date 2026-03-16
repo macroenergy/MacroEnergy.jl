@@ -3,11 +3,7 @@ function initialize_planning_problem!(case::Case,opt::Dict)
     
     planning_problem = generate_planning_problem(case);
 
-    if opt[:solver] == Gurobi.Optimizer
-        optimizer = create_optimizer(opt[:solver], GRB_ENV[], opt[:attributes])
-    else
-        optimizer = create_optimizer(opt[:solver], missing, opt[:attributes])
-    end
+    optimizer = create_optimizer(opt[:solver], opt_env(opt[:solver]), opt[:attributes])
 
     set_optimizer(planning_problem, optimizer)
 
@@ -58,6 +54,11 @@ function generate_planning_problem(case::Case)
         @info(" -- Generating planning model")
         planning_model!(system, model)
 
+        if system.settings.Retrofitting
+            @info(" -- Adding retrofit constraints")
+            add_retrofit_constraints!(system, period_idx, model)
+        end
+
         @info(" -- Including age-based retirements")
         add_age_based_retirements!.(system.assets, model)
 
@@ -65,6 +66,8 @@ function generate_planning_problem(case::Case)
             @info(" -- Available capacity in period $(period_idx) is being carried over to period $(period_idx+1)")
             carry_over_capacities!(periods[period_idx+1], system)
         end
+
+        add_feasibility_constraints!(system, model)
 
         model[:eFixedCost] = model[:eInvestmentFixedCost] + model[:eOMFixedCost]
         fixed_cost[period_idx] = model[:eFixedCost];
@@ -83,9 +86,7 @@ function generate_planning_problem(case::Case)
 
     discount_rate = settings.DiscountRate
 
-    cum_years = [sum(period_lengths[i] for i in 1:s-1; init=0) for s in 1:number_of_periods];
-
-    discount_factor = 1 ./ ( (1 + discount_rate) .^ cum_years)
+    discount_factor = present_value_factor(discount_rate, period_lengths)
 
     @expression(model, eFixedCostByPeriod[s in 1:number_of_periods], discount_factor[s] * fixed_cost[s])
     @expression(model, eFixedCost, sum(eFixedCostByPeriod[s] for s in 1:number_of_periods))
@@ -94,16 +95,11 @@ function generate_planning_problem(case::Case)
 
     @expression(model, eOMFixedCostByPeriod[s in 1:number_of_periods], discount_factor[s] * om_fixed_cost[s])
 
-    period_to_subproblem_map, subproblem_indices = get_period_to_subproblem_mapping(periods);
+    _, number_of_subperiods = get_period_to_subproblem_mapping(periods);
 
-    @variable(model, vTHETA[w in subproblem_indices] .>= 0)
+    @expression(model, eLowerBoundOperatingCost[w in 1:number_of_subperiods], AffExpr(0.0))
 
-    opexmult = [sum([1 / (1 + discount_rate)^(i) for i in 1:period_lengths[s]]) for s in 1:number_of_periods]
-
-    @expression(model, eVariableCostByPeriod[s in 1:number_of_periods], discount_factor[s] * opexmult[s] * sum(vTHETA[w] for w in period_to_subproblem_map[s]))
-    @expression(model, eApproximateVariableCost, sum(eVariableCostByPeriod[s] for s in 1:number_of_periods))
-
-    @objective(model, Min, model[:eFixedCost] + model[:eApproximateVariableCost])
+    @objective(model, Min, model[:eFixedCost])
 
     @info(" -- Planning problem generation complete, it took $(time() - start_time) seconds")
 
@@ -230,19 +226,31 @@ function update_with_planning_solution!(e::AbstractEdge, planning_variable_value
         e.capacity = planning_variable_values[name(e.capacity)]
         e.new_capacity = value(x->planning_variable_values[name(x)], e.new_capacity)
         e.retired_capacity = value(x->planning_variable_values[name(x)], e.retired_capacity)
+        e.retrofitted_capacity = value(x->planning_variable_values[name(x)], e.retrofitted_capacity)
     end
 end
-#### Removing for now, needs more testing  
-# function add_feasibility_constraints!(system::System, model::Model)
-#     all_edges = edges(system.assets)
-#     for n in system.locations
-#         if isa(n, Node)
-#             if !all(max_supply(n) .== 0)
-#                 edges_that_start_from_n = all_edges[findall(start_vertex(e) == n && e.unidirectional == true for e in all_edges)]
-#                 @info "Adding feasibility constraints for node $(n.id)"
-#                 @constraint(model, sum(capacity(e) for e in edges_that_start_from_n) <= sum(max_supply(n)))    
-#             end
-#         end
-#     end
-#     return nothing
-# end
+
+function add_feasibility_constraints!(system::System, model::Model)
+    all_storages = get_storages(system)
+    for g in all_storages
+        if isa(g, LongDurationStorage)
+            has_storage_max_level_constraint = any(isa.(g.constraints, MaxStorageLevelConstraint))
+            has_storage_min_level_constraint = any(isa.(g.constraints, MinStorageLevelConstraint))
+            has_init_storage_max_level_constraint = any(isa.(g.constraints, MaxInitStorageLevelConstraint))
+            has_init_storage_min_level_constraint = any(isa.(g.constraints, MinInitStorageLevelConstraint))
+            
+            if has_storage_max_level_constraint && !has_init_storage_max_level_constraint
+                @info("Adding max initial storage level constraint to storage $(id(g)) for feasibility")
+                push!(g.constraints,  MaxInitStorageLevelConstraint())
+                add_model_constraint!(g.constraints[end], g, model)
+            end
+
+            if has_storage_min_level_constraint && !has_init_storage_min_level_constraint
+                @info("Adding min initial storage level constraint to storage $(id(g)) for feasibility")
+                push!(g.constraints,  MinInitStorageLevelConstraint())
+                add_model_constraint!(g.constraints[end], g, model)
+            end
+        end
+    end
+    return nothing
+end

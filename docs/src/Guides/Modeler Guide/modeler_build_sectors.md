@@ -1,4 +1,4 @@
-# Creating a New Sector
+# [Creating a New Sector](@id modeler_create_sector)
 
 Creating new sectors in Macro involves two main steps:
 
@@ -56,6 +56,8 @@ This line defines `MyNewSector` as a new subtype of `Commodity`. Once added, you
 
 After defining the new commodity type, you can proceed to build new assets and transformation processes using nodes and edges associated with any `Commodity` type defined in Macro.
 
-- [Creating a New Asset](@ref): Step-by-step instructions for developing a new asset.
+- [Creating a New Asset](@ref modeler_create_asset): Step-by-step instructions for developing a new asset.
 
-- [Creating a New Example Case](@ref): A guide to developing a new example case.
+- [Adding Documentation for a New Asset](@ref modeler_add_docs_to_asset): Instructions for adding documentation to a new asset.
+
+- [Creating a New Example Case](@ref modeler_create_example_case): A guide to developing a new example case.

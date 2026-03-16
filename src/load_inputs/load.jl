@@ -8,7 +8,11 @@ function load!(system::System, file_path::AbstractString)::Nothing
     if isfile(file_path)
         load!(system, load_inputs(file_path))
     elseif isdir(file_path)
-        for file in get_json_files(file_path)
+        json_files = get_json_files(file_path)
+        csv_files = get_csv_files(file_path)
+        files = vcat(json_files, csv_files)
+        files = sort(files, by = x -> occursin("_retrofit_option", x) ? 0 : 1) # Sorts files so that retrofit options are loaded first
+        for file in files
             load!(system, joinpath(file_path, file))
         end
     end
@@ -28,9 +32,24 @@ function load!(system::System, data::AbstractDict{Symbol,Any})::Nothing
     # Check that data has only :type and :instance_data fields
     elseif data_has_only_instance_data(data)
         if isa(data[:instance_data], AbstractDict{Symbol,Any})
-            data_type = check_and_convert_type(data)
             load_time_series_data!(system, data) # substitute ts file paths with actual vectors of data
-            add!(system, make(data_type, data[:instance_data], system))
+
+            data[:instance_data][:id] = Symbol(data[:instance_data][:id]) # Make sure the id is a Symbol
+            data[:instance_data][:type] = check_and_convert_type(data) # Add the type to the instance data
+            push!(system.input_data, data[:instance_data]) #Store the input data for later use
+
+            if system.settings.Retrofitting
+                make_retrofit_options(system, data) # Make retrofitting assets for assets with retrofit_options
+            end
+
+            asset_instance = Base.invokelatest(
+                make,
+                data[:instance_data][:type],
+                data[:instance_data],
+                system,
+            )
+            add!(system, asset_instance)
+
         elseif isa(data[:instance_data], AbstractVector{<:AbstractDict{Symbol,Any}})
             load!(system, expand_instances(data))
         else
@@ -95,11 +114,14 @@ end
 
 function check_and_convert_type(data::AbstractDict{Symbol,Any}, m::Module = MacroEnergy)
     if !haskey(data, :type)
-        throw(ArgumentError("Instance data does not have a :type field"))
+        throw(ArgumentError("Instance data requires a :type field"))
     end
     type = Symbol(data[:type])
+    if haskey(commodity_types(m), type)
+        return commodity_types(m)[type]
+    end
     validate_type_attribute(type, m)
-    return getfield(m, type)
+    return Base.invokelatest(getfield, m, type)
 end
 
 function data_has_only_instance_data(data::AbstractDict{Symbol,Any})::Bool

@@ -1,7 +1,10 @@
 module TestWorkflow
 
 using Test
-using Gurobi, HiGHS
+using HiGHS
+using Pkg
+using JuMP
+try Pkg.add("Gurobi"); using Gurobi; catch e end
 using CSV, DataFrames, JSON3
 import MacroEnergy:
     System,
@@ -21,13 +24,13 @@ import MacroEnergy:
     load_case,
     read_file,
     generate_model,
+    create_optimizer,
     set_optimizer,
     optimize!,
     objective_value,
     commodity_type,
     AssetId,
     VariableRef,
-    collect_results, 
     get_optimal_capacity,
     get_optimal_new_capacity,
     get_optimal_retired_capacity,
@@ -39,8 +42,10 @@ import MacroEnergy:
     write_capacity,
     write_costs,
     write_undiscounted_costs,
+    write_detailed_costs,
+    get_detailed_costs,
     write_flow,
-    write_results,
+    write_curtailment,
     typesymbol
 
 
@@ -265,8 +270,8 @@ end
 
 function test_model_generation_and_optimization()
     case = load_case(test_path)
-    model = generate_model(case)
-    set_optimizer(model, optim)
+    optimizer = create_optimizer(optim)
+    model = generate_model(case,optimizer)
     optimize!(model)
     macro_objval = objective_value(model)
 
@@ -280,7 +285,6 @@ end
 function test_writing_outputs(case,model)
     system = case.systems[1];
     settings = case.settings;
-    @test_nowarn collect_results(system, model, settings)
     @test_nowarn get_optimal_capacity(system)
     @test_nowarn get_optimal_new_capacity(system)
     @test_nowarn get_optimal_retired_capacity(system)
@@ -289,26 +293,45 @@ function test_writing_outputs(case,model)
     @test_nowarn get_optimal_retired_capacity(system.assets[1])
     @test_nowarn get_optimal_flow(system)
     @test_nowarn get_optimal_flow(system.assets[1], scaling=1.0)
-    @test_nowarn get_optimal_flow(system.assets[1].elec_edge, scaling=1.0)
+    @test_nowarn get_optimal_flow(system.assets[1].elec_edge, 1.0)
     @test_nowarn create_discounted_cost_expressions!(model,system,settings)
     @test_nowarn compute_undiscounted_costs!(model, system, settings)
-    @test_nowarn get_optimal_discounted_costs(model,1)
-    @test_nowarn get_optimal_discounted_costs(model,1,scaling=2.0)
-    @test_nowarn get_optimal_undiscounted_costs(model,1)
-    @test_nowarn get_optimal_undiscounted_costs(model,1, scaling=2.0)
-    @test_nowarn write_capacity(joinpath(@__DIR__, "test_capacity.csv"), system)
-    @test_nowarn write_costs(joinpath(@__DIR__, "test_costs.csv"), system, model)
-    @test_nowarn write_undiscounted_costs(joinpath(@__DIR__, "test_undiscountedcosts.csv"), system, model)
-    @test_nowarn write_flow(joinpath(@__DIR__, "test_flow.csv"), system)
-    @test_nowarn write_results(joinpath(@__DIR__, "test_outputs.csv.gz"), system, model, settings)
-    @test_nowarn write_results(joinpath(@__DIR__, "test_outputs.parquet"), system, model, settings)
-    @test_throws ArgumentError write_results("test.zip", system, model, settings)
-    rm(joinpath(@__DIR__, "test_outputs.csv.gz"))   # clean up
-    rm(joinpath(@__DIR__, "test_outputs.parquet"))  # clean up
-    rm(joinpath(@__DIR__, "test_capacity.csv"))     # clean up
-    rm(joinpath(@__DIR__, "test_costs.csv"))        # clean up
-    rm(joinpath(@__DIR__, "test_undiscountedcosts.csv"))        # clean up
-    rm(joinpath(@__DIR__, "test_flow.csv"))         # clean up
+    @test_nowarn get_optimal_discounted_costs(model)
+    @test_nowarn get_optimal_discounted_costs(model,scaling=2.0)
+    @test_nowarn get_optimal_undiscounted_costs(model)
+    @test_nowarn get_optimal_undiscounted_costs(model, scaling=2.0)
+    @test_nowarn write_capacity("test_capacity.csv", system)
+    @test_nowarn write_costs("test_costs.csv", system, model)
+    @test_nowarn write_undiscounted_costs("test_undiscountedcosts.csv", system, model)
+    @test_nowarn write_flow("test_flow.csv", system)
+    @test_nowarn write_curtailment("test_curtailment.csv", system)
+    # Detailed cost breakdown (monolithic)
+    @test_nowarn write_detailed_costs(".", system, model, settings)
+    costs_result = get_detailed_costs(system, settings)
+    detailed_costs = costs_result.undiscounted
+    @test detailed_costs isa DataFrame
+    @test !isempty(detailed_costs)
+    @test all(c in names(detailed_costs) for c in ["zone", "type", "category", "value"])
+    # Return structure: both discounted and undiscounted have same columns and row count
+    @test names(costs_result.discounted) == ["zone", "type", "category", "value"]
+    @test names(costs_result.undiscounted) == ["zone", "type", "category", "value"]
+    @test size(costs_result.discounted, 1) == size(costs_result.undiscounted, 1)
+    # Grand total from detailed costs should match model total (same values written to test_costs.csv)
+    @test sum(costs_result.discounted.value) ≈ value(model[:eDiscountedFixedCost]) + value(model[:eDiscountedVariableCost])
+    @test sum(costs_result.undiscounted.value) ≈ value(model[:eFixedCost]) + value(model[:eVariableCost])
+    @test isfile("costs_by_type.csv")
+    @test isfile("costs_by_zone.csv")
+    @test isfile("undiscounted_costs_by_type.csv")
+    @test isfile("undiscounted_costs_by_zone.csv")
+    rm("costs_by_type.csv") # clean up
+    rm("costs_by_zone.csv") # clean up
+    rm("undiscounted_costs_by_type.csv") # clean up
+    rm("undiscounted_costs_by_zone.csv") # clean up
+    rm("test_capacity.csv")     # clean up
+    rm("test_costs.csv")        # clean up
+    rm("test_undiscountedcosts.csv")        # clean up
+    rm("test_flow.csv")         # clean up
+    isfile("test_curtailment.csv") && rm("test_curtailment.csv")  # clean up
     return nothing
 end 
 

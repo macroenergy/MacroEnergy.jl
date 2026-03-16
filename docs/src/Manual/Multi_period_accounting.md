@@ -41,9 +41,8 @@ N_i = \sum_{i=1}^{i-1}L_i
 - $P_i$ is the minimum of the economic lifetime or the total number of years across all remaining periods.
 
 ```math
-P_i = \min(EL_y, \sum_{i}^{|I|}L_i)
+P_i=\min(EL_y, \sum_{s=i}^{|I|}L_s)
 ```
-
 
 ## Fixed O&M cost
 

@@ -2,7 +2,7 @@
 
 ## Contents
 
-[Overview](@ref "manual-storage-overview") | [Fields](@ref "Storage Fields") | [Types](@ref "manual-storage-types") | [Constructors](@ref "manual-storage-constructors") | [Methods](@ref "manual-storage-methods") | [Examples](@ref "manual-storage-examples")
+[Overview](@ref "manual-storage-overview") | [Fields](@ref "manual-storage-fields") | [Types](@ref "manual-storage-types") | [Constructors](@ref "manual-storage-constructors") | [Methods](@ref "manual-storage-methods") | [Examples](@ref "manual-storage-examples")
 
 ## [Overview](@id manual-storage-overview)
 
@@ -49,7 +49,7 @@ While single period cycles are fine for storage which usually discharge within t
 - **Cyclic Operation**: Storage state loops across modeling periods to ensure conservation of energy and mass
 - **Long Duration Storage**: Storage can be configured to track state of charge across multiple representative periods, enabling seasonal storage within Systems using representative periods
 
-## Storage Fields
+## [Storage Fields](@id manual-storage-fields)
 
 `Storage` components have the following fields. When running a model, the fields are set by the input files. When creating an Asset, the defaults below can be altered using the `@storage_data` macro. The internal fields are used by Macro and are not intended to be set by users in most circumstances.
 
@@ -106,7 +106,7 @@ While single period cycles are fine for storage which usually discharge within t
 | `min_duration`           | Float64                   | Minimum storage duration              | hours    | 0.0      |
 | `max_duration`           | Float64                   | Maximum storage duration              | hours    | 0.0      |
 | `min_storage_level`      | Float64                   | Minimum storage level (fraction)      | fraction | 0.0      |
-| `max_storage_level`      | Float64                   | Maximum storage level (fraction)      | fraction | 0.0      |
+| `max_storage_level`      | Float64                   | Maximum storage level (fraction)      | fraction | 1.0      |
 | `min_outflow_fraction`   | Float64                   | Minimum discharge rate (fraction)     | fraction | 0.0      |
 | `loss_fraction`          | Vector{Float64}           | Storage losses per timestep           | fraction | Float64[]|
 
@@ -387,7 +387,8 @@ As Assets with two `Edges` with capacity, the standard JSON inputs for Battery A
             },
             "discharge_constraints": {
                 "CapacityConstraint": true,
-                "StorageDischargeLimitConstraint": true
+                "StorageDischargeLimitConstraint": true,
+                "StorageChargeLimitConstraint": true
             }
         }
     ]
@@ -420,7 +421,8 @@ Using the advanced input format makes it easier to understand the structure of t
                     "can_retire": false,
                     "constraints": {
                         "CapacityConstraint": true,
-                        "StorageDischargeLimitConstraint": true
+                        "StorageDischargeLimitConstraint": true,
+                        "StorageChargeLimitConstraint": true
                     }
                 },
                 "charge_edge": {
@@ -487,7 +489,8 @@ Some users may find it more straightforward to use some elements of the advanced
                     "efficiency": 0.92,
                     "constraints": {
                         "CapacityConstraint": true,
-                        "StorageDischargeLimitConstraint": true
+                        "StorageDischargeLimitConstraint": true,
+                        "StorageChargeLimitConstraint": true
                     }
                 },
                 "charge_edge": {
@@ -537,7 +540,7 @@ struct GasStorage{T} <: AbstractAsset
 end
 ```
 
-The following code snippets from the `GasStorage` `make()` function show part of how this Asset is implemented. We recommend reading the [guide on constructing Assets](@ref "Creating a New Asset") for more details on how to create Assets in Macro.
+The following code snippets from the `GasStorage` `make()` function show part of how this Asset is implemented. We recommend reading the [guide on constructing Assets](@ref modeler_create_asset) for more details on how to create Assets in Macro.
 
 ```julia
 function make(asset_type::Type{GasStorage}, data::AbstractDict{Symbol,Any}, system::System)
@@ -589,6 +592,7 @@ function make(asset_type::Type{GasStorage}, data::AbstractDict{Symbol,Any}, syst
         storage_data,
         system.time_data[commodity_symbol],
         commodity,
+        asset_location
     )
     if long_duration
         lds_constraints = [LongDurationStorageImplicitMinMaxConstraint()]

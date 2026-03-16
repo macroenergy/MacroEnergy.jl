@@ -13,7 +13,6 @@ function add_constraints_by_type!(system::System, model::Model, constraint_type:
             add_constraints_by_type!(getfield(a, t), model, constraint_type)
         end
     end
-
 end
 
 function add_constraints_by_type!(

@@ -5,6 +5,7 @@ mutable struct System <: AbstractSystem
     time_data::Dict{Symbol,TimeData}
     assets::Vector{AbstractAsset}
     locations::Vector{Union{Node, Location}}
+    input_data::Vector{Dict{Symbol,Any}}
 end
 
 """
@@ -104,6 +105,7 @@ function empty_system(data_dirpath::String)
         Dict{Symbol,TimeData}(),
         [],
         [],
+        []
     )
 end
 
@@ -133,6 +135,15 @@ function get_asset_by_id(system::System, id::Symbol)
     for asset in system.assets
         if asset.id == id
             return asset
+        end
+    end
+    return nothing
+end
+
+function get_input_data_by_id(system::System, id::Symbol)
+    for input_data in system.input_data
+        if input_data[:id] == id
+            return input_data
         end
     end
     return nothing
@@ -175,6 +186,24 @@ function find_node(nodes_list::Vector{Union{Node, Location}}, id::Symbol, commod
         if candidate !== nothing
             return candidate
         end
+    end
+    return nothing
+end
+
+function find_node(system::System, id::Symbol, commodity::Union{Missing,DataType}=missing)
+    @debug "Finding node $id of commodity $commodity"
+    candidate = find_node(system.locations, id, commodity)
+    if candidate !== nothing
+        return candidate
+    elseif system.settings.AutoCreateNodes
+        id = Symbol(rand(Int16))
+        @debug "Creating new $commodity node with id: $id"
+        new_node = Node{commodity}(; 
+            id = id,
+            timedata = system.time_data[Symbol(commodity)]
+        )
+        push!(system.locations, new_node)
+        return new_node
     end
     error("Node $id not found")
     return nothing
@@ -242,9 +271,10 @@ get_assets_sametype(system::System, asset_type::T) where T<:Type{<:AbstractAsset
 
 # Function to extract all the nodes, edges, storages, and transformations from a system
 # If return_ids_map=True, a `Dict` is also returned mapping edge ids to the corresponding asset objects.
-get_nodes(system::System) = system.locations
+get_locations(system::System) = system.locations
+get_nodes(system::System) = Node[node for node in system.locations if isa(node, Node)]
 get_edges(system::System; return_ids_map::Bool=false) = return_ids_map ? get_macro_objs_with_map(system, AbstractEdge) : get_macro_objs(system, AbstractEdge)
-get_storage(system::System; return_ids_map::Bool=false) = return_ids_map ? get_macro_objs_with_map(system, Storage) : get_macro_objs(system, Storage)
+get_storages(system::System; return_ids_map::Bool=false) = return_ids_map ? get_macro_objs_with_map(system, AbstractStorage) : get_macro_objs(system, AbstractStorage)
 get_transformations(system::System; return_ids_map::Bool=false) = return_ids_map ? get_macro_objs_with_map(system, Transformation) : get_macro_objs(system, Transformation)
 
 # Function to extract the edges with capacity variables from a system.
@@ -257,6 +287,18 @@ function edges_with_capacity_variables(system::System; return_ids_map::Bool=fals
         return edges_with_capacity, edges_with_capacity_asset_map
     else
         return edges_with_capacity_variables(system.assets)
+    end
+end
+
+# Function to extract the storages with capacity variables from a system.
+# If return_ids_map=True, a `Dict` is also returned mapping edge ids to the corresponding asset objects.  
+function storages_with_capacity_variables(system::System; return_ids_map::Bool=false)
+    if return_ids_map
+        ### Note: we do not need to filter storages as every storage has capacity variables
+        storages_with_capacity, storages_with_capacity_asset_map = get_storages(system, return_ids_map=true)
+        return storages_with_capacity, storages_with_capacity_asset_map
+    else
+        return storages_with_capacity_variables(system.assets)
     end
 end
 

@@ -2,7 +2,7 @@
 
 ## Contents
 
-[Overview](@ref "manual-edges-overview") | [Fields](@ref "Edge Fields") | [Types](@ref "manual-edges-types") | [Constructors](@ref "manual-edges-constructors") | [Methods](@ref "manual-edges-methods") | [Examples](@ref "manual-edges-examples")
+[Overview](@ref "manual-edges-overview") | [Fields](@ref "manual-edges-fields") | [Types](@ref "manual-edges-types") | [Constructors](@ref "manual-edges-constructors") | [Methods](@ref "manual-edges-methods") | [Examples](@ref "manual-edges-examples")
 
 ## [Overview](@id manual-edges-overview)
 
@@ -36,7 +36,7 @@ It is not currently possible to define `Edges` outside of Assets using the stand
 - **Investment**: Edges can have investment costs associated with investments and operation
 - **Time Dependence**: Support time-varying parameters and constraints
 
-## Edge Fields
+## [Edge Fields](@id manual-edges-fields)
 
 `Edges` have the following fields. When running a model, the fields are set by the input files. When creating an Asset, the defaults below can can be altered using the `@edge_data` macro. The internal fields are used by Macro and are not intended to be set by users in most circumstances.
 
@@ -368,7 +368,7 @@ Additional inputs like this are set when defining an `Asset` and its `make()` fu
 
 #### Creating the Transmission Line Asset
 
-A full guide on how to create Assets can be found in the [Creating a New Asset](@ref) section. Further discussion of Assets and the `@edge_data` macro can be found in the [Assets documentation](@ref "Assets").
+A full guide on how to create Assets can be found in the [Creating a New Asset](@ref modeler_create_asset) section. Further discussion of Assets and the `@edge_data` macro can be found in the [Assets documentation](@ref "Assets").
 
 First, we add an `Edge` to the `TransmissionLink` Asset struct. `TransmissionLinks` are generalized connections meant to represent transmission lines, pipelines without linepack, data connections, etc. Therefore, we parameterized the Asset by the commodity its `Edge` carries, e.g. `TransmissionLink{Electricity}` or `TransmissionLink{NaturalGas}`.
 

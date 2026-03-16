@@ -162,3 +162,5 @@ function get_constraint_by_type(v::AbstractVertex, constraint_type::Type{<:Abstr
     matches = filter(c -> typeof(c) == constraint_type, constraints)
     return length(matches) == 1 ? matches[1] : length(matches) > 1 ? matches : nothing
 end
+
+location(v::AbstractVertex) = v.location;

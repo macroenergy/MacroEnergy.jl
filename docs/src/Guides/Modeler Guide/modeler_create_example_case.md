@@ -1,4 +1,4 @@
-# Creating a New Example Case
+# [Creating a New Example Case](@id modeler_create_example_case)
 
 The best way to get started is by reviewing the existing example cases in the Macro repository, located in the [`MacroEnergyExamples.jl`](https://github.com/macroenergy/MacroEnergyExamples.jl/tree/main/examples) repo.
 

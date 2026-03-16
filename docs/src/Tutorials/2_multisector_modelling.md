@@ -1,19 +1,18 @@
-
 # Multisector modelling with Macro
 
 !!! note "Interactive Notebook"
     The interactive version of this tutorial can be found [here](https://github.com/macroenergy/MacroEnergyExamples.jl/blob/main/tutorials/tutorial_2_multisector_modelling.ipynb).
 
-In this tutorial, we extend the electricity-only model considered in Tutorial 2 to build a multisector model for joint capacity expansion in electricity and hydrogen sectors. 
+In this tutorial, we extend the electricity-only model considered in Tutorial 1 to build a multisector model for joint capacity expansion in electricity and hydrogen sectors. 
 
-To do this, we incorporate hydrogen and electricity demand from Tutorial 2, and endogenously model hydrogen production and storage in Macro.
+To do this, we incorporate hydrogen and electricity demand from Tutorial 1, and endogenously model hydrogen production and storage in Macro.
 
 ```julia
 using Pkg; Pkg.add(["VegaLite", "Plots"])
 ```
 
 ```julia
-using Macro
+using MacroEnergy
 using HiGHS
 using CSV
 using DataFrames
@@ -34,7 +33,7 @@ if !isdir("one_zone_multisector")
 end
 ```
 
-**Note:** If you have previously run Tutorial 2, make sure that file `one_zone_multisector/system/nodes.json` is restored to the original version with a $\text{CO}_2$ price. The definition of the $\text{CO}_2$ node should look like this:
+**Note:** If you have previously run Tutorial 1, make sure that file `one_zone_multisector/system/nodes.json` is restored to the original version with a $\text{CO}_2$ price. The definition of the $\text{CO}_2$ node should look like this:
 ```json
 {
     "type": "CO2",
@@ -72,17 +71,20 @@ Update file `one_zone_multisector/system/time_data.json` accordingly:
 
 ```julia
 new_time_data = Dict(
-    "PeriodLength"=>8760,
     "HoursPerTimeStep" => Dict(
-        "Electricity" => 1, 
-        "NaturalGas" => 1, 
-        "CO2" => 1, 
-        "Hydrogen" => 1),
+        "Electricity"=>1,
+        "NaturalGas"=> 1,
+        "CO2"=> 1,
+        "Hydrogen"=>1
+    ),
     "HoursPerSubperiod" => Dict(
-        "Electricity" => 8760, 
-        "NaturalGas" => 8760, 
-        "CO2" => 8760, 
-        "Hydrogen"=>8760)
+        "Electricity"=>8760,
+        "NaturalGas"=> 8760,
+        "CO2"=> 8760,
+        "Hydrogen"=>8760
+    ),
+    "NumberOfSubperiods"=>1,
+    "TotalHoursModeled"=>8760
 )
 
 open("one_zone_multisector/system/time_data.json", "w") do io
@@ -101,33 +103,34 @@ cp("demand_timeseries/hydrogen_demand.csv","one_zone_multisector/system/hydrogen
 ```
 
 ### Exercise 1
-Using the existing electricity nodes in `one_zone_multisector/system/nodes.json` as template, add an Hydrogen demand node, linking it to the `hydrogen_demand.csv` timeseries.
+Using the existing electricity nodes in `one_zone_multisector/system/nodes.json` as template, add a Hydrogen demand node, linking it to the `hydrogen_demand.csv` timeseries.
 
 #### Solution
 
 The definition of the new Hydrogen node in `one_zone_multisector/system/nodes.json` should look like this:
 
 ```json
-    {
-        "type": "Hydrogen",
-        "global_data": {
-            "time_interval": "Hydrogen",
-            "constraints": {
-                "BalanceConstraint": true
-            }
-        },
-        "instance_data": [
-            {
-                "id": "h2_SE",
-                "demand": {
-                    "timeseries": {
-                        "path": "system/hydrogen_demand.csv",
-                        "header": "Demand_H2_z1"
-                    }
+{
+    "type": "Hydrogen",
+    "global_data": {
+        "time_interval": "Hydrogen",
+        "constraints": {
+            "BalanceConstraint": true
+        }
+    },
+    "instance_data": [
+        {
+            "id": "h2_NE",
+            "location": "NE",
+            "demand": {
+                "timeseries": {
+                    "path": "system/hydrogen_demand.csv",
+                    "header": "Demand_H2_z1"
                 }
             }
-        ]
-    },
+        }
+    ]
+},
 ```
 
 Next, add an electrolyzer asset represented in Macro as a transformation connecting electricity and hydrogen nodes:
@@ -140,58 +143,26 @@ To include the electrolyzer, create a file `one_zone_multisector/assets/electrol
 
 ```json
 {
-   "electrolyzer": [
-        {   
+    "electrolyzer": [
+        {
             "type": "Electrolyzer",
-            "global_data":{
-                "transforms": {
-                    "timedata": "Electricity",
-                    "constraints": {
-                        "BalanceConstraint": true
-                    }
-                },
-                "edges": {
-                    "h2_edge": {
-                        "type": "Hydrogen",
-                        "unidirectional": true,
-                        "has_capacity": true,
-                        "can_retire": true,
-                        "can_expand": true,
-                        "constraints": {
-                            "CapacityConstraint": true,
-                            "RampingLimitConstraint": true,
-                            "MinFlowConstraint": true
-                        }
-                    },
-                    "elec_edge": {
-                        "type": "Electricity",
-                        "unidirectional": true,
-                        "has_capacity": false
-                    }
-                }
-            },
-            "instance_data":[
+            "instance_data": [
                 {
-                    "id": "SE_Electrolyzer",
-                    "transforms":{
-                        "efficiency_rate": 0.875111139 // units: # MWh of H2 / MWh of electricity
+                    "id": "NE_Electrolyzer",
+                    "location": "NE",
+                    "h2_constraints": {
+                        "CapacityConstraint": true,
+                        "RampingLimitConstraint": true,
+                        "MinFlowConstraint": true
                     },
-                    "edges":{
-                        "elec_edge": {
-                            "start_vertex": "elec_SE"
-                        },
-                        "h2_edge": {
-                            "end_vertex": "h2_SE",
-                            "existing_capacity": 0,
-                            "investment_cost": 41112.53426,
-                            "fixed_om_cost": 1052.480877,
-                            "variable_om_cost": 0.0,
-                            "capacity_size": 1.5752,
-                            "ramp_up_fraction": 1,
-                            "ramp_down_fraction": 1,
-                            "min_flow_fraction":0.1
-                        }
-                    }
+                    "efficiency_rate": 0.875111139,
+                    "investment_cost": 41112.53426,
+                    "fixed_om_cost": 1052.480877,
+                    "variable_om_cost": 0.0,
+                    "capacity_size": 1.5752,
+                    "ramp_up_fraction": 1,
+                    "ramp_down_fraction": 1,
+                    "min_flow_fraction": 0.1
                 }
             ]
         }
@@ -199,107 +170,44 @@ To include the electrolyzer, create a file `one_zone_multisector/assets/electrol
 }
 ```
 
-Include an hydrogen storage resource cluster, represented in Macro as combination of a compressor transformation (consuming electricity to compress the gas) and a storage node:
+Include a hydrogen storage resource cluster, represented in Macro as combination of a compressor transformation (consuming electricity to compress the gas) and a storage node:
 
 ```@raw html
 <a href="gas_storage.html"><img width="400" src="../images/gas_storage.png" /></a>
 ```
 
-Add a file `one_zone_multisector/assets/h2_storage.json` based on the asset definition in  `src/model/assets/gasstorage.jl`that should look like this:
+Add a file `one_zone_multisector/assets/h2_storage.json` based on the asset definition in `src/model/assets/gasstorage.jl` that should look like this:
 
 ```json
 {
     "h2stor": [
         {
             "type": "GasStorage",
-            "global_data": {
-                "transforms": {
-                    "timedata": "Hydrogen",
-                    "constraints": {
-                        "BalanceConstraint": true
-                    }
-                },
-                "edges": {
-                    "discharge_edge": {
-                        "type": "Hydrogen",
-                        "unidirectional": true,
-                        "can_expand": true,
-                        "can_retire": false,
-                        "has_capacity": true,
-                        "constraints": {
-                            "CapacityConstraint": true,
-                            "RampingLimitConstraint": true
-                        }
-                    },
-                    "charge_edge": {
-                        "type": "Hydrogen",
-                        "unidirectional": true,
-                        "has_capacity": true,
-                        "can_expand": true,
-                        "can_retire": false,
-                        "constraints": {
-                            "CapacityConstraint": true
-                        }
-                    },
-                    "compressor_elec_edge": {
-                        "type": "Electricity",
-                        "unidirectional": true,
-                        "has_capacity": false
-                    },
-                    "compressor_gas_edge": {
-                        "type": "Hydrogen",
-                        "unidirectional": true,
-                        "has_capacity": false
-                    }
-                },
-                "storage": {
-                    "commodity": "Hydrogen",
-                    "can_expand": true,
-                    "can_retire": false,
-                    "constraints": {
+            "instance_data": [
+                {
+                    "id": "NE_Above_ground_storage",
+                    "location": "NE",
+                    "storage_commodity": "Hydrogen",
+                    "storage_can_retire": false,
+                    "storage_investment_cost": 873.013307,
+                    "storage_fixed_om_cost": 28.75810056,
+                    "storage_loss_fraction": 0.0,
+                    "storage_min_storage_level": 0.3,
+                    "storage_constraints": {
                         "StorageCapacityConstraint": true,
                         "BalanceConstraint": true,
                         "MinStorageLevelConstraint": true
-                    }
-                }
-            },
-            "instance_data": [
-                {
-                    "id": "SE_Above_ground_storage",
-                    "transforms": {
-                        "electricity_consumption": 0.018029457
                     },
-                    "edges": {
-                        "discharge_edge": {
-                            "end_vertex": "h2_SE",
-                            "existing_capacity": 0,
-                            "investment_cost": 0.0,
-                            "fixed_om_cost": 0.0,
-                            "variable_om_cost": 0.0,
-                            "efficiency": 1.0,
-                            "ramp_up_fraction": 1,
-                            "ramp_down_fraction": 1
-                        },
-                        "charge_edge":{
-                            "existing_capacity": 0,
-                            "investment_cost": 3219.236569,
-                            "fixed_om_cost": 0.0,
-                            "variable_om_cost": 0.0,
-                            "efficiency": 1.0
-                        },
-                        "compressor_gas_edge": {
-                            "start_vertex": "h2_SE"
-                        },
-                        "compressor_elec_edge": {
-                            "start_vertex": "elec_SE"
-                        }
+                    "discharge_can_expand": true,
+                    "discharge_has_capacity": true,
+                    "discharge_constraints": {
+                        "CapacityConstraint": true,
+                        "RampingLimitConstraint": true
                     },
-                    "storage":{
-                        "investment_cost": 873.013307,
-                        "fixed_om_cost":28.75810056,
-                        "loss_fraction": 0.0,
-                        "min_storage_level": 0.3
-                    }
+                    "discharge_electricity_consumption": 0.018029457,
+                    "charge_investment_cost": 3219.24,
+                    "charge_efficiency": 1.0,
+                    "charge_electricity_consumption": 0.018029457
                 }
             ]
         }
@@ -308,62 +216,78 @@ Add a file `one_zone_multisector/assets/h2_storage.json` based on the asset defi
 ```
 
 ### Exercise 2
-Following the same steps taken in Tutorial 2, load the input files, generate Macro model, and solve it using the open-source solver HiGHS.
+Following the same steps taken in Tutorial 1, load the input files, generate the model, and solve it using the open-source solver HiGHS.
 
 #### Solution
 
 First, load the inputs:
 ```julia
-system = MacroEnergy.load_system("one_zone_multisector");
-```
-Then, generate the model:
-```julia
-model = MacroEnergy.generate_model(system)
+case = load_case("one_zone_multisector");
 ```
 
-Finally, solve it using the HiGHS solver:
+Then, create the optimizer and solve the model:
 ```julia
-MacroEnergy.set_optimizer(model, HiGHS.Optimizer);
-MacroEnergy.optimize!(model)
+optimizer = create_optimizer(HiGHS.Optimizer);
+(case, solution) = solve_case(case, optimizer);
 ```
 
 ### Exercise 3
-As in Tutorial 2, print optimized capacity for each asset, the system total cost, and the total emissions. 
+As in Tutorial 1, print optimized capacity for each asset, the system total cost, and the total emissions. 
 
 What do you observe?
 
-To explain the results, plot both the electricity generation and hydrogen supply results as done in Tutorial 2 using `VegaLite.jl`.
+To explain the results, plot both the electricity generation and hydrogen supply results as done in Tutorial 1 using `VegaLite.jl`.
 
 #### Solution
 
-Optimized capacities are retrieved as follows:
+As in the previous tutorial, optimized capacities are retrieved as follows:
 
 ```julia
-capacity_results = get_optimal_capacity(system)
-new_capacity_results = get_optimal_new_capacity(system)
-retired_capacity_results = get_optimal_retired_capacity(system)
+period_index = 1 # only one investment period in this example
+system = case.systems[period_index];
+columns_to_keep = [:commodity, :resource_id, :type, :value];
 ```
+
+```julia
+capacity_results = get_optimal_capacity(system);
+capacity_results[:, columns_to_keep]
+```
+
+```julia
+new_capacity_results = get_optimal_new_capacity(system);
+new_capacity_results[:, columns_to_keep]
+```
+
+```julia
+retired_capacity_results = get_optimal_retired_capacity(system);
+retired_capacity_results[:, columns_to_keep]
+```
+
 Total system cost is:
 ```julia
-MacroEnergy.objective_value(model)
+MacroEnergy.objective_value(solution)
 ```
 
 Total $\text{CO}_2$ emissions are:
 ```julia
-co2_node = MacroEnergy.get_nodes_sametype(system.locations, CO2)[1]
-MacroEnergy.value(sum(co2_node.operation_expr[:emissions]))
+co2_node = MacroEnergy.find_node(system.locations, :co2_sink);
+MacroEnergy.value.(sum(MacroEnergy.get_balance(co2_node, :emissions)))
 ```
 
-Note that we have achieved lower costs and emissions when able to co-optimize capacity and operation of electricity and hydrogen sectors. In the following, we further investigate these
+Note that we have achieved lower costs and emissions when able to co-optimize capacity and operation of electricity and hydrogen sectors. In the following, we further investigate these results.
 
 ```julia
 plot_time_interval = 3600:3624
 ```
 Here is the electricity generation profile:
 ```julia
-natgas_power =  MacroEnergy.value.(MacroEnergy.flow(system.assets[4].elec_edge)).data[plot_time_interval]/1e3;
-solar_power = MacroEnergy.value.(MacroEnergy.flow(system.assets[5].edge)).data[plot_time_interval]/1e3;
-wind_power = MacroEnergy.value.(MacroEnergy.flow(system.assets[6].edge)).data[plot_time_interval]/1e3;
+# Flows
+flow_results_df = get_optimal_flow(system)
+flow_results = MacroEnergy.reshape_wide(flow_results_df, :time, :component_id, :value)
+
+natgas_power =  flow_results[plot_time_interval, :NE_natural_gas_fired_combined_cycle_1_elec_edge] / 1e3;
+solar_power = flow_results[plot_time_interval, :NE_utilitypv_class1_moderate_70_0_2_6_edge] / 1e3;
+wind_power = flow_results[plot_time_interval, :NE_landbasedwind_class4_moderate_70_7_edge] / 1e3;
 
 elec_gen =  DataFrame( hours = plot_time_interval, 
                 solar_photovoltaic = solar_power,
@@ -392,12 +316,9 @@ Because hydrogen storage is cheaper than batteries, we expect the system to use 
 We verify our assumption by making a stacked area plot of the hydrogen supply (hydrogen generation net of the hydrogen stored):
 
 ```julia
-electrolyzer_idx = findfirst(isa.(system.assets,Electrolyzer).==1)
-h2stor_idx = findfirst(isa.(system.assets,GasStorage{Hydrogen}).==1)
-
-electrolyzer_gen =  MacroEnergy.value.(MacroEnergy.flow(system.assets[electrolyzer_idx].h2_edge)).data[plot_time_interval]/1e3;
-h2stor_charge =  MacroEnergy.value.(MacroEnergy.flow(system.assets[h2stor_idx].charge_edge)).data[plot_time_interval]/1e3;
-h2stor_discharge = MacroEnergy.value.(MacroEnergy.flow(system.assets[h2stor_idx].discharge_edge)).data[plot_time_interval]/1e3;
+electrolyzer_gen = flow_results[plot_time_interval, :NE_Electrolyzer_h2_edge] / 1e3;
+h2stor_charge = flow_results[plot_time_interval, :NE_Above_ground_storage_charge_edge] / 1e3;
+h2stor_discharge = flow_results[plot_time_interval, :NE_Above_ground_storage_discharge_edge] / 1e3;
 
 h2_gen = DataFrame( hours = plot_time_interval, 
                     electrolyzer = electrolyzer_gen - h2stor_charge,

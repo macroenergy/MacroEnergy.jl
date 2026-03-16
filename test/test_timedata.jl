@@ -27,7 +27,7 @@ function test_time_data_commodity(input_data, expected_data, rel_path)
 end
 
 function test_load_time_data()
-    rel_path = "test_inputs"
+    rel_path = joinpath(@__DIR__, "test_inputs")
     
     # Test different input data
     scenarios = [

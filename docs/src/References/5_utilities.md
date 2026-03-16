@@ -1,7 +1,7 @@
-# Utility functions
+# [Non-Benders Utility Functions](@id non-benders-utilities)
 
 ```@index
-Pages = ["4_utilities.md"]
+Pages = ["5_utilities.md"]
 ```
 
 ## `all_constraints`
@@ -32,6 +32,11 @@ MacroEnergy.balance_data
 ## `create_output_path`
 ```@docs
 MacroEnergy.create_output_path
+```
+
+## `ensure_duals_available!`
+```@docs
+MacroEnergy.ensure_duals_available!
 ```
 
 ## `get_asset_by_id`
@@ -159,6 +164,11 @@ MacroEnergy.search_commodities
 MacroEnergy.set_value
 ```
 
+## `set_constraint_dual!`
+```@docs
+MacroEnergy.set_constraint_dual!
+```
+
 ## `struct_info`
 ```@docs
 MacroEnergy.struct_info
@@ -169,22 +179,80 @@ MacroEnergy.struct_info
 MacroEnergy.timestepbefore
 ```
 
-## `collect_flow_results`
+# Benders Utility Functions
+
+## `SubproblemsData`
 ```@docs
-MacroEnergy.collect_flow_results
+MacroEnergy.SubproblemsData
 ```
 
-## `collect_local_flows`
+## `collect_data_from_subproblems`
 ```@docs
-MacroEnergy.collect_local_flows
+MacroEnergy.collect_data_from_subproblems
 ```
 
-## `collect_distributed_flows`
+## `collect_distributed_data`
 ```@docs
-MacroEnergy.collect_distributed_flows
+MacroEnergy.collect_distributed_data
 ```
 
-## `evaluate_vtheta_in_expression`
+## `collect_local_data`
 ```@docs
-MacroEnergy.evaluate_vtheta_in_expression
+MacroEnergy.collect_local_data
+```
+
+## `extract_subproblem_results`
+```@docs
+MacroEnergy.extract_subproblem_results
+```
+
+## `populate_slack_vars_from_subproblems!`
+```@docs
+MacroEnergy.populate_slack_vars_from_subproblems!
+```
+
+## `collect_distributed_policy_slack_vars`
+```@docs
+MacroEnergy.collect_distributed_policy_slack_vars
+```
+
+## `collect_local_slack_vars`
+```@docs
+MacroEnergy.collect_local_slack_vars
+```
+
+## `merge_distributed_slack_vars_dicts`
+```@docs
+MacroEnergy.merge_distributed_slack_vars_dicts
+```
+
+## `populate_constraint_duals_from_subproblems!`
+```@docs
+MacroEnergy.populate_constraint_duals_from_subproblems!
+```
+
+## `collect_distributed_constraint_duals`
+```@docs
+MacroEnergy.collect_distributed_constraint_duals
+```
+
+## `collect_local_constraint_duals`
+```@docs
+MacroEnergy.collect_local_constraint_duals(::Vector{<:AbstractDict}, ::Type{MacroEnergy.AbstractTypeConstraint})
+MacroEnergy.collect_local_constraint_duals(::Vector{<:AbstractDict}, ::Type{MacroEnergy.BalanceConstraint})
+```
+
+## `merge_distributed_balance_duals`
+```@docs
+MacroEnergy.merge_distributed_balance_duals
+```
+
+## `densearray_to_dict`
+```@docs
+MacroEnergy.densearray_to_dict
+```
+
+## `dict_to_densearray`
+```@docs
+MacroEnergy.dict_to_densearray
 ```

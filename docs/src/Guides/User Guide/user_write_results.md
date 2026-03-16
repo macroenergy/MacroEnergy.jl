@@ -4,8 +4,10 @@ Currently, Macro supports the following types of outputs:
 
 - [Capacity Results](@ref): final capacity, new capacity and retired capacity for each technology.
 - [Costs](@ref): fixed, variable and total system costs.
+- [Curtailment Results](@ref): curtailment of variable renewable energy (VRE) assets over time.
 - [Flow Results](@ref): flow for each commodity through each edge in the system.
-- [Combined Results](@ref): all results (capacity, costs, flows, non-served demand, storage level) in a single file.
+- [Non-Served Demand Results](@ref): non-served demand for each node with demand.
+- [Storage Level Results](@ref): storage level for each storage unit over time.
 
 For detailed information about output formats and layouts, please refer to the [Output Format](@ref) and [Output Files Layout](@ref) sections below.
 
@@ -49,6 +51,19 @@ write_capacity("capacity.csv", system, commodity="CO2*")
 !!! note "Output Layout"
     Results are written in *long* format by default. To use *wide* format, configure the `OutputLayout: {"Capacity": "wide"}` setting in your Macro settings JSON file (see [Output Files Layout](@ref) for details).
 
+## Curtailment Results
+
+Export curtailment results for variable renewable energy (VRE) assets using the [`write_curtailment`](@ref) function:
+
+```julia
+write_curtailment("curtailment.csv", system)
+```
+
+Curtailment is the difference between available VRE generation (capacity × availability factor) and actual generation (flow). It represents energy that could have been produced but was not dispatched.
+
+!!! note "Output Layout"
+    Results are written in *long* format by default. To use *wide* format, configure the `OutputLayout: {"Curtailment": "wide"}` setting in your Macro settings JSON file (see [Output Files Layout](@ref) for details).
+
 ## Costs
 
 Export system-wide cost results using the [`write_costs`](@ref) function:
@@ -58,6 +73,25 @@ write_costs("costs.csv", system, model)
 ```
 
 Note that the `write_costs` function requires both the `system` and `model` arguments, unlike the `write_capacity` function.
+
+To export undiscounted costs (fixed, variable, total) instead of discounted costs, use [`write_undiscounted_costs`](@ref):
+
+```julia
+write_undiscounted_costs("undiscounted_costs.csv", system, model)
+```
+
+For a detailed cost breakdown by category (Investment, FixedOM, VariableOM, Fuel, NonServedDemand, etc.) and by asset type or zone, use [`write_detailed_costs`](@ref). This writes both discounted and undiscounted breakdown files:
+
+```julia
+write_detailed_costs(results_dir, system, model, settings)
+```
+
+To obtain detailed costs as DataFrames for programmatic use, use [`get_detailed_costs`](@ref):
+
+```julia
+costs = get_detailed_costs(system, settings)
+# costs.discounted and costs.undiscounted are DataFrames with columns: zone, type, category, value
+```
 
 !!! note "Output Layout"
     Results are written in *long* format by default. To use *wide* format, configure the `OutputLayout: {"Costs": "wide"}` setting in your Macro settings JSON file (see [Output Files Layout](@ref) for details).
@@ -86,14 +120,62 @@ write_flow("flows.csv", system, asset_type="ThermalPower*")
 !!! note "Output Layout"
     Results are written in *long* format by default. To use *wide* format, configure the `OutputLayout: {"Flow": "wide"}` setting in your Macro settings JSON file (see [Output Files Layout](@ref) for details).
 
-## Combined Results
+## Non-Served Demand Results
 
-Export all results at once using the [`write_results`](@ref) function:
+Export non-served demand results for all nodes with demand using the [`write_non_served_demand`](@ref) function:
 
 ```julia
-write_results("results.csv.gz", system, model) # CSV.GZ format
-write_results("results.parquet", system, model) # Parquet format
+write_non_served_demand("non_served_demand.csv", system)
 ```
+
+This function exports non-served demand values only for nodes that have non-served demand variables defined (i.e., nodes with `max_nsd != [0.0]` in the input data). 
+
+!!! note "Segment Handling"
+    Non-served demand can have multiple segments (for piecewise linear cost curves). In *long* format, the `segment` column indicates which segment each value belongs to. In *wide* format, compound column names are used: `{node_id}_seg{segment}` (e.g., `elec_SE_seg1`, `elec_SE_seg2`).
+
+!!! note "Output Layout"
+    Results are written in *long* format by default. To use *wide* format, configure the `OutputLayout: {"NonServedDemand": "wide"}` setting in your Macro settings JSON file (see [Output Files Layout](@ref) for details).
+
+## Storage Level Results
+
+Export storage level results for all storage units using the [`write_storage_level`](@ref) function:
+
+```julia
+write_storage_level("storage_level.csv", system)
+```
+
+Filter results by commodity or asset type using the `commodity` and `asset_type` parameters:
+
+```julia
+# Filter by commodity
+write_storage_level("storage_level.csv", system, commodity="Electricity")
+
+# Filter by asset type
+write_storage_level("storage_level.csv", system, asset_type="Battery")
+```
+
+!!! note "Output Layout"
+    Results are written in *long* format by default. To use *wide* format, configure the `OutputLayout: {"StorageLevel": "wide"}` setting in your Macro settings JSON file (see [Output Files Layout](@ref) for details).
+
+## Writing Case Settings
+
+To export case and system settings to a JSON file, use the [`write_settings`](@ref) function:
+
+```julia
+write_settings(case, "output/settings.json")
+```
+
+This function automatically writes:
+- Case-level settings
+- System-level settings for all systems in the case
+
+The settings file is useful for:
+- Documentation and reproducibility
+- Sharing configuration with other users
+- Debugging and troubleshooting
+
+!!! note "Automatic Settings Writing"
+    The `write_settings` function is automatically called when using the main output writing functions (`write_outputs`) for different solution algorithms (Monolithic, Myopic, Benders).
 
 ## Output Format
 
@@ -115,7 +197,9 @@ Macro supports multiple output formats to suit different needs:
 The output format is determined by the file extension. For example, to export results in Parquet format:
 
 ```julia
-write_results("results.parquet", system, model)
+write_capacity("results.parquet", system)
+write_costs("results.parquet", system, model)
+write_flow("results.parquet", system)
 ```
 
 ## Output Files Layout
@@ -137,7 +221,10 @@ or
   "OutputLayout": {
     "Capacity": "wide",
     "Costs": "long",
-    "Flow": "long"
+    "Curtailment": "long",
+    "Flow": "long",
+    "NonServedDemand": "long",
+    "StorageLevel": "wide"
   }
 }
 ```
@@ -145,7 +232,7 @@ or
 Available options:
 - `"OutputLayout": "long"` (applies to all outputs)
 - `"OutputLayout": "wide"` (applies to all outputs)
-- `"OutputLayout": {"Capacity": "wide", "Costs": "long", "Flow": "long"}` (individual layout settings)
+- `"OutputLayout": {"Capacity": "wide", "Costs": "long", "Curtailment": "long", "Flow": "long", "NonServedDemand": "long", "StorageLevel": "wide"}` (individual layout settings)
 
 ## Output Files Location
 

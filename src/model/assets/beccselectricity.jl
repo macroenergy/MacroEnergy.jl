@@ -78,6 +78,7 @@ end
 
 function make(asset_type::Type{BECCSElectricity}, data::AbstractDict{Symbol,Any}, system::System)
     id = AssetId(data[:id])
+    location = as_symbol_or_missing(get(data, :location, missing))
 
     @setup_data(asset_type, data, id)
 
@@ -95,6 +96,7 @@ function make(asset_type::Type{BECCSElectricity}, data::AbstractDict{Symbol,Any}
     beccs_transform = Transformation(;
         id=Symbol(id, "_", beccs_transform_key),
         timedata=system.time_data[Symbol(transform_data[:timedata])],
+        location = location,
         constraints=transform_data[:constraints],
     )
 

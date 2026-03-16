@@ -60,7 +60,7 @@ function print_struct_info(asset::Type{<:AbstractAsset})
     print_struct_info(info) 
 end
 
-function print_struct_info(info::Vector{Tuple{Symbol, Type}})
+function print_struct_info(info::Vector{Tuple{Symbol, T}}) where T <: Union{Type, UnionAll}
     for (name, type) in info
         println("Field: $name, Type: $type")
     end    
@@ -165,6 +165,8 @@ edges = get_edges(thermal_plant)
 get_edges(asset::AbstractAsset; return_ids_map::Bool=false) = return_ids_map ? get_macro_objs_with_map(asset, AbstractEdge) : get_macro_objs(asset, AbstractEdge)
 get_edges(assets::Vector{<:AbstractAsset}; return_ids_map::Bool=false) = return_ids_map ? get_macro_objs_with_map(assets, AbstractEdge) : get_macro_objs(assets, AbstractEdge)
 
+get_storages(asset::AbstractAsset; return_ids_map::Bool=false) = return_ids_map ? get_macro_objs_with_map(asset, AbstractStorage) : get_macro_objs(asset, AbstractStorage)
+
 # The following functions are used to extract the edges with capacity variables from a Vector of Assets or a single Asset.
 # If return_ids_map=True, a `Dict` is also returned mapping edge ids to the corresponding asset objects.  
 function edges_with_capacity_variables(assets::Vector{<:AbstractAsset}; return_ids_map::Bool=false)
@@ -190,5 +192,33 @@ function edges_with_capacity_variables(asset::AbstractAsset; return_ids_map::Boo
         return edges_with_capacity, edges_with_capacity_asset_map
     else
         return AbstractEdge[edge for edge in get_edges(asset) if has_capacity(edge)]
+    end
+end
+
+function storages_with_capacity_variables(assets::Vector{<:AbstractAsset}; return_ids_map::Bool=false)
+    if return_ids_map
+        all_storages = Vector{Vector{AbstractStorage}}(undef, length(assets))
+        all_storage_asset_map = Dict{Symbol,Base.RefValue{<:AbstractAsset}}()
+        for i in eachindex(assets)
+            asset = assets[i]
+            storages, storage_asset_map = storages_with_capacity_variables(asset, return_ids_map=true)
+            all_storages[i] = storages
+            merge!(all_storage_asset_map, storage_asset_map)
+        end
+        return reduce(vcat, all_storages), all_storage_asset_map
+    else
+        return reduce(vcat, [storages_with_capacity_variables(asset) for asset in assets])
+    end
+end
+function storages_with_capacity_variables(asset::AbstractAsset; return_ids_map::Bool=false)
+    if return_ids_map
+        storages, storage_asset_map = get_storages(asset, return_ids_map=true)
+        #### Note that all storages have capacity variables
+        storages_with_capacity = storages
+        #### storages_with_capacity = storages_with_capacity_variables(storages)
+        storages_with_capacity_asset_map = filter(storage -> storage[1] in id.(storages_with_capacity), storage_asset_map)
+        return storages_with_capacity, storages_with_capacity_asset_map
+    else
+        return AbstractStorage[storage for storage in get_storages(asset)]
     end
 end

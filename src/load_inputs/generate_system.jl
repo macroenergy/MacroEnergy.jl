@@ -21,7 +21,12 @@ function generate_system!(system::System, system_data::AbstractDict{Symbol,Any})
     system.settings = configure_settings(system_data[:settings], system.data_dirpath)
 
     # Load the commodities
-    system.commodities = load_commodities(system_data[:commodities], system.data_dirpath; write_subcommodities=system.settings.WriteSubcommodities)
+    system.commodities = load_commodities(
+        system_data[:commodities],
+        system.data_dirpath;
+        write_subcommodities=system.settings.WriteSubcommodities,
+        allow_implicit_top_level_commodities=system.settings.AllowImplicitTopLevelCommodities,
+    )
 
     # Load the locations
     load_locations!(system, system.data_dirpath, system_data[:locations])

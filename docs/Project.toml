@@ -6,7 +6,3 @@ DocumenterMermaid = "a078cd44-4d9c-4618-b545-3ab9d77f9177"
 HiGHS = "87dc4568-4c63-4d18-b0c0-bb2238e4078b"
 InteractiveUtils = "b77e0a4c-d291-57a0-90e8-8db25a27a240"
 MacroEnergy = "260b7737-bf0e-4e84-9335-3af14438b1f5"
-MacroEnergySolvers = "466a4f75-6c9c-4ef2-97df-f5f43ac00c23"
-
-[sources]
-MacroEnergySolvers = {url = "https://github.com/macroenergy/MacroEnergySolvers.jl"}

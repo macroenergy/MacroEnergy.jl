@@ -121,7 +121,7 @@ For example, if you have a three-Location system and each Location requires an E
 ]}
 ```
 
-The Location information must be added to the instance data, not the global data, as you can only have one Node of each Commodity at any given Node.
+The Location information must be added to the instance data, not the global data, as you can only have one Node of each Commodity at any given Location.
 
 To include two or more Nodes of the same Commodity at a single Node, you must use sub-Commodities to define additional versions of the Commodity.
 

@@ -10,6 +10,15 @@ function default_case_settings()
     )
 end
 
+function default_myopic_settings()
+    return Dict(
+        :ReturnModels => false,
+        :WriteModelLP => false,
+        :Restart => Dict(:enabled=>false, :folder => "results_001", :from_period => 1),
+        :StopAfterPeriod => Inf
+    )
+end
+
 function default_benders_settings()
     return Dict(
         :MaxIter=> 50,
@@ -122,6 +131,7 @@ function configure_case(case_settings::AbstractDict{Symbol,Any})
     set_period_lengths!(settings)
     set_solution_algorithm!(settings)
     isa(settings[:SolutionAlgorithm], Benders) && configure_benders!(settings)
+    isa(settings[:SolutionAlgorithm], Myopic) && configure_myopic!(settings)
     validate_case_settings(settings)
     return namedtuple(settings)
 end
@@ -166,6 +176,18 @@ function configure_benders!(case_settings::AbstractDict{Symbol,Any})
     return nothing
 end
 
+function configure_myopic!(case_settings::AbstractDict{Symbol,Any})
+    # use default myopic settings if MyopicSettings is not specified
+    myopic_settings = get(case_settings, :MyopicSettings, Dict{Symbol,Any}())
+    isempty(myopic_settings) && @warn("No myopic settings specified, using default settings")
+    @info("Configuring myopic")
+    settings = default_myopic_settings()
+    settings = merge(settings, myopic_settings)
+    validate_myopic_settings(settings)
+    case_settings[:MyopicSettings] = settings
+    return nothing
+end
+
 function validate_benders_settings(benders_settings::AbstractDict{Symbol,Any})
     @assert benders_settings[:MaxIter] > 0 && isa(benders_settings[:MaxIter], Int)
     @assert benders_settings[:MaxCpuTime] > 0 && isa(benders_settings[:MaxCpuTime], Int)
@@ -173,4 +195,20 @@ function validate_benders_settings(benders_settings::AbstractDict{Symbol,Any})
     @assert benders_settings[:StabParam] >= 0 && isa(benders_settings[:StabParam], Number)
     @assert isa(benders_settings[:StabDynamic], Bool)
     @assert isa(benders_settings[:IntegerInvestment], Bool)
+    @assert isa(benders_settings[:Distributed], Bool)
+    @assert isa(benders_settings[:ExpectFeasibleSubproblems], Bool)
+    @assert isa(benders_settings[:IncludeSubproblemSlacksAutomatically], Bool)
+end
+
+function validate_myopic_settings(myopic_settings::AbstractDict{Symbol,Any})
+    @assert isa(myopic_settings[:ReturnModels], Bool)
+    @assert isa(myopic_settings[:WriteModelLP], Bool)
+    @assert isa(myopic_settings[:Restart][:enabled], Bool)
+    @assert isa(myopic_settings[:Restart][:folder], AbstractString)
+    @assert isa(myopic_settings[:Restart][:from_period], Int)
+    @assert isa(myopic_settings[:StopAfterPeriod], Number)
+    @assert myopic_settings[:StopAfterPeriod] >= 1
+    @assert myopic_settings[:Restart][:from_period] >= 1
+    @assert (!myopic_settings[:Restart][:enabled]) || (myopic_settings[:Restart][:from_period] <= myopic_settings[:StopAfterPeriod])
+
 end

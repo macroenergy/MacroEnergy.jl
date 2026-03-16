@@ -36,6 +36,7 @@ function full_default_data(::Type{GasStorage}, id=missing)
         :storage => @storage_data(
             :commodity => missing,
             :constraints => Dict{Symbol, Bool}(
+                :BalanceConstraint => true,
                 :StorageCapacityConstraint => true,
             ),
         ),
@@ -134,6 +135,7 @@ end
 
 function make(asset_type::Type{GasStorage}, data::AbstractDict{Symbol,Any}, system::System)
     id = AssetId(data[:id])
+    location = as_symbol_or_missing(get(data, :location, missing))
 
     @setup_data(asset_type, data, id)
 
@@ -151,6 +153,7 @@ function make(asset_type::Type{GasStorage}, data::AbstractDict{Symbol,Any}, syst
     pump_transform = Transformation(;
         id = Symbol(id, "_", pump_transform_key),
         timedata = system.time_data[Symbol(transform_data[:timedata])],
+        location = location,
         constraints = transform_data[:constraints],
     )
 
@@ -177,6 +180,7 @@ function make(asset_type::Type{GasStorage}, data::AbstractDict{Symbol,Any}, syst
         storage_data,
         system.time_data[commodity_symbol],
         commodity,
+        location
     )
     if long_duration
         lds_constraints = [LongDurationStorageImplicitMinMaxConstraint()]

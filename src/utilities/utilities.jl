@@ -16,6 +16,10 @@ function all_subtypes!(types::Dict{Symbol,DataType}, type::DataType)
     return nothing
 end
 
+function all_subtypes!(types::Dict{Symbol,DataType}, type::UnionAll)
+    return all_subtypes!(types, Base.unwrap_unionall(type))
+end
+
 function typesymbol(type::DataType)
     return Base.typename(type).name
 end
@@ -220,7 +224,7 @@ macro start_vertex(name, data, commodity, get_from_tuples)
     return esc(quote
         local vertex = get_from($get_from_tuples, missing, false)
         $data[:start_vertex] = vertex
-        $name = find_node(system.locations, Symbol(vertex), $commodity)
+        $name = find_node(system, Symbol(vertex), $commodity)
     end)
 end
 
@@ -228,6 +232,6 @@ macro end_vertex(name, data, commodity, get_from_tuples)
     return esc(quote
         local vertex = get_from($get_from_tuples, missing, false)
         $data[:end_vertex] = vertex
-        $name = find_node(system.locations, Symbol(vertex), $commodity)
+        $name = find_node(system, Symbol(vertex), $commodity)
     end)
 end

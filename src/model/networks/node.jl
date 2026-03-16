@@ -7,13 +7,14 @@ macro AbstractNodeBaseAttributes()
         max_supply::Vector{Float64} = $node_defaults[:max_supply]
         non_served_demand::JuMPVariable = Matrix{VariableRef}(undef, 0, 0)
         policy_budgeting_vars::Dict = Dict()
+        policy_budgeting_constraints::Dict{DataType,JuMPConstraint} = Dict{DataType,JuMPConstraint}()  # Store policy budget constraint references
+        policy_lower_bound::Dict{DataType,Float64} = $node_defaults[:policy_lower_bound]
         policy_slack_vars::Dict = Dict()
         price::Vector{Float64} = $node_defaults[:price]
         price_nsd::Vector{Float64} = $node_defaults[:price_nsd]
         price_supply::Vector{Float64} = $node_defaults[:price_supply]
         price_unmet_policy::Dict{DataType,Float64} = $node_defaults[:price_unmet_policy]
         rhs_policy::Dict{DataType,Float64} = $node_defaults[:rhs_policy]
-        policy_lower_bound::Dict{DataType,Float64} = $node_defaults[:policy_lower_bound]
         supply_flow::JuMPVariable = Matrix{VariableRef}(undef, 0, 0)
     end)
 end
@@ -36,6 +37,7 @@ end
     - max_supply::Vector{Float64}: Maximum supply for each segment
     - non_served_demand::Union{JuMPVariable,Matrix{Float64}}: JuMP variables or matrix representing unmet demand
     - policy_budgeting_vars::Dict: Policy budgeting variables for constraints
+    - policy_budgeting_constraints::Dict{DataType,JuMPConstraint}: Policy budget constraint references (sum across subperiods, keyed by :ConstraintType)
     - policy_slack_vars::Dict: Policy slack variables for constraints
     - price::Union{Vector{Float64},Dict{Int64,Float64}}: Time series of prices
     - price_nsd::Vector{Float64}: Penalties for non-served demand by segment
@@ -50,6 +52,12 @@ end
 Base.@kwdef mutable struct Node{T} <: AbstractVertex
     @AbstractVertexBaseAttributes()
     @AbstractNodeBaseAttributes()
+end
+
+commodity_type(::Type{Node{T}}) where {T} = T
+function commodity_type(t::Type{Node{<:T}}) where {T}
+    ub_type = t.var.ub
+    return commodity_type(Node{ub_type})
 end
 
 function make_node(data::AbstractDict{Symbol,Any}, time_data::TimeData, commodity::DataType)
@@ -68,15 +76,15 @@ function make_node(data::AbstractDict{Symbol,Any}, time_data::TimeData, commodit
     _node = Node{commodity}(;
         id = id,
         timedata = time_data,
-        demand = get(data, :demand, node_defaults[:demand]),
-        min_nsd =  get(data, :min_nsd, node_defaults[:min_nsd]),
-        max_nsd = get(data, :max_nsd, node_defaults[:max_nsd]),
-        max_supply = get(data, :max_supply, node_defaults[:max_supply]),
-        price = get(data, :price, node_defaults[:price]),
-        price_nsd = get(data, :price_nsd, node_defaults[:price_nsd]),
-        price_supply = get(data, :price_supply, node_defaults[:price_supply]),
-        price_unmet_policy = get(data, :price_unmet_policy, node_defaults[:price_unmet_policy]),
-        rhs_policy = get(data, :rhs_policy, node_defaults[:rhs_policy]),
+        demand = get(data, :demand, Vector{Float64}()),
+        location = as_symbol_or_missing(get(data, :location, missing)),
+        max_nsd = get(data, :max_nsd, [0.0]),
+        max_supply = get(data, :max_supply, [0.0]),
+        price = get(data, :price, Vector{Float64}()),
+        price_nsd = get(data, :price_nsd, [0.0]),
+        price_supply = get(data, :price_supply, [0.0]),
+        price_unmet_policy = get(data, :price_unmet_policy, Dict{DataType,Float64}()),
+        rhs_policy = get(data, :rhs_policy, Dict{DataType,Float64}()),
         policy_lower_bound = get(data, :policy_lower_bound, node_defaults[:policy_lower_bound])
         # filtered_data...
     )
@@ -107,6 +115,8 @@ non_served_demand(n::Node) = n.non_served_demand;
 non_served_demand(n::Node, s::Int64, t::Int64) = non_served_demand(n)[s, t];
 policy_budgeting_vars(n::Node) = n.policy_budgeting_vars;
 policy_slack_vars(n::Node) = n.policy_slack_vars;
+policy_budgeting_constraints(n::Node) = n.policy_budgeting_constraints;
+policy_budgeting_constraints(n::Node, c::DataType) = policy_budgeting_constraints(n)[c]
 price(n::Node) = n.price;
 price(n::Node, t::Int64) = length(price(n)) == 1 ? price(n)[1] : price(n)[t];
 price_non_served_demand(n::Node) = n.price_nsd;
@@ -161,7 +171,7 @@ function planning_model!(n::Node, model::Model)
         ct_all = findall(isa.(n.constraints, PolicyConstraint))
         for ct in ct_all
             ct_type = typeof(n.constraints[ct])
-            @constraint(
+            n.policy_budgeting_constraints[ct_type] = @constraint(
                 model,
                 sum(n.policy_budgeting_vars[Symbol(string(ct_type) * "_Budget")]) ==
                 rhs_policy(n, ct_type)
@@ -264,6 +274,9 @@ function make(commodity::Type{<:Commodity}, input_data::AbstractDict{Symbol,Any}
     elseif any(isa.(node.constraints, CO2StorageConstraint))
         node.balance_data =
             get(data, :balance_data, Dict(:co2_storage => Dict{Symbol,Float64}()))
+    elseif any(isa.(node.constraints, AggregatedDemandConstraint))
+        node.balance_data =
+            get(data, :balance_data, Dict(:demand_flow => Dict{Symbol,Float64}()))
     else
         node.balance_data =
             get(data, :balance_data, Dict(:exogenous => Dict{Symbol,Float64}()))

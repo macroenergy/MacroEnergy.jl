@@ -16,7 +16,7 @@ function load_system_data(
     file_path = abspath(rel_or_abs_path(file_path, rel_path))
     @info("Loading system data")
     start_time = time()
-    @debug("Loading system data from $path")
+    @debug("Loading system data from $file_path")
 
     prep_system_data(file_path)
 

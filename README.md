@@ -17,23 +17,31 @@ Macro's key features are:
 
 ## Citing Macro
 
-We are working to publish a peer-reviewed paper describing Macro. In the meantime, please cite this GitHub repository:
+If you use Macro, please cite the current version of the software and the software paper.
+
+The version citation is available in the "About" section of the GitHub repository.
+
+We have submitted a peer-reviewed paper describing Macro, but please cite the preprint in the meantime:
 
 ```bibtex
-@misc{Macro2025,
-   author = {Ruaridh Macdonald and Filippo Pecci and Luca Bonaldo and Jun Wen Law and Yu Weng and Sambuddha Chakrabarti and Dharik Mallapragada and Jesse Jenkins},
-   month = {5},
-   title = {MacroEnergy.jl},
-   url = {https://github.com/macroenergy/MacroEnergy.jl},
-   year = {2025},
+@article{macdonald2025macroenergy,
+  title={MacroEnergy. jl: A large-scale multi-sector energy system framework},
+  author={Macdonald, Ruaridh and Pecci, Filippo and Bonaldo, Luca and Law, Jun Wen and Weng, Yu and Mallapragada, Dharik and Jenkins, Jesse},
+  journal={arXiv preprint arXiv:2510.21943},
+  year={2025}
 }
 ```
 
 ## Installation
 
-Macro is not currently released as a Julia package, so must be downloaded and installed manually.
+You can install Macro (aka.MacroEnergy.jl) using the Julia package manager:
 
-To install Macro, please follow the installation instructions in the documentation, [on the Getting Started / Installation page.](https://macroenergy.github.io/MacroEnergy.jl/dev/Getting%20Started/2_installation/)
+```julia
+using Pkg
+Pkg.add("MacroEnergy")
+```
+
+If you wish to make additons to Macro, please follow the installation instructions in the documentation, [on the Getting Started / Installation page.](https://macroenergy.github.io/MacroEnergy.jl/dev/Getting%20Started/2_installation/)
 
 ## Learning to use Macro
 

@@ -6,6 +6,7 @@ function process_data(data::AbstractDict{Symbol,Any})
     validate_data(data)
     check_and_convert_inf!(data)
     check_and_convert_symbol!(data, :startup_fuel_balance_id)
+    check_and_convert_symbol!(data, :location)
     haskey(data, :demand) && check_and_convert_demand!(data)
     haskey(data, :constraints) && check_and_convert_constraints!(data)
     haskey(data, :rhs_policy) && check_and_convert_rhs_policy!(data)
@@ -131,3 +132,12 @@ function check_and_convert_symbol!(data::AbstractDict{Symbol,Any}, key::Symbol)
     end
     return nothing
 end
+
+# Convert string to Symbol if not missing, otherwise return missing
+function as_symbol_or_missing(x::Union{Missing, AbstractString})::Union{Missing, Symbol}
+    if ismissing(x)
+        return missing
+    end
+    return Symbol(x)
+end
+as_symbol_or_missing(x::Symbol)::Symbol = x

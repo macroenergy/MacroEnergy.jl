@@ -1,4 +1,4 @@
-using Gurobi, Logging
+using Logging
 
 
 macro log_with_level(log_level, block)
@@ -28,16 +28,7 @@ macro error_logger(block)
 end
 
 function is_gurobi_available()
-    try
-        @warn_error_logger Gurobi.Env()
-        return true
-    catch e
-        if isa(e, ErrorException) && occursin("Gurobi Error", string(e))
-            return false
-        else
-            rethrow()
-        end
-    end
+    return !isnothing(Base.get_extension(@__MODULE__, :MacroEnergyGurobiExt))
 end
 
 function check_if_package_installed(optimizer_name::AbstractString)

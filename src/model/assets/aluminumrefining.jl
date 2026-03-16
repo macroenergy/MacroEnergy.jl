@@ -24,12 +24,12 @@ function full_default_data(::Type{AluminumRefining}, id=missing)
     return Dict{Symbol,Any}(
         :id => id,
         :transforms => @transform_data(
-            :timedata => "Aluminum",              # Time series data identifier
-            :elec_aluminum_rate => 1.0,           # Rate of electricity needed per unit of aluminum
-            :aluminumscrap_aluminum_rate => 1.05, # Rate of aluminum scrap needed per unit of aluminum (includes 5% loss)
-            :aluminum_emissions_rate => 0.0,      # Emissions rate for aluminum production
+            :timedata => "Aluminum",
+            :elec_aluminum_rate => 0.0,
+            :aluminumscrap_aluminum_rate => 0.0,
+            :aluminum_emissions_rate => 0.0,
             :constraints => Dict{Symbol, Bool}(
-                :BalanceConstraint => true,       # Enforces material balance constraints
+                :BalanceConstraint => true,
             ),
         ),
         :edges => Dict{Symbol,Any}(
@@ -40,11 +40,15 @@ function full_default_data(::Type{AluminumRefining}, id=missing)
             # Aluminum output edge configuration
             :aluminum_edge => @edge_data(
                 :commodity=>"Aluminum",
-                :has_capacity => true,            # Edge has capacity constraints
-                :can_retire => true,              # Capacity can be retired
-                :can_expand => true,              # Capacity can be expanded
+                :has_capacity => true,
+                :can_retire => true,
+                :can_expand => true,
+                :capacity_size => 1,
+                :investment_cost => 0.0,
+                :fixed_om_cost => 0.0,
+                :variable_om_cost => 0.0,
                 :constraints => Dict{Symbol, Bool}(
-                    :CapacityConstraint => true,  # Enforces capacity constraints
+                    :CapacityConstraint => true,
                 )
             ),
             # Aluminum scrap input edge configuration
@@ -62,22 +66,23 @@ function simple_default_data(::Type{AluminumRefining}, id=missing)
         :id => id,
         :location => missing,
         :can_expand => true,                      # Asset can be expanded
-        :can_retire => true,                      # Asset can be retired
-        :existing_capacity => 0.0,                # Initial capacity
-        :capacity_size => 1.0,                    # Size of capacity units
-        :timedata => "Aluminum",                  # Time series data identifier
-        :elec_aluminum_rate => 1.0,               # Rate of electricity needed per unit of aluminum
-        :aluminumscrap_aluminum_rate => 1.05,     # Rate of aluminum scrap needed per unit of aluminum
-        :aluminum_emissions_rate => 0.0,          # Emissions rate for aluminum production
-        :investment_cost => 0.0,                  # Cost to build new capacity
-        :fixed_om_cost => 0.0,                    # Fixed operating and maintenance cost
-        :variable_om_cost => 0.0,                 # Variable operating and maintenance cost
+        :can_retire => true,                     # Asset can be retired
+        :existing_capacity => 0.0,
+        :capacity_size => 1.0,
+        :timedata => "Aluminum",
+        :elec_aluminum_rate => 0.0,
+        :aluminumscrap_aluminum_rate => 0.0,
+        :aluminum_emissions_rate => 0.0,
+        :investment_cost => 0.0,
+        :fixed_om_cost => 0.0,
+        :variable_om_cost => 0.0,
     )
 end
 
 # Main constructor function that creates an AluminumRefining asset from configuration data
 function make(asset_type::Type{AluminumRefining}, data::AbstractDict{Symbol,Any}, system::System)
     id = AssetId(data[:id])
+    location = as_symbol_or_missing(get(data, :location, missing))
 
     @setup_data(asset_type, data, id)
 
@@ -96,6 +101,7 @@ function make(asset_type::Type{AluminumRefining}, data::AbstractDict{Symbol,Any}
     aluminumrefining_transform = Transformation(;
         id = Symbol(id, "_", aluminumrefining_key),
         timedata = system.time_data[Symbol(transform_data[:timedata])],
+        location = location,
         constraints = get(transform_data, :constraints, [BalanceConstraint()]),
     )
 
@@ -195,12 +201,12 @@ function make(asset_type::Type{AluminumRefining}, data::AbstractDict{Symbol,Any}
         :elec_to_aluminum => Dict(
             elec_edge.id => 1.0,                  # Electricity input coefficient
             aluminumscrap_edge.id => 0.0,         # No direct conversion from electricity to aluminum scrap
-            aluminum_edge.id => get(transform_data, :elec_aluminum_rate, 1.0)  # Electricity needed per unit of aluminum
+            aluminum_edge.id => get(transform_data, :elec_aluminum_rate, 0.0)
         ),
         :aluminumscrap_to_aluminum => Dict(
-            elec_edge.id => 0.0,                  # No direct conversion from aluminum scrap to electricity
-            aluminumscrap_edge.id => 1.0,         # Aluminum scrap input coefficient
-            aluminum_edge.id => get(transform_data, :aluminumscrap_aluminum_rate, 1.0)  # Aluminum scrap needed per unit of aluminum
+            elec_edge.id => 0.0,
+            aluminumscrap_edge.id => 1.0,
+            aluminum_edge.id => get(transform_data, :aluminumscrap_aluminum_rate, 0.0)
         )
     )
     return AluminumRefining(id, aluminumrefining_transform, elec_edge, aluminumscrap_edge, aluminum_edge)

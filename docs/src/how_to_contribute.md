@@ -1,4 +1,4 @@
-# How to contribute guide
+# [How to contribute guide](@id how_to_contribute)
 
 **MacroEnergy.jl** is an open-source software project and contributions are welcome! This guide is a quickstart guide to help you contribute to the project.
 
@@ -11,7 +11,7 @@ The most straightforward way to contribute to MacroEnergy.jl is to provide feedb
 - [`Feature Request`](https://github.com/macroenergy/MacroEnergy.jl/issues/new?template=feature_request.yml) - for requesting new features
 - [`Other`](https://github.com/macroenergy/MacroEnergy.jl/issues/new) - for other types of contributions
 
-## Opening a PR
+## [Opening a PR](@id opening_a_pr)
 
 The second way to contribute to MacroEnergy.jl is to open a [pull request](https://github.com/macroenergy/MacroEnergy.jl/pulls). This allows you to implement changes and new features and propose them to the repository. Below are some guidelines for opening a PR (for reference, check the official [GitHub guide](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request)).
 
@@ -135,8 +135,3 @@ Alternatively, use the `Sync fork` button in the GitHub website.
 - [ColPrac](https://github.com/SciML/ColPrac): Contributor's Guide on Collaborative Practices for Community Packages
 - [Julia Style Guide](https://docs.julialang.org/en/v1/manual/style-guide/)
 
-## Contributing to Macro
-
-## Contributing to the documentation
-
-### Adding a tutorial

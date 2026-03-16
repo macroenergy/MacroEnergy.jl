@@ -79,9 +79,17 @@ The `settings` folder currently contains only one file, `macro_settings.yml`, wh
 | **Attribute** | **Values** | **Default** | **Description** |
 |---------------| :-----------------: | :---------: |-----------------|
 | ConstraintScaling | True, False | False | If true, the model will scale the optimization model constraints to make it more numerically stable. |
-| WriteSubcommodities | True, False | False | If true, the model will write the subcommodities created by the user in the results. |
+| AllowImplicitTopLevelCommodities | True, False | True | If true, unknown plain commodity names in `commodities.json` are treated as new top-level commodities inheriting from `Commodity`; if false, unknown names raise an error. |
+| WriteSubcommodities | True, False | True | If true, the model will write the subcommodities created by the user to file. |
 | OverwriteResults | True, False | False | If true, the model will overwrite the results file if it already exists. |
 | OutputDir | String | "results" | The directory where the results will be saved. |
+| OutputLayout | "long", "wide" | "long" | Switch between "long" and "wide" layouts for CSV output files. |
+| DualExportsEnabled | True, False | False | If true, the model will write duals for balance equations in the results folder |
+| EnableJuMPStringNames | True, False | False | If true, the model will attach a string name to each JuMP variables. Ignored when Benders decomposition is used. |
+| EnableJuMPDirectModel | True, False | False | If true, the model will be generate a JuMP direct model. Ignored when Benders decomposition is used. |
+| AutoCreateNodes | True, False | False | If true, the model will automatically create a new Node if Macro is asked to find a Node of a given Commodity at a Location and the Node does not exist. |
+| AutoCreateLocations | True, False | True |  If true, the model will automatically create a new Location if Macro comes across a Node which is a assigned to a Location that does not exist. |
+| Retrofitting | True, False | False | If true, the model will consider retrofi investments |
 
 ## System folder
 
@@ -305,7 +313,7 @@ The attributes that can be set for each node (either in `global_data` or `instan
 | **rhs\_policy** | `Dict{DataType,Float64}` | Dict of Macro constraint types and numbers | Empty | Right hand side of the policy constraints. E.g. `{"CO2CapConstraint": 200}`, carbon price of 200 USD/ton. |
 
 !!! tip "Constraints"
-    One of the main features of Macro is the ability to include constraints on the system from a pre-defined library of constraints (see [Macro Constraint Library](@ref) for more details). To include a constraint to a node, the user needs to add the constraint name to the `constraints` attribute of the node. The example below will show how to include constraints to node instances. 
+    One of the main features of Macro is the ability to include constraints on the system from a pre-defined library of constraints (see [Macro Constraint Library](@ref macro_constraint_library) for more details). To include a constraint to a node, the user needs to add the constraint name to the `constraints` attribute of the node. The example below will show how to include constraints to node instances. 
 
 **Example**: the following is an example of a `nodes.json` file with both electricity, natural gas, CO2 and biomass sectors covering most of the attributes present above. The (multiplex)-network in the system is made of the following sub-networks:
 

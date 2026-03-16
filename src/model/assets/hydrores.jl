@@ -80,6 +80,7 @@ end
 
 function make(asset_type::Type{HydroRes}, data::AbstractDict{Symbol,Any}, system::System)
     id = AssetId(data[:id])
+    location = as_symbol_or_missing(get(data, :location, missing))
 
     @setup_data(asset_type, data, id)
 
@@ -103,6 +104,7 @@ function make(asset_type::Type{HydroRes}, data::AbstractDict{Symbol,Any}, system
         storage_data,
         system.time_data[:Electricity],
         Electricity,
+        location
     )
     if long_duration
         lds_constraints = [LongDurationStorageImplicitMinMaxConstraint()]
@@ -186,7 +188,6 @@ function make(asset_type::Type{HydroRes}, data::AbstractDict{Symbol,Any}, system
         Electricity,
         [(spill_edge_data, :end_vertex), (data, :hydro_source), (data, :location),],
     )
-    spill_end_node = find_node(system.locations, Symbol(spill_edge_data[:end_vertex]))
     spill_edge = Edge(
         Symbol(id, "_", spill_edge_key),
         spill_edge_data,
@@ -200,10 +201,19 @@ function make(asset_type::Type{HydroRes}, data::AbstractDict{Symbol,Any}, system
     hydrostor.charge_edge = inflow_edge
     hydrostor.spillage_edge = spill_edge
 
+    discharge_efficiency = get_from([
+            (discharge_edge_data, :discharge_efficiency),
+            (discharge_edge_data, :efficiency)
+        ], 1.0)
+    inflow_efficiency = get_from([
+            (inflow_edge_data, :inflow_efficiency),
+            (inflow_edge_data, :efficiency)
+        ], 1.0)
+
     hydrostor.balance_data = Dict(
         :storage => Dict(
-            discharge_edge.id => 1.0,
-            inflow_edge.id => 1.0,
+            discharge_edge.id => 1 / discharge_efficiency,
+            inflow_edge.id => inflow_efficiency,
             spill_edge.id => 1.0
         )
     )

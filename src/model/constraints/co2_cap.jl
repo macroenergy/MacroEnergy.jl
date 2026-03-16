@@ -1,6 +1,6 @@
 Base.@kwdef mutable struct CO2CapConstraint <: PolicyConstraint
     value::Union{Missing,Vector{Float64}} = missing
-    lagrangian_multiplier::Union{Missing,Vector{Float64}} = missing
+    constraint_dual::Union{Missing,Vector{Float64}} = missing
     constraint_ref::Union{Missing,JuMPConstraint} = missing
 end
 
@@ -8,14 +8,14 @@ end
     add_model_constraint!(ct::CO2CapConstraint, n::Node{CO2}, model::Model)
 
 Constraint the CO2 emissions of CO2 on a CO2 node `n` to be less than or equal to the value of the `rhs_policy` for the `CO2CapConstraint` constraint type.
-If the `price_unmet_policy` is also specified, then a slack variable is added to the constraint to allow for the CO2 emissions to exceed the value of the `rhs_policy` by the amount specified in the `price_unmet_policy` for the `CO2CapConstraint` constraint type.
+If the `price_unmet_policy` is also specified, then a slack variable is added to the constraint to allow for the CO2 emissions to exceed the value of the `rhs_policy`, incurring in a penalty cost specified in the `price_unmet_policy` for the `CO2CapConstraint` constraint type.
 Please check the example case in the [MacroEnergyExamples.jl repository](https://github.com/macroenergy/MacroEnergyExamples.jl), or the [Macro Input Data](@ref) section of the documentation for more information on how to specify the `rhs_policy` and `price_unmet_policy` for the `CO2CapConstraint` constraint type.
 
 Therefore, the functional form of the constraint is:
 
 ```math
 \begin{aligned}
-    \sum_{t \in \text{time\_interval(n)}} \text{emissions(n, t)} - \text{price\_unmet\_policy(n)} \times \text{slack(n)} \leq \text{rhs\_policy(n)}
+    \sum_{t \in \text{time\_interval(n)}} \text{emissions(n, t)} - \text{slack(n)} \leq \text{rhs\_policy(n)}
 \end{aligned}
 ```
 "Emissions" in the above equation is the net balance of CO2 flows into and out of the CO2 node `n`.
@@ -64,6 +64,5 @@ function add_model_constraint!(ct::CO2CapConstraint, n::Node{CO2}, model::Model)
         subperiod_balance[w] <=
         n.policy_budgeting_vars[Symbol(string(ct_type) * "_Budget")][w]
     )
-
 
 end

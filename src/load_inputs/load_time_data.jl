@@ -66,9 +66,9 @@ end
 
 function validate_subperiod_map(subperiod_map_data::DataFrame)
     @assert names(subperiod_map_data) == ["Period_Index", "Rep_Period", "Rep_Period_Index"]
-    @assert typeof(subperiod_map_data[!, :Period_Index]) == Vector{Union{Missing, Int}}
-    @assert typeof(subperiod_map_data[!, :Rep_Period]) == Vector{Union{Missing, Int}}
-    @assert typeof(subperiod_map_data[!, :Rep_Period_Index]) == Vector{Union{Missing, Int}}
+    @assert eltype(subperiod_map_data[!, :Period_Index]) <: Union{Missing, Integer}
+    @assert eltype(subperiod_map_data[!, :Rep_Period]) <: Union{Missing, Integer}
+    @assert eltype(subperiod_map_data[!, :Rep_Period_Index]) <: Union{Missing, Integer}
 end
 
 function validate_and_set_default_total_hours_modeled!(time_data::AbstractDict{Symbol,Any})

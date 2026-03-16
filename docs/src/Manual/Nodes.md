@@ -73,8 +73,7 @@ For example, a city Location might contain `Node{Electricity}`, `Node{NaturalGas
 | Field                    | Type                      | Description                           | Units    | Default |
 |--------------------------|---------------------------|---------------------------------------|----------|---------|
 | `demand`                 | Vector{Float64}           | Time-varying demand requirements      |  MWh/hr | Float64[] |
-| `max_nsd`                | Vector{Float64}           | Maximum non-served demand by segment  |  MWh/hr | [0.0]   |
-| `min_nsd`                | Vector{Float64}           | Minimum non-served demand by segment  |  MWh/hr | [0.0]   |
+| `max_nsd`                | Vector{Float64}           | Maximum fraction of demand that can be curtailed, per segment  |  fraction $\in$ [0,1] | [0.0]   |
 | `price_nsd`              | Vector{Float64}           | Penalty cost for non-served demand    | \$/MWh    | [0.0]   |
 
 ### Supply Parameters
@@ -450,7 +449,7 @@ Sequestration could be modelled using a `Storage{CO2}` component but `Storage` c
 
 Nodes can be added to Assets to allow for the merging or splitting of Commodity flows. This is useful when you want to aggregate multiple sub-commodities into a single commodity flow or distribute a single commodity flow into multiple streams. Nodes are not as commonly used in Assets as the other components. In many instances you will prefer to merge or split flows between Assets.
 
-The [Modellers guide on creating Assets](@ref "Creating a New Asset") provides a detailed overview of how to create Assets and add Nodes to them. Below is a brief example of how to use Nodes within an Asset.
+The [Modellers guide on creating Assets](@ref modeler_create_asset) provides a detailed overview of how to create Assets and add Nodes to them. Below is a brief example of how to use Nodes within an Asset.
 
 #### Natual Gas Power Plant with Station Power
 

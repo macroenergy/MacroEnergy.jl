@@ -1,6 +1,6 @@
 Base.@kwdef mutable struct StorageMaxDurationConstraint <: PlanningConstraint
     value::Union{Missing,Vector{Float64}} = missing
-    lagrangian_multiplier::Union{Missing,Vector{Float64}} = missing
+    constraint_dual::Union{Missing,Vector{Float64}} = missing
     constraint_ref::Union{Missing,JuMPConstraint} = missing
 end
 
@@ -32,7 +32,7 @@ end
 
 Base.@kwdef mutable struct StorageMinDurationConstraint <: PlanningConstraint
     value::Union{Missing,Vector{Float64}} = missing
-    lagrangian_multiplier::Union{Missing,Vector{Float64}} = missing
+    constraint_dual::Union{Missing,Vector{Float64}} = missing
     constraint_ref::Union{Missing,JuMPConstraint} = missing
 end
 

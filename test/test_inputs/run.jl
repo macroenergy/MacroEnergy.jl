@@ -1,12 +1,12 @@
 using MacroEnergy
-using Gurobi
-
-#(system, model) = run_case(@__DIR__; optimizer=Gurobi.Optimizer);
-
+using HiGHS
+using Pkg
+try Pkg.add("Gurobi"); using Gurobi; catch e end
+optim = is_gurobi_available() ? Gurobi.Optimizer : HiGHS.Optimizer
 println()
 
 system = MacroEnergy.load_system(@__DIR__)
-model = MacroEnergy.generate_model(system)
-MacroEnergy.set_optimizer(model, Gurobi.Optimizer)
+optimizer = MacroEnergy.create_optimizer(optim)
+model = MacroEnergy.generate_model(system, optimizer)
 MacroEnergy.optimize!(model)
 macro_objval = MacroEnergy.objective_value(model)

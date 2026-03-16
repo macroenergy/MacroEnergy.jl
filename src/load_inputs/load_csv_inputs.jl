@@ -309,7 +309,7 @@ function file_suffix(file_path::AbstractString, suffix_options)
     return ""
 end
 
-function convert_json_to_csv(file_path::AbstractString, rel_path::AbstractString=dirname(file_path), lazy_load::Bool=false, compress::Bool=false)
+function convert_json_to_csv(file_path::AbstractString, rel_path::AbstractString=dirname(file_path), lazy_load::Bool=true, compress::Bool=false)
     json_data = load_json_inputs(file_path; rel_path=rel_path, lazy_load=lazy_load)
     csv_data = json_to_csv(json_data)
     fillmissing!(csv_data)

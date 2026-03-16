@@ -1,0 +1,58 @@
+{
+    "transmission": {
+        "type": "TransmissionLink",
+        "global_data": {
+            "edges": {
+                "transmission_edge": {
+                    "unidirectional": false,
+                    "has_capacity": true,
+                    "commodity": "Electricity"
+                }
+            }
+        },
+        "instance_data": [
+            {
+                "id": "MA_to_CT",
+                "edges": {
+                    "transmission_edge": {
+                        "can_retire": false,
+                        "constraints": {
+                            "CapacityConstraint": true,
+                            "MaxCapacityConstraint": true,
+                            "MaxNewCapacityConstraint": true
+                        },
+                        "start_vertex": "elec_MA",
+                        "loss_fraction": 0.0,
+                        "end_vertex": "elec_CT",
+                        "max_capacity": 7000,
+                        "max_new_capacity": 2950,
+                        "can_expand": true,
+                        "existing_capacity": 2950,
+                        "investment_cost": 12060
+                    }
+                }
+            },
+            {
+                "id": "MA_to_ME",
+                "edges": {
+                    "transmission_edge": {
+                        "can_retire": false,
+                        "constraints": {
+                            "CapacityConstraint": true,
+                            "MaxCapacityConstraint": true,
+                            "MaxNewCapacityConstraint": true
+                        },
+                        "start_vertex": "elec_MA",
+                        "loss_fraction": 0.0,
+                        "end_vertex": "elec_ME",
+                        "max_capacity": 5000,
+                        "max_new_capacity": 2000,
+                        "can_expand": true,
+                        "existing_capacity": 2000,
+                        "investment_cost": 19261
+                    }
+                }
+            }
+        ]
+    }
+}

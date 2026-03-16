@@ -1,30 +1,38 @@
-# Creating a New Asset
+# [Creating a New Asset](@id modeler_create_asset)
 
 The main design principle of Macro is to allow modelers to easily extend the model with new assets. Indeed, thanks to the [graph-based representation](@ref "Energy System Graph-Based Representation"), assets can be quickly assembled by connecting `Transformation`s, `Edge`s, `Storage`s components and/or other assets. 
 
 !!! tip "Macro Asset Library"
     Before creating a new asset, we recommend reviewing existing assets in the [`src/model/assets` folder](https://github.com/macroenergy/MacroEnergy.jl/tree/main/src/model/assets) and the [Macro Asset Library](@ref). All asset files follow a **consistent structure** to facilitate the creation of new assets.
 
+## Overview
+
+MacroEnergy.jl is designed to be a flexible and modular energy system modeling framework that allows users to easily extend the model with new assets. Assets in Macro are built using a [graph-based representation](@ref "Energy System Graph-Based Representation") consisting of three fundamental components:
+
+1. **Transformations** - Represent conversion processes between commodities
+2. **Edges** - Represent commodity flows between components  
+3. **Storage** - Represent energy storage capabilities
+
+## Prerequisites
+
+Before creating a new asset, we recommend:
+- Reviewing existing assets in the `src/model/assets` folder
+- Reading the [Macro Asset Library](@ref Assets) documentation
+- Familiarizing yourself with the graph-based representation concept
+- Understand the commodity types available in your system
+
 ## Quick Start
 To create a new asset (e.g. `MyNewAsset`), follow these steps:
 
-1. **Design the asset**
-
-    Design the asset by defining its commodity inflows and outflows, conversion processes, and storage components.
+1. **Design the asset**: Design the asset by defining its commodity inflows and outflows, conversion processes, and storage components.
     
-2. (Recommended) **Draw a diagram of the asset**
+2. (Recommended) **Draw a diagram of the asset**: Create a diagram of the asset to visualize its components and their connections. Each component will be implemented as a Macro `Transformation` (conversion process), `Edge` (commodity flow), or `Storage` (storage unit).
 
-    Create a diagram of the asset to visualize its components and their connections. Each component will be implemented as a Macro `Transformation` (conversion process), `Edge` (commodity flow), or `Storage` (storage unit).
+3. **Determine which components (`Edge`s and `Storage`s) will have capacity variables for expansion and retirement during optimization**: This is important for the optimization process.
 
-3. **Determine which components (`Edge`s and `Storage`s) will have capacity variables for expansion and retirement during optimization**
+4. **Create a new Julia file**: Create a new Julia file named `mynewasset.jl` in the `src/model/assets` folder. This file will contain the asset definition and the `make` function to construct the asset from input data. The following sections will guide you through the file creation process.
 
-4. **Create a new Julia file**
-
-    Create a new Julia file named `mynewasset.jl` in the `src/model/assets` folder. This file will contain the asset definition and the `make` function to construct the asset from input data. The following sections will guide you through the file creation process.
-
-5. **Include the new asset file**
-
-    Add the following line to the `MacroEnergy.jl` file to include your new asset:
+5. **Include the new asset file**: Add the following line to the `src/MacroEnergy.jl` file to include your new asset:
 
     ```
     include("model/assets/mynewasset.jl")
@@ -321,7 +329,7 @@ end
 
 3\. **Implementation**
 
-The body of the `make` function can be broken down into nine main blocks:
+The body of the `make` function can be broken down into five main blocks:
 
 1. **ID Setup** – Assigning a unique identifier to the asset
 2. **Data Setup** – Loading and organizing default input data
@@ -650,9 +658,191 @@ For example, here is how to create the `Electrolyzer` asset:
 return Electrolyzer(id, electrolyzer_transform, h2_edge, elec_edge)
 ```
 
+## Key Components and Concepts
+
+### [Transformations](@ref)
+- Represent conversion processes between commodities
+- Have stoichiometric equations defined in `balance_data`
+
+### [Edges](@ref)
+- Represent commodity flows
+- Can have capacity variables for optimization
+- Connect to nodes, transformations, or storage units
+- Can be configured for expansion/retirement
+
+### [Storage](@ref)
+- Track energy levels over time
+- Can have charge/discharge edges
+- Support various storage constraints
+
+### [Constraints](@ref macro_constraint_library)
+Common constraints include:
+- `BalanceConstraint` - Ensures mass/energy balance
+- `CapacityConstraint` - Limits capacity
+- `StorageCapacityConstraint` - Limits storage capacity
+- `RampingLimitConstraint` - Limits rate of change
+- `MinFlowConstraint` - Sets minimum flow requirements
+
+## Best Practices
+
+1. **Follow existing patterns**: Study similar assets in the codebase
+2. **Use meaningful names**: Choose descriptive names for components
+3. **Document constraints**: Clearly specify which constraints apply
+4. **Test thoroughly**: Create example cases to validate your asset
+5. **Consider efficiency**: Define appropriate stoichiometric coefficients
+6. **Handle edge cases**: Consider what happens with missing data
+7. **Use consistent naming**: Follow the naming conventions used in existing assets
+8. **Validate input data**: Ensure your asset handles missing or invalid data gracefully
+
+## Complete Example: `MyNewAsset`
+
+Here's a simplified example of a complete asset implementation with two edges and a transformation (Electricity to Hydrogen):
+
+```julia
+# mynewasset.jl
+struct MyNewAsset <: AbstractAsset
+    id::AssetId
+    transform::Transformation
+    input_edge::Edge{Electricity}
+    output_edge::Edge{Hydrogen}
+end
+
+function default_data(t::Type{MyNewAsset}, id=missing, style="full")
+    if style == "full"
+        return full_default_data(t, id)
+    else
+        return simple_default_data(t, id)
+    end
+end
+
+function full_default_data(::Type{MyNewAsset}, id=missing)
+    return OrderedDict{Symbol,Any}(
+        :id => id,
+        :transforms => @transform_data(
+            :timedata => "Electricity",
+            :constraints => Dict{Symbol, Bool}(:BalanceConstraint => true),
+            :efficiency => 0.8,
+        ),
+        :edges => Dict{Symbol,Any}(
+            :input_edge => @edge_data(
+                :commodity => "Electricity",
+            ),
+            :output_edge => @edge_data(
+                :commodity => "Hydrogen",
+                :has_capacity => true,
+                :can_expand => true,
+                :can_retire => true,
+                :constraints => Dict{Symbol, Bool}(:CapacityConstraint => true),
+            ),
+        ),
+    )
+end
+
+function simple_default_data(::Type{MyNewAsset}, id=missing)
+    return OrderedDict{Symbol,Any}(
+        :id => id,
+        :location => missing,
+        :efficiency => 0.8,
+        :investment_cost => 0.0,
+        :fixed_om_cost => 0.0,
+        :variable_om_cost => 0.0,
+    )
+end
+
+function make(asset_type::Type{MyNewAsset}, data::AbstractDict{Symbol,Any}, system::System)
+    id = AssetId(data[:id])
+    @setup_data(asset_type, data, id)
+    
+    # Create transformation
+    transform_key = :transforms
+    @process_data(transform_data, data[transform_key], [
+        (data[transform_key], key),
+        (data[transform_key], Symbol("transform_", key)),
+        (data, Symbol("transform_", key)),
+        (data, key),
+    ])
+    transform = Transformation(;
+        id = Symbol(id, "_", transform_key),
+        timedata = system.time_data[Symbol(transform_data[:timedata])],
+        constraints = transform_data[:constraints],
+    )
+    
+    # Create input edge
+    input_key = :input_edge
+    @process_data(input_data, data[:edges][input_key], [
+        (data[:edges][input_key], key),
+        (data[:edges][input_key], Symbol("input_", key)),
+        (data, Symbol("input_", key)),
+    ])
+    @start_vertex(input_start_node, input_data, Electricity, [
+        (input_data, :start_vertex), (data, :location)
+    ])
+    input_end_node = transform
+    input_edge = Edge(
+        Symbol(id, "_", input_key),
+        input_data,
+        system.time_data[:Electricity],
+        Electricity,
+        input_start_node,
+        input_end_node,
+    )
+    
+    # Create output edge
+    output_key = :output_edge
+    @process_data(output_data, data[:edges][output_key], [
+        (data[:edges][output_key], key),
+        (data[:edges][output_key], Symbol("output_", key)),
+        (data, Symbol("output_", key)),
+    ])
+    output_start_node = transform
+    @end_vertex(output_end_node, output_data, Hydrogen, [
+        (output_data, :end_vertex), (data, :location)
+    ])
+    output_edge = Edge(
+        Symbol(id, "_", output_key),
+        output_data,
+        system.time_data[:Hydrogen],
+        Hydrogen,
+        output_start_node,
+        output_end_node,
+    )
+    
+    # Set up stoichiometric equations
+    efficiency = get(transform_data, :efficiency, 1.0)
+    transform.balance_data = Dict(
+        :energy => Dict(
+            output_edge.id => 1.0,
+            input_edge.id => efficiency,
+        ),
+    )
+    
+    return MyNewAsset(id, transform, input_edge, output_edge)
+end
+```
+
+## Testing Your Asset
+
+1. **Create a test case** based on the existing example cases.
+2. **Add realistic parameters** to your input files
+3. **Run the model** to ensure it works correctly
+4. **Check results** to verify the asset behaves as expected
+5. **Add constraints** as needed for realistic operation
+
+## Documentation
+
+Don't forget to:
+1. **Document your asset** following the pattern in `docs/src/Manual/assets/`
+2. **Include a mermaid diagram** showing the asset structure
+3. **List all parameters** and their units
+4. **Provide examples** of different configurations
+5. **Update the asset library** documentation
+
+All these steps are covered in the [Documenting an Asset](@ref modeler_add_docs_to_asset) guide.
+
 ## Next Steps
 
 We recommend reviewing the following sections in the **Modeler Guide** for additional guidance on how to efficiently develop and test new assets:
-- [Creating a New Example Case](@ref "Creating a New Example Case"): A step-by-step guide to creating a new example case for testing and validation of the new asset.
+- [Documenting an Asset](@ref modeler_add_docs_to_asset): A guide to documenting the new asset.
+- [Creating a New Example Case](@ref modeler_create_example_case): A step-by-step guide to creating a new example case for testing and validation of the new asset.
 - [Suggested Development Workflow](@ref "Suggested Development Workflow"): A recommended workflow for developing new assets.
 - [Debugging and Testing Tips](@ref "Debugging and Testing a Macro Model"): Tips and best practices for debugging and testing new assets.

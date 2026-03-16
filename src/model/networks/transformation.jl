@@ -6,6 +6,7 @@
     # Inherited Attributes
     - id::Symbol: Unique identifier for the transformation
     - timedata::TimeData: Time-related data for the transformation
+    - location::Union{Missing, Symbol}: Geographic location of the transformation (inherited from AbstractVertex)
     - balance_data::Dict{Symbol,Dict{Symbol,Float64}}: Dictionary mapping stoichiometric equation IDs to coefficients
     - constraints::Vector{AbstractTypeConstraint}: List of constraints applied to the transformation
     - operation_expr::Dict: Dictionary storing operational JuMP expressions for the transformation

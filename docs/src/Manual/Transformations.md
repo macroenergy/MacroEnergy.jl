@@ -2,7 +2,7 @@
 
 ## Contents
 
-[Overview](@ref "manual-transformations-overview") | [Fields](@ref "Transformation Fields") | [Types](@ref "manual-transformations-types") | [Constructors](@ref "manual-transformations-constructors") | [Methods](@ref "manual-transformations-methods") | [Examples](@ref "manual-transformations-examples")
+[Overview](@ref "manual-transformations-overview") | [Fields](@ref manual-transformation-fields) | [Types](@ref "manual-transformations-types") | [Constructors](@ref "manual-transformations-constructors") | [Methods](@ref "manual-transformations-methods") | [Examples](@ref "manual-transformations-examples")
 
 ## [Overview](@id manual-transformations-overview)
 
@@ -36,7 +36,7 @@ Complex industrial processes like refineries can use multiple `Transformation` c
 - **Stoichiometric Balances**: User-defined relationships govern the conversion ratios between input and output flows
 - **Asset Integration**: Transformations are typically used within Assets to model conversion technologies
 
-## Transformation Fields
+## [Transformation Fields](@id manual-transformation-fields)
 
 `Transformations` have the following fields. When running a model, the fields are set by the input files. When creating an Asset, the defaults below can be altered using the `@transform_data` macro. The internal fields are used by Macro and are not intended to be set by users in most circumstances.
 

@@ -10,4 +10,4 @@ We currently have the following tutorials:
 
 ## Contributing a tutorial
 
-We welcome additional tutorials. If you have written one and think it would be useful to others, please consider submitting it for inclusion here by creating a pull request (PR). See the ["How to contribute" page](@ref "How to contribute guide") for more information on how to do so.
+We welcome additional tutorials. If you have written one and think it would be useful to others, please consider submitting it for inclusion here by creating a pull request (PR). See the ["How to contribute" page](@ref how_to_contribute) for more information on how to do so.

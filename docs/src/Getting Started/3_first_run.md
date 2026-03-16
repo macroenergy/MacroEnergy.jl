@@ -1,6 +1,28 @@
 # Running Macro
 
-Once Macro is installed, the simplest way to get started is to run the example system provided with Macro. We will use the `multisector_three_zones` example in the [MacroEnergyExamples.jl repository](https://github.com/macroenergy/MacroEnergyExamples.jl/tree/main/examples/multisector_three_zones). It is a system with 3 zones, modelled loosely on the Eastern USA, with the following sectors:
+The following guide will walk you through the process of running your first Macro model.
+
+## Running Macro Example Cases
+
+Once Macro is installed, the simplest way to get started is to run one of the pre-defined example cases. These examples are hosted in the [MacroEnergyExamples.jl](https://github.com/macroenergy/MacroEnergyExamples.jl) repository and can be downloaded directly using Macro's built-in functions. The steps to run an example case are as follows:
+1. Make sure you have correctly installed the Macro package (see [Installation](@ref) for more details).
+2. Run the Macro `list_examples()` function to list all available example cases.
+3. Download the example case by running `download_example("example_case_name", "ExampleSystems")`, where `example_case_name` is the name of the example case you want to download and `ExampleSystems` is the directory where you want to download the example case.
+4. Run the example case by executing the `run.jl` file present in the example folder.
+5. Once the model has run, you can analyze the results by looking at the files written in the `results` directory.
+
+The following section will walk you through the process of running the "multisector\_3zone\_simpleinputs" example case. However, you can run any of the example cases available in the [MacroEnergyExamples.jl](https://github.com/macroenergy/MacroEnergyExamples.jl) repository by following the same steps.
+
+!!! tip "Downloading the Full Example Systems Repository"
+    Users can always download all the example systems by directly cloning the [MacroEnergyExamples.jl](https://github.com/macroenergy/MacroEnergyExamples.jl) GitHub repository:
+    ```bash
+    git clone https://github.com/macroenergy/MacroEnergyExamples.jl.git
+    ```
+    This will download the full MacroEnergyExamples.jl repository into the current working directory.
+
+### Downloading the "multisector\_3zone\_simpleinputs" example case
+
+This example case is a simple multisector 3-zone system modelled loosely on the Eastern USA, with the following sectors:
 
 - Electricity
 - Natural Gas
@@ -9,51 +31,69 @@ Once Macro is installed, the simplest way to get started is to run the example s
 - Biomass
 - Uranium
 - Carbon Capture
+- Liquid Fuels
 
-!!! tip "Macro Input Data Description"
-    The section [Macro Input Data](@ref) in the [User Guide](@ref) provides a detailed description of all the input files present in the example folder.
+Once you have installed the Macro package, open a terminal and run the following command to list all available example cases:
 
-## Running a predefined example using Macro
-
-To run the example, navigate to the `MacroEnergy.jl` folder. You can then download the example by either downloading the files from the [MacroEnergyExamples.jl repository](https://github.com/macroenergy/MacroEnergyExamples.jl/tree/main/examples/multisector_three_zones) or using the example-download functions provided by Macro.
-
-### Downloading the example directly
-
-If you prefer to download the example directly from the repository, navigate to the link above and download the `multisector_three_zones` folder. Once downloaded, create an examples folder in your MacroEnergy.jl repository (we will call folder this `ExampleSystems` in our examples).
-
-### Downloading the example using Macro
-
-To download the example using Macro, you can use the `download_example` function. You can first list all available examples using the `list_examples` function:
-
+**If Macro was installed following the [Installation Steps](@ref):**
 ```bash
-julia --project=. -e 'using MacroEnergy; list_examples()'
+julia -e 'using MacroEnergy; list_examples()'
 ```
 
-Next, download the `multisector_three_zones` example using the `download_example` function:
-
+**If Macro was installed following the [Source Code Installation Steps](@ref):**
 ```bash
-julia --project=. -e 'using MacroEnergy; download_example("multisector_three_zones", "ExampleSystems")'
+julia --project=/path/to/MacroEnergy.jl -e 'using MacroEnergy; list_examples()'
+```
+where `/path/to/MacroEnergy.jl` is the path to your cloned Macro repository.
+
+This will print the names of all available example cases.
+
+To download the "multisector\_3zone\_simpleinputs" example case into the `ExampleSystems` directory, run the following command:
+
+**If Macro was installed following the [Installation Steps](@ref):**
+```bash
+julia -e 'using MacroEnergy; download_example("multisector_3zone_simpleinputs", "ExampleSystems")'
 ```
 
-### Running the example
-
-Finally, execute the `run.jl` file present in the example folder. On a Unix-based machine, this will look like:
-
+**If Macro was installed following the [Source Code Installation Steps](@ref):**
 ```bash
-julia --project=. ExampleSystems/multisector_three_zones/run.jl
+julia --project=/path/to/MacroEnergy.jl -e 'using MacroEnergy; download_example("multisector_3zone_simpleinputs", "ExampleSystems")'
+```
+where `/path/to/MacroEnergy.jl` is the path to your cloned Macro repository.
+
+### Running the "multisector\_3zone\_simpleinputs" example case
+
+To run the "multisector\_3zone\_simpleinputs" example case, execute the `run.jl` file present in the example case directory (for Windows machines, see the Note box below):
+
+**If Macro was installed following the [Installation Steps](@ref):**
+```bash
+julia ExampleSystems/multisector_3zone_simpleinputs/run.jl
 ```
 
-On Windows, it will be:
-
+**If Macro was installed following the [Source Code Installation Steps](@ref):**
 ```bash
-julia --project=. ExampleSystems\multisector_three_zones\run.jl
+julia --project=/path/to/MacroEnergy.jl ExampleSystems/multisector_3zone_simpleinputs/run.jl
 ```
+where `/path/to/MacroEnergy.jl` is the path to your cloned Macro repository.
 
-This will use Macro to solve the example system and save the results in the `results` directory. By default, Macro writes three files:
+!!! note "Windows users"
+    On Windows, use backslashes for paths:
+    ```bash
+    julia ExampleSystems\multisector_3zone_simpleinputs\run.jl
+    ```
+    or for source code installation:
+    ```bash
+    julia --project=\path\to\MacroEnergy.jl ExampleSystems\multisector_3zone_simpleinputs\run.jl
+    ```
 
-- `capacity.csv`: a csv file containing the capacity results for each asset (final, newly installed, and retired capacity for each technology).
-- `costs.csv`: a csv file containing fixed, variable and total costs for the energy system.
-- `flow.csv`: a csv file containing the flow results for each commodity through each edge.
+This will use Macro to solve the example system and save the results in the `results` directory. By default, Macro writes the following files:
+
+- `capacity.csv`: capacity results for each asset (final, newly installed, and retired capacity for each technology).
+- `costs.csv`: fixed, variable, and total system costs (for multiple periods, present value at the beginning of the modeling horizon).
+- `undiscounted_costs.csv`: fixed, variable, and total system costs (for multiple periods, present value at the point in time when the costs were incurred).
+- `flow.csv`: flow results for each commodity through each edge.
+- `balance_duals.csv`: demand balance constraint duals (marginal prices) for each node.
+- `co2_cap_duals.csv`: CO2 cap constraint duals (carbon prices) for each node (only if CO2 cap constraints are enabled).
 
 Congratulations, you just ran your first Macro model! 🎉
 
@@ -140,7 +180,7 @@ using MacroEnergy
 (system, model) = run_case(@__DIR__);
 ```
 
-which will run the case using the HiGHS solver. To use a different solver, you can pass the Optimizer object as an argument to `run_case!` function. For example, to use Gurobi as the solver, you can use the following code (which is what the `run.jl` has):
+which will run the case using the HiGHS solver. To use a different solver, you can pass the Optimizer object as an argument to `run_case` function. For example, to use Gurobi as the solver, you can use the following code (which is what the `run.jl` has):
 
 ```julia
 using MacroEnergy
