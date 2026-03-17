@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Running Models · Macro</title><meta name="title" content="Running Models · Macro"/><meta property="og:title" content="Running Models · Macro"/><meta property="twitter:title" content="Running Models · Macro"/><meta name="description" content="Documentation for Macro."/><meta property="og:description" content="Documentation for Macro."/><meta property="twitter:description" content="Documentation for Macro."/><meta property="og:url" content="https://macroenergy.github.io/Macro/stable/Guides/User Guide/user_run_model/"/><meta property="twitter:url" content="https://macroenergy.github.io/Macro/stable/Guides/User Guide/user_run_model/"/><link rel="canonical" href="https://macroenergy.github.io/Macro/stable/Guides/User Guide/user_run_model/"/><script data-outdated-warner src="../../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../../assets/documenter.js"></script><script src="../../../search_index.js"></script><script src="../../../siteinfo.js"></script><script src="../../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../../">Macro</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><input class="collapse-toggle" id="menuitem-1" type="checkbox"/><label class="tocitem" for="menuitem-1"><span class="docs-label">Welcome to Macro</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../">Introduction</a></li><li><a class="tocitem" href="../../../table_of_contents/">Table of contents</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-2" type="checkbox"/><label class="tocitem" for="menuitem-2"><span class="docs-label">Getting Started</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Getting Started/1_overview/">Overview</a></li><li><a class="tocitem" href="../../../Getting Started/2_installation/">Installation</a></li><li><a class="tocitem" href="../../../Getting Started/4_macro_repo_contents/">What&#39;s Included With Macro</a></li><li><a class="tocitem" href="../../../Getting Started/3_first_run/">First Run</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-3" type="checkbox"/><label class="tocitem" for="menuitem-3"><span class="docs-label">Tutorials</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Tutorials/tutorials_introduction/">Introduction</a></li><li><a class="tocitem" href="../../../Tutorials/0_getting_started/">Getting Started</a></li><li><a class="tocitem" href="../../../Tutorials/1_running_macro/">Running Macro</a></li><li><a class="tocitem" href="../../../Tutorials/2_multisector_modelling/">Multisector Modelling</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4" type="checkbox" checked/><label class="tocitem" for="menuitem-4"><span class="docs-label">Guides</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../guides_introduction/">Introduction</a></li><li><input class="collapse-toggle" id="menuitem-4-2" type="checkbox" checked/><label class="tocitem" for="menuitem-4-2"><span class="docs-label">User Guide</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../user_build_system/">Create a System</a></li><li><a class="tocitem" href="../user_add_commodity/">Adding Commodities</a></li><li><a class="tocitem" href="../user_add_node/">Adding Nodes</a></li><li><a class="tocitem" href="../user_add_location/">Adding Locations</a></li><li><a class="tocitem" href="../user_add_asset/">Adding Assets</a></li><li><a class="tocitem" href="../user_policy_constraints/">Adding Policy constraints</a></li><li><a class="tocitem" href="../user_asset_constraints/">Adding Assets constraints</a></li><li><a class="tocitem" href="../user_settings/">Configuring Settings</a></li><li class="is-active"><a class="tocitem" href>Running Models</a><ul class="internal"><li><a class="tocitem" href="#Using-the-[run_case](@ref)"><span>Using the <code>run_case</code></span></a></li><li><a class="tocitem" href="#Writing-Custom-Run-Scripts"><span>Writing Custom Run Scripts</span></a></li><li><a class="tocitem" href="#Running-Multiple-Cases"><span>Running Multiple Cases</span></a></li><li><a class="tocitem" href="#Parameter-Sweeps"><span>Parameter Sweeps</span></a></li><li><a class="tocitem" href="#Best-Practices"><span>Best Practices</span></a></li><li><a class="tocitem" href="#Running-Macro-Models-in-an-Interactive-Julia-REPL"><span>Running Macro Models in an Interactive Julia REPL</span></a></li><li><a class="tocitem" href="#See-Also"><span>See Also</span></a></li></ul></li><li><a class="tocitem" href="../user_write_results/">Writing Results</a></li><li><a class="tocitem" href="../user_multiperiod/">Using Multi-Period Models</a></li><li><a class="tocitem" href="../user_using_asset_libary/">Exploring the Asset library</a></li><li><a class="tocitem" href="../user_retrofitting_constraints/">Adding Retrofitting Constraints</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-3" type="checkbox"/><label class="tocitem" for="menuitem-4-3"><span class="docs-label">Modeler Guide</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Modeler Guide/modeler_introduction/">Introduction</a></li><li><a class="tocitem" href="../../Modeler Guide/modeler_es_graph/">Energy System Graph-Based Representation</a></li><li><a class="tocitem" href="../../Modeler Guide/modeler_build_sectors/">Creating a New Sector</a></li><li><a class="tocitem" href="../../Modeler Guide/modeler_build_asset/">Creating a New Asset</a></li><li><a class="tocitem" href="../../Modeler Guide/modeler_add_docs_to_asset/">Documenting an Asset</a></li><li><a class="tocitem" href="../../Modeler Guide/modeler_create_example_case/">Creating a New Example Case</a></li><li><a class="tocitem" href="../../Modeler Guide/modeler_workflow/">Suggested Development Workflow</a></li><li><a class="tocitem" href="../../Modeler Guide/modeler_debugging_testing/">Debugging and Testing Tips</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-4" type="checkbox"/><label class="tocitem" for="menuitem-4-4"><span class="docs-label">Developer Guide</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Developer Guide/dev_create_constraint/">Creating a Constraint</a></li><li><a class="tocitem" href="../../Developer Guide/2_type_hierarchy/">Type Hierarchy</a></li></ul></li></ul></li><li><a class="tocitem" href="../../../Assets/assets_guide/">Assets</a></li><li><input class="collapse-toggle" id="menuitem-6" type="checkbox"/><label class="tocitem" for="menuitem-6"><span class="docs-label">Manual</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Manual/manual_introduction/">Introduction</a></li><li><a class="tocitem" href="../../../Manual/Inputs/">Inputs</a></li><li><a class="tocitem" href="../../../Manual/Timeseries/">Timeseries</a></li><li><a class="tocitem" href="../../../Manual/Outputs/">Outputs</a></li><li><a class="tocitem" href="../../../Manual/System/">System</a></li><li><a class="tocitem" href="../../../Manual/Model/">Model</a></li><li><a class="tocitem" href="../../../Manual/Sectors/">Sectors</a></li><li><a class="tocitem" href="../../../Manual/Edges/">Edges</a></li><li><a class="tocitem" href="../../../Manual/Nodes/">Nodes</a></li><li><a class="tocitem" href="../../../Manual/Storage/">Storage</a></li><li><a class="tocitem" href="../../../Manual/Transformations/">Transformations</a></li><li><a class="tocitem" href="../../../Manual/Locations/">Locations</a></li><li><a class="tocitem" href="../../../Manual/Constraints/">Constraints</a></li><li><a class="tocitem" href="../../../Manual/Commodities/">Commodities</a></li><li><a class="tocitem" href="../../../Manual/Assets/">Assets</a></li><li><input class="collapse-toggle" id="menuitem-6-16" type="checkbox"/><label class="tocitem" for="menuitem-6-16"><span class="docs-label">Asset Library</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Manual/assets/aluminaplant/">Alumina Plant</a></li><li><a class="tocitem" href="../../../Manual/assets/aluminumrefining/">Aluminum Refining</a></li><li><a class="tocitem" href="../../../Manual/assets/aluminumsmelting/">Aluminum Smelting</a></li><li><a class="tocitem" href="../../../Manual/assets/battery/">Battery</a></li><li><a class="tocitem" href="../../../Manual/assets/beccselectricity/">BECCS Electricity</a></li><li><a class="tocitem" href="../../../Manual/assets/beccshydrogen/">BECCS Hydrogen</a></li><li><a class="tocitem" href="../../../Manual/assets/electricdac/">Electric DAC</a></li><li><a class="tocitem" href="../../../Manual/assets/electricheating/">Electric Heating</a></li><li><a class="tocitem" href="../../../Manual/assets/electricsteam/">Electric Steam</a></li><li><a class="tocitem" href="../../../Manual/assets/electrolyzer/">Electrolyzer</a></li><li><a class="tocitem" href="../../../Manual/assets/fuelcell/">Fuel Cell</a></li><li><a class="tocitem" href="../../../Manual/assets/thermalheating/">Thermal Heating</a></li><li><a class="tocitem" href="../../../Manual/assets/thermalsteam/">Thermal Steam</a></li><li><a class="tocitem" href="../../../Manual/assets/gasstorage/">Gas Storage</a></li><li><a class="tocitem" href="../../../Manual/assets/hydropower/">Hydro Reservoir</a></li><li><a class="tocitem" href="../../../Manual/assets/integratedblastfurnacebasicoxygenfurnace/">Integrated Blast Furnace Basic Oxygen Furnace (with and without CCS)</a></li><li><a class="tocitem" href="../../../Manual/assets/integrateddirectreductionelectricarcfurnace/">Integrated Direct Reduction Electric Arc Furnace (with and without CCS)</a></li><li><a class="tocitem" href="../../../Manual/assets/mustrun/">Must Run</a></li><li><a class="tocitem" href="../../../Manual/assets/natgasdaq/">Natural Gas DAC</a></li><li><a class="tocitem" href="../../../Manual/assets/standalonelectricarcfurnace/">Electric Arc Furnace</a></li><li><a class="tocitem" href="../../../Manual/assets/syntheticammonia/">Synthetic Ammonia (Electrochemical)</a></li><li><a class="tocitem" href="../../../Manual/assets/syntheticmethanol/">Synthetic Methanol (Electrochemical)</a></li><li><a class="tocitem" href="../../../Manual/assets/thermalammonia/">Thermal Ammonia (with and without CCS)</a></li><li><a class="tocitem" href="../../../Manual/assets/thermalhydrogen/">Thermal Hydrogen Plant (with and without CCS)</a></li><li><a class="tocitem" href="../../../Manual/assets/thermalmethanol/">Thermal Methanol (with and without CCS)</a></li><li><a class="tocitem" href="../../../Manual/assets/thermalpower/">Thermal Power Plant (with and without CCS)</a></li><li><a class="tocitem" href="../../../Manual/assets/transmissionlink/">Transmission Link</a></li><li><a class="tocitem" href="../../../Manual/assets/vre/">Variable Renewable Energy Resources (VRE)</a></li></ul></li><li><a class="tocitem" href="../../../Manual/Financial_assumptions/">Financial Assumptions</a></li><li><a class="tocitem" href="../../../Manual/Multi_period_accounting/">Multi-Period Accounting</a></li></ul></li><li><a class="tocitem" href="../../../how_to_contribute/">How to contribute</a></li><li><input class="collapse-toggle" id="menuitem-8" type="checkbox"/><label class="tocitem" for="menuitem-8"><span class="docs-label">References</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../References/1_introduction/">Introduction</a></li><li><a class="tocitem" href="../../../References/2_reading_input/">Reading input data</a></li><li><a class="tocitem" href="../../../References/3_macro_objects/">Macro Objects</a></li><li><a class="tocitem" href="../../../References/4_writing_output/">Writing output data</a></li><li><a class="tocitem" href="../../../References/5_utilities/">Utilities</a></li><li><a class="tocitem" href="../../../References/ref_download_examples/">Downloading examples</a></li><li><a class="tocitem" href="../../../References/ref_run_case/">Running a Macro Model</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-9" type="checkbox"/><label class="tocitem" for="menuitem-9"><span class="docs-label">Appendix</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Appendix/TEA/">TEA</a></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Guides</a></li><li><a class="is-disabled">User Guide</a></li><li class="is-active"><a href>Running Models</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Running Models</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/macroenergy/MacroEnergy.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/macroenergy/MacroEnergy.jl/blob/main/docs/src/Guides/User Guide/user_run_model.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="user_run_model"><a class="docs-heading-anchor" href="#user_run_model">Running a Macro Model</a><a id="user_run_model-1"></a><a class="docs-heading-anchor-permalink" href="#user_run_model" title="Permalink"></a></h1><p>This guide covers different approaches to running Macro models, from the simplest one-liner to fully customized run scripts that enable parameter sweeps and batch processing in parallel. For more examples of how to run Macro models using <em>run scripts</em>, please refer to the <a href="https://github.com/macroenergy/MacroEnergyExamples.jl">MacroEnergyExamples</a> repository.</p><h2 id="Using-the-[run_case](@ref)"><a class="docs-heading-anchor" href="#Using-the-[run_case](@ref)">Using the <a href="../../../References/ref_run_case/#run_case"><code>run_case</code></a></a><a id="Using-the-[run_case](@ref)-1"></a><a class="docs-heading-anchor-permalink" href="#Using-the-[run_case](@ref)" title="Permalink"></a></h2><p>The simplest way to run a Macro model is by writing a very simple <code>run.jl</code> script that uses the <a href="../../../References/ref_run_case/#run_case"><code>run_case</code></a> function. This function handles all the steps needed to load, solve, and write results for your case. Make sure to check the <a href="#Available-Options">Available Options</a> section for the available parameters and how to use them. </p><h3 id="Basic-Usage-(no-Benders-decomposition,-with-open-source-solver-HiGHS)"><a class="docs-heading-anchor" href="#Basic-Usage-(no-Benders-decomposition,-with-open-source-solver-HiGHS)">Basic Usage (no Benders decomposition, with open source solver HiGHS)</a><a id="Basic-Usage-(no-Benders-decomposition,-with-open-source-solver-HiGHS)-1"></a><a class="docs-heading-anchor-permalink" href="#Basic-Usage-(no-Benders-decomposition,-with-open-source-solver-HiGHS)" title="Permalink"></a></h3><p>Create a file called <code>run.jl</code> in your case directory with the following content:</p><pre><code class="language-julia hljs">using MacroEnergy
+
+(systems, solution) = run_case(@__DIR__);</code></pre><p>The <code>@__DIR__</code> macro automatically expands to the directory containing the script, making the script portable.</p><p>Once the script is written, you can run it by executing the following command in the terminal:</p><pre><code class="language-bash hljs">$ julia --project=&lt;path/to/your/environment&gt; &lt;path/to/your/case&gt;/run.jl</code></pre><p>where <code>&lt;path/to/your/environment&gt;</code> is the path to the environment with <code>Macro</code> installed, and <code>&lt;path/to/your/case&gt;</code> is the path to the folder of the case you want to run.</p><h3 id="Customizing-the-Optimizer-(no-Benders-decomposition)"><a class="docs-heading-anchor" href="#Customizing-the-Optimizer-(no-Benders-decomposition)">Customizing the Optimizer (no Benders decomposition)</a><a id="Customizing-the-Optimizer-(no-Benders-decomposition)-1"></a><a class="docs-heading-anchor-permalink" href="#Customizing-the-Optimizer-(no-Benders-decomposition)" title="Permalink"></a></h3><p>By default, <code>run_case</code> uses the HiGHS optimizer. To use a different solver like Gurobi, you can pass the Optimizer object as an argument to the <code>run_case</code> function together with solver-specific settings:</p><pre><code class="language-julia hljs">using MacroEnergy
+using Gurobi # or CPLEX, etc.
+
+(systems, solution) = run_case(
+    @__DIR__;
+    optimizer=Gurobi.Optimizer, # Optimizer Constructor
+    optimizer_attributes=(&quot;Method&quot; =&gt; 2, &quot;Crossover&quot; =&gt; 0, &quot;BarConvTol&quot; =&gt; 1e-3), # Optimizer Settings
+);</code></pre><p>For more information about the available solvers and their settings, please refer to the JuMP documentation or the solver&#39;s documentation.</p><h3 id="Stop-and-go-myopic-iteration"><a class="docs-heading-anchor" href="#Stop-and-go-myopic-iteration">Stop-and-go myopic iteration</a><a id="Stop-and-go-myopic-iteration-1"></a><a class="docs-heading-anchor-permalink" href="#Stop-and-go-myopic-iteration" title="Permalink"></a></h3><p>By default, Macro solves the model with perfect foresight (either monolithically or applying Benders decomposition). When the <code>SolutionAlgorithm</code> setting is set to <code>&quot;Myopic&quot;</code>, Macro will run a myopic algorithm where each planning period is optimized individually, and planning decisions are carried over from one period to to the next. Because of time or memory constraints, the user may choose to stop the myopic iterations after a certain period, and start them again at a later stage (for example, in a different job on a computer cluster). This is done by adding to the <code>case_settings.json</code> file:</p><pre><code class="language-julia hljs">&quot;MyopicSettings&quot;: {
+        &quot;Restart&quot;: {
+            &quot;enabled&quot;: true,
+            &quot;folder&quot;: &quot;results&quot;,
+            &quot;from_period&quot;: 2
+        },
+        &quot;StopAfterPeriod&quot;: 3
+    }</code></pre><p>julia</p><p>With the above settings, Macro will start the myopic iteration from period 2, loading planning solutions for period 1 from folder &quot;results&quot; and it will terminate the iterations after period 3 has been solved.</p><h3 id="Benders-decomposition"><a class="docs-heading-anchor" href="#Benders-decomposition">Benders decomposition</a><a id="Benders-decomposition-1"></a><a class="docs-heading-anchor-permalink" href="#Benders-decomposition" title="Permalink"></a></h3><p>To run a case with Benders decomposition, users need to specify the optimizer for the planning problem and the subproblems.</p><p>Create a file called <code>run.jl</code> in your case directory with the following content (for HiGHS with IPM solver):</p><pre><code class="language-julia hljs">using MacroEnergy
+using HiGHS
+
+(systems, solution) = run_case(
+    @__DIR__;
+    planning_optimizer=HiGHS.Optimizer, # Optimizer Constructor for the planning problem
+    subproblem_optimizer=HiGHS.Optimizer, # Optimizer Constructor for the subproblems
+    planning_optimizer_attributes=(&quot;solver&quot; =&gt; &quot;ipm&quot;, &quot;run_crossover&quot; =&gt; &quot;off&quot;, &quot;ipm_optimality_tolerance&quot; =&gt; 1e-3), # Optimizer Settings for the planning problem
+    subproblem_optimizer_attributes=(&quot;solver&quot; =&gt; &quot;ipm&quot;, &quot;run_crossover&quot; =&gt; &quot;on&quot;, &quot;ipm_optimality_tolerance&quot; =&gt; 1e-3), # Optimizer Settings for the subproblems
+);</code></pre><p>For Gurobi:</p><pre><code class="language-julia hljs">using MacroEnergy
+using Gurobi # or HiGHS, CPLEX, etc.
+
+(systems, solution) = run_case(
+    @__DIR__;
+    planning_optimizer=Gurobi.Optimizer, # Optimizer Constructor for the planning problem
+    subproblem_optimizer=Gurobi.Optimizer, # Optimizer Constructor for the subproblems
+    planning_optimizer_attributes=(&quot;Method&quot; =&gt; 2, &quot;Crossover&quot; =&gt; 0, &quot;BarConvTol&quot; =&gt; 1e-3), # Optimizer Settings for the planning problem
+    subproblem_optimizer_attributes=(&quot;Method&quot; =&gt; 2, &quot;Crossover&quot; =&gt; 0, &quot;BarConvTol&quot; =&gt; 1e-3), # Optimizer Settings for the subproblems
+);</code></pre><p>Run the script above in a terminal with the usual command:</p><pre><code class="language-bash hljs">$ julia --project=&lt;path/to/your/environment&gt; &lt;path/to/your/case&gt;/run.jl</code></pre><p>where <code>&lt;path/to/your/environment&gt;</code> is the path to the environment with <code>Macro</code> installed, and <code>&lt;path/to/your/case&gt;</code> is the path to the folder of the case you want to run.</p><h3 id="Available-Options"><a class="docs-heading-anchor" href="#Available-Options">Available Options</a><a id="Available-Options-1"></a><a class="docs-heading-anchor-permalink" href="#Available-Options" title="Permalink"></a></h3><p>The <code>run_case</code> function accepts several optional parameters:</p><table><tr><th style="text-align: right">Parameter</th><th style="text-align: right">Type</th><th style="text-align: right">Default</th><th style="text-align: right">Description</th></tr><tr><td style="text-align: right"><code>lazy_load</code></td><td style="text-align: right">Bool</td><td style="text-align: right"><code>true</code></td><td style="text-align: right">Whether to delay loading the input data until needed</td></tr><tr><td style="text-align: right"><code>log_level</code></td><td style="text-align: right">LogLevel</td><td style="text-align: right"><code>Logging.Info</code></td><td style="text-align: right">Used to control the amount of information logged to the console and file (import the <code>Logging</code> module to change this parameter)</td></tr><tr><td style="text-align: right"><code>log_to_console</code></td><td style="text-align: right">Bool</td><td style="text-align: right"><code>true</code></td><td style="text-align: right">Print log messages to console</td></tr><tr><td style="text-align: right"><code>log_to_file</code></td><td style="text-align: right">Bool</td><td style="text-align: right"><code>true</code></td><td style="text-align: right">Write log messages to file</td></tr><tr><td style="text-align: right"><code>log_file_path</code></td><td style="text-align: right">String</td><td style="text-align: right"><code>&quot;&lt;case_name&gt;.log&quot;</code></td><td style="text-align: right">Path to log file</td></tr><tr><td style="text-align: right"><code>optimizer</code></td><td style="text-align: right">DataType</td><td style="text-align: right"><code>HiGHS.Optimizer</code></td><td style="text-align: right">Optimizer to use (import the solver module to use it)</td></tr><tr><td style="text-align: right"><code>optimizer_attributes</code></td><td style="text-align: right">Tuple</td><td style="text-align: right">See below</td><td style="text-align: right">Solver-specific settings</td></tr><tr><td style="text-align: right"><code>planning_optimizer</code></td><td style="text-align: right">DataType</td><td style="text-align: right"><code>HiGHS.Optimizer</code></td><td style="text-align: right">Optimizer to use for the planning problem (import the solver module to use it)</td></tr><tr><td style="text-align: right"><code>subproblem_optimizer</code></td><td style="text-align: right">DataType</td><td style="text-align: right"><code>HiGHS.Optimizer</code></td><td style="text-align: right">Optimizer to use for the subproblems (import the solver module to use it)</td></tr><tr><td style="text-align: right"><code>planning_optimizer_attributes</code></td><td style="text-align: right">Tuple</td><td style="text-align: right">See below</td><td style="text-align: right">Solver-specific settings for the planning problem</td></tr><tr><td style="text-align: right"><code>subproblem_optimizer_attributes</code></td><td style="text-align: right">Tuple</td><td style="text-align: right">See below</td><td style="text-align: right">Solver-specific settings for the subproblems</td></tr></table><p>Default optimizer attributes:</p><pre><code class="language-julia hljs">(&quot;BarConvTol&quot; =&gt; 1e-3, &quot;Crossover&quot; =&gt; 0, &quot;Method&quot; =&gt; 2)</code></pre><h2 id="Writing-Custom-Run-Scripts"><a class="docs-heading-anchor" href="#Writing-Custom-Run-Scripts">Writing Custom Run Scripts</a><a id="Writing-Custom-Run-Scripts-1"></a><a class="docs-heading-anchor-permalink" href="#Writing-Custom-Run-Scripts" title="Permalink"></a></h2><p>For more control over the workflow, users can write custom run scripts that explicitly call each step. This approach is useful when you need to:</p><ul><li>Run the same model with different parameter values;</li><li>Customize the output writing process;</li><li>Inspect or modify the case before solving;</li><li>Access intermediate results.</li></ul><p>Here is an example of a custom run script that loads the case, creates the optimizer, solves the case, and writes the results. Let&#39;s create a file called <code>run_custom.jl</code> in your case directory with the following content (make sure to replace the <code>case_path</code> with the path to your case):</p><pre><code class="language-julia hljs">using MacroEnergy
+using HiGHS  # or Gurobi, CPLEX, etc.
+
+# Define the case path
+case_path = &quot;path/to/your/case&quot;
+
+# Step 1: Load the case
+# Note 1: the semicolon at the end of the line is used to suppress the output (recommended)
+# Note 2: the case is loaded lazily by default
+case = load_case(case_path);
+
+# Step 2: Create the optimizer
+optimizer = create_optimizer(
+    HiGHS.Optimizer,
+    nothing,  # optional optimizer environment
+    (&quot;solver&quot; =&gt; &quot;ipm&quot;, &quot;run_crossover&quot; =&gt; &quot;off&quot;, &quot;ipm_optimality_tolerance&quot; =&gt; 1e-3)
+)
+
+# Step 3: Solve the case
+(case, solution) = solve_case(case, optimizer);
+
+# Step 4: Write results 
+# Note: if Myopic, this step is not needed as outputs are written during iteration to reduce memory usage
+results_dir = joinpath(case_path, &quot;results&quot;)
+mkpath(results_dir)
+
+write_outputs(results_dir, case, solution);</code></pre><p>To use Gurobi as the optimizer, simply replace the following lines:</p><pre><code class="language-julia hljs">using HiGHS
+
+optimizer = create_optimizer(
+    HiGHS.Optimizer,
+    nothing,  # optional optimizer environment
+    (&quot;solver&quot; =&gt; &quot;ipm&quot;, &quot;run_crossover&quot; =&gt; &quot;off&quot;, &quot;ipm_optimality_tolerance&quot; =&gt; 1e-3)
+)</code></pre><p>with:</p><pre><code class="language-julia hljs">using Gurobi
+
+optimizer = create_optimizer(
+    Gurobi.Optimizer,
+    nothing,  # optional optimizer environment
+    (&quot;BarConvTol&quot; =&gt; 1e-3, &quot;Crossover&quot; =&gt; 0, &quot;Method&quot; =&gt; 2)
+)</code></pre><p>To run the script, you can execute a similar command to the one used in the <a href="#Basic-Usage-(no-Benders-decomposition,-with-open-source-solver-HiGHS)">Basic Usage (no Benders decomposition, with open source solver HiGHS)</a> section:</p><pre><code class="language-bash hljs">$ julia --project=&lt;path/to/your/environment&gt; &lt;path/to/your/case&gt;/run_custom.jl</code></pre><p>where <code>&lt;path/to/your/environment&gt;</code> is the path to the environment with <code>Macro</code> installed, and <code>&lt;path/to/your/case&gt;</code> is the path to the folder of the case you want to run.</p><h2 id="Running-Multiple-Cases"><a class="docs-heading-anchor" href="#Running-Multiple-Cases">Running Multiple Cases</a><a id="Running-Multiple-Cases-1"></a><a class="docs-heading-anchor-permalink" href="#Running-Multiple-Cases" title="Permalink"></a></h2><p>Users can run multiple cases sequentially or in parallel from a single script. This is useful for comparing different scenarios or configurations.</p><h3 id="Sequential-Case-Runs"><a class="docs-heading-anchor" href="#Sequential-Case-Runs">Sequential Case Runs</a><a id="Sequential-Case-Runs-1"></a><a class="docs-heading-anchor-permalink" href="#Sequential-Case-Runs" title="Permalink"></a></h3><p>Here is an example of a script (<code>run_sequential.jl</code>) that runs multiple cases sequentially and saves the results for later comparison (make sure to replace the <code>case_paths</code> with the paths to your cases):</p><pre><code class="language-julia hljs">using MacroEnergy
+using HiGHS
+
+# Define paths to multiple cases
+case_paths = [
+    &quot;examples/case_A&quot;,
+    &quot;examples/case_B&quot;,
+    &quot;examples/case_C&quot;
+]
+
+# Run the cases sequentially
+for case_path in case_paths
+    println(&quot;Running case: $case_path&quot;)
+    
+    (systems, solution) = run_case(
+        case_path;
+        optimizer=HiGHS.Optimizer
+    )
+    
+end</code></pre><p>Run the script above in a terminal with the usual command:</p><pre><code class="language-bash hljs">$ julia --project=&lt;path/to/your/environment&gt; &lt;path/to/your/case&gt;/run_sequential.jl</code></pre><p>where <code>&lt;path/to/your/environment&gt;</code> is the path to the environment with <code>Macro</code> installed, and <code>&lt;path/to/your/case&gt;</code> is the path to the folder of the case you want to run.</p><h3 id="Parallel-Case-Runs"><a class="docs-heading-anchor" href="#Parallel-Case-Runs">Parallel Case Runs</a><a id="Parallel-Case-Runs-1"></a><a class="docs-heading-anchor-permalink" href="#Parallel-Case-Runs" title="Permalink"></a></h3><p>For independent cases, users can use Julia&#39;s parallel processing to run the cases in parallel. Here is a simple example of a script (<code>run_parallel.jl</code>) that runs the cases in parallel using four processes:</p><pre><code class="language-julia hljs">using Distributed
+addprocs(4)  # Add 4 worker processes
+
+@everywhere using MacroEnergy
+@everywhere using HiGHS
+
+case_paths = [&quot;case_A&quot;, &quot;case_B&quot;, &quot;case_C&quot;, &quot;case_D&quot;]
+
+@everywhere function run_single_case(case_path)
+    case = load_case(case_path);
+    optimizer = create_optimizer(
+        HiGHS.Optimizer,
+        nothing,
+        (&quot;solver&quot; =&gt; &quot;ipm&quot;, &quot;run_crossover&quot; =&gt; &quot;off&quot;, &quot;ipm_optimality_tolerance&quot; =&gt; 1e-3)
+    );
+    (case, solution) = solve_case(case, optimizer);
+    results_dir = joinpath(case_path, &quot;results&quot;);
+    mkpath(results_dir);
+    write_outputs(results_dir, case, solution);
+    return nothing
+end
+
+pmap(run_single_case, case_paths)</code></pre><p>The <code>pmap</code> function is used to run the <code>run_single_case</code> function in parallel on the worker processes and write the results to the <code>results</code> directory in each case.</p><p>Moreover, the user can customize the <code>run_single_case</code> function to add additional processing or post-processing of the results.</p><h2 id="Parameter-Sweeps"><a class="docs-heading-anchor" href="#Parameter-Sweeps">Parameter Sweeps</a><a id="Parameter-Sweeps-1"></a><a class="docs-heading-anchor-permalink" href="#Parameter-Sweeps" title="Permalink"></a></h2><p>A common use case is running the same model with different parameter values, such as varying technology costs or policy constraints.</p><h3 id="Modifying-Asset-Parameters"><a class="docs-heading-anchor" href="#Modifying-Asset-Parameters">Modifying Asset Parameters</a><a id="Modifying-Asset-Parameters-1"></a><a class="docs-heading-anchor-permalink" href="#Modifying-Asset-Parameters" title="Permalink"></a></h3><p>To modify asset parameters before solving, users can use the following custom workflow:</p><pre><code class="language-julia hljs">using MacroEnergy
+using HiGHS
+
+case_path = &quot;path/to/your/case&quot;
+
+# Define investment cost values to sweep
+investment_costs = [100_000, 150_000, 200_000, 250_000]  # $/MW
+
+for cost in investment_costs
+    println(&quot;Running with investment cost: $cost&quot;)
+    
+    # Load a fresh case for each run
+    case = load_case(case_path);
+    system = case.systems[1];
+    
+    # Get the asset and modify its cost
+    solar = get_asset_by_id(system, :solar_SE)
+    solar.edge.investment_cost = cost
+    
+    # Create optimizer and solve
+    optimizer = create_optimizer(
+        HiGHS.Optimizer, 
+        nothing, 
+        # optional optimizer environment
+        (&quot;solver&quot; =&gt; &quot;ipm&quot;, &quot;run_crossover&quot; =&gt; &quot;off&quot;, &quot;ipm_optimality_tolerance&quot; =&gt; 1e-3)
+    );
+    (case, solution) = solve_case(case, optimizer);
+    
+    # Write results to a unique directory
+    results_dir = joinpath(case_path, &quot;results_investment_cost_$(cost)&quot;)
+    mkpath(results_dir);
+    write_outputs(results_dir, case, solution);
+end</code></pre><p>For detailed information about how to access and modify the system components, see the <a href="../../../Manual/Assets/#Macro-Asset-Library">Macro Asset Library</a>.</p><p>Users can also modify the script above to extract and compare key metrics across the cases. Here is an example of how to do this:</p><pre><code class="language-julia hljs">using MacroEnergy
+using HiGHS
+using DataFrames
+using JuMP
+
+case_path = &quot;path/to/your/case&quot;
+
+# Define investment cost values to sweep
+investment_costs = [100_000, 150_000, 200_000, 250_000]  # $/MW
+
+# Create a dictionary to store the results
+results = Dict{Float64, Any}()
+
+for cost in investment_costs
+    println(&quot;Running with investment cost: $cost&quot;)
+    
+    # Load a fresh case for each run
+    case = load_case(case_path);
+    system = case.systems[1];
+    
+    # Get the asset and modify its cost
+    solar = get_asset_by_id(system, :solar_SE)
+    solar.edge.investment_cost = cost
+    
+    # Create optimizer and solve
+    optimizer = create_optimizer(
+        HiGHS.Optimizer, 
+        nothing, 
+        # optional optimizer environment
+        (&quot;solver&quot; =&gt; &quot;ipm&quot;, &quot;run_crossover&quot; =&gt; &quot;off&quot;, &quot;ipm_optimality_tolerance&quot; =&gt; 1e-3)
+    );
+    (case, solution) = solve_case(case, optimizer);
+    
+    # Store results
+    results[cost] = (case=case, solution=solution)
+    
+    # Optionally write results to a unique directory
+    results_dir = joinpath(case_path, &quot;results_investment_cost_$(cost)&quot;)
+    mkpath(results_dir)
+    write_outputs(results_dir, case, solution)
+end
+
+# Create a summary DataFrame
+summary = DataFrame(
+    investment_cost = Float64[],
+    optimal_capacity = Float64[],
+    total_cost = Float64[]
+)
+
+for (cost, result) in results
+    system = result.case.systems[1]
+    model = result.solution
+    
+    # Get optimal capacity for the asset
+    solar = get_asset_by_id(system, :solar_SE)
+    capacity = value(solar.edge.capacity)
+    
+    # Get total system cost
+    total_cost = objective_value(model)
+    
+    push!(summary, (cost, capacity, total_cost))
+end
+
+sort!(summary, :investment_cost);
+println(summary)</code></pre><h3 id="Multi-Parameter-Sweeps"><a class="docs-heading-anchor" href="#Multi-Parameter-Sweeps">Multi-Parameter Sweeps</a><a id="Multi-Parameter-Sweeps-1"></a><a class="docs-heading-anchor-permalink" href="#Multi-Parameter-Sweeps" title="Permalink"></a></h3><p>Similarly, users can modify the script above to sweep multiple parameters simultaneously:</p><pre><code class="language-julia hljs">using MacroEnergy
+using HiGHS
+using Iterators
+
+case_path = &quot;path/to/your/case&quot;
+
+# Define parameter ranges
+solar_investment_costs = [100_000, 200_000, 300_000]
+battery_investment_costs = [50_000, 100_000, 150_000]
+
+# Create all combinations
+param_combinations = collect(Iterators.product(solar_investment_costs, battery_investment_costs))
+
+results = Dict{Tuple{Float64, Float64}, Any}()
+
+for (solar_investment_cost, battery_investment_cost) in param_combinations
+    println(&quot;Solar: $solar_investment_cost, Battery: $battery_investment_cost&quot;)
+    
+    case = load_case(case_path);
+    system = case.systems[1];
+    
+    # Modify solar cost
+    solar = get_asset_by_id(system, :solar_SE)
+    solar.edge.investment_cost = solar_investment_cost
+    
+    # Modify battery cost
+    battery = get_asset_by_id(system, :battery_SE)
+    battery.discharge_edge.investment_cost = battery_investment_cost
+    
+    # Solve
+    optimizer = create_optimizer(HiGHS.Optimizer, nothing, (&quot;solver&quot; =&gt; &quot;ipm&quot;, &quot;run_crossover&quot; =&gt; &quot;off&quot;, &quot;ipm_optimality_tolerance&quot; =&gt; 1e-3));
+    (case, solution) = solve_case(case, optimizer);
+    
+    results[(solar_investment_cost, battery_investment_cost)] = (case=case, solution=solution)
+end
+
+# Post-process the results as needed ...</code></pre><h2 id="Best-Practices"><a class="docs-heading-anchor" href="#Best-Practices">Best Practices</a><a id="Best-Practices-1"></a><a class="docs-heading-anchor-permalink" href="#Best-Practices" title="Permalink"></a></h2><h3 id="Memory-Management"><a class="docs-heading-anchor" href="#Memory-Management">Memory Management</a><a id="Memory-Management-1"></a><a class="docs-heading-anchor-permalink" href="#Memory-Management" title="Permalink"></a></h3><p>When running many cases, be mindful of memory usage:</p><pre><code class="language-julia hljs">for case_path in case_paths
+    # Run case
+    (systems, _) = run_case(case_path)
+    
+    # Extract and save only what you need
+    save_key_results(systems, case_path);
+end</code></pre><h3 id="Logging"><a class="docs-heading-anchor" href="#Logging">Logging</a><a id="Logging-1"></a><a class="docs-heading-anchor-permalink" href="#Logging" title="Permalink"></a></h3><p>For batch runs, consider adjusting logging to avoid excessive output:</p><pre><code class="language-julia hljs">using Logging
+
+(systems, solution) = run_case(
+    case_path;
+    log_to_console=false,  # Suppress console output
+    log_to_file=true,      # Keep file logging
+    log_level=Logging.Warn # Only log warnings and errors
+);</code></pre><h3 id="Error-Handling"><a class="docs-heading-anchor" href="#Error-Handling">Error Handling</a><a id="Error-Handling-1"></a><a class="docs-heading-anchor-permalink" href="#Error-Handling" title="Permalink"></a></h3><p>Wrap runs in try-catch blocks for robustness when running multiple cases:</p><pre><code class="language-julia hljs">for case_path in case_paths
+    try
+        (systems, solution) = run_case(case_path)
+        println(&quot;Successfully completed: $case_path&quot;)
+    catch e
+        println(&quot;Failed: $case_path&quot;)
+        println(&quot;Error: $e&quot;)
+        continue
+    end
+end</code></pre><h2 id="Running-Macro-Models-in-an-Interactive-Julia-REPL"><a class="docs-heading-anchor" href="#Running-Macro-Models-in-an-Interactive-Julia-REPL">Running Macro Models in an Interactive Julia REPL</a><a id="Running-Macro-Models-in-an-Interactive-Julia-REPL-1"></a><a class="docs-heading-anchor-permalink" href="#Running-Macro-Models-in-an-Interactive-Julia-REPL" title="Permalink"></a></h2><p>All the examples above can be executed line by line in an interactive Julia REPL. This is particularly useful for debugging and testing the model. Please check the <a href="../../Modeler Guide/modeler_workflow/#Suggested-Development-Workflow">Suggested Development Workflow</a> and the <a href="../../Modeler Guide/modeler_debugging_testing/#Debugging-and-Testing-a-Macro-Model">Debugging and Testing a Macro Model</a> sections for more information.</p><div class="admonition is-success" id="Interactive-Julia-REPL-2c6dc73e9dc75ec1"><header class="admonition-header">Interactive Julia REPL<a class="admonition-anchor" href="#Interactive-Julia-REPL-2c6dc73e9dc75ec1" title="Permalink"></a></header><div class="admonition-body"><p>In Julia, when running the same script multiple times, it is recommended to exectute commands or script in an <strong>interactive REPL</strong> (REPL stands for Read-Eval-Print Loop, and it&#39;s the command line interface that starts when you type <code>julia</code> in the terminal) instead of running the script directly from the terminal. This is because Julia&#39;s JIT (Just-In-Time) compiler will compile the code the first time it is run, and subsequent runs will be much faster as the compiled code is cached. Also, the REPL maintains all variables in memory, making it easier to:</p><ul><li>Inspect variable values;</li><li>Modify and re-run code without restarting the entire program;</li><li>Test small code snippets in isolation.</li></ul><p>To open the REPL, open a terminal and type <code>julia</code> to start the REPL:</p><pre><code class="language-bash hljs">$ julia</code></pre><p>This will open the REPL with the default project environment. To open the REPL with a specific project environment, you can use the following command:</p><pre><code class="language-bash hljs">$ julia --project=&lt;path/to/your/environment&gt;</code></pre><p>where, for instance, <code>&lt;path/to/your/environment&gt;</code> can be the path to the environment with <code>Macro</code> installed. For more information about how to create and activate an environment, see the <a href="https://pkgdocs.julialang.org/v1/environments/">Working with Environments</a> page in the Julia documentation.</p></div></div><h3 id="Accessing-System-Components-when-Running-Macro-Models-in-an-Interactive-Julia-REPL"><a class="docs-heading-anchor" href="#Accessing-System-Components-when-Running-Macro-Models-in-an-Interactive-Julia-REPL">Accessing System Components when Running Macro Models in an Interactive Julia REPL</a><a id="Accessing-System-Components-when-Running-Macro-Models-in-an-Interactive-Julia-REPL-1"></a><a class="docs-heading-anchor-permalink" href="#Accessing-System-Components-when-Running-Macro-Models-in-an-Interactive-Julia-REPL" title="Permalink"></a></h3><p>Macro offers a range of utility functions to access and interact with the system components. Here is an example of how to do this:</p><p>First open a Julia REPL with the following command:</p><pre><code class="language-bash hljs">$ julia --project=&lt;path/to/your/environment&gt;</code></pre><p>where, for instance, <code>&lt;path/to/your/environment&gt;</code> can be the path to the environment with <code>Macro</code> installed. </p><p>Then, in the REPL, type the following commands:</p><pre><code class="language-julia hljs">using MacroEnergy
+
+# Define the case path
+case_path = &quot;path/to/your/case&quot;
+
+# Load the case
+case = load_case(case_path);
+
+# Access the first system (period)
+system = case.systems[1];
+
+# List all asset IDs
+asset_ids(system)
+
+# Get a specific asset by ID
+battery = get_asset_by_id(system, :battery_SE);
+
+# Get all assets of a specific type
+thermal_plants = get_assets_sametype(system, ThermalPower{NaturalGas});
+
+# Access system locations
+location_ids(system)
+
+# Other utility functions...</code></pre><p>For more information about how to interact with the system components, see the <a href="../../Modeler Guide/modeler_debugging_testing/#Debugging-and-Testing-a-Macro-Model">Debugging and Testing a Macro Model</a> section.</p><h2 id="See-Also"><a class="docs-heading-anchor" href="#See-Also">See Also</a><a id="See-Also-1"></a><a class="docs-heading-anchor-permalink" href="#See-Also" title="Permalink"></a></h2><ul><li><a href="../../Modeler Guide/modeler_debugging_testing/#Debugging-and-Testing-a-Macro-Model">Debugging and Testing a Macro Model</a> - Useful functions for debugging and testing a Macro model</li><li><a href="../user_settings/#Configuring-Settings">Configuring Settings</a> - Configure model settings</li><li><a href="../user_write_results/#Writing-Results-to-Files">Writing Results to Files</a> - Detailed output options</li><li><a href="../user_build_system/#Creating-a-new-System">Creating a new System</a> - Setting up input data</li></ul><script type="module">import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+mermaid.initialize({
+    startOnLoad: true,
+    theme: "neutral"
+});
+</script></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../user_settings/">« Configuring Settings</a><a class="docs-footer-nextpage" href="../user_write_results/">Writing Results »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Tuesday 17 March 2026 23:33">Tuesday 17 March 2026</span>. Using Julia version 1.12.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
