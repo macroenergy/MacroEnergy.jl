@@ -155,9 +155,9 @@ And data, a 5-element Vector{JuMP.ConstraintRef}:
 julia&gt; MacroEnergy.id(thermal_plant)
 :SE_natural_gas_fired_combined_cycle_1</code></pre><h3 id="[print_struct_info](@ref)"><a class="docs-heading-anchor" href="#[print_struct_info](@ref)"><a href="../../../References/5_utilities/#print_struct_info"><code>print_struct_info</code></a></a><a id="[print_struct_info](@ref)-1"></a><a class="docs-heading-anchor-permalink" href="#[print_struct_info](@ref)" title="Permalink"></a></h3><p>Prints the structure of an asset in terms of its components (edges, transformations, storages, etc.)</p><pre><code class="language-julia hljs">julia&gt; MacroEnergy.print_struct_info(thermal_plant)
 Field: thermal_transform, Type: Transformation
-Field: elec_edge, Type: Union{Edge{&lt;:Electricity}, EdgeWithUC{&lt;:Electricity}}
-Field: fuel_edge, Type: Edge{&lt;:NaturalGas}
-Field: co2_edge, Type: Edge{&lt;:CO2}</code></pre><p>Once you have collected the <strong>names</strong> of the components of an asset, you can use the following function to get a specific component by its name.</p><h3 id="[get_component_by_fieldname](@ref)"><a class="docs-heading-anchor" href="#[get_component_by_fieldname](@ref)"><a href="../../../References/5_utilities/#get_component_by_fieldname"><code>get_component_by_fieldname</code></a></a><a id="[get_component_by_fieldname](@ref)-1"></a><a class="docs-heading-anchor-permalink" href="#[get_component_by_fieldname](@ref)" title="Permalink"></a></h3><p>Retrieves a component of an asset by its field name.</p><pre><code class="language-julia hljs">julia&gt; elec_edge = MacroEnergy.get_component_by_fieldname(thermal_plant, :elec_edge);
+Field: elec_edge, Type: Union{UnidirectionalEdge{&lt;:Electricity}, EdgeWithUC{&lt;:Electricity}}
+Field: fuel_edge, Type: UnidirectionalEdge{&lt;:NaturalGas}
+Field: co2_edge, Type: UnidirectionalEdge{&lt;:CO2}</code></pre><p>Once you have collected the <strong>names</strong> of the components of an asset, you can use the following function to get a specific component by its name.</p><h3 id="[get_component_by_fieldname](@ref)"><a class="docs-heading-anchor" href="#[get_component_by_fieldname](@ref)"><a href="../../../References/5_utilities/#get_component_by_fieldname"><code>get_component_by_fieldname</code></a></a><a id="[get_component_by_fieldname](@ref)-1"></a><a class="docs-heading-anchor-permalink" href="#[get_component_by_fieldname](@ref)" title="Permalink"></a></h3><p>Retrieves a component of an asset by its field name.</p><pre><code class="language-julia hljs">julia&gt; elec_edge = MacroEnergy.get_component_by_fieldname(thermal_plant, :elec_edge);
 
 julia&gt; MacroEnergy.id(elec_edge)
 :SE_natural_gas_fired_combined_cycle_1_elec_edge
@@ -256,9 +256,9 @@ julia&gt; MacroEnergy.id(end_node)
 julia&gt; MacroEnergy.typeof(end_node)
 Node{Electricity}</code></pre><h2 id="Working-with-Transformations"><a class="docs-heading-anchor" href="#Working-with-Transformations">Working with Transformations</a><a id="Working-with-Transformations-1"></a><a class="docs-heading-anchor-permalink" href="#Working-with-Transformations" title="Permalink"></a></h2><div class="admonition is-success" id="Transformation-Interface-a642730793ab781d"><header class="admonition-header">Transformation Interface<a class="admonition-anchor" href="#Transformation-Interface-a642730793ab781d" title="Permalink"></a></header><div class="admonition-body"><p>For a comprehensive list of function interfaces available for transformation besides <code>id</code>, <code>commodity_type</code> and the ones listed below, users can refer to the <code>transformation.jl</code> and the <code>vertex.jl</code> source code.</p></div></div><p>To access the transformation component of an asset, utilize the following functions:</p><pre><code class="language-julia hljs">julia&gt; MacroEnergy.print_struct_info(thermal_plant)
 Field: thermal_transform, Type: Transformation
-Field: elec_edge, Type: Union{Edge{&lt;:Electricity}, EdgeWithUC{&lt;:Electricity}}
-Field: fuel_edge, Type: Edge{&lt;:NaturalGas}
-Field: co2_edge, Type: Edge{&lt;:CO2}
+Field: elec_edge, Type: Union{UnidirectionalEdge{&lt;:Electricity}, EdgeWithUC{&lt;:Electricity}}
+Field: fuel_edge, Type: UnidirectionalEdge{&lt;:NaturalGas}
+Field: co2_edge, Type: UnidirectionalEdge{&lt;:CO2}
 
 julia&gt; thermal_transform = MacroEnergy.get_component_by_fieldname(thermal_plant, :thermal_transform);
 
@@ -312,8 +312,8 @@ And data, a 2×24 Matrix{JuMP.ConstraintRef{Model, MathOptInterface.ConstraintIn
 
 julia&gt; MacroEnergy.print_struct_info(battery)
 Field: battery_storage, Type: AbstractStorage{&lt;:Electricity}
-Field: discharge_edge, Type: Edge{&lt;:Electricity}
-Field: charge_edge, Type: Edge{&lt;:Electricity}
+Field: discharge_edge, Type: UnidirectionalEdge{&lt;:Electricity}
+Field: charge_edge, Type: UnidirectionalEdge{&lt;:Electricity}
 
 julia&gt; storage = MacroEnergy.get_component_by_fieldname(battery, :battery_storage);
 
@@ -373,13 +373,13 @@ julia&gt; MacroEnergy.id(charge_edge)
 :battery_SE_charge_edge
 
 julia&gt; MacroEnergy.typeof(charge_edge)
-Edge{Electricity}</code></pre><h3 id="discharge_edge"><a class="docs-heading-anchor" href="#discharge_edge"><code>discharge_edge</code></a><a id="discharge_edge-1"></a><a class="docs-heading-anchor-permalink" href="#discharge_edge" title="Permalink"></a></h3><p>Retrieves the discharge edge connected to a storage component.</p><pre><code class="language-julia hljs">julia&gt; discharge_edge = MacroEnergy.discharge_edge(storage);
+UnidirectionalEdge{Electricity}</code></pre><h3 id="discharge_edge"><a class="docs-heading-anchor" href="#discharge_edge"><code>discharge_edge</code></a><a id="discharge_edge-1"></a><a class="docs-heading-anchor-permalink" href="#discharge_edge" title="Permalink"></a></h3><p>Retrieves the discharge edge connected to a storage component.</p><pre><code class="language-julia hljs">julia&gt; discharge_edge = MacroEnergy.discharge_edge(storage);
 
 julia&gt; MacroEnergy.id(discharge_edge)
 :battery_SE_discharge_edge
 
 julia&gt; MacroEnergy.typeof(discharge_edge)
-Edge{Electricity}</code></pre><h3 id="spillage_edge"><a class="docs-heading-anchor" href="#spillage_edge"><code>spillage_edge</code></a><a id="spillage_edge-1"></a><a class="docs-heading-anchor-permalink" href="#spillage_edge" title="Permalink"></a></h3><p>Retrieves the spillage edge connected to a storage component (applicable to hydro reservoirs).</p><pre><code class="language-julia hljs">julia&gt; MacroEnergy.spillage_edge(storage)</code></pre><h2 id="Time-Management"><a class="docs-heading-anchor" href="#Time-Management">Time Management</a><a id="Time-Management-1"></a><a class="docs-heading-anchor-permalink" href="#Time-Management" title="Permalink"></a></h2><pre><code class="language-julia hljs">julia&gt; vertex = MacroEnergy.find_node(system.locations, :elec_SE);
+UnidirectionalEdge{Electricity}</code></pre><h3 id="spillage_edge"><a class="docs-heading-anchor" href="#spillage_edge"><code>spillage_edge</code></a><a id="spillage_edge-1"></a><a class="docs-heading-anchor-permalink" href="#spillage_edge" title="Permalink"></a></h3><p>Retrieves the spillage edge connected to a storage component (applicable to hydro reservoirs).</p><pre><code class="language-julia hljs">julia&gt; MacroEnergy.spillage_edge(storage)</code></pre><h2 id="Time-Management"><a class="docs-heading-anchor" href="#Time-Management">Time Management</a><a id="Time-Management-1"></a><a class="docs-heading-anchor-permalink" href="#Time-Management" title="Permalink"></a></h2><pre><code class="language-julia hljs">julia&gt; vertex = MacroEnergy.find_node(system.locations, :elec_SE);
 
 julia&gt; edge = MacroEnergy.get_component_by_fieldname(thermal_plant, :elec_edge);</code></pre><h3 id="time_interval"><a class="docs-heading-anchor" href="#time_interval"><code>time_interval</code></a><a id="time_interval-1"></a><a class="docs-heading-anchor-permalink" href="#time_interval" title="Permalink"></a></h3><p>Retrieves the time interval of a vertex/edge.</p><pre><code class="language-julia hljs">julia&gt; MacroEnergy.time_interval(vertex)
 1:1:24
@@ -439,4 +439,4 @@ mermaid.initialize({
     startOnLoad: true,
     theme: "neutral"
 });
-</script></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../modeler_workflow/">« Suggested Development Workflow</a><a class="docs-footer-nextpage" href="../../Developer Guide/dev_create_constraint/">Creating a Constraint »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Tuesday 24 March 2026 17:35">Tuesday 24 March 2026</span>. Using Julia version 1.12.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+</script></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../modeler_workflow/">« Suggested Development Workflow</a><a class="docs-footer-nextpage" href="../../Developer Guide/dev_create_constraint/">Creating a Constraint »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Tuesday 24 March 2026 22:15">Tuesday 24 March 2026</span>. Using Julia version 1.12.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
