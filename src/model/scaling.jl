@@ -26,7 +26,7 @@ function scaling!(system::System)
 end
 
 function attributes_to_scale(n::Node)
-    return [:demand, :max_supply, :price, :price_nsd, :price_supply, :price_unmet_policy, :rhs_policy]
+    return [:demand, :max_supply, :price, :price_nsd, :price_supply, :price_unmet_policy, :rhs_policy, :policy_lower_bound]
 end
 
 function attributes_to_scale(e::Edge)

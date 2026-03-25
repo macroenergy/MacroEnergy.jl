@@ -10,6 +10,7 @@ function process_data(data::AbstractDict{Symbol,Any})
     haskey(data, :demand) && check_and_convert_demand!(data)
     haskey(data, :constraints) && check_and_convert_constraints!(data)
     haskey(data, :rhs_policy) && check_and_convert_rhs_policy!(data)
+    haskey(data, :policy_lower_bound) && check_and_convert_policy_lower_bound!(data)
     haskey(data, :price_unmet_policy) && check_and_convert_price_unmet_policy!(data)
     return data
 end
@@ -70,7 +71,6 @@ end
 
 function check_and_convert_inf!(data::AbstractDict{Symbol,Any})
     convert_inf_string_to_value(data, :max_capacity)
-    convert_inf_string_to_value(data, :max_capacity)
     return nothing
 end
 
@@ -98,6 +98,20 @@ function check_and_convert_rhs_policy!(data::AbstractDict{Symbol,Any})
         rhs_policy[new_k] = v
     end
     data[:rhs_policy] = rhs_policy
+    return nothing
+end
+
+function check_and_convert_policy_lower_bound!(data::AbstractDict{Symbol,Any})
+    policy_lower_bound = Dict{DataType,Float64}()
+    constraints = constraint_types()
+    for (k, v) in data[:policy_lower_bound]
+        if v== false
+            continue # Skip if the value is false
+        end
+        new_k = constraints[Symbol(k)]
+        policy_lower_bound[new_k] = v
+    end
+    data[:policy_lower_bound] = policy_lower_bound
     return nothing
 end
 

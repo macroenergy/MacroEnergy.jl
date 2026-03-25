@@ -120,6 +120,7 @@ function node_default_data()
         :max_supply => [0.0],
         :price_unmet_policy => Dict{Symbol,Any}(),
         :rhs_policy => Dict{Symbol,Any}(),
+        :policy_lower_bound => Dict{Symbol,Any}(:CO2CapConstraint => 0.0, :CO2StorageConstraint => 0.0),
     )
 end
 
