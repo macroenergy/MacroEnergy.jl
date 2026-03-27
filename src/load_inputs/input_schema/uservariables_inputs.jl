@@ -11,9 +11,10 @@ Parse and validate user-defined variables from input data.
 Each variable in the vector should have the form:
 ```
 {
-    :name => <Symbol or String>,    # Optional, defaults to ""
-    :time_varying => <Bool>,        # Required
-    :number_segments => <Int>       # Optional, defaults to 1
+    :name => <Symbol or String>,       # Optional, defaults to ""
+    :time_varying => <Bool>,           # Required
+    :operation_variable => <Bool>,     # Optional, defaults to true
+    :number_segments => <Int>          # Optional, defaults to 1
 }
 ```
 
@@ -23,6 +24,7 @@ Each variable in the vector should have the form:
 # Validation
 - `name`: Optional, must be Symbol or String if present; defaults to ""
 - `time_varying`: Required, must be Bool
+- `operation_variable`: Optional, must be Bool if present; defaults to true
 - `number_segments`: Optional, must be positive Int if present; defaults to 1
 - Ensures unique variable names across the node
 """
@@ -69,6 +71,12 @@ function check_and_convert_uservar(variables_input::Union{Vector, Nothing}, node
         if !isa(time_varying, Bool)
             error("Variable $idx in node $node_id: 'time_varying' must be a Bool, got $(typeof(time_varying))")
         end
+
+        # Extract and validate operation_variable (optional, defaults to true)
+        operation_variable = get(var_config, :operation_variable, true)
+        if !isa(operation_variable, Bool)
+            error("Variable $idx in node $node_id: 'operation_variable' must be a Bool, got $(typeof(operation_variable))")
+        end
         
         # Extract and validate number_segments (optional, defaults to 1)
         number_segments = get(var_config, :number_segments, 1)
@@ -80,7 +88,7 @@ function check_and_convert_uservar(variables_input::Union{Vector, Nothing}, node
         end
         
         # Store with var_key, but VariableConfig stores the original user-provided name
-        variables[var_key] = VariableConfig(var_name, time_varying, number_segments)
+        variables[var_key] = VariableConfig(var_name, time_varying, operation_variable, number_segments)
     end
     
     return variables
