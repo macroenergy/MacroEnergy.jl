@@ -110,7 +110,7 @@
             ]
         }
     ]
-}</code></pre><p>The attributes that can be set for each node (either in <code>global_data</code> or <code>instance_data</code>) are the following:</p><table><tr><th style="text-align: left"><strong>Attribute</strong></th><th style="text-align: center"><strong>Type</strong></th><th style="text-align: center"><strong>Values</strong></th><th style="text-align: center"><strong>Default</strong></th><th style="text-align: left"><strong>Description</strong></th></tr><tr><td style="text-align: left"><strong>id</strong></td><td style="text-align: center"><code>String</code></td><td style="text-align: center"><code>String</code></td><td style="text-align: center">Required</td><td style="text-align: left">Unique identifier for the node. E.g. &quot;elec_node_1&quot;.</td></tr><tr><td style="text-align: left"><strong>type</strong></td><td style="text-align: center"><code>String</code></td><td style="text-align: center">Any Macro commodity type</td><td style="text-align: center">Required</td><td style="text-align: left">Commodity type. E.g. &quot;Electricity&quot;.</td></tr><tr><td style="text-align: left"><strong>time_interval</strong></td><td style="text-align: center"><code>String</code></td><td style="text-align: center">Any Macro commodity type</td><td style="text-align: center">Required</td><td style="text-align: left">Time resolution for the time series data linked to the node. E.g. &quot;Electricity&quot;.</td></tr><tr><td style="text-align: left"><strong>constraints</strong></td><td style="text-align: center"><code>Dict{String,Bool}</code></td><td style="text-align: center">Any Macro constraint type</td><td style="text-align: center">Empty</td><td style="text-align: left">List of constraints applied to the node. E.g. <code>{&quot;BalanceConstraint&quot;: true, &quot;MaxNonServedDemandConstraint&quot;: true}</code>.</td></tr><tr><td style="text-align: left"><strong>demand</strong></td><td style="text-align: center"><code>Dict</code></td><td style="text-align: center">Demand file path and header</td><td style="text-align: center">Empty</td><td style="text-align: left">Path to the demand file and column name for the demand time series to link to the node. E.g. <code>{&quot;timeseries&quot;: {&quot;path&quot;: &quot;system/demand.csv&quot;, &quot;header&quot;: &quot;Demand_MW_z1&quot;}}</code>.</td></tr><tr><td style="text-align: left"><strong>max_nsd</strong></td><td style="text-align: center"><code>Vector{Float64}</code></td><td style="text-align: center">Vector of numbers <span>$\in$</span> [0,1]</td><td style="text-align: center">[0.0]</td><td style="text-align: left">Maximum allowed non-served demand for each demand segment as a fraction of the total demand. E.g. <code>[1.0]</code> for a single segment.</td></tr><tr><td style="text-align: left"><strong>supply<em>segment</em>names</strong></td><td style="text-align: center"><code>Vector{String}</code></td><td style="text-align: center">Ordered segment names</td><td style="text-align: center">Empty</td><td style="text-align: left">Ordered names for supply segments. If omitted, default names such as <code>seg1</code>, <code>seg2</code>, ... are inferred when needed.</td></tr><tr><td style="text-align: left"><strong>min_supply</strong></td><td style="text-align: center"><code>Dict{String,Any}</code></td><td style="text-align: center">Segment-keyed numbers or vectors</td><td style="text-align: center">Empty</td><td style="text-align: left">Optional minimum supply by segment. Values may be a single number or a time series vector. Omitted segments default to <code>0.0</code>, and each entry must satisfy <code>min_supply &lt;= max_supply</code>.</td></tr><tr><td style="text-align: left"><strong>max_supply</strong></td><td style="text-align: center"><code>Dict{String,Any}</code></td><td style="text-align: center">Segment-keyed numbers or vectors</td><td style="text-align: center">Empty</td><td style="text-align: left">Maximum allowed supply for each supply segment.</td></tr><tr><td style="text-align: left"><strong>price</strong></td><td style="text-align: center"><code>Vector{Float64}</code></td><td style="text-align: center">Postprocessed output</td><td style="text-align: center">Empty</td><td style="text-align: left">Effective node price computed during postprocessing from realized supply flows. This is typically not provided as an input.</td></tr><tr><td style="text-align: left"><strong>price_nsd</strong></td><td style="text-align: center"><code>Vector{Float64}</code></td><td style="text-align: center">Vector of numbers</td><td style="text-align: center">[0.0]</td><td style="text-align: left">Price/penalty for non-served demand by segment. E.g. <code>[5000.0]</code> for a single segment.</td></tr><tr><td style="text-align: left"><strong>price_supply</strong></td><td style="text-align: center"><code>Dict{String,Any}</code></td><td style="text-align: center">Segment-keyed numbers or vectors</td><td style="text-align: center">Empty</td><td style="text-align: left">Piecewise linear price for supply curves.</td></tr><tr><td style="text-align: left"><strong>price_unmet_policy</strong></td><td style="text-align: center"><code>Dict{DataType,Float64}</code></td><td style="text-align: center">Dict of Macro policy types and numbers</td><td style="text-align: center">Empty</td><td style="text-align: left">Price/penalty for unmet policy constraints.</td></tr><tr><td style="text-align: left"><strong>rhs_policy</strong></td><td style="text-align: center"><code>Dict{DataType,Float64}</code></td><td style="text-align: center">Dict of Macro constraint types and numbers</td><td style="text-align: center">Empty</td><td style="text-align: left">Right hand side of the policy constraints. E.g. <code>{&quot;CO2CapConstraint&quot;: 200}</code>, carbon price of 200 USD/ton.</td></tr></table><div class="admonition is-info" id="Supply-input-format-48170ebbb3c5212b"><header class="admonition-header">Supply input format<a class="admonition-anchor" href="#Supply-input-format-48170ebbb3c5212b" title="Permalink"></a></header><div class="admonition-body"><p>The preferred format for node supply inputs is a set of named segments using <code>supply_segment_names</code>, <code>price_supply</code>, <code>max_supply</code>, and optionally <code>min_supply</code>. <code>price_supply</code> and <code>max_supply</code> still accept legacy vector inputs and are converted internally to the named-segment representation. <code>min_supply</code>, when provided, must be a segment-keyed dictionary.</p></div></div><div class="admonition is-success" id="Constraints-b5c10c667415b9ab"><header class="admonition-header">Constraints<a class="admonition-anchor" href="#Constraints-b5c10c667415b9ab" title="Permalink"></a></header><div class="admonition-body"><p>One of the main features of Macro is the ability to include constraints on the system from a pre-defined library of constraints (see <a href="../4_constraints/#macro_constraint_library">Macro Constraint Library</a> for more details). To include a constraint to a node, the user needs to add the constraint name to the <code>constraints</code> attribute of the node. The example below will show how to include constraints to node instances. </p></div></div><p><strong>Example</strong>: the following is an example of a <code>nodes.json</code> file with both electricity, natural gas, CO2 and biomass sectors covering most of the attributes present above. The (multiplex)-network in the system is made of the following sub-networks:</p><ul><li>NaturalGas (three nodes)<ul><li><code>natgas_SE</code></li><li><code>natgas_MIDAT</code></li><li><code>natgas_NE</code></li></ul></li><li>Electricity (three nodes)<ul><li><code>elec_SE</code></li><li><code>elec_MIDAT</code></li><li><code>elec_NE</code></li></ul></li><li>CO2 (one node)<ul><li><code>co2_sink</code></li></ul></li><li>Biomass (one node)<ul><li><code>bioherb_SE</code></li></ul></li></ul><p>Therefore, the system has 4 networks and 8 nodes in total.</p><pre><code class="language-json hljs">{
+}</code></pre><p>The attributes that can be set for each node (either in <code>global_data</code> or <code>instance_data</code>) are the following:</p><table><tr><th style="text-align: left"><strong>Attribute</strong></th><th style="text-align: center"><strong>Type</strong></th><th style="text-align: center"><strong>Values</strong></th><th style="text-align: center"><strong>Default</strong></th><th style="text-align: left"><strong>Description</strong></th></tr><tr><td style="text-align: left"><strong>id</strong></td><td style="text-align: center"><code>String</code></td><td style="text-align: center"><code>String</code></td><td style="text-align: center">Required</td><td style="text-align: left">Unique identifier for the node. E.g. &quot;elec_node_1&quot;.</td></tr><tr><td style="text-align: left"><strong>type</strong></td><td style="text-align: center"><code>String</code></td><td style="text-align: center">Any Macro commodity type</td><td style="text-align: center">Required</td><td style="text-align: left">Commodity type. E.g. &quot;Electricity&quot;.</td></tr><tr><td style="text-align: left"><strong>time_interval</strong></td><td style="text-align: center"><code>String</code></td><td style="text-align: center">Any Macro commodity type</td><td style="text-align: center">Required</td><td style="text-align: left">Time resolution for the time series data linked to the node. E.g. &quot;Electricity&quot;.</td></tr><tr><td style="text-align: left"><strong>constraints</strong></td><td style="text-align: center"><code>Dict{String,Bool}</code></td><td style="text-align: center">Any Macro constraint type</td><td style="text-align: center">Empty</td><td style="text-align: left">List of constraints applied to the node. E.g. <code>{&quot;BalanceConstraint&quot;: true, &quot;MaxNonServedDemandConstraint&quot;: true}</code>.</td></tr><tr><td style="text-align: left"><strong>demand</strong></td><td style="text-align: center"><code>Dict</code></td><td style="text-align: center">Demand file path and header</td><td style="text-align: center">Empty</td><td style="text-align: left">Path to the demand file and column name for the demand time series to link to the node. E.g. <code>{&quot;timeseries&quot;: {&quot;path&quot;: &quot;system/demand.csv&quot;, &quot;header&quot;: &quot;Demand_MW_z1&quot;}}</code>.</td></tr><tr><td style="text-align: left"><strong>max_nsd</strong></td><td style="text-align: center"><code>Vector{Float64}</code></td><td style="text-align: center">Vector of numbers <span>$\in$</span> [0,1]</td><td style="text-align: center">[0.0]</td><td style="text-align: left">Maximum allowed non-served demand for each demand segment as a fraction of the total demand. E.g. <code>[1.0]</code> for a single segment.</td></tr><tr><td style="text-align: left"><strong>supply</strong></td><td style="text-align: center"><code>Dict{String,Dict{String,Any}}</code></td><td style="text-align: center">Segment-keyed supply objects</td><td style="text-align: center">Empty</td><td style="text-align: left">Preferred external supply format. Each segment must define <code>price</code>, may define <code>min</code>, and may define <code>max</code>. Missing <code>min</code> defaults to <code>0.0</code>; missing <code>max</code> defaults to <code>Inf</code>.</td></tr><tr><td style="text-align: left"><strong>price</strong></td><td style="text-align: center"><code>Vector{Float64}</code></td><td style="text-align: center">Postprocessed output</td><td style="text-align: center">Empty</td><td style="text-align: left">Effective node price computed during postprocessing from realized supply flows. This is typically not provided as an input.</td></tr><tr><td style="text-align: left"><strong>price_nsd</strong></td><td style="text-align: center"><code>Vector{Float64}</code></td><td style="text-align: center">Vector of numbers</td><td style="text-align: center">[0.0]</td><td style="text-align: left">Price/penalty for non-served demand by segment. E.g. <code>[5000.0]</code> for a single segment.</td></tr><tr><td style="text-align: left"><strong>price_unmet_policy</strong></td><td style="text-align: center"><code>Dict{DataType,Float64}</code></td><td style="text-align: center">Dict of Macro policy types and numbers</td><td style="text-align: center">Empty</td><td style="text-align: left">Price/penalty for unmet policy constraints.</td></tr><tr><td style="text-align: left"><strong>rhs_policy</strong></td><td style="text-align: center"><code>Dict{DataType,Float64}</code></td><td style="text-align: center">Dict of Macro constraint types and numbers</td><td style="text-align: center">Empty</td><td style="text-align: left">Right hand side of the policy constraints. E.g. <code>{&quot;CO2CapConstraint&quot;: 200}</code>, carbon price of 200 USD/ton.</td></tr></table><div class="admonition is-info" id="Supply-input-format-c7368611b9eed2ae"><header class="admonition-header">Supply input format<a class="admonition-anchor" href="#Supply-input-format-c7368611b9eed2ae" title="Permalink"></a></header><div class="admonition-body"><p>The preferred format for node supply inputs is a single <code>supply</code> dictionary keyed by segment name. Each segment must contain a <code>price</code> entry and may optionally contain <code>min</code> and <code>max</code>. Legacy <code>price_supply</code> / <code>min_supply</code> / <code>max_supply</code> inputs are still accepted and converted internally to the <code>supply</code> representation.</p></div></div><div class="admonition is-success" id="Constraints-b5c10c667415b9ab"><header class="admonition-header">Constraints<a class="admonition-anchor" href="#Constraints-b5c10c667415b9ab" title="Permalink"></a></header><div class="admonition-body"><p>One of the main features of Macro is the ability to include constraints on the system from a pre-defined library of constraints (see <a href="../4_constraints/#macro_constraint_library">Macro Constraint Library</a> for more details). To include a constraint to a node, the user needs to add the constraint name to the <code>constraints</code> attribute of the node. The example below will show how to include constraints to node instances. </p></div></div><p><strong>Example</strong>: the following is an example of a <code>nodes.json</code> file with both electricity, natural gas, CO2 and biomass sectors covering most of the attributes present above. The (multiplex)-network in the system is made of the following sub-networks:</p><ul><li>NaturalGas (three nodes)<ul><li><code>natgas_SE</code></li><li><code>natgas_MIDAT</code></li><li><code>natgas_NE</code></li></ul></li><li>Electricity (three nodes)<ul><li><code>elec_SE</code></li><li><code>elec_MIDAT</code></li><li><code>elec_NE</code></li></ul></li><li>CO2 (one node)<ul><li><code>co2_sink</code></li></ul></li><li>Biomass (one node)<ul><li><code>bioherb_SE</code></li></ul></li></ul><p>Therefore, the system has 4 networks and 8 nodes in total.</p><pre><code class="language-json hljs">{
     &quot;nodes&quot;: [
         {
             &quot;type&quot;: &quot;NaturalGas&quot;,
@@ -120,46 +120,44 @@
             &quot;instance_data&quot;: [
                 {   // NaturalGas node 1
                     &quot;id&quot;: &quot;natgas_SE&quot;,
-                    &quot;supply_segment_names&quot;: [&quot;seg1&quot;],
-                    &quot;max_supply&quot;: {
-                        &quot;seg1&quot;: [Infinity]
-                    },
-                    &quot;price_supply&quot;: {
-                        &quot;seg1&quot;: {
-                            &quot;timeseries&quot;: {
-                                &quot;path&quot;: &quot;system/fuel_prices.csv&quot;, // path to the price file
-                                &quot;header&quot;: &quot;natgas_SE&quot; // column name in the price file for the price time series
-                            }
+                    &quot;supply&quot;: {
+                        &quot;segment1&quot;: {
+                            &quot;price&quot;: {
+                                &quot;timeseries&quot;: {
+                                    &quot;path&quot;: &quot;system/fuel_prices.csv&quot;, // path to the price file
+                                    &quot;header&quot;: &quot;natgas_SE&quot; // column name in the price file for the price time series
+                                }
+                            },
+                            &quot;max&quot;: [Infinity]
                         }
                     }
                 },  // End of NaturalGas node 1
                 {   // NaturalGas node 2
                     &quot;id&quot;: &quot;natgas_MIDAT&quot;,
-                    &quot;supply_segment_names&quot;: [&quot;seg1&quot;],
-                    &quot;max_supply&quot;: {
-                        &quot;seg1&quot;: [Infinity]
-                    },
-                    &quot;price_supply&quot;: {
-                        &quot;seg1&quot;: {
-                            &quot;timeseries&quot;: {
-                                &quot;path&quot;: &quot;system/fuel_prices.csv&quot;,
-                                &quot;header&quot;: &quot;natgas_MIDAT&quot;
-                            }
+                    &quot;supply&quot;: {
+                        &quot;segment1&quot;: {
+                            &quot;price&quot;: {
+                                &quot;timeseries&quot;: {
+                                    &quot;path&quot;: &quot;system/fuel_prices.csv&quot;,
+                                    &quot;header&quot;: &quot;natgas_MIDAT&quot;
+                                }
+                            },
+                            &quot;max&quot;: [Infinity]
                         }
                     }
                 },  // End of NaturalGas node 2
                 {   // NaturalGas node 3
                     &quot;id&quot;: &quot;natgas_NE&quot;,
-                    &quot;supply_segment_names&quot;: [&quot;seg1&quot;],
-                    &quot;max_supply&quot;: {
-                        &quot;seg1&quot;: [Infinity]
-                    },
-                    &quot;price_supply&quot;: {
-                        &quot;seg1&quot;: {
-                            &quot;timeseries&quot;: {
-                                &quot;path&quot;: &quot;system/fuel_prices.csv&quot;,
-                                &quot;header&quot;: &quot;natgas_NE&quot;
+                    &quot;supply&quot;: {
+                        &quot;segment1&quot;: {
+                            &quot;price&quot;: {
+                                &quot;timeseries&quot;: {
+                                    &quot;path&quot;: &quot;system/fuel_prices.csv&quot;,
+                                    &quot;header&quot;: &quot;natgas_NE&quot;
+                                }
                             }
+                            },
+                            &quot;max&quot;: [Infinity]
                         }
                     }
                 },  // End of NaturalGas node 3
@@ -248,19 +246,20 @@
                             &quot;header&quot;: &quot;Demand_Zero&quot;
                         }
                     },
-                    &quot;supply_segment_names&quot;: [&quot;base&quot;, &quot;mid&quot;, &quot;peak&quot;],
-                    &quot;min_supply&quot;: {
-                        &quot;base&quot;: [500]
-                    },
-                    &quot;max_supply&quot;: {
-                        &quot;base&quot;: [10000],
-                        &quot;mid&quot;: [20000],
-                        &quot;peak&quot;: [30000]
-                    },
-                    &quot;price_supply&quot;: {
-                        &quot;base&quot;: [40],
-                        &quot;mid&quot;: [60],
-                        &quot;peak&quot;: [80]
+                    &quot;supply&quot;: {
+                        &quot;base&quot;: {
+                            &quot;price&quot;: [40],
+                            &quot;min&quot;: [500],
+                            &quot;max&quot;: [10000]
+                        },
+                        &quot;mid&quot;: {
+                            &quot;price&quot;: [60],
+                            &quot;max&quot;: [20000]
+                        },
+                        &quot;peak&quot;: {
+                            &quot;price&quot;: [80],
+                            &quot;max&quot;: [30000]
+                        }
                     }
                 }
             ]
@@ -305,4 +304,4 @@ mermaid.initialize({
     startOnLoad: true,
     theme: "neutral"
 });
-</script></article><nav class="docs-footer"><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Thursday 26 March 2026 12:22">Thursday 26 March 2026</span>. Using Julia version 1.12.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+</script></article><nav class="docs-footer"><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Friday 27 March 2026 02:22">Friday 27 March 2026</span>. Using Julia version 1.12.5.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
