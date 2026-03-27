@@ -113,6 +113,7 @@ function node_default_data()
         :constraints => Dict{Symbol,Bool}(
             :BalanceConstraint => true,
         ),
+        :variables => Dict{Symbol, VariableConfig}(),
         :demand => Float64[],
         :max_nsd => [0.0],
         :min_nsd => [0.0],
