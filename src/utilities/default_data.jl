@@ -4,6 +4,7 @@ function edge_default_data()
         :commodity => missing,
         :timedata => missing,
         :constraints => Dict{Symbol,Bool}(),
+        :variables => Dict{Symbol, UserVariable}(),
         :start_vertex => missing,
         :end_vertex => missing,
         :location => missing,
@@ -59,6 +60,7 @@ function transform_default_data()
         :timedata => missing,
         :location => missing,
         :constraints => Dict{Symbol,Bool}(),
+        :variables => Dict{Symbol, UserVariable}(),
     )
 end
 
@@ -68,6 +70,7 @@ function storage_default_data()
         :timedata => missing,
         :location => missing,
         :constraints => Dict{Symbol,Bool}(),
+        :variables => Dict{Symbol, UserVariable}(),
         :commodity => missing,
         :charge_edge => missing,
         :discharge_edge => missing,
@@ -113,7 +116,7 @@ function node_default_data()
         :constraints => Dict{Symbol,Bool}(
             :BalanceConstraint => true,
         ),
-        :variables => Dict{Symbol, VariableConfig}(),
+        :variables => Dict{Symbol, UserVariable}(),
         :demand => Float64[],
         :max_nsd => [0.0],
         :min_nsd => [0.0],

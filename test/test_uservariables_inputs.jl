@@ -29,7 +29,7 @@ end
 function test_empty_variables_input_returns_empty_dict()
     variables = MacroEnergy.check_and_convert_uservar(nothing, :test_node)
 
-    @test variables == Dict{Symbol,MacroEnergy.VariableConfig}()
+    @test variables == Dict{Symbol,MacroEnergy.UserVariable}()
 end
 
 function test_named_variable_string_is_converted_to_symbol()
@@ -196,7 +196,7 @@ function test_check_and_convert_variables_bang_updates_data_in_place()
     check_and_convert_variables!(data)
 
     @test haskey(data, :variables)
-    @test data[:variables] isa Dict{Symbol,MacroEnergy.VariableConfig}
+    @test data[:variables] isa Dict{Symbol,MacroEnergy.UserVariable}
     @test length(data[:variables]) == 2
     @test haskey(data[:variables], :dispatch)
     @test haskey(data[:variables], :variable1)
@@ -209,8 +209,8 @@ function test_check_and_convert_variables_bang_updates_data_in_place()
 end
 
 function test_check_and_convert_variables_bang_is_no_op_for_parsed_variables()
-    parsed_variables = Dict{Symbol,MacroEnergy.VariableConfig}(
-        :dispatch => MacroEnergy.VariableConfig(:dispatch, true, false, 2, nothing),
+    parsed_variables = Dict{Symbol,MacroEnergy.UserVariable}(
+        :dispatch => MacroEnergy.UserVariable(:dispatch, true, false, 2, nothing),
     )
     data = Dict{Symbol,Any}(
         :id => :test_node,
@@ -250,9 +250,9 @@ function test_parsed_variables_flow_into_node_construction()
 end
 
 function test_planning_model_creates_only_planning_variables()
-    variables = Dict{Symbol,MacroEnergy.VariableConfig}(
-        :build_decision => MacroEnergy.VariableConfig(:build_decision, false, false, 2, nothing),
-        :dispatch => MacroEnergy.VariableConfig(:dispatch, true, true, 3, nothing),
+    variables = Dict{Symbol,MacroEnergy.UserVariable}(
+        :build_decision => MacroEnergy.UserVariable(:build_decision, false, false, 2, nothing),
+        :dispatch => MacroEnergy.UserVariable(:dispatch, true, true, 3, nothing),
     )
     node = make_test_node(variables)
     model = Model(HiGHS.Optimizer)
@@ -268,9 +268,9 @@ function test_planning_model_creates_only_planning_variables()
 end
 
 function test_operation_model_creates_only_operation_variables()
-    variables = Dict{Symbol,MacroEnergy.VariableConfig}(
-        :build_decision => MacroEnergy.VariableConfig(:build_decision, false, false, 2, nothing),
-        :dispatch => MacroEnergy.VariableConfig(:dispatch, true, true, 3, nothing),
+    variables = Dict{Symbol,MacroEnergy.UserVariable}(
+        :build_decision => MacroEnergy.UserVariable(:build_decision, false, false, 2, nothing),
+        :dispatch => MacroEnergy.UserVariable(:dispatch, true, true, 3, nothing),
     )
     node = make_test_node(variables)
     model = Model(HiGHS.Optimizer)
@@ -286,9 +286,9 @@ function test_operation_model_creates_only_operation_variables()
 end
 
 function test_planning_and_operation_model_preserve_both_variable_refs()
-    variables = Dict{Symbol,MacroEnergy.VariableConfig}(
-        :build_decision => MacroEnergy.VariableConfig(:build_decision, false, false, 2, nothing),
-        :dispatch => MacroEnergy.VariableConfig(:dispatch, true, true, 3, nothing),
+    variables = Dict{Symbol,MacroEnergy.UserVariable}(
+        :build_decision => MacroEnergy.UserVariable(:build_decision, false, false, 2, nothing),
+        :dispatch => MacroEnergy.UserVariable(:dispatch, true, true, 3, nothing),
     )
     node = make_test_node(variables)
     model = Model(HiGHS.Optimizer)
@@ -306,8 +306,8 @@ function test_planning_and_operation_model_preserve_both_variable_refs()
 end
 
 function test_add_uservariables_uses_default_name_for_unnamed_variable()
-    variables = Dict{Symbol,MacroEnergy.VariableConfig}(
-        :variable1 => MacroEnergy.VariableConfig(Symbol(""), false, false, 1, nothing),
+    variables = Dict{Symbol,MacroEnergy.UserVariable}(
+        :variable1 => MacroEnergy.UserVariable(Symbol(""), false, false, 1, nothing),
     )
     node = make_test_node(variables)
     model = Model(HiGHS.Optimizer)

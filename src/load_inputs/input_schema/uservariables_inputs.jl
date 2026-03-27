@@ -1,5 +1,5 @@
 """
-    check_and_convert_uservar(variables_input::Union{Vector, Nothing}, node_id::Symbol)::Dict{Symbol, VariableConfig}
+    check_and_convert_uservar(variables_input::Union{Vector, Nothing}, node_id::Symbol)::Dict{Symbol, UserVariable}
 
 Parse and validate user-defined variables from input data.
 
@@ -19,7 +19,7 @@ Each variable in the vector should have the form:
 ```
 
 # Returns
-- `Dict{Symbol, VariableConfig}`: Dictionary mapping variable names to their configurations
+- `Dict{Symbol, UserVariable}`: Dictionary mapping variable names to their configurations
 
 # Validation
 - `name`: Optional, must be Symbol or String if present; defaults to ""
@@ -28,8 +28,8 @@ Each variable in the vector should have the form:
 - `number_segments`: Optional, must be positive Int if present; defaults to 1
 - Ensures unique variable names across the node
 """
-function check_and_convert_uservar(variables_input::Union{Vector, Nothing}, node_id::Symbol)::Dict{Symbol, VariableConfig}
-    variables = Dict{Symbol, VariableConfig}()
+function check_and_convert_uservar(variables_input::Union{Vector, Nothing}, node_id::Symbol)::Dict{Symbol, UserVariable}
+    variables = Dict{Symbol, UserVariable}()
     
     # Handle empty/missing input
     if variables_input === nothing || isempty(variables_input)
@@ -87,8 +87,8 @@ function check_and_convert_uservar(variables_input::Union{Vector, Nothing}, node
             error("Variable $idx in node $node_id: 'number_segments' must be positive, got $number_segments")
         end
         
-        # Store with var_key, but VariableConfig stores the original user-provided name
-        variables[var_key] = VariableConfig(var_name, time_varying, operation_variable, number_segments, nothing)
+        # Store with var_key, but UserVariable stores the original user-provided name
+        variables[var_key] = UserVariable(var_name, time_varying, operation_variable, number_segments, nothing)
     end
     
     return variables
@@ -98,17 +98,17 @@ function check_and_convert_variables!(data::AbstractDict{Symbol,Any})
     node_id = get(data, :id, :unknown)
 
     if !haskey(data, :variables) || data[:variables] === nothing
-        data[:variables] = Dict{Symbol,VariableConfig}()
+        data[:variables] = Dict{Symbol,UserVariable}()
         return nothing
     end
 
     if isa(data[:variables], AbstractDict)
         if isempty(data[:variables])
-            data[:variables] = Dict{Symbol,VariableConfig}()
+            data[:variables] = Dict{Symbol,UserVariable}()
             return nothing
         end
 
-        if all(value -> isa(value, VariableConfig), values(data[:variables]))
+        if all(value -> isa(value, UserVariable), values(data[:variables]))
             return nothing
         end
     end

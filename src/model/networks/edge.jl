@@ -14,6 +14,7 @@ macro AbstractEdgeBaseAttributes()
         capacity_size::Float64 = $edge_defaults[:capacity_size]
         capital_recovery_period::Int64 = $edge_defaults[:capital_recovery_period]
         constraints::Vector{AbstractTypeConstraint} = Vector{AbstractTypeConstraint}()
+        variables::Dict{Symbol,UserVariable} = Dict{Symbol,UserVariable}()
         distance::Float64 = $edge_defaults[:distance]
         existing_capacity::Union{JuMPVariable,AffExpr,Float64,Int64} = $edge_defaults[:existing_capacity]
         fixed_om_cost::Float64 = $edge_defaults[:fixed_om_cost]
@@ -421,6 +422,8 @@ function planning_model!(e::AbstractEdge, model::Model)
 
     if has_capacity(e)
 
+        add_uservariables!(e, model, false)
+
         if !can_expand(e)
             fix(new_units(e), 0.0; force = true)
         else
@@ -520,6 +523,7 @@ function operation_model!(e::UnidirectionalEdge, model::Model)
         lower_bound = 0.0,
         base_name = "vFLOW_$(id(e))_period$(period_index(e))"
     )
+    add_uservariables!(e, model, true)
     update_balances!(e, model)
     add_operation_model_varcosts!(e, model)
     return nothing
@@ -528,6 +532,7 @@ end
 function operation_model!(e::BidirectionalEdge, model::Model)
     ti = time_interval(e)
     e.flow = @variable(model, [t in ti], container = array_container(ti), base_name = "vFLOW_$(id(e))_period$(period_index(e))")
+    add_uservariables!(e, model, true)
     update_balances!(e, model)
     add_operation_model_varcosts!(e, model)
     return nothing
@@ -721,6 +726,8 @@ function operation_model!(e::EdgeWithUC, model::Model)
         lower_bound = 0.0,
         base_name = "vSHUT_$(id(e))_period$(period_index(e))"
     )
+
+    add_uservariables!(e, model, true)
 
     update_balances!(e, model)
     update_startup_fuel_balance!(e)

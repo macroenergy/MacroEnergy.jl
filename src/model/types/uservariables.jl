@@ -1,4 +1,4 @@
-struct VariableConfig
+struct UserVariable
     name::Symbol
     time_varying::Bool
     operation_variable::Bool
@@ -23,7 +23,7 @@ function add_uservariables!(o::T, model::Model, operation_variable::Bool) where 
                     base_name=var_name
                 )
             end
-            o.variables[var_key] = VariableConfig(var_config.name, var_config.time_varying, var_config.operation_variable, var_config.number_segments, var_ref)
+            o.variables[var_key] = UserVariable(var_config.name, var_config.time_varying, var_config.operation_variable, var_config.number_segments, var_ref)
         end
     end
 end
