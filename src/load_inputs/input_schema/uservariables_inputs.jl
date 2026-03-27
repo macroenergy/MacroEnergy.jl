@@ -88,7 +88,7 @@ function check_and_convert_uservar(variables_input::Union{Vector, Nothing}, node
         end
         
         # Store with var_key, but VariableConfig stores the original user-provided name
-        variables[var_key] = VariableConfig(var_name, time_varying, operation_variable, number_segments)
+        variables[var_key] = VariableConfig(var_name, time_varying, operation_variable, number_segments, nothing)
     end
     
     return variables
