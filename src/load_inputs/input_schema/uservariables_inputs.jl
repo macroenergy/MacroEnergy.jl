@@ -88,6 +88,23 @@ end
 
 function check_and_convert_variables!(data::AbstractDict{Symbol,Any})
     node_id = get(data, :id, :unknown)
+
+    if !haskey(data, :variables) || data[:variables] === nothing
+        data[:variables] = Dict{Symbol,VariableConfig}()
+        return nothing
+    end
+
+    if isa(data[:variables], AbstractDict)
+        if isempty(data[:variables])
+            data[:variables] = Dict{Symbol,VariableConfig}()
+            return nothing
+        end
+
+        if all(value -> isa(value, VariableConfig), values(data[:variables]))
+            return nothing
+        end
+    end
+
     data[:variables] = check_and_convert_uservar(data[:variables], Symbol(node_id))
     return nothing
 end
