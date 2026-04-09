@@ -420,9 +420,9 @@ end
 
 function planning_model!(e::AbstractEdge, model::Model)
 
-    if has_capacity(e)
+    add_uservariables!(e, model, false)
 
-        add_uservariables!(e, model, false)
+    if has_capacity(e)
 
         if !can_expand(e)
             fix(new_units(e), 0.0; force = true)
