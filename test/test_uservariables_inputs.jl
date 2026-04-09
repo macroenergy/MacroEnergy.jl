@@ -26,6 +26,29 @@ function make_test_node(variables)
     )
 end
 
+function make_test_edge(variables; has_capacity=false)
+    timedata = make_test_timedata()
+    start_node = MacroEnergy.Node{MacroEnergy.Electricity}(;
+        id = :start_node,
+        timedata = timedata,
+    )
+    end_node = MacroEnergy.Node{MacroEnergy.Electricity}(;
+        id = :end_node,
+        timedata = timedata,
+    )
+    return MacroEnergy.Edge(
+        :test_edge,
+        Dict{Symbol,Any}(
+            :has_capacity => has_capacity,
+            :variables => variables,
+        ),
+        timedata,
+        MacroEnergy.Electricity,
+        start_node,
+        end_node,
+    )
+end
+
 function test_empty_variables_input_returns_empty_dict()
     variables = MacroEnergy.check_and_convert_uservar(nothing, :test_node)
 
@@ -318,6 +341,38 @@ function test_add_uservariables_uses_default_name_for_unnamed_variable()
     @test length(node.variables[:variable1].variable_ref) == 1
 end
 
+function test_uservariables_get_unique_jump_names_for_generated_keys()
+    variables = Dict{Symbol,MacroEnergy.UserVariable}(
+        :dispatch => MacroEnergy.UserVariable(:dispatch, false, false, 1, nothing),
+        :variable1 => MacroEnergy.UserVariable(:dispatch, false, false, 1, nothing),
+        :variable2 => MacroEnergy.UserVariable(Symbol(""), false, false, 1, nothing),
+    )
+    node = make_test_node(variables)
+    model = Model(HiGHS.Optimizer)
+
+    MacroEnergy.planning_model!(node, model)
+
+    @test JuMP.name(node.variables[:dispatch].variable_ref[1]) == "vdispatch_test_node_period1[1]"
+    @test JuMP.name(node.variables[:variable1].variable_ref[1]) == "vvariable1_test_node_period1[1]"
+    @test JuMP.name(node.variables[:variable2].variable_ref[1]) == "vvariable2_test_node_period1[1]"
+end
+
+function test_planning_model_creates_variables_on_noncapacity_edges()
+    variables = Dict{Symbol,MacroEnergy.UserVariable}(
+        :build_decision => MacroEnergy.UserVariable(:build_decision, false, false, 2, nothing),
+    )
+    edge = make_test_edge(variables; has_capacity=false)
+    model = Model(HiGHS.Optimizer)
+
+    MacroEnergy.planning_model!(edge, model)
+
+    @test JuMP.num_variables(model) == 2
+    @test edge.variables[:build_decision].variable_ref !== nothing
+    @test length(edge.variables[:build_decision].variable_ref) == 2
+    @test JuMP.name(edge.variables[:build_decision].variable_ref[1]) == "vbuild_decision_test_edge_period1[1]"
+    @test JuMP.name(edge.variables[:build_decision].variable_ref[2]) == "vbuild_decision_test_edge_period1[2]"
+end
+
 function test_created_user_variables_can_be_used_in_later_expressions()
     input_data = Dict{Symbol,Any}(
         :id => :expr_node,
@@ -374,6 +429,8 @@ end
     test_operation_model_creates_only_operation_variables()
     test_planning_and_operation_model_preserve_both_variable_refs()
     test_add_uservariables_uses_default_name_for_unnamed_variable()
+    test_uservariables_get_unique_jump_names_for_generated_keys()
+    test_planning_model_creates_variables_on_noncapacity_edges()
     test_created_user_variables_can_be_used_in_later_expressions()
 end
 

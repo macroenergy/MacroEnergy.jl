@@ -9,7 +9,9 @@ end
 function add_uservariables!(o::T, model::Model, operation_variable::Bool) where T <: Union{AbstractVertex, AbstractEdge}
     for (var_key, var_config) in o.variables
         if var_config.operation_variable == operation_variable
-            var_name = "v$(var_config.name)_$(id(o))_period$(period_index(o))"
+            # Use the stored dictionary key so unnamed and duplicate user variables
+            # still receive stable, unique JuMP names.
+            var_name = "v$(var_key)_$(id(o))_period$(period_index(o))"
             if var_config.time_varying
                 var_ref = JuMP.@variable(
                     model, 
