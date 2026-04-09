@@ -1,39 +1,3 @@
-"""
-    check_and_convert_uservar(variables_input::Union{AbstractVector, Nothing}, node_id::Symbol)::Dict{Symbol, UserVariable}
-
-Parse and validate user-defined variables from input data.
-
-# Arguments
-- `variables_input`: Vector of variable configuration dictionaries, or nothing/empty
-- `node_id`: Node identifier for error messages
-
-# Input Format
-Each variable in the vector should have the form:
-```
-    {
-        :name => <Symbol or String>,       # Optional, defaults to ""
-        :time_varying => <Bool>,           # Required
-        :operation_variable => <Bool>,     # Optional, defaults to true
-        :number_segments => <Int>,         # Optional, defaults to 1
-        :type => <Symbol or String>,       # Optional, defaults to "Continuous"
-        :lower_bound => <Number>,          # Optional
-        :upper_bound => <Number>           # Optional
-    }
-```
-
-# Returns
-- `Dict{Symbol, UserVariable}`: Dictionary mapping variable names to their configurations
-
-# Validation
-- `name`: Optional, must be Symbol or String if present; defaults to ""
-- `time_varying`: Required, must be Bool
-- `operation_variable`: Optional, must be Bool if present; defaults to true
-- `number_segments`: Optional, must be positive Int if present; defaults to 1
-- `type`: Optional, must be one of `Continuous`, `Bin`, `Int`, `Semiinteger`, `Semicontinuous`; defaults to `Continuous`
-- `lower_bound`/`upper_bound`: Optional, must be numeric if present
-- `Semiinteger`/`Semicontinuous` variables require both `lower_bound` and `upper_bound`
-- Ensures unique variable names across the node
-"""
 function _has_uservar_field(var_config::AbstractDict, key::Symbol)
     return haskey(var_config, key) || haskey(var_config, String(key))
 end
@@ -73,6 +37,44 @@ function _normalize_user_variable_bound(var_bound_raw, bound_name::Symbol, idx::
     error("Variable $idx in node $node_id: '$(bound_name)' must be numeric, got $(typeof(var_bound_raw))")
 end
 
+"""
+    check_and_convert_uservar(variables_input::Union{AbstractVector, Nothing}, node_id::Symbol)::Dict{Symbol, UserVariable}
+
+Parse and validate user-defined variable specifications from input data.
+
+# Arguments
+- `variables_input`: Vector of variable configuration dictionaries, or `nothing`/empty
+- `node_id`: Component identifier used in error messages
+
+# Input Format
+Each variable in the vector should have the form:
+```
+{
+    :name => <Symbol or String>,       # Optional, defaults to ""
+    :time_varying => <Bool>,           # Required
+    :operation_variable => <Bool>,     # Optional, defaults to true
+    :number_segments => <Int>,         # Optional, defaults to 1
+    :type => <Symbol or String>,       # Optional, defaults to "Continuous"
+    :lower_bound => <Number>,          # Optional
+    :upper_bound => <Number>           # Optional
+}
+```
+
+# Returns
+- `Dict{Symbol, UserVariable}`: Dictionary mapping stored variable keys to their configurations
+
+# Validation
+- `name`: Optional, must be `Symbol` or `String` if present; defaults to `""`
+- `time_varying`: Required, must be `Bool`
+- `operation_variable`: Optional, must be `Bool` if present; defaults to `true`
+- `number_segments`: Optional, must be positive `Int` if present; defaults to `1`
+- `type`: Optional, must be one of `Continuous`, `Bin`, `Int`, `Semiinteger`, `Semicontinuous`; defaults to `Continuous`
+- `lower_bound`/`upper_bound`: Optional, must be numeric if present
+- `Semiinteger`/`Semicontinuous` variables require both `lower_bound` and `upper_bound`
+
+If a variable is unnamed, or if the same name is repeated, a unique fallback key
+such as `:variable1` is assigned in the returned dictionary.
+"""
 function check_and_convert_uservar(variables_input::Union{AbstractVector, Nothing}, node_id::Symbol)::Dict{Symbol, UserVariable}
     variables = Dict{Symbol, UserVariable}()
     
@@ -174,6 +176,23 @@ function check_and_convert_uservar(variables_input::Union{AbstractVector, Nothin
     return variables
 end
 
+"""
+    check_and_convert_variables!(data::AbstractDict{Symbol,Any})
+
+Normalize the `:variables` entry in an input dictionary to
+`Dict{Symbol,UserVariable}` in-place.
+
+If `data[:variables]` is missing, `nothing`, or empty, it is replaced with an
+empty dictionary. If the variables are already parsed as `UserVariable`
+instances, the function leaves them unchanged. Otherwise it parses them through
+[`check_and_convert_uservar`](@ref).
+
+# Arguments
+- `data`: Input dictionary for a component
+
+# Returns
+- `nothing`
+"""
 function check_and_convert_variables!(data::AbstractDict{Symbol,Any})
     node_id = get(data, :id, :unknown)
 
