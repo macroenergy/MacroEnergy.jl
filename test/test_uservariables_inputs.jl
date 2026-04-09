@@ -68,6 +68,9 @@ function test_named_variable_string_is_converted_to_symbol()
     @test variables[:dispatch].time_varying == true
     @test variables[:dispatch].operation_variable == true
     @test variables[:dispatch].number_segments == 1
+    @test variables[:dispatch].variable_type == :Continuous
+    @test variables[:dispatch].lower_bound === nothing
+    @test variables[:dispatch].upper_bound === nothing
 end
 
 function test_named_variable_symbol_is_preserved()
@@ -82,6 +85,7 @@ function test_named_variable_symbol_is_preserved()
     @test variables[:reserve].time_varying == false
     @test variables[:reserve].operation_variable == false
     @test variables[:reserve].number_segments == 3
+    @test variables[:reserve].variable_type == :Continuous
 end
 
 function test_unnamed_variables_get_default_keys()
@@ -103,6 +107,24 @@ function test_unnamed_variables_get_default_keys()
     @test variables[:variable2].time_varying == false
     @test variables[:variable2].operation_variable == true
     @test variables[:variable2].number_segments == 2
+end
+
+function test_variable_type_and_bounds_are_parsed()
+    variables_input = [
+        Dict{Symbol,Any}(
+            :name => "reserve",
+            :time_varying => false,
+            :type => "Int",
+            :lower_bound => 1,
+            :upper_bound => 4.5,
+        ),
+    ]
+
+    variables = MacroEnergy.check_and_convert_uservar(variables_input, :test_node)
+
+    @test variables[:reserve].variable_type == :Int
+    @test variables[:reserve].lower_bound == 1.0
+    @test variables[:reserve].upper_bound == 4.5
 end
 
 function test_duplicate_named_variables_get_default_key_for_later_entry()
@@ -207,6 +229,42 @@ function test_non_positive_number_segments_errors()
     @test_throws ErrorException MacroEnergy.check_and_convert_uservar(variables_input, :test_node)
 end
 
+function test_invalid_variable_type_errors()
+    variables_input = [
+        Dict{Symbol,Any}(:name => "dispatch", :time_varying => true, :type => "Binary"),
+    ]
+
+    @test_throws ErrorException MacroEnergy.check_and_convert_uservar(variables_input, :test_node)
+end
+
+function test_non_numeric_bounds_error()
+    variables_input = [
+        Dict{Symbol,Any}(:name => "dispatch", :time_varying => true, :lower_bound => "0.0"),
+    ]
+
+    @test_throws ErrorException MacroEnergy.check_and_convert_uservar(variables_input, :test_node)
+end
+
+function test_invalid_bound_order_errors()
+    variables_input = [
+        Dict{Symbol,Any}(:name => "dispatch", :time_varying => true, :lower_bound => 3.0, :upper_bound => 1.0),
+    ]
+
+    @test_throws ErrorException MacroEnergy.check_and_convert_uservar(variables_input, :test_node)
+end
+
+function test_semi_types_require_bounds()
+    semiint_input = [
+        Dict{Symbol,Any}(:name => "dispatch", :time_varying => true, :type => "Semiinteger", :lower_bound => 1.0),
+    ]
+    semicont_input = [
+        Dict{Symbol,Any}(:name => "dispatch", :time_varying => true, :type => "Semicontinuous", :upper_bound => 2.0),
+    ]
+
+    @test_throws ErrorException MacroEnergy.check_and_convert_uservar(semiint_input, :test_node)
+    @test_throws ErrorException MacroEnergy.check_and_convert_uservar(semicont_input, :test_node)
+end
+
 function test_check_and_convert_variables_bang_updates_data_in_place()
     data = Dict{Symbol,Any}(
         :id => :test_node,
@@ -233,7 +291,7 @@ end
 
 function test_check_and_convert_variables_bang_is_no_op_for_parsed_variables()
     parsed_variables = Dict{Symbol,MacroEnergy.UserVariable}(
-        :dispatch => MacroEnergy.UserVariable(:dispatch, true, false, 2, nothing),
+        :dispatch => MacroEnergy.UserVariable(:dispatch, true, false, 2, :Continuous, nothing, nothing, nothing),
     )
     data = Dict{Symbol,Any}(
         :id => :test_node,
@@ -247,6 +305,7 @@ function test_check_and_convert_variables_bang_is_no_op_for_parsed_variables()
     @test data[:variables][:dispatch].time_varying == true
     @test data[:variables][:dispatch].operation_variable == false
     @test data[:variables][:dispatch].number_segments == 2
+    @test data[:variables][:dispatch].variable_type == :Continuous
 end
 
 function test_parsed_variables_flow_into_node_construction()
@@ -274,8 +333,8 @@ end
 
 function test_planning_model_creates_only_planning_variables()
     variables = Dict{Symbol,MacroEnergy.UserVariable}(
-        :build_decision => MacroEnergy.UserVariable(:build_decision, false, false, 2, nothing),
-        :dispatch => MacroEnergy.UserVariable(:dispatch, true, true, 3, nothing),
+        :build_decision => MacroEnergy.UserVariable(:build_decision, false, false, 2, :Continuous, nothing, nothing, nothing),
+        :dispatch => MacroEnergy.UserVariable(:dispatch, true, true, 3, :Continuous, nothing, nothing, nothing),
     )
     node = make_test_node(variables)
     model = Model(HiGHS.Optimizer)
@@ -292,8 +351,8 @@ end
 
 function test_operation_model_creates_only_operation_variables()
     variables = Dict{Symbol,MacroEnergy.UserVariable}(
-        :build_decision => MacroEnergy.UserVariable(:build_decision, false, false, 2, nothing),
-        :dispatch => MacroEnergy.UserVariable(:dispatch, true, true, 3, nothing),
+        :build_decision => MacroEnergy.UserVariable(:build_decision, false, false, 2, :Continuous, nothing, nothing, nothing),
+        :dispatch => MacroEnergy.UserVariable(:dispatch, true, true, 3, :Continuous, nothing, nothing, nothing),
     )
     node = make_test_node(variables)
     model = Model(HiGHS.Optimizer)
@@ -310,8 +369,8 @@ end
 
 function test_planning_and_operation_model_preserve_both_variable_refs()
     variables = Dict{Symbol,MacroEnergy.UserVariable}(
-        :build_decision => MacroEnergy.UserVariable(:build_decision, false, false, 2, nothing),
-        :dispatch => MacroEnergy.UserVariable(:dispatch, true, true, 3, nothing),
+        :build_decision => MacroEnergy.UserVariable(:build_decision, false, false, 2, :Continuous, nothing, nothing, nothing),
+        :dispatch => MacroEnergy.UserVariable(:dispatch, true, true, 3, :Continuous, nothing, nothing, nothing),
     )
     node = make_test_node(variables)
     model = Model(HiGHS.Optimizer)
@@ -330,7 +389,7 @@ end
 
 function test_add_uservariables_uses_default_name_for_unnamed_variable()
     variables = Dict{Symbol,MacroEnergy.UserVariable}(
-        :variable1 => MacroEnergy.UserVariable(Symbol(""), false, false, 1, nothing),
+        :variable1 => MacroEnergy.UserVariable(Symbol(""), false, false, 1, :Continuous, nothing, nothing, nothing),
     )
     node = make_test_node(variables)
     model = Model(HiGHS.Optimizer)
@@ -343,9 +402,9 @@ end
 
 function test_uservariables_get_unique_jump_names_for_generated_keys()
     variables = Dict{Symbol,MacroEnergy.UserVariable}(
-        :dispatch => MacroEnergy.UserVariable(:dispatch, false, false, 1, nothing),
-        :variable1 => MacroEnergy.UserVariable(:dispatch, false, false, 1, nothing),
-        :variable2 => MacroEnergy.UserVariable(Symbol(""), false, false, 1, nothing),
+        :dispatch => MacroEnergy.UserVariable(:dispatch, false, false, 1, :Continuous, nothing, nothing, nothing),
+        :variable1 => MacroEnergy.UserVariable(:dispatch, false, false, 1, :Continuous, nothing, nothing, nothing),
+        :variable2 => MacroEnergy.UserVariable(Symbol(""), false, false, 1, :Continuous, nothing, nothing, nothing),
     )
     node = make_test_node(variables)
     model = Model(HiGHS.Optimizer)
@@ -359,7 +418,7 @@ end
 
 function test_planning_model_creates_variables_on_noncapacity_edges()
     variables = Dict{Symbol,MacroEnergy.UserVariable}(
-        :build_decision => MacroEnergy.UserVariable(:build_decision, false, false, 2, nothing),
+        :build_decision => MacroEnergy.UserVariable(:build_decision, false, false, 2, :Continuous, nothing, nothing, nothing),
     )
     edge = make_test_edge(variables; has_capacity=false)
     model = Model(HiGHS.Optimizer)
@@ -371,6 +430,42 @@ function test_planning_model_creates_variables_on_noncapacity_edges()
     @test length(edge.variables[:build_decision].variable_ref) == 2
     @test JuMP.name(edge.variables[:build_decision].variable_ref[1]) == "vbuild_decision_test_edge_period1[1]"
     @test JuMP.name(edge.variables[:build_decision].variable_ref[2]) == "vbuild_decision_test_edge_period1[2]"
+end
+
+function test_user_variable_accessors_return_spec_and_ref()
+    variables = Dict{Symbol,MacroEnergy.UserVariable}(
+        :build_decision => MacroEnergy.UserVariable(:build_decision, false, false, 1, :Continuous, nothing, nothing, nothing),
+    )
+    node = make_test_node(variables)
+    model = Model(HiGHS.Optimizer)
+
+    MacroEnergy.planning_model!(node, model)
+
+    @test MacroEnergy.user_variable_spec(node, :build_decision) === node.variables[:build_decision]
+    @test MacroEnergy.user_variable(node, :build_decision) === node.variables[:build_decision].variable_ref
+end
+
+function test_user_variables_apply_bounds_and_types()
+    variables = Dict{Symbol,MacroEnergy.UserVariable}(
+        :continuous => MacroEnergy.UserVariable(:continuous, false, false, 1, :Continuous, 1.0, 5.0, nothing),
+        :binary => MacroEnergy.UserVariable(:binary, false, false, 1, :Bin, nothing, nothing, nothing),
+        :integer => MacroEnergy.UserVariable(:integer, false, false, 1, :Int, 2.0, 4.0, nothing),
+        :semiinteger => MacroEnergy.UserVariable(:semiinteger, false, false, 1, :Semiinteger, 3.0, 5.0, nothing),
+        :semicontinuous => MacroEnergy.UserVariable(:semicontinuous, false, false, 1, :Semicontinuous, 1.5, 2.5, nothing),
+    )
+    node = make_test_node(variables)
+    model = Model(HiGHS.Optimizer)
+
+    MacroEnergy.planning_model!(node, model)
+
+    @test JuMP.lower_bound(node.variables[:continuous].variable_ref[1]) == 1.0
+    @test JuMP.upper_bound(node.variables[:continuous].variable_ref[1]) == 5.0
+    @test JuMP.is_binary(node.variables[:binary].variable_ref[1])
+    @test JuMP.is_integer(node.variables[:integer].variable_ref[1])
+    @test JuMP.lower_bound(node.variables[:integer].variable_ref[1]) == 2.0
+    @test JuMP.upper_bound(node.variables[:integer].variable_ref[1]) == 4.0
+    @test JuMP.num_constraints(model, VariableRef, JuMP.MOI.Semiinteger{Float64}) == 1
+    @test JuMP.num_constraints(model, VariableRef, JuMP.MOI.Semicontinuous{Float64}) == 1
 end
 
 function test_created_user_variables_can_be_used_in_later_expressions()
@@ -412,6 +507,7 @@ end
     test_named_variable_string_is_converted_to_symbol()
     test_named_variable_symbol_is_preserved()
     test_unnamed_variables_get_default_keys()
+    test_variable_type_and_bounds_are_parsed()
     test_duplicate_named_variables_get_default_key_for_later_entry()
     test_default_key_skips_existing_named_variable_key()
     test_operation_variable_defaults_to_true()
@@ -422,6 +518,10 @@ end
     test_non_bool_operation_variable_errors()
     test_non_int_number_segments_errors()
     test_non_positive_number_segments_errors()
+    test_invalid_variable_type_errors()
+    test_non_numeric_bounds_error()
+    test_invalid_bound_order_errors()
+    test_semi_types_require_bounds()
     test_check_and_convert_variables_bang_updates_data_in_place()
     test_check_and_convert_variables_bang_is_no_op_for_parsed_variables()
     test_parsed_variables_flow_into_node_construction()
@@ -431,6 +531,8 @@ end
     test_add_uservariables_uses_default_name_for_unnamed_variable()
     test_uservariables_get_unique_jump_names_for_generated_keys()
     test_planning_model_creates_variables_on_noncapacity_edges()
+    test_user_variable_accessors_return_spec_and_ref()
+    test_user_variables_apply_bounds_and_types()
     test_created_user_variables_can_be_used_in_later_expressions()
 end
 
