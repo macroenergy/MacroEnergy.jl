@@ -1,5 +1,5 @@
 """
-    check_and_convert_uservar(variables_input::Union{Vector, Nothing}, node_id::Symbol)::Dict{Symbol, UserVariable}
+    check_and_convert_uservar(variables_input::Union{AbstractVector, Nothing}, node_id::Symbol)::Dict{Symbol, UserVariable}
 
 Parse and validate user-defined variables from input data.
 
@@ -10,12 +10,15 @@ Parse and validate user-defined variables from input data.
 # Input Format
 Each variable in the vector should have the form:
 ```
-{
-    :name => <Symbol or String>,       # Optional, defaults to ""
-    :time_varying => <Bool>,           # Required
-    :operation_variable => <Bool>,     # Optional, defaults to true
-    :number_segments => <Int>          # Optional, defaults to 1
-}
+    {
+        :name => <Symbol or String>,       # Optional, defaults to ""
+        :time_varying => <Bool>,           # Required
+        :operation_variable => <Bool>,     # Optional, defaults to true
+        :number_segments => <Int>,         # Optional, defaults to 1
+        :type => <Symbol or String>,       # Optional, defaults to "Continuous"
+        :lower_bound => <Number>,          # Optional
+        :upper_bound => <Number>           # Optional
+    }
 ```
 
 # Returns
@@ -26,9 +29,51 @@ Each variable in the vector should have the form:
 - `time_varying`: Required, must be Bool
 - `operation_variable`: Optional, must be Bool if present; defaults to true
 - `number_segments`: Optional, must be positive Int if present; defaults to 1
+- `type`: Optional, must be one of `Continuous`, `Bin`, `Int`, `Semiinteger`, `Semicontinuous`; defaults to `Continuous`
+- `lower_bound`/`upper_bound`: Optional, must be numeric if present
+- `Semiinteger`/`Semicontinuous` variables require both `lower_bound` and `upper_bound`
 - Ensures unique variable names across the node
 """
-function check_and_convert_uservar(variables_input::Union{Vector, Nothing}, node_id::Symbol)::Dict{Symbol, UserVariable}
+function _has_uservar_field(var_config::AbstractDict, key::Symbol)
+    return haskey(var_config, key) || haskey(var_config, String(key))
+end
+
+function _get_uservar_field(var_config::AbstractDict, key::Symbol, default)
+    if haskey(var_config, key)
+        return var_config[key]
+    elseif haskey(var_config, String(key))
+        return var_config[String(key)]
+    end
+    return default
+end
+
+function _normalize_user_variable_type(var_type_raw, idx::Int, node_id::Symbol)::Symbol
+    if isa(var_type_raw, Symbol)
+        var_type = var_type_raw
+    elseif isa(var_type_raw, AbstractString)
+        var_type = Symbol(var_type_raw)
+    else
+        error("Variable $idx in node $node_id: 'type' must be a Symbol or String, got $(typeof(var_type_raw))")
+    end
+
+    if !(var_type in USER_VARIABLE_TYPES)
+        error("Variable $idx in node $node_id: 'type' must be one of $(collect(USER_VARIABLE_TYPES)), got $(var_type)")
+    end
+
+    return var_type
+end
+
+function _normalize_user_variable_bound(var_bound_raw, bound_name::Symbol, idx::Int, node_id::Symbol)
+    if var_bound_raw === nothing
+        return nothing
+    elseif isa(var_bound_raw, Number)
+        return Float64(var_bound_raw)
+    end
+
+    error("Variable $idx in node $node_id: '$(bound_name)' must be numeric, got $(typeof(var_bound_raw))")
+end
+
+function check_and_convert_uservar(variables_input::Union{AbstractVector, Nothing}, node_id::Symbol)::Dict{Symbol, UserVariable}
     variables = Dict{Symbol, UserVariable}()
     
     # Handle empty/missing input
@@ -39,12 +84,12 @@ function check_and_convert_uservar(variables_input::Union{Vector, Nothing}, node
     default_counter = 1
     
     for (idx, var_config) in enumerate(variables_input)
-        if !isa(var_config, Dict)
+        if !isa(var_config, AbstractDict)
             error("Variable $idx in node $node_id must be a dictionary. Got $(typeof(var_config))")
         end
         
         # Extract name (optional, defaults to "")
-        var_name_raw = get(var_config, :name, "")
+        var_name_raw = _get_uservar_field(var_config, :name, "")
         if isa(var_name_raw, Symbol)
             var_name = var_name_raw
         elseif isa(var_name_raw, String)
@@ -64,31 +109,66 @@ function check_and_convert_uservar(variables_input::Union{Vector, Nothing}, node
         end
         
         # Extract and validate time_varying (required, must be Bool)
-        if !haskey(var_config, :time_varying)
+        if !_has_uservar_field(var_config, :time_varying)
             error("Variable $idx in node $node_id missing required 'time_varying' field")
         end
-        time_varying = var_config[:time_varying]
+        time_varying = _get_uservar_field(var_config, :time_varying, nothing)
         if !isa(time_varying, Bool)
             error("Variable $idx in node $node_id: 'time_varying' must be a Bool, got $(typeof(time_varying))")
         end
 
         # Extract and validate operation_variable (optional, defaults to true)
-        operation_variable = get(var_config, :operation_variable, true)
+        operation_variable = _get_uservar_field(var_config, :operation_variable, true)
         if !isa(operation_variable, Bool)
             error("Variable $idx in node $node_id: 'operation_variable' must be a Bool, got $(typeof(operation_variable))")
         end
         
         # Extract and validate number_segments (optional, defaults to 1)
-        number_segments = get(var_config, :number_segments, 1)
+        number_segments = _get_uservar_field(var_config, :number_segments, 1)
         if !isa(number_segments, Int)
             error("Variable $idx in node $node_id: 'number_segments' must be an Int, got $(typeof(number_segments))")
         end
         if number_segments <= 0
             error("Variable $idx in node $node_id: 'number_segments' must be positive, got $number_segments")
         end
+
+        variable_type = _normalize_user_variable_type(
+            _get_uservar_field(var_config, :type, "Continuous"),
+            idx,
+            node_id,
+        )
+        lower_bound = _normalize_user_variable_bound(
+            _get_uservar_field(var_config, :lower_bound, nothing),
+            :lower_bound,
+            idx,
+            node_id,
+        )
+        upper_bound = _normalize_user_variable_bound(
+            _get_uservar_field(var_config, :upper_bound, nothing),
+            :upper_bound,
+            idx,
+            node_id,
+        )
+
+        if lower_bound !== nothing && upper_bound !== nothing && lower_bound > upper_bound
+            error("Variable $idx in node $node_id: 'lower_bound' cannot exceed 'upper_bound'")
+        end
+        if variable_type in (:Semiinteger, :Semicontinuous) &&
+           (lower_bound === nothing || upper_bound === nothing)
+            error("Variable $idx in node $node_id: '$(variable_type)' variables require both 'lower_bound' and 'upper_bound'")
+        end
         
         # Store with var_key, but UserVariable stores the original user-provided name
-        variables[var_key] = UserVariable(var_name, time_varying, operation_variable, number_segments, nothing)
+        variables[var_key] = UserVariable(
+            var_name,
+            time_varying,
+            operation_variable,
+            number_segments,
+            variable_type,
+            lower_bound,
+            upper_bound,
+            nothing,
+        )
     end
     
     return variables
