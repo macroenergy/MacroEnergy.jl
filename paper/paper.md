@@ -82,6 +82,10 @@ MacroEnergy.jl can be used to optimize the design and operation of energy and in
 
 The framework is also supported by a broader package ecosystem. MacroEnergy.jl and its companion packages are registered Julia packages and are freely available on GitHub or through the Julia package manager. Companion packages currently provide decomposition algorithms, automatic model scaling, and example systems, which strengthens the framework’s reproducibility and supports near-term research use. As these ongoing studies mature into publications and the companion ecosystem expands, MacroEnergy.jl is positioned to support both methodological research and applied multi-sector energy system analysis.
 
+# AI usage disclosure
+
+Commercially available generative AI tools have been used in some of the development of MacroEnergy.jl, e.g. [in this pull request](https://github.com/macroenergy/MacroEnergy.jl/pull/173), and in ensuring consistent documentation. Human authors reviewed, edited and validated all AI-generated content. ChatGPT 5 was used in the initial planning of this manuscript.
+
 # Acknowledgements
 
 The development of MacroEnergy.jl was funded by the Schmidt Sciences Foundation. This publication was based (fully or partially) upon work supported by the U.S. Department of Energy’s Office of Energy Efficiency and Renewable Energy (EERE) under the Hydrogen Fuel Cell Technology Office, Award Number DE-EE0010724. The views expressed herein do not necessarily represent the views of the U.S. Department of Energy or the United States Government.
