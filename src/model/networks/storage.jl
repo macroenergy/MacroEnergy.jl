@@ -19,13 +19,13 @@ macro AbstractStorageBaseAttributes()
         max_capacity::Float64 = $storage_defaults[:max_capacity]
         max_duration::Float64 = $storage_defaults[:max_duration]
         max_new_capacity::Float64 = $storage_defaults[:max_new_capacity]
-        max_storage_level::Float64 = $storage_defaults[:max_storage_level]
+        max_storage_level::Vector{Float64} = $storage_defaults[:max_storage_level]
         min_capacity::Float64 = $storage_defaults[:min_capacity]
         min_duration::Float64 = $storage_defaults[:min_duration]
         min_outflow_fraction::Float64 = $storage_defaults[:min_outflow_fraction]
         min_retired_capacity::Float64 = $storage_defaults[:min_retired_capacity]
         min_retired_capacity_track::Float64 = 0.0
-        min_storage_level::Float64 = $storage_defaults[:min_storage_level]
+        min_storage_level::Vector{Float64} = $storage_defaults[:min_storage_level]
         new_capacity::Union{AffExpr,Float64} = AffExpr(0.0)
         new_capacity_track::Dict{Int64,AffExpr} = Dict(1=>AffExpr(0.0))
         new_units::Union{Missing, JuMPVariable} = missing
@@ -172,12 +172,32 @@ max_capacity(g::AbstractStorage) = g.max_capacity;
 max_duration(g::AbstractStorage) = g.max_duration;
 max_new_capacity(g::AbstractStorage) = g.max_new_capacity;
 max_storage_level(g::AbstractStorage) = g.max_storage_level;
+function max_storage_level(g::AbstractStorage, t::Int64)
+    a = max_storage_level(g)
+    if isempty(a)
+        return 0.0
+    elseif length(a) == 1
+        return a[1]
+    else
+        return a[t]
+    end
+end
 min_capacity(g::AbstractStorage) = g.min_capacity;
 min_duration(g::AbstractStorage) = g.min_duration;
 min_outflow_fraction(g::AbstractStorage) = g.min_outflow_fraction;
 min_retired_capacity(g::AbstractStorage) = g.can_retire ? g.min_retired_capacity : 0.0;
 min_retired_capacity_track(g::AbstractStorage) = g.min_retired_capacity_track;
 min_storage_level(g::AbstractStorage) = g.min_storage_level;
+function min_storage_level(g::AbstractStorage, t::Int64)
+    a = min_storage_level(g)
+    if isempty(a)
+        return 0.0
+    elseif length(a) == 1
+        return a[1]
+    else
+        return a[t]
+    end
+end
 new_capacity(g::AbstractStorage) = g.new_capacity;
 new_capacity_track(g::AbstractStorage) = g.new_capacity_track;
 #### Note that storage "g" may not be present in the inputs for all case

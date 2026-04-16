@@ -21,7 +21,7 @@ function add_model_constraint!(ct::MaxStorageLevelConstraint, g::AbstractStorage
     ct.constraint_ref = @constraint(
         model,
         [t in time_interval(g)],
-        storage_level(g, t) <= max_storage_level(g) * capacity(g)
+        storage_level(g, t) <= max_storage_level(g,t) * capacity(g)
     )
 
     return nothing
