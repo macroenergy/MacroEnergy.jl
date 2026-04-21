@@ -69,7 +69,6 @@ end
     - existing_capacity::Float64: Initial installed storage capacity
     - fixed_om_cost::Float64: Fixed operation and maintenance costs
     - investment_cost::Float64: CAPEX per unit of new storage capacity
-    - loss_fraction::Float64: Fraction of stored commodity lost at each timestep
     - loss_fraction::Vector{Float64}: Fraction of stored commodity lost at each timestep
     - max_capacity::Float64: Maximum allowed storage capacity
     - max_duration::Float64: Maximum storage duration in hours
@@ -130,6 +129,13 @@ function make_storage(
     if haskey(filtered_data,:loss_fraction) && !isa(filtered_data[:loss_fraction], Vector{Float64})
         filtered_data[:loss_fraction] = [filtered_data[:loss_fraction]];
     end 
+    if haskey(filtered_data,:min_storage_level) && !isa(filtered_data[:min_storage_level], Vector{Float64})
+        filtered_data[:min_storage_level] = [filtered_data[:min_storage_level]];
+    end
+    if haskey(filtered_data,:max_storage_level) && !isa(filtered_data[:max_storage_level], Vector{Float64})
+        filtered_data[:max_storage_level] = [filtered_data[:max_storage_level]];
+    end
+
     _storage = Storage{commodity}(;
         id = id,
         timedata = time_data,
