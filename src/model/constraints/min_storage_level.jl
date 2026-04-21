@@ -40,7 +40,7 @@ Add a min storage level constraint to the initial storage level of `g`. The func
 
 ```math
 \begin{aligned}
-    \text{storage\_initial\_level(g)} \geq \text{min\_storage\_level(g)} \times \text{capacity(g)}
+    \text{storage\_initial\_level(g)} \geq \text{min\_storage\_level(g,t\_start)} \times \text{capacity(g)}
 \end{aligned}
 ```
 
@@ -52,11 +52,11 @@ Add a min storage level constraint to the initial storage level of `g`. The func
     This constraint is redundant with `MinStorageLevelConstraint` for monolithic models. For Benders decomposition, this constraint helps the planning level master problem choose solutions that are feasible in the subproblem(s)
 """
 function add_model_constraint!(ct::MinInitStorageLevelConstraint, g::LongDurationStorage, model::Model)
-
+    t_start = Dict(w => first(get_subperiod(g, w)) for w in subperiod_indices(g));
     ct.constraint_ref = @constraint(
         model,
         [r in modeled_subperiods(g)],
-        storage_initial(g, r) >= min_storage_level(g) * capacity(g)
+        storage_initial(g, r) >= min_storage_level(g, t_start) * capacity(g)
     )
 
     return nothing
