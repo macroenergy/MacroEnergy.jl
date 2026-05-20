@@ -235,6 +235,8 @@ end
 
 function planning_model!(g::Storage, model::Model)
 
+    add_uservariables!(g, model, false)
+
     if !g.can_expand
         fix(new_units(g), 0.0; force = true)
     end
@@ -278,6 +280,8 @@ function operation_model!(g::Storage, model::Model)
         error("A storage vertex requires to have a balance named :storage")
     end
 
+    add_uservariables!(g, model, true)
+    
 end
 
 Base.@kwdef mutable struct LongDurationStorage{T} <: AbstractStorage{T}
@@ -336,6 +340,8 @@ end
 
 
 function planning_model!(g::LongDurationStorage, model::Model)
+
+    add_uservariables!(g, model, false)
 
     if !g.can_expand
         fix(new_units(g), 0.0; force = true)
@@ -403,6 +409,8 @@ function operation_model!(g::LongDurationStorage, model::Model)
     newcon = LongDurationStorageChangeConstraint();
     add_model_constraint!(newcon, g, model)
     push!(g.constraints, newcon)
+
+    add_uservariables!(g, model, true)
 
     # subperiod_end = Dict(w => last(get_subperiod(g, w)) for w in subperiod_indices(g));
 

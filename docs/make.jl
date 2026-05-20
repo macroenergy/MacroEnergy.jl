@@ -85,6 +85,7 @@ const pages = [
         "Transformations" => "Manual/Transformations.md",
         "Locations" => "Manual/Locations.md",
         "Constraints" => "Manual/Constraints.md",
+        "User Variables" => "Manual/UserVariables.md",
         "Commodities" => "Manual/Commodities.md",
         "Assets" => "Manual/Assets.md",
         "Asset Library" => [
@@ -130,6 +131,7 @@ const pages = [
         "Macro Objects" => "References/3_macro_objects.md",
         "Writing output data" => "References/4_writing_output.md",
         "Utilities" => "References/5_utilities.md",
+        "User Variables API" => "References/ref_uservariables.md",
         "Downloading examples" => "References/ref_download_examples.md",
         "Running a Macro Model" => "References/ref_run_case.md",
         # "Asset Library" => "References/2_assets.md", TODO: think if we should include this
@@ -175,5 +177,4 @@ deploydocs(;
     devurl="dev",
     push_preview=true,
 )
-
 

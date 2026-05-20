@@ -81,11 +81,9 @@ function make_node(data::AbstractDict{Symbol,Any}, time_data::TimeData, commodit
         price_nsd = get(node_data, :price_nsd, [0.0]),
         price_unmet_policy = get(node_data, :price_unmet_policy, Dict{DataType,Float64}()),
         rhs_policy = get(node_data, :rhs_policy, Dict{DataType,Float64}()),
-        supply = supply
-        # filtered_data...
-    )
-    
-    # add_constraints!(_node, data)
+        supply = supply,
+        filtered_data...
+    )    
     return _node
 end
 Node(data::AbstractDict{Symbol,Any}, time_data::TimeData, commodity::DataType) =
@@ -164,6 +162,8 @@ function define_available_capacity!(n::Node, model::Model)
 end
 
 function planning_model!(n::Node, model::Model)
+
+    add_uservariables!(n, model, false)
 
     ### DEFAULT CONSTRAINTS ###
 
@@ -245,8 +245,9 @@ function operation_model!(n::Node, model::Model)
                 add_to_expression!(get_balance(n, :demand, t), sf)
             end
         end
-
     end
+
+    add_uservariables!(n, model, true)
 
     return nothing
 end

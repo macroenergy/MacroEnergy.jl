@@ -9,6 +9,7 @@
     - balance_data::Dict{Symbol,Dict{Symbol,Float64}}: Dictionary mapping balance equation IDs to coefficients
     - constraints::Vector{AbstractTypeConstraint}: List of constraints applied to the vertex
     - operation_expr::Dict: Dictionary storing operational JuMP expressions for the vertex
+    - variables::Dict{Symbol,UserVariable}: Dictionary storing variable configurations for the vertex
 
     This macro is used to ensure consistent base attributes across all vertex types in the network.
 """
@@ -22,6 +23,7 @@ macro AbstractVertexBaseAttributes()
                 Dict{Symbol,Dict{Symbol,Float64}}()
             constraints::Vector{AbstractTypeConstraint} = Vector{AbstractTypeConstraint}()
             operation_expr::Dict = Dict()
+            variables::Dict{Symbol,UserVariable} = Dict{Symbol,UserVariable}()
         end,
     )
 end
