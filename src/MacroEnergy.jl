@@ -179,6 +179,11 @@ include("model/myopic.jl")
 include_all_in_folder("model/constraints")
 include_all_in_folder("model/benders")
 
+# Stochastic: explicit order required — stochastic_case.jl must precede files that use StochasticCase
+include("model/stochastic/stochastic_case.jl")
+include("model/stochastic/stochastic_monolithic.jl")
+include("model/stochastic/stochastic_solve.jl")
+
 include("utilities/postprocessing.jl")
 
 include("model/assets/battery.jl")
@@ -304,6 +309,7 @@ export AbstractAsset,
     LongDurationStorageChangeConstraint,
     LiquidFuels,
     load_case,
+    load_stochastic_case,
     load_subcommodities_from_file,
     location_ids,
     MaxCapacityConstraint,
@@ -330,7 +336,10 @@ export AbstractAsset,
     postprocess!,
     RampingLimitConstraint,
     run_case,
+    run_stochastic_case,
     solve_case,
+    StochasticCase,
+    StochasticScenario,
     Steam,
     SteelScrap,
     Storage,

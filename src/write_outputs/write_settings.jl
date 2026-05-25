@@ -35,3 +35,12 @@ function write_settings(case::Case, filepath::AbstractString)
     )
     write_json(filepath, settings)
 end
+
+function write_settings(sc::StochasticCase, filepath::AbstractString)
+    settings = Dict{Symbol, Any}(
+        :case_settings       => sc.settings,
+        :stochastic_settings => sc.stochastic_settings,
+        :system_settings     => investment_system(sc).settings,
+    )
+    write_json(filepath, settings)
+end

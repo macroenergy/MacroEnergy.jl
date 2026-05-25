@@ -200,3 +200,146 @@ function write_period_outputs(
 
     return nothing
 end
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Stochastic write_outputs dispatches
+# ─────────────────────────────────────────────────────────────────────────────
+
+"""
+    write_outputs(case_path, sc::StochasticCase, model::Model)
+
+Write results for a stochastic monolithic solve:
+- `results/capacity.csv`                             — shared investment capacity
+- `results/scenario_{id}/flows.csv`                  — per-scenario operational flows
+- `results/scenario_{id}/costs_by_type.csv`          — per-scenario cost breakdown by asset type
+- `results/scenario_{id}/costs_by_zone.csv`          — per-scenario cost breakdown by zone
+- `results/scenario_{id}/balance_duals.csv`          — per-scenario balance duals (if enabled)
+- `results/costs.csv`                                — aggregate expected discounted costs (probability-weighted)
+- `results/undiscounted_costs.csv`                   — aggregate expected undiscounted costs (probability-weighted)
+- `results/scenario_costs.csv`                       — per-scenario discounted costs (DiscountedFixedCost, DiscountedVariableCost, DiscountedTotalCost)
+- `results/scenario_undiscounted_costs.csv`          — per-scenario undiscounted costs (FixedCost, VariableCost, TotalCost)
+- `results/settings.json`                            — case + stochastic settings
+"""
+function write_outputs(case_path::AbstractString, sc::StochasticCase, model::Model)
+    inv_sys  = investment_system(sc)
+    settings = get_settings(sc)
+    results_dir = create_output_path(inv_sys, case_path)
+    data_dir    = joinpath(results_dir, "results")
+    mkpath(data_dir)
+
+    write_capacity(joinpath(data_dir, "capacity.csv"), inv_sys)
+
+    if any(s.system.settings.DualExportsEnabled for s in sc.scenarios)
+        ensure_duals_available!(model)
+    end
+
+    for sc_r in sc.scenarios
+        sc_dir = joinpath(data_dir, "scenario_$(sc_r.id)")
+        mkpath(sc_dir)
+        write_flow(joinpath(sc_dir, "flows.csv"), sc_r.system)
+        write_non_served_demand(joinpath(sc_dir, "non_served_demand.csv"), sc_r.system)
+        write_storage_level(joinpath(sc_dir, "storage_level.csv"), sc_r.system)
+        write_curtailment(joinpath(sc_dir, "curtailment.csv"), sc_r.system)
+        write_time_weights(joinpath(sc_dir, "time_weights.csv"), sc_r.system)
+
+        # All stochastic scenarios share the same investment period (index 1).
+        # Temporarily set period_index=1 so cost/dual functions use the correct period.
+        _stochastic_set_period_index!(sc_r.system, 1)
+
+        layout = get_output_layout(sc_r.system, :Costs)
+        costs  = get_detailed_costs(sc_r.system, settings)
+        write_cost_breakdown_files!(sc_dir, costs.discounted, layout;
+            prefix="costs", validate_model=nothing, discounted=true)
+        write_cost_breakdown_files!(sc_dir, costs.undiscounted, layout;
+            prefix="undiscounted_costs", validate_model=nothing, discounted=false)
+
+        if sc_r.system.settings.DualExportsEnabled
+            write_duals(sc_dir, sc_r.system, 1.0)
+        end
+
+        _stochastic_set_period_index!(sc_r.system, sc_r.id)
+    end
+
+    _write_stochastic_costs(data_dir, sc, model)
+    write_settings(sc, joinpath(results_dir, "settings.json"))
+
+    return results_dir
+end
+
+
+"""Helper: write aggregate and per-scenario cost CSVs for a stochastic monolithic solve."""
+function _write_stochastic_costs(results_dir::AbstractString, sc::StochasticCase, model::Model)
+    inv_sys       = investment_system(sc)
+    settings      = get_settings(sc)
+    R             = model.ext[:scenario_ids]
+    p             = model.ext[:scenario_probs]
+    opexmult      = model.ext[:opexmult]
+    period_length = first(settings.PeriodLengths)
+
+    # Discounted: eFixedCost uses PV costs from planning_model!; eVariableCost is probability-weighted and discounted
+    disc_fixed = value(model[:eFixedCost])
+    disc_var   = value(model[:eVariableCost])
+
+    # Undiscounted fixed: undo PV discounting on assets, recompute with face-value costs
+    undo_discount_fixed_costs!(inv_sys, settings)
+    unregister(model, :eFixedCost)
+    unregister(model, :eOMFixedCost)
+    unregister(model, :eInvestmentFixedCost)
+    model[:eFixedCost]           = AffExpr(0.0)
+    model[:eOMFixedCost]         = AffExpr(0.0)
+    model[:eInvestmentFixedCost] = AffExpr(0.0)
+    compute_fixed_costs!(inv_sys, model, :CF)
+    model[:eFixedCost] = model[:eInvestmentFixedCost] + model[:eOMFixedCost]
+    undisc_fixed = value(model[:eFixedCost])
+
+    # Undiscounted variable: remove opexmult discounting, multiply by period length
+    undisc_var = period_length / opexmult * disc_var
+
+    aggregate_costs = (
+        eDiscountedFixedCost    = disc_fixed,
+        eDiscountedVariableCost = disc_var,
+        eFixedCost              = undisc_fixed,
+        eVariableCost           = undisc_var,
+    )
+    write_costs(joinpath(results_dir, "costs.csv"), inv_sys, aggregate_costs)
+    write_undiscounted_costs(joinpath(results_dir, "undiscounted_costs.csv"), inv_sys, aggregate_costs)
+
+    # Per-scenario costs: fixed cost is shared; variable cost differs per scenario
+    sc_disc_rows = map(R) do r
+        disc_var_r = opexmult * value(model[:eRawVariableCostByScenario][r])
+        (scenario_id           = r,
+         probability           = p[r],
+         DiscountedFixedCost   = disc_fixed,
+         DiscountedVariableCost = disc_var_r,
+         DiscountedTotalCost   = disc_fixed + disc_var_r)
+    end
+    write_dataframe(joinpath(results_dir, "scenario_costs.csv"), DataFrame(sc_disc_rows))
+
+    sc_undisc_rows = map(R) do r
+        disc_var_r   = opexmult * value(model[:eRawVariableCostByScenario][r])
+        undisc_var_r = period_length / opexmult * disc_var_r
+        (scenario_id = r,
+         probability = p[r],
+         FixedCost   = undisc_fixed,
+         VariableCost = undisc_var_r,
+         TotalCost   = undisc_fixed + undisc_var_r)
+    end
+    write_dataframe(joinpath(results_dir, "scenario_undiscounted_costs.csv"), DataFrame(sc_undisc_rows))
+
+    return nothing
+end
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Stochastic write helpers
+# ─────────────────────────────────────────────────────────────────────────────
+
+"""Set period_index on every TimeData entry in system.
+
+Used before stochastic cost/dual calculations so that period-indexed discounting
+functions always see period 1 (all stochastic scenarios share one investment period).
+"""
+function _stochastic_set_period_index!(system::System, pid::Int)
+    for (_, td) in system.time_data
+        td.period_index = pid
+    end
+end

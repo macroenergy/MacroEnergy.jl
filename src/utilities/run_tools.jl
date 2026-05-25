@@ -180,3 +180,98 @@ function case_cleanup()
     # Only remove distributed processes (workers beyond the main process)
     nprocs() > 1 && rmprocs(workers())
 end
+
+"""
+    run_stochastic_case(case_path; kwargs...) -> (sc::StochasticCase, solution::Model, cpu_time::Float64)
+
+Load, solve, and return results for a stochastic capacity expansion case using the
+monolithic (extensive form) solver.
+
+The entry-point file `settings/stochastic_data.json` defines the scenarios,
+probabilities, and `PolicyMode`. `SolutionAlgorithm` in `settings/case_settings.json`
+must be `"Monolithic"`.
+
+# Arguments
+- `case_path::AbstractString`: Path to the stochastic case directory.
+  Defaults to `@__DIR__` (the directory of the calling script).
+
+# Keyword Arguments
+
+## Logging
+- `log_level::LogLevel=Logging.Info`: Logging verbosity.
+- `log_to_console::Bool=true`: Print log messages to console.
+- `log_to_file::Bool=true`: Write log messages to file.
+- `log_file_path::AbstractString`: Path to the log file. Defaults to `<case_path>/<case_name>.log`.
+- `log_file_attribution::Bool=true`: Include source file attribution in log messages.
+
+## Optimizer
+- `optimizer::DataType=HiGHS.Optimizer`: Optimizer constructor.
+- `optimizer_env::Any=nothing`: Optional optimizer environment (e.g. Gurobi.Env()).
+- `optimizer_attributes::Tuple`: Solver settings. Default: IPM with no crossover.
+
+# Returns
+- `sc::StochasticCase`: The solved stochastic case object (holds all scenarios).
+- `solution::Model`: The solved JuMP model (extensive form).
+- `cpu_time::Float64`: Optimization wall-clock time in seconds.
+
+# Examples
+
+## HiGHS (default)
+```julia
+using MacroEnergy
+
+(sc, solution, cpu_time) = run_stochastic_case(@__DIR__)
+```
+
+## Gurobi
+```julia
+using MacroEnergy
+using Gurobi
+
+(sc, solution, cpu_time) = run_stochastic_case(
+    @__DIR__;
+    optimizer = Gurobi.Optimizer,
+    optimizer_attributes = ("Method" => 2, "Crossover" => 0, "BarConvTol" => 1e-3)
+)
+```
+"""
+function run_stochastic_case(
+    case_path::AbstractString=@__DIR__;
+    # Logging
+    log_level::LogLevel=Logging.Info,
+    log_to_console::Bool=true,
+    log_to_file::Bool=true,
+    log_file_path::AbstractString=joinpath(case_path, "$(basename(case_path)).log"),
+    log_file_attribution::Bool=true,
+    # Optimizer
+    optimizer::DataType=HiGHS.Optimizer,
+    optimizer_env::Any=nothing,
+    optimizer_attributes::Tuple=("solver" => "ipm", "run_crossover" => "off", "ipm_optimality_tolerance" => 1e-3),
+)
+    atexit(() -> try case_cleanup() catch; end)
+
+    set_logger(log_to_console, log_to_file, log_level, log_file_path, log_file_attribution)
+
+    try
+        @info("Running stochastic case at $(case_path)")
+
+        sc = load_stochastic_case(case_path)
+
+        if !isa(solution_algorithm(sc), Monolithic)
+            error("run_stochastic_case only supports SolutionAlgorithm = \"Monolithic\".")
+        end
+
+        opt = create_optimizer(optimizer, optimizer_env, optimizer_attributes)
+
+        (sc, solution, cpu_time) = solve_case(sc, opt)
+
+        @info("Writing stochastic outputs")
+        write_outputs(case_path, sc, solution)
+
+        return (sc, solution, cpu_time)
+    catch e
+        rethrow(e)
+    finally
+        case_cleanup()
+    end
+end
