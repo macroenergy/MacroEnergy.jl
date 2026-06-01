@@ -14,6 +14,7 @@ DuckDB = "d2f5444f-75bc-4fdf-ac35-56f514c445e1"
 DuckDB_jll = "2cbbab25-fc8b-58cf-88d4-687a02676033"
 GZip = "92fee26a-97fe-5a0c-ad85-20a5f3185b63"
 GitHub = "bc5e4493-9b4d-5f90-b8aa-2b2bcaad7a26"
+Gurobi = "2e9cd046-0924-5485-92f1-d5272153d98b"
 HiGHS = "87dc4568-4c63-4d18-b0c0-bb2238e4078b"
 InteractiveUtils = "b77e0a4c-d291-57a0-90e8-8db25a27a240"
 JSON3 = "0f8b85d8-7281-11e9-16c2-39a750bddbf1"
@@ -33,9 +34,6 @@ Revise = "295af30f-e4ad-537b-8983-00126c2a3abe"
 SlurmClusterManager = "c82cd089-7bf7-41d7-976b-6b5d413cbe0a"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 YAML = "ddb6d928-2868-570f-bddf-ab3f9cf99eb6"
-
-[weakdeps]
-Gurobi = "2e9cd046-0924-5485-92f1-d5272153d98b"
 
 [extensions]
 MacroEnergyGurobiExt = "Gurobi"
