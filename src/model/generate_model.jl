@@ -483,10 +483,7 @@ function compute_annualized_costs!(y::Union{AbstractEdge,AbstractStorage},settin
 
     # Capex is needed for learning. Check if CAPEX was provided. If not, estimate it
     if isnothing(investment_cost(y)) || investment_cost(y) == 0.0
-        y.investment_cost = (annualized_investment_cost(y)-interconnect_annuity(y))/capital_recovery_factor(wacc(y), capital_recovery_period(y))
-
-        # Remove interconnection costs
-        y.annualized_investment_cost = investment_cost(y)*capital_recovery_factor(wacc(y), capital_recovery_period(y))
+        y.investment_cost = annualized_investment_cost(y)/capital_recovery_factor(wacc(y), capital_recovery_period(y))
     end
 
     return nothing
@@ -531,16 +528,11 @@ function discount_fixed_costs!(y::Union{AbstractEdge,AbstractStorage},settings::
         # Placeholder for other future cases like rolling horizon
         nothing
     end
-
-    cap_recovery_interconnect = 60 # From Power Genome, TODO: add as parameter in inputs
-    interconnect_payment_years_remaining = min(cap_recovery_interconnect, model_years_remaining);
-
+    
     # This PV is relative to the start of the Case, not the start of the period
     y.annuities_mult = present_value_annuity_factor(discount_rate, payment_years_remaining)
-    y.interconnect_annuities_mult = present_value_annuity_factor(discount_rate, interconnect_payment_years_remaining)
-    y.pv_period_investment_cost = annualized_investment_cost(y) * y.annuities_mult #+ interconnect_annuity(y) * y.interconnect_annuities_mult
+    y.pv_period_investment_cost = annualized_investment_cost(y) * y.annuities_mult
 
-    
     period_pv_annuity_factor = present_value_annuity_factor(discount_rate, period_length)
     y.pv_period_fixed_om_cost = fixed_om_cost(y) * period_pv_annuity_factor
     y.pv_period_variable_om_cost = variable_om_cost(y) * period_pv_annuity_factor

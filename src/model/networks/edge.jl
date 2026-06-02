@@ -508,8 +508,7 @@ function compute_investment_costs!(e::AbstractEdge, model::Model, settings::Name
                 if settings[:TechnologyLearning] && learning_type(e) in settings[:LearningTechnologies]
                     # Linearized learning
                     model[:eInvestmentFixedCost] += e.endog_annualized_investment_cost_times_newcapacity * annuities_mult(e) + interconnect_annuity(e) * interconnect_annuities_mult(e) * new_capacity(e)
-                    # Nonlinear version for benchmarking
-                    # model[:eInvestmentFixedCost] += (1 - subsidy)*endog_annualized_investment_cost(e)*annuities_mult(e)*new_capacity(e)
+
                 elseif !settings[:TechnologyLearning] || !(learning_type(e) in settings[:LearningTechnologies])
                     # Technologies without endogenous learning
                     add_to_expression!(
