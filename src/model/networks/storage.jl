@@ -59,7 +59,7 @@ macro AbstractStorageBaseAttributes()
         annualization_factor::Float64 = 0.0
         endog_annualized_cost::AffExpr = AffExpr(0.0)
         init_cumul_capacity::Float64 = 0.0
-        endog_annualized_investment_cost::AffExpr = 0.0
+        endog_annualized_investment_cost::AffExpr = AffExpr(0.0)
         max_cumul_capacity::Float64 = 0.0
         learning_delay::Int64 = 1
         interconnect_annuity::Float64 = 0.0
