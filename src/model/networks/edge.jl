@@ -503,26 +503,29 @@ function compute_investment_costs!(e::AbstractEdge, model::Model, settings::Name
     if has_capacity(e)
         if can_expand(e)
 
-            
-            if settings[:TechnologyLearning] && learning_type(e) in settings[:LearningTechnologies]
-                # Linearized learning
-                model[:eInvestmentFixedCost] += e.endog_annualized_investment_cost_times_newcapacity * annuities_mult(e) + interconnect_annuity(e) * interconnect_annuities_mult(e) * new_capacity(e)
-                # Nonlinear version for benchmarking
-                # model[:eInvestmentFixedCost] += (1 - subsidy)*endog_annualized_investment_cost(e)*annuities_mult(e)*new_capacity(e)
-            elseif !settings[:TechnologyLearning] || !(learning_type(e) in settings[:LearningTechnologies])
-                # Technologies without endogenous learning
+            if cost_type == pv_period_investment_cost
+                # Costs used by model
+                if settings[:TechnologyLearning] && learning_type(e) in settings[:LearningTechnologies]
+                    # Linearized learning
+                    model[:eInvestmentFixedCost] += e.endog_annualized_investment_cost_times_newcapacity * annuities_mult(e) + interconnect_annuity(e) * interconnect_annuities_mult(e) * new_capacity(e)
+                    # Nonlinear version for benchmarking
+                    # model[:eInvestmentFixedCost] += (1 - subsidy)*endog_annualized_investment_cost(e)*annuities_mult(e)*new_capacity(e)
+                elseif !settings[:TechnologyLearning] || !(learning_type(e) in settings[:LearningTechnologies])
+                    # Technologies without endogenous learning
+                    add_to_expression!(
+                        model[:eInvestmentFixedCost],
+                        annualized_investment_cost(e) * annuities_mult(e),
+                        new_capacity(e),
+                    )
+                end
+            else
+                # Cash flow costs for output writing
                 add_to_expression!(
                     model[:eInvestmentFixedCost],
-                    annualized_investment_cost(e) * annuities_mult(e),
+                    cost_type(e),
                     new_capacity(e),
                 )
             end
-
-            # add_to_expression!(
-            #     model[:eInvestmentFixedCost],
-            #     cost_type(e),
-            #     new_capacity(e),
-            # )
         end
     end
 end
