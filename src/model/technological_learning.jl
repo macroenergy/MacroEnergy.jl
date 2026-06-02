@@ -1,10 +1,10 @@
-function add_learning!(system::System, model::Model, period_idx::Int, settings::NamedTuple)
-    ```
-    Implements endogenous technological learning constraints. The main output is the endogenous investment cost, called "endog_annualized_investment_cost_times_newcapacity", which is used in edge.jl for any learning technologies
+"""
+Implements endogenous technological learning constraints. The main output is the endogenous investment cost, called "endog_annualized_investment_cost_times_newcapacity", which is used in edge.jl for any learning technologies
 
-    Inputs:
-    Takes a system input because we need to combine new_capacity across edges of the same "learning_type" attribute to determine the amount of learning for a given technology. e.g., solar costs depend on total capacity expansion across all solar edges.
-    ```
+Inputs:
+Takes a system input because we need to combine new_capacity across edges of the same "learning_type" attribute to determine the amount of learning for a given technology. e.g., solar costs depend on total capacity expansion across all solar edges.
+"""
+function add_learning!(system::System, model::Model, period_idx::Int, settings::NamedTuple)
 
     learning_techs = settings[:LearningTechnologies]
     n_learning_techs = length(learning_techs)
@@ -150,10 +150,11 @@ function add_learning!(system::System, model::Model, period_idx::Int, settings::
     return nothing
 end
 
+"""
+Collects edges that belong to the same learning type
+""" 
 function get_edges_of_type(system::System, type::String)
-    ```
-    Collects edges that belong to the same learning type
-    ```
+
     tech_edges = Vector{AbstractEdge}()
     edges = get_edges(system)
     for e in edges 
