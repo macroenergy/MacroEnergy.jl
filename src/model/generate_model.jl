@@ -482,7 +482,7 @@ function compute_annualized_costs!(y::Union{AbstractEdge,AbstractStorage},settin
     end
 
     # Capex is needed for learning. Check if CAPEX was provided. If not, estimate it
-    if isnothing(investment_cost(y)) || investment_cost(y) == 0.0
+    if investment_cost(y) == 0.0
         y.investment_cost = annualized_investment_cost(y)/capital_recovery_factor(wacc(y), capital_recovery_period(y))
     end
 
