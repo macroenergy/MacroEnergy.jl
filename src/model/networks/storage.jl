@@ -225,7 +225,6 @@ pv_period_variable_om_cost(g::AbstractStorage) = g.pv_period_variable_om_cost;
 cf_period_variable_om_cost(g::AbstractStorage) = g.cf_period_variable_om_cost;
 # Learning
 learning_type(g::AbstractStorage) = g.learning_type;
-n_learning_pwl_segments(g::AbstractStorage) = g.n_learning_pwl_segments;
 learning_parameter(g::AbstractStorage) = g.learning_parameter;
 cumulative_capacity_init(g::AbstractStorage) = g.cumulative_capacity_init;
 endog_annualized_investment_cost(g::AbstractStorage) = g.endog_annualized_investment_cost;

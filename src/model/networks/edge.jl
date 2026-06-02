@@ -387,7 +387,6 @@ cf_period_fixed_om_cost(e::AbstractEdge) = e.cf_period_fixed_om_cost;
 pv_period_variable_om_cost(e::AbstractEdge) = e.pv_period_variable_om_cost;
 # Learning
 learning_type(e::AbstractEdge) = e.learning_type;
-n_learning_pwl_segments(e::AbstractEdge) = e.n_learning_pwl_segments;
 learning_parameter(e::AbstractEdge) = e.learning_parameter;
 cumulative_capacity_init(e::AbstractEdge) = e.cumulative_capacity_init;
 endog_annualized_investment_cost(e::AbstractEdge) = e.endog_annualized_investment_cost;
