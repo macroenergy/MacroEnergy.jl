@@ -229,7 +229,6 @@ learning_parameter(g::AbstractStorage) = g.learning_parameter;
 cumulative_capacity_init(g::AbstractStorage) = g.cumulative_capacity_init;
 endog_annualized_investment_cost(g::AbstractStorage) = g.endog_annualized_investment_cost;
 endogenous_capex_segment_chosen_from_relevant_period(g::AbstractStorage) = g.endogenous_capex_segment_chosen_from_relevant_period;
-segments_sos1(g::AbstractStorage) = g.segments_sos1;
 cumulative_experience(g::AbstractStorage) = g.cumulative_experience;
 endogenous_capex(g::AbstractStorage) = g.endogenous_capex;
 endogenous_capex_track(g::AbstractStorage) = g.endogenous_capex_track;
