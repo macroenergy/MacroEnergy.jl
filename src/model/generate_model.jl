@@ -12,6 +12,8 @@ function generate_model(case::Case, opt::Optimizer, ::Monolithic)
     settings = get_settings(case)
 
     @info("Generating model")
+    @info("Deployment inertia set to $(haskey(settings, :DeploymentInertia) ? settings[:DeploymentInertia] : false)")
+    @info("Project development set to $(haskey(settings, :ProjectDevelopment) ? settings[:ProjectDevelopment] : false)")
     @info("Technology learning set to $(haskey(settings, :TechnologyLearning) ? settings[:TechnologyLearning] : false)")
     @info("CO2 cap set to $(haskey(settings, :CO2Cap) ? settings[:CO2Cap] : false)")
 
@@ -80,6 +82,8 @@ function generate_model(case::Case, opt::Dict{Symbol,Dict{Symbol,Any}}, ::Bender
     set_silent(planning_model)
     settings = get_settings(case)
     @info("Generating planning problem")
+    @info("Deployment inertia set to $(haskey(settings, :DeploymentInertia) ? settings[:DeploymentInertia] : false)")
+    @info("Project development set to $(haskey(settings, :ProjectDevelopment) ? settings[:ProjectDevelopment] : false)")
     @info("Technology learning set to $(haskey(settings, :TechnologyLearning) ? settings[:TechnologyLearning] : false)")
     @info("CO2 cap set to $(haskey(settings, :CO2Cap) ? settings[:CO2Cap] : false)")
 
@@ -428,6 +432,14 @@ function carry_over_capacities!(y::Union{AbstractEdge,AbstractStorage},y_prev::U
                     y.endogenous_capex_segment_chosen_track[prev_period] = endogenous_capex_segment_chosen_track(y_prev,prev_period)
                 end
 
+                # Project development 
+                y.new_de_capacity_track[prev_period] = new_de_capacity_track(y_prev,prev_period)
+                y.new_af_capacity_track[prev_period] = new_af_capacity_track(y_prev,prev_period)
+                y.new_cc_capacity_track[prev_period] = new_cc_capacity_track(y_prev,prev_period)
+                y.de_capacity_track[prev_period] = de_capacity_track(y_prev,prev_period)
+                y.af_capacity_track[prev_period] = af_capacity_track(y_prev,prev_period)
+                y.cc_capacity_track[prev_period] = cc_capacity_track(y_prev,prev_period)
+
                 y.new_capacity_track[prev_period] = new_capacity_track(y_prev,prev_period)
                 y.retired_capacity_track[prev_period] = retired_capacity_track(y_prev,prev_period)
 
@@ -484,10 +496,43 @@ function compute_annualized_costs!(y::Union{AbstractEdge,AbstractStorage},settin
 
     # Capex is needed for learning. Check if CAPEX was provided. If not, estimate it
     if isnothing(investment_cost(y)) || investment_cost(y) == 0.0
-        y.investment_cost = (annualized_investment_cost(y)-interconnect_annuity(y))/capital_recovery_factor(wacc(y), capital_recovery_period(y))
+        if settings[:ProjectDevelopment]
+            # In the speed limits version, we remove the CFF because it is estimated in project development
+            # Also need to remove interconnection cost, if any, from project cost
+            y.investment_cost = ((annualized_investment_cost(y)-interconnect_annuity(y))/capital_recovery_factor(wacc(y), capital_recovery_period(y)))/cff(y)
+        else
+            y.investment_cost = (annualized_investment_cost(y)-interconnect_annuity(y))/capital_recovery_factor(wacc(y), capital_recovery_period(y))
+        end
 
         # Remove interconnection costs
         y.annualized_investment_cost = investment_cost(y)*capital_recovery_factor(wacc(y), capital_recovery_period(y))
+    end
+
+    # Set annualized costs
+    if settings[:ProjectDevelopment]
+        # Distribute deployment cost in case deployment stage costs are included
+        deployment_cost_perc = 1 - de_cost_perc(y) - af_cost_perc(y) - cc_cost_perc(y)
+
+        # Development annualized costs
+        y.de_annualization_factor = capital_recovery_factor(de_wacc(y), de_cap_recovery(y))
+        y.af_annualization_factor = capital_recovery_factor(af_wacc(y), af_cap_recovery(y))
+        y.cc_annualization_factor = capital_recovery_factor(cc_wacc(y), cc_cap_recovery(y))
+
+        # Overwrite CC wacc if general wacc is provided
+        y.cc_wacc = wacc(y) > 0 ? wacc(y) : cc_wacc(y)
+        
+        y.de_annualized_cost = investment_cost(y)*de_annualization_factor(y)*de_cost_perc(y)
+        y.af_annualized_cost = investment_cost(y)*af_annualization_factor(y)*af_cost_perc(y)
+        y.cc_annualized_cost = investment_cost(y)*cc_annualization_factor(y)*cc_cost_perc(y)
+        # Update cost of deployment
+        y.annualized_investment_cost = investment_cost(y)*capital_recovery_factor(wacc(y), capital_recovery_period(y))*deployment_cost_perc
+
+    else
+        y.annualized_investment_cost = investment_cost(y)*capital_recovery_factor(wacc(y), capital_recovery_period(y))
+
+        y.de_annualized_cost = 0.0
+        y.af_annualized_cost = 0.0
+        y.cc_annualized_cost = 0.0
     end
 
     return nothing
@@ -536,12 +581,23 @@ function discount_fixed_costs!(y::Union{AbstractEdge,AbstractStorage},settings::
     cap_recovery_interconnect = 60 # From Power Genome, TODO: add as parameter in inputs
     interconnect_payment_years_remaining = min(cap_recovery_interconnect, model_years_remaining);
 
+    if settings[:ProjectDevelopment] 
+        de_payment_years_remaining = min(de_cap_recovery(y), model_years_remaining);
+        af_payment_years_remaining = min(af_cap_recovery(y), model_years_remaining);
+        cc_payment_years_remaining = min(cc_cap_recovery(y), model_years_remaining);
+    end
+
     # This PV is relative to the start of the Case, not the start of the period
     y.annuities_mult = present_value_annuity_factor(discount_rate, payment_years_remaining)
     y.interconnect_annuities_mult = present_value_annuity_factor(discount_rate, interconnect_payment_years_remaining)
-    y.pv_period_investment_cost = annualized_investment_cost(y) * y.annuities_mult #+ interconnect_annuity(y) * y.interconnect_annuities_mult
+    y.pv_period_investment_cost = annualized_investment_cost(y) * y.annuities_mult + interconnect_annuity(y) * y.interconnect_annuities_mult
 
-    
+    if settings[:ProjectDevelopment] 
+        y.de_annuities_mult = sum(1 / (1 + settings.DiscountRate)^s for s in 1:de_payment_years_remaining; init=0);
+        y.af_annuities_mult = sum(1 / (1 + settings.DiscountRate)^s for s in 1:af_payment_years_remaining; init=0);
+        y.cc_annuities_mult = sum(1 / (1 + settings.DiscountRate)^s for s in 1:cc_payment_years_remaining; init=0);
+    end
+
     period_pv_annuity_factor = present_value_annuity_factor(discount_rate, period_length)
     y.pv_period_fixed_om_cost = fixed_om_cost(y) * period_pv_annuity_factor
     y.pv_period_variable_om_cost = variable_om_cost(y) * period_pv_annuity_factor

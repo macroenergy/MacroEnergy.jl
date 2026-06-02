@@ -1,0 +1,64 @@
+{
+    "PeriodLengths": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+    ],
+    "SolutionAlgorithm": "Benders",
+    "DiscountRate": 0.045,
+    "TechnologyLearning": false,
+    "ProjectDevelopment": true,
+    "CO2Cap": true,
+    "DeploymentInertia": false,
+    "LearningTechnologies": ["egs"],
+    "TechsWithInertia": ["onshore_wind", "solar", "egs", "battery", "ccgt", "ct"],
+    "InertiaInitMW": {
+        "onshore_wind": 1600,
+        "solar": 7400,
+        "egs": 0.0,
+        "battery": 6500,
+        "ccgt": 0.0,
+        "ct": 600
+    },
+    "InertiaMinMW": {
+        "onshore_wind": 200,
+        "solar": 74.6,
+        "egs": 1000,
+        "battery": 60,
+        "ccgt": 727,
+        "ct": 233
+    },
+    "InertiaInitialGrowthRate": {
+        "onshore_wind": 0.162,
+        "solar": 0.293,
+        "egs": 0.397,
+        "battery": 0.794,
+        "ccgt": 0.397,
+        "ct": 0.397
+    },
+    "InertiaInitialDeclineRate": {
+        "onshore_wind": 0.12,
+        "solar": 0.039,
+        "egs": 0.11,
+        "battery": 0.794,
+        "ccgt": 0.11,
+        "ct": 0.11
+    }
+}
