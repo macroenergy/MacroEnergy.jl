@@ -12,8 +12,8 @@ function generate_model(case::Case, opt::Optimizer, ::Monolithic)
     settings = get_settings(case)
 
     @info("Generating model")
-    @info("Technology learning set to $(settings[:TechnologyLearning])")
-    @info("CO2 cap set to $(settings[:CO2Cap])")
+    @info("Technology learning set to $(haskey(settings, :TechnologyLearning) ? settings[:TechnologyLearning] : false)")
+    @info("CO2 cap set to $(haskey(settings, :CO2Cap) ? settings[:CO2Cap] : false)")
 
     start_time = time()
     
@@ -80,8 +80,8 @@ function generate_model(case::Case, opt::Dict{Symbol,Dict{Symbol,Any}}, ::Bender
     set_silent(planning_model)
     settings = get_settings(case)
     @info("Generating planning problem")
-    @info("Technology learning set to $(settings[:TechnologyLearning])")
-    @info("CO2 cap set to $(settings[:CO2Cap])")
+    @info("Technology learning set to $(haskey(settings, :TechnologyLearning) ? settings[:TechnologyLearning] : false)")
+    @info("CO2 cap set to $(haskey(settings, :CO2Cap) ? settings[:CO2Cap] : false)")
     start_time = time()
     
     @variable(planning_model, vREF == 1)

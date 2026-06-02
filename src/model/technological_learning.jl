@@ -88,6 +88,9 @@ function add_learning!(system::System, model::Model, period_idx::Int, settings::
                 @constraint(model, [k in 1:n_segments+1], e.new_capacity - e.aux_new_capacity[k] >= 0)
                 # Big M constraints
                 big_M_capacity = max_new_capacity(e)
+                if big_M_capacity == Inf || big_M_capacity == -1
+                     error("$(e.id) is a learning technology but max_new_capacity is not specified (required for big-M linearization)")
+                 end
                 @constraint(model, [k in 1:n_segments+1], e.new_capacity - e.aux_new_capacity[k] <= big_M_capacity*(1-endogenous_capex_segment_chosen_from_relevant_period(e)[k]))
                 @constraint(model, [k in 1:n_segments+1], e.aux_new_capacity[k] <= big_M_capacity*e.endogenous_capex_segment_chosen_from_relevant_period[k])
 
