@@ -167,6 +167,13 @@ end
 
 function compute_pwl_coordinates(n_segments::Int, init_cumul_capacity::Float64, max_cumul_capacity::Float64, investment_cost::Float64, learning_parameter::Float64)
 
+    if init_cumul_capacity <= 0
+        error("Initial cumulative capacity must be greater than 0 for constructing learning curve")
+    end
+    if learning_parameter == 1
+        error("Learning parameter cannot be 1 for constructing learning curve")
+    end
+
     x_points = zeros(n_segments+1)
     y_points = zeros(n_segments+1)
     
