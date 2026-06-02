@@ -62,8 +62,6 @@ macro AbstractStorageBaseAttributes()
         endog_annualized_investment_cost::AffExpr = AffExpr(0.0)
         max_cumul_capacity::Float64 = 0.0
         learning_delay::Int64 = 1
-        interconnect_annuity::Float64 = 0.0
-        interconnect_annuities_mult::Float64 = 0.0
     end)
 end
 
@@ -244,8 +242,6 @@ endog_annualized_cost(g::AbstractStorage) = g.endog_annualized_cost;
 init_cumul_capacity(g::AbstractStorage) = g.init_cumul_capacity;
 max_cumul_capacity(g::AbstractStorage) = g.max_cumul_capacity;
 learning_delay(g::AbstractStorage) = g.learning_delay;
-interconnect_annuity(g::AbstractStorage) = g.interconnect_annuity;
-interconnect_annuities_mult(g::AbstractStorage) = g.interconnect_annuities_mult;
 
 function add_linking_variables!(g::Storage, model::Model)
     if has_capacity(g)

@@ -77,8 +77,6 @@ macro AbstractEdgeBaseAttributes()
         endog_annualized_investment_cost::AffExpr = AffExpr(0.0)
         max_cumul_capacity::Float64 = 0.0
         learning_delay::Int64 = 1
-        interconnect_annuity::Float64 = 0.0
-        interconnect_annuities_mult::Float64 = 0.0
     end)
 end
 
@@ -406,8 +404,6 @@ endog_annualized_cost(e::AbstractEdge) = e.endog_annualized_cost;
 init_cumul_capacity(e::AbstractEdge) = e.init_cumul_capacity;
 max_cumul_capacity(e::AbstractEdge) = e.max_cumul_capacity;
 learning_delay(e::AbstractEdge) = e.learning_delay;
-interconnect_annuity(e::AbstractEdge) = e.interconnect_annuity;        
-interconnect_annuities_mult(e::AbstractEdge) = e.interconnect_annuities_mult;
 
 ##### End of Edge interface #####
 
@@ -506,7 +502,7 @@ function compute_investment_costs!(e::AbstractEdge, model::Model, settings::Name
                 # Costs used by model
                 if settings[:TechnologyLearning] && learning_type(e) in settings[:LearningTechnologies]
                     # Linearized learning
-                    model[:eInvestmentFixedCost] += e.endog_annualized_investment_cost_times_newcapacity * annuities_mult(e) + interconnect_annuity(e) * interconnect_annuities_mult(e) * new_capacity(e)
+                    model[:eInvestmentFixedCost] += e.endog_annualized_investment_cost_times_newcapacity * annuities_mult(e)
 
                 elseif !settings[:TechnologyLearning] || !(learning_type(e) in settings[:LearningTechnologies])
                     # Technologies without endogenous learning
