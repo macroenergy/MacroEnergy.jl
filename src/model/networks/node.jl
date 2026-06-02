@@ -163,7 +163,7 @@ function define_available_capacity!(n::Node, model::Model)
     return nothing
 end
 
-function planning_model!(n::Node, model::Model)
+function planning_model!(n::Node, model::Model, settings::NamedTuple)
 
     ### DEFAULT CONSTRAINTS ###
 

@@ -185,6 +185,7 @@ include("model/myopic.jl")
 include_all_in_folder("model/constraints")
 include_all_in_folder("model/benders")
 include("model/solver.jl")
+include("model/technological_learning.jl")
 
 include("utilities/postprocessing.jl")
 
@@ -301,6 +302,7 @@ export AbstractAsset,
     get_optimal_non_served_demand,
     get_optimal_retired_capacity,
     get_optimal_storage_level,
+    get_learning_technologies,
     Graphite,
     Heat,
     HydroRes,

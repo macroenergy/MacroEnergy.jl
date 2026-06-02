@@ -58,6 +58,27 @@ macro AbstractEdgeBaseAttributes()
         cf_period_fixed_om_cost::Union{Nothing,Float64} = $edge_defaults[:cf_period_fixed_om_cost]
         pv_period_variable_om_cost::Union{Nothing,Float64} = $edge_defaults[:pv_period_variable_om_cost]
         cf_period_variable_om_cost::Union{Nothing,Float64} = $edge_defaults[:cf_period_variable_om_cost]
+        # Learning
+        learning_type::String = ""
+        learning_parameter::Float64 = 0.0
+        cumulative_capacity_init::Float64 = 0.0
+        endogenous_capex_segment_chosen_track::Dict{Int64,Union{JuMPVariable}} = Dict(1 => Vector{VariableRef}())
+        endogenous_capex_segment_chosen_from_relevant_period::Union{JuMPVariable,Float64} = Vector{VariableRef}()
+        aux_new_capacity::Union{JuMPVariable,Float64} = 0.0
+        cumulative_experience::Union{JuMPVariable,Float64} = 0.0
+        endogenous_capex::AffExpr = AffExpr(0.0)
+        endogenous_capex_track::Dict{Int64,AffExpr} = Dict(1 => AffExpr(0.0))
+        pwl_capex_slopes::Vector{Float64} = Float64[]
+        endog_annualized_investment_cost_times_newcapacity::AffExpr = AffExpr(0.0)
+        annuities_mult::Float64 = 0.0
+        annualization_factor::Float64 = 0.0
+        endog_annualized_cost::AffExpr = AffExpr(0.0)
+        init_cumul_capacity::Float64 = 0.0
+        endog_annualized_investment_cost::AffExpr = 0.0
+        max_cumul_capacity::Float64 = 0.0
+        learning_delay::Int64 = 1
+        interconnect_annuity::Float64 = 0.0
+        interconnect_annuities_mult::Float64 = 0.0
     end)
 end
 
@@ -364,6 +385,30 @@ cf_period_investment_cost(e::AbstractEdge) = e.cf_period_investment_cost;
 pv_period_fixed_om_cost(e::AbstractEdge) = e.pv_period_fixed_om_cost;
 cf_period_fixed_om_cost(e::AbstractEdge) = e.cf_period_fixed_om_cost;
 pv_period_variable_om_cost(e::AbstractEdge) = e.pv_period_variable_om_cost;
+# Learning
+learning_type(e::AbstractEdge) = e.learning_type;
+n_learning_pwl_segments(e::AbstractEdge) = e.n_learning_pwl_segments;
+learning_parameter(e::AbstractEdge) = e.learning_parameter;
+cumulative_capacity_init(e::AbstractEdge) = e.cumulative_capacity_init;
+endog_annualized_investment_cost(e::AbstractEdge) = e.endog_annualized_investment_cost;
+endogenous_capex_segment_chosen_from_relevant_period(e::AbstractEdge) = e.endogenous_capex_segment_chosen_from_relevant_period;
+cumulative_experience(e::AbstractEdge) = e.cumulative_experience;
+endogenous_capex(e::AbstractEdge) = e.endogenous_capex;
+endogenous_capex_track(e::AbstractEdge) = e.endogenous_capex_track;
+endogenous_capex_track(e::AbstractEdge, s::Int64) = (haskey(endogenous_capex_track(e), s) == false) ? 0.0 : e.endogenous_capex_track[s];
+endogenous_capex_segment_chosen_track(e::AbstractEdge) = e.endogenous_capex_segment_chosen_track;
+endogenous_capex_segment_chosen_track(e::AbstractEdge, s::Int64) = (haskey(endogenous_capex_segment_chosen_track(e), s) == false) ? 0.0 : e.endogenous_capex_segment_chosen_track[s];
+pwl_capex_slopes(e::AbstractEdge) = e.pwl_capex_slopes;
+aux_new_capacity(e::AbstractEdge) = e.aux_new_capacity;
+endog_annualized_investment_cost_times_newcapacity(e::AbstractEdge) = e.endog_annualized_investment_cost_times_newcapacity;
+annuities_mult(e::AbstractEdge) = e.annuities_mult;
+annualization_factor(e::AbstractEdge) = e.annualization_factor;
+endog_annualized_cost(e::AbstractEdge) = e.endog_annualized_cost;
+init_cumul_capacity(e::AbstractEdge) = e.init_cumul_capacity;
+max_cumul_capacity(e::AbstractEdge) = e.max_cumul_capacity;
+learning_delay(e::AbstractEdge) = e.learning_delay;
+interconnect_annuity(e::AbstractEdge) = e.interconnect_annuity;        
+interconnect_annuities_mult(e::AbstractEdge) = e.interconnect_annuities_mult;
 
 ##### End of Edge interface #####
 
@@ -417,7 +462,7 @@ function define_available_capacity!(e::AbstractEdge, model::Model)
 
 end
 
-function planning_model!(e::AbstractEdge, model::Model)
+function planning_model!(e::AbstractEdge, model::Model, settings::NamedTuple)
 
     if has_capacity(e)
 
@@ -448,20 +493,36 @@ function planning_model!(e::AbstractEdge, model::Model)
 
     end
 
-    compute_fixed_costs!(e, model)
+    compute_fixed_costs!(e, model, settings, :PV)
 
     return nothing
 
 end
 
-function compute_investment_costs!(e::AbstractEdge, model::Model, cost_type::Function=pv_period_investment_cost)
+function compute_investment_costs!(e::AbstractEdge, model::Model, settings::NamedTuple, cost_type::Function=pv_period_investment_cost)
     if has_capacity(e)
         if can_expand(e)
-            add_to_expression!(
-                model[:eInvestmentFixedCost],
-                cost_type(e),
-                new_capacity(e),
-            )
+
+            
+            if settings[:TechnologyLearning] && learning_type(e) in settings[:LearningTechnologies]
+                # Linearized learning
+                model[:eInvestmentFixedCost] += e.endog_annualized_investment_cost_times_newcapacity * annuities_mult(e) + interconnect_annuity(e) * interconnect_annuities_mult(e) * new_capacity(e)
+                # Nonlinear version for benchmarking
+                # model[:eInvestmentFixedCost] += (1 - subsidy)*endog_annualized_investment_cost(e)*annuities_mult(e)*new_capacity(e)
+            elseif !settings[:TechnologyLearning] || !(learning_type(e) in settings[:LearningTechnologies])
+                # Technologies without endogenous learning
+                add_to_expression!(
+                    model[:eInvestmentFixedCost],
+                    annualized_investment_cost(e) * annuities_mult(e),
+                    new_capacity(e),
+                )
+            end
+
+            # add_to_expression!(
+            #     model[:eInvestmentFixedCost],
+            #     cost_type(e),
+            #     new_capacity(e),
+            # )
         end
     end
 end
@@ -478,7 +539,7 @@ function compute_om_fixed_costs!(e::AbstractEdge, model::Model, cost_type::Funct
     end
 end
 
-function compute_fixed_costs!(e::AbstractEdge, model::Model, cost_type::Symbol=:PV)
+function compute_fixed_costs!(e::AbstractEdge, model::Model, settings::NamedTuple, cost_type::Symbol=:PV)
     allowed_cost_types = [:PV, :CF]
     if !(cost_type in allowed_cost_types)
         error("Invalid cost type: $cost_type. Allowed types are: $(allowed_cost_types)")
@@ -491,7 +552,7 @@ function compute_fixed_costs!(e::AbstractEdge, model::Model, cost_type::Symbol=:
         :PV => pv_period_fixed_om_cost,
         :CF => cf_period_fixed_om_cost
     )
-    compute_investment_costs!(e, model, invesment_cost_function[cost_type])
+    compute_investment_costs!(e, model, settings, invesment_cost_function[cost_type])
     compute_om_fixed_costs!(e, model, fom_cost_function[cost_type])
 end
 

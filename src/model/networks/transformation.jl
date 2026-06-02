@@ -23,7 +23,7 @@ function add_linking_variables!(g::Transformation, model::Model)
     return nothing
 end
 
-function planning_model!(g::Transformation, model::Model)
+function planning_model!(g::Transformation, model::Model, settings::NamedTuple)
 
     return nothing
 end
