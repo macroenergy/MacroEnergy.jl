@@ -78,21 +78,22 @@ function generate_model(case::Case, opt::Dict{Symbol,Dict{Symbol,Any}}, ::Bender
     optimizer = create_optimizer(planning_optimizer[:solver], opt_env(planning_optimizer[:solver]), planning_optimizer[:attributes])
     set_optimizer(planning_model, optimizer)
     set_silent(planning_model)
-    
+    settings = get_settings(case)
     @info("Generating planning problem")
+    @info("Technology learning set to $(settings[:TechnologyLearning])")
+    @info("CO2 cap set to $(settings[:CO2Cap])")
     start_time = time()
     
     @variable(planning_model, vREF == 1)
     
     periods = get_periods(case)
-    settings = get_settings(case)
     fixed_cost, investment_cost, om_fixed_cost = Dict(), Dict(), Dict()
 
     periods_decomp = generate_decomposed_system(periods)
     
     for (i, system) in enumerate(periods)
         next = i < length(periods) ? periods[i+1] : nothing
-        add_period_to_planning_model!(planning_model, system, next, fixed_cost, investment_cost, om_fixed_cost)
+        add_period_to_planning_model!(planning_model, system, next, fixed_cost, investment_cost, om_fixed_cost, settings)
     end
     
     finalize_planning_model_objective!(planning_model, periods, settings, fixed_cost, investment_cost, om_fixed_cost)
@@ -130,7 +131,7 @@ function generate_model(system::System, opt::Dict{Symbol,Dict{Symbol,Any}}, sett
     
     period_decomp = generate_decomposed_system([system])
     
-    add_period_to_planning_model!(model, system, nothing, fixed_cost, investment_cost, om_fixed_cost)
+    add_period_to_planning_model!(model, system, nothing, fixed_cost, investment_cost, om_fixed_cost, settings)
     
     finalize_planning_model_objective!(model, [system], settings, fixed_cost, investment_cost, om_fixed_cost)
     

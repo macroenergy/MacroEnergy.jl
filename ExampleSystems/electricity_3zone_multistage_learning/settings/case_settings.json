@@ -2,7 +2,7 @@
   "PeriodLengths": [10,10,10],
   "DiscountRate": 0.045,
   "SolutionAlgorithm": "Benders",
-  "TechnologyLearning": false,
+  "TechnologyLearning": true,
   "LearningTechnologies": ["wind"],
   "CO2Cap": false
 }
