@@ -9,7 +9,15 @@ function default_case_settings()
         :WriteFullTimeseries => false,
         :SolutionAlgorithm => "Monolithic",
         :ExpansionHorizon => "PerfectForesight",
-        :TechnologyLearning => false
+        :TechnologyLearning => false,
+        :DeploymentInertia => false,
+        :ProjectDevelopment => false,
+        :LearningTechnologies => [],
+        :TechsWithInertia => [],
+        :InertiaInitMW => Dict{Symbol,Float64}(),
+        :InertiaInitialGrowthRate => Dict{Symbol,Float64}(),
+        :InertiaInitialDeclineRate => Dict{Symbol,Float64}(),
+        :InertiaMinMW => Dict{Symbol,Float64}(),
     )
 end
 

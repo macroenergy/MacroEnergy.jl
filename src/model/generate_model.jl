@@ -273,7 +273,7 @@ function planning_model!(system::System, model::Model, settings::NamedTuple)
         planning_model!(asset, model, settings)
     end
 
-    add_constraints_by_type!(system, model, PlanningConstraint)
+    add_constraints_by_type!(system, model, PlanningConstraint, settings)
 
 end
 

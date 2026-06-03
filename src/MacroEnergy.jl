@@ -315,6 +315,7 @@ export AbstractAsset,
     load_subcommodities_from_file,
     location_ids,
     MaxCapacityConstraint,
+    DeploymentInertiaConstraint
     MaxNewCapacityConstraint,
     MaxNonServedDemandConstraint,
     MaxNonServedDemandPerSegmentConstraint,

@@ -105,9 +105,6 @@ macro AbstractStorageBaseAttributes()
         cc_capacity_track::Dict{Int64,AffExpr} = Dict(1=>AffExpr(0.0))
         new_cc_units::Union{JuMPVariable,Float64} = 0.0
         capacity_in_progress_init::Float64 = 0.0
-        interconnect_annuity::Float64 = 0.0
-        cff::Float64 = 0.0
-        interconnect_annuities_mult::Float64 = 0.0
         new_capital::Union{AffExpr,Float64} = AffExpr(0.0)
         new_capital_de::Union{AffExpr,Float64} = AffExpr(0.0)
         new_capital_af::Union{AffExpr,Float64} = AffExpr(0.0)
@@ -347,9 +344,6 @@ cc_capacity_track(g::AbstractStorage) = g.cc_capacity_track;
 cc_capacity_track(g::AbstractStorage,s::Int64) =  (haskey(cc_capacity_track(g),s) == false) ? 0.0 : g.cc_capacity_track[s];
 new_cc_units(g::AbstractStorage) = g.new_cc_units;
 capacity_in_progress_init(g::AbstractStorage) = g.capacity_in_progress_init;
-interconnect_annuity(g::AbstractStorage) = g.interconnect_annuity;
-cff(g::AbstractStorage) = g.cff;
-interconnect_annuities_mult(g::AbstractStorage) = g.interconnect_annuities_mult;
 new_capital(g::AbstractStorage) = g.new_capital;
 new_capital_de(g::AbstractStorage) = g.new_capital_de;
 new_capital_af(g::AbstractStorage) = g.new_capital_af;
@@ -639,7 +633,7 @@ function compute_investment_costs!(g::AbstractStorage, model::Model, settings::N
                         new_capacity(g),
                     )
             end
-            
+
         end
     end
 end
