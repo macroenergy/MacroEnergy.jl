@@ -7,6 +7,8 @@ function default_case_settings()
         :PeriodLengths => [1],
         :DiscountRate => 0.,
         :WriteFullTimeseries => false,
+        :ParameterScaling => false,
+        :ParameterScalingFactor => 1e5,
         :SolutionAlgorithm => "Monolithic",
         :ExpansionHorizon => "PerfectForesight"
     )
@@ -143,6 +145,8 @@ function validate_case_settings(case_settings::AbstractDict{Symbol,Any})
     @assert all(case_settings[:PeriodLengths].>0)
     @assert case_settings[:DiscountRate] >= 0
     @assert isa(case_settings[:WriteFullTimeseries], Bool)
+    @assert isa(case_settings[:ParameterScaling], Bool)
+    @assert case_settings[:ParameterScalingFactor] >= 0
     @assert isa(case_settings[:SolutionAlgorithm], AbstractSolutionAlgorithm)
     @assert isa(case_settings[:ExpansionHorizon], AbstractExpansionHorizon)
 end
