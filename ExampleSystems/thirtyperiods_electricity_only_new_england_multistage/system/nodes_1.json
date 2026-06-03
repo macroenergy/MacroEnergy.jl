@@ -102,6 +102,7 @@
             "instance_data": [
                 {
                     "constraints": {
+                        "BalanceConstraint": false,
                         "CO2CapConstraint": true
                     },
                     "rhs_policy": {
@@ -111,6 +112,7 @@
                 },
                 {
                     "constraints": {
+                        "BalanceConstraint": false,
                         "CO2CapConstraint": true
                     },
                     "rhs_policy": {
@@ -120,6 +122,7 @@
                 },
                 {
                     "constraints": {
+                        "BalanceConstraint": false,
                         "CO2CapConstraint": true
                     },
                     "rhs_policy": {

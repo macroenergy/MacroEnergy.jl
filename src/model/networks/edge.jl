@@ -130,7 +130,7 @@ macro AbstractEdgeBaseAttributes()
         new_capital_de::Union{AffExpr,Float64} = AffExpr(0.0)
         new_capital_af::Union{AffExpr,Float64} = AffExpr(0.0)
         new_capital_cc::Union{AffExpr,Float64} = AffExpr(0.0)
-        itc_schedule::Vector{Float64} = zeros(20)
+        itc_schedule::Vector{Float64} = zeros(30)
         # Max growth formulation
         max_new_capacity_init::Float64 = 0.0
         cagr::Float64 = 0.0
