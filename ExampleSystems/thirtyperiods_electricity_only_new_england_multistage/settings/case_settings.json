@@ -8,36 +8,20 @@
   "CO2Cap": false,
   "LearningTechnologies": ["wind"],
   "TechsWithInertia": ["wind", "solar"],
-  "InertiaInitMW": {
-      "onshore_wind": 1600,
-      "solar": 7400,
-      "egs": 0.0,
-      "battery": 6500,
-      "ccgt": 0.0,
-      "ct": 600
+  "InertiaInit": {
+      "wind": 1000,
+      "solar": 1000
   },
   "InertiaMinMW": {
-      "onshore_wind": 200,
-      "solar": 74.6,
-      "egs": 1000,
-      "battery": 60,
-      "ccgt": 727,
-      "ct": 233
+      "wind": 0.2,
+      "solar": 0.07
   },
   "InertiaInitialGrowthRate": {
-      "onshore_wind": 0.162,
-      "solar": 0.293,
-      "egs": 0.397,
-      "battery": 0.794,
-      "ccgt": 0.397,
-      "ct": 0.397
+      "wind": 10,
+      "solar": 10
   },
   "InertiaInitialDeclineRate": {
-      "onshore_wind": 0.12,
-      "solar": 0.039,
-      "egs": 0.11,
-      "battery": 0.794,
-      "ccgt": 0.11,
-      "ct": 0.11
+      "wind": 1,
+      "solar": 1
     }
 }

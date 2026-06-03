@@ -2,5 +2,5 @@
     "ConstraintScaling": false,
     "OutputLayout": "long",
     "DualExportsEnabled": false,
-    "OutputDir": "results_bend_el_nlp"
+    "OutputDir": "results_sl"
 }
