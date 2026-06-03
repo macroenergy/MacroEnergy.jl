@@ -10,6 +10,7 @@ function generate_model(case::Case, opt::Optimizer, ::Monolithic)
 
     set_string_names_on_creation(model, case.systems[1].settings.EnableJuMPStringNames)
     settings = get_settings(case)
+    num_periods = number_of_periods(case)
 
     @info("Generating model")
     @info("Deployment inertia set to $(haskey(settings, :DeploymentInertia) ? settings[:DeploymentInertia] : false)")
@@ -25,6 +26,11 @@ function generate_model(case::Case, opt::Optimizer, ::Monolithic)
     periods = get_periods(case)
     
     fixed_cost, investment_cost, om_fixed_cost, variable_cost = Dict(), Dict(), Dict(), Dict()
+
+    if settings[:DeploymentInertia]
+        @expression(model, eDeploymentGrowth[tech in settings[:TechsWithInertia], p in 1:num_periods], AffExpr(0.0))
+        @expression(model, eDeploymentDecline[tech in settings[:TechsWithInertia], p in 1:num_periods], AffExpr(0.0))
+    end
 
     for (period_idx, system) in enumerate(periods)
         next = period_idx < length(periods) ? periods[period_idx+1] : nothing
@@ -81,11 +87,17 @@ function generate_model(case::Case, opt::Dict{Symbol,Dict{Symbol,Any}}, ::Bender
     set_optimizer(planning_model, optimizer)
     set_silent(planning_model)
     settings = get_settings(case)
+    num_periods = number_of_periods(case)
     @info("Generating planning problem")
     @info("Deployment inertia set to $(haskey(settings, :DeploymentInertia) ? settings[:DeploymentInertia] : false)")
     @info("Project development set to $(haskey(settings, :ProjectDevelopment) ? settings[:ProjectDevelopment] : false)")
     @info("Technology learning set to $(haskey(settings, :TechnologyLearning) ? settings[:TechnologyLearning] : false)")
     @info("CO2 cap set to $(haskey(settings, :CO2Cap) ? settings[:CO2Cap] : false)")
+
+    if settings[:DeploymentInertia]
+        @expression(planning_model, eDeploymentGrowth[tech in settings[:TechsWithInertia], p in 1:num_periods], AffExpr(0.0))
+        @expression(planning_model, eDeploymentDecline[tech in settings[:TechsWithInertia], p in 1:num_periods], AffExpr(0.0))
+    end
 
     start_time = time()
     
@@ -513,17 +525,12 @@ function compute_annualized_costs!(y::Union{AbstractEdge,AbstractStorage},settin
         # Distribute deployment cost in case deployment stage costs are included
         deployment_cost_perc = 1 - de_cost_perc(y) - af_cost_perc(y) - cc_cost_perc(y)
 
-        # Development annualized costs
-        y.de_annualization_factor = capital_recovery_factor(de_wacc(y), de_cap_recovery(y))
-        y.af_annualization_factor = capital_recovery_factor(af_wacc(y), af_cap_recovery(y))
-        y.cc_annualization_factor = capital_recovery_factor(cc_wacc(y), cc_cap_recovery(y))
-
         # Overwrite CC wacc if general wacc is provided
         y.cc_wacc = wacc(y) > 0 ? wacc(y) : cc_wacc(y)
         
-        y.de_annualized_cost = investment_cost(y)*de_annualization_factor(y)*de_cost_perc(y)
-        y.af_annualized_cost = investment_cost(y)*af_annualization_factor(y)*af_cost_perc(y)
-        y.cc_annualized_cost = investment_cost(y)*cc_annualization_factor(y)*cc_cost_perc(y)
+        y.de_annualized_cost = investment_cost(y)*capital_recovery_factor(de_wacc(y), de_cap_recovery(y))*de_cost_perc(y)
+        y.af_annualized_cost = investment_cost(y)*capital_recovery_factor(af_wacc(y), af_cap_recovery(y))*af_cost_perc(y)
+        y.cc_annualized_cost = investment_cost(y)*capital_recovery_factor(cc_wacc(y), cc_cap_recovery(y))*cc_cost_perc(y)
         # Update cost of deployment
         y.annualized_investment_cost = investment_cost(y)*capital_recovery_factor(wacc(y), capital_recovery_period(y))*deployment_cost_perc
 

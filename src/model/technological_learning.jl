@@ -11,7 +11,7 @@ function add_learning!(system::System, model::Model, period_idx::Int, settings::
 
     n_segments = 5
     # Segment of piece-wise linear curve chosen for each learning technology
-    endogenous_capex_segment_chosen = @variable(model, [y in 1:n_learning_techs, k in 1:n_segments+1], binary=true, base_name = "vBINSEG_LEARNINGTYPE_$(period_idx)_$(y)_seg_$k")
+    endogenous_capex_segment_chosen = @variable(model, [e in 1:n_learning_techs, k in 1:n_segments+1], binary=true, base_name = "vBINSEG_LEARNINGTYPE_$(period_idx)_$(e)_seg_$k")
     @constraint(model, [y in 1:n_learning_techs], sum(endogenous_capex_segment_chosen[y,k] for k in 1:n_segments+1) == 1)
 
     for learning_tech in learning_techs
@@ -117,7 +117,7 @@ function add_learning!(system::System, model::Model, period_idx::Int, settings::
                     @constraint(model, [k in 1:n_segments+1], e.new_de_capacity - e.aux_new_capacity_de[k] <= max_new_capacity(e)*(1-endogenous_capex_segment_chosen_from_relevant_period(e)[k]))
                     @constraint(model, [k in 1:n_segments+1], e.aux_new_capacity_de[k] <= max_new_capacity(e)*e.endogenous_capex_segment_chosen_from_relevant_period[k])
                     # Cost term
-                    e.endog_annualized_investment_cost_times_newcapacity_de = @expression(model, sum(e.pwl_capex_slopes[k]*de_cost_perc(e)*e.aux_new_capacity_de[k]*de_capital_recovery_factor(wacc(e), capital_recovery_period(e)) for k in 1:n_segments+1))
+                    e.endog_annualized_investment_cost_times_newcapacity_de = @expression(model, sum(e.pwl_capex_slopes[k]*de_cost_perc(e)*e.aux_new_capacity_de[k]*capital_recovery_factor(de_wacc(e), de_cap_recovery(e)) for k in 1:n_segments+1))
 
                     # Shadow capacity AF
                     e.aux_new_capacity_af = @variable(model, [k in 1:n_segments+1], lower_bound = 0.0, base_name = "vAUXNEWCAPAF_$(id(e))_stage$(period_index(e))_seg_$k")
@@ -126,7 +126,7 @@ function add_learning!(system::System, model::Model, period_idx::Int, settings::
                     @constraint(model, [k in 1:n_segments+1], e.new_af_capacity - e.aux_new_capacity_af[k] <= max_new_capacity(e)*(1-endogenous_capex_segment_chosen_from_relevant_period(e)[k]))
                     @constraint(model, [k in 1:n_segments+1], e.aux_new_capacity_af[k] <= max_new_capacity(e)*e.endogenous_capex_segment_chosen_from_relevant_period[k])
                     # Cost term
-                    e.endog_annualized_investment_cost_times_newcapacity_af = @expression(model, sum(e.pwl_capex_slopes[k]*af_cost_perc(e)*e.aux_new_capacity_af[k]*af_capital_recovery_factor(wacc(e), capital_recovery_period(e)) for k in 1:n_segments+1))
+                    e.endog_annualized_investment_cost_times_newcapacity_af = @expression(model, sum(e.pwl_capex_slopes[k]*af_cost_perc(e)*e.aux_new_capacity_af[k]*capital_recovery_factor(af_wacc(e), af_cap_recovery(e)) for k in 1:n_segments+1))
 
                     # Shadow capacity CC
                     e.aux_new_capacity_cc = @variable(model, [k in 1:n_segments+1], lower_bound = 0.0, base_name = "vAUXNEWCAPCC_$(id(e))_stage$(period_index(e))_seg_$k")
@@ -135,7 +135,7 @@ function add_learning!(system::System, model::Model, period_idx::Int, settings::
                     @constraint(model, [k in 1:n_segments+1], e.new_cc_capacity - e.aux_new_capacity_cc[k] <= max_new_capacity(e)*(1-endogenous_capex_segment_chosen_from_relevant_period(e)[k]))
                     @constraint(model, [k in 1:n_segments+1], e.aux_new_capacity_cc[k] <= max_new_capacity(e)*e.endogenous_capex_segment_chosen_from_relevant_period[k])
                     # Cost term
-                    e.endog_annualized_investment_cost_times_newcapacity_cc = @expression(model, sum(e.pwl_capex_slopes[k]*cc_cost_perc(e)*e.aux_new_capacity_cc[k]*cc_capital_recovery_factor(wacc(e), capital_recovery_period(e)) for k in 1:n_segments+1))
+                    e.endog_annualized_investment_cost_times_newcapacity_cc = @expression(model, sum(e.pwl_capex_slopes[k]*cc_cost_perc(e)*e.aux_new_capacity_cc[k]*capital_recovery_factor(cc_wacc(e), cc_cap_recovery(e)) for k in 1:n_segments+1))
                 end
                 ### Enf of linearization
                 
