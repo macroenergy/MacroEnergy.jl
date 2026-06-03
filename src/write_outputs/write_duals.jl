@@ -134,7 +134,7 @@ function _extract_balance_duals(system::System, scaling::Float64=1.0; with_timed
         weights = Float64[subperiod_weight(node, current_subperiod(node, t)) for t in time_interval(node)]
 
         # Rescale dual values by subperiod weights
-        push!(balance_duals, duals_dict[:demand] ./ (weights .* scaling))
+        push!(scaling * balance_duals, duals_dict[:demand] ./ weights )
         with_timedata && push!(timedata_vec, node.timedata)
     end
 
@@ -194,7 +194,7 @@ function write_co2_cap_duals(
         push!(node_ids, id(node))
 
         # Get CO2 shadow prices
-        co2_shadow_price = -dual(constraint) / scaling
+        co2_shadow_price = -dual(constraint) * scaling
         push!(co2_shadow_prices, co2_shadow_price)
 
         # Calculate penalty cost if slack variables exist
