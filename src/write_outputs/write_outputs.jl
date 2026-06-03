@@ -58,7 +58,7 @@ function write_outputs(
 
     # Collect subproblem data (flows, NSD, storage levels, operational costs)
     @info "Collecting subproblem results..."
-    subproblems_data = collect_data_from_subproblems(settings, bm.subproblems)
+    subproblems_data = collect_data_from_subproblems(settings, bm.subproblems, 1.0)
 
     # get the policy slack variables from the operational subproblems
     slack_vars = collect_distributed_policy_slack_vars(bm.subproblems)
@@ -130,7 +130,7 @@ function write_period_outputs(
     period_to_subproblem_map, _ = get_period_to_subproblem_mapping([system])
     subop_indices = period_to_subproblem_map[period_idx]
 
-    subproblems_data = collect_data_from_subproblems(settings, bm.subproblems)
+    subproblems_data = collect_data_from_subproblems(settings, bm.subproblems, 1.0)
     slack_vars    = collect_distributed_policy_slack_vars(bm.subproblems)
     balance_duals = collect_distributed_constraint_duals(bm.subproblems, BalanceConstraint)
 
@@ -173,7 +173,7 @@ function _write_benders_period_outputs(
     # Note: period/system has been updated with the capacity values in planning_solution
     # at the end of function solve_case
     # Capacity results
-    write_capacity(joinpath(results_dir, "capacity.csv"), system)
+    write_capacity(joinpath(results_dir, "capacity.csv"), system, 1.0)
 
     # Flow results
     write_flows(joinpath(results_dir, "flows.csv"), system, flow_df[subop_indices])
@@ -192,10 +192,10 @@ function _write_benders_period_outputs(
 
     # Cost results (system level)
     costs = prepare_costs_benders(system, bm, subop_indices, settings)
-    write_costs(joinpath(results_dir, "costs.csv"), system, costs)
-    write_undiscounted_costs(joinpath(results_dir, "undiscounted_costs.csv"), system, costs)
+    write_costs(joinpath(results_dir, "costs.csv"), system, costs, 1.0)
+    write_undiscounted_costs(joinpath(results_dir, "undiscounted_costs.csv"), system, costs, 1.0)
     # Detailed cost breakdown (assets and zones level)
-    write_detailed_costs_benders(results_dir, system, costs, operational_costs_df[subop_indices], settings)
+    write_detailed_costs_benders(results_dir, system, costs, operational_costs_df[subop_indices], settings, 1.0)
 
     # Write dual values (if enabled)
     # Scaling factor to account for discounting duals in multi-period models
@@ -221,10 +221,11 @@ function _write_benders_period_outputs(
     # Full time series reconstruction (if enabled and TDR is used)
     if settings.WriteFullTimeseries
         write_full_timeseries(results_dir, system,
-            flow_df[subop_indices], 
+            flow_df[subop_indices],
             nsd_df[subop_indices],
-            storage_level_df[subop_indices], 
-            curtailment_df[subop_indices];
+            storage_level_df[subop_indices],
+            curtailment_df[subop_indices],
+            1.0;
             var_cost_discount)
     end
 
@@ -245,26 +246,25 @@ function write_period_outputs(
     model::Model,
     settings::NamedTuple
 )
-    
     # Capacity results
-    write_capacity(joinpath(results_dir, "capacity.csv"), system)
-    
+    write_capacity(joinpath(results_dir, "capacity.csv"), system, 1.0)
+
     # Cost results (system level)
     create_discounted_cost_expressions!(model, system, settings)
     compute_undiscounted_costs!(model, system, settings)
-    write_costs(joinpath(results_dir, "costs.csv"), system, model)
-    write_undiscounted_costs(joinpath(results_dir, "undiscounted_costs.csv"), system, model)
+    write_costs(joinpath(results_dir, "costs.csv"), system, model, 1.0)
+    write_undiscounted_costs(joinpath(results_dir, "undiscounted_costs.csv"), system, model, 1.0)
     # Cost results (detailed breakdown by type and zone, discounted and undiscounted)
-    write_detailed_costs(results_dir, system, model, settings)
+    write_detailed_costs(results_dir, system, model, settings, 1.0)
 
     # Flow results
-    write_flow(joinpath(results_dir, "flows.csv"), system)
+    write_flow(joinpath(results_dir, "flows.csv"), system, 1.0)
     # Non-served demand results
-    write_non_served_demand(joinpath(results_dir, "non_served_demand.csv"), system)
+    write_non_served_demand(joinpath(results_dir, "non_served_demand.csv"), system, 1.0)
     # Storage level results
-    write_storage_level(joinpath(results_dir, "storage_level.csv"), system)
+    write_storage_level(joinpath(results_dir, "storage_level.csv"), system, 1.0)
     # Curtailment results
-    write_curtailment(joinpath(results_dir, "curtailment.csv"), system)
+    write_curtailment(joinpath(results_dir, "curtailment.csv"), system, 1.0)
 
     # Sub-period weights (for downstream revenue and weighted-sum calculations)
     write_time_weights(joinpath(results_dir, "time_weights.csv"), system)
@@ -279,7 +279,7 @@ function write_period_outputs(
 
     # Full time series reconstruction (if enabled and TDR is used)
     if settings.WriteFullTimeseries
-        write_full_timeseries(results_dir, system; var_cost_discount)
+        write_full_timeseries(results_dir, system, 1.0, var_cost_discount)
     end
 
     write_objective_value(results_dir, model)

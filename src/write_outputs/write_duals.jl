@@ -3,7 +3,7 @@
 # ============================================================================
 
 """
-    write_duals(results_dir::AbstractString, system::System, scaling::Float64=1.0)
+    write_duals(results_dir::AbstractString, system::System, scaling::Float64)
 
 Write dual values for all supported constraint types to separate CSV files.
 
@@ -23,7 +23,7 @@ Currently, this function exports dual values for:
 system = case.systems[1]; # single period case
 
 # Export all dual values
-write_duals("results/", system)
+write_duals("results/", system, 1.0)
 ```
 
 # See Also
@@ -33,7 +33,7 @@ write_duals("results/", system)
 function write_duals(
     results_dir::AbstractString,
     system::System,
-    scaling::Float64=1.0
+    scaling::Float64
 )
     @info "Writing constraint dual values to $results_dir"
     
@@ -45,7 +45,7 @@ function write_duals(
 end
 
 """
-    write_balance_duals(results_dir::AbstractString, system::System, scaling::Float64=1.0)
+    write_balance_duals(results_dir::AbstractString, system::System, scaling::Float64)
 
 Write balance constraint dual values (marginal prices) to CSV file.
 
@@ -69,14 +69,14 @@ Wide-format CSV with:
 
 # Examples
 ```julia
-write_balance_duals("results/", system)
+write_balance_duals("results/", system, 1.0)
 # Creates: results/balance_duals.csv
 ```
 """
 function write_balance_duals(
     results_dir::AbstractString,
     system::System,
-    scaling::Float64=1.0
+    scaling::Float64
 )
     @info "Writing balance constraint dual values to $results_dir"
 
@@ -94,7 +94,7 @@ end
 
 
 """
-    _extract_balance_duals(system::System, scaling::Float64=1.0; with_timedata::Bool=false)
+    _extract_balance_duals(system::System, scaling::Float64; with_timedata::Bool=false)
 
 Extract and rescale balance constraint duals for all nodes.
 
@@ -103,7 +103,7 @@ is the rescaled dual vector for the corresponding node.
 When `with_timedata` is `true`, `timedata_vec` contains the `TimeData` for each node
 (for time-series reconstruction); otherwise it is `nothing`.
 """
-function _extract_balance_duals(system::System, scaling::Float64=1.0; with_timedata::Bool=false)
+function _extract_balance_duals(system::System, scaling::Float64; with_timedata::Bool=false)
     balance_duals = Vector{Vector{Float64}}()
     node_ids = Vector{Symbol}()
     timedata_vec = with_timedata ? Vector{TimeData}() : nothing
@@ -142,7 +142,7 @@ function _extract_balance_duals(system::System, scaling::Float64=1.0; with_timed
 end
 
 """
-    write_co2_cap_duals(results_dir::AbstractString, system::System, scaling::Float64=1.0)
+    write_co2_cap_duals(results_dir::AbstractString, system::System, scaling::Float64)
 
 Write CO2 cap constraint dual values (carbon prices) and penalty costs to CSV file.
 
@@ -162,14 +162,14 @@ Long-format CSV with columns:
 
 # Examples
 ```julia
-write_co2_cap_duals("results/", system)
+write_co2_cap_duals("results/", system, 1.0)
 # Creates: results/co2_cap_duals.csv
 ```
 """
 function write_co2_cap_duals(
     results_dir::AbstractString,
     system::System,
-    scaling::Float64=1.0
+    scaling::Float64
 )
     @info "Writing CO2 cap constraint dual values to $results_dir"
 

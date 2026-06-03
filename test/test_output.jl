@@ -369,7 +369,7 @@ function test_writing_output()
 
     @testset "DataFrame Output Functions Tests" begin
         # Test get_optimal_capacity_by_field
-        result = get_optimal_capacity_by_field(mock_edges, (capacity,), 2.0, obj_asset_map)
+        result = get_optimal_capacity_by_field(mock_edges, (capacity,), 2.0; obj_asset_map=obj_asset_map)
         @test result isa DataFrame
         @test size(result, 1) == 6  # 6 edges × 1 field
         
@@ -393,7 +393,7 @@ function test_writing_output()
 
     @testset "Flow Output Functions Tests" begin
         # Test get_optimal_flow
-        result = get_optimal_flow(mock_edges, 1.0, obj_asset_map)
+        result = get_optimal_flow(mock_edges, 1.0; obj_asset_map=obj_asset_map)
         @test result isa DataFrame
         @test size(result, 1) == 18
         
@@ -592,33 +592,33 @@ function test_writing_output()
         # Test with asset map (using existing storage and asset_ref2 from test setup)
         storage_asset_map = Dict{Symbol, Base.RefValue{<:MacroEnergy.AbstractAsset}}(:storage1 => asset_ref2)
         
-        result_with_map = get_optimal_storage_level(storage, 1.0, storage_asset_map)
+        result_with_map = get_optimal_storage_level(storage, 1.0; storage_asset_map=storage_asset_map)
         @test result_with_map[1, :resource_id] == :asset2
         @test result_with_map[1, :resource_type] == "Battery"
         @test result_with_map[1, :component_id] == :storage1
         
         # Test system-level function with filtering (using existing system)
-        result_system = get_optimal_storage_level(system)
+        result_system = get_optimal_storage_level(system, 1.0)
         @test result_system isa DataFrame
         @test size(result_system, 1) == 3  # storage1 has 3 time steps
-        
+
         # Test filtering by commodity - should return results (storage is Electricity)
-        result_filtered_commodity = get_optimal_storage_level(system, commodity="Electricity")
+        result_filtered_commodity = get_optimal_storage_level(system, 1.0, commodity="Electricity")
         @test size(result_filtered_commodity, 1) == 3
-        
+
         # Test filtering by asset type - should return results (asset is Battery)
-        result_filtered_asset = get_optimal_storage_level(system, asset_type="Battery")
+        result_filtered_asset = get_optimal_storage_level(system, 1.0, asset_type="Battery")
         @test size(result_filtered_asset, 1) == 3
-        
+
         # Test filtering with non-existent commodity - should warn and return empty
         @test_logs (:warn, "Commodities not found: [:NaturalGas] when printing storage level results") (:warn, "No storages found after filtering") begin
-            result_no_match = get_optimal_storage_level(system, commodity="NaturalGas")
+            result_no_match = get_optimal_storage_level(system, 1.0, commodity="NaturalGas")
             @test isempty(result_no_match)
         end
-        
+
         # Test filtering with non-existent asset type - should warn and return empty
         @test_logs (:warn, "Asset type(s) not found: [\"VRE\"] when printing storage level results") (:warn, "No storages found after filtering") begin
-            result_no_match_asset = get_optimal_storage_level(system, asset_type="VRE")
+            result_no_match_asset = get_optimal_storage_level(system, 1.0, asset_type="VRE")
             @test isempty(result_no_match_asset)
         end
     end
@@ -657,7 +657,7 @@ function test_writing_output()
         # Test get_optimal_curtailment for single edge
         vre_asset_ref = Ref(vre_asset)
         vre_edge_map = Dict{Symbol,Base.RefValue{<:AbstractAsset}}(:vre_edge => vre_asset_ref)
-        result = get_optimal_curtailment(vre_edge, 1.0, vre_edge_map)
+        result = get_optimal_curtailment(vre_edge, 1.0; obj_asset_map=vre_edge_map)
         @test result isa DataFrame
         @test size(result, 1) == 3  # 3 time steps
         # Curtailment = max(0, capacity * availability(t) - flow(t))
@@ -672,7 +672,7 @@ function test_writing_output()
         @test result[1, :resource_type] == "VRE"
 
         # Test get_optimal_curtailment at system level (with VRE)
-        result_system = get_optimal_curtailment(system_with_vre)
+        result_system = get_optimal_curtailment(system_with_vre, 1.0)
         @test result_system isa DataFrame
         @test size(result_system, 1) == 3
         @test result_system[1, :value] ≈ 49.0
@@ -680,13 +680,13 @@ function test_writing_output()
         @test result_system[3, :value] ≈ 67.0
 
         # Test scaling
-        result_scaled = get_optimal_curtailment(system_with_vre; scaling=2.0)
+        result_scaled = get_optimal_curtailment(system_with_vre, 2.0)
         @test result_scaled[1, :value] ≈ 98.0  # 49 * 2
         @test result_scaled[2, :value] ≈ 116.0 # 58 * 2
         @test result_scaled[3, :value] ≈ 134.0 # 67 * 2
 
         # Test get_optimal_curtailment for system without VRE (returns empty)
-        result_empty = get_optimal_curtailment(system)  # system has ThermalPower and Battery, no VRE
+        result_empty = get_optimal_curtailment(system, 1.0)  # system has ThermalPower and Battery, no VRE
         @test result_empty isa DataFrame
         @test isempty(result_empty)
 
@@ -695,7 +695,7 @@ function test_writing_output()
 
         # Test write_curtailment
         test_curtailment_path = joinpath(curtailment_test_dir, "curtailment.csv")
-        @test_nowarn write_curtailment(test_curtailment_path, system_with_vre)
+        @test_nowarn write_curtailment(test_curtailment_path, system_with_vre, 1.0)
         @test isfile(test_curtailment_path)
         written = CSV.read(test_curtailment_path, DataFrame)
         @test size(written, 1) == 3
@@ -707,7 +707,7 @@ function test_writing_output()
         # Test write_curtailment with wide layout
         system_with_vre.settings = (OutputLayout="wide",)
         test_curtailment_wide_path = joinpath(curtailment_test_dir, "curtailment_wide.csv")
-        @test_nowarn write_curtailment(test_curtailment_wide_path, system_with_vre)
+        @test_nowarn write_curtailment(test_curtailment_wide_path, system_with_vre, 1.0)
         @test isfile(test_curtailment_wide_path)
         written = CSV.read(test_curtailment_wide_path, DataFrame)
         @test size(written, 1) == 3
@@ -718,7 +718,7 @@ function test_writing_output()
         # Test write_curtailment with system without VRE (no file written, no error)
         test_empty_path = joinpath(curtailment_test_dir, "curtailment_empty.csv")
         @test !isfile(test_empty_path)
-        @test_nowarn write_curtailment(test_empty_path, system)
+        @test_nowarn write_curtailment(test_empty_path, system, 1.0)
         @test !isfile(test_empty_path)
 
         rm(curtailment_test_dir, recursive=true)
@@ -1058,7 +1058,7 @@ function test_writing_output()
         annualized_inv_cost = annualized_investment_cost(edge_to_transformation)
 
         # Undiscounted costs
-        costs_result = get_detailed_costs(system, settings)
+        costs_result = get_detailed_costs(system, settings, 1.0)
         detailed_undisc = costs_result.undiscounted
         @test detailed_undisc isa DataFrame
         @test all(c in names(detailed_undisc) for c in ["zone", "type", "category", "value"])
@@ -1098,7 +1098,7 @@ function test_writing_output()
         @test sum(detailed_disc.value[detailed_disc.category .== :NonServedDemand]) ≈ nsd_raw_total * discount_factor * opexmult
 
         # Scaling
-        detailed_scaled = get_detailed_costs(system, settings; scaling=2.0).undiscounted
+        detailed_scaled = get_detailed_costs(system, settings, 2.0).undiscounted
         @test detailed_scaled.value ≈ detailed_undisc.value .* 4  # scaling^2
 
         # Restore edge for other tests
@@ -1131,7 +1131,7 @@ function test_writing_output()
             ExpansionHorizon=MacroEnergy.PerfectForesight(),
         )
 
-        costs_empty = get_detailed_costs(empty_sys, empty_settings)
+        costs_empty = get_detailed_costs(empty_sys, empty_settings, 1.0)
         @test costs_empty.discounted isa DataFrame
         @test costs_empty.undiscounted isa DataFrame
         @test names(costs_empty.discounted) == ["zone", "type", "category", "value"]
@@ -1186,7 +1186,8 @@ function test_writing_output()
         @test_nowarn MacroEnergy.write_cost_breakdown_files!(
             test_dir, detailed_costs, "long";
             prefix = "test_costs",
-            validate_model = nothing
+            validate_model = nothing,
+            scaling = 1.0
         )
         @test isfile(joinpath(test_dir, "test_costs_by_type.csv"))
         @test isfile(joinpath(test_dir, "test_costs_by_zone.csv"))

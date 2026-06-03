@@ -8,7 +8,7 @@ and the settings option `WriteFullTimeseries` is `true`. Skips with a warning ot
 """
 
 """
-    write_full_timeseries(results_dir::AbstractString, system::System; var_cost_discount::Float64=1.0)
+    write_full_timeseries(results_dir::AbstractString, system::System, scaling::Float64, var_cost_discount::Float64=1.0)
 
 Write all time-series outputs expanded to `TotalHoursModeled` hours into a
 `full_time_series/` subdirectory of `results_dir`.
@@ -23,7 +23,8 @@ Skips with a warning if the system does not use time-domain reduction.
 """
 function write_full_timeseries(
     results_dir::AbstractString,
-    system::System;
+    system::System,
+    scaling::Float64,
     var_cost_discount::Float64=1.0
 )
     if !has_tdr(system)
@@ -36,14 +37,14 @@ function write_full_timeseries(
     # Use .csv.gz for long format (files can be very large at 8760 rows × many components)
     file_ext(var::Symbol) = get_output_layout(system, var) == "long" ? ".csv.gz" : ".csv"
 
-    write_flow_full_timeseries(joinpath(fullts_dir, "flows$(file_ext(:Flow))"), system)
-    write_non_served_demand_full_timeseries(joinpath(fullts_dir, "non_served_demand$(file_ext(:NonServedDemand))"), system)
-    write_storage_level_full_timeseries(joinpath(fullts_dir, "storage_level$(file_ext(:StorageLevel))"), system)
-    write_curtailment_full_timeseries(joinpath(fullts_dir, "curtailment$(file_ext(:Curtailment))"), system)
+    write_flow_full_timeseries(joinpath(fullts_dir, "flows$(file_ext(:Flow))"), system, scaling)
+    write_non_served_demand_full_timeseries(joinpath(fullts_dir, "non_served_demand$(file_ext(:NonServedDemand))"), system, scaling)
+    write_storage_level_full_timeseries(joinpath(fullts_dir, "storage_level$(file_ext(:StorageLevel))"), system, scaling)
+    write_curtailment_full_timeseries(joinpath(fullts_dir, "curtailment$(file_ext(:Curtailment))"), system, scaling)
 
     # Balance duals (only when dual exports are enabled)
     if system.settings.DualExportsEnabled
-        write_balance_duals_full_timeseries(joinpath(fullts_dir, "balance_duals.csv"), system, var_cost_discount)
+        write_balance_duals_full_timeseries(joinpath(fullts_dir, "balance_duals.csv"), system, var_cost_discount * scaling)
     end
 
     return nothing
@@ -127,10 +128,10 @@ end
 # Flow
 # ---------------------------------------------------------------------------
 
-function write_flow_full_timeseries(file_path::AbstractString, system::System)
+function write_flow_full_timeseries(file_path::AbstractString, system::System, scaling::Float64)
     @info "Writing full time series flow results to $file_path"
 
-    flow_results = get_full_timeseries_flow(system)
+    flow_results = get_full_timeseries_flow(system, scaling)
 
     if isempty(flow_results)
         @debug "No flow results found"
@@ -146,14 +147,14 @@ function write_flow_full_timeseries(file_path::AbstractString, system::System)
     return nothing
 end
 
-function get_full_timeseries_flow(system::System)
+function get_full_timeseries_flow(system::System, scaling::Float64)
     edges, edge_asset_map = get_edges(system, return_ids_map=true)
     isempty(edges) && return DataFrame()
-    flow_df = reduce(vcat, [_full_ts_flow(obj, edge_asset_map) for obj in edges])
+    flow_df = reduce(vcat, [_full_ts_flow(obj, scaling, edge_asset_map) for obj in edges])
     flow_df[!, (!isa).(eachcol(flow_df), Vector{Missing})]
 end
 
-function _full_ts_flow(obj::AbstractEdge, obj_asset_map::Dict{Symbol,Base.RefValue{<:AbstractAsset}})
+function _full_ts_flow(obj::AbstractEdge, scaling::Float64, obj_asset_map::Dict{Symbol,Base.RefValue{<:AbstractAsset}})
     time_axis = time_interval(obj)
     flow_sign = get_flow_sign(obj)
     vals = Float64[value(flow(obj, t)) * flow_sign for t in time_axis]
@@ -172,7 +173,7 @@ function _full_ts_flow(obj::AbstractEdge, obj_asset_map::Dict{Symbol,Base.RefVal
         variable       = fill(:flow, n),
         year           = fill(missing, n),
         time           = 1:n,
-        value          = full_vals
+        value          = full_vals * scaling
     )
 end
 
@@ -180,10 +181,10 @@ end
 # Non-served demand
 # ---------------------------------------------------------------------------
 
-function write_non_served_demand_full_timeseries(file_path::AbstractString, system::System)
+function write_non_served_demand_full_timeseries(file_path::AbstractString, system::System, scaling::Float64)
     @info "Writing full time series non-served demand results to $file_path"
 
-    nsd_results = get_full_timeseries_non_served_demand(system)
+    nsd_results = get_full_timeseries_non_served_demand(system, scaling)
 
     if isempty(nsd_results)
         @debug "No non-served demand results found (no nodes have NSD variables)"
@@ -200,14 +201,14 @@ function write_non_served_demand_full_timeseries(file_path::AbstractString, syst
     return nothing
 end
 
-function get_full_timeseries_non_served_demand(system::System)
+function get_full_timeseries_non_served_demand(system::System, scaling::Float64)
     nodes_with_nsd = filter(n -> !isempty(non_served_demand(n)), get_nodes(system))
     isempty(nodes_with_nsd) && return DataFrame()
-    nsd_df = reduce(vcat, [_full_ts_nsd(n) for n in nodes_with_nsd])
+    nsd_df = reduce(vcat, [_full_ts_nsd(n, scaling) for n in nodes_with_nsd])
     nsd_df[!, (!isa).(eachcol(nsd_df), Vector{Missing})]
 end
 
-function _full_ts_nsd(node::Node)
+function _full_ts_nsd(node::Node, scaling::Float64)
     time_axis = time_interval(node)
     num_segments = length(segments_non_served_demand(node))
 
@@ -226,7 +227,7 @@ function _full_ts_nsd(node::Node)
             year           = fill(missing, n),
             segment        = fill(s, n),
             time           = 1:n,
-            value          = full_vals
+            value          = full_vals * scaling
         ))
     end
     reduce(vcat, rows)
@@ -236,10 +237,10 @@ end
 # Storage level
 # ---------------------------------------------------------------------------
 
-function write_storage_level_full_timeseries(file_path::AbstractString, system::System)
+function write_storage_level_full_timeseries(file_path::AbstractString, system::System, scaling::Float64)
     @info "Writing full time series storage level results to $file_path"
 
-    storage_results = get_full_timeseries_storage_level(system)
+    storage_results = get_full_timeseries_storage_level(system, scaling)
 
     if isempty(storage_results)
         @debug "No storage level results found"
@@ -255,16 +256,16 @@ function write_storage_level_full_timeseries(file_path::AbstractString, system::
     return nothing
 end
 
-function get_full_timeseries_storage_level(system::System)
+function get_full_timeseries_storage_level(system::System, scaling::Float64)
     storages, storage_asset_map = get_storages(system, return_ids_map=true)
     isempty(storages) && return DataFrame()
     non_empty = filter(s -> !isempty(time_interval(s)), storages)
     isempty(non_empty) && return DataFrame()
-    storage_df = reduce(vcat, [_full_ts_storage(s, storage_asset_map) for s in non_empty])
+    storage_df = reduce(vcat, [_full_ts_storage(s, scaling, storage_asset_map) for s in non_empty])
     storage_df[!, (!isa).(eachcol(storage_df), Vector{Missing})]
 end
 
-function _full_ts_storage(storage::AbstractStorage, storage_asset_map::Dict{Symbol,Base.RefValue{<:AbstractAsset}})
+function _full_ts_storage(storage::AbstractStorage, scaling::Float64, storage_asset_map::Dict{Symbol,Base.RefValue{<:AbstractAsset}})
     time_axis = time_interval(storage)
     vals = Float64[value(storage_level(storage, t)) for t in time_axis]
     full_vals = reconstruct_timeseries(vals, storage.timedata)
@@ -281,7 +282,7 @@ function _full_ts_storage(storage::AbstractStorage, storage_asset_map::Dict{Symb
         variable       = fill(:storage_level, n),
         year           = fill(missing, n),
         time           = 1:n,
-        value          = full_vals
+        value          = full_vals * scaling
     )
 end
 
@@ -289,10 +290,10 @@ end
 # Curtailment
 # ---------------------------------------------------------------------------
 
-function write_curtailment_full_timeseries(file_path::AbstractString, system::System)
+function write_curtailment_full_timeseries(file_path::AbstractString, system::System, scaling::Float64)
     @info "Writing full time series curtailment results to $file_path"
 
-    curtailment_results = get_full_timeseries_curtailment(system)
+    curtailment_results = get_full_timeseries_curtailment(system, scaling)
 
     if isempty(curtailment_results)
         @debug "No curtailment results found (no VRE assets in system)"
@@ -308,16 +309,16 @@ function write_curtailment_full_timeseries(file_path::AbstractString, system::Sy
     return nothing
 end
 
-function get_full_timeseries_curtailment(system::System)
+function get_full_timeseries_curtailment(system::System, scaling::Float64)
     vres_assets = get_assets_sametype(system, VRE)
     isempty(vres_assets) && return DataFrame()
     edges, edge_asset_map = edges_with_capacity_variables(vres_assets, return_ids_map=true)
     isempty(edges) && return DataFrame()
-    curtailment_df = reduce(vcat, [_full_ts_curtailment(obj, edge_asset_map) for obj in edges])
+    curtailment_df = reduce(vcat, [_full_ts_curtailment(obj, scaling, edge_asset_map) for obj in edges])
     curtailment_df[!, (!isa).(eachcol(curtailment_df), Vector{Missing})]
 end
 
-function _full_ts_curtailment(obj::AbstractEdge, obj_asset_map::Dict{Symbol,Base.RefValue{<:AbstractAsset}})
+function _full_ts_curtailment(obj::AbstractEdge, scaling::Float64, obj_asset_map::Dict{Symbol,Base.RefValue{<:AbstractAsset}})
     time_axis = time_interval(obj)
     cap_val = Float64(value(capacity(obj)))
     vals = Float64[max(0.0, cap_val * availability(obj, t) - value(flow(obj, t))) for t in time_axis]
@@ -335,7 +336,7 @@ function _full_ts_curtailment(obj::AbstractEdge, obj_asset_map::Dict{Symbol,Base
         variable       = fill(:curtailment, n),
         year           = fill(missing, n),
         time           = 1:n,
-        value          = full_vals
+        value          = full_vals * scaling
     )
 end
 
@@ -344,7 +345,7 @@ end
 # ===========================================================================
 
 """
-    write_full_timeseries(results_dir, system, flow_dfs, nsd_dfs, storage_dfs, curtailment_dfs; var_cost_discount::Float64=1.0)
+    write_full_timeseries(results_dir, system, flow_dfs, nsd_dfs, storage_dfs, curtailment_dfs, scaling::Float64; var_cost_discount::Float64=1.0)
 
 Benders version: write all time-series outputs expanded to `TotalHoursModeled` hours,
 reconstructing from per-representative-period subproblem DataFrames.
@@ -355,7 +356,8 @@ also written, scaled by `var_cost_discount`.
 function write_full_timeseries(
     results_dir::AbstractString, system::System,
     flow_dfs::Vector{DataFrame}, nsd_dfs::Vector{DataFrame},
-    storage_dfs::Vector{DataFrame}, curtailment_dfs::Vector{DataFrame};
+    storage_dfs::Vector{DataFrame}, curtailment_dfs::Vector{DataFrame},
+    scaling::Float64;
     var_cost_discount::Float64=1.0
 )
     if !has_tdr(system)
@@ -366,14 +368,14 @@ function write_full_timeseries(
     fullts_dir = mkpath(joinpath(results_dir, "full_time_series"))
     file_ext(var::Symbol) = get_output_layout(system, var) == "long" ? ".csv.gz" : ".csv"
 
-    write_flow_full_timeseries(joinpath(fullts_dir, "flows$(file_ext(:Flow))"), system, flow_dfs)
-    write_non_served_demand_full_timeseries(joinpath(fullts_dir, "non_served_demand$(file_ext(:NonServedDemand))"), system, nsd_dfs)
-    write_storage_level_full_timeseries(joinpath(fullts_dir, "storage_level$(file_ext(:StorageLevel))"), system, storage_dfs)
-    write_curtailment_full_timeseries(joinpath(fullts_dir, "curtailment$(file_ext(:Curtailment))"), system, curtailment_dfs)
+    write_flow_full_timeseries(joinpath(fullts_dir, "flows$(file_ext(:Flow))"), system, flow_dfs, scaling)
+    write_non_served_demand_full_timeseries(joinpath(fullts_dir, "non_served_demand$(file_ext(:NonServedDemand))"), system, nsd_dfs, scaling)
+    write_storage_level_full_timeseries(joinpath(fullts_dir, "storage_level$(file_ext(:StorageLevel))"), system, storage_dfs, scaling)
+    write_curtailment_full_timeseries(joinpath(fullts_dir, "curtailment$(file_ext(:Curtailment))"), system, curtailment_dfs, scaling)
 
     # Balance duals (only when dual exports are enabled)
     if system.settings.DualExportsEnabled
-        write_balance_duals_full_timeseries(joinpath(fullts_dir, "balance_duals.csv"), system, var_cost_discount)
+        write_balance_duals_full_timeseries(joinpath(fullts_dir, "balance_duals.csv"), system, scaling * var_cost_discount)
     end
 
     return nothing
@@ -396,7 +398,8 @@ component group, then expanded to `TotalHoursModeled` hours via `reconstruct_tim
 """
 function reconstruct_benders_variable(
     dfs::Vector{DataFrame},
-    timedata_lookup::Dict{Symbol, <:TimeData};
+    timedata_lookup::Dict{Symbol, <:TimeData},
+    scaling::Float64;
     group_cols::Vector{Symbol} = [:component_id]
 )
     non_empty_dfs = filter(!isempty, dfs)
@@ -436,13 +439,13 @@ end
 # Benders: Flow
 # ---------------------------------------------------------------------------
 
-function write_flow_full_timeseries(file_path::AbstractString, system::System, flow_dfs::Vector{DataFrame})
+function write_flow_full_timeseries(file_path::AbstractString, system::System, flow_dfs::Vector{DataFrame}, scaling::Float64)
     @info "Writing full time series flow results to $file_path"
 
     edges = get_edges(system)
     timedata_lookup = Dict(get_component_id(e) => e.timedata for e in edges)
 
-    flow_results = reconstruct_benders_variable(flow_dfs, timedata_lookup)
+    flow_results = reconstruct_benders_variable(flow_dfs, timedata_lookup, scaling)
     if isempty(flow_results)
         @debug "No flow results found"
         return nothing
@@ -461,13 +464,13 @@ end
 # Benders: Non-served demand
 # ---------------------------------------------------------------------------
 
-function write_non_served_demand_full_timeseries(file_path::AbstractString, system::System, nsd_dfs::Vector{DataFrame})
+function write_non_served_demand_full_timeseries(file_path::AbstractString, system::System, nsd_dfs::Vector{DataFrame}, scaling::Float64)
     @info "Writing full time series non-served demand results to $file_path"
 
     nodes = get_nodes(system)
     timedata_lookup = Dict(id(n) => n.timedata for n in nodes)
 
-    nsd_results = reconstruct_benders_variable(nsd_dfs, timedata_lookup; group_cols=[:component_id, :segment])
+    nsd_results = reconstruct_benders_variable(nsd_dfs, timedata_lookup, scaling; group_cols=[:component_id, :segment])
     if isempty(nsd_results)
         @debug "No non-served demand results found (no nodes have NSD variables)"
         return nothing
@@ -487,13 +490,13 @@ end
 # Benders: Storage level
 # ---------------------------------------------------------------------------
 
-function write_storage_level_full_timeseries(file_path::AbstractString, system::System, storage_dfs::Vector{DataFrame})
+function write_storage_level_full_timeseries(file_path::AbstractString, system::System, storage_dfs::Vector{DataFrame}, scaling::Float64)
     @info "Writing full time series storage level results to $file_path"
 
     storages = get_storages(system)
     timedata_lookup = Dict(id(s) => s.timedata for s in storages)
 
-    storage_results = reconstruct_benders_variable(storage_dfs, timedata_lookup)
+    storage_results = reconstruct_benders_variable(storage_dfs, timedata_lookup, scaling)
     if isempty(storage_results)
         @debug "No storage level results found"
         return nothing
@@ -512,13 +515,13 @@ end
 # Benders: Curtailment
 # ---------------------------------------------------------------------------
 
-function write_curtailment_full_timeseries(file_path::AbstractString, system::System, curtailment_dfs::Vector{DataFrame})
+function write_curtailment_full_timeseries(file_path::AbstractString, system::System, curtailment_dfs::Vector{DataFrame}, scaling::Float64)
     @info "Writing full time series curtailment results to $file_path"
 
     edges = get_edges(system)
     timedata_lookup = Dict(get_component_id(e) => e.timedata for e in edges)
 
-    curtailment_results = reconstruct_benders_variable(curtailment_dfs, timedata_lookup)
+    curtailment_results = reconstruct_benders_variable(curtailment_dfs, timedata_lookup, scaling)
     if isempty(curtailment_results)
         @debug "No curtailment results found (no VRE assets in system)"
         return nothing
@@ -541,7 +544,7 @@ end
 # ---------------------------------------------------------------------------
 
 """
-    write_balance_duals_full_timeseries(file_path::AbstractString, system::System, scaling::Float64=1.0)
+    write_balance_duals_full_timeseries(file_path::AbstractString, system::System, scaling::Float64)
 
 Write balance constraint duals expanded to `TotalHoursModeled` hours.
 
@@ -550,7 +553,7 @@ Requires the model to have been solved so that dual values are available.
 function write_balance_duals_full_timeseries(
     file_path::AbstractString,
     system::System,
-    scaling::Float64=1.0
+    scaling::Float64
 )
     if !has_tdr(system)
         return nothing
