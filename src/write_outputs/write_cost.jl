@@ -930,9 +930,9 @@ function validate_total_cost(
     # Validate the total cost against the objective value
     # Get objective value for validation (apply same discounting/scaling)
     if discounted
-        objective_value = value(model[:eDiscountedFixedCost]) + value(model[:eDiscountedVariableCost]) * scaling^2
+        objective_value = (value(model[:eDiscountedFixedCost]) + value(model[:eDiscountedVariableCost])) * scaling^2
     else
-        objective_value = value(model[:eFixedCost]) + value(model[:eVariableCost]) * scaling^2
+        objective_value = (value(model[:eFixedCost]) + value(model[:eVariableCost])) * scaling^2
     end
     grand_total = only(df[df.category .== :Total, :value])
     validation_diff = abs(grand_total - objective_value)

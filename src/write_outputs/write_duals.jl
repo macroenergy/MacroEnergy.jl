@@ -134,7 +134,7 @@ function _extract_balance_duals(system::System, scaling::Float64=1.0; with_timed
         weights = Float64[subperiod_weight(node, current_subperiod(node, t)) for t in time_interval(node)]
 
         # Rescale dual values by subperiod weights
-        push!(scaling * balance_duals, duals_dict[:demand] ./ weights )
+        push!(balance_duals, scaling * duals_dict[:demand] ./ weights )
         with_timedata && push!(timedata_vec, node.timedata)
     end
 
