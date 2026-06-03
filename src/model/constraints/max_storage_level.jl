@@ -57,7 +57,7 @@ function add_model_constraint!(ct::MaxInitStorageLevelConstraint, g::LongDuratio
     ct.constraint_ref = @constraint(
         model,
         [r in modeled_subperiods(g)],
-        storage_initial(g, r) <= max_storage_level(g, t_start) * capacity(g)
+        storage_initial(g, r) <= max_storage_level(g, t_start[subperiod_map(g,r)]) * capacity(g)
     )
 
     return nothing
