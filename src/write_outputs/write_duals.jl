@@ -194,8 +194,12 @@ function write_co2_cap_duals(
         push!(node_ids, id(node))
 
         # Get CO2 shadow prices
-        co2_shadow_price = -dual(constraint) / scaling
-        push!(co2_shadow_prices, co2_shadow_price)
+        try
+            co2_shadow_price = -dual(constraint) / scaling
+            push!(co2_shadow_prices, co2_shadow_price)
+        catch e
+            @warn "Dual could not be recovered for node $(id(node)): $e"
+        end
 
         # Calculate penalty cost if slack variables exist
         if haskey(price_unmet_policy(node), ct_type)
