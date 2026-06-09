@@ -1,5 +1,0 @@
-{
-  "PeriodLengths": [10,10,10],
-  "DiscountRate": 0.045,
-  "SolutionAlgorithm": "Benders"
-}
