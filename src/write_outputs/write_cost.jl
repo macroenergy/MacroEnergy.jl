@@ -611,8 +611,6 @@ function get_detailed_costs(system::System, settings::NamedTuple; scaling::Float
             attributed_fuel_cost_by_node[id(source_node)] = get(attributed_fuel_cost_by_node, id(source_node), 0.0) + fuel
         end
 
-        (inv_pv == 0 && inv_cf == 0 && fom_pv == 0 && fom_cf == 0 && vom == 0 && fuel == 0 && startup == 0) && continue
-
         zone = get_zone_name(e)
         asset_type = get_type(edge_asset_map[id(e)])
 
@@ -623,7 +621,7 @@ function get_detailed_costs(system::System, settings::NamedTuple; scaling::Float
             (:Fuel, fuel, fuel), # first term is discounted later (vectorized)
             (:Startup, startup, startup), # first term is discounted later (vectorized)
         ]
-            (cost_pv == 0 && cost_cf == 0) && continue
+            
             push!(zones, zone)
             push!(types, asset_type)
             push!(categories, category)
@@ -637,8 +635,6 @@ function get_detailed_costs(system::System, settings::NamedTuple; scaling::Float
         inv_pv, inv_cf = compute_investment_cost(g)
         fom_pv, fom_cf = compute_fixed_om_cost(g)
 
-        (inv_pv == 0 && inv_cf == 0 && fom_pv == 0 && fom_cf == 0) && continue
-
         zone = get_zone_name(g)
         asset_type = get_type(storage_asset_map[id(g)])
 
@@ -646,7 +642,7 @@ function get_detailed_costs(system::System, settings::NamedTuple; scaling::Float
             (:Investment, inv_pv, inv_cf),
             (:FixedOM, fom_pv, fom_cf),
         ]
-            (cost_pv == 0 && cost_cf == 0) && continue
+
             push!(zones, zone)
             push!(types, asset_type)
             push!(categories, category)
@@ -795,8 +791,6 @@ function get_fixed_costs_benders(system::System, settings::NamedTuple; scaling::
     for e in edges
         inv_pv, inv_cf = compute_investment_cost(e)
         fom_pv, fom_cf = compute_fixed_om_cost(e)
-
-        (inv_pv == 0 && inv_cf == 0 && fom_pv == 0 && fom_cf == 0) && continue
 
         zone = get_zone_name(e)
         asset_type = get_type(edge_asset_map[id(e)])
