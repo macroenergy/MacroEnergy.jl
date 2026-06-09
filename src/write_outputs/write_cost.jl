@@ -796,7 +796,7 @@ function get_fixed_costs_benders(system::System, settings::NamedTuple; scaling::
         asset_type = get_type(edge_asset_map[id(e)])
 
         for (category, cost_pv, cost_cf) in [(:Investment, inv_pv, inv_cf), (:FixedOM, fom_pv, fom_cf)]
-            (cost_pv == 0 && cost_cf == 0) && continue
+    
             push!(zones, zone)
             push!(types, asset_type)
             push!(categories, category)
@@ -810,13 +810,11 @@ function get_fixed_costs_benders(system::System, settings::NamedTuple; scaling::
         inv_pv, inv_cf = compute_investment_cost(g)
         fom_pv, fom_cf = compute_fixed_om_cost(g)
 
-        (inv_pv == 0 && inv_cf == 0 && fom_pv == 0 && fom_cf == 0) && continue
-
         zone = get_zone_name(g)
         asset_type = get_type(storage_asset_map[id(g)])
 
         for (category, cost_pv, cost_cf) in [(:Investment, inv_pv, inv_cf), (:FixedOM, fom_pv, fom_cf)]
-            (cost_pv == 0 && cost_cf == 0) && continue
+            
             push!(zones, zone)
             push!(types, asset_type)
             push!(categories, category)
