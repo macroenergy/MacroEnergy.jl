@@ -49,6 +49,12 @@ end
 
 
 function prepare_case!(systems::Vector{System}, settings::NamedTuple)
+    # Scale raw input parameters before any cost derivation, so the derived
+    # (annualized/discounted) costs inherit the scaling. Runs before any model
+    # generation / capacity carry-over, so every `existing_capacity` is still a
+    # plain user-supplied number at this point. No-op when scaling is disabled.
+    scale!(systems, parameter_scaling_factor(settings))
+
     for (system_id, system) in enumerate(systems)
         compute_annualized_costs!(system,settings) 
         
