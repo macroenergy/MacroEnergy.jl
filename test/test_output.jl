@@ -71,6 +71,8 @@ import MacroEnergy:
     filter_edges_by_commodity!,
     write_curtailment,
     write_time_weights,
+    write_capex,
+    get_capex,
     VRE
 
 
@@ -1139,6 +1141,96 @@ function test_writing_output()
         @test isempty(costs_empty.discounted)
         @test isempty(costs_empty.undiscounted)
         rm(empty_dir, recursive = true)
+    end
+
+    @testset "get_capex and write_capex" begin
+        # In the test system:
+        #   edge_to_transformation: has_capacity=true, can_expand=false (default)
+        #   storage: has_capacity=true, can_expand=true (default)
+        # Both have investment_cost=0.0 and annualized_investment_cost=nothing by default.
+
+        # --- Structure test (all-zero baseline) ---
+        result = get_capex(system)
+        @test result isa DataFrame
+        @test :capex in result.variable
+        @test all(result.value .== 0.0)
+        @test "value" in names(result)
+        @test "component_id" in names(result)
+
+        # --- Edge: investment_cost > 0 ---
+        edge_to_transformation.can_expand = true
+        edge_to_transformation.investment_cost = 1000.0
+        edge_to_transformation.new_capacity = 8.0
+        result_inv = get_capex(system)
+        edge_row = result_inv[result_inv.component_id .== :edge3, :]
+        @test size(edge_row, 1) == 1
+        @test edge_row[1, :value] ≈ 8000.0            # 1000.0 × 8.0
+        @test edge_row[1, :variable] == :capex
+        @test edge_row[1, :resource_id] == :asset1
+        @test edge_row[1, :resource_type] == "ThermalPower{NaturalGas}"
+        @test edge_row[1, :commodity] == :Electricity
+
+        # --- Edge: only annualized_investment_cost set → back-calculate upfront cost ---
+        edge_to_transformation.investment_cost = 0.0
+        edge_to_transformation.annualized_investment_cost = 200.0
+        edge_to_transformation.wacc = 0.05
+        edge_to_transformation.capital_recovery_period = 20
+        edge_to_transformation.new_capacity = 3.0
+        result_ann = get_capex(system)
+        expected_inv = 200.0 / capital_recovery_factor(0.05, 20)
+        edge_row_ann = result_ann[result_ann.component_id .== :edge3, :]
+        @test edge_row_ann[1, :value] ≈ expected_inv * 3.0
+
+        # --- Edge: annualized_investment_cost with missing wacc (falls back to 0% discount) ---
+        edge_to_transformation.wacc = missing
+        result_mw = get_capex(system)
+        expected_inv_zero_wacc = 200.0 / capital_recovery_factor(0.0, 20)
+        edge_row_mw = result_mw[result_mw.component_id .== :edge3, :]
+        @test edge_row_mw[1, :value] ≈ expected_inv_zero_wacc * 3.0
+
+        # --- Edge: annualized_investment_cost = nothing → zero ---
+        edge_to_transformation.annualized_investment_cost = nothing
+        edge_to_transformation.new_capacity = 5.0
+        result_nothing = get_capex(system)
+        edge_row_nothing = result_nothing[result_nothing.component_id .== :edge3, :]
+        @test edge_row_nothing[1, :value] == 0.0
+
+        # --- can_expand = false → zero even with investment_cost set ---
+        edge_to_transformation.can_expand = false
+        edge_to_transformation.investment_cost = 999.0
+        result_noexp = get_capex(system)
+        edge_row_noexp = result_noexp[result_noexp.component_id .== :edge3, :]
+        @test edge_row_noexp[1, :value] == 0.0
+
+        # --- Scaling ---
+        edge_to_transformation.can_expand = true
+        edge_to_transformation.investment_cost = 500.0
+        edge_to_transformation.new_capacity = 4.0
+        result_scaled = get_capex(system, 2.0)
+        edge_row_scaled = result_scaled[result_scaled.component_id .== :edge3, :]
+        @test edge_row_scaled[1, :value] ≈ 500.0 * 4.0 * (2.0^2)   # investment_cost × new_cap × scaling^2
+
+        # --- write_capex writes a valid CSV ---
+        test_dir = abspath(mktempdir("."))
+        capex_path = joinpath(test_dir, "capex.csv")
+        @test_nowarn write_capex(capex_path, system)
+        @test isfile(capex_path)
+        written = CSV.read(capex_path, DataFrame)
+        @test "value" in names(written)
+        @test "variable" in names(written)
+        @test all(String.(written.variable) .== "capex")
+        edge_written = written[written.component_id .== "edge3", :]
+        @test size(edge_written, 1) == 1
+        @test edge_written[1, :value] ≈ 500.0 * 4.0   # write_capex uses default scaling=1.0
+        rm(test_dir, recursive=true)
+
+        # Restore edge_to_transformation to defaults
+        edge_to_transformation.can_expand = false
+        edge_to_transformation.investment_cost = 0.0
+        edge_to_transformation.annualized_investment_cost = nothing
+        edge_to_transformation.wacc = missing
+        edge_to_transformation.capital_recovery_period = 1
+        edge_to_transformation.new_capacity = 0.0
     end
 
     @testset "Detailed cost helper functions" begin
