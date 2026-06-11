@@ -8,7 +8,7 @@ function default_case_settings()
         :DiscountRate => 0.,
         :WriteFullTimeseries => false,
         :ParameterScaling => false,
-        :ParameterScalingFactor => 1e5,
+        :ParameterScalingFactor => 1e3,
         :SolutionAlgorithm => "Monolithic",
         :ExpansionHorizon => "PerfectForesight"
     )
