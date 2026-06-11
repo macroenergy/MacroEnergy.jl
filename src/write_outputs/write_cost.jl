@@ -936,7 +936,20 @@ function validate_total_cost(
     end
     grand_total = only(df[df.category .== :Total, :value])
     validation_diff = abs(grand_total - objective_value)
-    is_valid = validation_diff < validation_tolerance * max(abs(objective_value), 1.0)
+
+    # Under parameter scaling, the objective is reconstructed by ×S^2 from a model solved
+    # in scaled space; in the case of a Benders run, the solver's reported objective and 
+    # a primal cost re-evaluation then diverge at the solver-tolerance level. 
+    # Relax the relative threshold with `scaling` so this artifact is not flagged, while 
+    # errors orders of magnitude larger (missing categories, wrong S power)
+    # are still caught. At scaling == 1.0 the tolerance is unchanged (strict 1e-6).
+
+    if isa(model, Model)
+        is_valid = validation_diff < validation_tolerance * max(abs(objective_value), 1.0)
+    elseif isa(model, NamedTuple)
+        is_valid = validation_diff < validation_tolerance * max(abs(objective_value), 1.0) * sqrt(max(1.0, scaling))
+    end
+    
     !is_valid && @warn "Objective value validation failed. Validation difference: $validation_diff"
     return is_valid
 end
