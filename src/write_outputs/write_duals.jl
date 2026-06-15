@@ -46,7 +46,7 @@ function write_duals(
 end
 
 """
-    write_balance_duals(results_dir::AbstractString, system::System, scaling::Float64)
+    write_balance_duals(results_dir::AbstractString, system::System, scaling::Float64, var_cost_discount::Float64)
 
 Write balance constraint dual values (marginal prices) to CSV file.
 
@@ -70,7 +70,7 @@ Wide-format CSV with:
 
 # Examples
 ```julia
-write_balance_duals("results/", system, 1.0)
+write_balance_duals("results/", system, 1.0, 1.0)
 # Creates: results/balance_duals.csv
 ```
 """

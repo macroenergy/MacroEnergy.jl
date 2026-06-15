@@ -161,7 +161,7 @@ function test_write_balance_duals(case, model)
         temp_dir = abspath(mktempdir("."))
         
         try
-            @test_logs (:info, "Writing balance constraint dual values to $(temp_dir)") write_balance_duals(temp_dir, system, 1.0)
+            @test_logs (:info, "Writing balance constraint dual values to $(temp_dir)") write_balance_duals(temp_dir, system, 1.0, 1.0)
 
             # Check that balance_duals.csv was created
             output_file = joinpath(temp_dir, "balance_duals.csv")
@@ -213,7 +213,7 @@ function test_write_co2_cap_duals(case, model)
         
         try
             # Write CO2 cap duals
-            @test_logs (:info, "Writing CO2 cap constraint dual values to $(temp_dir)") write_co2_cap_duals(temp_dir, system, 1.0)
+            @test_logs (:info, "Writing CO2 cap constraint dual values to $(temp_dir)") write_co2_cap_duals(temp_dir, system, 1.0, 1.0)
             
             # Check if co2_cap_duals.csv was created
             output_file = joinpath(temp_dir, "co2_cap_duals.csv")

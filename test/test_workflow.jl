@@ -369,7 +369,7 @@ function test_full_timeseries(case)
     write_non_served_demand(joinpath(results_dir, "non_served_demand.csv"), system, 1.0)
     write_storage_level(joinpath(results_dir, "storage_level.csv"), system, 1.0)
     write_curtailment(joinpath(results_dir, "curtailment.csv"), system, 1.0)
-    write_balance_duals(results_dir, system, 1.0)
+    write_balance_duals(results_dir, system, 1.0, 1.0)
     write_full_timeseries(results_dir, system, 1.0, 1.0)
 
     # Load period map and time data
