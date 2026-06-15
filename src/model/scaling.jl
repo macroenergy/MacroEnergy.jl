@@ -98,7 +98,7 @@ end
 
 # Definitive scalable-field lists. Cost coefficients and extensive quantities are
 # scaled; dimensionless quantities (fractions, durations, lifetimes, rates,
-# efficiencies) are not. See the plan/comments for the full classification.
+# efficiencies) are not.
 # Note: derived fields are intentionally NOT listed here. They are recomputed by
 # `prepare_case!` (which runs after `scale!`) from the already-scaled raw inputs,
 # so they inherit the scaling automatically:
@@ -109,7 +109,7 @@ end
 # the user (otherwise it is `nothing` at scale! time and the guard skips it).
 # `startup_cost` is a base attribute of every edge (not only `EdgeWithUC`). It is
 # scaled like the other cost coefficients: the unit-commitment startup term is
-# `startup_cost * capacity_size * ustart` (edge.jl:663) with `ustart` an unscaled
+# `startup_cost * capacity_size * ustart` with `ustart` an unscaled
 # integer, so scaling both `startup_cost` and `capacity_size` by 1/S makes that
 # term ~1/S^2, consistent with the other cost terms.
 const _EDGE_SCALABLE_FIELDS = Symbol[

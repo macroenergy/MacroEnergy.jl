@@ -221,7 +221,7 @@ function _write_benders_period_outputs(
             @debug "No balance constraint duals found for period $period_idx"
         end
 
-        write_duals(results_dir, system, scaling * var_cost_discount)
+        write_duals(results_dir, system, scaling, var_cost_discount)
     end
 
     # Full time series reconstruction (if enabled and TDR is used)
@@ -231,7 +231,7 @@ function _write_benders_period_outputs(
             nsd_df[subop_indices],
             storage_level_df[subop_indices], 
             curtailment_df[subop_indices],
-            scaling;
+            scaling,
             var_cost_discount)
     end
 
@@ -282,7 +282,7 @@ function write_period_outputs(
     var_cost_discount = compute_variable_cost_discount_scaling(period_idx, settings)
     if system.settings.DualExportsEnabled
         ensure_duals_available!(model)
-        write_duals(results_dir, system, scaling * var_cost_discount)
+        write_duals(results_dir, system, scaling, var_cost_discount)
     end
 
     # Full time series reconstruction (if enabled and TDR is used)

@@ -33,13 +33,14 @@ write_duals("results/", system, 1.0)
 function write_duals(
     results_dir::AbstractString,
     system::System,
-    scaling::Float64
+    scaling::Float64,
+    var_cost_discount::Float64
 )
     @info "Writing constraint dual values to $results_dir"
     
     # Export each constraint type to its own file
-    write_balance_duals(results_dir, system, scaling)
-    write_co2_cap_duals(results_dir, system, scaling)
+    write_balance_duals(results_dir, system, scaling, var_cost_discount)
+    write_co2_cap_duals(results_dir, system, scaling, var_cost_discount)
     
     return nothing
 end
@@ -76,14 +77,15 @@ write_balance_duals("results/", system, 1.0)
 function write_balance_duals(
     results_dir::AbstractString,
     system::System,
-    scaling::Float64
+    scaling::Float64,
+    var_cost_discount::Float64
 )
     @info "Writing balance constraint dual values to $results_dir"
 
     filename = "balance_duals.csv"
     file_path = joinpath(results_dir, filename)
 
-    balance_duals, node_ids, _ = _extract_balance_duals(system, scaling)
+    balance_duals, node_ids, _ = _extract_balance_duals(system, scaling, var_cost_discount)
 
     df = DataFrame(balance_duals, node_ids, copycols=false)
     write_dataframe(file_path, df)
@@ -103,7 +105,7 @@ is the rescaled dual vector for the corresponding node.
 When `with_timedata` is `true`, `timedata_vec` contains the `TimeData` for each node
 (for time-series reconstruction); otherwise it is `nothing`.
 """
-function _extract_balance_duals(system::System, scaling::Float64; with_timedata::Bool=false)
+function _extract_balance_duals(system::System, scaling::Float64, var_cost_discount::Float64; with_timedata::Bool=false)
     balance_duals = Vector{Vector{Float64}}()
     node_ids = Vector{Symbol}()
     timedata_vec = with_timedata ? Vector{TimeData}() : nothing
@@ -134,7 +136,7 @@ function _extract_balance_duals(system::System, scaling::Float64; with_timedata:
         weights = Float64[subperiod_weight(node, current_subperiod(node, t)) for t in time_interval(node)]
 
         # Rescale dual values by subperiod weights
-        push!(balance_duals, scaling * duals_dict[:demand] ./ weights )
+        push!(balance_duals, scaling * duals_dict[:demand] ./ (weights .* var_cost_discount) )
         with_timedata && push!(timedata_vec, node.timedata)
     end
 
@@ -169,7 +171,8 @@ write_co2_cap_duals("results/", system, 1.0)
 function write_co2_cap_duals(
     results_dir::AbstractString,
     system::System,
-    scaling::Float64
+    scaling::Float64,
+    var_cost_discount::Float64
 )
     @info "Writing CO2 cap constraint dual values to $results_dir"
 
@@ -194,7 +197,7 @@ function write_co2_cap_duals(
         push!(node_ids, id(node))
 
         # Get CO2 shadow prices
-        co2_shadow_price = -dual(constraint) * scaling
+        co2_shadow_price = -scaling * dual(constraint) / var_cost_discount
         push!(co2_shadow_prices, co2_shadow_price)
 
         # Calculate penalty cost if slack variables exist

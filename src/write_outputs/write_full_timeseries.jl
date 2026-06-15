@@ -8,7 +8,7 @@ and the settings option `WriteFullTimeseries` is `true`. Skips with a warning ot
 """
 
 """
-    write_full_timeseries(results_dir::AbstractString, system::System, scaling::Float64, var_cost_discount::Float64=1.0)
+    write_full_timeseries(results_dir::AbstractString, system::System, scaling::Float64, var_cost_discount::Float64)
 
 Write all time-series outputs expanded to `TotalHoursModeled` hours into a
 `full_time_series/` subdirectory of `results_dir`.
@@ -25,7 +25,7 @@ function write_full_timeseries(
     results_dir::AbstractString,
     system::System,
     scaling::Float64,
-    var_cost_discount::Float64=1.0
+    var_cost_discount::Float64
 )
     if !has_tdr(system)
         @warn "Skipping full time series reconstruction: no period map detected."
@@ -44,7 +44,7 @@ function write_full_timeseries(
 
     # Balance duals (only when dual exports are enabled)
     if system.settings.DualExportsEnabled
-        write_balance_duals_full_timeseries(joinpath(fullts_dir, "balance_duals.csv"), system, var_cost_discount * scaling)
+        write_balance_duals_full_timeseries(joinpath(fullts_dir, "balance_duals.csv"), system, scaling, var_cost_discount)
     end
 
     return nothing
@@ -345,20 +345,20 @@ end
 # ===========================================================================
 
 """
-    write_full_timeseries(results_dir, system, flow_dfs, nsd_dfs, storage_dfs, curtailment_dfs, scaling::Float64; var_cost_discount::Float64=1.0)
+    write_full_timeseries(results_dir, system, flow_dfs, nsd_dfs, storage_dfs, curtailment_dfs, scaling::Float64, var_cost_discount::Float64)
 
 Benders version: write all time-series outputs expanded to `TotalHoursModeled` hours,
 reconstructing from per-representative-period subproblem DataFrames.
 
 When `DualExportsEnabled` is set in the system settings, balance constraint duals are
-also written, scaled by `var_cost_discount`.
+also written, scaled by `scaling` and `var_cost_discount`.
 """
 function write_full_timeseries(
     results_dir::AbstractString, system::System,
     flow_dfs::Vector{DataFrame}, nsd_dfs::Vector{DataFrame},
     storage_dfs::Vector{DataFrame}, curtailment_dfs::Vector{DataFrame},
-    scaling::Float64;
-    var_cost_discount::Float64=1.0
+    scaling::Float64,
+    var_cost_discount::Float64
 )
     if !has_tdr(system)
         @warn "Skipping full time series reconstruction: no period map detected."
@@ -375,7 +375,7 @@ function write_full_timeseries(
 
     # Balance duals (only when dual exports are enabled)
     if system.settings.DualExportsEnabled
-        write_balance_duals_full_timeseries(joinpath(fullts_dir, "balance_duals.csv"), system, scaling * var_cost_discount)
+        write_balance_duals_full_timeseries(joinpath(fullts_dir, "balance_duals.csv"), system, scaling, var_cost_discount)
     end
 
     return nothing
@@ -544,7 +544,7 @@ end
 # ---------------------------------------------------------------------------
 
 """
-    write_balance_duals_full_timeseries(file_path::AbstractString, system::System, scaling::Float64)
+    write_balance_duals_full_timeseries(file_path::AbstractString, system::System, scaling::Float64, var_cost_discount::Float64)
 
 Write balance constraint duals expanded to `TotalHoursModeled` hours.
 
@@ -553,7 +553,8 @@ Requires the model to have been solved so that dual values are available.
 function write_balance_duals_full_timeseries(
     file_path::AbstractString,
     system::System,
-    scaling::Float64
+    scaling::Float64,
+    var_cost_discount::Float64
 )
     if !has_tdr(system)
         return nothing
@@ -561,7 +562,7 @@ function write_balance_duals_full_timeseries(
 
     @info "Writing full time series balance duals to $file_path"
 
-    duals, node_ids, timedata_vec = _extract_balance_duals(system, scaling; with_timedata=true)
+    duals, node_ids, timedata_vec = _extract_balance_duals(system, scaling, var_cost_discount; with_timedata=true)
     isempty(duals) && return nothing
 
     full_duals = [reconstruct_timeseries(d, td) for (d, td) in zip(duals, timedata_vec)]
