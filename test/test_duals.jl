@@ -266,7 +266,7 @@ function test_write_duals(case, model)
         
         try
             # Write all duals to CSV files
-            @test_logs (:info, "Writing constraint dual values to $(temp_dir)") (:info, "Writing balance constraint dual values to $(temp_dir)") (:info, "Writing CO2 cap constraint dual values to $(temp_dir)") write_duals(temp_dir, system, 1.0)
+            @test_logs (:info, "Writing constraint dual values to $(temp_dir)") (:info, "Writing balance constraint dual values to $(temp_dir)") (:info, "Writing CO2 cap constraint dual values to $(temp_dir)") write_duals(temp_dir, system, 1.0, 1.0)
             
             # Check that balance_duals.csv was created
             balance_file = joinpath(temp_dir, "balance_duals.csv")
