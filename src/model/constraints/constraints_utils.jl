@@ -14,6 +14,12 @@ function add_constraints_by_type!(system::System, model::Model, constraint_type:
         end
     end
 
+    for c in system.constraints
+        if isa(c, constraint_type)
+            add_model_constraint!(c, system, model)
+        end
+    end
+
     return nothing
 end
 
