@@ -1,10 +1,16 @@
-struct VRE <: AbstractAsset
+# `VRE` is parametrized by a technology *tag* (a `Symbol`, e.g. `VRE{:Solar}`), NOT a commodity.
+# The single struct guarantees every variant shares the same fields. Users select a technology
+# purely from input data (`technology: "Solar"`) — no Julia code needed to add a new one.
+struct VRE{T} <: AbstractAsset
     id::AssetId
     energy_transform::Transformation
     edge::Edge{<:Electricity}
 end
 
-function default_data(t::Type{VRE}, id=missing, style="full")
+# Default technology tag used when an input asset of `type: "VRE"` specifies no `technology`.
+const DEFAULT_VRE_TECHNOLOGY = :Generic
+
+function default_data(t::Type{<:VRE}, id=missing, style="full")
     if style == "full"
         return full_default_data(t, id)
     else
@@ -12,7 +18,7 @@ function default_data(t::Type{VRE}, id=missing, style="full")
     end
 end
 
-function full_default_data(::Type{VRE}, id=missing)
+function full_default_data(::Type{<:VRE}, id=missing)
     return OrderedDict{Symbol,Any}(
         :id => id,
         :transforms => @transform_data(
@@ -32,7 +38,7 @@ function full_default_data(::Type{VRE}, id=missing)
     )
 end
 
-function simple_default_data(::Type{VRE}, id=missing)
+function simple_default_data(::Type{<:VRE}, id=missing)
     return OrderedDict{Symbol,Any}(
         :id => id,
         :location => missing,
@@ -53,10 +59,14 @@ end
 
 """
     make(::Type{<:VRE}, data::AbstractDict{Symbol, Any}, system::System) -> VRE
-    
-    VRE is an alias for Union{SolarPV, WindTurbine}
+
+    `VRE{T}` is a variable renewable asset parametrized by a technology *tag* `T` (a `Symbol`,
+    e.g. `VRE{:Solar}`). The tag is read from the optional `technology` field in `data`; when
+    absent the asset is built as `VRE{$(DEFAULT_VRE_TECHNOLOGY)}`, so legacy `type: "VRE"` inputs
+    keep working. Adding a new technology needs no Julia code — just set `technology` in the input.
 
     Necessary data fields:
+     - technology: String (optional; defaults to "$(DEFAULT_VRE_TECHNOLOGY)")
      - transforms: Dict{Symbol, Any}
         - id: String
         - timedata: String
@@ -71,6 +81,11 @@ end
             - constraints: Vector{AbstractTypeConstraint}
 """
 function make(asset_type::Type{<:VRE}, data::AbstractDict{Symbol,Any}, system::System)
+    # Resolve the technology tag: an explicit concrete type (e.g. VRE{:Solar}) wins; otherwise
+    # read the `technology` data field, defaulting when absent.
+    technology = isconcretetype(asset_type) ? only(asset_type.parameters) :
+                 Symbol(get(data, :technology, DEFAULT_VRE_TECHNOLOGY))
+
     id = AssetId(data[:id])
     location = as_symbol_or_missing(get(data, :location, missing))
 
@@ -121,5 +136,5 @@ function make(asset_type::Type{<:VRE}, data::AbstractDict{Symbol,Any}, system::S
         elec_end_node,
     )
 
-    return asset_type(id, vre_transform, elec_edge)
+    return VRE{technology}(id, vre_transform, elec_edge)
 end

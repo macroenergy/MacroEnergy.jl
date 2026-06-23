@@ -58,8 +58,7 @@ get_resource_id(obj::Node) = id(obj)
 get_component_id(obj::T) where {T<:Union{AbstractEdge,Node,AbstractStorage}} = Symbol("$(id(obj))")
 
 # Get the type of an asset
-function get_type(asset::Base.RefValue{<:AbstractAsset})
-    asset = asset[]
+function get_type(asset::AbstractAsset)
     type_name = string(typesymbol(typeof(asset)))
     param_names = string.(typesymbol.(typeof(asset).parameters))
     # If the asset has commodities that are parametric, return the type name with the commodities
@@ -67,8 +66,9 @@ function get_type(asset::Base.RefValue{<:AbstractAsset})
         return "$type_name{$(join(param_names, ","))}"
     else
         return type_name
-    end   
+    end
 end
+get_type(asset::Base.RefValue{<:AbstractAsset}) = get_type(asset[])
 # Get the type of a MacroObject
 get_type(obj::T) where {T<:Union{AbstractEdge,Node,AbstractStorage}} = string(typeof(obj))
 

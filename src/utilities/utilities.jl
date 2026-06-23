@@ -28,6 +28,10 @@ function typesymbol(type::UnionAll)
     return Base.typename(type).name
 end
 
+# Some assets are parametrized by a non-type tag (e.g. `VRE{:Solar}`), where the type parameter
+# is a `Symbol` rather than a `DataType`. Return the tag as-is so `get_type` can render it.
+typesymbol(tag::Symbol) = tag
+
 function fieldnames(type::T) where {T<:Type{<:AbstractAsset}}
     return filter(x -> x != :id, Base.fieldnames(type))
 end
