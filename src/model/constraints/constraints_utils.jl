@@ -48,10 +48,15 @@ function add_constraints_by_type!(
 end
 
 function add_constraints_by_type!(
-    location::Location, 
+    location::Location,
     model::Model,
-    constraint_type::DataType
-)
+    ::Type{C},
+) where {C<:AbstractTypeConstraint}
+    for c in all_constraints(location)
+        if c isa C
+            add_model_constraint!(c, location, model)
+        end
+    end
     return nothing
 end
 
