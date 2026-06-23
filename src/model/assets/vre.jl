@@ -10,6 +10,11 @@ end
 # Default technology tag used when an input asset of `type: "VRE"` specifies no `technology`.
 const DEFAULT_VRE_TECHNOLOGY = :Generic
 
+# Convenience constructor: the tag `T` is not inferable from the fields, so a positional `VRE(...)`
+# call defaults it to `DEFAULT_VRE_TECHNOLOGY` (e.g. `make` and direct construction without a tag).
+VRE(id::AssetId, energy_transform::Transformation, edge::Edge{<:Electricity}) =
+    VRE{DEFAULT_VRE_TECHNOLOGY}(id, energy_transform, edge)
+
 function default_data(t::Type{<:VRE}, id=missing, style="full")
     if style == "full"
         return full_default_data(t, id)
