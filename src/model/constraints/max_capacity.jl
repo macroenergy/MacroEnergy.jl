@@ -82,40 +82,51 @@ function _scale_constraint_config!(ct::MaxCapacityConstraint, factor::Float64, v
     return nothing
 end
 
-# Build one capacity-cap constraint per asset-type key in `ct.config`, storing them in
-# `ct.constraint_ref` keyed by asset type. When `loc` is given, only assets whose capped edge sits in
-# that location contribute (per-location scope); otherwise all matched assets contribute (system scope).
-function build_max_capacity_constraints!(ct::MaxCapacityConstraint, system::System, model::Model; loc::Union{Missing,Symbol}=missing)
-    ismissing(ct.config) && error("MaxCapacityConstraint has no configuration; it must be enabled with a config object in the `constraints` block")
+# Build one grouped-capacity constraint per asset-type key in `ct.config`, storing them in
+# `ct.constraint_ref` keyed by asset type. Shared by the system-wide / per-location capacity-group
+# constraints (max capacity, min capacity, max new capacity); they differ only in `var` (the capacity
+# variable summed over each capped edge) and `sense` (`:leq` for upper bounds, `:geq` for lower bounds).
+# When `loc` is given, only assets whose capped edge sits in that location contribute (per-location
+# scope); otherwise all matched assets contribute (system scope).
+function build_grouped_capacity_constraints!(ct, system::System, model::Model;
+        var::Function, sense::Symbol, name::String, loc::Union{Missing,Symbol}=missing)
+    ismissing(ct.config) && error("$name has no configuration; it must be enabled with a config object in the `constraints` block")
 
     ct.constraint_ref = Dict{Symbol,Any}()
     for (at, spec) in ct.config
         constraint_assets = resolve_assets_by_type_key(system, at)
         # If the asset type is not recognized anywhere in the system, skip it entirely (no constraint).
         if isempty(constraint_assets)
-            @warn "MaxCapacityConstraint: asset type `$at` matched no assets in the system; skipping"
+            @warn "$name: asset type `$at` matched no assets in the system; skipping"
             continue
         end
         edge_field = Symbol(spec[:edge])
         total_capacity = AffExpr(0.0)
         contributed = false
         for a in constraint_assets
-            edge_field in fieldnames(typeof(a)) || error("MaxCapacityConstraint: asset type $at (`$(get_type(a))`) has no edge field `$edge_field`")
+            edge_field in fieldnames(typeof(a)) || error("$name: asset type $at (`$(get_type(a))`) has no edge field `$edge_field`")
             e = get_component_by_fieldname(a, edge_field)
             if !has_capacity(e)
-                @warn "MaxCapacityConstraint: edge field `$edge_field` of asset $(id(a)) (`$(get_type(a))`) has no capacity variable; skipping"
+                @warn "$name: edge field `$edge_field` of asset $(id(a)) (`$(get_type(a))`) has no capacity variable; skipping"
                 continue
             end
             # Per-location scope: skip assets not located in `loc`.
             ismissing(loc) || capped_edge_location(e) == loc || continue
-            add_to_expression!(total_capacity, capacity(e))
+            add_to_expression!(total_capacity, var(e))
             contributed = true
         end
         # Skip empty groups (e.g. a location with no assets of this type): no constraint needed.
         contributed || continue
-        ct.constraint_ref[at] = @constraint(model, total_capacity <= spec[:value])
+        ct.constraint_ref[at] = sense === :leq ?
+            @constraint(model, total_capacity <= spec[:value]) :
+            @constraint(model, total_capacity >= spec[:value])
     end
     return nothing
+end
+
+# Max-capacity grouping: sum each capped edge's total capacity and cap it from above.
+function build_max_capacity_constraints!(ct::MaxCapacityConstraint, system::System, model::Model; loc::Union{Missing,Symbol}=missing)
+    build_grouped_capacity_constraints!(ct, system, model; var=capacity, sense=:leq, name="MaxCapacityConstraint", loc=loc)
 end
 
 @doc raw"""
