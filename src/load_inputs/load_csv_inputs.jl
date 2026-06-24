@@ -104,7 +104,9 @@ function csv_to_json(file_path::AbstractString, nesting_str::AbstractString="--"
     for row in data
         json_data = Dict{Symbol, Any}()
         for (col_name, dict_address) in column_map
-            insert_data(json_data, dict_address, row[col_name])
+            val = row[col_name]
+            ismissing(val) && continue  # treat empty CSV cells like absent JSON fields
+            insert_data(json_data, dict_address, val)
         end
         Base.push!(all_json_data, json_data)
     end
@@ -286,7 +288,7 @@ function json_to_csv(json_data::AbstractDict{Symbol, Any}, row_data::RowData=Row
 
     if vec_data.max_length > 0
         fillmissing!(vec_data)
-        write_csv(vec_name.file_path, DataFrame(vec_data.data, vec_data.headers))
+        write_csv(vec_data.file_path, DataFrame(vec_data.data, vec_data.headers))
     end
         
     return row_data
