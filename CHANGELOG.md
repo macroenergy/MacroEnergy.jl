@@ -21,6 +21,7 @@ and this project follows Julia package versioning through `Project.toml` release
 - `@add_balance` now validates balance expressions more strictly and rejects unsupported non-`flow(...)` variable terms.
 - `@add_stoichiometric_balance` now expands recipe-style balances using a consistent proportional rule around the selected `base_term`.
 - Asset balance definitions have been migrated away from legacy raw `balance_data = Dict(...)` patterns toward `@add_balance`, `@add_to_storage_balance`, and `@add_stoichiometric_balance`.
+- Updated MacroEnergySolvers.jl version to 0.2.2.
 
 ### Documentation
 
