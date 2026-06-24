@@ -50,6 +50,7 @@ The documentation contains five main sections:
 
 - CSV asset input files can now have their `Type` and `Id` columns in any position in the file, instead of needing to be in the first two columns. The `Type` and `Id` columns are still required.
 - `run_case` now returns `(case, solution)` as opposed to `(systems, solution)`. The `case` object contains the `systems` as well as `case`-level settings.
+- Updated MacroEnergySolvers.jl version to 0.2.2
 
 #### Migration guide
 
