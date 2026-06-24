@@ -933,11 +933,11 @@ julia> MacroEnergy.subperiod_weight(vertex, 2)
 ### [`reshape_wide`](@ref)
 Reshapes the results to wide format.
 ```julia
-julia> capacity_results = MacroEnergy.get_optimal_capacity(system; scaling=1e3);
+julia> capacity_results = MacroEnergy.get_optimal_capacity(system, 1e3);
 
-julia> new_capacity_results = MacroEnergy.get_optimal_new_capacity(system; scaling=1e3);
+julia> new_capacity_results = MacroEnergy.get_optimal_new_capacity(system, 1e3);
 
-julia> retired_capacity_results = MacroEnergy.get_optimal_retired_capacity(system; scaling=1e3);
+julia> retired_capacity_results = MacroEnergy.get_optimal_retired_capacity(system, 1e3);
 
 julia> all_capacity_results = vcat(capacity_results, new_capacity_results, retired_capacity_results);
 

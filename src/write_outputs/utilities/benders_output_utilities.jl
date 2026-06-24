@@ -54,13 +54,13 @@ function compute_benders_variable_costs(subop_sol::Dict, subop_indices::Vector{I
 end
     
 """
-    collect_data_from_subproblems(settings::NamedTuple, subproblems; scaling::Float64=1.0)
+    collect_data_from_subproblems(settings::NamedTuple, subproblems, scaling::Float64)
 
 Collect all data from all Benders subproblems, handling both distributed and local cases.
 Returns a `SubproblemsData` struct whose fields (`.flows`, `.storage_levels`, `.nsd`, `.operational_costs`)
 are `Vector{DataFrame}` with one element per Benders subproblem.
 """
-function collect_data_from_subproblems(settings::NamedTuple, subproblems::Union{Vector{Dict{Any,Any}},DistributedArrays.DArray}; scaling::Float64=1.0)
+function collect_data_from_subproblems(settings::NamedTuple, subproblems::Union{Vector{Dict{Any,Any}},DistributedArrays.DArray}, scaling::Float64)
     if settings.BendersSettings[:Distributed]
         return collect_distributed_data(subproblems, scaling)
     else
@@ -73,7 +73,7 @@ end
 Collect all data from distributed Benders subproblems.
 Returns a `SubproblemsData` with one DataFrame per Benders subproblem in each field.
 """
-function collect_distributed_data(subproblems::Union{Vector{Dict{Any,Any}},DistributedArrays.DArray}, scaling::Float64=1.0)
+function collect_distributed_data(subproblems::Union{Vector{Dict{Any,Any}},DistributedArrays.DArray}, scaling::Float64)
     p_id = workers()
     np_id = length(p_id)
     result_chunks = Vector{Vector{NamedTuple}}(undef, np_id)
@@ -81,7 +81,7 @@ function collect_distributed_data(subproblems::Union{Vector{Dict{Any,Any}},Distr
     @sync for i in 1:np_id
         @async result_chunks[i] = @fetchfrom p_id[i] begin
             local_subproblems = DistributedArrays.localpart(subproblems)
-            [extract_subproblem_results(sp[:system_local]; scaling=scaling) for sp in local_subproblems]
+            [extract_subproblem_results(sp[:system_local], scaling) for sp in local_subproblems]
         end
     end
 
@@ -93,13 +93,13 @@ end
 Collect all data from local Benders subproblems.
 Returns a `SubproblemsData` with one DataFrame per Benders subproblem in each field.
 """
-function collect_local_data(subproblems::Union{Vector{Dict{Any,Any}},DistributedArrays.DArray}, scaling::Float64=1.0)
+function collect_local_data(subproblems::Union{Vector{Dict{Any,Any}},DistributedArrays.DArray}, scaling::Float64)
     n = length(subproblems)
     results = SubproblemsData(n)
 
     for i in eachindex(subproblems)
         system = subproblems[i][:system_local]
-        results[i] = extract_subproblem_results(system; scaling)
+        results[i] = extract_subproblem_results(system, scaling)
     end
 
     return results
@@ -186,7 +186,7 @@ curtailment(subproblems_data::SubproblemsData) = subproblems_data.curtailment
 operational_costs(subproblems_data::SubproblemsData) = subproblems_data.operational_costs
 
 """
-    extract_subproblem_results(system::System; scaling::Float64=1.0)
+    extract_subproblem_results(system::System, scaling::Float64)
 
 Extract all results from a subproblem by iterating through edges, storages, and nodes.
 
@@ -199,9 +199,9 @@ Returns a NamedTuple containing:
 
 # Arguments
 - `system::System`: The system to extract results from
-- `scaling::Float64=1.0`: Scaling factor for values
+- `scaling::Float64`: Scaling factor for values
 """
-function extract_subproblem_results(system::System; scaling::Float64=1.0)
+function extract_subproblem_results(system::System, scaling::Float64)
     # Get edges and storages with their asset mappings
     edges, edge_asset_map = get_edges(system, return_ids_map=true)
     storages, storage_asset_map = get_storages(system, return_ids_map=true)
@@ -223,7 +223,7 @@ function extract_subproblem_results(system::System; scaling::Float64=1.0)
         asset_type = get_type(edge_asset_map[id(e)])
 
         # Reuse existing flow extraction function
-        push!(flow_dfs, get_optimal_flow(e, scaling, edge_asset_map))
+        push!(flow_dfs, get_optimal_flow(e, scaling; obj_asset_map=edge_asset_map))
 
         # Compute operational costs
         vom_cost = compute_variable_om_cost(e)
@@ -245,7 +245,7 @@ function extract_subproblem_results(system::System; scaling::Float64=1.0)
     flows_df = isempty(flow_dfs) ? DataFrame() : reduce(vcat, flow_dfs)
 
     # Extract storage levels
-    storage_levels_df = get_optimal_storage_level(storages, scaling, storage_asset_map)
+    storage_levels_df = get_optimal_storage_level(storages, scaling; storage_asset_map)
 
     # Extract NSD and compute NSD/Supply/Slack costs for nodes
     nsd_dfs = DataFrame[]
@@ -276,7 +276,7 @@ function extract_subproblem_results(system::System; scaling::Float64=1.0)
                            DataFrame(cost_rows)
 
     # Extract curtailment for VRE edges
-    curtailment_df = get_optimal_curtailment(system; scaling)
+    curtailment_df = get_optimal_curtailment(system, scaling)
 
     return (
         flows=flows_df,

@@ -164,47 +164,55 @@ function _run_case_impl(
 )
     case = load_case(case_path; lazy_load=lazy_load)
 
-    # Create optimizer based on solution algorithm
-    optimizer_instance = if isa(solution_algorithm(case), Monolithic)
-        create_optimizer(optimizer, optimizer_env, optimizer_attributes)
-    elseif isa(solution_algorithm(case), Benders)
-        create_optimizer_benders(planning_optimizer, subproblem_optimizer,
-            planning_optimizer_attributes, subproblem_optimizer_attributes)
-    else
-        error("Unknown solution algorithm. Please check `SolutionAlgorithm` in `settings/case_settings.json`. Valid values are \"Monolithic\" and \"Benders\".")
-    end
-
-    # If Benders, create processes for subproblems optimization
-    if isa(solution_algorithm(case), Benders)
-        if case.settings.BendersSettings[:Distributed]
-            number_of_subproblems = sum(length(system.time_data[:Electricity].subperiods) for system in case.systems)
-            start_distributed_processes!(case_path, number_of_subproblems)
+    # Inputs were scaled by `parameter_scaling_factor` inside `prepare_case!`
+    # (during `load_case`). Restore them after solving/writing so the returned
+    # System is in original units; the `finally` guarantees this even on error.
+    scaling = parameter_scaling_factor(get_settings(case))
+    try
+        # Create optimizer based on solution algorithm
+        optimizer_instance = if isa(solution_algorithm(case), Monolithic)
+            create_optimizer(optimizer, optimizer_env, optimizer_attributes)
+        elseif isa(solution_algorithm(case), Benders)
+            create_optimizer_benders(planning_optimizer, subproblem_optimizer,
+                planning_optimizer_attributes, subproblem_optimizer_attributes)
+        else
+            error("Unknown solution algorithm. Please check `SolutionAlgorithm` in `settings/case_settings.json`. Valid values are \"Monolithic\" and \"Benders\".")
         end
-    end
 
-    case, solution = solve_case(case, optimizer_instance)
-
-    postprocess!(case, solution)
-
-    if isa(solution, MyopicResults)
-        # Outputs already written per-period during iteration; just retrieve the output path for log file copying
-        output_path = solution.output_path
-    else
-        output_path = length(case.systems) ≥ 1 ? create_output_path(case.systems[1], case_path) : case_path
-        write_outputs(output_path, case, solution)
-    end
-
-    if log_to_file && isfile(log_file_path)
-        cp(log_file_path, joinpath(output_path, basename(log_file_path)); force=true)
-    end
-
-    if isa(solution_algorithm(case), Benders)
-        if case.settings.BendersSettings[:Distributed] && nprocs() > 1
-            rmprocs(workers())
+        # If Benders, create processes for subproblems optimization
+        if isa(solution_algorithm(case), Benders)
+            if case.settings.BendersSettings[:Distributed]
+                number_of_subproblems = sum(length(system.time_data[:Electricity].subperiods) for system in case.systems)
+                start_distributed_processes!(case_path, number_of_subproblems)
+            end
         end
-    end
 
-    return case, solution
+        case, solution = solve_case(case, optimizer_instance)
+
+        postprocess!(case, solution)
+
+        if isa(solution, MyopicResults)
+            # Outputs already written per-period during iteration; just retrieve the output path for log file copying
+            output_path = solution.output_path
+        else
+            output_path = length(case.systems) ≥ 1 ? create_output_path(case.systems[1], case_path) : case_path
+            write_outputs(output_path, case, solution)
+        end
+
+        if log_to_file && isfile(log_file_path)
+            cp(log_file_path, joinpath(output_path, basename(log_file_path)); force=true)
+        end
+
+        if isa(solution_algorithm(case), Benders)
+            if case.settings.BendersSettings[:Distributed] && nprocs() > 1
+                rmprocs(workers())
+            end
+        end
+
+        return case, solution
+    finally
+        unscale!(case, scaling)
+    end
 end
 
 function case_cleanup()
