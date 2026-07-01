@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Adding Retrofitting Constraints · Macro</title><meta name="title" content="Adding Retrofitting Constraints · Macro"/><meta property="og:title" content="Adding Retrofitting Constraints · Macro"/><meta property="twitter:title" content="Adding Retrofitting Constraints · Macro"/><meta name="description" content="Documentation for Macro."/><meta property="og:description" content="Documentation for Macro."/><meta property="twitter:description" content="Documentation for Macro."/><meta property="og:url" content="https://macroenergy.github.io/Macro/stable/Guides/User Guide/user_retrofitting_constraints/"/><meta property="twitter:url" content="https://macroenergy.github.io/Macro/stable/Guides/User Guide/user_retrofitting_constraints/"/><link rel="canonical" href="https://macroenergy.github.io/Macro/stable/Guides/User Guide/user_retrofitting_constraints/"/><script data-outdated-warner src="../../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../../assets/documenter.js"></script><script src="../../../search_index.js"></script><script src="../../../siteinfo.js"></script><script src="../../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../../">Macro</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><input class="collapse-toggle" id="menuitem-1" type="checkbox"/><label class="tocitem" for="menuitem-1"><span class="docs-label">Welcome to Macro</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../">Introduction</a></li><li><a class="tocitem" href="../../../table_of_contents/">Table of contents</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-2" type="checkbox"/><label class="tocitem" for="menuitem-2"><span class="docs-label">Getting Started</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Getting Started/1_overview/">Overview</a></li><li><a class="tocitem" href="../../../Getting Started/2_installation/">Installation</a></li><li><a class="tocitem" href="../../../Getting Started/4_macro_repo_contents/">What&#39;s Included With Macro</a></li><li><a class="tocitem" href="../../../Getting Started/3_first_run/">First Run</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-3" type="checkbox"/><label class="tocitem" for="menuitem-3"><span class="docs-label">Tutorials</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Tutorials/tutorials_introduction/">Introduction</a></li><li><a class="tocitem" href="../../../Tutorials/0_getting_started/">Getting Started</a></li><li><a class="tocitem" href="../../../Tutorials/1_running_macro/">Running Macro</a></li><li><a class="tocitem" href="../../../Tutorials/2_multisector_modelling/">Multisector Modelling</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4" type="checkbox" checked/><label class="tocitem" for="menuitem-4"><span class="docs-label">Guides</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../guides_introduction/">Introduction</a></li><li><input class="collapse-toggle" id="menuitem-4-2" type="checkbox" checked/><label class="tocitem" for="menuitem-4-2"><span class="docs-label">User Guide</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../user_build_system/">Create a System</a></li><li><a class="tocitem" href="../user_add_commodity/">Adding Commodities</a></li><li><a class="tocitem" href="../user_add_node/">Adding Nodes</a></li><li><a class="tocitem" href="../user_add_location/">Adding Locations</a></li><li><a class="tocitem" href="../user_add_asset/">Adding Assets</a></li><li><a class="tocitem" href="../user_policy_constraints/">Adding Policy constraints</a></li><li><a class="tocitem" href="../user_asset_constraints/">Adding Assets constraints</a></li><li><a class="tocitem" href="../user_settings/">Configuring Settings</a></li><li><a class="tocitem" href="../user_run_model/">Running Models</a></li><li><a class="tocitem" href="../user_solution_modes/">Solution Modes</a></li><li><a class="tocitem" href="../user_write_results/">Writing Results</a></li><li><a class="tocitem" href="../user_multiperiod/">Using Multi-Period Models</a></li><li><a class="tocitem" href="../user_using_asset_libary/">Exploring the Asset library</a></li><li class="is-active"><a class="tocitem" href>Adding Retrofitting Constraints</a><ul class="internal"><li class="toplevel"><a class="tocitem" href="#Adding-Retrofitting-Constraints-to-a-System"><span>Adding Retrofitting Constraints to a System</span></a></li><li><a class="tocitem" href="#1.-Turning-on-the-retrofitting-setting-in-the-system/macro_settings.json-file"><span>1. Turning on the retrofitting setting in the <code>system/macro_settings.json</code> file</span></a></li><li><a class="tocitem" href="#2.-Making-your-JSON-file-for-the-asset-that-can-be-retrofitted"><span>2. Making your JSON file for the asset that can be retrofitted</span></a></li><li><a class="tocitem" href="#3.-Making-your-JSON-file-for-the-retrofitting-asset"><span>3. Making your JSON file for the retrofitting asset</span></a></li><li><a class="tocitem" href="#Common-input-mistakes-to-check-for"><span>Common input mistakes to check for</span></a></li><li><a class="tocitem" href="#Tips"><span>Tips</span></a></li></ul></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-3" type="checkbox"/><label class="tocitem" for="menuitem-4-3"><span class="docs-label">Modeler Guide</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Modeler Guide/modeler_introduction/">Introduction</a></li><li><a class="tocitem" href="../../Modeler Guide/modeler_es_graph/">Energy System Graph-Based Representation</a></li><li><a class="tocitem" href="../../Modeler Guide/modeler_build_sectors/">Creating a New Sector</a></li><li><a class="tocitem" href="../../Modeler Guide/modeler_build_asset/">Creating a New Asset</a></li><li><a class="tocitem" href="../../Modeler Guide/modeler_add_docs_to_asset/">Documenting an Asset</a></li><li><a class="tocitem" href="../../Modeler Guide/modeler_create_example_case/">Creating a New Example Case</a></li><li><a class="tocitem" href="../../Modeler Guide/modeler_workflow/">Suggested Development Workflow</a></li><li><a class="tocitem" href="../../Modeler Guide/modeler_debugging_testing/">Debugging and Testing Tips</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-4" type="checkbox"/><label class="tocitem" for="menuitem-4-4"><span class="docs-label">Developer Guide</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Developer Guide/dev_create_constraint/">Creating a Constraint</a></li><li><a class="tocitem" href="../../Developer Guide/2_type_hierarchy/">Type Hierarchy</a></li></ul></li></ul></li><li><a class="tocitem" href="../../../Assets/assets_guide/">Assets</a></li><li><input class="collapse-toggle" id="menuitem-6" type="checkbox"/><label class="tocitem" for="menuitem-6"><span class="docs-label">Manual</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Manual/manual_introduction/">Introduction</a></li><li><a class="tocitem" href="../../../Manual/Inputs/">Inputs</a></li><li><a class="tocitem" href="../../../Manual/TimeData/">Time Data</a></li><li><a class="tocitem" href="../../../Manual/Timeseries/">Timeseries</a></li><li><input class="collapse-toggle" id="menuitem-6-5" type="checkbox"/><label class="tocitem" for="menuitem-6-5"><span class="docs-label">Outputs</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Manual/Outputs/">Overview</a></li><li><a class="tocitem" href="../../../Manual/outputs/capacity/">Capacity</a></li><li><a class="tocitem" href="../../../Manual/outputs/costs/">Costs</a></li><li><a class="tocitem" href="../../../Manual/outputs/flows/">Flows</a></li><li><a class="tocitem" href="../../../Manual/outputs/storage_level/">Storage Level</a></li><li><a class="tocitem" href="../../../Manual/outputs/curtailment/">Curtailment</a></li><li><a class="tocitem" href="../../../Manual/outputs/non_served_demand/">Non-Served Demand</a></li><li><a class="tocitem" href="../../../Manual/outputs/time_weights/">Time Weights</a></li><li><a class="tocitem" href="../../../Manual/outputs/duals/">Duals</a></li><li><a class="tocitem" href="../../../Manual/outputs/full_timeseries/">Full Time Series</a></li><li><a class="tocitem" href="../../../Manual/outputs/benders/">Benders Convergence</a></li><li><a class="tocitem" href="../../../Manual/outputs/settings_output/">Settings</a></li><li><a class="tocitem" href="../../../Manual/outputs/log_file/">Log File</a></li></ul></li><li><a class="tocitem" href="../../../Manual/System/">System</a></li><li><a class="tocitem" href="../../../Manual/Model/">Model</a></li><li><a class="tocitem" href="../../../Manual/Sectors/">Sectors</a></li><li><a class="tocitem" href="../../../Manual/Edges/">Edges</a></li><li><a class="tocitem" href="../../../Manual/Nodes/">Nodes</a></li><li><a class="tocitem" href="../../../Manual/Storage/">Storage</a></li><li><a class="tocitem" href="../../../Manual/Transformations/">Transformations</a></li><li><a class="tocitem" href="../../../Manual/Locations/">Locations</a></li><li><a class="tocitem" href="../../../Manual/Constraints/">Constraints</a></li><li><a class="tocitem" href="../../../Manual/Commodities/">Commodities</a></li><li><a class="tocitem" href="../../../Manual/Assets/">Assets</a></li><li><input class="collapse-toggle" id="menuitem-6-17" type="checkbox"/><label class="tocitem" for="menuitem-6-17"><span class="docs-label">Asset Library</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Manual/assets/aluminaplant/">Alumina Plant</a></li><li><a class="tocitem" href="../../../Manual/assets/aluminumrefining/">Aluminum Refining</a></li><li><a class="tocitem" href="../../../Manual/assets/aluminumsmelting/">Aluminum Smelting</a></li><li><a class="tocitem" href="../../../Manual/assets/battery/">Battery</a></li><li><a class="tocitem" href="../../../Manual/assets/beccselectricity/">BECCS Electricity</a></li><li><a class="tocitem" href="../../../Manual/assets/beccshydrogen/">BECCS Hydrogen</a></li><li><a class="tocitem" href="../../../Manual/assets/downstreamemissions/">Downstream Emissions</a></li><li><a class="tocitem" href="../../../Manual/assets/electricdac/">Electric DAC</a></li><li><a class="tocitem" href="../../../Manual/assets/electricheating/">Electric Heating</a></li><li><a class="tocitem" href="../../../Manual/assets/electricsteam/">Electric Steam</a></li><li><a class="tocitem" href="../../../Manual/assets/electrolyzer/">Electrolyzer</a></li><li><a class="tocitem" href="../../../Manual/assets/fuelcell/">Fuel Cell</a></li><li><a class="tocitem" href="../../../Manual/assets/thermalheating/">Thermal Heating</a></li><li><a class="tocitem" href="../../../Manual/assets/thermalsteam/">Thermal Steam</a></li><li><a class="tocitem" href="../../../Manual/assets/gasstorage/">Gas Storage</a></li><li><a class="tocitem" href="../../../Manual/assets/hydropower/">Hydro Reservoir</a></li><li><a class="tocitem" href="../../../Manual/assets/integratedblastfurnacebasicoxygenfurnace/">Integrated Blast Furnace Basic Oxygen Furnace (with and without CCS)</a></li><li><a class="tocitem" href="../../../Manual/assets/integrateddirectreductionelectricarcfurnace/">Integrated Direct Reduction Electric Arc Furnace (with and without CCS)</a></li><li><a class="tocitem" href="../../../Manual/assets/mustrun/">Must Run</a></li><li><a class="tocitem" href="../../../Manual/assets/natgasdaq/">Natural Gas DAC</a></li><li><a class="tocitem" href="../../../Manual/assets/onewaytransmissionlink/">One-way Transmission Link</a></li><li><a class="tocitem" href="../../../Manual/assets/standalonelectricarcfurnace/">Electric Arc Furnace</a></li><li><a class="tocitem" href="../../../Manual/assets/syntheticammonia/">Synthetic Ammonia (Electrochemical)</a></li><li><a class="tocitem" href="../../../Manual/assets/syntheticmethanol/">Synthetic Methanol (Electrochemical)</a></li><li><a class="tocitem" href="../../../Manual/assets/thermalammonia/">Thermal Ammonia (with and without CCS)</a></li><li><a class="tocitem" href="../../../Manual/assets/thermalhydrogen/">Thermal Hydrogen Plant (with and without CCS)</a></li><li><a class="tocitem" href="../../../Manual/assets/thermalmethanol/">Thermal Methanol (with and without CCS)</a></li><li><a class="tocitem" href="../../../Manual/assets/thermalpower/">Thermal Power Plant (with and without CCS)</a></li><li><a class="tocitem" href="../../../Manual/assets/transmissionlink/">Transmission Link</a></li><li><a class="tocitem" href="../../../Manual/assets/upstreamemissions/">Upstream Emissions</a></li><li><a class="tocitem" href="../../../Manual/assets/vre/">Variable Renewable Energy Resources (VRE)</a></li></ul></li><li><a class="tocitem" href="../../../Manual/Financial_assumptions/">Financial Assumptions</a></li><li><a class="tocitem" href="../../../Manual/Multi_period_accounting/">Multi-Period Accounting</a></li></ul></li><li><a class="tocitem" href="../../../how_to_contribute/">How to contribute</a></li><li><a class="tocitem" href="../../../changelog/">Changelog</a></li><li><input class="collapse-toggle" id="menuitem-10" type="checkbox"/><label class="tocitem" for="menuitem-10"><span class="docs-label">References</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../References/1_introduction/">Introduction</a></li><li><a class="tocitem" href="../../../References/2_reading_input/">Reading input data</a></li><li><a class="tocitem" href="../../../References/3_macro_objects/">Macro Objects</a></li><li><a class="tocitem" href="../../../References/4_writing_output/">Writing output data</a></li><li><a class="tocitem" href="../../../References/5_utilities/">Utilities</a></li><li><a class="tocitem" href="../../../References/ref_constraints/">Constraint utilities</a></li><li><a class="tocitem" href="../../../References/ref_download_examples/">Downloading examples</a></li><li><a class="tocitem" href="../../../References/ref_run_case/">Running a Macro Model</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11" type="checkbox"/><label class="tocitem" for="menuitem-11"><span class="docs-label">Appendix</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Appendix/TEA/">TEA</a></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Guides</a></li><li><a class="is-disabled">User Guide</a></li><li class="is-active"><a href>Adding Retrofitting Constraints</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Adding Retrofitting Constraints</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/macroenergy/MacroEnergy.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/macroenergy/MacroEnergy.jl/blob/main/docs/src/Guides/User Guide/user_retrofitting_constraints.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Description-of-the-Retrofitting-Feature"><a class="docs-heading-anchor" href="#Description-of-the-Retrofitting-Feature">Description of the Retrofitting Feature</a><a id="Description-of-the-Retrofitting-Feature-1"></a><a class="docs-heading-anchor-permalink" href="#Description-of-the-Retrofitting-Feature" title="Permalink"></a></h1><p>This feature allows the capacity of one asset to be retrofitted into another, for assets with capacity decisions defined on their edges. You can find the <a href="../4_constraints/#retrofitting_constraint_ref">mathematical formulation of the retrofitting constraint here.</a></p><h1 id="Adding-Retrofitting-Constraints-to-a-System"><a class="docs-heading-anchor" href="#Adding-Retrofitting-Constraints-to-a-System">Adding Retrofitting Constraints to a System</a><a id="Adding-Retrofitting-Constraints-to-a-System-1"></a><a class="docs-heading-anchor-permalink" href="#Adding-Retrofitting-Constraints-to-a-System" title="Permalink"></a></h1><p>Adding retrofitting constraints to a system requires the following steps:</p><ol><li>Turning on the retrofitting setting in the <code>system/macro_settings.json</code> file</li><li>Making a JSON file for your asset that can be retrofitted.</li><li>Making a JSON file for the retrofitting asset (only required if your asset can be retrofitted into another type of asset).</li></ol><h2 id="1.-Turning-on-the-retrofitting-setting-in-the-system/macro_settings.json-file"><a class="docs-heading-anchor" href="#1.-Turning-on-the-retrofitting-setting-in-the-system/macro_settings.json-file">1. Turning on the retrofitting setting in the <code>system/macro_settings.json</code> file</a><a id="1.-Turning-on-the-retrofitting-setting-in-the-system/macro_settings.json-file-1"></a><a class="docs-heading-anchor-permalink" href="#1.-Turning-on-the-retrofitting-setting-in-the-system/macro_settings.json-file" title="Permalink"></a></h2><p>In the <code>system/macro_settings.json</code> file, make sure to have the line <code>&quot;Retrofitting&quot;: true</code>.</p><pre><code class="language-json hljs">{
+    // other settings
+    &quot;Retrofitting&quot;: true
+}</code></pre><h2 id="2.-Making-your-JSON-file-for-the-asset-that-can-be-retrofitted"><a class="docs-heading-anchor" href="#2.-Making-your-JSON-file-for-the-asset-that-can-be-retrofitted">2. Making your JSON file for the asset that can be retrofitted</a><a id="2.-Making-your-JSON-file-for-the-asset-that-can-be-retrofitted-1"></a><a class="docs-heading-anchor-permalink" href="#2.-Making-your-JSON-file-for-the-asset-that-can-be-retrofitted" title="Permalink"></a></h2><p>In the example JSON file below for <strong>traditional cement plants</strong>, there are 3 retrofit options for <code>traditional_cement_MA</code>:</p><ol><li>A traditional cement plant with cheaper O+M costs</li><li>A traditional plant with a different fuel option</li><li>An oxyfuel cement plant</li></ol><p>For <code>traditional_cement_CT</code> and <code>traditional_cement_ME</code>, there is only one option to retrofit into an oxyfuel cement plant.</p><h3 id="Setting-up-edges-that-can-be-retrofitted"><a class="docs-heading-anchor" href="#Setting-up-edges-that-can-be-retrofitted">Setting up edges that can be retrofitted</a><a id="Setting-up-edges-that-can-be-retrofitted-1"></a><a class="docs-heading-anchor-permalink" href="#Setting-up-edges-that-can-be-retrofitted" title="Permalink"></a></h3><p>In the JSON file for the asset that can be retrofitted, <code>can_retrofit</code> must be set to <code>true</code> for <strong>edges that can be retrofitted</strong>.</p><p>For each instance of the asset that can be retrofitted, retrofit options are described in a list of dictionaries called <code>retrofit_options</code>.</p><h3 id="Fields-in-each-retrofit_options-entry"><a class="docs-heading-anchor" href="#Fields-in-each-retrofit_options-entry">Fields in each <code>retrofit_options</code> entry</a><a id="Fields-in-each-retrofit_options-entry-1"></a><a class="docs-heading-anchor-permalink" href="#Fields-in-each-retrofit_options-entry" title="Permalink"></a></h3><p>For each dictionary in <code>retrofit_options</code>:</p><ol><li><code>template_id</code> specifies the asset whose parameters are used as the template for the retrofitting option.</li><li><code>id</code> is the name of the new retrofitting asset.</li><li><code>is_retrofit</code> must be set to <code>true</code> for <strong>retrofitting edges</strong>.</li><li><code>retrofit_efficiency</code> defines the conversion rate between the original (retrofittable) capacity and the new retrofitting capacity.<ul><li>A value of 0.9 means that every 1 unit of capacity retrofitted results in 0.9 units of capacity on the <code>is_retrofit</code> edge</li><li>If it is not included, it is set to the default value specified in the <code>asset.jl</code> file, if one is provided.</li></ul></li><li><code>investment_cost</code> is the cost of retrofitting.</li><li><code>can_expand</code> should normally be set to <code>true</code> to avoid issues if the template_id asset itself cannot expand.</li><li><code>existing_capacity</code> should typically be set to <code>0</code> to prevent unintended inheritance of nonzero capacity from the <code>template_id</code> asset.</li></ol><h3 id="How-new-retrofit-assets-are-created"><a class="docs-heading-anchor" href="#How-new-retrofit-assets-are-created">How new retrofit assets are created</a><a id="How-new-retrofit-assets-are-created-1"></a><a class="docs-heading-anchor-permalink" href="#How-new-retrofit-assets-are-created" title="Permalink"></a></h3><p>For each entry in <code>retrofit_options</code>, Macro automatically creates a new retrofit asset by recursively merging:</p><ol><li>The option-specific fields provided in that entry, and</li><li>The parameters of the asset referenced by <code>template_id</code>.</li></ol><p>Fields defined in the <code>retrofit_options</code> dictionary take precedence and overwrite the corresponding fields inherited from the <code>template_id</code> asset. All other fields are inherited unchanged.</p><p>Thus, each retrofit option only needs to list the parameters that should <strong>be different</strong> from the <code>template_id</code> asset; everything else is copied automatically.</p><pre><code class="language-json hljs">{
+    &quot;TradCementPlant&quot;: [
+        {
+            &quot;type&quot;: &quot;CementPlant&quot;,
+            &quot;global_data&quot;: {
+                &quot;fuel_commodity&quot;: &quot;NaturalGas&quot;,
+                &quot;nodes&quot;: {},
+                &quot;transforms&quot;: {
+                    &quot;id&quot;: &quot;traditional_cement&quot;,
+                    &quot;timedata&quot;: &quot;Cement&quot;,
+                    &quot;fuel_consumption_rate&quot;: 0.9311,
+                    &quot;elec_consumption_rate&quot;: 0.07,
+                    &quot;fuel_emission_rate&quot;: 0.296,
+                    &quot;process_emission_rate&quot;: 0.536,
+                    &quot;emission_capture_rate&quot;: 0,
+                    &quot;constraints&quot;: {
+                        &quot;BalanceConstraint&quot;: true
+                    }
+                },
+                &quot;edges&quot;:{
+                    &quot;elec_edge&quot;:{
+                        &quot;type&quot;: &quot;Electricity&quot;
+                    },
+                    &quot;cement_edge&quot;:{
+                        &quot;type&quot;: &quot;Cement&quot;,
+                        &quot;has_capacity&quot;: true,
+                        &quot;can_retire&quot;: true,
+                        &quot;can_expand&quot;: true,
+                        &quot;capacity_size&quot;: 125,
+                        &quot;investment_cost&quot;: 220939,
+                        &quot;fixed_om_cost&quot;: 38,
+                        &quot;variable_om_cost&quot;: 0,
+                        &quot;end_vertex&quot;: &quot;cement_produced&quot;,
+                        // &quot;can_retrofit&quot; must be set to be true for retrofittable edges
+                        &quot;can_retrofit&quot;: true                             
+                    },
+                    &quot;fuel_edge&quot;: {
+                        &quot;type&quot;: &quot;NaturalGas&quot;,
+                        &quot;start_vertex&quot;: &quot;ng_source&quot;
+                    },
+                    &quot;co2_emissions_edge&quot;: {
+                        &quot;type&quot;: &quot;CO2&quot;,
+                        &quot;end_vertex&quot;: &quot;cement_co2_sink&quot;
+                    },
+                    &quot;co2_captured_edge&quot;: {
+                        &quot;type&quot;: &quot;CO2Captured&quot;,
+                        &quot;end_vertex&quot;: &quot;co2_captured_sink&quot;
+                    }
+                }
+            },
+            &quot;instance_data&quot;: [
+                {
+                    &quot;id&quot;: &quot;traditional_cement_MA&quot;,
+                    &quot;location&quot;: &quot;MA&quot;,
+                    &quot;edges&quot;: {
+                        &quot;cement_edge&quot;:{
+                            &quot;existing_capacity&quot;: 100
+                        }
+                    },
+                    // &quot;retrofit_options&quot; is the list of retrofit options
+                    &quot;retrofit_options&quot;: [                                   
+                        {
+                            // &quot;template_id&quot; is template asset for the retrofit option
+                            &quot;template_id&quot;: &quot;traditional_cement_MA&quot;,
+
+                            // &quot;id&quot; is the name of the new retrofitting asset     
+                            &quot;id&quot;: &quot;traditional_cement_MA_retrofitfom&quot;,      
+
+                            &quot;edges&quot;: {
+                                &quot;cement_edge&quot;: {
+                                    // &quot;is_retrofit&quot; must be true for retrofitting edges
+                                    &quot;is_retrofit&quot;: true, 
+
+                                    // &quot;retrofit_efficiency&quot; is the retrofitting conversion rate                
+                                    &quot;retrofit_efficiency&quot;: 0.9,
+
+                                    // &quot;investment_cost&quot; is the cost of retrofitting
+                                    &quot;investment_cost&quot;: 5000,
+
+                                    // Recommended: ensure retrofit option can expand
+                                    &quot;can_expand&quot;: true,
+
+                                    // Recommended: make sure there is no existing capacity
+                                    &quot;existing_capacity&quot;: 0,
+
+                                    // Example of a parameter that is changed from the template
+                                    &quot;fixed_om_cost&quot;: 10
+                                }
+                            }
+                        },
+                        {
+                            &quot;template_id&quot;: &quot;traditional_cement_MA&quot;,
+                            &quot;id&quot;: &quot;traditional_cement_MA_retrofitfuel&quot;,
+                            &quot;fuel_commodity&quot;: &quot;LiquidFuels&quot;,
+                            &quot;transforms&quot;: {
+                                &quot;fuel_consumption_rate&quot;: 1.06,
+                                &quot;fuel_emission_rate&quot;: 0.05
+                            },
+                            &quot;edges&quot;: {
+                                &quot;fuel_edge&quot;: {
+                                    &quot;type&quot;: &quot;LiquidFuels&quot;,
+                                    &quot;start_vertex&quot;: &quot;liqfuel_source&quot;
+                                },
+                                &quot;cement_edge&quot;: {
+                                    &quot;is_retrofit&quot;: true,
+                                    &quot;retrofit_efficiency&quot;: 1.0,
+                                    &quot;investment_cost&quot;: 220939,
+                                    &quot;can_expand&quot;: true,
+                                    &quot;existing_capacity&quot;: 0,
+                                }
+                            }
+                        },
+                        {
+                            &quot;template_id&quot;: &quot;oxyfuel_cement_MA&quot;,
+                            &quot;id&quot;: &quot;oxyfuel_cement_MA_retrofit&quot;,
+                            &quot;edges&quot;: {
+                                &quot;cement_edge&quot;: {
+                                    &quot;is_retrofit&quot;: true,
+                                    &quot;retrofit_efficiency&quot;: 1,
+                                    &quot;investment_cost&quot;: 50000,
+                                    &quot;can_expand&quot;: true,
+                                    &quot;existing_capacity&quot;: 0,
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    &quot;id&quot;: &quot;traditional_cement_CT&quot;,
+                    &quot;location&quot;: &quot;CT&quot;,
+                    &quot;edges&quot;: {
+                        &quot;cement_edge&quot;:{
+                            &quot;existing_capacity&quot;: 100
+                        }
+                    },
+                    &quot;retrofit_options&quot;: [
+                        {
+                            // This &quot;template_id&quot; asset is from the next example JSON file
+                            &quot;template_id&quot;: &quot;oxyfuel_cement_CT&quot;,
+                            &quot;id&quot;: &quot;oxyfuel_cement_CT_retrofit&quot;,
+                            &quot;edges&quot;: {
+                                &quot;cement_edge&quot;: {
+                                    &quot;is_retrofit&quot;: true,
+                                    &quot;retrofit_efficiency&quot;: 1,
+                                    &quot;investment_cost&quot;: 50000,
+                                    &quot;can_expand&quot;: true,
+                                    &quot;existing_capacity&quot;: 0,
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    &quot;id&quot;: &quot;traditional_cement_ME&quot;,
+                    &quot;location&quot;: &quot;ME&quot;,
+                    &quot;edges&quot;: {
+                        &quot;cement_edge&quot;: {
+                            &quot;existing_capacity&quot;: 100
+                        }
+                    },
+                    &quot;retrofit_options&quot;: [
+                        {
+                            // This &quot;template_id&quot; asset is also from the next example JSON file
+                            &quot;template_id&quot;: &quot;oxyfuel_cement_ME&quot;,
+                            &quot;id&quot;: &quot;oxyfuel_cement_ME_retrofit&quot;,
+                            &quot;edges&quot;: {
+                                &quot;cement_edge&quot;: {
+                                    &quot;is_retrofit&quot;: true,
+                                    &quot;retrofit_efficiency&quot;: 1,
+                                    &quot;investment_cost&quot;: 50000,
+                                    &quot;can_expand&quot;: true,
+                                    &quot;existing_capacity&quot;: 0,
+                                }
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}</code></pre><h2 id="3.-Making-your-JSON-file-for-the-retrofitting-asset"><a class="docs-heading-anchor" href="#3.-Making-your-JSON-file-for-the-retrofitting-asset">3. Making your JSON file for the retrofitting asset</a><a id="3.-Making-your-JSON-file-for-the-retrofitting-asset-1"></a><a class="docs-heading-anchor-permalink" href="#3.-Making-your-JSON-file-for-the-retrofitting-asset" title="Permalink"></a></h2><p>The example JSON asset file below defines <strong>oxyfuel cement plants</strong>, which were referenced in the previous section as retrofit options for traditional cement plants. The structure of the file is the same as any standard asset input file.</p><div class="admonition is-warning" id="File-Naming-Requirement-c1432f39a35bd728"><header class="admonition-header">File Naming Requirement<a class="admonition-anchor" href="#File-Naming-Requirement-c1432f39a35bd728" title="Permalink"></a></header><div class="admonition-body"><p>The JSON file that describes retrofitting assets must end with the suffix <code>_retrofit_option</code>. This naming convention ensures that the retrofitting asset’s input data are loaded <strong>before</strong> other asset files. Loading these files first allows their information to be referenced when constructing new retrofit assets using <code>template_id</code>.</p></div></div><h3 id="Preventing-greenfield-construction-(optional)"><a class="docs-heading-anchor" href="#Preventing-greenfield-construction-(optional)">Preventing greenfield construction (optional)</a><a id="Preventing-greenfield-construction-(optional)-1"></a><a class="docs-heading-anchor-permalink" href="#Preventing-greenfield-construction-(optional)" title="Permalink"></a></h3><p>If you want to ensure that this asset is used <strong>only</strong> as a retrofit asset and cannot be built as new (greenfield) capacity, set: <code>&quot;can_expand&quot;: false</code>. This prevents the asset from being added as new capacity while still allowing it to serve as a template for retrofits.</p><pre><code class="language-json hljs">{
+    &quot;OxyFuelCementPlant&quot;: [
+        {
+            &quot;type&quot;: &quot;CementPlant&quot;,
+            &quot;global_data&quot;: {
+                &quot;fuel_commodity&quot;: &quot;NaturalGas&quot;,
+                &quot;nodes&quot;: {},
+                &quot;transforms&quot;: {
+                    &quot;id&quot;: &quot;oxyfuel_cement&quot;,
+                    &quot;timedata&quot;: &quot;Cement&quot;,
+                    &quot;fuel_consumption_rate&quot;: 1.06,
+                    &quot;elec_consumption_rate&quot;: 0.295,
+                    &quot;fuel_emission_rate&quot;: 0.265,
+                    &quot;process_emission_rate&quot;: 0.536,
+                    &quot;co2_capture_rate&quot;: 0.95,
+                    &quot;constraints&quot;: {
+                        &quot;BalanceConstraint&quot;: true
+                    }
+                },
+                &quot;edges&quot;:{
+                    &quot;elec_edge&quot;:{
+                        &quot;type&quot;: &quot;Electricity&quot;
+                    },
+                    &quot;cement_edge&quot;:{
+                        &quot;type&quot;: &quot;Cement&quot;,
+                        &quot;unidirectional&quot;: true,
+                        &quot;has_capacity&quot;: true,
+                        &quot;can_retire&quot;: true,
+                        &quot;capacity_size&quot;: 125,
+                        &quot;investment_cost&quot;: 289854,
+                        &quot;fixed_om_cost&quot;: 58,
+                        &quot;variable_om_cost&quot;: 0,
+                        &quot;end_vertex&quot;: &quot;cement_produced&quot;
+                    },
+                    &quot;fuel_edge&quot;: {
+                        &quot;commodity&quot;: &quot;NaturalGas&quot;,
+                        &quot;type&quot;: &quot;NaturalGas&quot;,
+                        &quot;start_vertex&quot;: &quot;ng_source&quot;
+                    },
+                    &quot;co2_emissions_edge&quot;: {
+                        &quot;type&quot;: &quot;CO2&quot;,
+                        &quot;end_vertex&quot;: &quot;cement_co2_sink&quot;
+                    },
+                    &quot;co2_captured_edge&quot;: {
+                        &quot;type&quot;: &quot;CO2Captured&quot;,
+                        &quot;end_vertex&quot;: &quot;co2_captured_sink&quot;
+                    }
+                }
+            },
+            &quot;instance_data&quot;: [
+                {
+                    &quot;id&quot;: &quot;oxyfuel_cement_MA&quot;,
+                    &quot;location&quot;: &quot;MA&quot;,
+                    // &quot;can_expand&quot; is set to false to disallow greenfield build
+                    &quot;can_expand&quot;: false,
+                    &quot;existing_capacity&quot;: 0
+                },
+                {
+                    // These are the &quot;template_id&quot; assets referenced in the previous file
+                    &quot;id&quot;: &quot;oxyfuel_cement_CT&quot;,
+                    &quot;location&quot;: &quot;CT&quot;,
+                    &quot;can_expand&quot;: true,
+                    &quot;existing_capacity&quot;: 0
+                },
+                {
+                    &quot;id&quot;: &quot;oxyfuel_cement_ME&quot;,
+                    &quot;location&quot;: &quot;ME&quot;,
+                    &quot;can_expand&quot;: false,
+                    &quot;existing_capacity&quot;: 0
+                }
+            ]
+        }
+    ]
+}</code></pre><h2 id="Common-input-mistakes-to-check-for"><a class="docs-heading-anchor" href="#Common-input-mistakes-to-check-for">Common input mistakes to check for</a><a id="Common-input-mistakes-to-check-for-1"></a><a class="docs-heading-anchor-permalink" href="#Common-input-mistakes-to-check-for" title="Permalink"></a></h2><ul><li>Is <code>&quot;Retrofitting&quot;: true</code> in <code>settings/macro_settings.json</code>?</li><li>Is <code>&quot;can_retrofit&quot;: true</code> and <code>&quot;is_retrofit&quot;: true</code> set properly?</li><li>Is <code>&quot;can_expand&quot;: true</code> for entries in <code>retrofitting_options</code>?</li><li>Are parameters specified in the right structure in <code>retrofitting_options</code> to enable the recursive merge to work properly?<ul><li>For example, is <code>cement_edge</code> within the <code>edges</code> dictionary?</li></ul></li></ul><h2 id="Tips"><a class="docs-heading-anchor" href="#Tips">Tips</a><a id="Tips-1"></a><a class="docs-heading-anchor-permalink" href="#Tips" title="Permalink"></a></h2><ul><li>You can access the retrofitting constraints with <code>model[:cRetrofitCapacity]</code> (<code>model</code> is the variable holding the JuMP model) to check if the constraint is formulated as expected.</li></ul><script type="module">import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+mermaid.initialize({
+    startOnLoad: true,
+    theme: "neutral"
+});
+</script></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../user_using_asset_libary/">« Exploring the Asset library</a><a class="docs-footer-nextpage" href="../../Modeler Guide/modeler_introduction/">Introduction »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Wednesday 1 July 2026 04:12">Wednesday 1 July 2026</span>. Using Julia version 1.12.6.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
