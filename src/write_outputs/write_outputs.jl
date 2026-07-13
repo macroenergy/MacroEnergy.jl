@@ -38,8 +38,7 @@ function write_outputs(
         write_to_file(model, joinpath(results_dir, "model_period_$(period_idx).lp"))
     end
 
-    write_period_outputs(results_dir, period_idx, system, model, settings)
-    return nothing
+    return write_period_outputs(results_dir, period_idx, system, model, settings)
 end
 
 """
@@ -113,8 +112,7 @@ function write_outputs(
         )
     end
 
-    write_period_outputs(results_dir, period_idx, system, bm, settings)
-    return nothing
+    return write_period_outputs(results_dir, period_idx, system, bm, settings)
 end
 
 """
@@ -138,13 +136,13 @@ function write_period_outputs(
     slack_vars    = collect_distributed_policy_slack_vars(bm.subproblems)
     balance_duals = collect_distributed_constraint_duals(bm.subproblems, BalanceConstraint)
 
-    _write_benders_period_outputs(
+    capacity_results = _write_benders_period_outputs(
         results_dir, period_idx, system, bm,
         subop_indices, subproblems_data, slack_vars, balance_duals, settings
     )
 
     write_benders_convergence(results_dir, bm.convergence)
-    return nothing
+    return capacity_results
 end
 
 
@@ -179,7 +177,7 @@ function _write_benders_period_outputs(
     # Note: period/system has been updated with the capacity values in planning_solution
     # at the end of function solve_case
     # Capacity results
-    write_capacity(joinpath(results_dir, "capacity.csv"), system, scaling)
+    capacity_results = write_capacity(joinpath(results_dir, "capacity.csv"), system, scaling)
 
     # Flow results
     write_flows(joinpath(results_dir, "flows.csv"), system, flow_df[subop_indices])
@@ -227,15 +225,15 @@ function _write_benders_period_outputs(
     # Full time series reconstruction (if enabled and TDR is used)
     if settings.WriteFullTimeseries
         write_full_timeseries(results_dir, system,
-            flow_df[subop_indices], 
+            flow_df[subop_indices],
             nsd_df[subop_indices],
-            storage_level_df[subop_indices], 
+            storage_level_df[subop_indices],
             curtailment_df[subop_indices],
             scaling,
             var_cost_discount)
     end
 
-    return nothing
+    return capacity_results
 end
 
 """
@@ -255,8 +253,8 @@ function write_period_outputs(
     scaling = parameter_scaling_factor(settings)
 
     # Capacity results
-    write_capacity(joinpath(results_dir, "capacity.csv"), system, scaling)
-    
+    capacity_results = write_capacity(joinpath(results_dir, "capacity.csv"), system, scaling)
+
     # Cost results (system level)
     create_discounted_cost_expressions!(model, system, settings)
     compute_undiscounted_costs!(model, system, settings)
@@ -292,7 +290,7 @@ function write_period_outputs(
 
     write_objective_value(results_dir, model)
 
-    return nothing
+    return capacity_results
 end
 
 """
