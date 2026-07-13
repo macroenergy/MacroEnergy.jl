@@ -42,7 +42,11 @@ Two types of pattern matching are supported:
 - `asset_type::Union{AbstractString,Vector{AbstractString},Nothing}`: The asset type to filter by
 
 # Returns
-- `nothing`: The function returns nothing, but writes the results to the file
+- `DataFrame`: the full, unfiltered, long-format capacity results that were computed for this
+  system (capacity, new/retired/retrofitted capacity, existing capacity), regardless of the
+  `drop_cols`/`commodity`/`asset_type`/layout options applied to what was actually written to
+  `file_path`. Callers that need the same data again (e.g. the cross-period capacity summary,
+  see [`write_capacity_summary`](@ref)) should reuse this return value instead of recomputing it.
 
 # Example
 ```julia
@@ -77,12 +81,13 @@ function write_capacity(
         all_capacity_results = vcat(capacity_results, new_capacity_results, retired_capacity_results, existing_capacity_results)
     end
 
-    # Reshape the dataframe based on the requested format
+    # Reshape a copy for the file being written; `all_capacity_results` itself stays pristine
+    # (full detail, long format) so it can be returned and reused as-is by callers.
     layout = get_output_layout(system, :Capacity)
-    all_capacity_results = layout == "wide" ? reshape_wide(all_capacity_results) : all_capacity_results
+    results_to_write = layout == "wide" ? reshape_wide(all_capacity_results) : copy(all_capacity_results)
 
-    commodities_in_df = string.(collect(Set(all_capacity_results.commodity)))
-    asset_types_in_df = string.(collect(Set(all_capacity_results.resource_type)))
+    commodities_in_df = string.(collect(Set(results_to_write.commodity)))
+    asset_types_in_df = string.(collect(Set(results_to_write.resource_type)))
     ## filter the dataframe based on the requested commodity and asset type
     # filter by commodity if specified
     if !isnothing(commodity)
@@ -93,10 +98,11 @@ function write_capacity(
         if !isempty(missed_commodites)
             @warn("The following commodities were not found in your results: $missed_commodites\nThe missed outputs will omitted from the output file\nYour results include the following commodities $commodities_in_df.")
         end
-        filter!(:commodity => in(matched_commodity), all_capacity_results)
-        if isempty(all_capacity_results)
+        filter!(:commodity => in(matched_commodity), results_to_write)
+        if isempty(results_to_write)
             @warn "No results found after filtering by commodity $commodity"
-            return write_dataframe(file_path, all_capacity_results, drop_cols)
+            write_dataframe(file_path, results_to_write, drop_cols)
+            return all_capacity_results
         end
     end
 
@@ -104,7 +110,7 @@ function write_capacity(
     if !isnothing(asset_type)
         @debug "Filtering by asset type $asset_type"
         # Get the asset types after filtering by commodity
-        all_assets = string.(collect(Set(all_capacity_results.resource_type)))
+        all_assets = string.(collect(Set(results_to_write.resource_type)))
         (matched_asset_type, missed_asset_types) = search_assets(asset_type, all_assets)
 
         # Report any asset types that were not found
@@ -122,14 +128,14 @@ function write_capacity(
             end
         end
         @debug "Writing capacity results for asset type $asset_type"
-        filter!(:resource_type => in(matched_asset_type), all_capacity_results)
-        if isempty(all_capacity_results)
+        filter!(:resource_type => in(matched_asset_type), results_to_write)
+        if isempty(results_to_write)
             @warn "No results found after filtering by asset type $asset_type"
         end
     end
 
-    write_dataframe(file_path, all_capacity_results, drop_cols)
-    return nothing
+    write_dataframe(file_path, results_to_write, drop_cols)
+    return all_capacity_results
 end
 
 ## Capacity extraction functions ##
