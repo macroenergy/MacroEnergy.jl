@@ -223,8 +223,8 @@ function get_optimal_capacity_by_field(system::System, capacity_func::Function, 
     @debug " -- Getting optimal values for $(Symbol(capacity_func)) for the system."
     edges, edge_asset_idmap = edges_with_capacity_variables(system, return_ids_map=true)
     storages, storage_asset_idmap = storages_with_capacity_variables(system, return_ids_map=true)
-    edges_capacity = get_optimal_capacity_by_field(edges, capacity_func, scaling; obj_asset_map=edge_asset_idmap)
-    storages_capacity = get_optimal_capacity_by_field(storages, capacity_func, scaling; obj_asset_map=storage_asset_idmap)
+    edges_capacity = get_optimal_capacity_by_field(edges, capacity_func, scaling; obj_asset_map=edge_asset_idmap, year=year(system))
+    storages_capacity = get_optimal_capacity_by_field(storages, capacity_func, scaling; obj_asset_map=storage_asset_idmap, year=year(system))
     asset_capacity = vcat(edges_capacity, storages_capacity)
     asset_capacity[!, (!isa).(eachcol(asset_capacity), Vector{Missing})] # remove missing columns
 end
@@ -240,21 +240,22 @@ end
 # The following functions are used to extract capacity values after the model has been solved
 # from a list of MacroObjects (e.g., edges, and storage) and a list of fields (e.g., capacity, new_capacity, retired_capacity)
 
-get_optimal_capacity_by_field(objs::Vector{T}, field::Function, scaling::Float64; obj_asset_map::Dict{Symbol,Base.RefValue{<:AbstractAsset}}=Dict{Symbol,Base.RefValue{<:AbstractAsset}}()) where {T<:MacroObject} =
-    get_optimal_capacity_by_field(objs, (field,), scaling; obj_asset_map)
+get_optimal_capacity_by_field(objs::Vector{T}, field::Function, scaling::Float64; obj_asset_map::Dict{Symbol,Base.RefValue{<:AbstractAsset}}=Dict{Symbol,Base.RefValue{<:AbstractAsset}}(), year::Union{Int,Missing}=missing) where {T<:MacroObject} =
+    get_optimal_capacity_by_field(objs, (field,), scaling; obj_asset_map, year)
 
 function get_optimal_capacity_by_field(
     objs::Vector{T},
     field_list::Tuple,
     scaling::Float64;
-    obj_asset_map::Dict{Symbol,Base.RefValue{<:AbstractAsset}}=Dict{Symbol,Base.RefValue{<:AbstractAsset}}()
+    obj_asset_map::Dict{Symbol,Base.RefValue{<:AbstractAsset}}=Dict{Symbol,Base.RefValue{<:AbstractAsset}}(),
+    year::Union{Int,Missing}=missing
 ) where {T<:MacroObject}
     # Check if the objects is empty
     isempty(objs) && return DataFrame()
 
     # Calculate total number of rows needed
     total_rows = length(objs) * length(field_list)
-    
+
     if isempty(obj_asset_map)
         return DataFrame(
             case_name = fill(missing, total_rows),
@@ -264,7 +265,7 @@ function get_optimal_capacity_by_field(
             component_id = [get_component_id(obj) for obj in objs for f in field_list],
             component_type = [get_type(obj) for obj in objs for f in field_list],
             variable = [Symbol(f) for obj in objs for f in field_list],
-            year = fill(missing, total_rows),
+            year = fill(year, total_rows),
             value = [Float64(value(f(obj))) * scaling for obj in objs for f in field_list]
         )
     else
@@ -277,7 +278,7 @@ function get_optimal_capacity_by_field(
             resource_type = [get_type(obj_asset_map[id(obj)]) for obj in objs for f in field_list],
             component_type = [get_type(obj) for obj in objs for f in field_list],
             variable = [Symbol(f) for obj in objs for f in field_list],
-            year = fill(missing, total_rows),
+            year = fill(year, total_rows),
             value = [Float64(value(f(obj))) * scaling for obj in objs for f in field_list]
         )
     end
