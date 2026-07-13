@@ -2,18 +2,20 @@
 Write results when using Monolithic as solution algorithm.
 """
 function write_outputs(
-    case_path::AbstractString, 
-    case::Case, 
+    case_path::AbstractString,
+    case::Case,
     model::Model
 )
     num_periods = number_of_periods(case)
     periods = get_periods(case)
     settings = get_settings(case)
+    capacity_summaries = Vector{DataFrame}(undef, num_periods)
     for (period_idx, period) in enumerate(periods)
         @info("Writing results for period $period_idx")
         results_dir = mkpath_for_period(case_path, num_periods, period_idx)
-        write_period_outputs(results_dir, period_idx, period, model, settings)
+        capacity_summaries[period_idx] = write_period_outputs(results_dir, period_idx, period, model, settings)
     end
+    num_periods > 1 && write_capacity_summary(case_path, capacity_summaries, get_output_layout(periods[1], :CapacitySummary))
     write_settings(case, joinpath(case_path, "settings.json"))
     return nothing
 end
@@ -68,17 +70,19 @@ function write_outputs(
     # for now, only balance constraints are exported
     balance_duals = collect_distributed_constraint_duals(bm.subproblems, BalanceConstraint)
 
+    capacity_summaries = Vector{DataFrame}(undef, num_periods)
     for (period_idx, period) in enumerate(periods)
         @info("Writing results for period $period_idx")
 
         ## Create results directory to store the results
         results_dir = mkpath_for_period(case_path, num_periods, period_idx)
-        _write_benders_period_outputs(
+        capacity_summaries[period_idx] = _write_benders_period_outputs(
             results_dir, period_idx, period, bm,
             period_to_subproblem_map[period_idx],
             subproblems_data, slack_vars, balance_duals, settings
         )
     end
+    num_periods > 1 && write_capacity_summary(case_path, capacity_summaries, get_output_layout(periods[1], :CapacitySummary))
 
     write_benders_convergence(case_path, bm.convergence)
     write_settings(case, joinpath(case_path, "settings.json"))
