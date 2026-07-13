@@ -237,6 +237,79 @@ function get_optimal_capacity_by_field(asset::AbstractAsset, capacity_func::Func
     asset_capacity[!, (!isa).(eachcol(asset_capacity), Vector{Missing})] # remove missing columns
 end
 
+## Cross-period capacity summary ##
+
+# Canonical variable order for the wide-format summary
+const CAPACITY_SUMMARY_VARIABLE_ORDER = [:existing_capacity, :new_capacity, :retired_capacity, :capacity, :retrofitted_capacity]
+
+capacity_summary_column_name(variable::Symbol, label::Int) = "$(variable)_$(label)"
+
+"""
+    write_capacity_summary(path::AbstractString, period_results::Vector{DataFrame}, layout::String)
+
+Write a cross-period capacity summary (`capacity_summary.csv`) to `path`, combining the
+per-period `DataFrame`s returned by [`write_capacity`](@ref) (Note for developers: `period_results` must be in
+chronological order, earliest period first).
+
+When the case has a `StartYear` configured, each period's `DataFrame` carries a real `year`
+column (from the system's `TimeData`), and the summary is labeled by calendar year. Otherwise
+`write_capacity`'s `year` column is entirely absent, and the summary
+falls back to a `period` column — each period's 1-based position in `period_results`.
+
+`:existing_capacity` is dropped from every period except the first (earliest) one, since for
+later periods it is always equal to the previous period's final `:capacity` and so is redundant.
+
+- `layout == "long"`: the per-period `capacity.csv` schema stacked across periods with a `year`
+  or `period` column (see above).
+- `layout == "wide"`: each period is reshaped with [`reshape_wide`](@ref) exactly like the
+  per-period `capacity.csv` (one row per component, one column per variable), the variable
+  columns are renamed with a `_<year>` or `_<period>` suffix, and periods are then outer-joined
+  together on the shared identifying columns (commodity, zone, resource_id, component_id,
+  resource_type, component_type).
+"""
+function write_capacity_summary(path::AbstractString, period_results::Vector{DataFrame}, layout::String)
+    all(isempty, period_results) && return nothing
+
+    file_path = joinpath(path, "capacity_summary.csv")
+    @info "Writing cross-period capacity summary to $file_path"
+
+    # No StartYear configured: `year` column was dropped. Fall back to a `period` column instead.
+    has_year = hasproperty(period_results[1], :year)
+    label_col = has_year ? :year : :period
+    if !has_year
+        period_results = [insertcols(df, :value, :period => period_idx) for (period_idx, df) in enumerate(period_results)]
+    end
+
+    # Only the first (earliest) period's existing_capacity is informative; later periods'
+    # existing_capacity always equals the previous period's final capacity.
+    first_label = only(unique(period_results[1][!, label_col]))
+    period_results = map(period_results) do df
+        only(unique(df[!, label_col])) == first_label ? df : filter(:variable => !=(:existing_capacity), df)
+    end
+
+    if layout == "wide"
+        id_cols = names(select(first(period_results), Not([:variable, :value, label_col])))
+
+        period_wide_dfs = map(period_results) do df
+            label = only(unique(df[!, label_col]))
+            wide = reshape_wide(select(df, Not(label_col)))
+            present_vars = [v for v in CAPACITY_SUMMARY_VARIABLE_ORDER if string(v) in names(wide)]
+            select!(wide, [id_cols; string.(present_vars)])
+            rename!(wide, [string(v) => capacity_summary_column_name(v, label) for v in present_vars]...)
+            return wide
+        end
+
+        wide = reduce((a, b) -> outerjoin(a, b, on=id_cols), period_wide_dfs)
+        for col in setdiff(names(wide), id_cols)
+            wide[!, col] = coalesce.(wide[!, col], 0.0)
+        end
+        write_dataframe(file_path, wide)
+    else
+        write_dataframe(file_path, reduce(vcat, period_results))
+    end
+    return nothing
+end
+
 # The following functions are used to extract capacity values after the model has been solved
 # from a list of MacroObjects (e.g., edges, and storage) and a list of fields (e.g., capacity, new_capacity, retired_capacity)
 
