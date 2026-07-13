@@ -2,6 +2,7 @@ Base.@kwdef mutable struct TimeData{T} <: AbstractTimeData{T}
     time_interval::StepRange{Int64,Int64}
     hours_per_timestep::Int64 = 1
     period_index::Int64 = 1
+    year::Union{Int64,Missing} = missing
     subperiods::Vector{StepRange{Int64,Int64}} = StepRange{Int64,Int64}[]
     subperiod_indices::Vector{Int64} = Vector{Int64}()
     subperiod_weights::Dict{Int64,Float64} = Dict{Int64,Float64}()
