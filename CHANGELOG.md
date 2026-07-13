@@ -11,6 +11,10 @@ and this project follows Julia package versioning through `Project.toml` release
 
 - Updated MacroEnergySolvers.jl version to 0.2.2
 
+### Fixed
+
+- Fix wacc default preventing fallback to DiscountRate
+
 ## [0.2.0] - 2026-05-22
 
 ### Added
