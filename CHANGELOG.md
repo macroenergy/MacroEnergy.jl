@@ -23,6 +23,10 @@ and this project follows Julia package versioning through `Project.toml` release
 - Asset balance definitions have been migrated away from legacy raw `balance_data = Dict(...)` patterns toward `@add_balance`, `@add_to_storage_balance`, and `@add_stoichiometric_balance`.
 - Updated MacroEnergySolvers.jl version to 0.2.2.
 
+### Fixed
+
+- Fix wacc default preventing fallback to DiscountRate. Omitted `wacc` was silently treated as `0.0` instead of falling back to the case-level `DiscountRate`.
+
 ### Documentation
 
 - Expanded the balance documentation with guidance on choosing between balance macros, stoichiometric coefficient bases, pairwise expansion limits, multi-term algebraic balances, common mistakes, and numerical sensitivity.
