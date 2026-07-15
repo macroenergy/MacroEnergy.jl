@@ -9,9 +9,19 @@ and this project follows Julia package versioning through `Project.toml` release
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-07-15
+
 ### Changed
 
 - Updated MacroEnergySolvers.jl version to 0.2.2
+
+### Fixed
+
+- Fix wacc default preventing fallback to DiscountRate
+
+### Migration guide
+
+- **Results change:** no public API changed, but any case that omits an asset's `wacc` will now produce different results. Previously the missing `wacc` defaulted to `0.0`; it now falls back to the case's `DiscountRate`. Cases relying on the old default will see different annualized investment costs after upgrading. To keep the old behavior, set `wacc` explicitly to `0.0` for the affected asset(s).
 
 ## [0.2.0] - 2026-05-22
 
@@ -135,7 +145,8 @@ systems = case.systems
 
 - Initial registered release of MacroEnergy.jl.
 
-[Unreleased]: https://github.com/macroenergy/MacroEnergy.jl/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/macroenergy/MacroEnergy.jl/compare/v0.2.1...HEAD
+[0.2.1]: https://github.com/macroenergy/MacroEnergy.jl/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/macroenergy/MacroEnergy.jl/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/macroenergy/MacroEnergy.jl/compare/v0.0.3...v0.1.0
 [0.0.3]: https://github.com/macroenergy/MacroEnergy.jl/compare/v0.0.2...v0.0.3
