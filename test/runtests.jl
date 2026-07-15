@@ -18,6 +18,10 @@ with_logger(test_logger) do
         end
     end
 
+    Test.@testset verbose = true "Annualized Costs" begin
+        include("test_annualized_costs.jl")
+    end
+
     Test.@testset verbose = true "Writing Outputs" begin
         include("test_output.jl")
         include("test_full_timeseries.jl")
