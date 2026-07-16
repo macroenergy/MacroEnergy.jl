@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Creating a New Asset · Macro</title><meta name="title" content="Creating a New Asset · Macro"/><meta property="og:title" content="Creating a New Asset · Macro"/><meta property="twitter:title" content="Creating a New Asset · Macro"/><meta name="description" content="Documentation for Macro."/><meta property="og:description" content="Documentation for Macro."/><meta property="twitter:description" content="Documentation for Macro."/><meta property="og:url" content="https://macroenergy.github.io/Macro/stable/Guides/Modeler Guide/modeler_build_asset/"/><meta property="twitter:url" content="https://macroenergy.github.io/Macro/stable/Guides/Modeler Guide/modeler_build_asset/"/><link rel="canonical" href="https://macroenergy.github.io/Macro/stable/Guides/Modeler Guide/modeler_build_asset/"/><script data-outdated-warner src="../../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../../assets/documenter.js"></script><script src="../../../search_index.js"></script><script src="../../../siteinfo.js"></script><script src="../../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../../">Macro</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><input class="collapse-toggle" id="menuitem-1" type="checkbox"/><label class="tocitem" for="menuitem-1"><span class="docs-label">Welcome to Macro</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../">Introduction</a></li><li><a class="tocitem" href="../../../table_of_contents/">Table of contents</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-2" type="checkbox"/><label class="tocitem" for="menuitem-2"><span class="docs-label">Getting Started</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Getting Started/1_overview/">Overview</a></li><li><a class="tocitem" href="../../../Getting Started/2_installation/">Installation</a></li><li><a class="tocitem" href="../../../Getting Started/4_macro_repo_contents/">What&#39;s Included With Macro</a></li><li><a class="tocitem" href="../../../Getting Started/3_first_run/">First Run</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-3" type="checkbox"/><label class="tocitem" for="menuitem-3"><span class="docs-label">Tutorials</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Tutorials/tutorials_introduction/">Introduction</a></li><li><a class="tocitem" href="../../../Tutorials/0_getting_started/">Getting Started</a></li><li><a class="tocitem" href="../../../Tutorials/1_running_macro/">Running Macro</a></li><li><a class="tocitem" href="../../../Tutorials/2_multisector_modelling/">Multisector Modelling</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4" type="checkbox" checked/><label class="tocitem" for="menuitem-4"><span class="docs-label">Guides</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../guides_introduction/">Introduction</a></li><li><input class="collapse-toggle" id="menuitem-4-2" type="checkbox"/><label class="tocitem" for="menuitem-4-2"><span class="docs-label">User Guide</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../User Guide/user_build_system/">Create a System</a></li><li><a class="tocitem" href="../../User Guide/user_add_commodity/">Adding Commodities</a></li><li><a class="tocitem" href="../../User Guide/user_add_node/">Adding Nodes</a></li><li><a class="tocitem" href="../../User Guide/user_add_location/">Adding Locations</a></li><li><a class="tocitem" href="../../User Guide/user_add_asset/">Adding Assets</a></li><li><a class="tocitem" href="../../User Guide/user_policy_constraints/">Adding Policy constraints</a></li><li><a class="tocitem" href="../../User Guide/user_asset_constraints/">Adding Assets constraints</a></li><li><a class="tocitem" href="../../User Guide/user_settings/">Configuring Settings</a></li><li><a class="tocitem" href="../../User Guide/user_run_model/">Running Models</a></li><li><a class="tocitem" href="../../User Guide/user_write_results/">Writing Results</a></li><li><a class="tocitem" href="../../User Guide/user_multiperiod/">Using Multi-Period Models</a></li><li><a class="tocitem" href="../../User Guide/user_using_asset_libary/">Exploring the Asset library</a></li><li><a class="tocitem" href="../../User Guide/user_retrofitting_constraints/">Adding Retrofitting Constraints</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-3" type="checkbox" checked/><label class="tocitem" for="menuitem-4-3"><span class="docs-label">Modeler Guide</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../modeler_introduction/">Introduction</a></li><li><a class="tocitem" href="../modeler_es_graph/">Energy System Graph-Based Representation</a></li><li><a class="tocitem" href="../modeler_build_sectors/">Creating a New Sector</a></li><li class="is-active"><a class="tocitem" href>Creating a New Asset</a><ul class="internal"><li><a class="tocitem" href="#Overview"><span>Overview</span></a></li><li><a class="tocitem" href="#Prerequisites"><span>Prerequisites</span></a></li><li><a class="tocitem" href="#Quick-Start"><span>Quick Start</span></a></li><li><a class="tocitem" href="#Step-1:-Design-the-new-asset"><span>Step 1: Design the new asset</span></a></li><li><a class="tocitem" href="#Step-2:-Create-the-new-asset-file"><span>Step 2: Create the new asset file</span></a></li><li><a class="tocitem" href="#Key-Components-and-Concepts"><span>Key Components and Concepts</span></a></li><li><a class="tocitem" href="#Best-Practices"><span>Best Practices</span></a></li><li><a class="tocitem" href="#Complete-Example:-MyNewAsset"><span>Complete Example: <code>MyNewAsset</code></span></a></li><li><a class="tocitem" href="#Testing-Your-Asset"><span>Testing Your Asset</span></a></li><li><a class="tocitem" href="#Documentation"><span>Documentation</span></a></li><li><a class="tocitem" href="#Next-Steps"><span>Next Steps</span></a></li></ul></li><li><a class="tocitem" href="../modeler_add_docs_to_asset/">Documenting an Asset</a></li><li><a class="tocitem" href="../modeler_create_example_case/">Creating a New Example Case</a></li><li><a class="tocitem" href="../modeler_workflow/">Suggested Development Workflow</a></li><li><a class="tocitem" href="../modeler_debugging_testing/">Debugging and Testing Tips</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-4" type="checkbox"/><label class="tocitem" for="menuitem-4-4"><span class="docs-label">Developer Guide</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Developer Guide/dev_create_constraint/">Creating a Constraint</a></li><li><a class="tocitem" href="../../Developer Guide/2_type_hierarchy/">Type Hierarchy</a></li></ul></li></ul></li><li><a class="tocitem" href="../../../Assets/assets_guide/">Assets</a></li><li><input class="collapse-toggle" id="menuitem-6" type="checkbox"/><label class="tocitem" for="menuitem-6"><span class="docs-label">Manual</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Manual/manual_introduction/">Introduction</a></li><li><a class="tocitem" href="../../../Manual/Inputs/">Inputs</a></li><li><a class="tocitem" href="../../../Manual/TimeData/">Time Data</a></li><li><a class="tocitem" href="../../../Manual/Timeseries/">Timeseries</a></li><li><input class="collapse-toggle" id="menuitem-6-5" type="checkbox"/><label class="tocitem" for="menuitem-6-5"><span class="docs-label">Outputs</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Manual/Outputs/">Overview</a></li><li><a class="tocitem" href="../../../Manual/outputs/capacity/">Capacity</a></li><li><a class="tocitem" href="../../../Manual/outputs/costs/">Costs</a></li><li><a class="tocitem" href="../../../Manual/outputs/flows/">Flows</a></li><li><a class="tocitem" href="../../../Manual/outputs/storage_level/">Storage Level</a></li><li><a class="tocitem" href="../../../Manual/outputs/curtailment/">Curtailment</a></li><li><a class="tocitem" href="../../../Manual/outputs/non_served_demand/">Non-Served Demand</a></li><li><a class="tocitem" href="../../../Manual/outputs/time_weights/">Time Weights</a></li><li><a class="tocitem" href="../../../Manual/outputs/duals/">Duals</a></li><li><a class="tocitem" href="../../../Manual/outputs/full_timeseries/">Full Time Series</a></li><li><a class="tocitem" href="../../../Manual/outputs/benders/">Benders Convergence</a></li><li><a class="tocitem" href="../../../Manual/outputs/settings_output/">Settings</a></li><li><a class="tocitem" href="../../../Manual/outputs/log_file/">Log File</a></li></ul></li><li><a class="tocitem" href="../../../Manual/System/">System</a></li><li><a class="tocitem" href="../../../Manual/Model/">Model</a></li><li><a class="tocitem" href="../../../Manual/Sectors/">Sectors</a></li><li><a class="tocitem" href="../../../Manual/Edges/">Edges</a></li><li><a class="tocitem" href="../../../Manual/Nodes/">Nodes</a></li><li><a class="tocitem" href="../../../Manual/Storage/">Storage</a></li><li><a class="tocitem" href="../../../Manual/Transformations/">Transformations</a></li><li><a class="tocitem" href="../../../Manual/Locations/">Locations</a></li><li><a class="tocitem" href="../../../Manual/Constraints/">Constraints</a></li><li><a class="tocitem" href="../../../Manual/Commodities/">Commodities</a></li><li><a class="tocitem" href="../../../Manual/Assets/">Assets</a></li><li><input class="collapse-toggle" id="menuitem-6-17" type="checkbox"/><label class="tocitem" for="menuitem-6-17"><span class="docs-label">Asset Library</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Manual/assets/aluminaplant/">Alumina Plant</a></li><li><a class="tocitem" href="../../../Manual/assets/aluminumrefining/">Aluminum Refining</a></li><li><a class="tocitem" href="../../../Manual/assets/aluminumsmelting/">Aluminum Smelting</a></li><li><a class="tocitem" href="../../../Manual/assets/battery/">Battery</a></li><li><a class="tocitem" href="../../../Manual/assets/beccselectricity/">BECCS Electricity</a></li><li><a class="tocitem" href="../../../Manual/assets/beccshydrogen/">BECCS Hydrogen</a></li><li><a class="tocitem" href="../../../Manual/assets/downstreamemissions/">Downstream Emissions</a></li><li><a class="tocitem" href="../../../Manual/assets/electricdac/">Electric DAC</a></li><li><a class="tocitem" href="../../../Manual/assets/electricheating/">Electric Heating</a></li><li><a class="tocitem" href="../../../Manual/assets/electricsteam/">Electric Steam</a></li><li><a class="tocitem" href="../../../Manual/assets/electrolyzer/">Electrolyzer</a></li><li><a class="tocitem" href="../../../Manual/assets/fuelcell/">Fuel Cell</a></li><li><a class="tocitem" href="../../../Manual/assets/thermalheating/">Thermal Heating</a></li><li><a class="tocitem" href="../../../Manual/assets/thermalsteam/">Thermal Steam</a></li><li><a class="tocitem" href="../../../Manual/assets/gasstorage/">Gas Storage</a></li><li><a class="tocitem" href="../../../Manual/assets/hydropower/">Hydro Reservoir</a></li><li><a class="tocitem" href="../../../Manual/assets/integratedblastfurnacebasicoxygenfurnace/">Integrated Blast Furnace Basic Oxygen Furnace (with and without CCS)</a></li><li><a class="tocitem" href="../../../Manual/assets/integrateddirectreductionelectricarcfurnace/">Integrated Direct Reduction Electric Arc Furnace (with and without CCS)</a></li><li><a class="tocitem" href="../../../Manual/assets/mustrun/">Must Run</a></li><li><a class="tocitem" href="../../../Manual/assets/natgasdaq/">Natural Gas DAC</a></li><li><a class="tocitem" href="../../../Manual/assets/onewaytransmissionlink/">One-way Transmission Link</a></li><li><a class="tocitem" href="../../../Manual/assets/standalonelectricarcfurnace/">Electric Arc Furnace</a></li><li><a class="tocitem" href="../../../Manual/assets/syntheticammonia/">Synthetic Ammonia (Electrochemical)</a></li><li><a class="tocitem" href="../../../Manual/assets/syntheticmethanol/">Synthetic Methanol (Electrochemical)</a></li><li><a class="tocitem" href="../../../Manual/assets/thermalammonia/">Thermal Ammonia (with and without CCS)</a></li><li><a class="tocitem" href="../../../Manual/assets/thermalhydrogen/">Thermal Hydrogen Plant (with and without CCS)</a></li><li><a class="tocitem" href="../../../Manual/assets/thermalmethanol/">Thermal Methanol (with and without CCS)</a></li><li><a class="tocitem" href="../../../Manual/assets/thermalpower/">Thermal Power Plant (with and without CCS)</a></li><li><a class="tocitem" href="../../../Manual/assets/transmissionlink/">Transmission Link</a></li><li><a class="tocitem" href="../../../Manual/assets/upstreamemissions/">Upstream Emissions</a></li><li><a class="tocitem" href="../../../Manual/assets/vre/">Variable Renewable Energy Resources (VRE)</a></li></ul></li><li><a class="tocitem" href="../../../Manual/Financial_assumptions/">Financial Assumptions</a></li><li><a class="tocitem" href="../../../Manual/Multi_period_accounting/">Multi-Period Accounting</a></li></ul></li><li><a class="tocitem" href="../../../how_to_contribute/">How to contribute</a></li><li><a class="tocitem" href="../../../changelog/">Changelog</a></li><li><input class="collapse-toggle" id="menuitem-10" type="checkbox"/><label class="tocitem" for="menuitem-10"><span class="docs-label">References</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../References/1_introduction/">Introduction</a></li><li><a class="tocitem" href="../../../References/2_reading_input/">Reading input data</a></li><li><a class="tocitem" href="../../../References/3_macro_objects/">Macro Objects</a></li><li><a class="tocitem" href="../../../References/4_writing_output/">Writing output data</a></li><li><a class="tocitem" href="../../../References/5_utilities/">Utilities</a></li><li><a class="tocitem" href="../../../References/ref_download_examples/">Downloading examples</a></li><li><a class="tocitem" href="../../../References/ref_run_case/">Running a Macro Model</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11" type="checkbox"/><label class="tocitem" for="menuitem-11"><span class="docs-label">Appendix</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Appendix/TEA/">TEA</a></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Guides</a></li><li><a class="is-disabled">Modeler Guide</a></li><li class="is-active"><a href>Creating a New Asset</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Creating a New Asset</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/macroenergy/MacroEnergy.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/macroenergy/MacroEnergy.jl/blob/main/docs/src/Guides/Modeler Guide/modeler_build_asset.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="modeler_create_asset"><a class="docs-heading-anchor" href="#modeler_create_asset">Creating a New Asset</a><a id="modeler_create_asset-1"></a><a class="docs-heading-anchor-permalink" href="#modeler_create_asset" title="Permalink"></a></h1><p>The main design principle of Macro is to allow modelers to easily extend the model with new assets. Indeed, thanks to the <a href="../modeler_es_graph/#Energy-System-Graph-Based-Representation">graph-based representation</a>, assets can be quickly assembled by connecting <code>Transformation</code>s, <code>Edge</code>s, <code>Storage</code>s components and/or other assets. </p><div class="admonition is-success" id="Macro-Asset-Library-368e83fc4a5d1352"><header class="admonition-header">Macro Asset Library<a class="admonition-anchor" href="#Macro-Asset-Library-368e83fc4a5d1352" title="Permalink"></a></header><div class="admonition-body"><p>Before creating a new asset, we recommend reviewing existing assets in the <a href="https://github.com/macroenergy/MacroEnergy.jl/tree/main/src/model/assets"><code>src/model/assets</code> folder</a> and the <a href="../../../Manual/Assets/#Macro-Asset-Library">Macro Asset Library</a>. All asset files follow a <strong>consistent structure</strong> to facilitate the creation of new assets.</p></div></div><h2 id="Overview"><a class="docs-heading-anchor" href="#Overview">Overview</a><a id="Overview-1"></a><a class="docs-heading-anchor-permalink" href="#Overview" title="Permalink"></a></h2><p>MacroEnergy.jl is designed to be a flexible and modular energy system modeling framework that allows users to easily extend the model with new assets. Assets in Macro are built using a <a href="../modeler_es_graph/#Energy-System-Graph-Based-Representation">graph-based representation</a> consisting of three fundamental components:</p><ol><li><strong>Transformations</strong> - Represent conversion processes between commodities</li><li><strong>Edges</strong> - Represent commodity flows between components  </li><li><strong>Storage</strong> - Represent energy storage capabilities</li></ol><h2 id="Prerequisites"><a class="docs-heading-anchor" href="#Prerequisites">Prerequisites</a><a id="Prerequisites-1"></a><a class="docs-heading-anchor-permalink" href="#Prerequisites" title="Permalink"></a></h2><p>Before creating a new asset, we recommend:</p><ul><li>Reviewing existing assets in the <code>src/model/assets</code> folder</li><li>Reading the <a href="../../../Manual/Assets/#Assets">Macro Asset Library</a> documentation</li><li>Familiarizing yourself with the graph-based representation concept</li><li>Understand the commodity types available in your system</li></ul><h2 id="Quick-Start"><a class="docs-heading-anchor" href="#Quick-Start">Quick Start</a><a id="Quick-Start-1"></a><a class="docs-heading-anchor-permalink" href="#Quick-Start" title="Permalink"></a></h2><p>To create a new asset (e.g. <code>MyNewAsset</code>), follow these steps:</p><ol><li><p><strong>Design the asset</strong>: Design the asset by defining its commodity inflows and outflows, conversion processes, and storage components.</p></li><li><p>(Recommended) <strong>Draw a diagram of the asset</strong>: Create a diagram of the asset to visualize its components and their connections. Each component will be implemented as a Macro <code>Transformation</code> (conversion process), <code>Edge</code> (commodity flow), or <code>Storage</code> (storage unit).</p></li><li><p><strong>Determine which components (<code>Edge</code>s and <code>Storage</code>s) will have capacity variables for expansion and retirement during optimization</strong>: This is important for the optimization process.</p></li><li><p><strong>Create a new Julia file</strong>: Create a new Julia file named <code>mynewasset.jl</code> in the <code>src/model/assets</code> folder. This file will contain the asset definition and the <code>make</code> function to construct the asset from input data. The following sections will guide you through the file creation process.</p></li><li><p><strong>Include the new asset file</strong>: Add the following line to the <code>src/MacroEnergy.jl</code> file to include your new asset:</p><p><code>include(&quot;model/assets/mynewasset.jl&quot;)</code></p><p>similar to how other asset files are included.</p></li></ol><p>The following sections will expand on each of the steps above.</p><h2 id="Step-1:-Design-the-new-asset"><a class="docs-heading-anchor" href="#Step-1:-Design-the-new-asset">Step 1: Design the new asset</a><a id="Step-1:-Design-the-new-asset-1"></a><a class="docs-heading-anchor-permalink" href="#Step-1:-Design-the-new-asset" title="Permalink"></a></h2><p>The first step in creating a new asset is to design its internal components, including transformations, edges, and storage units, and define how they connect to each other.</p><p>For this step, it is useful to draw a diagram of the asset to visualize the components and their connections, similar to the ones shown in the <a href="../../../Manual/Assets/#Macro-Asset-Library">Macro Asset Library</a>.</p><div class="admonition is-info" id="Macro-Components-46fcb91ec28b4939"><header class="admonition-header">Macro Components<a class="admonition-anchor" href="#Macro-Components-46fcb91ec28b4939" title="Permalink"></a></header><div class="admonition-body"><p>Macro components (<code>Transformation</code>, <code>Edge</code>, and <code>Storage</code>) are abstract representations of the asset&#39;s functionality in the graph-based system, as described in the <a href="../modeler_es_graph/#Energy-System-Graph-Based-Representation">previous section</a>, and do not represent real-world components.</p></div></div><p><strong>Example</strong>: Below is the diagram of the <code>Electrolyzer</code> asset:</p><img width="300" src="../../images/electrolyzer.png" /><p>which, as you can see, it&#39;s made of the following &quot;primary&quot; components:</p><ul><li>1 <code>Transformation</code></li><li>2 <code>Edge</code> components:<ul><li>1 <strong>incoming</strong> <code>Electricity</code> <code>Edge</code></li><li>1 <strong>outgoing</strong> <code>Hydrogen</code> <code>Edge</code></li></ul></li></ul><h2 id="Step-2:-Create-the-new-asset-file"><a class="docs-heading-anchor" href="#Step-2:-Create-the-new-asset-file">Step 2: Create the new asset file</a><a id="Step-2:-Create-the-new-asset-file-1"></a><a class="docs-heading-anchor-permalink" href="#Step-2:-Create-the-new-asset-file" title="Permalink"></a></h2><div class="admonition is-info" id="File-Structure-88ab0e4d5ff1531"><header class="admonition-header">File Structure<a class="admonition-anchor" href="#File-Structure-88ab0e4d5ff1531" title="Permalink"></a></header><div class="admonition-body"><p>Remember to place the new asset file in the <code>src/model/assets</code> folder.</p></div></div><p>The new asset file should include the following:</p><ul><li>A <code>struct</code> definition for the asset, inheriting from <code>AbstractAsset</code>.</li><li><code>default_data</code>, <code>full_default_data</code>, and <code>simple_default_data</code> functions to define the default data for the asset.</li><li>A <code>make</code> function to construct the asset from input data.</li></ul><h3 id="2.1-Define-the-asset-type"><a class="docs-heading-anchor" href="#2.1-Define-the-asset-type">2.1 Define the asset type</a><a id="2.1-Define-the-asset-type-1"></a><a class="docs-heading-anchor-permalink" href="#2.1-Define-the-asset-type" title="Permalink"></a></h3><p>Defining a new asset type in Macro is straightforward. You simply need to define a new <code>struct</code> at the top of the file as a subtype of <code>AbstractAsset</code>.</p><pre><code class="language-julia hljs">struct MyNewAsset &lt;: AbstractAsset
+    # ... asset structure will go here ...
+end</code></pre><p>Following the diagram of the new asset drawn in the previous step, fill in the fields of the <code>struct</code> with the appropriate components:</p><pre><code class="language-julia hljs">struct MyNewAsset &lt;: AbstractAsset
+    id::AssetId
+    transform::Transformation
+    edge1::Edge{CommodityType1}
+    edge2::Edge{CommodityType2}
+    # ... additional asset structure components ...
+end</code></pre><p>For example, here is the <code>struct</code> definition of the <code>Electrolyzer</code> asset:</p><p><a href="https://github.com/macroenergy/MacroEnergy.jl/blob/ec38f804cb823f6eb666d026e18ee69cfd68b4d7/src/model/assets/electrolyzer.jl#L1C1-L6C4"><code>src/model/assets/electrolyzer.jl</code></a></p><pre><code class="language-julia hljs">struct Electrolyzer &lt;: AbstractAsset
+    id::AssetId
+    electrolyzer_transform::Transformation
+    h2_edge::Edge{Hydrogen}
+    elec_edge::Edge{Electricity}
+end</code></pre><p>You can find more examples by examining the <code>struct</code> definitions in the <code>.jl</code> files within the <a href="https://github.com/macroenergy/MacroEnergy.jl/tree/main/src/model/assets"><code>src/model/assets</code> folder</a>.</p><h3 id="2.2-Define-the-default-data-functions"><a class="docs-heading-anchor" href="#2.2-Define-the-default-data-functions">2.2 Define the default data functions</a><a id="2.2-Define-the-default-data-functions-1"></a><a class="docs-heading-anchor-permalink" href="#2.2-Define-the-default-data-functions" title="Permalink"></a></h3><p>The <code>default_data</code>, <code>full_default_data</code>, and <code>simple_default_data</code> functions are used to define the default data for the new asset. This is particularly important for having the correct data setup when creating the asset. </p><p>1. <strong><code>default_data</code></strong></p><p>The <code>default_data</code> is a helper function that returns a dictionary (an <code>OrderedDict</code> to be precise) with the data in the &quot;full&quot; or &quot;simple&quot; format. When creating a new asset, simply add the following lines to the file (replace <code>MyNewAsset</code> with the name of the asset being created):</p><pre><code class="language-julia hljs">function default_data(t::Type{MyNewAsset}, id=missing, style=&quot;full&quot;)
+    if style == &quot;full&quot;
+        return full_default_data(t, id)
+    else
+        return simple_default_data(t, id)
+    end
+end</code></pre><p>2. <strong><code>full_default_data</code></strong></p><p>Here&#39;s a detailed breakdown of how to construct the <code>full_default_data</code> function:</p><ul><li><p><strong>Function Signature:</strong></p><p><code>function full_default_data(::Type{MyNewAsset}, id=missing)</code></p><ul><li>Takes the asset type as a type parameter</li><li>Takes an optional <code>id</code> parameter that defaults to <code>missing</code></li></ul></li><li><p><strong>Return Structure</strong></p></li></ul><p>The function returns an <code>OrderedDict{Symbol,Any}</code> with the following main sections:</p><pre><code class="language-julia hljs">return OrderedDict{Symbol,Any}(
+    :id =&gt; id,
+    # sections depending on the asset structure
+    :transforms =&gt; @transform_data(...),    # If asset has transformations
+    :edges =&gt; Dict{Symbol,Any}(             # If asset has edges
+        :edge_name_1 =&gt; @edge_data(...),
+        :edge_name_2 =&gt; @edge_data(...),
+        # ... additional edges ...
+    ),
+    :storage =&gt; @storage_data(...)          # If asset has storage
+)</code></pre><div class="admonition is-info" id="Default-Data-d41dfbef20cf9aac"><header class="admonition-header">Default Data<a class="admonition-anchor" href="#Default-Data-d41dfbef20cf9aac" title="Permalink"></a></header><div class="admonition-body"><p>The <code>@transform_data</code>, <code>@edge_data</code>, and <code>@storage_data</code> macros are used to define the data for the transformation, edge, and storage unit respectively and to merge the data with the default values for each component. For the list of all default data, see the <a href="https://github.com/macroenergy/MacroEnergy.jl/blob/main/src/utilities/default_data.jl">default data file</a>.</p></div></div><p>Copy and paste the relevant sections of the above code and modify them to fit the asset structure:</p><ul><li><strong>Transform Section</strong></li></ul><p>The <code>:transforms</code> section uses the <code>@transform_data</code> macro to define transformation properties:</p><pre><code class="language-julia hljs">    :transforms =&gt; @transform_data(
+        :timedata =&gt; &quot;CommodityType&quot;,  # The commodity type to use for time resolution
+        :constraints =&gt; Dict{Symbol, Bool}(  # Default/required constraints
+            :BalanceConstraint =&gt; true,
+            # Add other constraints as needed
+        ),
+        # Add transformation-specific parameters
+        :parameter_name =&gt; default_value,
+    )</code></pre><ul><li><strong>Edges Section</strong></li></ul><p>The <code>:edges</code> section defines all edges in the asset using the <code>@edge_data</code> macro:</p><pre><code class="language-julia hljs">    :edges =&gt; Dict{Symbol,Any}(
+        :edge_name =&gt; @edge_data(
+            :commodity =&gt; &quot;CommodityType&quot;,  # The commodity type flowing through this edge
+            :has_capacity =&gt; true,    # `edge_name` will have capacity variables by default
+            :can_expand =&gt; true,      # `edge_name` can expand
+            :can_retire =&gt; true,      # `edge_name` can retire
+            :constraints =&gt; Dict{Symbol, Bool}(  # Edge-specific constraints
+                :CapacityConstraint =&gt; true,
+                # Add other constraints as needed
+            ),
+            # Add edge-specific parameters
+            :parameter_name =&gt; default_value,
+        ),
+        # Add more edges as needed
+    )</code></pre><ul><li><strong>Storage Section</strong> (if applicable)</li></ul><p>If the asset includes storage, add a storage section:</p><pre><code class="language-julia hljs">    :storage =&gt; @storage_data(
+        :commodity =&gt; &quot;CommodityType&quot;,
+        :constraints =&gt; Dict{Symbol, Bool}(
+            :StorageCapacityConstraint =&gt; true,
+            # Add other storage constraints
+        ),
+        # Add storage-specific parameters
+        :parameter_name =&gt; default_value,
+    )</code></pre><p>As seen above, some common parameters you might need to include are:</p><ul><li><p>For transformations:</p><ul><li><code>:timedata</code> - Time resolution of the time series data. Common choice is &quot;Electricity&quot;</li><li><code>:constraints</code> - Required constraints</li><li><strong>stoichiometric_coefficients</strong> - Stoichiometric coefficients for the transformation (e.g. <code>:fuel_consumption</code>, <code>:emission_rate</code>, etc.)</li></ul></li><li><p>For edges:</p><ul><li><code>:commodity</code> - The commodity type flowing through the edge</li><li><code>:has_capacity</code> - To specify that a particular edge has capacity variables</li><li><code>:can_expand</code> - To specify that a particular edge can expand</li><li><code>:can_retire</code> - To specify that a particular edge can retire</li><li><code>:constraints</code> - Edge-specific constraints</li></ul></li></ul><p><strong>Example Implementation</strong></p><p>Here&#39;s an example implementation based on the <code>Electrolyzer</code> asset:</p><pre><code class="language-julia hljs">function full_default_data(::Type{Electrolyzer}, id=missing)
+    return OrderedDict{Symbol,Any}(
+        :id =&gt; id,
+        :transforms =&gt; @transform_data(
+            :timedata =&gt; &quot;Electricity&quot;,
+            :constraints =&gt; Dict{Symbol, Bool}(
+                :BalanceConstraint =&gt; true,
+            ),
+            :efficiency_rate =&gt; 0.0
+        ),
+        :edges =&gt; Dict{Symbol,Any}(
+            :h2_edge =&gt; @edge_data(
+                :commodity =&gt; &quot;Hydrogen&quot;,
+                :has_capacity =&gt; true,
+                :can_retire =&gt; true,
+                :can_expand =&gt; true,
+                :can_retire =&gt; true,
+                :constraints =&gt; Dict{Symbol, Bool}(
+                    :CapacityConstraint =&gt; true,
+                ),
+            ),
+            :elec_edge =&gt; @edge_data(
+                :commodity =&gt; &quot;Electricity&quot;,
+            ),
+        ),
+    )
+end</code></pre><p>As can be seen above, the default data for the <code>Electrolyzer</code> asset includes:</p><ul><li>A <code>Transformation</code> component with the <code>:timedata</code> set to <code>&quot;Electricity&quot;</code>, <code>:constraints</code> set to <code>:BalanceConstraint</code> and an <code>:efficiency_rate</code> set to <code>0.0</code>.</li><li>A <code>Hydrogen</code> <code>Edge</code> with <strong>capacity variables</strong> and the ability to expand and retire by default.</li><li>An <code>Electricity</code> <code>Edge</code> with no capacity variables.</li></ul><p>3. <strong><code>simple_default_data</code></strong></p><p>As mentioned above, the <code>simple_default_data</code> function returns a compact version of the default data dictionary. The main difference with the <code>full_default_data</code> function is that the dictionary that is returned doesn&#39;t include sub-dictionaries for the <code>:transforms</code>, <code>:edges</code>, and <code>:storage</code> sections, and all the <strong>data is included in the top-level dictionary</strong>.</p><p>The function signature is the same as the <code>full_default_data</code> function, but the <strong>return structure</strong> is different:</p><pre><code class="language-julia hljs">function simple_default_data(::Type{MyNewAsset}, id=missing)
+    return OrderedDict{Symbol,Any}(
+        :id =&gt; id,
+        :parameter_name =&gt; default_value,
+        # ... additional parameters ...
+    )
+end</code></pre><p>As an example, here&#39;s the <code>simple_default_data</code> function for the <code>Electrolyzer</code> asset:</p><pre><code class="language-julia hljs">function simple_default_data(::Type{Electrolyzer}, id=missing)
+    return OrderedDict{Symbol,Any}(
+        :id =&gt; id,
+        :location =&gt; missing,
+        :can_expand =&gt; true,
+        :can_retire =&gt; true,
+        :existing_capacity =&gt; 0.0,
+        :capacity_size =&gt; 1.0,
+        :efficiency_rate =&gt; 0.0,
+        :investment_cost =&gt; 0.0,
+        :fixed_om_cost =&gt; 0.0,
+        :variable_om_cost =&gt; 0.0,
+    )
+end</code></pre><h3 id="2.3-Define-the-make-function"><a class="docs-heading-anchor" href="#2.3-Define-the-make-function">2.3 Define the <code>make</code> function</a><a id="2.3-Define-the-make-function-1"></a><a class="docs-heading-anchor-permalink" href="#2.3-Define-the-make-function" title="Permalink"></a></h3><p>The <code>make</code> function is used to tell Macro how to create an instance of the new asset. It is a crucial step for the following tasks:</p><ul><li><strong>Reading</strong> the relevant sections of the input file and <strong>constructing each component</strong> of the asset (e.g. <code>Transformation</code>, <code>Edge</code>, <code>Storage</code>)</li><li>Incorporating <strong>modeling choices</strong> or default behaviors (e.g. linking edges to the correct nodes)</li><li>Creating the <strong>stoichiometric equations</strong> for the conversion processes happening in the asset (see the <code>balance_data</code> attribute of the <code>Transformation</code> and <code>Storage</code> components described in the <a href="#2.3.4-Balance-Data">Stoichiometric Coefficients</a> section below)</li></ul><p>1. <strong>Function Signature</strong></p><p>Let&#39;s start by looking at the <strong>function signature</strong>:</p><pre><code class="language-julia hljs">function make(asset_type::Type{MyNewAsset}, data::AbstractDict{Symbol,Any}, system::System)
+    # ... implementation details ...
+end</code></pre><p>The <code>make</code> function takes three arguments:</p><ul><li><code>asset_type::Type{MyNewAsset}</code>: The type of the asset to be created (i.e. <code>MyNewAsset</code>)</li><li><code>data::AbstractDict{Symbol,Any}</code>: A dictionary containing the input data for the asset.</li><li><code>system::System</code>: The system in which the asset is being added.</li></ul><p>2. <strong>Return Structure</strong></p><p>The function should return an instance of the asset:</p><pre><code class="language-julia hljs">function make(asset_type::Type{MyNewAsset}, data::AbstractDict{Symbol,Any}, system::System)
+    # ... implementation details ...
+    return MyNewAsset(id, transform, edge1, edge2, # ... additional components ...)
+end</code></pre><p>3. <strong>Implementation</strong></p><p>The body of the <code>make</code> function can be broken down into five main blocks:</p><ol><li><strong>ID Setup</strong> – Assigning a unique identifier to the asset</li><li><strong>Data Setup</strong> – Loading and organizing default input data</li><li><strong>Component Creation</strong> – Building each component (e.g., transformations, edges, etc.)</li><li><strong>Stoichiometric Coefficients Setup</strong> – Defining the stoichiometric equations for the asset&#39;s balance equations</li><li><strong>Asset creation</strong> – Constructing the asset</li></ol><p>Let&#39;s break down each block separately and see how to implement them.</p><h4 id="2.3.1-ID-Setup"><a class="docs-heading-anchor" href="#2.3.1-ID-Setup">2.3.1 ID Setup</a><a id="2.3.1-ID-Setup-1"></a><a class="docs-heading-anchor-permalink" href="#2.3.1-ID-Setup" title="Permalink"></a></h4><p>The first block of the <code>make</code> function is the ID setup. It reads the <code>:id</code> key from the input data and creates a unique identifier for the asset (of type <code>AssetId</code>).</p><pre><code class="language-julia hljs">id = AssetId(data[:id])</code></pre><h4 id="2.3.2-Data-Setup"><a class="docs-heading-anchor" href="#2.3.2-Data-Setup">2.3.2 Data Setup</a><a id="2.3.2-Data-Setup-1"></a><a class="docs-heading-anchor-permalink" href="#2.3.2-Data-Setup" title="Permalink"></a></h4><p>The second block of the <code>make</code> function is the data setup. It prepares the input data for the rest of the function and loads all default data for the asset.</p><pre><code class="language-julia hljs">@setup_data(asset_type, data, id)</code></pre><h4 id="2.3.3-Component-Creation"><a class="docs-heading-anchor" href="#2.3.3-Component-Creation">2.3.3 Component Creation</a><a id="2.3.3-Component-Creation-1"></a><a class="docs-heading-anchor-permalink" href="#2.3.3-Component-Creation" title="Permalink"></a></h4><p>The third block of the <code>make</code> function is the component creation. It builds each component of the asset separately, and prepares the <code>Edge</code>s, <code>Transformation</code>, and <code>Storage</code> to be used in final asset creation.</p><div class="admonition is-success" id="Modeling-Choices-3f58ef98a3888635"><header class="admonition-header">Modeling Choices<a class="admonition-anchor" href="#Modeling-Choices-3f58ef98a3888635" title="Permalink"></a></header><div class="admonition-body"><p>In this step, modelers can make modeling choices, setting default values for missing data and constraints, linking edges to the correct nodes, and more. See the asset files in the <code>src/model/assets</code> folder for examples.</p></div></div><p>Each <strong>component creation</strong> is made of the following steps (we will use the <code>Electrolyzer</code> asset as an example):</p><ul><li><strong>Key assignment</strong></li></ul><p>Add a line to assign the key for the component to a new variable of type <code>Symbol</code>. This key is used to load the correct portion of the data corresponding to the component being created.</p><div class="admonition is-warning" id="Key-Assignment-5cf3ee81145ee1eb"><header class="admonition-header">Key Assignment<a class="admonition-anchor" href="#Key-Assignment-5cf3ee81145ee1eb" title="Permalink"></a></header><div class="admonition-body"><p>Make sure to match the key used in the both the <code>full_default_data</code> function and the JSON input file to group the data for the corresponding component.</p></div></div><p>For instance, in the <code>Electrolyzer</code> asset, the key for the transformation used in the <code>full_default_data</code> function and the JSON input file is <code>:transforms</code>. So, the following line is added to the <code>make</code> function:</p><pre><code class="language-julia hljs">electrolyzer_key = :transforms</code></pre><p>The keys for the other components of the <code>Electrolyzer</code> asset are assigned in a similar way:</p><pre><code class="language-julia hljs">elec_edge_key = :elec_edge
+# ...
+h2_edge_key = :h2_edge</code></pre><ul><li><strong>Input data loading</strong></li></ul><p>This step invokes the <code>@process_data</code> macro to load the input data for each component from the JSON input file. The macro takes three arguments:</p><ul><li>The variable to store the processed data.</li><li>The section of the input data to process (e.g, <code>data[component_key]</code>).</li><li>A list of tuples containing the data and the key to search for in the input data.</li></ul><p>Here is an example of how the <code>@process_data</code> macro works for the <code>Electrolyzer</code> asset:</p><pre><code class="language-julia hljs">@process_data(
+    transform_data,          # The variable to store the processed data
+    data[electrolyzer_key],  # The section of the input data to process
+    [
+        (data[electrolyzer_key], key),
+        (data[electrolyzer_key], Symbol(&quot;transform_&quot;, key)),
+        (data, Symbol(&quot;transform_&quot;, key)),
+        (data, key),
+    ]
+)</code></pre><p>In particular, for each key in the default data, the macro will look for a match in the input data in the following order:</p><ol><li>Check if the <code>transforms</code> section of the JSON input file (i.e., <code>data[&quot;transforms&quot;]</code>) contains the key.</li><li>Check if the <code>transforms</code> section of the JSON input file (i.e., <code>data[&quot;transforms&quot;]</code>) contains the key with the prefix <code>transform_</code> (e.g. <code>transform_constraints</code>).</li><li>Check if the <code>data</code> section of the input data (i.e., the top-level of the JSON input file) contains the key with the prefix <code>transform_</code> (e.g. <code>transform_constraints</code>). <strong>Note</strong>: This is very important for the reduced data format, where all the data is at the top-level.</li><li>Check if the <code>data</code> section of the input data contains the key.</li></ol><p>The macro will look for data in each source in sequence, using the first value it finds. This allows for flexible data specification with fallback options.</p><p>This is another example of a component creation for the hydrogen <strong>edge</strong> of the <code>Electrolyzer</code> asset:</p><pre><code class="language-julia hljs">h2_edge_key = :h2_edge  # The key for the hydrogen edge in the input data
+@process_data(
+    h2_edge_data, 
+    data[:edges][h2_edge_key],  # The section of the input data to process
+    [
+        (data[:edges][h2_edge_key], key),
+        (data[:edges][h2_edge_key], Symbol(&quot;h2_&quot;, key)),
+        (data, Symbol(&quot;h2_&quot;, key)),
+        (data, key),
+    ]
+)</code></pre><ul><li><strong>Vertex assignment (for edges)</strong></li></ul><p>This step assigns the correct nodes, transformation, or storage unit to each edge (in Macro, these three components are also called <code>Vertices</code>, see <a href="../modeler_es_graph/#Macro-Internal-Components">Macro Internal Components</a> for more details).</p><p>When assigning vertices to edges, two cases can happen:</p><ol><li>The edge is connected to an asset component defined earlier in the <code>make</code> function (e.g. a transformation or a storage unit).</li><li>The edge is connected to an external <code>Node</code>, which is defined outside of the asset in the nodes JSON file.</li></ol><p>In the first case, simply create a new variable with the name of the component and assign it to the component.</p><pre><code class="language-julia hljs"># The vertex is the transformation itself (look at the diagram above)
+elec_end_node = electrolyzer_transform
+# ...
+h2_start_node = electrolyzer_transform  </code></pre><p><code>elec_end_node</code> and <code>h2_start_node</code> will now contain the transformation that must be connected to the electricity and hydrogen edges respectively.</p><p>In the second case, the vertex is an external <code>Node</code>. The id of the node must be listed in the edge data of the JSON input file using the <code>:locations</code> key or <code>start_vertex</code>/<code>end_vertex</code> keys. Macro provides two macros, <code>@start_vertex</code> and <code>@end_vertex</code>, to find the correct node in the system and store it in a variable.</p><p>The <code>@start_vertex</code> and <code>@end_vertex</code> macros take four arguments:</p><ul><li>The variable to store the node.</li><li>The edge data.</li><li>The commodity type of the edge.</li><li>A list of tuples containing the edge data and the key to search for in the JSON input file.</li></ul><p>Here is an example for the electricity edge of the <code>Electrolyzer</code> asset:</p><pre><code class="language-julia hljs">@start_vertex(
+    elec_start_node,
+    elec_edge_data,
+    Electricity,
+    [(elec_edge_data, :start_vertex), (data, :location)],
+)</code></pre><p>The <code>elec_start_node</code> variable will now contain the node that must be connected to the electricity edge.</p><p>This is the example for the hydrogen edge of the <code>Electrolyzer</code> asset:</p><pre><code class="language-julia hljs">@end_vertex(
+    h2_end_node,
+    h2_edge_data,
+    Hydrogen,
+    [(h2_edge_data, :end_vertex), (data, :location)],
+)</code></pre><p>The <code>h2_end_node</code> variable will now contain the node that must be connected to the hydrogen edge.</p><ul><li><strong>Instance creation</strong></li></ul><p>The final step creates an instance of the edge, transformation, or storage unit and stores it in a variable. Use the <code>Edge</code>, <code>Transformation</code>, or <code>Storage</code> functions to create the corresponding instance.</p><p>For example, here is how to create the transformation component for the <code>Electrolyzer</code> asset:</p><pre><code class="language-julia hljs">electrolyzer_transform = Transformation(;
+    id = Symbol(id, &quot;_&quot;, electrolyzer_key),  # The id of the transformation is the id of the asset plus the key of the transformation
+    timedata = system.time_data[Symbol(transform_data[:timedata])],
+    constraints = transform_data[:constraints],
+)</code></pre><p><code>electrolyzer_transform</code> is now an instance of the <code>Transformation</code> type and can, for example, be used in the <code>Edge</code> creation step as <code>start_node</code> and <code>end_node</code> (see below).</p><p>Here is an example for the electricity edge of the <code>Electrolyzer</code> asset:</p><pre><code class="language-julia hljs">elec_edge = Edge(
+    Symbol(id, &quot;_&quot;, elec_edge_key),
+    elec_edge_data,
+    system.time_data[:Electricity],
+    Electricity,
+    elec_start_node,
+    elec_end_node,
+)</code></pre><p>Note the last two arguments of the <code>Edge</code> function:</p><ul><li><code>elec_start_node</code> is a <code>Node</code> instance of type <code>Electricity</code> created using the <code>@start_vertex</code> macro.</li><li><code>elec_end_node</code> is the <code>Transformation</code> part of the asset created in the previous step.</li></ul><p>Similarly, here is an example for the hydrogen edge of the <code>Electrolyzer</code> asset:</p><pre><code class="language-julia hljs">h2_edge = Edge(
+    Symbol(id, &quot;_&quot;, h2_edge_key),
+    h2_edge_data,
+    system.time_data[:Hydrogen],
+    Hydrogen,
+    h2_start_node,
+    h2_end_node,
+)</code></pre><p>To summarize, this is the complete component creation step for the <code>Transformation</code> and <code>Edge</code> components of the <code>Electrolyzer</code> asset:</p><pre><code class="language-julia hljs"># Transformation creation
+electrolyzer_key = :transforms
+@process_data(
+    transform_data, 
+    data[electrolyzer_key], 
+    [
+        (data[electrolyzer_key], key),
+        (data[electrolyzer_key], Symbol(&quot;transform_&quot;, key)),
+        (data, Symbol(&quot;transform_&quot;, key)),
+        (data, key),
+    ]
+)
+electrolyzer = Transformation(;
+    id = Symbol(id, &quot;_&quot;, electrolyzer_key),
+    timedata = system.time_data[Symbol(transform_data[:timedata])],
+    constraints = transform_data[:constraints],
+)
+
+# Electricity edge creation
+elec_edge_key = :elec_edge
+@process_data(
+    elec_edge_data, 
+    data[:edges][elec_edge_key], 
+    [
+        (data[:edges][elec_edge_key], key),
+        (data[:edges][elec_edge_key], Symbol(&quot;elec_&quot;, key)),
+        (data, Symbol(&quot;elec_&quot;, key)),
+    ]
+)
+@start_vertex(
+    elec_start_node,
+    elec_edge_data,
+    Electricity,
+    [(elec_edge_data, :start_vertex), (data, :location)],
+)
+elec_end_node = electrolyzer
+elec_edge = Edge(
+    Symbol(id, &quot;_&quot;, elec_edge_key),
+    elec_edge_data,
+    system.time_data[:Electricity],
+    Electricity,
+    elec_start_node,
+    elec_end_node,
+)
+
+# Hydrogen edge creation
+h2_edge_key = :h2_edge
+@process_data(
+    h2_edge_data, 
+    data[:edges][h2_edge_key], 
+    [
+        (data[:edges][h2_edge_key], key),
+        (data[:edges][h2_edge_key], Symbol(&quot;h2_&quot;, key)),
+        (data, Symbol(&quot;h2_&quot;, key)),
+        (data, key),
+    ]
+)
+h2_start_node = electrolyzer
+@end_vertex(
+    h2_end_node,
+    h2_edge_data,
+    Hydrogen,
+    [(h2_edge_data, :end_vertex), (data, :location)],
+)
+h2_edge = Edge(
+    Symbol(id, &quot;_&quot;, h2_edge_key),
+    h2_edge_data,
+    system.time_data[:Hydrogen],
+    Hydrogen,
+    h2_start_node,
+    h2_end_node,
+)</code></pre><h4 id="2.3.4-Balance-Data"><a class="docs-heading-anchor" href="#2.3.4-Balance-Data">2.3.4 Balance Data</a><a id="2.3.4-Balance-Data-1"></a><a class="docs-heading-anchor-permalink" href="#2.3.4-Balance-Data" title="Permalink"></a></h4><p>This step defines the stoichiometric equations for the balance equations of the transformations and defines the efficiency in charge and discharge of the storage units.</p><ul><li><strong>Transformations</strong></li></ul><p>The stoichiometric equations are defined in the <code>balance_data</code> dictionary of the <code>Transformation</code> instance.</p><p>Here is an example for the <code>Electrolyzer</code> asset:</p><pre><code class="language-julia hljs">electrolyzer_transform.balance_data = Dict(
+    :energy =&gt; Dict(
+        h2_edge.id =&gt; 1.0,
+        elec_edge.id =&gt; get(transform_data, :efficiency_rate, 1.0),
+    ),
+)</code></pre><p>and the stoichiometric equation is:</p><p class="math-container">\[\begin{aligned}
+\phi_{h2} &amp;= \phi_{elec} \cdot \epsilon_{efficiency} \\
+\end{aligned}\]</p><p>where <span>$\phi_{h2}$</span> is the flow of hydrogen, <span>$\phi_{elec}$</span> is the flow of electricity, and <span>$\epsilon_{efficiency}$</span> is the efficiency rate of the electrolyzer.</p><div class="admonition is-warning" id="Balance-Data-Keys-2cfca8252500b46c"><header class="admonition-header">Balance Data Keys<a class="admonition-anchor" href="#Balance-Data-Keys-2cfca8252500b46c" title="Permalink"></a></header><div class="admonition-body"><p>You can define as many balance equations as needed. The only requirement is that the keys in the <code>balance_data</code> dictionaries (e.g. <code>:energy</code>, <code>:emissions</code>, etc.) must be unique. See the <a href="https://github.com/macroenergy/MacroEnergy.jl/tree/main/src/model/assets">src/model/assets folder</a> for more examples of balance data definitions.</p></div></div><ul><li><strong>Storage units</strong></li></ul><p>The efficiency in charge and discharge of the storage units are defined in the <code>balance_data</code> dictionary of the <code>Storage</code> instance.</p><p>Example taken from the <code>Battery</code> asset:</p><pre><code class="language-julia hljs">battery_storage.balance_data = Dict(
+    :storage =&gt; Dict(
+        battery_discharge.id =&gt; 1 / discharge_efficiency,
+        battery_charge.id =&gt; charge_efficiency,
+    ),
+)</code></pre><h4 id="2.3.5-Asset-creation"><a class="docs-heading-anchor" href="#2.3.5-Asset-creation">2.3.5 Asset creation</a><a id="2.3.5-Asset-creation-1"></a><a class="docs-heading-anchor-permalink" href="#2.3.5-Asset-creation" title="Permalink"></a></h4><p>This is the final step of the <code>make</code> function. It integrates all components to construct and return the final asset. </p><pre><code class="language-julia hljs">return MyNewAsset(id, transform, edge1, edge2, # ... all components ...)</code></pre><div class="admonition is-warning" id="Positional-arguments-f59676bcfcaa00bd"><header class="admonition-header">Positional arguments<a class="admonition-anchor" href="#Positional-arguments-f59676bcfcaa00bd" title="Permalink"></a></header><div class="admonition-body"><p>The positional arguments of the asset constructor must match the order of the components in the asset <code>struct</code> definition. For example, if the asset <code>struct</code> is defined as </p><pre><code class="language-julia hljs">struct ExampleAsset &lt;: AbstractAsset
+    id::AssetId
+    transform::Transformation
+    edge1::Edge
+    edge2::Edge
+end</code></pre><p>then the asset must be created as:</p><pre><code class="language-julia hljs">return ExampleAsset(id, transform, edge1, edge2)</code></pre></div></div><p>For example, here is how to create the <code>Electrolyzer</code> asset:</p><pre><code class="language-julia hljs">return Electrolyzer(id, electrolyzer_transform, h2_edge, elec_edge)</code></pre><h2 id="Key-Components-and-Concepts"><a class="docs-heading-anchor" href="#Key-Components-and-Concepts">Key Components and Concepts</a><a id="Key-Components-and-Concepts-1"></a><a class="docs-heading-anchor-permalink" href="#Key-Components-and-Concepts" title="Permalink"></a></h2><h3 id="[Transformations](@ref)"><a class="docs-heading-anchor" href="#[Transformations](@ref)"><a href="../../../Manual/Transformations/#Transformations">Transformations</a></a><a id="[Transformations](@ref)-1"></a><a class="docs-heading-anchor-permalink" href="#[Transformations](@ref)" title="Permalink"></a></h3><ul><li>Represent conversion processes between commodities</li><li>Have stoichiometric equations defined in <code>balance_data</code></li></ul><h3 id="[Edges](@ref)"><a class="docs-heading-anchor" href="#[Edges](@ref)"><a href="../../../Manual/Edges/#Edges">Edges</a></a><a id="[Edges](@ref)-1"></a><a class="docs-heading-anchor-permalink" href="#[Edges](@ref)" title="Permalink"></a></h3><ul><li>Represent commodity flows</li><li>Can have capacity variables for optimization</li><li>Connect to nodes, transformations, or storage units</li><li>Can be configured for expansion/retirement</li></ul><h3 id="[Storage](@ref)"><a class="docs-heading-anchor" href="#[Storage](@ref)"><a href="../../../Manual/Storage/#Storage">Storage</a></a><a id="[Storage](@ref)-1"></a><a class="docs-heading-anchor-permalink" href="#[Storage](@ref)" title="Permalink"></a></h3><ul><li>Track energy levels over time</li><li>Can have charge/discharge edges</li><li>Support various storage constraints</li></ul><h3 id="[Constraints](@ref-macro_constraint_library)"><a class="docs-heading-anchor" href="#[Constraints](@ref-macro_constraint_library)"><a href="../../User Guide/4_constraints/#macro_constraint_library">Constraints</a></a><a id="[Constraints](@ref-macro_constraint_library)-1"></a><a class="docs-heading-anchor-permalink" href="#[Constraints](@ref-macro_constraint_library)" title="Permalink"></a></h3><p>Common constraints include:</p><ul><li><code>BalanceConstraint</code> - Ensures mass/energy balance</li><li><code>CapacityConstraint</code> - Limits capacity</li><li><code>StorageCapacityConstraint</code> - Limits storage capacity</li><li><code>RampingLimitConstraint</code> - Limits rate of change</li><li><code>MinFlowConstraint</code> - Sets minimum flow requirements</li></ul><h2 id="Best-Practices"><a class="docs-heading-anchor" href="#Best-Practices">Best Practices</a><a id="Best-Practices-1"></a><a class="docs-heading-anchor-permalink" href="#Best-Practices" title="Permalink"></a></h2><ol><li><strong>Follow existing patterns</strong>: Study similar assets in the codebase</li><li><strong>Use meaningful names</strong>: Choose descriptive names for components</li><li><strong>Document constraints</strong>: Clearly specify which constraints apply</li><li><strong>Test thoroughly</strong>: Create example cases to validate your asset</li><li><strong>Consider efficiency</strong>: Define appropriate stoichiometric coefficients</li><li><strong>Handle edge cases</strong>: Consider what happens with missing data</li><li><strong>Use consistent naming</strong>: Follow the naming conventions used in existing assets</li><li><strong>Validate input data</strong>: Ensure your asset handles missing or invalid data gracefully</li></ol><h2 id="Complete-Example:-MyNewAsset"><a class="docs-heading-anchor" href="#Complete-Example:-MyNewAsset">Complete Example: <code>MyNewAsset</code></a><a id="Complete-Example:-MyNewAsset-1"></a><a class="docs-heading-anchor-permalink" href="#Complete-Example:-MyNewAsset" title="Permalink"></a></h2><p>Here&#39;s a simplified example of a complete asset implementation with two edges and a transformation (Electricity to Hydrogen):</p><pre><code class="language-julia hljs"># mynewasset.jl
+struct MyNewAsset &lt;: AbstractAsset
+    id::AssetId
+    transform::Transformation
+    input_edge::Edge{Electricity}
+    output_edge::Edge{Hydrogen}
+end
+
+function default_data(t::Type{MyNewAsset}, id=missing, style=&quot;full&quot;)
+    if style == &quot;full&quot;
+        return full_default_data(t, id)
+    else
+        return simple_default_data(t, id)
+    end
+end
+
+function full_default_data(::Type{MyNewAsset}, id=missing)
+    return OrderedDict{Symbol,Any}(
+        :id =&gt; id,
+        :transforms =&gt; @transform_data(
+            :timedata =&gt; &quot;Electricity&quot;,
+            :constraints =&gt; Dict{Symbol, Bool}(:BalanceConstraint =&gt; true),
+            :efficiency =&gt; 0.8,
+        ),
+        :edges =&gt; Dict{Symbol,Any}(
+            :input_edge =&gt; @edge_data(
+                :commodity =&gt; &quot;Electricity&quot;,
+            ),
+            :output_edge =&gt; @edge_data(
+                :commodity =&gt; &quot;Hydrogen&quot;,
+                :has_capacity =&gt; true,
+                :can_expand =&gt; true,
+                :can_retire =&gt; true,
+                :constraints =&gt; Dict{Symbol, Bool}(:CapacityConstraint =&gt; true),
+            ),
+        ),
+    )
+end
+
+function simple_default_data(::Type{MyNewAsset}, id=missing)
+    return OrderedDict{Symbol,Any}(
+        :id =&gt; id,
+        :location =&gt; missing,
+        :efficiency =&gt; 0.8,
+        :investment_cost =&gt; 0.0,
+        :fixed_om_cost =&gt; 0.0,
+        :variable_om_cost =&gt; 0.0,
+    )
+end
+
+function make(asset_type::Type{MyNewAsset}, data::AbstractDict{Symbol,Any}, system::System)
+    id = AssetId(data[:id])
+    @setup_data(asset_type, data, id)
+    
+    # Create transformation
+    transform_key = :transforms
+    @process_data(transform_data, data[transform_key], [
+        (data[transform_key], key),
+        (data[transform_key], Symbol(&quot;transform_&quot;, key)),
+        (data, Symbol(&quot;transform_&quot;, key)),
+        (data, key),
+    ])
+    transform = Transformation(;
+        id = Symbol(id, &quot;_&quot;, transform_key),
+        timedata = system.time_data[Symbol(transform_data[:timedata])],
+        constraints = transform_data[:constraints],
+    )
+    
+    # Create input edge
+    input_key = :input_edge
+    @process_data(input_data, data[:edges][input_key], [
+        (data[:edges][input_key], key),
+        (data[:edges][input_key], Symbol(&quot;input_&quot;, key)),
+        (data, Symbol(&quot;input_&quot;, key)),
+    ])
+    @start_vertex(input_start_node, input_data, Electricity, [
+        (input_data, :start_vertex), (data, :location)
+    ])
+    input_end_node = transform
+    input_edge = Edge(
+        Symbol(id, &quot;_&quot;, input_key),
+        input_data,
+        system.time_data[:Electricity],
+        Electricity,
+        input_start_node,
+        input_end_node,
+    )
+    
+    # Create output edge
+    output_key = :output_edge
+    @process_data(output_data, data[:edges][output_key], [
+        (data[:edges][output_key], key),
+        (data[:edges][output_key], Symbol(&quot;output_&quot;, key)),
+        (data, Symbol(&quot;output_&quot;, key)),
+    ])
+    output_start_node = transform
+    @end_vertex(output_end_node, output_data, Hydrogen, [
+        (output_data, :end_vertex), (data, :location)
+    ])
+    output_edge = Edge(
+        Symbol(id, &quot;_&quot;, output_key),
+        output_data,
+        system.time_data[:Hydrogen],
+        Hydrogen,
+        output_start_node,
+        output_end_node,
+    )
+    
+    # Set up stoichiometric equations
+    efficiency = get(transform_data, :efficiency, 1.0)
+    transform.balance_data = Dict(
+        :energy =&gt; Dict(
+            output_edge.id =&gt; 1.0,
+            input_edge.id =&gt; efficiency,
+        ),
+    )
+    
+    return MyNewAsset(id, transform, input_edge, output_edge)
+end</code></pre><h2 id="Testing-Your-Asset"><a class="docs-heading-anchor" href="#Testing-Your-Asset">Testing Your Asset</a><a id="Testing-Your-Asset-1"></a><a class="docs-heading-anchor-permalink" href="#Testing-Your-Asset" title="Permalink"></a></h2><ol><li><strong>Create a test case</strong> based on the existing example cases.</li><li><strong>Add realistic parameters</strong> to your input files</li><li><strong>Run the model</strong> to ensure it works correctly</li><li><strong>Check results</strong> to verify the asset behaves as expected</li><li><strong>Add constraints</strong> as needed for realistic operation</li></ol><h2 id="Documentation"><a class="docs-heading-anchor" href="#Documentation">Documentation</a><a id="Documentation-1"></a><a class="docs-heading-anchor-permalink" href="#Documentation" title="Permalink"></a></h2><p>Don&#39;t forget to:</p><ol><li><strong>Document your asset</strong> following the pattern in <code>docs/src/Manual/assets/</code></li><li><strong>Include a mermaid diagram</strong> showing the asset structure</li><li><strong>List all parameters</strong> and their units</li><li><strong>Provide examples</strong> of different configurations</li><li><strong>Update the asset library</strong> documentation</li></ol><p>All these steps are covered in the <a href="../modeler_add_docs_to_asset/#modeler_add_docs_to_asset">Documenting an Asset</a> guide.</p><h2 id="Next-Steps"><a class="docs-heading-anchor" href="#Next-Steps">Next Steps</a><a id="Next-Steps-1"></a><a class="docs-heading-anchor-permalink" href="#Next-Steps" title="Permalink"></a></h2><p>We recommend reviewing the following sections in the <strong>Modeler Guide</strong> for additional guidance on how to efficiently develop and test new assets:</p><ul><li><a href="../modeler_add_docs_to_asset/#modeler_add_docs_to_asset">Documenting an Asset</a>: A guide to documenting the new asset.</li><li><a href="../modeler_create_example_case/#modeler_create_example_case">Creating a New Example Case</a>: A step-by-step guide to creating a new example case for testing and validation of the new asset.</li><li><a href="../modeler_workflow/#Suggested-Development-Workflow">Suggested Development Workflow</a>: A recommended workflow for developing new assets.</li><li><a href="../modeler_debugging_testing/#Debugging-and-Testing-a-Macro-Model">Debugging and Testing Tips</a>: Tips and best practices for debugging and testing new assets.</li></ul><script type="module">import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+mermaid.initialize({
+    startOnLoad: true,
+    theme: "neutral"
+});
+</script></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../modeler_build_sectors/">« Creating a New Sector</a><a class="docs-footer-nextpage" href="../modeler_add_docs_to_asset/">Documenting an Asset »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Thursday 16 July 2026 14:40">Thursday 16 July 2026</span>. Using Julia version 1.12.6.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

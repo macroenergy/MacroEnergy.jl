@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Adding Assets · Macro</title><meta name="title" content="Adding Assets · Macro"/><meta property="og:title" content="Adding Assets · Macro"/><meta property="twitter:title" content="Adding Assets · Macro"/><meta name="description" content="Documentation for Macro."/><meta property="og:description" content="Documentation for Macro."/><meta property="twitter:description" content="Documentation for Macro."/><meta property="og:url" content="https://macroenergy.github.io/Macro/stable/Guides/User Guide/user_add_asset/"/><meta property="twitter:url" content="https://macroenergy.github.io/Macro/stable/Guides/User Guide/user_add_asset/"/><link rel="canonical" href="https://macroenergy.github.io/Macro/stable/Guides/User Guide/user_add_asset/"/><script data-outdated-warner src="../../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../../assets/documenter.js"></script><script src="../../../search_index.js"></script><script src="../../../siteinfo.js"></script><script src="../../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../../">Macro</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><input class="collapse-toggle" id="menuitem-1" type="checkbox"/><label class="tocitem" for="menuitem-1"><span class="docs-label">Welcome to Macro</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../">Introduction</a></li><li><a class="tocitem" href="../../../table_of_contents/">Table of contents</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-2" type="checkbox"/><label class="tocitem" for="menuitem-2"><span class="docs-label">Getting Started</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Getting Started/1_overview/">Overview</a></li><li><a class="tocitem" href="../../../Getting Started/2_installation/">Installation</a></li><li><a class="tocitem" href="../../../Getting Started/4_macro_repo_contents/">What&#39;s Included With Macro</a></li><li><a class="tocitem" href="../../../Getting Started/3_first_run/">First Run</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-3" type="checkbox"/><label class="tocitem" for="menuitem-3"><span class="docs-label">Tutorials</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Tutorials/tutorials_introduction/">Introduction</a></li><li><a class="tocitem" href="../../../Tutorials/0_getting_started/">Getting Started</a></li><li><a class="tocitem" href="../../../Tutorials/1_running_macro/">Running Macro</a></li><li><a class="tocitem" href="../../../Tutorials/2_multisector_modelling/">Multisector Modelling</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4" type="checkbox" checked/><label class="tocitem" for="menuitem-4"><span class="docs-label">Guides</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../guides_introduction/">Introduction</a></li><li><input class="collapse-toggle" id="menuitem-4-2" type="checkbox" checked/><label class="tocitem" for="menuitem-4-2"><span class="docs-label">User Guide</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../user_build_system/">Create a System</a></li><li><a class="tocitem" href="../user_add_commodity/">Adding Commodities</a></li><li><a class="tocitem" href="../user_add_node/">Adding Nodes</a></li><li><a class="tocitem" href="../user_add_location/">Adding Locations</a></li><li class="is-active"><a class="tocitem" href>Adding Assets</a><ul class="internal"><li><a class="tocitem" href="#Create-a-new-Asset-file"><span>Create a new Asset file</span></a></li><li><a class="tocitem" href="#Creating-Instance-Data-for-Each-Asset"><span>Creating Instance Data for Each Asset</span></a></li><li><a class="tocitem" href="#Assign-Asset-IDs"><span>Assign Asset IDs</span></a></li><li><a class="tocitem" href="#Add-Instance-Data"><span>Add Instance Data</span></a></li><li><a class="tocitem" href="#Creating-Global-Data"><span>Creating Global Data</span></a></li><li><a class="tocitem" href="#Working-with-CSV-Asset-files"><span>Working with CSV Asset files</span></a></li></ul></li><li><a class="tocitem" href="../user_policy_constraints/">Adding Policy constraints</a></li><li><a class="tocitem" href="../user_asset_constraints/">Adding Assets constraints</a></li><li><a class="tocitem" href="../user_settings/">Configuring Settings</a></li><li><a class="tocitem" href="../user_run_model/">Running Models</a></li><li><a class="tocitem" href="../user_write_results/">Writing Results</a></li><li><a class="tocitem" href="../user_multiperiod/">Using Multi-Period Models</a></li><li><a class="tocitem" href="../user_using_asset_libary/">Exploring the Asset library</a></li><li><a class="tocitem" href="../user_retrofitting_constraints/">Adding Retrofitting Constraints</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-3" type="checkbox"/><label class="tocitem" for="menuitem-4-3"><span class="docs-label">Modeler Guide</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Modeler Guide/modeler_introduction/">Introduction</a></li><li><a class="tocitem" href="../../Modeler Guide/modeler_es_graph/">Energy System Graph-Based Representation</a></li><li><a class="tocitem" href="../../Modeler Guide/modeler_build_sectors/">Creating a New Sector</a></li><li><a class="tocitem" href="../../Modeler Guide/modeler_build_asset/">Creating a New Asset</a></li><li><a class="tocitem" href="../../Modeler Guide/modeler_add_docs_to_asset/">Documenting an Asset</a></li><li><a class="tocitem" href="../../Modeler Guide/modeler_create_example_case/">Creating a New Example Case</a></li><li><a class="tocitem" href="../../Modeler Guide/modeler_workflow/">Suggested Development Workflow</a></li><li><a class="tocitem" href="../../Modeler Guide/modeler_debugging_testing/">Debugging and Testing Tips</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-4" type="checkbox"/><label class="tocitem" for="menuitem-4-4"><span class="docs-label">Developer Guide</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Developer Guide/dev_create_constraint/">Creating a Constraint</a></li><li><a class="tocitem" href="../../Developer Guide/2_type_hierarchy/">Type Hierarchy</a></li></ul></li></ul></li><li><a class="tocitem" href="../../../Assets/assets_guide/">Assets</a></li><li><input class="collapse-toggle" id="menuitem-6" type="checkbox"/><label class="tocitem" for="menuitem-6"><span class="docs-label">Manual</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Manual/manual_introduction/">Introduction</a></li><li><a class="tocitem" href="../../../Manual/Inputs/">Inputs</a></li><li><a class="tocitem" href="../../../Manual/TimeData/">Time Data</a></li><li><a class="tocitem" href="../../../Manual/Timeseries/">Timeseries</a></li><li><input class="collapse-toggle" id="menuitem-6-5" type="checkbox"/><label class="tocitem" for="menuitem-6-5"><span class="docs-label">Outputs</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Manual/Outputs/">Overview</a></li><li><a class="tocitem" href="../../../Manual/outputs/capacity/">Capacity</a></li><li><a class="tocitem" href="../../../Manual/outputs/costs/">Costs</a></li><li><a class="tocitem" href="../../../Manual/outputs/flows/">Flows</a></li><li><a class="tocitem" href="../../../Manual/outputs/storage_level/">Storage Level</a></li><li><a class="tocitem" href="../../../Manual/outputs/curtailment/">Curtailment</a></li><li><a class="tocitem" href="../../../Manual/outputs/non_served_demand/">Non-Served Demand</a></li><li><a class="tocitem" href="../../../Manual/outputs/time_weights/">Time Weights</a></li><li><a class="tocitem" href="../../../Manual/outputs/duals/">Duals</a></li><li><a class="tocitem" href="../../../Manual/outputs/full_timeseries/">Full Time Series</a></li><li><a class="tocitem" href="../../../Manual/outputs/benders/">Benders Convergence</a></li><li><a class="tocitem" href="../../../Manual/outputs/settings_output/">Settings</a></li><li><a class="tocitem" href="../../../Manual/outputs/log_file/">Log File</a></li></ul></li><li><a class="tocitem" href="../../../Manual/System/">System</a></li><li><a class="tocitem" href="../../../Manual/Model/">Model</a></li><li><a class="tocitem" href="../../../Manual/Sectors/">Sectors</a></li><li><a class="tocitem" href="../../../Manual/Edges/">Edges</a></li><li><a class="tocitem" href="../../../Manual/Nodes/">Nodes</a></li><li><a class="tocitem" href="../../../Manual/Storage/">Storage</a></li><li><a class="tocitem" href="../../../Manual/Transformations/">Transformations</a></li><li><a class="tocitem" href="../../../Manual/Locations/">Locations</a></li><li><a class="tocitem" href="../../../Manual/Constraints/">Constraints</a></li><li><a class="tocitem" href="../../../Manual/Commodities/">Commodities</a></li><li><a class="tocitem" href="../../../Manual/Assets/">Assets</a></li><li><input class="collapse-toggle" id="menuitem-6-17" type="checkbox"/><label class="tocitem" for="menuitem-6-17"><span class="docs-label">Asset Library</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Manual/assets/aluminaplant/">Alumina Plant</a></li><li><a class="tocitem" href="../../../Manual/assets/aluminumrefining/">Aluminum Refining</a></li><li><a class="tocitem" href="../../../Manual/assets/aluminumsmelting/">Aluminum Smelting</a></li><li><a class="tocitem" href="../../../Manual/assets/battery/">Battery</a></li><li><a class="tocitem" href="../../../Manual/assets/beccselectricity/">BECCS Electricity</a></li><li><a class="tocitem" href="../../../Manual/assets/beccshydrogen/">BECCS Hydrogen</a></li><li><a class="tocitem" href="../../../Manual/assets/downstreamemissions/">Downstream Emissions</a></li><li><a class="tocitem" href="../../../Manual/assets/electricdac/">Electric DAC</a></li><li><a class="tocitem" href="../../../Manual/assets/electricheating/">Electric Heating</a></li><li><a class="tocitem" href="../../../Manual/assets/electricsteam/">Electric Steam</a></li><li><a class="tocitem" href="../../../Manual/assets/electrolyzer/">Electrolyzer</a></li><li><a class="tocitem" href="../../../Manual/assets/fuelcell/">Fuel Cell</a></li><li><a class="tocitem" href="../../../Manual/assets/thermalheating/">Thermal Heating</a></li><li><a class="tocitem" href="../../../Manual/assets/thermalsteam/">Thermal Steam</a></li><li><a class="tocitem" href="../../../Manual/assets/gasstorage/">Gas Storage</a></li><li><a class="tocitem" href="../../../Manual/assets/hydropower/">Hydro Reservoir</a></li><li><a class="tocitem" href="../../../Manual/assets/integratedblastfurnacebasicoxygenfurnace/">Integrated Blast Furnace Basic Oxygen Furnace (with and without CCS)</a></li><li><a class="tocitem" href="../../../Manual/assets/integrateddirectreductionelectricarcfurnace/">Integrated Direct Reduction Electric Arc Furnace (with and without CCS)</a></li><li><a class="tocitem" href="../../../Manual/assets/mustrun/">Must Run</a></li><li><a class="tocitem" href="../../../Manual/assets/natgasdaq/">Natural Gas DAC</a></li><li><a class="tocitem" href="../../../Manual/assets/onewaytransmissionlink/">One-way Transmission Link</a></li><li><a class="tocitem" href="../../../Manual/assets/standalonelectricarcfurnace/">Electric Arc Furnace</a></li><li><a class="tocitem" href="../../../Manual/assets/syntheticammonia/">Synthetic Ammonia (Electrochemical)</a></li><li><a class="tocitem" href="../../../Manual/assets/syntheticmethanol/">Synthetic Methanol (Electrochemical)</a></li><li><a class="tocitem" href="../../../Manual/assets/thermalammonia/">Thermal Ammonia (with and without CCS)</a></li><li><a class="tocitem" href="../../../Manual/assets/thermalhydrogen/">Thermal Hydrogen Plant (with and without CCS)</a></li><li><a class="tocitem" href="../../../Manual/assets/thermalmethanol/">Thermal Methanol (with and without CCS)</a></li><li><a class="tocitem" href="../../../Manual/assets/thermalpower/">Thermal Power Plant (with and without CCS)</a></li><li><a class="tocitem" href="../../../Manual/assets/transmissionlink/">Transmission Link</a></li><li><a class="tocitem" href="../../../Manual/assets/upstreamemissions/">Upstream Emissions</a></li><li><a class="tocitem" href="../../../Manual/assets/vre/">Variable Renewable Energy Resources (VRE)</a></li></ul></li><li><a class="tocitem" href="../../../Manual/Financial_assumptions/">Financial Assumptions</a></li><li><a class="tocitem" href="../../../Manual/Multi_period_accounting/">Multi-Period Accounting</a></li></ul></li><li><a class="tocitem" href="../../../how_to_contribute/">How to contribute</a></li><li><a class="tocitem" href="../../../changelog/">Changelog</a></li><li><input class="collapse-toggle" id="menuitem-10" type="checkbox"/><label class="tocitem" for="menuitem-10"><span class="docs-label">References</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../References/1_introduction/">Introduction</a></li><li><a class="tocitem" href="../../../References/2_reading_input/">Reading input data</a></li><li><a class="tocitem" href="../../../References/3_macro_objects/">Macro Objects</a></li><li><a class="tocitem" href="../../../References/4_writing_output/">Writing output data</a></li><li><a class="tocitem" href="../../../References/5_utilities/">Utilities</a></li><li><a class="tocitem" href="../../../References/ref_download_examples/">Downloading examples</a></li><li><a class="tocitem" href="../../../References/ref_run_case/">Running a Macro Model</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11" type="checkbox"/><label class="tocitem" for="menuitem-11"><span class="docs-label">Appendix</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../../Appendix/TEA/">TEA</a></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Guides</a></li><li><a class="is-disabled">User Guide</a></li><li class="is-active"><a href>Adding Assets</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Adding Assets</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/macroenergy/MacroEnergy.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/macroenergy/MacroEnergy.jl/blob/main/docs/src/Guides/User Guide/user_add_asset.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Adding-an-Asset-to-a-System"><a class="docs-heading-anchor" href="#Adding-an-Asset-to-a-System">Adding an Asset to a System</a><a id="Adding-an-Asset-to-a-System-1"></a><a class="docs-heading-anchor-permalink" href="#Adding-an-Asset-to-a-System" title="Permalink"></a></h1><p>Adding a new Asset to your System requires five steps:</p><ol><li>Create a new Asset file in your Assets folder</li><li>Duplicate the instance data for each version of the Asset you would like</li><li>Assign each Asset a unique ID</li><li>Add instance data to the Assets</li><li>Consolidate some instance data into global data</li></ol><h2 id="Create-a-new-Asset-file"><a class="docs-heading-anchor" href="#Create-a-new-Asset-file">Create a new Asset file</a><a id="Create-a-new-Asset-file-1"></a><a class="docs-heading-anchor-permalink" href="#Create-a-new-Asset-file" title="Permalink"></a></h2><h3 id="Adding-a-single-Asset"><a class="docs-heading-anchor" href="#Adding-a-single-Asset">Adding a single Asset</a><a id="Adding-a-single-Asset-1"></a><a class="docs-heading-anchor-permalink" href="#Adding-a-single-Asset" title="Permalink"></a></h3><p>The best way to create a new Asset file is to use the template functions. If you wanted to add a <code>ThermalPower</code> Asset to your system, you could add it using the <code>template_asset</code> function, called with your System&#39;s asset folder.</p><p>In these examples, we will assume your have created a system called <code>ExampleSystems/template_example</code> and that you have created an <code>assets</code> folder in that directory.</p><pre><code class="language-julia hljs">julia&gt; template_asset(&quot;ExampleSystems/template_example/assets&quot;, ThermalPower; style=&quot;simple&quot;, format=&quot;json&quot;)</code></pre><p>Alternatively, you can call <code>template_asset</code> with your system object <a href="../user_build_system/#Creating-a-new-System">that you have already created</a>:</p><pre><code class="language-julia hljs">julia&gt; system = template_system(&quot;ExampleSystems/template_example&quot;)
+julia&gt; template_asset(system, ThermalPower; style=&quot;simple&quot;, format=&quot;json&quot;)</code></pre><h4 id="Asset-file-name"><a class="docs-heading-anchor" href="#Asset-file-name">Asset file name</a><a id="Asset-file-name-1"></a><a class="docs-heading-anchor-permalink" href="#Asset-file-name" title="Permalink"></a></h4><p>Each call of the function will create a new <code>ThermalPower</code> Asset file. Successive calls will be numbered, i.e. <code>ThermalPower.json</code>, <code>ThermalPower_001.json</code>, <code>ThermalPower_002.json</code>, etc. The file name can be changed using the <code>asset_name</code> keyword argument. The following example will produce an Asset file called <code>thermalpower_example.json</code>:</p><pre><code class="language-julia hljs">julia&gt; template_asset(system, ThermalPower; style=&quot;simple&quot;, format=&quot;json&quot;, asset_name=&quot;thermalpower_example&quot;)</code></pre><h4 id="Asset-file-format"><a class="docs-heading-anchor" href="#Asset-file-format">Asset file format</a><a id="Asset-file-format-1"></a><a class="docs-heading-anchor-permalink" href="#Asset-file-format" title="Permalink"></a></h4><p>The <code>format</code> keyword argument determines whether your new Asset file will be a CSV or JSON file. The default is a JSON file. Most of this guide will use JSON examples. <a href="#Working-with-CSV-Asset-files">This section</a> details how to work with CSV files.</p><h4 id="Asset-file-style"><a class="docs-heading-anchor" href="#Asset-file-style">Asset file style</a><a id="Asset-file-style-1"></a><a class="docs-heading-anchor-permalink" href="#Asset-file-style" title="Permalink"></a></h4><p>The <code>style</code> keyword argument determines how much detail Macro will include in your new Asset file. The two options are<code>full</code> and <code>simple</code>. The <code>simple</code> option will return a Asset file which contains the minimum data fields necessary to define the Asset. Most simple description do not have nested dictionaries of inputs so are easy to read, particularly with CSV input files. The <code>full</code> option will return an Asset file with full descriptions of all the components and Constraints. This will include several nested dictionaries of all the options and inputs.</p><p>As an example, the <code>simple</code> version of our new <code>ThermalPower</code> Asset is:</p><pre><code class="language-json hljs">{
+    &quot;ThermalPower&quot;: {
+        &quot;type&quot;: &quot;ThermalPower&quot;,
+        &quot;instance_data&quot;: [
+            {
+                &quot;id&quot;: &quot;ThermalPower&quot;,
+                &quot;location&quot;: null,
+                &quot;can_expand&quot;: true,
+                &quot;can_retire&quot;: true,
+                &quot;existing_capacity&quot;: 0,
+                &quot;capacity_size&quot;: 1,
+                &quot;timedata&quot;: &quot;NaturalGas&quot;,
+                &quot;fuel_commodity&quot;: &quot;NaturalGas&quot;,
+                &quot;co2_sink&quot;: null,
+                &quot;uc&quot;: false,
+                &quot;investment_cost&quot;: 0,
+                &quot;fixed_om_cost&quot;: 0,
+                &quot;variable_om_cost&quot;: 0,
+                &quot;fuel_consumption&quot;: 0,
+                &quot;electricity_consumption&quot;: 0,
+                &quot;emission_rate&quot;: 1,
+                &quot;startup_cost&quot;: 0,
+                &quot;startup_fuel_consumption&quot;: 0,
+                &quot;min_up_time&quot;: 0,
+                &quot;min_down_time&quot;: 0,
+                &quot;ramp_up_fraction&quot;: 0,
+                &quot;ramp_down_fraction&quot;: 0
+            }
+        ]
+    }
+}</code></pre><p>While the full version is:</p><pre><code class="language-json hljs">{
+    &quot;ThermalPower&quot;: {
+        &quot;type&quot;: &quot;ThermalPower&quot;,
+        &quot;instance_data&quot;: [
+            {
+                &quot;id&quot;: &quot;ThermalPower&quot;,
+                &quot;transforms&quot;: {
+                    &quot;constraints&quot;: {
+                        &quot;BalanceConstraint&quot;: true
+                    },
+                    &quot;location&quot;: null,
+                    &quot;fuel_consumption&quot;: 1,
+                    &quot;emission_rate&quot;: 0,
+                    &quot;id&quot;: null,
+                    &quot;timedata&quot;: &quot;Electricity&quot;,
+                    &quot;startup_fuel_consumption&quot;: 0
+                },
+                &quot;edges&quot;: {
+                    &quot;elec_edge&quot;: {
+                        &quot;integer_decisions&quot;: false,
+                        &quot;location&quot;: null,
+                        &quot;can_retire&quot;: true,
+                        &quot;timedata&quot;: null,
+                        &quot;can_expand&quot;: true,
+                        &quot;min_down_time&quot;: 0,
+                        &quot;has_capacity&quot;: true,
+                        &quot;max_capacity&quot;: Infinity,
+                        &quot;efficiency&quot;: 1,
+                        &quot;startup_fuel_balance_id&quot;: &quot;none&quot;,
+                        &quot;fixed_om_cost&quot;: 0,
+                        &quot;startup_fuel&quot;: 0,
+                        &quot;availability&quot;: null,
+                        &quot;existing_capacity&quot;: 0,
+                        &quot;commodity&quot;: &quot;Electricity&quot;,
+                        &quot;min_up_time&quot;: 0,
+                        &quot;capacity_size&quot;: 1,
+                        &quot;ramp_down_fraction&quot;: 1,
+                        &quot;end_vertex&quot;: null,
+                        &quot;variable_om_cost&quot;: 0,
+                        &quot;investment_cost&quot;: 0,
+                        &quot;unidirectional&quot;: true,
+                        &quot;start_vertex&quot;: null,
+                        &quot;constraints&quot;: {
+                            &quot;CapacityConstraint&quot;: true,
+                            &quot;RampingLimitConstraint&quot;: true
+                        },
+                        &quot;min_capacity&quot;: 0,
+                        &quot;loss_fraction&quot;: 0,
+                        &quot;id&quot;: null,
+                        &quot;startup_fuel_consumption&quot;: 0,
+                        &quot;ramp_up_fraction&quot;: 1,
+                        &quot;min_flow_fraction&quot;: 0,
+                        &quot;distance&quot;: 0,
+                        &quot;uc&quot;: false,
+                        &quot;startup_cost&quot;: 0
+                    },
+                    &quot;fuel_edge&quot;: {
+                        &quot;integer_decisions&quot;: false,
+                        &quot;location&quot;: null,
+                        &quot;can_retire&quot;: false,
+                        &quot;timedata&quot;: null,
+                        &quot;can_expand&quot;: false,
+                        &quot;min_down_time&quot;: 0,
+                        &quot;has_capacity&quot;: false,
+                        &quot;max_capacity&quot;: Infinity,
+                        &quot;efficiency&quot;: 1,
+                        &quot;startup_fuel_balance_id&quot;: &quot;none&quot;,
+                        &quot;fixed_om_cost&quot;: 0,
+                        &quot;startup_fuel&quot;: 0,
+                        &quot;availability&quot;: null,
+                        &quot;existing_capacity&quot;: 0,
+                        &quot;commodity&quot;: null,
+                        &quot;min_up_time&quot;: 0,
+                        &quot;capacity_size&quot;: 1,
+                        &quot;ramp_down_fraction&quot;: 1,
+                        &quot;end_vertex&quot;: null,
+                        &quot;variable_om_cost&quot;: 0,
+                        &quot;investment_cost&quot;: 0,
+                        &quot;unidirectional&quot;: true,
+                        &quot;start_vertex&quot;: null,
+                        &quot;constraints&quot;: {
+                        },
+                        &quot;min_capacity&quot;: 0,
+                        &quot;loss_fraction&quot;: 0,
+                        &quot;id&quot;: null,
+                        &quot;startup_fuel_consumption&quot;: 0,
+                        &quot;ramp_up_fraction&quot;: 1,
+                        &quot;min_flow_fraction&quot;: 0,
+                        &quot;distance&quot;: 0,
+                        &quot;uc&quot;: false,
+                        &quot;startup_cost&quot;: 0
+                    },
+                    &quot;co2_edge&quot;: {
+                        &quot;integer_decisions&quot;: false,
+                        &quot;location&quot;: null,
+                        &quot;can_retire&quot;: false,
+                        &quot;timedata&quot;: null,
+                        &quot;can_expand&quot;: false,
+                        &quot;min_down_time&quot;: 0,
+                        &quot;has_capacity&quot;: false,
+                        &quot;max_capacity&quot;: Infinity,
+                        &quot;efficiency&quot;: 1,
+                        &quot;startup_fuel_balance_id&quot;: &quot;none&quot;,
+                        &quot;fixed_om_cost&quot;: 0,
+                        &quot;startup_fuel&quot;: 0,
+                        &quot;availability&quot;: null,
+                        &quot;existing_capacity&quot;: 0,
+                        &quot;commodity&quot;: &quot;CO2&quot;,
+                        &quot;min_up_time&quot;: 0,
+                        &quot;capacity_size&quot;: 1,
+                        &quot;ramp_down_fraction&quot;: 1,
+                        &quot;end_vertex&quot;: null,
+                        &quot;co2_sink&quot;: null,
+                        &quot;variable_om_cost&quot;: 0,
+                        &quot;investment_cost&quot;: 0,
+                        &quot;unidirectional&quot;: true,
+                        &quot;start_vertex&quot;: null,
+                        &quot;constraints&quot;: {
+                        },
+                        &quot;min_capacity&quot;: 0,
+                        &quot;loss_fraction&quot;: 0,
+                        &quot;id&quot;: null,
+                        &quot;startup_fuel_consumption&quot;: 0,
+                        &quot;ramp_up_fraction&quot;: 1,
+                        &quot;min_flow_fraction&quot;: 0,
+                        &quot;distance&quot;: 0,
+                        &quot;uc&quot;: false,
+                        &quot;startup_cost&quot;: 0
+                    }
+                }
+            }
+        ]
+    }
+}</code></pre><h3 id="Adding-a-parametric-Asset"><a class="docs-heading-anchor" href="#Adding-a-parametric-Asset">Adding a parametric Asset</a><a id="Adding-a-parametric-Asset-1"></a><a class="docs-heading-anchor-permalink" href="#Adding-a-parametric-Asset" title="Permalink"></a></h3><p>Certain Assets can be parameterized by a Commodity. For example, <code>ThermalPower</code> Assets are parameterized by their fuel, e.g. <code>ThermalPower{NaturalGas}</code> or <code>ThermalPower{Hydrogen}</code>. These can be created directly using the <code>template_asset</code> function:</p><pre><code class="language-julia hljs">julia&gt; template_asset(system, ThermalPower{NaturalGas}; style=&quot;simple&quot;, format=&quot;json&quot;)</code></pre><p>This creates a file called <code>ThermalPower{NaturalGas}.json</code>, with the contents shown below. The Asset <code>type</code> is still ThermalPower, but the <code>fuel_commodity</code> is set automatically. This will ensure Macro creates a <code>ThermalPower{NaturalGas}.json</code> Asset at runtime.</p><pre><code class="language-json hljs">{
+    &quot;ThermalPower{NaturalGas}&quot;: {
+        &quot;type&quot;: &quot;ThermalPower&quot;,
+        &quot;instance_data&quot;: [
+            {
+                &quot;id&quot;: &quot;ThermalPower{NaturalGas}&quot;,
+                &quot;location&quot;: null,
+                &quot;can_expand&quot;: true,
+                &quot;can_retire&quot;: true,
+                &quot;existing_capacity&quot;: 0,
+                &quot;capacity_size&quot;: 1,
+                &quot;timedata&quot;: &quot;NaturalGas&quot;,
+                &quot;fuel_commodity&quot;: &quot;NaturalGas&quot;,
+                &quot;co2_sink&quot;: null,
+                &quot;uc&quot;: false,
+                &quot;investment_cost&quot;: 0,
+                &quot;fixed_om_cost&quot;: 0,
+                &quot;variable_om_cost&quot;: 0,
+                &quot;fuel_consumption&quot;: 0,
+                &quot;electricity_consumption&quot;: 0,
+                &quot;emission_rate&quot;: 1,
+                &quot;startup_cost&quot;: 0,
+                &quot;startup_fuel_consumption&quot;: 0,
+                &quot;min_up_time&quot;: 0,
+                &quot;min_down_time&quot;: 0,
+                &quot;ramp_up_fraction&quot;: 0,
+                &quot;ramp_down_fraction&quot;: 0
+            }
+        ]
+    }
+}</code></pre><h3 id="Adding-multiple-Assets"><a class="docs-heading-anchor" href="#Adding-multiple-Assets">Adding multiple Assets</a><a id="Adding-multiple-Assets-1"></a><a class="docs-heading-anchor-permalink" href="#Adding-multiple-Assets" title="Permalink"></a></h3><p>Multiple Assets can be added at once by providing an array of Asset names. The following argument will create three new Asset files:</p><pre><code class="language-julia hljs">julia&gt; template_asset(system, [ThermalPower, VRE, ThermalPower{NaturalGas}]; style=&quot;simple&quot;, format=&quot;json&quot;)</code></pre><h4 id="Keyword-arguments-when-adding-multiple-Assets"><a class="docs-heading-anchor" href="#Keyword-arguments-when-adding-multiple-Assets">Keyword arguments when adding multiple Assets</a><a id="Keyword-arguments-when-adding-multiple-Assets-1"></a><a class="docs-heading-anchor-permalink" href="#Keyword-arguments-when-adding-multiple-Assets" title="Permalink"></a></h4><p>When adding multiple Assets at once, you should provide an array of <code>asset_names</code> if you want to specify any of them. Alternatively, allow the files to be created with the default names and then change them manually.</p><pre><code class="language-julia hljs">julia&gt; template_asset(system, [ThermalPower, VRE, ThermalPower{NaturalGas}]; asset_names=[&quot;thermalpower_example&quot;, &quot;vre_example&quot;, &quot;natgas_thermalpower_example&quot;] style=&quot;simple&quot;, format=&quot;json&quot;)</code></pre><p>Only one option can be chosen for each of the <code>format</code> and <code>style</code> keywork arguments.</p><h2 id="Creating-Instance-Data-for-Each-Asset"><a class="docs-heading-anchor" href="#Creating-Instance-Data-for-Each-Asset">Creating Instance Data for Each Asset</a><a id="Creating-Instance-Data-for-Each-Asset-1"></a><a class="docs-heading-anchor-permalink" href="#Creating-Instance-Data-for-Each-Asset" title="Permalink"></a></h2><p>You have three options for how to create multiple versions of an Asset, to represent differences in cost, location, or other features:</p><h3 id="Create-an-Asset-file-for-each-version-by-calling"><a class="docs-heading-anchor" href="#Create-an-Asset-file-for-each-version-by-calling">Create an Asset file for each version by calling</a><a id="Create-an-Asset-file-for-each-version-by-calling-1"></a><a class="docs-heading-anchor-permalink" href="#Create-an-Asset-file-for-each-version-by-calling" title="Permalink"></a></h3><p>This is done be calling <code>template_asset</code> for each one. This keeps each file simple but will quickly make your asset folder hard to manage, so we do not recommend this approach.</p><h3 id="Create-additional-instances-in-one-Asset-file"><a class="docs-heading-anchor" href="#Create-additional-instances-in-one-Asset-file">Create additional instances in one Asset file</a><a id="Create-additional-instances-in-one-Asset-file-1"></a><a class="docs-heading-anchor-permalink" href="#Create-additional-instances-in-one-Asset-file" title="Permalink"></a></h3><p>This is the recommended appraoch. Each entry in the <code>instance_data</code> field corresponds to a version of the Asset. The <code>type</code> field determines the Asset which will be created. Assets described in this manner can also share <code>global_data</code>, which is <a href="#Creating-Global-Data">discussed in a subsequent section</a>.</p><p>To create additional versions of an Asset in this manner, copy-paste additional entries into the <code>instance_data</code> field of your Asset file.</p><pre><code class="language-json hljs">{
+    &quot;ThermalPower&quot;: {
+        &quot;type&quot;: &quot;ThermalPower&quot;,
+        &quot;instance_data&quot;: [
+            {
+                &quot;id&quot;: &quot;ThermalPower_1&quot;,
+                ... other fields ...
+            },
+            {
+                &quot;id&quot;: &quot;ThermalPower_2&quot;,
+                ... other fields ...
+            }
+        ]
+    }
+}</code></pre><h3 id="Create-multiple-Assets-in-one-Asset-file"><a class="docs-heading-anchor" href="#Create-multiple-Assets-in-one-Asset-file">Create multiple Assets in one Asset file</a><a id="Create-multiple-Assets-in-one-Asset-file-1"></a><a class="docs-heading-anchor-permalink" href="#Create-multiple-Assets-in-one-Asset-file" title="Permalink"></a></h3><p>You can include several Assets in one file by listing them in an array or dictionary.</p><p>To do so with an array, turn the top-level dictionary into an array and copy-paste the Asset description:</p><pre><code class="language-json hljs">{
+    &quot;ThermalPower&quot;: [
+        {
+            &quot;type&quot;: &quot;ThermalPower&quot;,
+            &quot;instance_data&quot;: [
+                {
+                    &quot;id&quot;: &quot;ThermalPower_1&quot;,
+                    ... other fields ...
+                }
+            ]
+        },
+        {
+            &quot;type&quot;: &quot;ThermalPower&quot;,
+            &quot;instance_data&quot;: [
+                {
+                    &quot;id&quot;: &quot;ThermalPower_2&quot;,
+                    ... other fields ...
+                }
+            ]
+        }
+    ]
+}</code></pre><p>To create a copy using a dictionary, add additional entries to the top-level dictionary:</p><pre><code class="language-json hljs">{
+    &quot;ThermalPower_1&quot;: {
+        &quot;type&quot;: &quot;ThermalPower&quot;,
+        &quot;instance_data&quot;: [
+            {
+                &quot;id&quot;: &quot;ThermalPower_1&quot;,
+                ... other fields ...
+            }
+        ]
+    },
+    &quot;ThermalPower_2&quot;: {
+        &quot;type&quot;: &quot;ThermalPower&quot;,
+        &quot;instance_data&quot;: [
+            {
+                &quot;id&quot;: &quot;ThermalPower_2&quot;,
+                ... other fields ...
+            }
+        ]
+    }
+}</code></pre><p>You can also use either approach to include Assets of different types. This is especially useful if you are using a computer cluster, which typically prefer to transfer a few large files rather than multiple small ones.</p><pre><code class="language-json hljs">{
+    &quot;ThermalPower&quot;: {
+        &quot;type&quot;: &quot;ThermalPower&quot;,
+        &quot;instance_data&quot;: [
+            {
+                &quot;id&quot;: &quot;ThermalPower&quot;,
+                ... other fields ...
+            }
+        ]
+    },
+    &quot;VRE&quot;: {
+        &quot;type&quot;: &quot;VRE&quot;,
+        &quot;instance_data&quot;: [
+            {
+                &quot;id&quot;: &quot;VRE&quot;,
+                ... other fields ...
+            }
+        ]
+    }
+}</code></pre><p>The two approaches can also be blended:</p><pre><code class="language-json hljs">{
+    &quot;existing_resource&quot;: [
+        {
+            &quot;type&quot;: &quot;ThermalPower&quot;,
+            &quot;instance_data&quot;: [
+                {
+                    &quot;id&quot;: &quot;existing_natgas_1&quot;,
+                ... other fields ...
+                }
+            ]
+        },
+        {
+            &quot;type&quot;: &quot;VRE&quot;,
+            &quot;instance_data&quot;: [
+                {
+                    &quot;id&quot;: &quot;existing_vre_1&quot;,
+                ... other fields ...
+                }
+            ]
+        }
+    ],
+    &quot;new_resources&quot;: [
+        {
+            &quot;type&quot;: &quot;ThermalPower&quot;,
+            &quot;instance_data&quot;: [
+                {
+                    &quot;id&quot;: &quot;new_natgas_1&quot;,
+                ... other fields ...
+                }
+            ]
+        },
+        {
+            &quot;type&quot;: &quot;VRE&quot;,
+            &quot;instance_data&quot;: [
+                {
+                    &quot;id&quot;: &quot;new_vre_1&quot;,
+                ... other fields ...
+                }
+            ]
+        }
+    ]
+}</code></pre><h2 id="Assign-Asset-IDs"><a class="docs-heading-anchor" href="#Assign-Asset-IDs">Assign Asset IDs</a><a id="Assign-Asset-IDs-1"></a><a class="docs-heading-anchor-permalink" href="#Assign-Asset-IDs" title="Permalink"></a></h2><p>Every Asset must have a unique ID as they are how Macro identifies and manages Assets.</p><p>The <code>template_asset</code> function will search your asset folder (either based on the provided filepath or the <code>system_data.json</code> file of your <code>system</code> object) and create a unique, numbered ID based on the Asset type or user-provided Asset name.</p><p>You can change the Asset IDs of your Assets by editing the <code>id</code> field in the <code>instance_data</code> of your Asset files. </p><h3 id="Listing-existing-Asset-IDs"><a class="docs-heading-anchor" href="#Listing-existing-Asset-IDs">Listing existing Asset IDs</a><a id="Listing-existing-Asset-IDs-1"></a><a class="docs-heading-anchor-permalink" href="#Listing-existing-Asset-IDs" title="Permalink"></a></h3><p>You can call the <code>asset_ids</code> function to list the existing Asset IDs of your system. If you have attempted to build and run your model, you can use the <code>source</code> keyword argument to have <code>asset_ids</code> check the IDs of the Assets you have already built. This is the default behaviour of <code>asset_ids</code>.</p><pre><code class="language-julia hljs">julia&gt; asset_ids(system)
+julia&gt; asset_ids(system; source=&quot;assets&quot;)</code></pre><p>If you have not built your system yet, you can specify the input files as the <code>source</code>:</p><pre><code class="language-julia hljs">julia&gt; asset_ids(system; source=&quot;inputs&quot;)</code></pre><p>Alternatively, you can use the <code>asset_ids_from_dir</code> function to target the input files directly:</p><pre><code class="language-julia hljs">julia&gt; asset_ids_from_dir(&quot;ExampleSystems/template_example/assets&quot;)</code></pre><h2 id="Add-Instance-Data"><a class="docs-heading-anchor" href="#Add-Instance-Data">Add Instance Data</a><a id="Add-Instance-Data-1"></a><a class="docs-heading-anchor-permalink" href="#Add-Instance-Data" title="Permalink"></a></h2><p>The <code>simple</code> and <code>full</code> versions of the <code>template_asset</code> functions will create Assets with Macro&#39;s default input data. This data does not represent realistic assumptions, so you must add your own data to the fields. You may delete any fields you do not want to change.</p><p>If you are using the <code>simple</code> version of an Asset file you must define a Location for each Asset, by editing the <code>location</code> field of each Assets <code>instance_data</code>.</p><p>Certain Assets have other fields which you must change for them to be correctly included in the model. Please refer to the description of the Asset in the <a href="../../../Manual/Assets/#Macro-Asset-Library">Asset Library</a>.</p><h2 id="Creating-Global-Data"><a class="docs-heading-anchor" href="#Creating-Global-Data">Creating Global Data</a><a id="Creating-Global-Data-1"></a><a class="docs-heading-anchor-permalink" href="#Creating-Global-Data" title="Permalink"></a></h2><p>In populating the <code>instance_data</code> for your Assets, you may find that multiple instances share the same data. To help reduce repetition, Macro allows you to create a <code>global_data</code> field for each Asset, which will be applied to each Asset. All fields in the <code>instance_data</code> will override the same fields in your <code>global_data</code>.</p><p>As an example, consider a case where you wish to create three <code>ThermalPower</code> Assets in three Locations.</p><p>The Assets share the same:</p><ul><li>Initial capacity</li><li>Unit capacity size</li><li>co2_sink (used to track emissions)</li><li>Do not use integer unit commitment</li><li>Have the same investment, fixed and variable costs</li></ul><p>The Assets have different:</p><ul><li>Fuel consumption rates</li><li>Emission rates</li><li>Two of the Asset are fueled with natural gas, while the third is fueled with hydrogen.</li></ul><p>To represent this, we have moved all the shared properties to the <code>global_data</code> field, leaving the fuel consumption and emission rates in the <code>instance_data</code>. We have moved the <code>fuel_commodity</code> to the <code>global_data</code> too, but override it in the third example by also including that field in its <code>instance_data</code>.</p><pre><code class="language-json hljs">{
+    &quot;ThermalPower&quot;: {
+        &quot;type&quot;: &quot;ThermalPower&quot;,
+        &quot;global_data&quot;: {
+            &quot;can_expand&quot;: true,
+                &quot;can_retire&quot;: true,
+                &quot;existing_capacity&quot;: 0,
+                &quot;capacity_size&quot;: 100,
+                &quot;timedata&quot;: &quot;NaturalGas&quot;,
+                &quot;fuel_commodity&quot;: &quot;NaturalGas&quot;,
+                &quot;co2_sink&quot;: &quot;co2_node_1&quot;,
+                &quot;uc&quot;: false,
+                &quot;investment_cost&quot;: 300000,
+                &quot;fixed_om_cost&quot;: 10000,
+                &quot;variable_om_cost&quot;: 4,
+        }
+        &quot;instance_data&quot;: [
+            {
+                &quot;id&quot;: &quot;ThermalPower_1&quot;,
+                &quot;location&quot;: &quot;Boston&quot;,
+                &quot;fuel_consumption&quot;: 2.25,
+                &quot;emission_rate&quot;: 0.18
+            },
+            {
+                &quot;id&quot;: &quot;ThermalPower_2&quot;,
+                &quot;location&quot;: &quot;Princeton&quot;,
+                &quot;fuel_consumption&quot;: 2.5,
+                &quot;emission_rate&quot;: 0.2
+            },
+            {
+                &quot;id&quot;: &quot;ThermalPower_Hydrogen_1&quot;,
+                &quot;location&quot;: &quot;New York&quot;,
+                &quot;fuel_commodity&quot;: &quot;Hydrogen&quot;,
+                &quot;fuel_consumption&quot;: 3.0,
+                &quot;emission_rate&quot;: 0.0
+            }
+        ]
+    }
+}</code></pre><h2 id="Working-with-CSV-Asset-files"><a class="docs-heading-anchor" href="#Working-with-CSV-Asset-files">Working with CSV Asset files</a><a id="Working-with-CSV-Asset-files-1"></a><a class="docs-heading-anchor-permalink" href="#Working-with-CSV-Asset-files" title="Permalink"></a></h2><p>All of the steps described above also work for CSV-based input files, with the exception of creating <code>global_data</code>. The CSV-based inputs only have <code>type</code> and <code>instance_data</code>.</p><p>It is also more challenging to include multiple Asset types in the same file, as it will require many empty columns. Therefore, we recommend using separate Asset files for each type.</p><p>For Assets of the same type, each field in the JSON file is replaced with a column. Nested JSON fields have nested CSV headers, with each name separated by a <code>--</code> character. This makes it much more prefereable to use the <code>simple</code> format for your CSV input files.</p><p>A <code>simple</code> CSV input file will look like:</p><pre><code class="language-csv hljs">Type,id,location,can_expand,can_retire,existing_capacity,capacity_size,timedata,fuel_commodity,co2_sink,uc,investment_cost,fixed_om_cost,variable_om_cost,fuel_consumption,electricity_consumption,emission_rate,startup_cost,startup_fuel_consumption,min_up_time,min_down_time,ramp_up_fraction,ramp_down_fraction
+ThermalPower,ThermalPower,,true,true,0.0,1.0,NaturalGas,NaturalGas,,false,0.0,0.0,0.0,0.0,0.0,1.0,0.0,0.0,0,0,0.0,0.0</code></pre><p>To add more versions of the Assets, simply add more rows with their own instance data.</p><script type="module">import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+mermaid.initialize({
+    startOnLoad: true,
+    theme: "neutral"
+});
+</script></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../user_add_location/">« Adding Locations</a><a class="docs-footer-nextpage" href="../user_policy_constraints/">Adding Policy constraints »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Thursday 16 July 2026 14:40">Thursday 16 July 2026</span>. Using Julia version 1.12.6.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
