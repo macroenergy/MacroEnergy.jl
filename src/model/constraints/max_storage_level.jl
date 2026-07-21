@@ -11,17 +11,16 @@ Add a max storage level constraint to the storage `g`. The functional form of th
 
 ```math
 \begin{aligned}
-    \text{storage\_level(g, t)} \leq \text{max\_storage\_level(g)} \times \text{capacity(g)}
+    \text{storage\_level(g, t)} \leq \text{max\_storage\_level(g,t)} \times \text{capacity(g)}
 \end{aligned}
 ```
 for each time `t` in `time_interval(g)` for the storage `g`.
 """
 function add_model_constraint!(ct::MaxStorageLevelConstraint, g::AbstractStorage, model::Model)
-
     ct.constraint_ref = @constraint(
         model,
         [t in time_interval(g)],
-        storage_level(g, t) <= max_storage_level(g) * capacity(g)
+        storage_level(g, t) <= max_storage_level(g,t) * capacity(g)
     )
 
     return nothing
@@ -40,7 +39,7 @@ Add a max storage level constraint to the initial storage level of `g`. The func
 
 ```math
 \begin{aligned}
-    \text{storage\_initial\_level(g)} \leq \text{max\_storage\_level(g)} \times \text{capacity(g)}
+    \text{storage\_initial\_level(g)} \leq \text{max\_storage\_level(g),t\_start} \times \text{capacity(g)}
 \end{aligned}
 ```
 
@@ -52,11 +51,13 @@ Add a max storage level constraint to the initial storage level of `g`. The func
     This constraint is redundant with `MaxStorageLevelConstraint` for monolithic models. For Benders decomposition, this constraint helps the planning level master problem choose solutions that are feasible in the subproblem(s)
 """
 function add_model_constraint!(ct::MaxInitStorageLevelConstraint, g::LongDurationStorage, model::Model)
+    
+    t_start = Dict(w => first(get_subperiod(g, w)) for w in subperiod_indices(g));
 
     ct.constraint_ref = @constraint(
         model,
         [r in modeled_subperiods(g)],
-        storage_initial(g, r) <= max_storage_level(g) * capacity(g)
+        storage_initial(g, r) <= max_storage_level(g, t_start[subperiod_map(g,r)]) * capacity(g)
     )
 
     return nothing
