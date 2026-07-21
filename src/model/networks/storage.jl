@@ -127,13 +127,13 @@ function make_storage(
         end
     end
     if haskey(filtered_data,:loss_fraction) && !isa(filtered_data[:loss_fraction], Vector{Float64})
-        filtered_data[:loss_fraction] = [filtered_data[:loss_fraction]];
+        filtered_data[:loss_fraction] = Float64[filtered_data[:loss_fraction]...];
     end 
     if haskey(filtered_data,:min_storage_level) && !isa(filtered_data[:min_storage_level], Vector{Float64})
-        filtered_data[:min_storage_level] = [filtered_data[:min_storage_level]];
+        filtered_data[:min_storage_level] = Float64[filtered_data[:min_storage_level]...];
     end
     if haskey(filtered_data,:max_storage_level) && !isa(filtered_data[:max_storage_level], Vector{Float64})
-        filtered_data[:max_storage_level] = [filtered_data[:max_storage_level]];
+        filtered_data[:max_storage_level] = Float64[filtered_data[:max_storage_level]...];
     end
 
     _storage = Storage{commodity}(;
@@ -331,13 +331,13 @@ function make_long_duration_storage(
         end
     end
     if haskey(filtered_data,:loss_fraction) && !isa(filtered_data[:loss_fraction], Vector{Float64})
-        filtered_data[:loss_fraction] = [filtered_data[:loss_fraction]];
+        filtered_data[:loss_fraction] = Float64[filtered_data[:loss_fraction]...];
     end 
     if haskey(filtered_data,:min_storage_level) && !isa(filtered_data[:min_storage_level], Vector{Float64})
-        filtered_data[:min_storage_level] = [filtered_data[:min_storage_level]];
+        filtered_data[:min_storage_level] = Float64[filtered_data[:min_storage_level]...];
     end
     if haskey(filtered_data,:max_storage_level) && !isa(filtered_data[:max_storage_level], Vector{Float64})
-        filtered_data[:max_storage_level] = [filtered_data[:max_storage_level]];
+        filtered_data[:max_storage_level] = Float64[filtered_data[:max_storage_level]...];
     end
     _storage = LongDurationStorage{commodity}(;
         id=id,
