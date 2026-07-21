@@ -5,8 +5,8 @@ Storage level outputs - extraction and output of storage level data from storage
 """
     write_storage_level(
         file_path::AbstractString, 
-        system::System; 
-        scaling::Float64=1.0, 
+        system::System,
+        scaling::Float64; 
         drop_cols::Vector{<:AbstractString}=String[],
         commodity::Union{AbstractString,Vector{<:AbstractString},Nothing}=nothing,
         asset_type::Union{AbstractString,Vector{<:AbstractString},Nothing}=nothing
@@ -32,7 +32,7 @@ Two types of pattern matching are supported:
 # Arguments
 - `file_path::AbstractString`: The path to the file where the results will be written
 - `system::System`: The system containing the storage units to analyze
-- `scaling::Float64`: The scaling factor for the results (default: 1.0)
+- `scaling::Float64`: The scaling factor for the results
 - `drop_cols::Vector{<:AbstractString}`: Columns to drop from the DataFrame (default: empty)
 - `commodity::Union{AbstractString,Vector{<:AbstractString},Nothing}`: The commodity to filter by
 - `asset_type::Union{AbstractString,Vector{<:AbstractString},Nothing}`: The asset type to filter by
@@ -42,15 +42,15 @@ Two types of pattern matching are supported:
 
 # Example
 ```julia
-write_storage_level("storage_level.csv", system)
-write_storage_level("storage_level.csv", system, commodity="Electricity")
-write_storage_level("storage_level.csv", system, asset_type="Battery")
+write_storage_level("storage_level.csv", system, 1.0)
+write_storage_level("storage_level.csv", system, 1.0, commodity="Electricity")
+write_storage_level("storage_level.csv", system, 1.0, asset_type="Battery")
 ```
 """
 function write_storage_level(
     file_path::AbstractString, 
-    system::System; 
-    scaling::Float64=1.0, 
+    system::System, 
+    scaling::Float64; 
     drop_cols::Vector{<:AbstractString}=String[],
     commodity::Union{AbstractString,Vector{<:AbstractString},Nothing}=nothing,
     asset_type::Union{AbstractString,Vector{<:AbstractString},Nothing}=nothing
@@ -58,7 +58,7 @@ function write_storage_level(
     @info "Writing storage level results to $file_path"
 
     # Get storage level results
-    storage_level_results = get_optimal_storage_level(system; scaling, commodity, asset_type)
+    storage_level_results = get_optimal_storage_level(system, scaling; commodity, asset_type)
     
     if isempty(storage_level_results)
         @debug "No storage level results found (no storages have storage level variables)"
@@ -108,8 +108,8 @@ end
 
 """
     get_optimal_storage_level(
-        system::System; 
-        scaling::Float64=1.0,
+        system::System,
+        scaling::Float64;
         commodity::Union{AbstractString,Vector{<:AbstractString},Nothing}=nothing,
         asset_type::Union{AbstractString,Vector{<:AbstractString},Nothing}=nothing
     )
@@ -123,25 +123,25 @@ Results can be filtered by:
 
 # Arguments
 - `system::System`: The system containing the storage units to analyze
-- `scaling::Float64`: The scaling factor for the results (default: 1.0)
+- `scaling::Float64`: The scaling factor for the results
 - `commodity::Union{AbstractString,Vector{<:AbstractString},Nothing}`: The commodity to filter by
 - `asset_type::Union{AbstractString,Vector{<:AbstractString},Nothing}`: The asset type to filter by
 
 # Returns
-- `DataFrame`: A dataframe containing the optimal storage level values, 
-  with columns for commodity, zone, resource_id, component_id, resource_type, 
+- `DataFrame`: A dataframe containing the optimal storage level values,
+  with columns for commodity, zone, resource_id, component_id, resource_type,
   component_type, variable, time, and value.
 
 # Example
 ```julia
-get_optimal_storage_level(system)
-get_optimal_storage_level(system, commodity="Electricity")
-get_optimal_storage_level(system, asset_type="Battery")
+get_optimal_storage_level(system, 1.0)
+get_optimal_storage_level(system, 1.0, commodity="Electricity")
+get_optimal_storage_level(system, 1.0, asset_type="Battery")
 ```
 """
 function get_optimal_storage_level(
-    system::System; 
-    scaling::Float64=1.0,
+    system::System, 
+    scaling::Float64;
     commodity::Union{AbstractString,Vector{<:AbstractString},Nothing}=nothing,
     asset_type::Union{AbstractString,Vector{<:AbstractString},Nothing}=nothing
 )
@@ -185,12 +185,12 @@ function get_optimal_storage_level(
         return DataFrame()
     end
     
-    storage_levels = get_optimal_storage_level(storages, scaling, storage_asset_map)
+    storage_levels = get_optimal_storage_level(storages, scaling; storage_asset_map)
     storage_levels[!, (!isa).(eachcol(storage_levels), Vector{Missing})] # remove missing columns
 end
 
 """
-    get_optimal_storage_level(asset::AbstractAsset; scaling::Float64=1.0)
+    get_optimal_storage_level(asset::AbstractAsset, scaling::Float64)
 
 Get the optimal storage level values for all storage units in an asset.
 
@@ -204,23 +204,23 @@ Get the optimal storage level values for all storage units in an asset.
 # Example
 ```julia
 asset = get_asset_by_id(system, :battery_1)
-get_optimal_storage_level(asset)
+get_optimal_storage_level(asset, 1.0)
 ```
 """
-function get_optimal_storage_level(asset::AbstractAsset; scaling::Float64=1.0)
+function get_optimal_storage_level(asset::AbstractAsset, scaling::Float64)
     @debug " -- Getting optimal storage level values for the asset $(id(asset))"
     storages, storage_asset_map = get_storages(asset, return_ids_map=true)
     if isempty(storages)
         return DataFrame()
     end
-    storage_levels = get_optimal_storage_level(storages, scaling, storage_asset_map)
+    storage_levels = get_optimal_storage_level(storages, scaling; storage_asset_map)
     storage_levels[!, (!isa).(eachcol(storage_levels), Vector{Missing})] # remove missing columns
 end
 
 """
     get_optimal_storage_level(
         storages::Vector{<:AbstractStorage}, 
-        scaling::Float64=1.0,
+        scaling::Float64;
         storage_asset_map::Dict{Symbol,Base.RefValue{<:AbstractAsset}}=Dict{Symbol,Base.RefValue{<:AbstractAsset}}()
     )
 
@@ -236,19 +236,19 @@ Get the optimal storage level values for a list of storage units.
 """
 function get_optimal_storage_level(
     storages::Vector{<:AbstractStorage}, 
-    scaling::Float64=1.0,
+    scaling::Float64;
     storage_asset_map::Dict{Symbol,Base.RefValue{<:AbstractAsset}}=Dict{Symbol,Base.RefValue{<:AbstractAsset}}()
 )
     if isempty(storages)
         return DataFrame()
     end
-    reduce(vcat, [get_optimal_storage_level(s, scaling, storage_asset_map) for s in storages])
+    reduce(vcat, [get_optimal_storage_level(s, scaling; storage_asset_map) for s in storages])
 end
 
 """
     get_optimal_storage_level(
         storage::AbstractStorage, 
-        scaling::Float64=1.0,
+        scaling::Float64;
         storage_asset_map::Dict{Symbol,Base.RefValue{<:AbstractAsset}}=Dict{Symbol,Base.RefValue{<:AbstractAsset}}()
     )
 
@@ -264,7 +264,7 @@ Get the optimal storage level values for a single storage unit.
 """
 function get_optimal_storage_level(
     storage::AbstractStorage, 
-    scaling::Float64=1.0,
+    scaling::Float64;
     storage_asset_map::Dict{Symbol,Base.RefValue{<:AbstractAsset}}=Dict{Symbol,Base.RefValue{<:AbstractAsset}}()
 )
     time_axis = time_interval(storage)

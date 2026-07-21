@@ -9,8 +9,8 @@ dispatched, e.g., due to system constraints or economic curtailment.
 @doc raw"""
     write_curtailment(
         file_path::AbstractString,
-        system::System;
-        scaling::Float64=1.0,
+        system::System,
+        scaling::Float64;
         drop_cols::Vector{<:AbstractString}=String[]
     )
 
@@ -24,7 +24,7 @@ In wide format, values are pivoted by time and resource\_id.
 # Arguments
 - `file_path::AbstractString`: Path for the curtailment file
 - `system::System`: The system containing VRE assets to analyze
-- `scaling::Float64`: Scaling factor for the results (default: 1.0)
+- `scaling::Float64`: Scaling factor for the results
 - `drop_cols::Vector{<:AbstractString}`: Columns to drop from the DataFrame
 
 # Returns
@@ -32,18 +32,18 @@ In wide format, values are pivoted by time and resource\_id.
 
 # Example
 ```julia
-write_curtailment(joinpath(results_dir, "curtailment.csv"), system)
+write_curtailment(joinpath(results_dir, "curtailment.csv"), system, 1.0)
 ```
 """
 function write_curtailment(
     file_path::AbstractString,
-    system::System;
-    scaling::Float64=1.0,
+    system::System,
+    scaling::Float64;
     drop_cols::Vector{<:AbstractString}=String[]
 )
     @info "Writing curtailment results to $file_path"
 
-    curtailment_results = get_optimal_curtailment(system; scaling)
+    curtailment_results = get_optimal_curtailment(system, scaling)
 
     if isempty(curtailment_results)
         @debug "No curtailment results found (no VRE assets in system)"
@@ -110,8 +110,8 @@ end
 
 @doc raw"""
     get_optimal_curtailment(
-        system::System;
-        scaling::Float64=1.0
+        system::System,
+        scaling::Float64
     )
 
 Get the optimal curtailment values for all VRE assets in a system.
@@ -123,17 +123,17 @@ where capacity is the final installed capacity and flow is the actual generation
 
 # Arguments
 - `system::System`: The system containing VRE assets to analyze
-- `scaling::Float64`: Scaling factor for the results (default: 1.0)
+- `scaling::Float64`: Scaling factor for the results
 
 # Returns
 - `DataFrame`: Temporal curtailment with columns for commodity, zone, resource\_id, resource\_type, component\_id, component\_type, variable, time, value
 
 # Example
 ```julia
-curtailment_df = get_optimal_curtailment(system)
+curtailment_df = get_optimal_curtailment(system, 1.0)
 ```
 """
-function get_optimal_curtailment(system::System; scaling::Float64=1.0)::DataFrame
+function get_optimal_curtailment(system::System, scaling::Float64)::DataFrame
     @debug " -- Getting optimal curtailment values for the system"
 
     # Get all VRE assets in the system
@@ -150,21 +150,21 @@ function get_optimal_curtailment(system::System; scaling::Float64=1.0)::DataFram
         return DataFrame()
     end
 
-    curtailment_df = get_optimal_curtailment(edges, scaling, edge_asset_map)
+    curtailment_df = get_optimal_curtailment(edges, scaling; obj_asset_map=edge_asset_map)
     curtailment_df[!, (!isa).(eachcol(curtailment_df), Vector{Missing})]
 end
 
 function get_optimal_curtailment(
     objs::Vector{<:AbstractEdge},
-    scaling::Float64=1.0,
+    scaling::Float64;
     obj_asset_map::Dict{Symbol,Base.RefValue{<:AbstractAsset}}=Dict{Symbol,Base.RefValue{<:AbstractAsset}}()
 )
-    reduce(vcat, [get_optimal_curtailment(o, scaling, obj_asset_map) for o in objs])
+    reduce(vcat, [get_optimal_curtailment(o, scaling; obj_asset_map) for o in objs])
 end
 
 function get_optimal_curtailment(
     obj::AbstractEdge,
-    scaling::Float64=1.0,
+    scaling::Float64;
     obj_asset_map::Dict{Symbol,Base.RefValue{<:AbstractAsset}}=Dict{Symbol,Base.RefValue{<:AbstractAsset}}()
 )
     time_axis = time_interval(obj)

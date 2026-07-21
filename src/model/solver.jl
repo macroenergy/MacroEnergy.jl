@@ -48,7 +48,7 @@ function solve_case(case::Case, opt::O, ::Myopic) where O <: Union{Optimizer, Di
                     joinpath(restart_folder, "results_period_$(period_idx)", "capacity.csv")
                 )
             end
-            carry_over_capacities!(periods[restart_period_idx], capacity_results, restart_period_idx-1)
+            carry_over_capacities!(periods[restart_period_idx], capacity_results, restart_period_idx-1, parameter_scaling_factor(settings))
         end
     end
 

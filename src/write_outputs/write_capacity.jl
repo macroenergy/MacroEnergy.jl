@@ -7,8 +7,8 @@ Capacity outputs - everything related to capacity data extraction and output.
 """
     write_capacity(
         file_path::AbstractString, 
-        system::System; 
-        scaling::Float64=1.0, 
+        system::System,
+        scaling::Float64; 
         drop_cols::Vector{AbstractString}=String[], 
         commodity::Union{AbstractString,Vector{AbstractString},Nothing}=nothing, 
         asset_type::Union{AbstractString,Vector{AbstractString},Nothing}=nothing
@@ -46,32 +46,32 @@ Two types of pattern matching are supported:
 
 # Example
 ```julia
-write_capacity("capacity.csv", system)
+write_capacity("capacity.csv", system, 1.0)
 # Filter by commodity
-write_capacity("capacity.csv", system, commodity="Electricity")
+write_capacity("capacity.csv", system, 1.0, commodity="Electricity")
 # Filter by commodity and asset type using parameter-free matching
-write_capacity("capacity.csv", system, asset_type="ThermalPower")
+write_capacity("capacity.csv", system, 1.0, asset_type="ThermalPower")
 # Filter by asset type using wildcard matching
-write_capacity("capacity.csv", system, asset_type="ThermalPower*")
+write_capacity("capacity.csv", system, 1.0, asset_type="ThermalPower*")
 # Filter by commodity and asset type
-write_capacity("capacity.csv", system, commodity="Electricity", asset_type=["ThermalPower", "Battery"])
+write_capacity("capacity.csv", system, 1.0, commodity="Electricity", asset_type=["ThermalPower", "Battery"])
 ```
 """
 function write_capacity(
     file_path::AbstractString,
-    system::System;
-    scaling::Float64=1.0,
+    system::System,
+    scaling::Float64;
     drop_cols::Vector{<:AbstractString}=String[],
     commodity::Union{AbstractString,Vector{<:AbstractString},Nothing}=nothing,
     asset_type::Union{AbstractString,Vector{<:AbstractString},Nothing}=nothing
 )
     @info "Writing capacity results to $file_path"
-    capacity_results = get_optimal_capacity(system; scaling)
-    new_capacity_results = get_optimal_new_capacity(system; scaling)
-    retired_capacity_results = get_optimal_retired_capacity(system; scaling)
-    existing_capacity_results = get_existing_capacity(system; scaling)
+    capacity_results = get_optimal_capacity(system, scaling)
+    new_capacity_results = get_optimal_new_capacity(system, scaling)
+    retired_capacity_results = get_optimal_retired_capacity(system, scaling)
+    existing_capacity_results = get_existing_capacity(system, scaling)
     if system.settings.Retrofitting
-        retrofitted_capacity_results = get_optimal_retrofitted_capacity(system; scaling)
+        retrofitted_capacity_results = get_optimal_retrofitted_capacity(system, scaling)
         all_capacity_results = vcat(capacity_results, new_capacity_results, retired_capacity_results, retrofitted_capacity_results, existing_capacity_results)
     else
         all_capacity_results = vcat(capacity_results, new_capacity_results, retired_capacity_results, existing_capacity_results)
@@ -134,7 +134,7 @@ end
 
 ## Capacity extraction functions ##
 """
-    get_optimal_capacity(system::System; scaling::Float64=1.0)
+    get_optimal_capacity(system::System, scaling::Float64)
 
 Get the optimal capacity values for all assets/edges in a system.
 
@@ -147,7 +147,7 @@ Get the optimal capacity values for all assets/edges in a system.
 
 # Example
 ```julia
-get_optimal_capacity(system)
+get_optimal_capacity(system, 1.0)
 153×8 DataFrame
  Row │ commodity    zone     resource_id        component_id            resource_type  component_type      variable   value    
      │ Symbol       Symbol   Symbol             Symbol                  String         String              Symbol     Float64 
@@ -157,11 +157,11 @@ get_optimal_capacity(system)
    3 │ Electricity  elec_NE  existing_wind_NE   existing_wind_NE_edge   VRE            Edge{Electricity}   capacity   3.6545
 ```
 """
-get_optimal_capacity(system::System; scaling::Float64=1.0) = get_optimal_capacity_by_field(system, capacity, scaling)
-get_optimal_capacity(asset::AbstractAsset; scaling::Float64=1.0) = get_optimal_capacity_by_field(asset, capacity, scaling)
+get_optimal_capacity(system::System, scaling::Float64) = get_optimal_capacity_by_field(system, capacity, scaling)
+get_optimal_capacity(asset::AbstractAsset, scaling::Float64) = get_optimal_capacity_by_field(asset, capacity, scaling)
 
 """
-    get_optimal_new_capacity(system::System; scaling::Float64=1.0)
+    get_optimal_new_capacity(system::System, scaling::Float64)
 
 Get the optimal new capacity values for all assets/edges in a system.
 
@@ -173,7 +173,7 @@ Get the optimal new capacity values for all assets/edges in a system.
 
 # Example
 ```julia
-get_optimal_new_capacity(system)
+get_optimal_new_capacity(system, 1.0)
 153×7 DataFrame
  Row │ commodity  zone           resource_id                   component_id                       resource_type     component_type     variable       value  
      │ Symbol     Symbol         Symbol                        Symbol                             String            String             Symbol         Float64
@@ -183,11 +183,11 @@ get_optimal_new_capacity(system)
    3 │ Biomass    bioherb_NE     NE_BECCS_Electricity_Herb     NE_BECCS_Electricity_Herb_biomas…  BECCSElectricity  Edge{Electricity}  new_capacity   0.0
 ```
 """
-get_optimal_new_capacity(system::System; scaling::Float64=1.0) = get_optimal_capacity_by_field(system, new_capacity, scaling)
-get_optimal_new_capacity(asset::AbstractAsset; scaling::Float64=1.0) = get_optimal_capacity_by_field(asset, new_capacity, scaling)
+get_optimal_new_capacity(system::System, scaling::Float64) = get_optimal_capacity_by_field(system, new_capacity, scaling)
+get_optimal_new_capacity(asset::AbstractAsset, scaling::Float64) = get_optimal_capacity_by_field(asset, new_capacity, scaling)
 
 """
-    get_optimal_retired_capacity(system::System; scaling::Float64=1.0)
+    get_optimal_retired_capacity(system::System, scaling::Float64)
 
 Get the optimal retired capacity values for all assets/edges in a system.
 
@@ -199,7 +199,7 @@ Get the optimal retired capacity values for all assets/edges in a system.
 
 # Example
 ```julia
-get_optimal_retired_capacity(system)
+get_optimal_retired_capacity(system, 1.0)
 153×7 DataFrame
  Row │ commodity  zone           resource_id                   component_id                       resource_type     component_type     variable          value    
      │ Symbol     Symbol         Symbol                        Symbol                             String            String             Symbol            Float64  
@@ -209,44 +209,44 @@ get_optimal_retired_capacity(system)
    3 │ Biomass    bioherb_NE     NE_BECCS_Electricity_Herb     NE_BECCS_Electricity_Herb_biomas…  BECCSElectricity  Edge{Electricity}  retired_capacity  0.0
 ```
 """
-get_optimal_retired_capacity(system::System; scaling::Float64=1.0) = get_optimal_capacity_by_field(system, retired_capacity, scaling)
-get_optimal_retired_capacity(asset::AbstractAsset; scaling::Float64=1.0) = get_optimal_capacity_by_field(asset, retired_capacity, scaling)
+get_optimal_retired_capacity(system::System, scaling::Float64) = get_optimal_capacity_by_field(system, retired_capacity, scaling)
+get_optimal_retired_capacity(asset::AbstractAsset, scaling::Float64) = get_optimal_capacity_by_field(asset, retired_capacity, scaling)
 
-get_optimal_retrofitted_capacity(system::System; scaling::Float64=1.0) = get_optimal_capacity_by_field(system, retrofitted_capacity, scaling)
-get_optimal_retrofitted_capacity(asset::AbstractAsset; scaling::Float64=1.0) = get_optimal_capacity_by_field(asset, retrofitted_capacity, scaling)
+get_optimal_retrofitted_capacity(system::System, scaling::Float64) = get_optimal_capacity_by_field(system, retrofitted_capacity, scaling)
+get_optimal_retrofitted_capacity(asset::AbstractAsset, scaling::Float64) = get_optimal_capacity_by_field(asset, retrofitted_capacity, scaling)
 
-get_existing_capacity(system::System; scaling::Float64=1.0) = get_optimal_capacity_by_field(system, existing_capacity, scaling)
-get_existing_capacity(asset::AbstractAsset; scaling::Float64=1.0) = get_optimal_capacity_by_field(asset, existing_capacity, scaling)
+get_existing_capacity(system::System, scaling::Float64) = get_optimal_capacity_by_field(system, existing_capacity, scaling)
+get_existing_capacity(asset::AbstractAsset, scaling::Float64) = get_optimal_capacity_by_field(asset, existing_capacity, scaling)
 
 # Utility function to get the optimal capacity by macro object field
-function get_optimal_capacity_by_field(system::System, capacity_func::Function, scaling::Float64=1.0)
+function get_optimal_capacity_by_field(system::System, capacity_func::Function, scaling::Float64)
     @debug " -- Getting optimal values for $(Symbol(capacity_func)) for the system."
     edges, edge_asset_idmap = edges_with_capacity_variables(system, return_ids_map=true)
     storages, storage_asset_idmap = storages_with_capacity_variables(system, return_ids_map=true)
-    edges_capacity = get_optimal_capacity_by_field(edges, capacity_func, scaling, edge_asset_idmap)
-    storages_capacity = get_optimal_capacity_by_field(storages, capacity_func, scaling, storage_asset_idmap)
+    edges_capacity = get_optimal_capacity_by_field(edges, capacity_func, scaling; obj_asset_map=edge_asset_idmap)
+    storages_capacity = get_optimal_capacity_by_field(storages, capacity_func, scaling; obj_asset_map=storage_asset_idmap)
     asset_capacity = vcat(edges_capacity, storages_capacity)
     asset_capacity[!, (!isa).(eachcol(asset_capacity), Vector{Missing})] # remove missing columns
 end
 
-function get_optimal_capacity_by_field(asset::AbstractAsset, capacity_func::Function, scaling::Float64=1.0)
+function get_optimal_capacity_by_field(asset::AbstractAsset, capacity_func::Function, scaling::Float64)
     @debug " -- Getting optimal values for $(Symbol(capacity_func)) for the asset $(id(asset))."
     edges, edge_asset_idmap = edges_with_capacity_variables(asset, return_ids_map=true)
     storages, storage_asset_idmap = storages_with_capacity_variables(asset, return_ids_map=true)
-    asset_capacity = vcat(get_optimal_capacity_by_field(edges, capacity_func, scaling, edge_asset_idmap), get_optimal_capacity_by_field(storages, capacity_func, scaling, storage_asset_idmap))
+    asset_capacity = vcat(get_optimal_capacity_by_field(edges, capacity_func, scaling; obj_asset_map=edge_asset_idmap), get_optimal_capacity_by_field(storages, capacity_func, scaling; obj_asset_map=storage_asset_idmap))
     asset_capacity[!, (!isa).(eachcol(asset_capacity), Vector{Missing})] # remove missing columns
 end
 
 # The following functions are used to extract capacity values after the model has been solved
 # from a list of MacroObjects (e.g., edges, and storage) and a list of fields (e.g., capacity, new_capacity, retired_capacity)
 
-get_optimal_capacity_by_field(objs::Vector{T}, field::Function, scaling::Float64=1.0, obj_asset_map::Dict{Symbol,Base.RefValue{<:AbstractAsset}}=Dict{Symbol,Base.RefValue{<:AbstractAsset}}()) where {T<:MacroObject} =
-    get_optimal_capacity_by_field(objs, (field,), scaling, obj_asset_map)
+get_optimal_capacity_by_field(objs::Vector{T}, field::Function, scaling::Float64; obj_asset_map::Dict{Symbol,Base.RefValue{<:AbstractAsset}}=Dict{Symbol,Base.RefValue{<:AbstractAsset}}()) where {T<:MacroObject} =
+    get_optimal_capacity_by_field(objs, (field,), scaling; obj_asset_map)
 
 function get_optimal_capacity_by_field(
     objs::Vector{T},
     field_list::Tuple,
-    scaling::Float64=1.0,
+    scaling::Float64;
     obj_asset_map::Dict{Symbol,Base.RefValue{<:AbstractAsset}}=Dict{Symbol,Base.RefValue{<:AbstractAsset}}()
 ) where {T<:MacroObject}
     # Check if the objects is empty
