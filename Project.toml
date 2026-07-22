@@ -1,6 +1,6 @@
 name = "MacroEnergy"
 uuid = "260b7737-bf0e-4e84-9335-3af14438b1f5"
-version = "0.3.0-dev5"
+version = "0.3.0-dev6"
 
 [deps]
 BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
@@ -59,7 +59,7 @@ JSONTables = "1.0.3"
 JuMP = "1"
 Logging = "1"
 LoggingExtras = "1.1.0"
-MacroEnergyScaling = "0.2"
+MacroEnergyScaling = "0.3.0"
 MacroEnergySolvers = "0.2.2"
 Markdown = "1"
 OrderedCollections = "1"
