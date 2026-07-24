@@ -14299,7 +14299,7 @@
             "instance_data": {
                 "storage": {
                     "new_capacity": 0,
-                    "max_storage_level": 0,
+                    "max_storage_level": [0],
                     "location": "",
                     "can_retire": false,
                     "balance_data": {
@@ -14323,7 +14323,7 @@
                     "min_outflow_fraction": 0,
                     "long_duration": false,
                     "investment_cost": 0,
-                    "min_storage_level": 0,
+                    "min_storage_level": [0],
                     "max_duration": 8.846121602,
                     "constraints": {
                         "StorageMinDurationConstraint": true,
@@ -14577,7 +14577,7 @@
             "instance_data": {
                 "storage": {
                     "new_capacity": 0,
-                    "max_storage_level": 0,
+                    "max_storage_level": [0],
                     "location": "",
                     "can_retire": false,
                     "balance_data": {
@@ -14601,7 +14601,7 @@
                     "min_outflow_fraction": 0,
                     "long_duration": false,
                     "investment_cost": 0,
-                    "min_storage_level": 0,
+                    "min_storage_level": [0],
                     "max_duration": 8.846121602,
                     "constraints": {
                         "StorageMinDurationConstraint": true,
@@ -14855,7 +14855,7 @@
             "instance_data": {
                 "storage": {
                     "new_capacity": 0,
-                    "max_storage_level": 0,
+                    "max_storage_level": [0],
                     "location": "",
                     "can_retire": false,
                     "balance_data": {
@@ -14879,7 +14879,7 @@
                     "min_outflow_fraction": 0,
                     "long_duration": false,
                     "investment_cost": 0,
-                    "min_storage_level": 0,
+                    "min_storage_level": [0],
                     "max_duration": 8.525925965,
                     "constraints": {
                         "StorageMinDurationConstraint": true,
@@ -15133,7 +15133,7 @@
             "instance_data": {
                 "storage": {
                     "new_capacity": 0,
-                    "max_storage_level": 0,
+                    "max_storage_level": [0],
                     "location": "",
                     "can_retire": false,
                     "balance_data": {
@@ -15157,7 +15157,7 @@
                     "min_outflow_fraction": 0,
                     "long_duration": false,
                     "investment_cost": 0,
-                    "min_storage_level": 0,
+                    "min_storage_level": [0],
                     "max_duration": 8.525925965,
                     "constraints": {
                         "StorageMinDurationConstraint": true,
@@ -15411,7 +15411,7 @@
             "instance_data": {
                 "storage": {
                     "new_capacity": 0,
-                    "max_storage_level": 0,
+                    "max_storage_level": [0],
                     "location": "",
                     "can_retire": false,
                     "balance_data": {
@@ -15435,7 +15435,7 @@
                     "min_outflow_fraction": 0,
                     "long_duration": false,
                     "investment_cost": 873.013307,
-                    "min_storage_level": 0.3,
+                    "min_storage_level": [0.3],
                     "max_duration": 0,
                     "constraints": {
                         "StorageCapacityConstraint": true,
@@ -15688,7 +15688,7 @@
             "instance_data": {
                 "storage": {
                     "new_capacity": 0,
-                    "max_storage_level": 0,
+                    "max_storage_level": [0],
                     "location": "",
                     "can_retire": false,
                     "balance_data": {
@@ -15712,7 +15712,7 @@
                     "min_outflow_fraction": 0,
                     "long_duration": false,
                     "investment_cost": 873.013307,
-                    "min_storage_level": 0.3,
+                    "min_storage_level": [0.3],
                     "max_duration": 0,
                     "constraints": {
                         "StorageCapacityConstraint": true,
@@ -15965,7 +15965,7 @@
             "instance_data": {
                 "storage": {
                     "new_capacity": 0,
-                    "max_storage_level": 0,
+                    "max_storage_level": [0],
                     "location": "",
                     "can_retire": false,
                     "balance_data": {
@@ -15989,7 +15989,7 @@
                     "min_outflow_fraction": 0,
                     "long_duration": false,
                     "investment_cost": 873.013307,
-                    "min_storage_level": 0.3,
+                    "min_storage_level": [0.3],
                     "max_duration": 0,
                     "constraints": {
                         "StorageCapacityConstraint": true,
@@ -16242,7 +16242,7 @@
             "instance_data": {
                 "storage": {
                     "new_capacity": 0,
-                    "max_storage_level": 0,
+                    "max_storage_level": [0],
                     "location": "",
                     "can_retire": false,
                     "balance_data": {
@@ -16267,7 +16267,7 @@
                     "min_outflow_fraction": 0.109311313,
                     "long_duration": false,
                     "investment_cost": 0,
-                    "min_storage_level": 0,
+                    "min_storage_level": [0],
                     "max_duration": 0,
                     "constraints": {
                         "MinStorageOutflowConstraint": true,
@@ -16934,7 +16934,7 @@
             "instance_data": {
                 "storage": {
                     "new_capacity": 0,
-                    "max_storage_level": 0,
+                    "max_storage_level": [0],
                     "location": "",
                     "can_retire": false,
                     "balance_data": {
@@ -16959,7 +16959,7 @@
                     "min_outflow_fraction": 0.095,
                     "long_duration": false,
                     "investment_cost": 0,
-                    "min_storage_level": 0,
+                    "min_storage_level": [0],
                     "max_duration": 0,
                     "constraints": {
                         "MinStorageOutflowConstraint": true,
@@ -17626,7 +17626,7 @@
             "instance_data": {
                 "storage": {
                     "new_capacity": 0,
-                    "max_storage_level": 0,
+                    "max_storage_level": [0],
                     "location": "",
                     "can_retire": false,
                     "balance_data": {
@@ -17651,7 +17651,7 @@
                     "min_outflow_fraction": 0.135129141,
                     "long_duration": false,
                     "investment_cost": 0,
-                    "min_storage_level": 0,
+                    "min_storage_level": [0],
                     "max_duration": 0,
                     "constraints": {
                         "MinStorageOutflowConstraint": true,
@@ -27347,7 +27347,7 @@
             "instance_data": {
                 "storage": {
                     "new_capacity": 0,
-                    "max_storage_level": 0,
+                    "max_storage_level": [0],
                     "location": "",
                     "can_retire": false,
                     "balance_data": {
@@ -27371,7 +27371,7 @@
                     "min_outflow_fraction": 0,
                     "long_duration": false,
                     "investment_cost": 22494,
-                    "min_storage_level": 0,
+                    "min_storage_level": [0],
                     "max_duration": 10,
                     "constraints": {
                         "StorageCapacityConstraint": true,
@@ -27464,7 +27464,7 @@
             "instance_data": {
                 "storage": {
                     "new_capacity": 0,
-                    "max_storage_level": 0,
+                    "max_storage_level": [0],
                     "location": "",
                     "can_retire": false,
                     "balance_data": {
@@ -27488,7 +27488,7 @@
                     "min_outflow_fraction": 0,
                     "long_duration": false,
                     "investment_cost": 22494,
-                    "min_storage_level": 0,
+                    "min_storage_level": [0],
                     "max_duration": 10,
                     "constraints": {
                         "StorageCapacityConstraint": true,
@@ -27581,7 +27581,7 @@
             "instance_data": {
                 "storage": {
                     "new_capacity": 0,
-                    "max_storage_level": 0,
+                    "max_storage_level": [0],
                     "location": "",
                     "can_retire": false,
                     "balance_data": {
@@ -27605,7 +27605,7 @@
                     "min_outflow_fraction": 0,
                     "long_duration": false,
                     "investment_cost": 22494,
-                    "min_storage_level": 0,
+                    "min_storage_level": [0],
                     "max_duration": 10,
                     "constraints": {
                         "StorageCapacityConstraint": true,
