@@ -105,8 +105,8 @@ While single period cycles are fine for storage which usually discharge within t
 |--------------------------|---------------------------|---------------------------------------|----------|----------|
 | `min_duration`           | Float64                   | Minimum storage duration              | hours    | 0.0      |
 | `max_duration`           | Float64                   | Maximum storage duration              | hours    | 0.0      |
-| `min_storage_level`      | Float64                   | Minimum storage level (fraction)      | fraction | 0.0      |
-| `max_storage_level`      | Float64                   | Maximum storage level (fraction)      | fraction | 1.0      |
+| `min_storage_level`      | Vector{Float64}           | Minimum storage level per timestep    | fraction | [0.0]    |
+| `max_storage_level`      | Vector{Float64}           | Maximum storage level per timestep    | fraction | [1.0]    |
 | `min_outflow_fraction`   | Float64                   | Minimum discharge rate (fraction)     | fraction | 0.0      |
 | `loss_fraction`          | Vector{Float64}           | Storage losses per timestep           | fraction | Float64[]|
 
@@ -293,8 +293,10 @@ Methods for accessing operational constraints and characteristics.
 |--------|-------------|-------------|
 | `loss_fraction(storage)` | Get storage loss profile | `Vector{Float64}` |
 | `loss_fraction(storage, t)` | Get storage loss at timestep t | `Float64` |
-| `min_storage_level(storage)` | Get minimum storage level | `Float64` |
-| `max_storage_level(storage)` | Get maximum storage level | `Float64` |
+| `min_storage_level(storage)` | Get minimum storage level | `Vector{Float64}` |
+| `max_storage_level(storage)` | Get maximum storage level | `Vector{Float64}` |
+| `min_storage_level(storage, t)` | Get minimum storage level at timestep t | `Float64` |
+| `max_storage_level(storage, t)` | Get maximum storage level at timestep t | `Float64` |
 | `min_duration(storage)` | Get minimum storage duration | `Float64` |
 | `max_duration(storage)` | Get maximum storage duration | `Float64` |
 | `min_outflow_fraction(storage)` | Get minimum discharge rate | `Float64` |

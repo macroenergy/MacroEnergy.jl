@@ -13,6 +13,7 @@ with_logger(test_logger) do
         include("test_download_examples.jl")
         include("test_user_additions.jl")
         include("test_registry_user_smoke.jl")
+        include("test_case_settings.jl")
 
         Test.@testset "Asset tests" begin
             include("asset_tests/test_assets_transmission_links.jl")
@@ -59,6 +60,10 @@ with_logger(test_logger) do
             include("asset_tests/test_asset_electricarcfurnace_balance.jl")
             include("asset_tests/test_asset_vre_balance.jl")
         end
+    end
+
+    Test.@testset verbose = true "Annualized Costs" begin
+        include("test_annualized_costs.jl")
     end
 
     Test.@testset verbose = true "Writing Outputs" begin

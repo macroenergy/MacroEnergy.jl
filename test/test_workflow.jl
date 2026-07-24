@@ -239,7 +239,7 @@ function test_load(s_in::AbstractStorage{T}, s_true::S) where {T<:Commodity,S<:J
     @test s_in.can_retire == get(s_true, :can_retire, false)
     @test s_in.investment_cost == get(s_true, :investment_cost, 0.0)
     @test s_in.fixed_om_cost == get(s_true, :fixed_om_cost, 0.0)
-    @test s_in.min_storage_level == get(s_true, :min_storage_level, 0.0)
+    @test s_in.min_storage_level == get(s_true, :min_storage_level, [0.0])
     @test s_in.min_duration == get(s_true, :min_duration, 0.0)
     @test s_in.max_duration == get(s_true, :max_duration, 0.0)
     @test s_in.loss_fraction == Float64[]

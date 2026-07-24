@@ -21,7 +21,7 @@ function test_time_data_commodity(input_data, expected_data, rel_path)
         @test k in keys(expected_data)
         # Check that the fields are the same
         for i in fieldnames(typeof(v))
-            @test getfield(v, i) == getfield(expected_data[k], i)
+            @test isequal(getfield(v, i), getfield(expected_data[k], i))
         end
     end
 end
@@ -33,7 +33,8 @@ function test_load_time_data()
     scenarios = [
         (input_data_no_period_map, time_data_true_no_period_map, "No period map"),
         (input_data_with_period_map, time_data_true_with_period_map, "With period map"),
-        (input_data_with_total_hours_modeled, time_data_true_with_total_hours_modeled, "With weight total")
+        (input_data_with_total_hours_modeled, time_data_true_with_total_hours_modeled, "With weight total"),
+        (input_data_with_year, time_data_true_with_year, "With year")
     ]
     
     for (input_data, expected_data, scenario_name) in scenarios
@@ -70,6 +71,13 @@ input_data_with_total_hours_modeled = Dict{Symbol,Any}(
     )
 )
 
+input_data_with_year = Dict{Symbol,Any}(
+    :HoursPerSubperiod => Dict(:Hydrogen => 168, :NaturalGas => 168, :Electricity => 168),
+    :HoursPerTimeStep => Dict(:Hydrogen => 1, :NaturalGas => 1, :Electricity => 1),
+    :NumberOfSubperiods => 3,
+    :Year => 2030
+)
+
 time_data_true_no_period_map = Dict{Symbol,TimeData}(
     :Hydrogen => TimeData{Hydrogen}(time_interval=1:1:504, hours_per_timestep=1, subperiods=[1:1:168, 169:1:336, 337:1:504], subperiod_indices=[1, 2, 3], subperiod_weights=Dict(1 => 1.0*8760/(3*168), 2 => 1.0*8760/(3*168), 3 => 1.0*8760/(3*168)), subperiod_map=Dict(1 => 1, 2 => 2, 3 => 3)),
     :NaturalGas => TimeData{NaturalGas}(time_interval=1:1:504, hours_per_timestep=1, subperiods=[1:1:168, 169:1:336, 337:1:504], subperiod_indices=[1, 2, 3], subperiod_weights=Dict(1 => 1.0*8760/(3*168), 2 => 1.0*8760/(3*168), 3 => 1.0*8760/(3*168)), subperiod_map=Dict(1 => 1, 2 => 2, 3 => 3)),
@@ -86,6 +94,12 @@ time_data_true_with_period_map = Dict{Symbol,TimeData}(
     :Hydrogen => TimeData{Hydrogen}(time_interval=1:1:504, hours_per_timestep=1, subperiods=[1:1:168, 169:1:336, 337:1:504], subperiod_indices=[6, 17, 32], subperiod_weights=Dict(6 => 21.057692307692307, 17 =>  13.035714285714285, 32 => 18.049450549450547), subperiod_map=subperiod_map),
     :NaturalGas => TimeData{NaturalGas}(time_interval=1:1:504, hours_per_timestep=1, subperiods=[1:1:168, 169:1:336, 337:1:504], subperiod_indices=[6, 17, 32], subperiod_weights=Dict(6 => 21.057692307692307, 17 =>  13.035714285714285, 32 => 18.049450549450547), subperiod_map=subperiod_map),
     :Electricity => TimeData{Electricity}(time_interval=1:1:504, hours_per_timestep=1, subperiods=[1:1:168, 169:1:336, 337:1:504], subperiod_indices=[6, 17, 32], subperiod_weights=Dict(6 => 21.057692307692307, 17 =>  13.035714285714285, 32 => 18.049450549450547), subperiod_map=subperiod_map)
+)
+
+time_data_true_with_year = Dict{Symbol,TimeData}(
+    :Hydrogen => TimeData{Hydrogen}(time_interval=1:1:504, hours_per_timestep=1, year=2030, subperiods=[1:1:168, 169:1:336, 337:1:504], subperiod_indices=[1, 2, 3], subperiod_weights=Dict(1 => 1.0*8760/(3*168), 2 => 1.0*8760/(3*168), 3 => 1.0*8760/(3*168)), subperiod_map=Dict(1 => 1, 2 => 2, 3 => 3)),
+    :NaturalGas => TimeData{NaturalGas}(time_interval=1:1:504, hours_per_timestep=1, year=2030, subperiods=[1:1:168, 169:1:336, 337:1:504], subperiod_indices=[1, 2, 3], subperiod_weights=Dict(1 => 1.0*8760/(3*168), 2 => 1.0*8760/(3*168), 3 => 1.0*8760/(3*168)), subperiod_map=Dict(1 => 1, 2 => 2, 3 => 3)),
+    :Electricity => TimeData{Electricity}(time_interval=1:1:504, hours_per_timestep=1, year=2030, subperiods=[1:1:168, 169:1:336, 337:1:504], subperiod_indices=[1, 2, 3], subperiod_weights=Dict(1 => 1.0*8760/(3*168), 2 => 1.0*8760/(3*168), 3 => 1.0*8760/(3*168)), subperiod_map=Dict(1 => 1, 2 => 2, 3 => 3))
 )
 
 time_data_true_with_total_hours_modeled  = Dict{Symbol,TimeData}(
