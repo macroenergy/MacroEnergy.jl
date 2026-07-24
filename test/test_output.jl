@@ -391,6 +391,36 @@ function test_writing_output()
         @test result_fast[1, :value] == 100.0  # No scaling applied
     end
 
+    @testset "write_capacity returns pristine full results, reused for the cross-period summary" begin
+        test_dir = abspath(mktempdir("."))
+        scaling = 1.0
+
+        # This mock system is built by hand (not via generate_case/configure_settings), so
+        # system.time_data and system.settings are never populated.
+        system.time_data[:Electricity] = node1.timedata
+        system.settings = MacroEnergy.configure_settings(NamedTuple())
+
+        returned = write_capacity(joinpath(test_dir, "capacity.csv"), system, scaling)
+        @test returned isa DataFrame
+        @test !isempty(returned)
+
+        # This system wasn't built via generate_case (no StartYear/case-level Year), so `year` is
+        # entirely absent (dropped as all-missing) - exactly the case write_capacity_summary
+        # falls back to a `period` column for.
+        @test !hasproperty(returned, :year)
+
+        # Filtering by commodity/asset_type restricts what's *written* to file, but the returned
+        # value stays the full, unfiltered dataset, so callers can reuse it for the cross-period
+        # summary without recomputing.
+        filtered_path = joinpath(test_dir, "capacity_filtered.csv")
+        returned_with_filter = write_capacity(filtered_path, system, scaling; commodity="Electricity")
+        @test nrow(returned_with_filter) == nrow(returned)
+        written_df = MacroEnergy.load_dataframe(filtered_path)
+        @test nrow(written_df) <= nrow(returned)
+
+        rm(test_dir, recursive=true)
+    end
+
     @testset "Flow Output Functions Tests" begin
         # Test get_optimal_flow
         result = get_optimal_flow(mock_edges, 1.0; obj_asset_map=obj_asset_map)
@@ -1208,6 +1238,123 @@ function test_writing_output()
     end
 end
 
+const CAPACITY_SUMMARY_ID_COLS = ["commodity", "zone", "resource_id", "component_id", "resource_type", "component_type"]
+
+function capacity_summary_row(comp, var, val; year=nothing)
+    n = length(comp)
+    base = (
+        commodity = fill(:Electricity, n),
+        zone = fill(:AZ, n),
+        resource_id = comp,
+        component_id = comp,
+        resource_type = fill("HydroRes", n),
+        component_type = fill("Edge{Electricity}", n),
+        variable = fill(var, n),
+    )
+    return isnothing(year) ? DataFrame(; base..., value = val) : DataFrame(; base..., year = fill(year, n), value = val)
+end
+
+function test_capacity_summary()
+    @testset "write_capacity_summary" begin
+        test_dir = abspath(mktempdir("."))
+
+        @testset "empty input writes nothing" begin
+            @test isnothing(MacroEnergy.write_capacity_summary(test_dir, DataFrame[], "long"))
+            @test !isfile(joinpath(test_dir, "capacity_summary.csv"))
+        end
+
+        @testset "long format, with real year" begin
+            p1 = vcat(
+                capacity_summary_row(["A", "B"], :capacity, [10.0, 20.0]; year=2026),
+                capacity_summary_row(["A", "B"], :existing_capacity, [5.0, 15.0]; year=2026),
+            )
+            p2 = vcat(
+                capacity_summary_row(["A", "B"], :capacity, [12.0, 20.0]; year=2036),
+                capacity_summary_row(["A", "B"], :existing_capacity, [10.0, 20.0]; year=2036),
+            )
+            MacroEnergy.write_capacity_summary(test_dir, [p1, p2], "long")
+            out = MacroEnergy.load_dataframe(joinpath(test_dir, "capacity_summary.csv"))
+
+            @test names(out) == ["commodity", "zone", "resource_id", "component_id", "resource_type", "component_type", "variable", "year", "value"]
+            # existing_capacity dropped for every period except the first
+            @test sort(unique(out[out.year .== 2036, :].variable)) == ["capacity"]
+            @test sort(unique(out[out.year .== 2026, :].variable)) == ["capacity", "existing_capacity"]
+            @test sum(out.value) ≈ 10.0 + 20.0 + 5.0 + 15.0 + 12.0 + 20.0
+        end
+
+        @testset "long format, no year (falls back to period, before value)" begin
+            p1 = capacity_summary_row(["A"], :capacity, [10.0])
+            p2 = capacity_summary_row(["A"], :capacity, [12.0])
+            MacroEnergy.write_capacity_summary(test_dir, [p1, p2], "long")
+            out = MacroEnergy.load_dataframe(joinpath(test_dir, "capacity_summary.csv"))
+
+            @test "period" in names(out)
+            @test !("year" in names(out))
+            @test findfirst(==("period"), names(out)) == findfirst(==("value"), names(out)) - 1
+            @test out.period == [1, 2]
+        end
+
+        @testset "wide format, with real year: column names, order, and zero-fill for a component missing from period 1" begin
+            p1 = vcat(
+                capacity_summary_row(["A", "B"], :capacity, [10.0, 20.0]; year=2026),
+                capacity_summary_row(["A", "B"], :existing_capacity, [5.0, 15.0]; year=2026),
+                capacity_summary_row(["A", "B"], :new_capacity, [5.0, 5.0]; year=2026),
+                capacity_summary_row(["A", "B"], :retired_capacity, [0.0, 0.0]; year=2026),
+            )
+            p2 = vcat(
+                capacity_summary_row(["A", "B", "C"], :capacity, [12.0, 20.0, 3.0]; year=2036),
+                capacity_summary_row(["A", "B", "C"], :existing_capacity, [10.0, 20.0, 0.0]; year=2036),
+                capacity_summary_row(["A", "B", "C"], :new_capacity, [2.0, 0.0, 3.0]; year=2036),
+                capacity_summary_row(["A", "B", "C"], :retired_capacity, [0.0, 0.0, 0.0]; year=2036),
+            )
+            MacroEnergy.write_capacity_summary(test_dir, [p1, p2], "wide")
+            out = MacroEnergy.load_dataframe(joinpath(test_dir, "capacity_summary.csv"))
+
+            @test names(out) == [
+                CAPACITY_SUMMARY_ID_COLS...,
+                "existing_capacity_2026", "new_capacity_2026", "retired_capacity_2026", "capacity_2026",
+                "new_capacity_2036", "retired_capacity_2036", "capacity_2036",
+            ]
+            row_c = only(eachrow(out[out.component_id .== "C", :]))
+            @test row_c.existing_capacity_2026 == 0.0
+            @test row_c.capacity_2026 == 0.0
+            @test row_c.capacity_2036 == 3.0
+        end
+
+        @testset "wide format, no year (falls back to _<period> suffixes)" begin
+            p1 = vcat(
+                capacity_summary_row(["A"], :capacity, [10.0]),
+                capacity_summary_row(["A"], :existing_capacity, [5.0]),
+            )
+            p2 = capacity_summary_row(["A"], :capacity, [12.0])
+            MacroEnergy.write_capacity_summary(test_dir, [p1, p2], "wide")
+            out = MacroEnergy.load_dataframe(joinpath(test_dir, "capacity_summary.csv"))
+
+            @test names(out) == [CAPACITY_SUMMARY_ID_COLS..., "existing_capacity_1", "capacity_1", "capacity_2"]
+        end
+
+        @testset "wide format includes retrofitted_capacity when present" begin
+            p1 = vcat(
+                capacity_summary_row(["A"], :capacity, [10.0]; year=2026),
+                capacity_summary_row(["A"], :existing_capacity, [5.0]; year=2026),
+                capacity_summary_row(["A"], :new_capacity, [5.0]; year=2026),
+                capacity_summary_row(["A"], :retired_capacity, [0.0]; year=2026),
+                capacity_summary_row(["A"], :retrofitted_capacity, [1.0]; year=2026),
+            )
+            MacroEnergy.write_capacity_summary(test_dir, [p1], "wide")
+            out = MacroEnergy.load_dataframe(joinpath(test_dir, "capacity_summary.csv"))
+
+            @test names(out) == [
+                CAPACITY_SUMMARY_ID_COLS...,
+                "existing_capacity_2026", "new_capacity_2026", "retired_capacity_2026", "capacity_2026", "retrofitted_capacity_2026",
+            ]
+        end
+
+        rm(test_dir, recursive=true)
+    end
+end
+
 test_writing_output()
+test_capacity_summary()
 
 end # module TestOutput

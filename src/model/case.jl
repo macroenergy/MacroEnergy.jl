@@ -31,9 +31,13 @@ function generate_case(
     @info("Generating systems")
     
     start_time = time()
+    period_lengths = collect(settings[:PeriodLengths])
     systems::Vector{System} = map(1:num_systems) do system_idx
         system_data = case[system_idx]
         system_data[:time_data][:SystemIndex] = system_idx
+        if !ismissing(settings[:StartYear])
+            system_data[:time_data][:Year] = settings[:StartYear] + total_years(period_lengths[1:system_idx-1])
+        end
         system = empty_system(dirname(path))
         generate_system!(system, system_data)
         return system
