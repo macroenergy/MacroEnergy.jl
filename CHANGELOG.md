@@ -16,6 +16,7 @@ and this project follows Julia package versioning through `Project.toml` release
 - Added scaling functionality for input data. New `ParameterScaling` (default `false`) and `ParameterScalingFactor` (default `1e3`) parameters have been added to case settings.
 - Added capacity_summary.csv for multi-period cases, combining per-period capacity outputs into a single long- or wide-format file.
 - Added optional StartYear input in case_settings.json to label periods by calendar year.
+- Added `capex.csv` output file to report per-component asset capital costs.
 
 ### Changed
 

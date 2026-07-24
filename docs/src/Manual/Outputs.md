@@ -157,6 +157,7 @@ The following functions write output files. They are called automatically by `ru
 |---|---|
 | [`write_outputs`](@ref) | All files (orchestrator) |
 | [`write_capacity`](@ref) | `capacity.csv` |
+| [`write_capex`](@ref) | `capex.csv` |
 | [`write_capacity_summary`](@ref) | `capacity_summary.csv` (multi-period only) |
 | [`write_costs`](@ref) | `costs.csv` |
 | [`write_undiscounted_costs`](@ref) | `undiscounted_costs.csv` |
@@ -175,6 +176,7 @@ The following functions return output data as Julia `DataFrame` objects without 
 | Function | Returns |
 |---|---|
 | [`get_optimal_capacity`](@ref) | Optimal total capacity per component |
+| [`get_capex`](@ref) | Upfront CAPEX per capacity component |
 | [`get_optimal_flow`](@ref) | Optimal flow per edge per time step |
 | [`get_optimal_storage_level`](@ref) | Optimal storage state of charge per time step |
 | [`get_optimal_curtailment`](@ref) | Curtailment per VRE edge per time step |
@@ -204,4 +206,3 @@ write_flow("flows_elec_thermal.csv", system, commodity="Electricity", asset_type
 - [Multi-Period Accounting](@ref "manual-multi-period-accounting-general-assumptions") — discounting and cost accounting across periods
 - [Writing Results (User Guide)](@ref "user-write-results") — step-by-step guide to customizing output
 - [Writing Output Data (Reference)](@ref "reference-output-functions") — full API reference for all write functions
-

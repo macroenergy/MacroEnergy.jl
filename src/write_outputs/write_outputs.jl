@@ -204,6 +204,8 @@ function _write_benders_period_outputs(
     write_undiscounted_costs(joinpath(results_dir, "undiscounted_costs.csv"), system, costs, scaling)
     # Detailed cost breakdown (assets and zones level)
     write_detailed_costs_benders(results_dir, system, costs, operational_costs_df[subop_indices], settings, scaling)
+    # CAPEX results (investment cost × new capacity)
+    write_capex(joinpath(results_dir, "capex.csv"), system, scaling, Float64(settings.DiscountRate))
 
     # Write dual values (if enabled)
     # Scaling factor to account for discounting duals in multi-period models
@@ -266,6 +268,8 @@ function write_period_outputs(
     write_undiscounted_costs(joinpath(results_dir, "undiscounted_costs.csv"), system, model, scaling)
     # Cost results (detailed breakdown by type and zone, discounted and undiscounted)
     write_detailed_costs(results_dir, system, model, settings, scaling)
+    # CAPEX results (investment cost × new capacity)
+    write_capex(joinpath(results_dir, "capex.csv"), system, scaling, Float64(settings.DiscountRate))
 
     # Flow results
     write_flow(joinpath(results_dir, "flows.csv"), system, scaling)
