@@ -7,6 +7,7 @@ test_logger = ConsoleLogger(stderr, Logging.Warn)
 
 with_logger(test_logger) do
     Test.@testset verbose = true "Load Inputs" begin
+        include("test_csv_cache.jl")
         include("test_workflow.jl")
         include("test_balance_data.jl")
         include("test_supply_inputs.jl")
