@@ -22,7 +22,7 @@ and this project follows Julia package versioning through `Project.toml` release
 - `@add_stoichiometric_balance` now expands recipe-style balances using a consistent proportional rule around the selected `base_term`.
 - Asset balance definitions have been migrated away from legacy raw `balance_data = Dict(...)` patterns toward `@add_balance`, `@add_to_storage_balance`, and `@add_stoichiometric_balance`.
 - Updated MacroEnergySolvers.jl version to 0.2.2.
-- Updated MacroEnergyScaling.jl compatibility to 0.3. Constraint scaling now updates constraints in place, so existing JuMP `ConstraintRef`s remain valid instead of being invalidated by constraint replacement.
+- Updated MacroEnergyScaling.jl compatibility to 0.4. Constraint scaling now updates constraints in place, so existing JuMP `ConstraintRef`s remain valid instead of being invalidated by constraint replacement. This version also allows for objective scaling in the future.
 
 ### Fixed
 
