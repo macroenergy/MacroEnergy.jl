@@ -4,22 +4,34 @@
 
 # Cache full-file reads so that many assets pulling different columns out of
 # the same wide CSV (e.g. hundreds of VRE availability profiles in one file)
-# don't each pay for a fresh DuckDB sniff-and-read of the whole file.
-const _CSV_READ_CACHE = Dict{String,DataFrame}()
+# don't each pay for a fresh parse of the whole file.
+const _CSV_READ_CACHE = Dict{String,Tuple{Float64,DataFrame}}()
 const _CSV_READ_CACHE_LOCK = ReentrantLock()
 
-function _cached_duckdb_read(file_path::AbstractString)::DataFrame
+function _cached_csv_read(file_path::AbstractString)::DataFrame
     key = abspath(file_path)
+    current_mtime = mtime(key)
     lock(_CSV_READ_CACHE_LOCK) do
-        get!(_CSV_READ_CACHE, key) do
-            DataFrame(duckdb_read(file_path))
+        cached = get(_CSV_READ_CACHE, key, nothing)
+        if cached !== nothing && cached[1] == current_mtime
+            return cached[2]
         end
+        data = CSV.read(file_path, DataFrame)
+        _CSV_READ_CACHE[key] = (current_mtime, data)
+        return data
     end
+end
+
+function clear_csv_cache!()
+    lock(_CSV_READ_CACHE_LOCK) do
+        empty!(_CSV_READ_CACHE)
+    end
+    return nothing
 end
 
 function read_csv(file_path::AbstractString, select::Vector{Symbol} = Symbol[])::DataFrame
     @debug("Loading CSV data from $file_path")
-    data = _cached_duckdb_read(file_path)
+    data = _cached_csv_read(file_path)
     if length(select) > 0
         @debug("Loading columns $select from CSV data from $file_path")
         missing_cols = setdiff(select, propertynames(data))
