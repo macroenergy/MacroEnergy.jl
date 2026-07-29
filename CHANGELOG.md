@@ -20,6 +20,7 @@ and this project follows Julia package versioning through `Project.toml` release
 
 ### Changed
 
+- Cached repeated reads of shared CSV inputs within each case or system load, avoiding repeated full-file parsing when assets select different columns from the same file.
 - `@add_balance` is now the recommended API for ordinary algebraic balance equations and inequalities, and follows standard algebraic sign conventions for `flow(...)` terms.
 - `@add_balance` now validates balance expressions more strictly and rejects unsupported non-`flow(...)` variable terms.
 - `@add_stoichiometric_balance` now expands recipe-style balances using a consistent proportional rule around the selected `base_term`.
