@@ -22,11 +22,13 @@ and this project follows Julia package versioning through `Project.toml` release
 
 ### Changed
 
+- Cached repeated reads of shared CSV inputs within each case or system load, avoiding repeated full-file parsing when assets select different columns from the same file.
 - `@add_balance` is now the recommended API for ordinary algebraic balance equations and inequalities, and follows standard algebraic sign conventions for `flow(...)` terms.
 - `@add_balance` now validates balance expressions more strictly and rejects unsupported non-`flow(...)` variable terms.
 - `@add_stoichiometric_balance` now expands recipe-style balances using a consistent proportional rule around the selected `base_term`.
 - Asset balance definitions have been migrated away from legacy raw `balance_data = Dict(...)` patterns toward `@add_balance`, `@add_to_storage_balance`, and `@add_stoichiometric_balance`.
 - Updated MacroEnergySolvers.jl version to 0.2.2.
+- Updated MacroEnergyScaling.jl compatibility to 0.4. Constraint scaling now updates constraints in place, so existing JuMP `ConstraintRef`s remain valid instead of being invalidated by constraint replacement. This version also allows for objective scaling in the future.
 
 ### Fixed
 

@@ -40,8 +40,13 @@ function load_system(
         start_time = time()
 
         system = empty_system(dirname(path))
-        system_data = load_system_data(path; lazy_load = lazy_load)
-        generate_system!(system, system_data)
+        try
+            system_data = load_system_data(path; lazy_load = lazy_load)
+            generate_system!(system, system_data)
+        finally
+            # Release the cached input CSVs now that the System owns its own copy (or if the load failed)
+            clear_csv_cache!()
+        end
 
         @info("Done loading system. It took $(round(time() - start_time, digits=2)) seconds")
         return system
@@ -67,6 +72,11 @@ function load_system(
         dir_path = dirname(dir_path)
     end
     system = empty_system(dir_path)
-    generate_system!(system, system_data)
+    try
+        generate_system!(system, system_data)
+    finally
+        # Release the cached input CSVs now that the System owns its own copy (or if the load failed)
+        clear_csv_cache!()
+    end
     return system
 end
