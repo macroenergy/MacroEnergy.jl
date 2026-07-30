@@ -16,7 +16,7 @@ function _cached_csv_read(file_path::AbstractString)::DataFrame
         if cached !== nothing && cached[1] == current_mtime
             return cached[2]
         end
-        data = CSV.read(file_path, DataFrame)
+        data = CSV.read(key, DataFrame)
         _CSV_READ_CACHE[key] = (current_mtime, data)
         return data
     end
