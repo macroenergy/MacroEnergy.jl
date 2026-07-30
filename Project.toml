@@ -1,6 +1,6 @@
 name = "MacroEnergy"
 uuid = "260b7737-bf0e-4e84-9335-3af14438b1f5"
-version = "0.3.0-dev3"
+version = "0.3.0-dev7"
 
 [deps]
 BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
@@ -14,7 +14,6 @@ DuckDB = "d2f5444f-75bc-4fdf-ac35-56f514c445e1"
 DuckDB_jll = "2cbbab25-fc8b-58cf-88d4-687a02676033"
 GZip = "92fee26a-97fe-5a0c-ad85-20a5f3185b63"
 GitHub = "bc5e4493-9b4d-5f90-b8aa-2b2bcaad7a26"
-Gurobi = "2e9cd046-0924-5485-92f1-d5272153d98b"
 HiGHS = "87dc4568-4c63-4d18-b0c0-bb2238e4078b"
 InteractiveUtils = "b77e0a4c-d291-57a0-90e8-8db25a27a240"
 JSON3 = "0f8b85d8-7281-11e9-16c2-39a750bddbf1"
@@ -49,7 +48,6 @@ DistributedArrays = "0.6"
 DuckDB = "1"
 GZip = "0.6"
 GitHub = "5"
-Gurobi = "1"
 HiGHS = "1"
 InteractiveUtils = "1"
 JSON3 = "1"
@@ -70,6 +68,9 @@ SlurmClusterManager = "1"
 Test = "1"
 YAML = "0.4"
 julia = "1.9"
+
+[weakdeps]
+Gurobi = "2e9cd046-0924-5485-92f1-d5272153d98b"
 
 [extras]
 JLD2 = "033835bb-8acc-5ee8-8aae-3f567f8a3819"
