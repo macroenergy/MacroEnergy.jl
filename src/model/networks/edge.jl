@@ -13,6 +13,7 @@ macro AbstractEdgeBaseAttributes()
         capacity_size::Float64 = $edge_defaults[:capacity_size]
         capacity_reserve_margin_id::Union{Symbol,Missing}  = $edge_defaults[:capacity_reserve_margin_id]
         capacity_reserve_margin_derate_factor::Float64 = $edge_defaults[:capacity_reserve_margin_derate_factor]
+        capacity_reserve_margin_use_flow::Bool = $edge_defaults[:capacity_reserve_margin_use_flow]
         capital_recovery_period::Int64 = $edge_defaults[:capital_recovery_period]
         constraints::Vector{AbstractTypeConstraint} = Vector{AbstractTypeConstraint}()
         distance::Float64 = $edge_defaults[:distance]
@@ -203,6 +204,7 @@ capacity(e::AbstractEdge) = e.capacity;
 capacity_size(e::AbstractEdge) = e.capacity_size;
 capacity_reserve_margin_id(e::AbstractEdge) = e.capacity_reserve_margin_id;
 capacity_reserve_margin_derate_factor(e::AbstractEdge) = e.capacity_reserve_margin_derate_factor;
+capacity_reserve_margin_use_flow(e::AbstractEdge) = e.capacity_reserve_margin_use_flow;
 capital_recovery_period(e::AbstractEdge) = e.capital_recovery_period;
 commodity_type(e::AbstractEdge{T}) where {T} = T;
 end_vertex(e::AbstractEdge) = e.end_vertex;
@@ -312,16 +314,6 @@ function planning_model!(e::AbstractEdge, model::Model)
 
     if has_capacity(e)
 
-        if !ismissing(capacity_reserve_margin_id(e)) 
-            if capacity_reserve_margin_id(e) ∈ axes(model[:eCapacityReserveMargin])[1]
-                add_to_expression!(model[:eCapacityReserveMargin][capacity_reserve_margin_id(e)], 
-                                    capacity_reserve_margin_derate_factor(e) * capacity(e)
-                                )
-            else
-                error("Edge $(id(e)) is associated with an undefined capacity reserve margin constraint. Please double check the input data.")
-            end
-        end
-
         if !can_expand(e)
             fix(new_units(e), 0.0; force = true)
         else
@@ -384,6 +376,79 @@ function compute_fixed_costs!(e::AbstractEdge, model::Model)
     compute_om_fixed_costs!(e, model)
 end
 
+"""
+    add_crm_contribution!(e::AbstractEdge, model::Model)
+
+Add edge `e`'s contribution to the capacity reserve margin expressions, if it is enrolled.
+
+Called from the operational model so that both contribution types are emitted into the same model
+object. Capacity variables are created by `add_linking_variables!`, which every solution algorithm
+runs before the operational model, so `capacity(e)` is available here in the monolithic model, in
+each myopic period, and in each Benders subproblem (where it is the linking copy of the planning
+problem's variable). Keeping the whole row in one pass is what makes the constraint behave
+identically across all three algorithms.
+
+Two mutually exclusive contribution types, selected by `capacity_reserve_margin_use_flow(e)`:
+
+  - Capacity-based (default): `derate * availability(e,t) * capacity(e)`, credited to the region
+    named by `capacity_reserve_margin_id(e)`. Suitable for resources whose hourly ceiling is a
+    parameter times capacity (thermal, variable renewables).
+  - Flow-based: `± derate * flow(e,t)`, credited to the region of each enrolled endpoint node,
+    `+` into `end_vertex` and `-` out of `start_vertex`. Suitable for resources whose deliverable
+    power is endogenous (storage, hydro, hydrogen-fired generation, electrolyzers) and for
+    transmission, which touches two enrolled nodes and so credits the importing region while
+    debiting the exporting one.
+"""
+function add_crm_contribution!(e::AbstractEdge, model::Model)
+    haskey(object_dictionary(model), :eCapacityReserveMargin) || return nothing
+    crm_exprs = model[:eCapacityReserveMargin]
+
+    # (region, coefficient) pairs this edge contributes to.
+    contributions = Tuple{Symbol,Float64}[]
+
+    if capacity_reserve_margin_use_flow(e)
+        # flow(e,t) is signed for bidirectional edges, so one pair of coefficients covers both
+        # flow directions.
+        ev, sv = end_vertex(e), start_vertex(e)
+        if isa(ev, Node) && !ismissing(capacity_reserve_margin_id(ev))
+            push!(contributions, (capacity_reserve_margin_id(ev), 1.0))
+        end
+        if isa(sv, Node) && !ismissing(capacity_reserve_margin_id(sv))
+            push!(contributions, (capacity_reserve_margin_id(sv), -1.0))
+        end
+        if isempty(contributions)
+            error("Edge $(id(e)) has capacity_reserve_margin_use_flow = true but neither of its endpoints is a node enrolled in a capacity reserve margin region. Please double check the input data.")
+        end
+        # The region is taken from the endpoints, so an explicit id on the edge is redundant; flag
+        # it when it disagrees with the topology rather than silently ignoring it.
+        edge_crm_id = capacity_reserve_margin_id(e)
+        if !ismissing(edge_crm_id) && all(c -> c[1] !== edge_crm_id, contributions)
+            @warn(" ++ Edge $(id(e)) sets capacity_reserve_margin_id = $(edge_crm_id), but its endpoints are enrolled in $(unique(first.(contributions))). The endpoint regions are used.")
+        end
+    else
+        # Capacity-based contributions require a capacity variable to credit.
+        (has_capacity(e) && !ismissing(capacity_reserve_margin_id(e))) || return nothing
+        crm_id = capacity_reserve_margin_id(e)
+        if !any(haskey(crm_exprs, (crm_id, t)) for t in time_interval(e))
+            error("Edge $(id(e)) is associated with an undefined capacity reserve margin constraint. Please double check the input data.")
+        end
+        push!(contributions, (crm_id, 1.0))
+    end
+
+    for (crm_id, sgn) in contributions
+        for t in time_interval(e)
+            haskey(crm_exprs, (crm_id, t)) || continue
+            term = if capacity_reserve_margin_use_flow(e)
+                sgn * capacity_reserve_margin_derate_factor(e) * flow(e, t)
+            else
+                sgn * capacity_reserve_margin_derate_factor(e) * availability(e, t) * capacity(e)
+            end
+            add_to_expression!(crm_exprs[(crm_id, t)], term)
+        end
+    end
+    return nothing
+end
+
 function operation_model!(e::Edge, model::Model)
 
     if e.unidirectional
@@ -398,6 +463,8 @@ function operation_model!(e::Edge, model::Model)
     end
 
     update_balances!(e, model)
+
+    add_crm_contribution!(e, model)
 
     for t in time_interval(e)
         w = current_subperiod(e,t)
@@ -576,6 +643,8 @@ function operation_model!(e::EdgeWithUC, model::Model)
     update_balances!(e, model)
 
     update_startup_fuel_balance!(e)
+
+    add_crm_contribution!(e, model)
 
     for t in time_interval(e)
 

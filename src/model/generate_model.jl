@@ -98,11 +98,6 @@ end
 
 function planning_model!(system::System, model::Model)
 
-    if !isempty(system.settings.CapacityReserveMargin)
-        @info(" -- Including capacity reserve margins: $(keys(system.settings.CapacityReserveMargin))")
-        prepare_capacity_reserve_margin!(system, model)
-    end
-
     planning_model!.(system.locations, Ref(model))
 
     planning_model!.(system.assets, Ref(model))
@@ -113,6 +108,15 @@ end
 
 
 function operation_model!(system::System, model::Model)
+
+    # Prepared here, rather than in the planning model, so that the capacity reserve margin
+    # expressions and the edge contributions that fill them are always emitted into the same model
+    # object. Under Benders the planning and operational models are distinct, so splitting the two
+    # across passes would leave the row unbuildable; see add_crm_contribution!.
+    if !isempty(system.settings.CapacityReserveMargin)
+        @info(" -- Including capacity reserve margins: $(keys(system.settings.CapacityReserveMargin))")
+        prepare_capacity_reserve_margin!(system, model)
+    end
 
     operation_model!.(system.locations, Ref(model))
 
@@ -444,21 +448,38 @@ function prepare_capacity_reserve_margin!(system::System, model::Model)
         end
     end
 
-    peak_demand = Dict{Symbol,Float64}(k=> maximum(sum(demand(n) for n in capacity_reserve_margin_nodes[k])) for k in capacity_reserve_margin_ids)
-    
-    required_capacity = Dict{Symbol,Float64}(k=> (1 + system.settings.CapacityReserveMargin[k]) * peak_demand[k] for k in capacity_reserve_margin_ids)
-
     if any(system.settings.CapacityReserveMargin[k] == 0.0 for k in capacity_reserve_margin_ids)
-        msg  = " ++ Capacity reserve margin with id: $k is set to 0.0"
-        @warn(msg)
+        zero_ids = collect(k for k in capacity_reserve_margin_ids if system.settings.CapacityReserveMargin[k] == 0.0)
+        @warn(" ++ Capacity reserve margin id(s): $zero_ids are set to 0.0")
     end
 
-    @expression(model, eCapacityReserveMargin[k in capacity_reserve_margin_ids], -required_capacity[k]*AffExpr(1))
+    # The requirement is indexed by the timesteps of the nodes it covers, so those nodes must share
+    # a time interval for the demand sum below to be well defined.
+    for k in capacity_reserve_margin_ids
+        nodes_k = capacity_reserve_margin_nodes[k]
+        if !all(time_interval(n) == time_interval(first(nodes_k)) for n in nodes_k)
+            error("Nodes assigned to capacity reserve margin id $k do not share the same time interval: $(collect(id(n) for n in nodes_k)). Please double check the input data.")
+        end
+    end
 
-    push!(system.constraints, CapacityReserveMarginConstraint())
+    # Build the time-indexed expression eCapacityReserveMargin[(k,t)] = -(1+β_k) * Σ_n demand(n,t).
+    # Edges add their contributions during the operational model; see add_crm_contribution!.
+    # A Dict rather than a JuMP container because the index set is not rectangular: each requirement
+    # spans only the timesteps of its own nodes.
+    model[:eCapacityReserveMargin] = Dict{Tuple{Symbol,Int64}, AffExpr}(
+        (k, t) => AffExpr(-(1 + system.settings.CapacityReserveMargin[k]) *
+                           sum(demand(n, t) for n in capacity_reserve_margin_nodes[k]))
+        for k in capacity_reserve_margin_ids
+        for t in time_interval(first(capacity_reserve_margin_nodes[k]))
+    )
+
+    # Guard against re-registering the constraint if a System is reused across model builds.
+    if !any(c -> isa(c, CapacityReserveMarginConstraint), system.constraints)
+        push!(system.constraints, CapacityReserveMarginConstraint())
+    end
 
     return nothing
-    
+
 end
 
 function get_capacity_reserve_margin_nodes(system::System)
