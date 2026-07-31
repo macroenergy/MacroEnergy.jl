@@ -39,6 +39,14 @@ function add_constraints_by_type!(
     return nothing
 end
 
+function add_constraints_by_type!(
+    other,
+    model::Model,
+    constraint_type::DataType
+)
+    return nothing
+end
+
 const CONSTRAINT_TYPES = Dict{Symbol,DataType}()
 
 function register_constraint_types!(m::Module = MacroEnergy)
