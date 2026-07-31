@@ -46,7 +46,7 @@ function full_default_data(::Type{SyntheticLiquidFuels}, id=missing)
                 ),
             ),
             :co2_captured_return_edge => @edge_data(
-                :commodity => missing,
+                :commodity => nothing,
                 :has_capacity => false,
                 :can_expand => false,
                 :can_retire => false,
@@ -164,7 +164,8 @@ function make(asset_type::Type{SyntheticLiquidFuels}, data::AbstractDict{Symbol,
         ]
     )
     co2_captured_return_edge = nothing
-    if !ismissing(co2_captured_return_edge_data[:commodity])
+    co2_captured_return_commodity = get(co2_captured_return_edge_data, :commodity, nothing)
+    if !isnothing(co2_captured_return_commodity)
         co2_captured_return_start_node = synthetic_liquid_fuels_transform
         @end_vertex(
             co2_captured_return_end_node,
@@ -180,6 +181,8 @@ function make(asset_type::Type{SyntheticLiquidFuels}, data::AbstractDict{Symbol,
             co2_captured_return_start_node,
             co2_captured_return_end_node,
         )
+    elseif !iszero(get(transform_data, :capture_rate, 0.0))
+        @warn "User provided captured-CO₂-related inputs for the $id asset but they will not be used as no captured-CO₂ return commodity has been set"
     end
 
     gasoline_edge_key = :gasoline_edge
@@ -344,37 +347,42 @@ function make(asset_type::Type{SyntheticLiquidFuels}, data::AbstractDict{Symbol,
         co2_emission_end_node,
     )
 
-    synthetic_liquid_fuels_transform.balance_data = Dict(
-        :gasoline_production => Dict(
-            gasoline_edge.id => 1.0,
-            co2_captured_edge.id => get(transform_data, :gasoline_production, 0.0)
-        ),
-        :jetfuel_production => Dict(
-            jetfuel_edge.id => 1.0,
-            co2_captured_edge.id => get(transform_data, :jetfuel_production, 0.0)
-        ),
-        :diesel_production => Dict(
-            diesel_edge.id => 1.0,
-            co2_captured_edge.id => get(transform_data, :diesel_production, 0.0)
-        ),
-        :elec_consumption => Dict(
-            elec_edge.id => -1.0,
-            co2_captured_edge.id => get(transform_data, :electricity_consumption, 0.0)
-        ),
-        :h2_consumption => Dict(
-            h2_edge.id => -1.0,
-            co2_captured_edge.id => get(transform_data, :h2_consumption, 0.0)
-        ),
-        :emissions => Dict(
-            co2_captured_edge.id => get(transform_data, :emission_rate, 1.0),
-            co2_emission_edge.id => 1.0
-        ),
+    @add_balance(
+        synthetic_liquid_fuels_transform,
+        :gasoline_production,
+        get(transform_data, :gasoline_production, 0.0) * flow(co2_captured_edge) == flow(gasoline_edge),
+    )
+    @add_balance(
+        synthetic_liquid_fuels_transform,
+        :jetfuel_production,
+        get(transform_data, :jetfuel_production, 0.0) * flow(co2_captured_edge) == flow(jetfuel_edge),
+    )
+    @add_balance(
+        synthetic_liquid_fuels_transform,
+        :diesel_production,
+        get(transform_data, :diesel_production, 0.0) * flow(co2_captured_edge) == flow(diesel_edge),
+    )
+    @add_balance(
+        synthetic_liquid_fuels_transform,
+        :elec_consumption,
+        get(transform_data, :electricity_consumption, 0.0) * flow(co2_captured_edge) == flow(elec_edge),
+    )
+    @add_balance(
+        synthetic_liquid_fuels_transform,
+        :h2_consumption,
+        get(transform_data, :h2_consumption, 0.0) * flow(co2_captured_edge) == flow(h2_edge),
+    )
+    @add_balance(
+        synthetic_liquid_fuels_transform,
+        :emissions,
+        get(transform_data, :emission_rate, 1.0) * flow(co2_captured_edge) == flow(co2_emission_edge),
     )
 
     if !isnothing(co2_captured_return_edge)
-        synthetic_liquid_fuels_transform.balance_data[:co2_capture] = Dict(
-            co2_captured_edge.id => get(transform_data, :capture_rate, 0.0),
-            co2_captured_return_edge.id => 1.0,
+        @add_balance(
+            synthetic_liquid_fuels_transform,
+            :co2_capture,
+            get(transform_data, :capture_rate, 0.0) * flow(co2_captured_edge) == flow(co2_captured_return_edge),
         )
     end
 
