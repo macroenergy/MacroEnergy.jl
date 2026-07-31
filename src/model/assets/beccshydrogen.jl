@@ -1,37 +1,14 @@
-struct BECCSHydrogen{T} <: AbstractAsset
+struct BECCSHydrogen <: AbstractAsset
     id::AssetId
     beccs_transform::Transformation
     biomass_edge::Edge{<:Biomass}
     h2_edge::Edge{<:Hydrogen}
     elec_edge::Edge{<:Electricity}
-    fuel_edge::Edge{<:T}
+    fuel_edge::Union{Nothing,Edge}
     co2_edge::Edge{<:CO2}
     co2_emission_edge::Edge{<:CO2}
     co2_captured_edge::Edge{<:CO2Captured}
 end
-
-BECCSHydrogen(
-    id::AssetId,
-    beccs_transform::Transformation,
-    biomass_edge::Edge{<:Biomass},
-    h2_edge::Edge{<:Hydrogen},
-    elec_edge::Edge{<:Electricity},
-    fuel_edge::Edge{T},
-    co2_edge::Edge{<:CO2},
-    co2_emission_edge::Edge{<:CO2},
-    co2_captured_edge::Edge{<:CO2Captured},
-) where {T<:Commodity} =
-    BECCSHydrogen{T}(
-        id,
-        beccs_transform,
-        biomass_edge,
-        h2_edge,
-        elec_edge,
-        fuel_edge,
-        co2_edge,
-        co2_emission_edge,
-        co2_captured_edge,
-    )
 
 function default_data(t::Type{BECCSHydrogen}, id=missing, style="full")
     if style == "full"
@@ -114,20 +91,6 @@ function simple_default_data(::Type{BECCSHydrogen}, id=missing)
         :fixed_om_cost => 0.0,
         :variable_om_cost => 0.0,
     )
-end
-
-function set_commodity!(::Type{BECCSHydrogen}, commodity::Type{<:Commodity}, data::AbstractDict{Symbol,Any})
-    edge_keys = [:fuel_edge]
-    if haskey(data, :fuel_commodity)
-        data[:fuel_commodity] = string(commodity)
-    end
-    if haskey(data, :edges)
-        for edge_key in edge_keys
-            if haskey(data[:edges], edge_key) && haskey(data[:edges][edge_key], :commodity)
-                data[:edges][edge_key][:commodity] = string(commodity)
-            end
-        end
-    end
 end
 
 function make(asset_type::Type{BECCSHydrogen}, data::AbstractDict{Symbol,Any}, system::System)
@@ -300,23 +263,26 @@ function make(asset_type::Type{BECCSHydrogen}, data::AbstractDict{Symbol,Any}, s
             (data, key),
         ]
     )
-    fuel_commodity_symbol = Symbol(fuel_edge_data[:commodity])
-    fuel_commodity = commodity_types()[fuel_commodity_symbol]
-    @start_vertex(
-        fuel_start_node,
-        fuel_edge_data,
-        fuel_commodity,
-        [(fuel_edge_data, :start_vertex), (data, :location)],
-    )
-    fuel_end_node = beccs_transform
-    fuel_edge = Edge(
-        Symbol(id, "_", fuel_edge_key),
-        fuel_edge_data,
-        system.time_data[fuel_commodity_symbol],
-        fuel_commodity,
-        fuel_start_node,
-        fuel_end_node,
-    )
+    fuel_edge = nothing
+    if !ismissing(fuel_edge_data[:commodity])
+        fuel_commodity_symbol = Symbol(fuel_edge_data[:commodity])
+        fuel_commodity = commodity_types()[fuel_commodity_symbol]
+        @start_vertex(
+            fuel_start_node,
+            fuel_edge_data,
+            fuel_commodity,
+            [(fuel_edge_data, :start_vertex), (data, :location)],
+        )
+        fuel_end_node = beccs_transform
+        fuel_edge = Edge(
+            Symbol(id, "_", fuel_edge_key),
+            fuel_edge_data,
+            system.time_data[fuel_commodity_symbol],
+            fuel_commodity,
+            fuel_start_node,
+            fuel_end_node,
+        )
+    end
 
     co2_captured_edge_key = :co2_captured_edge
     @process_data(
@@ -354,25 +320,30 @@ function make(asset_type::Type{BECCSHydrogen}, data::AbstractDict{Symbol,Any}, s
             elec_edge.id => -1.0,
             biomass_edge.id => get(transform_data, :electricity_consumption, 0.0)
         ),
-        :fuel_consumption => Dict(
-            fuel_edge.id => -1.0,
-            biomass_edge.id => get(transform_data, :fuel_consumption, 0.0)
-        ),
         :negative_emissions => Dict(
             biomass_edge.id => get(transform_data, :co2_content, 0.0),
             co2_edge.id => -1.0
         ),
         :emissions => Dict(
             biomass_edge.id => get(transform_data, :emission_rate, 1.0),
-            fuel_edge.id => get(transform_data, :fuel_emission_rate, 0.0),
             co2_emission_edge.id => 1.0
         ),
         :capture => Dict(
             biomass_edge.id => get(transform_data, :capture_rate, 1.0),
-            fuel_edge.id => get(transform_data, :fuel_capture_rate, 0.0),
             co2_captured_edge.id => 1.0
         )
     )
+
+    if !isnothing(fuel_edge)
+        beccs_transform.balance_data[:fuel_consumption] = Dict(
+            fuel_edge.id => -1.0,
+            biomass_edge.id => get(transform_data, :fuel_consumption, 0.0),
+        )
+        beccs_transform.balance_data[:emissions][fuel_edge.id] =
+            get(transform_data, :fuel_emission_rate, 0.0)
+        beccs_transform.balance_data[:capture][fuel_edge.id] =
+            get(transform_data, :fuel_capture_rate, 0.0)
+    end
 
     return BECCSHydrogen(
         id,

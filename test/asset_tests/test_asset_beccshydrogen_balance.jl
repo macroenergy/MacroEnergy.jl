@@ -53,6 +53,7 @@ function make_beccshydrogen_case(style::Symbol)
         system,
     )
     push!(system.assets, asset)
+    @test isnothing(asset.fuel_edge)
 
     transform = asset.beccs_transform
     transform.balance_data = Dict{Symbol,Any}()

@@ -55,6 +55,7 @@ function make_syntheticliquidfuels_case(style::Symbol)
         system,
     )
     push!(system.assets, asset)
+    @test isnothing(asset.co2_captured_return_edge)
 
     transform = asset.synthetic_liquid_fuels_transform
     if style == :add_balance
