@@ -63,7 +63,7 @@ function validate_settings(settings::NamedTuple)
         @assert settings[:OutputLayout] ∈ ("long", "wide")
     else
         # Note: we currently support these output files
-        @assert all(keys(settings[:OutputLayout]) .∈ Ref((:Capacity, :Costs, :Curtailment, :Flow, :NonServedDemand, :StorageLevel)))
+        @assert all(keys(settings[:OutputLayout]) .∈ Ref((:Capacity, :CapacitySummary, :Costs, :Curtailment, :Flow, :NonServedDemand, :StorageLevel)))
         @assert all(values(settings[:OutputLayout]) .∈ Ref(("long", "wide")))
     end
     return nothing
