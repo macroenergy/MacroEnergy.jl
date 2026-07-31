@@ -18,7 +18,7 @@ import MacroEnergy:
     flow,
     make
 
-function make_syntheticliquidfuels_case(style::Symbol)
+function make_syntheticliquidfuels_case(style::Symbol; capture_rate::Float64 = 0.0)
     system = make_test_system([CO2Captured, Electricity, Hydrogen, LiquidFuels, CO2])
 
     co2_source = make_supply_node(CO2Captured, :co2_source, system.time_data[:CO2Captured], [2.0, 2.0, 2.0])
@@ -44,6 +44,7 @@ function make_syntheticliquidfuels_case(style::Symbol)
             :electricity_consumption => 0.1,
             :h2_consumption => 0.2,
             :emission_rate => 0.05,
+            :capture_rate => capture_rate,
             :co2_captured_start_vertex => :co2_source,
             :elec_start_vertex => :elec_source,
             :h2_start_vertex => :h2_source,
@@ -115,6 +116,10 @@ function test_asset_syntheticliquidfuels_balance()
             @test value(flow(default_case.asset.co2_emission_edge, t)) ≈ value(flow(add_balance_case.asset.co2_emission_edge, t)) atol = 1e-8
         end
         @test objective_value(default_model) ≈ objective_value(add_balance_model) atol = 1e-8
+    end
+
+    @test_logs (:warn, "User provided captured-CO₂-related inputs for the synthetic_liquid_fuels_test asset but they will not be used as no captured-CO₂ return commodity has been set") begin
+        make_syntheticliquidfuels_case(:add_balance; capture_rate = 1.0)
     end
 
     return nothing

@@ -33,6 +33,7 @@ with_logger(test_logger) do
             include("asset_tests/test_asset_dreaf_balance.jl")
             include("asset_tests/test_asset_dreafccs_balance.jl")
             include("asset_tests/test_asset_co2injection_balance.jl")
+            include("asset_tests/test_asset_constrainedfossilliquidfuels_balance.jl")
             include("asset_tests/test_asset_downstreamemissions_balance.jl")
             include("asset_tests/test_asset_upstreamemissions_balance.jl")
             include("asset_tests/test_asset_electricdac_balance.jl")
