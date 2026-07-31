@@ -40,7 +40,7 @@ function full_default_data(::Type{BECCSHydrogen}, id=missing)
                 :commodity => "Electricity",
             ),
             :fuel_edge => @edge_data(
-                :commodity => missing,
+                :commodity => nothing,
             ),
             :h2_edge => @edge_data(
                 :commodity => "Hydrogen",
@@ -264,8 +264,9 @@ function make(asset_type::Type{BECCSHydrogen}, data::AbstractDict{Symbol,Any}, s
         ]
     )
     fuel_edge = nothing
-    if !ismissing(fuel_edge_data[:commodity])
-        fuel_commodity_symbol = Symbol(fuel_edge_data[:commodity])
+    fuel_commodity_name = get(fuel_edge_data, :commodity, nothing)
+    if !isnothing(fuel_commodity_name)
+        fuel_commodity_symbol = Symbol(fuel_commodity_name)
         fuel_commodity = commodity_types()[fuel_commodity_symbol]
         @start_vertex(
             fuel_start_node,
@@ -282,6 +283,12 @@ function make(asset_type::Type{BECCSHydrogen}, data::AbstractDict{Symbol,Any}, s
             fuel_start_node,
             fuel_end_node,
         )
+    elseif any(x -> !iszero(x), (
+        get(transform_data, :fuel_consumption, 0.0),
+        get(transform_data, :fuel_emission_rate, 0.0),
+        get(transform_data, :fuel_capture_rate, 0.0),
+    ))
+        @warn "User provided fuel-related inputs for the $id asset but they will not be used as no fuel commodity has been set"
     end
 
     co2_captured_edge_key = :co2_captured_edge
@@ -311,38 +318,40 @@ function make(asset_type::Type{BECCSHydrogen}, data::AbstractDict{Symbol,Any}, s
         co2_captured_end_node,
     )
 
-    beccs_transform.balance_data = Dict(
-        :h2_production => Dict(
-            h2_edge.id => 1.0,
-            biomass_edge.id => get(transform_data, :hydrogen_production, 0.0)
-        ),
-        :elec_consumption => Dict(
-            elec_edge.id => -1.0,
-            biomass_edge.id => get(transform_data, :electricity_consumption, 0.0)
-        ),
-        :negative_emissions => Dict(
-            biomass_edge.id => get(transform_data, :co2_content, 0.0),
-            co2_edge.id => -1.0
-        ),
-        :emissions => Dict(
-            biomass_edge.id => get(transform_data, :emission_rate, 1.0),
-            co2_emission_edge.id => 1.0
-        ),
-        :capture => Dict(
-            biomass_edge.id => get(transform_data, :capture_rate, 1.0),
-            co2_captured_edge.id => 1.0
-        )
+    @add_balance(
+        beccs_transform,
+        :h2_production,
+        get(transform_data, :hydrogen_production, 0.0) * flow(biomass_edge) == flow(h2_edge),
+    )
+    @add_balance(
+        beccs_transform,
+        :elec_consumption,
+        get(transform_data, :electricity_consumption, 0.0) * flow(biomass_edge) == flow(elec_edge),
+    )
+    @add_balance(
+        beccs_transform,
+        :negative_emissions,
+        get(transform_data, :co2_content, 0.0) * flow(biomass_edge) == flow(co2_edge),
+    )
+    @add_balance(
+        beccs_transform,
+        :emissions,
+        get(transform_data, :emission_rate, 1.0) * flow(biomass_edge) == flow(co2_emission_edge),
+    )
+    @add_balance(
+        beccs_transform,
+        :capture,
+        get(transform_data, :capture_rate, 1.0) * flow(biomass_edge) == flow(co2_captured_edge),
     )
 
     if !isnothing(fuel_edge)
-        beccs_transform.balance_data[:fuel_consumption] = Dict(
-            fuel_edge.id => -1.0,
-            biomass_edge.id => get(transform_data, :fuel_consumption, 0.0),
+        @add_balance(
+            beccs_transform,
+            :fuel_consumption,
+            get(transform_data, :fuel_consumption, 0.0) * flow(biomass_edge) == flow(fuel_edge),
         )
-        beccs_transform.balance_data[:emissions][fuel_edge.id] =
-            get(transform_data, :fuel_emission_rate, 0.0)
-        beccs_transform.balance_data[:capture][fuel_edge.id] =
-            get(transform_data, :fuel_capture_rate, 0.0)
+        @add_balance(beccs_transform, :emissions, get(transform_data, :fuel_emission_rate, 0.0) * flow(fuel_edge) == 0.0)
+        @add_balance(beccs_transform, :capture, get(transform_data, :fuel_capture_rate, 0.0) * flow(fuel_edge) == 0.0)
     end
 
     return BECCSHydrogen(
