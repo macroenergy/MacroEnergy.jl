@@ -167,12 +167,15 @@ function make(asset_type::Type{Electrolyzer}, data::AbstractDict{Symbol,Any}, sy
         h2_end_node,
     )
     if has_uc
-        uc_constraints = [MinUpTimeConstraint(), MinDownTimeConstraint()]
+        uc_constraints = [MinUpTimeConstraint(), MinDownTimeConstraint(), RampingLimitConstraint()]
         for c in uc_constraints
             if !(c in h2_edge.constraints)
                 push!(h2_edge.constraints, c)
             end
         end
+        # `startup_fuel_consumption` is specified in electricity units. The
+        # startup correction is applied to the hydrogen-output balance.
+        h2_edge.startup_fuel_consumption *= get(transform_data, :efficiency_rate, 1.0)
         h2_edge.startup_fuel_balance_id = :energy
     end
 
