@@ -2,7 +2,7 @@ struct SyntheticLiquidFuels <: AbstractAsset
     id::AssetId
     synthetic_liquid_fuels_transform::Transformation
     co2_captured_edge::Edge{<:CO2Captured}
-    co2_captured_return_edge::Union{Nothing,Edge}
+    co2_captured_return_edge::Union{Nothing,Edge{<:CO2Captured}}
     gasoline_edge::Edge{<:LiquidFuels}
     jetfuel_edge::Edge{<:LiquidFuels}
     diesel_edge::Edge{<:LiquidFuels}
@@ -46,7 +46,7 @@ function full_default_data(::Type{SyntheticLiquidFuels}, id=missing)
                 ),
             ),
             :co2_captured_return_edge => @edge_data(
-                :commodity => nothing,
+                :commodity => "CO2Captured",
                 :has_capacity => false,
                 :can_expand => false,
                 :can_retire => false,
@@ -163,9 +163,12 @@ function make(asset_type::Type{SyntheticLiquidFuels}, data::AbstractDict{Symbol,
             (data, Symbol("co2_captured_return_", key)),
         ]
     )
-    co2_captured_return_edge = nothing
-    co2_captured_return_commodity = get(co2_captured_return_edge_data, :commodity, nothing)
-    if !isnothing(co2_captured_return_commodity)
+    has_co2_return_edge = false
+    # Check if an end vertex or location has been specified
+    if !ismissing(get(co2_captured_return_edge_data, :end_vertex, missing)) || !ismissing(location)
+        has_co2_return_edge = true
+    end
+    if has_co2_return_edge
         co2_captured_return_start_node = synthetic_liquid_fuels_transform
         @end_vertex(
             co2_captured_return_end_node,
@@ -181,8 +184,11 @@ function make(asset_type::Type{SyntheticLiquidFuels}, data::AbstractDict{Symbol,
             co2_captured_return_start_node,
             co2_captured_return_end_node,
         )
-    elseif !iszero(get(transform_data, :capture_rate, 0.0))
-        @warn "User provided captured-CO₂-related inputs for the $id asset but they will not be used as no captured-CO₂ return commodity has been set"
+    else
+        co2_captured_return_edge = nothing
+        if !iszero(get(transform_data, :capture_rate, 0.0))
+            @warn "User provided captured-CO₂-related inputs for the $id asset but they will not be used as no captured-CO₂ return end vertex or location has been set"
+        end
     end
 
     gasoline_edge_key = :gasoline_edge
