@@ -3,6 +3,7 @@ module TestTimeData
 using Test
 import MacroEnergy: TimeData, Hydrogen, NaturalGas, Electricity
 import MacroEnergy: load_time_data, load_subperiod_map!, validate_and_set_default_total_hours_modeled!
+import MacroEnergy: timestepbefore, current_subperiod, Node
 
 include("utilities.jl")
 
@@ -108,5 +109,78 @@ time_data_true_with_total_hours_modeled  = Dict{Symbol,TimeData}(
     :Electricity => TimeData{Electricity}(time_interval=1:1:504, hours_per_timestep=1, subperiods=[1:1:168, 169:1:336, 337:1:504], subperiod_indices=[6, 17, 32], subperiod_weights=Dict(6 => 21, 17 =>  13, 32 => 18), subperiod_map=subperiod_map, total_hours_modeled=8736)
 )
 test_load_time_data()
+
+function test_timestepbefore_correctness()
+    subperiods = [1:1:168, 169:1:336, 337:1:504]
+
+    @test timestepbefore(50, 0, subperiods) == 50
+    @test timestepbefore(50, 5, subperiods) == 45
+    # wraparound at the start of a subperiod
+    @test timestepbefore(1, 1, subperiods) == 168
+    @test timestepbefore(169, 1, subperiods) == 336
+    @test timestepbefore(337, 1, subperiods) == 504
+    # shift larger than the subperiod length (multiple wraps)
+    @test timestepbefore(169, 168, subperiods) == 169
+    @test timestepbefore(169, 169, subperiods) == 336
+
+    # single large subperiod, matching a full-year (8760h) case
+    big_subperiods = [1:1:8760]
+    @test timestepbefore(1, 1, big_subperiods) == 8760
+    @test timestepbefore(8760, 1, big_subperiods) == 8759
+    @test timestepbefore(4380, 100, big_subperiods) == 4280
+
+    return nothing
+end
+
+function test_timestepbefore_allocation()
+    subperiods = [1:1:8760]
+    timestepbefore(100, 1, subperiods)  # warm up / compile before measuring
+    bytes = @allocated timestepbefore(100, 1, subperiods)
+    @info "timestepbefore allocated $(bytes) bytes for a single call over an 8760-length subperiod"
+    @test bytes == 0
+    return bytes
+end
+
+@testset "timestepbefore" begin
+    test_timestepbefore_correctness()
+    test_timestepbefore_allocation()
+end
+
+function test_current_subperiod_correctness()
+    subperiods = [1:1:168, 169:1:336, 337:1:504]
+    n = Node{Electricity}(;
+        id = :test_node,
+        timedata = TimeData{Electricity}(;
+            time_interval = 1:504,
+            subperiods = subperiods,
+            subperiod_indices = [10, 20, 30],
+            subperiod_weights = Dict(10 => 1.0, 20 => 1.0, 30 => 1.0),
+            subperiod_map = Dict(1 => 1),
+        ),
+    )
+
+    @test current_subperiod(n, 1) == 10
+    @test current_subperiod(n, 168) == 10
+    @test current_subperiod(n, 169) == 20
+    @test current_subperiod(n, 336) == 20
+    @test current_subperiod(n, 337) == 30
+    @test current_subperiod(n, 504) == 30
+
+    return n
+end
+
+function test_current_subperiod_allocation()
+    n = test_current_subperiod_correctness()
+    current_subperiod(n, 100)  # warm-up / compile
+    bytes = @allocated current_subperiod(n, 100)
+    @info "current_subperiod(y,t) allocated $(bytes) bytes"
+    @test bytes == 0
+    return nothing
+end
+
+@testset "current_subperiod" begin
+    test_current_subperiod_correctness()
+    test_current_subperiod_allocation()
+end
 
 end # module TestTimeData

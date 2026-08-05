@@ -12,8 +12,14 @@ end
 
 
 ######### TimeData interface #########
-current_subperiod(y::Union{AbstractVertex,AbstractEdge}, t::Int64) =
-    subperiod_indices(y)[findfirst(t .∈ subperiods(y))];
+function current_subperiod(y::Union{AbstractVertex,AbstractEdge}, t::Int64)
+    for (idx, w) in enumerate(subperiods(y))
+        if t in w
+            return subperiod_indices(y)[idx]
+        end
+    end
+    error("current_subperiod: time $t not found in any subperiod")
+end
 commodity_type(n::TimeData{T}) where {T} = T;
 get_subperiod(y::Union{AbstractVertex,AbstractEdge}, w::Int64) = subperiods(y)[findfirst(subperiod_indices(y).==w)];
 hours_per_timestep(y::Union{AbstractVertex,AbstractEdge}) = y.timedata.hours_per_timestep;
@@ -38,11 +44,12 @@ Determines the time step that is `h` steps before index `t` in subperiod `p` wit
 
 """
 function timestepbefore(t::Int, h::Int, subperiods::Vector{StepRange{Int64,Int64}})::Int
-    #Find the subperiod that contains time t
-    w = subperiods[findfirst(t .∈ subperiods)]
-    #circular shift of the subperiod forward by h steps
-    wc = circshift(w, h)
-
-    return wc[findfirst(w .== t)]
-
+    # Find the subperiod that contains time t, and index t within it circularly, h steps back
+    for w in subperiods
+        if t in w
+            n = length(w)
+            return first(w) + mod(t - first(w) - h, n)
+        end
+    end
+    error("timestepbefore: time $t not found in any subperiod")
 end
