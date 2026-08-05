@@ -31,12 +31,13 @@ function add_model_constraint!(ct::RampingLimitConstraint, e::EdgeWithoutUC, mod
     end
     if has_capacity(e)
         #### For now these are set to zero because we are not modeling reserves
-        reserves_term = @expression(model, [t in time_interval(e)], 0 * model[:vREF])
-        regulation_term = @expression(model, [t in time_interval(e)], 0 * model[:vREF])
+        reserves_term = @expression(model, [t in time_interval(e)], container = array_container(time_interval(e)), 0 * model[:vREF])
+        regulation_term = @expression(model, [t in time_interval(e)], container = array_container(time_interval(e)), 0 * model[:vREF])
 
         eRampUp = @expression(
             model,
             [t in time_interval(e)],
+            container = array_container(time_interval(e)),
             flow(e, t) - flow(e, timestepbefore(t, 1, subperiods(e))) +
             regulation_term[t] +
             reserves_term[t] - ramp_up_fraction(e) * capacity(e)
@@ -45,6 +46,7 @@ function add_model_constraint!(ct::RampingLimitConstraint, e::EdgeWithoutUC, mod
         eRampDown = @expression(
             model,
             [t in time_interval(e)],
+            container = array_container(time_interval(e)),
             flow(e, timestepbefore(t, 1, subperiods(e))) - flow(e, t) - regulation_term[t] +
             reserves_term[timestepbefore(t, 1, subperiods(e))] -
             ramp_down_fraction(e) * capacity(e)
@@ -86,12 +88,13 @@ for each time `t` in `time_interval(e)` for the edge `e`. The function [`timeste
 function add_model_constraint!(ct::RampingLimitConstraint, e::EdgeWithUC, model::Model)
 
     #### For now these are set to zero because we are not modeling reserves
-    reserves_term = @expression(model, [t in time_interval(e)], 0 * model[:vREF])
-    regulation_term = @expression(model, [t in time_interval(e)], 0 * model[:vREF])
+    reserves_term = @expression(model, [t in time_interval(e)], container = array_container(time_interval(e)), 0 * model[:vREF])
+    regulation_term = @expression(model, [t in time_interval(e)], container = array_container(time_interval(e)), 0 * model[:vREF])
 
     eRampUp = @expression(
         model,
         [t in time_interval(e)],
+        container = array_container(time_interval(e)),
         flow(e, t) - flow(e, timestepbefore(t, 1, subperiods(e))) +
         regulation_term[t] +
         reserves_term[t] - (
@@ -105,6 +108,7 @@ function add_model_constraint!(ct::RampingLimitConstraint, e::EdgeWithUC, model:
     eRampDown = @expression(
         model,
         [t in time_interval(e)],
+        container = array_container(time_interval(e)),
         flow(e, timestepbefore(t, 1, subperiods(e))) - flow(e, t) - regulation_term[t] +
         reserves_term[timestepbefore(t, 1, subperiods(e))] - (
             ramp_down_fraction(e) * capacity_size(e) * (ucommit(e, t) - ustart(e, t)) -
