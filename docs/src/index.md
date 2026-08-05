@@ -40,18 +40,10 @@ The documentation contains five main sections:
 ## Recent changes
 
 <!-- BEGIN GENERATED RECENT CHANGES -->
-### 0.2.1 - 2026-07-15
-#### Changed
-
-- Updated MacroEnergySolvers.jl version to 0.2.2
-
+### 0.2.2 - 2026-08-05
 #### Fixed
 
-- Fix wacc default preventing fallback to DiscountRate
-
-#### Migration guide
-
-- **Results change:** no public API changed, but any case that omits an asset's `wacc` will now produce different results. Previously the missing `wacc` defaulted to `0.0`; it now falls back to the case's `DiscountRate`. Cases relying on the old default will see different annualized investment costs after upgrading. To keep the old behavior, set `wacc` explicitly to `0.0` for the affected asset(s).
+- Duplicate asset IDs within a system are now rejected during system generation, preventing ambiguous myopic capacity carry-over and late wide-output failures.
 
 For the full release history, see [the changelog](@ref Changelog).
 <!-- END GENERATED RECENT CHANGES -->
