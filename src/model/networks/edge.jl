@@ -310,7 +310,7 @@ end_vertex(e::AbstractEdge) = e.end_vertex;
 existing_capacity(e::AbstractEdge) = e.existing_capacity;
 fixed_om_cost(e::AbstractEdge) = e.fixed_om_cost;
 flow(e::AbstractEdge) = e.flow;
-flow(e::AbstractEdge, t::Int64) = flow(e)[t];
+flow(e::AbstractEdge, t::Int64) = (flow(e)::VarArrayOrDense)[t];
 has_capacity(e::AbstractEdge) = e.has_capacity;
 id(e::AbstractEdge) = e.id;
 integer_decisions(e::AbstractEdge) = e.integer_decisions;
@@ -496,12 +496,13 @@ function compute_fixed_costs!(e::AbstractEdge, model::Model, cost_type::Symbol=:
 end
 
 function add_operation_model_varcosts!(e::EdgeWithoutUC, model::Model)
-    for t in time_interval(e)
-        w = current_subperiod(e,t)
-        vom_cost = variable_om_cost(e)
-        if vom_cost > 0
+    vom_cost = variable_om_cost(e)
+    if vom_cost > 0
+        eVariableCost = model[:eVariableCost]::AffExpr
+        for t in time_interval(e)
+            w = current_subperiod(e,t)
             add_to_expression!(
-                model[:eVariableCost],
+                eVariableCost,
                 subperiod_weight(e, w) * vom_cost,
                 flow(e, t),
             )
@@ -513,6 +514,7 @@ function operation_model!(e::UnidirectionalEdge, model::Model)
     e.flow = @variable(
         model,
         [t in time_interval(e)],
+        container = array_container(time_interval(e)),
         lower_bound = 0.0,
         base_name = "vFLOW_$(id(e))_period$(period_index(e))"
     )
@@ -522,7 +524,7 @@ function operation_model!(e::UnidirectionalEdge, model::Model)
 end
 
 function operation_model!(e::BidirectionalEdge, model::Model)
-    e.flow = @variable(model, [t in time_interval(e)], base_name = "vFLOW_$(id(e))_period$(period_index(e))")
+    e.flow = @variable(model, [t in time_interval(e)], container = array_container(time_interval(e)), base_name = "vFLOW_$(id(e))_period$(period_index(e))")
     update_balances!(e, model)
     add_operation_model_varcosts!(e, model)
     return nothing
@@ -637,34 +639,38 @@ startup_cost(e::EdgeWithUC) = e.startup_cost;
 startup_fuel_consumption(e::EdgeWithUC) = e.startup_fuel_consumption;
 startup_fuel_balance_id(e::EdgeWithUC) = e.startup_fuel_balance_id;
 ucommit(e::EdgeWithUC) = e.ucommit;
-ucommit(e::EdgeWithUC, t::Int64) = ucommit(e)[t];
+ucommit(e::EdgeWithUC, t::Int64) = (ucommit(e)::VarArrayOrDense)[t];
 ushut(e::EdgeWithUC) = e.ushut;
-ushut(e::EdgeWithUC, t::Int64) = ushut(e)[t];
+ushut(e::EdgeWithUC, t::Int64) = (ushut(e)::VarArrayOrDense)[t];
 ustart(e::EdgeWithUC) = e.ustart;
-ustart(e::EdgeWithUC, t::Int64) = ustart(e)[t];
+ustart(e::EdgeWithUC, t::Int64) = (ustart(e)::VarArrayOrDense)[t];
 ##### End of EdgeWithUC interface #####
 
 function add_operation_model_varcosts!(e::EdgeWithUC, model::Model)
-    for t in time_interval(e)
+    vom_cost = variable_om_cost(e)
+    startup_c = startup_cost(e)
+    if vom_cost > 0 || startup_c > 0
+        eVariableCost = model[:eVariableCost]::AffExpr
+        for t in time_interval(e)
 
-        w = current_subperiod(e,t)
-        vom_cost = variable_om_cost(e)
-        if vom_cost > 0
-            add_to_expression!(
-                model[:eVariableCost],
-                subperiod_weight(e, w) * vom_cost,
-                flow(e, t),
-            )
+            w = current_subperiod(e,t)
+            if vom_cost > 0
+                add_to_expression!(
+                    eVariableCost,
+                    subperiod_weight(e, w) * vom_cost,
+                    flow(e, t),
+                )
+            end
+
+            if startup_c > 0
+                add_to_expression!(
+                    eVariableCost,
+                    subperiod_weight(e, w) * startup_c * capacity_size(e),
+                    ustart(e, t),
+                )
+            end
+
         end
-
-        if startup_cost(e) > 0
-            add_to_expression!(
-                model[:eVariableCost],
-                subperiod_weight(e, w) * startup_cost(e) * capacity_size(e),
-                ustart(e, t),
-            )
-        end
-
     end
 end
 
@@ -679,6 +685,7 @@ function operation_model!(e::EdgeWithUC, model::Model)
     e.flow = @variable(
         model,
         [t in time_interval(e)],
+        container = array_container(time_interval(e)),
         lower_bound = 0.0,
         base_name = "vFLOW_$(id(e))_period$(period_index(e))"
     )
@@ -686,6 +693,7 @@ function operation_model!(e::EdgeWithUC, model::Model)
     e.ucommit = @variable(
         model,
         [t in time_interval(e)],
+        container = array_container(time_interval(e)),
         lower_bound = 0.0,
         base_name = "vCOMMIT_$(id(e))_period$(period_index(e))"
     )
@@ -693,6 +701,7 @@ function operation_model!(e::EdgeWithUC, model::Model)
     e.ustart = @variable(
         model,
         [t in time_interval(e)],
+        container = array_container(time_interval(e)),
         lower_bound = 0.0,
         base_name = "vSTART_$(id(e))_period$(period_index(e))"
     )
@@ -700,6 +709,7 @@ function operation_model!(e::EdgeWithUC, model::Model)
     e.ushut = @variable(
         model,
         [t in time_interval(e)],
+        container = array_container(time_interval(e)),
         lower_bound = 0.0,
         base_name = "vSHUT_$(id(e))_period$(period_index(e))"
     )
@@ -814,7 +824,7 @@ function update_startup_fuel_balance!(e::EdgeWithUC)
 
     if haskey(v.balance_data, i) && startup_fuel_consumption(e) > 0
         balance_coeff = -1 * startup_fuel_consumption(e) * capacity_size(e)
-        balance_expr = get_balance(v,i)
+        balance_expr = (get_balance(v,i)::AffExprArrayOrDense)
         for t in time_interval(e)
             add_to_expression!(balance_expr[t], balance_coeff, ustart(e, t))
         end
@@ -824,8 +834,7 @@ function update_startup_fuel_balance!(e::EdgeWithUC)
 
 end
 
-function add_flow_to_vertex_balances!(e::AbstractEdge, v::AbstractVertex, effective_flow, outgoing::Bool)
-    # effective_flow is <: AbstractVector{AffExpr} or AbstractVector{VariableRef}
+function add_flow_to_vertex_balances!(e::AbstractEdge, v::AbstractVertex, effective_flow::Union{AffExprArrayOrDense,VarArrayOrDense}, outgoing::Bool)
     if outgoing
         flow_dir = -1.0
     else
@@ -834,7 +843,7 @@ function add_flow_to_vertex_balances!(e::AbstractEdge, v::AbstractVertex, effect
     for i in keys(v.balance_data)
         data = balance_data(v, i)
         if isempty(data.terms) && data.constant == 0.0
-            balance_expr = get_balance(v, i)
+            balance_expr = (get_balance(v, i)::AffExprArrayOrDense)
             for t in time_interval(e)
                 add_to_expression!(balance_expr[t], flow_dir, effective_flow[t])
             end
@@ -857,7 +866,7 @@ function add_flow_to_vertex_balances!(e::AbstractEdge, v::AbstractVertex, effect
             continue
         end
 
-        balance_expr = get_balance(v, i)
+        balance_expr = (get_balance(v, i)::AffExprArrayOrDense)
         if !has_time_varying_coeff
             balance_coeff = flow_dir * scalar_coeff
             if balance_coeff == 0.0
@@ -889,44 +898,44 @@ function update_balance_start!(e::AbstractEdge, model::Model)
     # This implicitly works for UnidirectionalEdge and EdgeWithUC
     # BidirectionalEdge is handled in a separate method
     v = start_vertex(e)
-    effective_flow = @expression(model, [t in time_interval(e)], flow(e, t))
+    effective_flow = @expression(model, [t in time_interval(e)], container = array_container(time_interval(e)), flow(e, t))
     add_flow_to_vertex_balances!(e, v, effective_flow, true)
 end
 
 function update_balance_start!(e::BidirectionalEdge, model::Model)
     v = start_vertex(e)
     if lossy_edge(e)
-        flow_pos = @variable(model, [t in time_interval(e)], lower_bound = 0.0, base_name = "vFLOWPOS_$(id(e))_period$(period_index(e))")
-        flow_neg = @variable(model, [t in time_interval(e)], lower_bound = 0.0, base_name = "vFLOWNEG_$(id(e))_period$(period_index(e))")
+        flow_pos = @variable(model, [t in time_interval(e)], container = array_container(time_interval(e)), lower_bound = 0.0, base_name = "vFLOWPOS_$(id(e))_period$(period_index(e))")
+        flow_neg = @variable(model, [t in time_interval(e)], container = array_container(time_interval(e)), lower_bound = 0.0, base_name = "vFLOWNEG_$(id(e))_period$(period_index(e))")
         @constraint(model, [t in time_interval(e)], flow_pos[t] - flow_neg[t] == flow(e, t))
         if has_capacity(e) && any(isa.(e.constraints, CapacityConstraint))
             @constraint(model, [t in time_interval(e)], flow_pos[t] + flow_neg[t] <= availability(e, t) * capacity(e))
         end
-        effective_flow = @expression(model, [t in time_interval(e)], flow_pos[t] - (1 - loss_fraction(e,t)) * flow_neg[t])
+        effective_flow = @expression(model, [t in time_interval(e)], container = array_container(time_interval(e)), flow_pos[t] - (1 - loss_fraction(e,t)) * flow_neg[t])
     else
-        effective_flow = @expression(model, [t in time_interval(e)], flow(e, t))
+        effective_flow = @expression(model, [t in time_interval(e)], container = array_container(time_interval(e)), flow(e, t))
     end
     add_flow_to_vertex_balances!(e, v, effective_flow, true)
 end
 
 function update_balance_end!(e::AbstractEdge, model::Model)
     v = end_vertex(e)
-    effective_flow = @expression(model, [t in time_interval(e)], (1-loss_fraction(e,t)) * flow(e, t))
+    effective_flow = @expression(model, [t in time_interval(e)], container = array_container(time_interval(e)), (1-loss_fraction(e,t)) * flow(e, t))
     add_flow_to_vertex_balances!(e, v, effective_flow, false)
 end
 
 function update_balance_end!(e::BidirectionalEdge, model::Model)
     v = end_vertex(e)
     if lossy_edge(e)
-        flow_pos = @variable(model, [t in time_interval(e)], lower_bound = 0.0, base_name = "vFLOWPOS_$(id(e))_period$(period_index(e))")
-        flow_neg = @variable(model, [t in time_interval(e)], lower_bound = 0.0, base_name = "vFLOWNEG_$(id(e))_period$(period_index(e))")
+        flow_pos = @variable(model, [t in time_interval(e)], container = array_container(time_interval(e)), lower_bound = 0.0, base_name = "vFLOWPOS_$(id(e))_period$(period_index(e))")
+        flow_neg = @variable(model, [t in time_interval(e)], container = array_container(time_interval(e)), lower_bound = 0.0, base_name = "vFLOWNEG_$(id(e))_period$(period_index(e))")
         @constraint(model, [t in time_interval(e)], flow_pos[t] - flow_neg[t] == flow(e, t))
         if has_capacity(e) && any(isa.(e.constraints, CapacityConstraint))
             @constraint(model, [t in time_interval(e)], flow_pos[t] + flow_neg[t] <= availability(e, t) * capacity(e))
         end        
-        effective_flow = @expression(model, [t in time_interval(e)], (1 - loss_fraction(e,t)) * flow_pos[t] - flow_neg[t])
+        effective_flow = @expression(model, [t in time_interval(e)], container = array_container(time_interval(e)), (1 - loss_fraction(e,t)) * flow_pos[t] - flow_neg[t])
     else
-        effective_flow = @expression(model, [t in time_interval(e)], flow(e, t))
+        effective_flow = @expression(model, [t in time_interval(e)], container = array_container(time_interval(e)), flow(e, t))
     end
     add_flow_to_vertex_balances!(e, v, effective_flow, false)
 end
