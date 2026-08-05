@@ -14,6 +14,11 @@ MacroEnergy.all_constraints
 MacroEnergy.all_constraints_types
 ```
 
+## `array_container`
+```@docs
+MacroEnergy.array_container
+```
+
 ## `asset_ids`
 ```@docs
 MacroEnergy.asset_ids
@@ -37,6 +42,11 @@ MacroEnergy.build_period_planning!
 ## `create_output_path`
 ```@docs
 MacroEnergy.create_output_path
+```
+
+## `_dense_axis_array_type`
+```@docs
+MacroEnergy._dense_axis_array_type
 ```
 
 ## `ensure_duals_available!`

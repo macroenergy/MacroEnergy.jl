@@ -38,7 +38,7 @@ total_hours_modeled(y::Union{AbstractVertex,AbstractEdge}) = y.timedata.total_ho
 
 
 @doc raw"""
-    timestepbefore(t::Int, h::Int,subperiods::Vector{StepRange{Int64,Int64})
+    timestepbefore(t::Int, h::Int,subperiods::Vector{StepRange{Int64,Int64}})
 
 Determines the time step that is `h` steps before index `t` in subperiod `p` with circular indexing.
 
