@@ -31,6 +31,7 @@ and this project follows Julia package versioning through `Project.toml` release
 ### Fixed
 
 - Fix wacc default preventing fallback to DiscountRate. Omitted `wacc` was silently treated as `0.0` instead of falling back to the case-level `DiscountRate`.
+- Duplicate asset IDs within a system are now rejected during system generation, preventing ambiguous myopic capacity carry-over and late wide-output failures.
 
 ### Documentation
 
