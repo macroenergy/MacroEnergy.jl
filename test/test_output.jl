@@ -6,6 +6,29 @@ using MacroEnergy
 using CSV
 using DataFrames
 using OrderedCollections: OrderedDict
+using JuMP
+using HiGHS
+
+include("utilities.jl")
+
+"""
+    fixed_vars(model::Model, values::AbstractArray{Float64})
+
+Build a JuMP variable in `model` for each entry of `values` (preserving its
+shape), fixed to that exact value. Meant for tests that need a real
+`VariableRef` (so `value(...)` and strictly-typed accessors work) but want
+the ergonomics of a plain numeric literal, e.g.
+`flow = fixed_vars(model, [1.0, 2.0, 3.0])` instead of `flow = [1.0, 2.0, 3.0]`.
+"""
+function fixed_vars(model::Model, values::AbstractArray{Float64})
+    vars = similar(values, VariableRef)
+    for i in eachindex(values)
+        vars[i] = @variable(model)
+        fix(vars[i], values[i]; force = true)
+    end
+    return vars
+end
+
 import MacroEnergy:
     TimeData,
     compute_annualized_costs!,
@@ -77,6 +100,8 @@ import MacroEnergy:
 
 
 function test_writing_output()
+    model = Model(HiGHS.Optimizer)
+    set_silent(model)
 
     # Mock objects to use in tests
     node1 = Node{Electricity}(;
@@ -94,8 +119,8 @@ function test_writing_output()
             :seg2 => MacroEnergy.SupplySegment(price = [110.0], min = [0.0], max = [110.0]),
             :seg3 => MacroEnergy.SupplySegment(price = [120.0], min = [0.0], max = [120.0]),
         ),
-        supply_flow = [12.0 15.0 18.0; 0.0 0.0 0.0; 0.0 0.0 0.0],
-        non_served_demand = [1.0 2.0 3.0; 4.0 5.0 6.0; 7.0 8.0 9.0],
+        supply_flow = fixed_vars(model, [12.0 15.0 18.0; 0.0 0.0 0.0; 0.0 0.0 0.0]),
+        non_served_demand = fixed_vars(model, [1.0 2.0 3.0; 4.0 5.0 6.0; 7.0 8.0 9.0]),
         max_nsd=[10.0, 11.0, 12.0],
         price_nsd = [100.0, 110.0, 120.0],
     )
@@ -121,7 +146,7 @@ function test_writing_output()
             subperiod_weights=Dict(1 => 0.3, 2 => 0.5, 3 => 0.2)
         ),
         new_capacity=100.0,
-        storage_level=[1.0, 2.0, 3.0]
+        storage_level=fixed_vars(model, [1.0, 2.0, 3.0])
     )
 
     transformation = Transformation(;
@@ -147,7 +172,7 @@ function test_writing_output()
             subperiod_weights=Dict(1 => 0.3, 2 => 0.5, 3 => 0.2)
         ),
         capacity=100.0,
-        flow=[1.0, 2.0, 3.0]
+        flow=fixed_vars(model, [1.0, 2.0, 3.0])
     )
 
     edge_to_storage = UnidirectionalEdge{Electricity}(;
@@ -162,7 +187,7 @@ function test_writing_output()
             subperiod_weights=Dict(1 => 0.3, 2 => 0.5, 3 => 0.2)
         ),
         capacity=101.0,
-        flow=[4.0, 5.0, 6.0]
+        flow=fixed_vars(model, [4.0, 5.0, 6.0])
     )
 
     edge_to_transformation = UnidirectionalEdge{Electricity}(;
@@ -178,7 +203,7 @@ function test_writing_output()
             subperiod_weights=Dict(1 => 0.3, 2 => 0.5, 3 => 0.2)
         ),
         capacity=102.0,
-        flow=[7.0, 8.0, 9.0]
+        flow=fixed_vars(model, [7.0, 8.0, 9.0])
     )
 
     edge_from_storage = UnidirectionalEdge{Electricity}(;
@@ -193,7 +218,7 @@ function test_writing_output()
             subperiod_weights=Dict(1 => 0.3, 2 => 0.5, 3 => 0.2)
         ),
         capacity=103.0,
-        flow=[10.0, 11.0, 12.0]
+        flow=fixed_vars(model, [10.0, 11.0, 12.0])
     )
 
     edge_from_transformation = UnidirectionalEdge{Electricity}(;
@@ -208,7 +233,7 @@ function test_writing_output()
             subperiod_weights=Dict(1 => 0.3, 2 => 0.5, 3 => 0.2)
         ),
         capacity=104.0,
-        flow=[13.0, 14.0, 15.0]
+        flow=fixed_vars(model, [13.0, 14.0, 15.0])
     )
 
     edge_storage_transformation = UnidirectionalEdge{Electricity}(;
@@ -223,7 +248,7 @@ function test_writing_output()
             subperiod_weights=Dict(1 => 0.3, 2 => 0.5, 3 => 0.2)
         ),
         capacity=105.0,
-        flow=[16.0, 17.0, 18.0]
+        flow=fixed_vars(model, [16.0, 17.0, 18.0])
     )
 
     edge_from_transformation1 = UnidirectionalEdge{NaturalGas}(;
@@ -238,7 +263,7 @@ function test_writing_output()
             subperiod_weights=Dict(1 => 0.3, 2 => 0.5, 3 => 0.2)
         ),
         capacity=102.0,
-        flow=[7.0, 8.0, 9.0]
+        flow=fixed_vars(model, [7.0, 8.0, 9.0])
     )
 
     edge_from_transformation2 = UnidirectionalEdge{CO2}(;
@@ -253,7 +278,7 @@ function test_writing_output()
             subperiod_weights=Dict(1 => 0.3, 2 => 0.5, 3 => 0.2)
         ),
         capacity=102.0,
-        flow=[7.0, 8.0, 9.0]
+        flow=fixed_vars(model, [7.0, 8.0, 9.0])
     )
 
     asset1 = ThermalPower(:asset1, transformation, edge_to_transformation, edge_from_transformation1, edge_from_transformation2)
@@ -277,6 +302,8 @@ function test_writing_output()
     add!(system, node2)
     add!(system, asset1)
     add!(system, asset2)
+
+    optimize!(model)
 
     @testset "Helper Functions Tests" begin
         # Test get_commodity_name for a vertex
@@ -485,6 +512,8 @@ function test_writing_output()
     end
 
     @testset "Non-Served Demand Output Functions Tests" begin
+        model = Model(HiGHS.Optimizer)
+        set_silent(model)
         # Create nodes with non-served demand variables
         node_with_nsd = Node{Electricity}(;
             id=:node_nsd,
@@ -496,9 +525,10 @@ function test_writing_output()
                 subperiod_weights=Dict(1 => 0.3, 2 => 0.5, 3 => 0.2)
             ),
             max_nsd=[0.1, 0.2],  # 2 segments
-            non_served_demand=[1.0 2.0 3.0; 4.0 5.0 6.0]  # 2 segments × 3 time steps
+            non_served_demand=fixed_vars(model, [1.0 2.0 3.0; 4.0 5.0 6.0])  # 2 segments × 3 time steps
         )
-        
+        optimize!(model)
+
         # Test get_optimal_non_served_demand for single node
         result = get_optimal_non_served_demand(node_with_nsd, 1.0)
         @test result isa DataFrame
@@ -541,9 +571,10 @@ function test_writing_output()
                 subperiod_weights=Dict(1 => 0.3, 2 => 0.5, 3 => 0.2)
             ),
             max_nsd=[0.1],  # 1 segment
-            non_served_demand=reshape([7.0, 8.0, 9.0], 1, 3)  # 1 segment × 3 time steps
+            non_served_demand=fixed_vars(model, reshape([7.0, 8.0, 9.0], 1, 3))  # 1 segment × 3 time steps
         )
-        
+        optimize!(model)
+
         result_multi = get_optimal_non_served_demand([node_with_nsd, node_with_nsd2], 1.0)
         @test size(result_multi, 1) == 9  # 6 from node1 + 3 from node2
         
@@ -563,6 +594,8 @@ function test_writing_output()
     end
 
     @testset "Storage Level Output Functions Tests" begin
+        model = Model(HiGHS.Optimizer)
+        set_silent(model)
         # Create storage with storage_level values
         storage_for_test = Storage{Electricity}(;
             id=:storage_test,
@@ -573,9 +606,10 @@ function test_writing_output()
                 subperiod_indices=[1, 2, 3],
                 subperiod_weights=Dict(1 => 0.3, 2 => 0.5, 3 => 0.2)
             ),
-            storage_level=[10.0, 20.0, 30.0]
+            storage_level=fixed_vars(model, [10.0, 20.0, 30.0])
         )
-        
+        optimize!(model)
+
         # Test get_optimal_storage_level for single storage (without asset map)
         result = get_optimal_storage_level(storage_for_test, 1.0)
         @test result isa DataFrame
@@ -613,9 +647,10 @@ function test_writing_output()
                 subperiod_indices=[1, 2, 3],
                 subperiod_weights=Dict(1 => 0.3, 2 => 0.5, 3 => 0.2)
             ),
-            storage_level=[40.0, 50.0, 60.0]
+            storage_level=fixed_vars(model, [40.0, 50.0, 60.0])
         )
-        
+        optimize!(model)
+
         result_multi = get_optimal_storage_level([storage_for_test, storage_for_test2], 1.0)
         @test size(result_multi, 1) == 6  # 3 from storage1 + 3 from storage2
         @test result_multi[4, :component_id] == :storage_test2
@@ -656,6 +691,8 @@ function test_writing_output()
     end
 
     @testset "Curtailment Output Functions Tests" begin
+        model = Model(HiGHS.Optimizer)
+        set_silent(model)
         # Create VRE asset with edge that has capacity, flow, and availability
         vre_timedata = TimeData{Electricity}(;
             time_interval=1:3,
@@ -675,9 +712,10 @@ function test_writing_output()
             timedata=vre_timedata,
             has_capacity=true,
             capacity=100.0,
-            flow=[1.0, 2.0, 3.0],
+            flow=fixed_vars(model, [1.0, 2.0, 3.0]),
             availability=[0.5, 0.6, 0.7]
         )
+        optimize!(model)
         vre_asset = VRE(:vre_asset, vre_transform, vre_edge)
 
         # System with VRE for curtailment tests
