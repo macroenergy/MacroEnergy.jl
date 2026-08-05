@@ -7,6 +7,12 @@ and this project follows Julia package versioning through `Project.toml` release
 
 ## [Unreleased]
 
+## [0.2.2] - 2026-08-05
+
+### Fixed
+
+- Duplicate asset IDs within a system are now rejected during system generation, preventing ambiguous myopic capacity carry-over and late wide-output failures.
+
 ## [0.2.1] - 2026-07-15
 
 ### Changed
@@ -15,7 +21,7 @@ and this project follows Julia package versioning through `Project.toml` release
 
 ### Fixed
 
-- Fix wacc default preventing fallback to DiscountRate
+- Fix wacc default preventing fallback to DiscountRate. Omitted `wacc` was silently treated as `0.0` instead of falling back to the case-level `DiscountRate`.
 
 ### Migration guide
 
