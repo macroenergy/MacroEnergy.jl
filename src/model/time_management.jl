@@ -2,10 +2,12 @@ Base.@kwdef mutable struct TimeData{T} <: AbstractTimeData{T}
     time_interval::StepRange{Int64,Int64}
     hours_per_timestep::Int64 = 1
     period_index::Int64 = 1
+    year::Union{Int64,Missing} = missing
     subperiods::Vector{StepRange{Int64,Int64}} = StepRange{Int64,Int64}[]
     subperiod_indices::Vector{Int64} = Vector{Int64}()
     subperiod_weights::Dict{Int64,Float64} = Dict{Int64,Float64}()
     subperiod_map::Dict{Int64,Int64} = Dict{Int64,Int64}()
+    total_hours_modeled::Int64 = 8760
 end
 
 
@@ -25,6 +27,7 @@ time_interval(y::Union{AbstractVertex,AbstractEdge}) = y.timedata.time_interval;
 modeled_subperiods(y::Union{AbstractVertex,AbstractEdge}) = sort(collect(keys(y.timedata.subperiod_map)))
 subperiod_map(y::Union{AbstractVertex,AbstractEdge}) = y.timedata.subperiod_map;
 subperiod_map(y::Union{AbstractVertex,AbstractEdge}, n::Int64) = subperiod_map(y)[n];
+total_hours_modeled(y::Union{AbstractVertex,AbstractEdge}) = y.timedata.total_hours_modeled;
 ######### TimeData interface #########
 
 

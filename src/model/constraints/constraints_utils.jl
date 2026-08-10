@@ -19,18 +19,22 @@ function add_constraints_by_type!(system::System, model::Model, constraint_type:
             add_constraints_by_type!(getfield(a, t), model, constraint_type)
         end
     end
+
+    return nothing
 end
 
 function add_constraints_by_type!(
     y::Union{AbstractEdge,AbstractVertex},
     model::Model,
-    constraint_type::DataType,
-)
+    ::Type{C},
+) where {C<:AbstractTypeConstraint}
     for c in all_constraints(y)
-        if isa(c, constraint_type)
+        if c isa C
             add_model_constraint!(c, y, model)
         end
     end
+
+    return nothing
 end
 
 function add_constraints_by_type!(
@@ -48,6 +52,7 @@ function register_constraint_types!(m::Module = MacroEnergy)
     for (constraint_name, constraint_type) in all_subtypes(m, :AbstractTypeConstraint)
         CONSTRAINT_TYPES[constraint_name] = constraint_type
     end
+    return nothing
 end
 
 function constraint_types(m::Module = MacroEnergy)

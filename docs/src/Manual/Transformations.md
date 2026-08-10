@@ -56,7 +56,7 @@ Moreso than other components, `Transformations` rely heavily on additional input
 
 | Field                    | Type                      | Description                           | Units    | Default |
 |--------------------------|---------------------------|---------------------------------------|----------|---------|
-| `balance_data`           | Dict{Symbol,Dict{Symbol,Float64}} | Stoichiometric equation coefficients | varies | Dict{Symbol,Dict{Symbol,Float64}}() |
+| `balance_data`           | Dict{Symbol,Any} | Balance definitions, normalized internally to `BalanceData` | varies | Dict{Symbol,Any}() |
 | `constraints`            | Vector{AbstractTypeConstraint} | Additional constraints        | -        | Vector{AbstractTypeConstraint}() |
 | `operation_expr`         | Dict                      | Operational JuMP expressions          | -        | Dict() |
 
@@ -100,7 +100,7 @@ Direct constructors using keyword arguments for all fields.
 | `id`        | Symbol                       | Unique identifier                     | Yes      |
 | `timedata`  | TimeData                     | Time-related data structure           | Yes      |
 | `location`  | Union{Missing,Symbol}        | Location where transformation is placed | No     |
-| `balance_data` | Dict{Symbol,Dict{Symbol,Float64}} | Stoichiometric equation coefficients | No |
+| `balance_data` | Dict{Symbol,Any} | Balance definitions, normalized internally to `BalanceData` | No |
 | `constraints` | Vector{AbstractTypeConstraint} | Additional constraints             | No       |
 | `operation_expr` | Dict                      | Operational JuMP expressions          | No       |
 
@@ -142,7 +142,7 @@ Methods for accessing transformation data and properties.
 |--------|-------------|-------------|
 | `id(transformation)` | Get transformation identifier | `Symbol` |
 | `balance_ids(transformation)` | Get IDs of all balance equations | `Vector{Symbol}` |
-| `balance_data(transformation, i)` | Get input data for balance equation i | `Dict{Symbol,Float64}` |
+| `balance_data(transformation, i)` | Get balance definition for balance equation `i` | `BalanceData` |
 | `get_balance(transformation, i)` | Get balance equation expression for i | `JuMP.Expression` |
 | `get_balance(transformation, i, t)` | Get balance equation expression for i at time t | `JuMP.Expression` |
 
@@ -199,9 +199,9 @@ The `Transformation` is one of the components which make up the `ThermalPower` A
 struct ThermalPower{T} <: AbstractAsset
     id::AssetId
     thermal_transform::Transformation
-    elec_edge::Union{Edge{<:Electricity},EdgeWithUC{<:Electricity}}
-    fuel_edge::Edge{<:T}
-    co2_edge::Edge{<:CO2}
+    elec_edge::Union{UnidirectionalEdge{<:Electricity},EdgeWithUC{<:Electricity}}
+    fuel_edge::UnidirectionalEdge{<:T}
+    co2_edge::UnidirectionalEdge{<:CO2}
 end
 ```
 
@@ -285,22 +285,31 @@ function make(asset_type::Type{ThermalPower}, data::AbstractDict{Symbol,Any}, sy
         co2_end_node,
     )
 
-    # Set the Transformation's stochiometric balance constraints. 
-    
-    # The first constraint sets the fuel -> electricity conversion ratio, which is the heat rate of the power plant.
+    # Set the Transformation's balance constraints.
+    #
+    # The first constraint sets the fuel -> electricity conversion ratio, which is
+    # the heat rate of the power plant.
+    #
+    # The second constraint sets the fuel -> CO2 conversion ratio, which is the
+    # emission factor of the power plant.
+    @add_balance(
+        thermal_transform,
+        :energy,
+        flow(fuel_edge) == get(transform_data, :fuel_consumption, 1.0) * flow(elec_edge),
+    )
+    @add_balance(
+        thermal_transform,
+        :emissions,
+        get(transform_data, :emission_rate, 0.0) * flow(fuel_edge) == flow(co2_edge),
+    )
 
-    # The second constraint sets the fuel -> CO2 conversion ratio, which is the emission factor of the power plant.
-    thermal_transform.balance_data = Dict(
-        :energy => Dict(
-            elec_edge.id => get(transform_data, :fuel_consumption, 1.0),
-            fuel_edge.id => 1.0,
-            co2_edge.id => 0.0,
-        ),
-        :emissions => Dict(
-            fuel_edge.id => get(transform_data, :emission_rate, 0.0),
-            co2_edge.id => 1.0,
-            elec_edge.id => 0.0,
-        ),
+    # For recipe-style conversions, the stoichiometric shorthand is also available.
+    @add_stoichiometric_balance(
+        thermal_transform,
+        :conversion,
+        get(transform_data, :fuel_consumption, 1.0) * flow(fuel_edge) -->
+        flow(elec_edge) + get(transform_data, :emission_rate, 0.0) * flow(co2_edge),
+        flow(fuel_edge),
     )
 
     # Finally, we create and return the ThermalPower Asset

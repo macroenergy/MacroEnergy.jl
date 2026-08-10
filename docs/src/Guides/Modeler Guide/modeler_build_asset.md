@@ -591,46 +591,93 @@ h2_edge = Edge(
 ```
 
 #### 2.3.4 Balance Data
-This step defines the stoichiometric equations for the balance equations of the transformations and defines the efficiency in charge and discharge of the storage units.
+This step defines the relationships enforced by [`BalanceConstraint`](@ref balance_constraint_ref). In new asset code, the recommended interface is to use balance macros rather than manually constructing `balance_data` dictionaries.
 
-- **Transformations**
-The stoichiometric equations are defined in the `balance_data` dictionary of the `Transformation` instance.
+For most assets, the best workflow is:
 
-Here is an example for the `Electrolyzer` asset:
+1. Use `@add_balance` for ordinary algebraic equations and inequalities.
+2. Use `@add_to_storage_balance` when appending terms to a storage law of motion.
+3. Use `@add_stoichiometric_balance` only when the balance is naturally a recipe-style conversion.
+
+For the `Electrolyzer`, the main conversion relationship can be written as:
+
 ```julia
-electrolyzer_transform.balance_data = Dict(
-    :energy => Dict(
-        h2_edge.id => 1.0,
-        elec_edge.id => get(transform_data, :efficiency_rate, 1.0),
-    ),
-)
-```
-and the stoichiometric equation is:
- ```math
-\begin{aligned}
-\phi_{h2} &= \phi_{elec} \cdot \epsilon_{efficiency} \\
-\end{aligned}
-```
-where $\phi_{h2}$ is the flow of hydrogen, $\phi_{elec}$ is the flow of electricity, and $\epsilon_{efficiency}$ is the efficiency rate of the electrolyzer.
-
-!!! warning "Balance Data Keys"
-    You can define as many balance equations as needed. The only requirement is that the keys in the `balance_data` dictionaries (e.g. `:energy`, `:emissions`, etc.) must be unique.
-    See the [src/model/assets folder](https://github.com/macroenergy/MacroEnergy.jl/tree/main/src/model/assets) for more examples of balance data definitions.
-
-- **Storage units**
-The efficiency in charge and discharge of the storage units are defined in the `balance_data` dictionary of the `Storage` instance.
-
-Example taken from the `Battery` asset:
-```julia
-battery_storage.balance_data = Dict(
-    :storage => Dict(
-        battery_discharge.id => 1 / discharge_efficiency,
-        battery_charge.id => charge_efficiency,
-    ),
+@add_balance(
+    electrolyzer_transform,
+    :energy,
+    flow(h2_edge) == get(transform_data, :efficiency_rate, 1.0) * flow(elec_edge),
 )
 ```
 
-#### 2.3.5 Asset creation
+This enforces the relationship:
+
+```math
+\phi_{h2} = \phi_{elec} \cdot \epsilon_{efficiency}
+```
+
+where $\phi_{h2}$ is the hydrogen flow, $\phi_{elec}$ is the electricity flow, and $\epsilon_{efficiency}$ is the electrolyzer efficiency.
+
+Storage balances are usually extended with `@add_to_storage_balance`:
+
+```julia
+@add_to_storage_balance(
+    battery_storage,
+    (1 / discharge_efficiency) * flow(battery_discharge) +
+    charge_efficiency * flow(battery_charge),
+)
+```
+
+When a conversion is easiest to express as a recipe, `@add_stoichiometric_balance` provides a compact shorthand:
+
+```julia
+@add_stoichiometric_balance(
+    electrolyzer_transform,
+    :energy,
+    flow(elec_edge) --> get(transform_data, :efficiency_rate, 1.0) * flow(h2_edge),
+    flow(h2_edge),
+)
+```
+
+!!! tip "Write ordinary algebra"
+    For `@add_balance`, write the equation you mean algebraically. MacroEnergy handles edge-direction signs internally, so incoming and outgoing `flow(...)` terms do not need manually flipped coefficients.
+
+!!! note "Balance terms must be linear"
+    Write each variable as a coefficient multiplied by `flow(...)`, for example `(1 / efficiency) * flow(edge)`. Expressions such as `c / flow(edge)` are nonlinear because they divide by a decision variable.
+
+!!! warning "Stoichiometric coefficients must share a basis"
+    In one `@add_stoichiometric_balance` expression, all coefficients must be written on a common recipe basis. If some inputs are naturally specified in different units, convert them before writing the balance.
+
+!!! note "Supported Terms"
+    Balance macros support `flow(...)` terms together with ordinary `+`, `-`, and constants. Use other constraints, rather than balances, for capacity, storage-level, or commitment limits.
+
+!!! note "Coefficient Profiles"
+    Coefficients may be a scalar, a length-1 vector, or a vector with one coefficient per time step of the host vertex.
+
+!!! warning "Balance IDs"
+    You can define as many balances as needed. The only requirement is that the balance IDs (for example `:energy`, `:emissions`, `:storage`) are unique for each vertex.
+
+For a fuller discussion of balance semantics, stoichiometric bases, and debugging tools such as `@inspect_stoichiometric_balance`, see the [Balances manual page](../../Manual/Balances.md).
+
+#### 2.3.5 Single-Asset Test
+Every new asset should include a small solve-based regression test in `test/asset_tests`.
+
+These tests should use a tiny system, typically with one asset, the required source and sink nodes, and three time steps. Use simple, hand-checkable numbers so that the expected flows, storage levels, emissions, and objective value can be computed analytically.
+
+When possible:
+
+1. Test the asset constructor's default balance implementation.
+2. Compare it to a manual `@add_balance` rewrite of the same relationships.
+3. Assert the expected primal solution explicitly rather than only checking that the model solves.
+
+This testing pattern is especially important for:
+
+- stoichiometric assets, where coefficient-basis mistakes can be subtle
+- storage assets, where charge and discharge efficiencies affect the law of motion
+- assets with multiple commodities or emissions flows
+
+For examples, see the existing files in `test/asset_tests`, such as the `Electrolyzer`, `Battery`, `ThermalPower`, and `SyntheticAmmonia` tests.
+
+#### 2.3.6 Asset creation
 This is the final step of the `make` function. It integrates all components to construct and return the final asset. 
 
 ```julia
@@ -807,13 +854,12 @@ function make(asset_type::Type{MyNewAsset}, data::AbstractDict{Symbol,Any}, syst
         output_end_node,
     )
     
-    # Set up stoichiometric equations
+    # Set up the conversion balance
     efficiency = get(transform_data, :efficiency, 1.0)
-    transform.balance_data = Dict(
-        :energy => Dict(
-            output_edge.id => 1.0,
-            input_edge.id => efficiency,
-        ),
+    @add_balance(
+        transform,
+        :energy,
+        flow(output_edge) == efficiency * flow(input_edge),
     )
     
     return MyNewAsset(id, transform, input_edge, output_edge)

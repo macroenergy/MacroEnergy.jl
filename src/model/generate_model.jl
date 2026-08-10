@@ -1,106 +1,260 @@
+function generate_model(case::Case, opt::Optimizer, ::Monolithic)
+    @info("*** Generating monolithic model ***")
 
-function generate_model(case::Case)
+    if case.systems[1].settings.EnableJuMPDirectModel
+        model = create_direct_model_with_optimizer(opt)
+    else
+        model = Model()
+        set_optimizer(model, opt)
+    end
 
-    periods = get_periods(case)
-    settings = get_settings(case)
-    num_periods = number_of_periods(case)
+    set_string_names_on_creation(model, case.systems[1].settings.EnableJuMPStringNames)
 
     @info("Generating model")
-
-    start_time = time();
-
-    model = Model()
+    start_time = time()
 
     @variable(model, vREF == 1)
 
-    fixed_cost = Dict()
-    om_fixed_cost = Dict()
-    investment_cost = Dict()
-    variable_cost = Dict()
+    periods = get_periods(case)
+    settings = get_settings(case)
+    fixed_cost, investment_cost, om_fixed_cost, variable_cost = Dict(), Dict(), Dict(), Dict()
 
-    for (period_idx,system) in enumerate(periods)
-
-        @info(" -- Period $period_idx")
-
-        model[:eFixedCost] = AffExpr(0.0)
-        model[:eInvestmentFixedCost] = AffExpr(0.0)
-        model[:eOMFixedCost] = AffExpr(0.0)
-        model[:eVariableCost] = AffExpr(0.0)
-
-        @info(" -- Adding linking variables")
-        add_linking_variables!(system, model) 
-
-        @info(" -- Defining available capacity")
-        define_available_capacity!(system, model)
-
-        @info(" -- Generating planning model")
-        planning_model!(system, model)
-        
-        if system.settings.Retrofitting
-            @info(" -- Adding retrofit constraints")
-            add_retrofit_constraints!(system, period_idx, model)
-        end
-
-        @info(" -- Including age-based retirements")
-        add_age_based_retirements!.(system.assets, model)
-
-        if period_idx < num_periods
-            @info(" -- Available capacity in period $(period_idx) is being carried over to period $(period_idx+1)")
-            carry_over_capacities!(periods[period_idx+1], system)
-        end
-
-        @info(" -- Generating operational model")
-        operation_model!(system, model)
-
-        model[:eFixedCost] = model[:eInvestmentFixedCost] + model[:eOMFixedCost]
-        fixed_cost[period_idx] = model[:eFixedCost];
-        investment_cost[period_idx] = model[:eInvestmentFixedCost];
-        om_fixed_cost[period_idx] = model[:eOMFixedCost];
-	    unregister(model,:eFixedCost)
-        unregister(model,:eInvestmentFixedCost)
-        unregister(model,:eOMFixedCost)
-
-        variable_cost[period_idx] = model[:eVariableCost];
-        unregister(model,:eVariableCost)
-
+    for (period_idx, system) in enumerate(periods)
+        next = period_idx < length(periods) ? periods[period_idx+1] : nothing
+        add_period_to_model!(model, system, next, fixed_cost, investment_cost, om_fixed_cost, variable_cost)
     end
 
-    #The settings are the same in all case, we have a single settings file that gets copied into each system struct
+    finalize_model_objective!(model, settings, fixed_cost, investment_cost, om_fixed_cost, variable_cost)
+
+    if case.systems[1].settings.ConstraintScaling
+        @info "Scaling constraints and RHS"
+        scale_constraints!(model)
+    end
+    
+    @info(" -- Model generation complete, it took $(time() - start_time) seconds")
+    
+    return model
+end
+
+function generate_model(system::System, opt::Optimizer, settings::NamedTuple, ::Monolithic)
+    @info("*** Generating monolithic model for period $(period_index(system)) ***")
+
+    if system.settings.EnableJuMPDirectModel
+        model = create_direct_model_with_optimizer(opt)
+    else
+        model = Model()
+        set_optimizer(model, opt)
+    end
+
+    set_string_names_on_creation(model, system.settings.EnableJuMPStringNames)
+
+    @variable(model, vREF == 1)
+
+    fixed_cost, investment_cost, om_fixed_cost, variable_cost = Dict(), Dict(), Dict(), Dict()
+
+    add_period_to_model!(model, system, nothing, fixed_cost, investment_cost, om_fixed_cost, variable_cost)
+
+    finalize_model_objective!(model, settings, fixed_cost, investment_cost, om_fixed_cost, variable_cost)
+
+    if system.settings.ConstraintScaling
+        @info "Scaling constraints and RHS"
+        scale_constraints!(model)
+    end
+
+    return model
+
+end
+
+function generate_model(case::Case, opt::Dict{Symbol,Dict{Symbol,Any}}, ::Benders)
+    @info("*** Generating Benders decomposition model ***")
+    
+    planning_model = Model()
+    planning_optimizer = opt[:planning]
+    optimizer = create_optimizer(planning_optimizer[:solver], opt_env(planning_optimizer[:solver]), planning_optimizer[:attributes])
+    set_optimizer(planning_model, optimizer)
+    set_silent(planning_model)
+    
+    @info("Generating planning problem")
+    start_time = time()
+    
+    @variable(planning_model, vREF == 1)
+    
+    periods = get_periods(case)
+    settings = get_settings(case)
+    fixed_cost, investment_cost, om_fixed_cost = Dict(), Dict(), Dict()
+
+    periods_decomp = generate_decomposed_system(periods)
+    
+    for (i, system) in enumerate(periods)
+        next = i < length(periods) ? periods[i+1] : nothing
+        add_period_to_planning_model!(planning_model, system, next, fixed_cost, investment_cost, om_fixed_cost)
+    end
+    
+    finalize_planning_model_objective!(planning_model, periods, settings, fixed_cost, investment_cost, om_fixed_cost)
+    
+    @info(" -- Planning problem generation complete, it took $(time() - start_time) seconds")
+    
+    if case.systems[1].settings.ConstraintScaling
+        @info "Scaling constraints and RHS"
+        scale_constraints!(planning_model)
+    end
+    
+    bd_setup = settings.BendersSettings
+    subproblems, linking_variables_sub = generate_subproblems(
+        periods_decomp, opt[:subproblems], settings,
+        bd_setup[:Distributed], bd_setup[:IncludeSubproblemSlacksAutomatically]
+    )
+
+    return BendersModel(bd_setup, case, planning_model, subproblems, linking_variables_sub)
+end
+
+function generate_model(system::System, opt::Dict{Symbol,Dict{Symbol,Any}}, settings::NamedTuple, ::Benders)
+    @info("*** Generating Benders decomposition model ***")
+    
+    model = Model()
+    planning_optimizer = opt[:planning]
+    optimizer = create_optimizer(planning_optimizer[:solver], opt_env(planning_optimizer[:solver]), planning_optimizer[:attributes])
+    set_optimizer(model, optimizer)
+    set_silent(model)
+    
+    @info("Generating planning problem for period $(period_index(system))")
+    
+    @variable(model, vREF == 1)
+    
+    fixed_cost, investment_cost, om_fixed_cost = Dict(), Dict(), Dict()
+    
+    period_decomp = generate_decomposed_system([system])
+    
+    add_period_to_planning_model!(model, system, nothing, fixed_cost, investment_cost, om_fixed_cost)
+    
+    finalize_planning_model_objective!(model, [system], settings, fixed_cost, investment_cost, om_fixed_cost)
+    
+    if system.settings.ConstraintScaling
+        @info "Scaling constraints and RHS"
+        scale_constraints!(model)
+    end
+    
+    bd_setup = settings.BendersSettings
+    subproblems, linking_variables_sub = generate_subproblems(
+        period_decomp, opt[:subproblems], settings,
+        bd_setup[:Distributed], bd_setup[:IncludeSubproblemSlacksAutomatically]
+    )
+
+    return BendersModel(bd_setup, system, model, subproblems, linking_variables_sub)
+end
+
+function add_period_to_model!(
+    model::Model,
+    system::System,
+    next_system::Union{System, Nothing},
+    fixed_cost::Dict,
+    investment_cost::Dict,
+    om_fixed_cost::Dict,
+    variable_cost::Dict
+)
+    model[:eVariableCost] = AffExpr(0.0)
+
+    build_period_planning!(model, system, next_system)
+
+    @info(" -- Generating operational model")
+    operation_model!(system, model)
+
+    store_and_unregister_costs!(model, system, fixed_cost, investment_cost, om_fixed_cost)
+
+    variable_cost[period_index(system)] = model[:eVariableCost]
+    unregister(model, :eVariableCost)
+end
+
+"""Set up the shared planning components for a single period: cost expressions,
+linking variables, available capacity, planning model, retrofitting, age-based
+retirements, and capacity carry-over."""
+function build_period_planning!(
+    model::Model,
+    system::System,
+    next_system::Union{System, Nothing}
+)
+    @info(" -- Period $(period_index(system))")
+
+    model[:eFixedCost] = AffExpr(0.0)
+    model[:eInvestmentFixedCost] = AffExpr(0.0)
+    model[:eOMFixedCost] = AffExpr(0.0)
+
+    @info(" -- Adding linking variables")
+    add_linking_variables!(system, model)
+
+    @info(" -- Defining available capacity")
+    define_available_capacity!(system, model)
+
+    @info(" -- Generating planning model")
+    planning_model!(system, model)
+
+    if system.settings.Retrofitting
+        @info(" -- Adding retrofit constraints")
+        add_retrofit_constraints!(system, model)
+    end
+
+    @info(" -- Including age-based retirements")
+    add_age_based_retirements!.(system.assets, model)
+
+    if !isnothing(next_system)
+        @info(" -- Available capacity in period $(period_index(system)) is being carried over to period $(period_index(next_system))")
+        carry_over_capacities!(next_system, system)
+    end
+end
+
+"""Store fixed cost expressions in the cost dicts and unregister them from the model."""
+function store_and_unregister_costs!(model::Model, system::System, fixed_cost::Dict, investment_cost::Dict, om_fixed_cost::Dict)
+    curr_period = period_index(system)
+    model[:eFixedCost] = model[:eInvestmentFixedCost] + model[:eOMFixedCost]
+    fixed_cost[curr_period] = model[:eFixedCost]
+    investment_cost[curr_period] = model[:eInvestmentFixedCost]
+    om_fixed_cost[curr_period] = model[:eOMFixedCost]
+    unregister(model, :eFixedCost)
+    unregister(model, :eInvestmentFixedCost)
+    unregister(model, :eOMFixedCost)
+end
+
+function finalize_model_objective!(
+    model::Model,
+    settings::NamedTuple,
+    fixed_cost::Dict,
+    investment_cost::Dict,
+    om_fixed_cost::Dict,
+    variable_cost::Dict
+)
+    period_indices = sort(collect(keys(fixed_cost)))
     period_lengths = collect(settings.PeriodLengths)
-
     discount_rate = settings.DiscountRate
+    discount_factor = present_value_factor(discount_rate, period_lengths)
 
-    cum_years = [sum(period_lengths[i] for i in 1:s-1; init=0) for s in 1:num_periods];
+    @expression(model, eFixedCostByPeriod[s in period_indices], discount_factor[s] * fixed_cost[s])
 
-    discount_factor = 1 ./ ( (1 + discount_rate) .^ cum_years)
+    @expression(model, eInvestmentFixedCostByPeriod[s in period_indices], discount_factor[s] * investment_cost[s])
 
-    @expression(model, eFixedCostByPeriod[s in 1:num_periods], discount_factor[s] * fixed_cost[s])
+    @expression(model, eOMFixedCostByPeriod[s in period_indices], discount_factor[s] * om_fixed_cost[s])
 
-    @expression(model, eInvestmentFixedCostByPeriod[s in 1:num_periods], discount_factor[s] * investment_cost[s])
+    @expression(model, eFixedCost, sum(eFixedCostByPeriod[s] for s in period_indices))
 
-    @expression(model, eOMFixedCostByPeriod[s in 1:num_periods], discount_factor[s] * om_fixed_cost[s])
+    opexmult = present_value_annuity_factor.(discount_rate, period_lengths)
 
-    @expression(model, eFixedCost, sum(eFixedCostByPeriod[s] for s in 1:num_periods))
+    @expression(model, eVariableCostByPeriod[s in period_indices], discount_factor[s] * opexmult[s] * variable_cost[s])
 
-    opexmult = [sum([1 / (1 + discount_rate)^(i) for i in 1:period_lengths[s]]) for s in 1:num_periods]
-
-    @expression(model, eVariableCostByPeriod[s in 1:num_periods], discount_factor[s] * opexmult[s] * variable_cost[s])
-
-    @expression(model, eVariableCost, sum(eVariableCostByPeriod[s] for s in 1:num_periods))
+    @expression(model, eVariableCost, sum(eVariableCostByPeriod[s] for s in period_indices))
 
     @objective(model, Min, model[:eFixedCost] + model[:eVariableCost])
 
-    @info(" -- Model generation complete, it took $(time() - start_time) seconds")
-
-    return model
-    
+    return nothing
 end
 
 function planning_model!(system::System, model::Model)
 
-    planning_model!.(system.locations, Ref(model))
+    for location in system.locations
+        planning_model!(location, model)
+    end
 
-    planning_model!.(system.assets, Ref(model))
+    for asset in system.assets
+        planning_model!(asset, model)
+    end
 
     add_constraints_by_type!(system, model, PlanningConstraint)
 
@@ -108,22 +262,23 @@ end
 
 
 function operation_model!(system::System, model::Model)
-
-    # Prepared here, rather than in the planning model, so that the capacity reserve margin
-    # expressions and the edge contributions that fill them are always emitted into the same model
-    # object. Under Benders the planning and operational models are distinct, so splitting the two
-    # across passes would leave the row unbuildable; see add_crm_contribution!.
+    # CRM prepared in operation_model! so that the CRM expressions and the edge contributions always emitted into the same model object. 
+    # Done so as to make it compatible with Benders where planning and operation models are separate.
     if !isempty(system.settings.CapacityReserveMargin)
         @info(" -- Including capacity reserve margins: $(keys(system.settings.CapacityReserveMargin))")
         prepare_capacity_reserve_margin!(system, model)
     end
 
-    operation_model!.(system.locations, Ref(model))
+    for location in system.locations
+        operation_model!(location, model)
+    end
 
-    operation_model!.(system.assets, Ref(model))
+    for asset in system.assets
+        operation_model!(asset, model)
+    end
 
     add_constraints_by_type!(system, model, OperationConstraint)
-
+    
 end
 
 function planning_model!(a::AbstractAsset, model::Model)
@@ -142,10 +297,13 @@ end
 
 function add_linking_variables!(system::System, model::Model)
 
-    add_linking_variables!.(system.locations, model)
+    for location in system.locations
+        add_linking_variables!(location, model)
+    end
 
-    add_linking_variables!.(system.assets, model)
-
+    for asset in system.assets
+        add_linking_variables!(asset, model)
+    end
 end
 
 function add_linking_variables!(a::AbstractAsset, model::Model)
@@ -156,10 +314,13 @@ end
 
 function define_available_capacity!(system::System, model::Model)
 
-    define_available_capacity!.(system.locations, model)
+    for location in system.locations
+        define_available_capacity!(location, model)
+    end
 
-    define_available_capacity!.(system.assets, model)
-
+    for asset in system.assets
+        define_available_capacity!(asset, model)
+    end
 end
 
 function define_available_capacity!(a::AbstractAsset, model::Model)
@@ -173,7 +334,7 @@ function add_age_based_retirements!(a::AbstractAsset,model::Model)
     for t in fieldnames(typeof(a))
         y = getfield(a, t)
         if isa(y,AbstractEdge) || isa(y,AbstractStorage)
-            if y.retirement_period > 0 || y.min_retired_capacity > 0.0
+            if retirement_period(y) > 0 || min_retired_capacity_track(y) > 0.0 ### Otherwise the constraint is trivially satisfied because the left hand side is zero
                 push!(y.constraints, AgeBasedRetirementConstraint())
                 add_model_constraint!(y.constraints[end], y, model)
             end
@@ -248,7 +409,7 @@ function carry_over_capacities!(y::Union{AbstractEdge,AbstractStorage},y_prev::U
         else
             y.existing_capacity = value(capacity(y_prev))
         end
-        
+
         for prev_period in keys(new_capacity_track(y_prev))
             if perfect_foresight
                 y.new_capacity_track[prev_period] = new_capacity_track(y_prev,prev_period)
@@ -295,12 +456,16 @@ end
 
 function compute_annualized_costs!(y::Union{AbstractEdge,AbstractStorage},settings::NamedTuple)
     if isnothing(annualized_investment_cost(y))
+        if iszero(investment_cost(y))
+            y.annualized_investment_cost = 0.0
+            return nothing
+        end
         if ismissing(wacc(y))
             y.wacc = settings.DiscountRate;
         end
-        annualization_factor = wacc(y)>0 ? wacc(y) / (1 - (1 + wacc(y))^-capital_recovery_period(y))  : 1.0
-        y.annualized_investment_cost = investment_cost(y) * annualization_factor;
+        y.annualized_investment_cost = investment_cost(y) * capital_recovery_factor(wacc(y), capital_recovery_period(y));
     end
+    return nothing
 end
 
 function compute_annualized_costs!(g::Transformation,settings::NamedTuple)
@@ -324,25 +489,31 @@ end
 
 function discount_fixed_costs!(y::Union{AbstractEdge,AbstractStorage},settings::NamedTuple)
     
-    # Number of years of payments that are remaining
-    model_years_remaining = sum(settings.PeriodLengths[period_index(y):end]; init = 0);
+    period_lengths = settings.PeriodLengths
+    discount_rate = settings.DiscountRate
+    period_idx = period_index(y)
+    period_length = period_lengths[period_idx]
 
-    # Myopic only considers costs within modeled period. Costs that are consequently omitted will be added after the model run when reporting results
-    if isa(solution_algorithm(settings[:SolutionAlgorithm]), Myopic)
-        payment_years_remaining = min(capital_recovery_period(y), settings.PeriodLengths[period_index(y)]);
-    elseif isa(solution_algorithm(settings[:SolutionAlgorithm]), Monolithic) || isa(solution_algorithm(settings[:SolutionAlgorithm]), Benders)
+    # Number of years of payments that are remaining
+    model_years_remaining = years_remaining(period_idx, period_lengths)
+
+    # Myopic expansion only considers costs within the modeled period.
+    # Costs that are consequently omitted will be added after the model run when reporting results.
+    if isa(settings[:ExpansionHorizon], Myopic)
+        payment_years_remaining = min(capital_recovery_period(y), period_length);
+    elseif isa(settings[:ExpansionHorizon], PerfectForesight)
         payment_years_remaining = min(capital_recovery_period(y), model_years_remaining);
     else
         # Placeholder for other future cases like rolling horizon
         nothing
     end
 
-    y.annualized_investment_cost = annualized_investment_cost(y) * sum(1 / (1 + settings.DiscountRate)^s for s in 1:payment_years_remaining; init=0);
+    # This PV is relative to the start of the Case, not the start of the period
+    y.pv_period_investment_cost = annualized_investment_cost(y) * present_value_annuity_factor(discount_rate, payment_years_remaining)
     
-    opexmult = sum([1 / (1 + settings.DiscountRate)^(i) for i in 1:settings.PeriodLengths[period_index(y)]])
-
-    y.fixed_om_cost = fixed_om_cost(y) * opexmult
-
+    period_pv_annuity_factor = present_value_annuity_factor(discount_rate, period_length)
+    y.pv_period_fixed_om_cost = fixed_om_cost(y) * period_pv_annuity_factor
+    y.pv_period_variable_om_cost = variable_om_cost(y) * period_pv_annuity_factor
 end
 
 function discount_fixed_costs!(g::Transformation,settings::NamedTuple)
@@ -365,17 +536,25 @@ function undo_discount_fixed_costs!(a::AbstractAsset,settings::NamedTuple)
 end
 
 function undo_discount_fixed_costs!(y::Union{AbstractEdge,AbstractStorage},settings::NamedTuple)
+    
+    period_lengths = settings.PeriodLengths
+    discount_rate = settings.DiscountRate
+    period_idx = period_index(y)
+
     # Number of years of payments that are remaining
-    model_years_remaining = sum(settings.PeriodLengths[period_index(y):end]; init = 0);
+    model_years_remaining = years_remaining(period_idx, period_lengths)
     
     # Include all annuities within the modeling horizon for all cases (including Myopic), since undiscounting only concerns reporting of results 
     payment_years_remaining = min(capital_recovery_period(y), model_years_remaining);
 
-    y.annualized_investment_cost = payment_years_remaining * annualized_investment_cost(y) / sum(1 / (1 + settings.DiscountRate)^s for s in 1:payment_years_remaining; init=0);
+    # y.annualized_investment_cost = payment_years_remaining * annualized_investment_cost(y) * capital_recovery_factor(discount_rate, payment_years_remaining)
 
-    opexmult = sum([1 / (1 + settings.DiscountRate)^(i) for i in 1:settings.PeriodLengths[period_index(y)]])
-    y.fixed_om_cost = settings.PeriodLengths[period_index(y)]*fixed_om_cost(y) / opexmult
+    # y.cf_period_investment_cost = payment_years_remaining * annualized_investment_cost(y)
+    y.cf_period_investment_cost = payment_years_remaining * pv_period_investment_cost(y) * capital_recovery_factor(discount_rate, payment_years_remaining)
+    y.cf_period_fixed_om_cost = period_lengths[period_idx] * fixed_om_cost(y)
+    y.cf_period_variable_om_cost = period_lengths[period_idx] * variable_om_cost(y)
 end
+
 function undo_discount_fixed_costs!(g::Transformation,settings::NamedTuple)
     return nothing
 end
@@ -391,16 +570,20 @@ end
 
 function add_costs_not_seen_by_myopic!(y::Union{AbstractEdge,AbstractStorage}, settings::NamedTuple)
     
-    model_years_remaining = sum(settings.PeriodLengths[period_index(y):end]; init = 0);
-    payment_years_remaining = min(capital_recovery_period(y), model_years_remaining);
+    period_lengths = settings.PeriodLengths
+    discount_rate = settings.DiscountRate
+    period_idx = period_index(y)
 
-    # Need to get the coefficient used by the model
-    payment_years_remaining_myopic = min(capital_recovery_period(y), settings.PeriodLengths[period_index(y)]);
+    model_years_remaining = years_remaining(period_idx, period_lengths)
 
-    total_mult = sum(1 / (1 + settings.DiscountRate)^s for s in 1:payment_years_remaining; init=0)
-    myopic_mult = sum(1 / (1 + settings.DiscountRate)^s for s in 1:payment_years_remaining_myopic; init=0)
+    k_total  = min(capital_recovery_period(y), model_years_remaining)
+    k_myopic = min(capital_recovery_period(y), period_lengths[period_idx])
 
-    y.annualized_investment_cost = annualized_investment_cost(y) * total_mult/myopic_mult;
+    total_mult  = present_value_annuity_factor(discount_rate, k_total)
+    myopic_mult = present_value_annuity_factor(discount_rate, k_myopic)
+
+    # TODO: We can reorganize this to not need to mutate the pv investment cost
+    y.pv_period_investment_cost += annualized_investment_cost(y) * (total_mult - myopic_mult)
 end
 
 function add_costs_not_seen_by_myopic!(a::AbstractAsset,settings::NamedTuple)
@@ -496,4 +679,23 @@ function get_capacity_reserve_margin_nodes(system::System)
         end
     end
     return capacity_reserve_margin_nodes
+end
+function create_direct_model_with_optimizer(opt::Optimizer)
+    
+    if !isnothing(opt.optimizer_env)
+        @debug("Setting optimizer with environment $(opt.optimizer_env)")
+        try 
+            model = direct_model(MOI.instantiate(() -> opt.optimizer(opt.optimizer_env)));
+        catch e
+            error("Error creating direct_model with optimizer and optimizer environment: $e")
+        end
+    else
+        @debug("Setting optimizer $(opt.optimizer)")
+        model = direct_model(MOI.instantiate(opt.optimizer));
+    end
+    @debug("Setting optimizer attributes $(opt.attributes)")
+    
+    set_optimizer_attributes(model, opt)
+
+    return model
 end

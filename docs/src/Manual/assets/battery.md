@@ -97,7 +97,7 @@ The following tables outlines the attributes that can be set for a battery asset
 ### Essential Attributes
 | Field | Type | Description |
 |--------------|---------|------------|
-| `Type` | String | Asset type identifier: "Battery" |
+| `type` | String | Asset type identifier: "Battery" |
 | `id` | String | Unique identifier for the battery instance |
 | `location` | String | Geographic location/node identifier |
 
@@ -133,6 +133,7 @@ To simplify the input file and the asset configuration, the following constraint
 - [Storage symmetric capacity constraint](@ref storage_symmetric_capacity_constraint_ref) (applied to the storage component)
 - [Capacity constraint](@ref capacity_constraint_ref) (applied to the discharge edge)
 - [Storage discharge limit constraint](@ref storage_discharge_limit_constraint_ref) (applied to the discharge edge)
+- [Storage charge limit constraint](@ref storage_charge_limit_constraint_ref) (applied to the charge edge)
 
 If the storage is a long-duration storage, the following additional constraints are applied:
 - [Long-duration storage constraints](@ref long_duration_storage_constraints_ref) (applied to the storage component)
@@ -148,6 +149,19 @@ If the storage is a long-duration storage, the following additional constraints 
 | `discharge_can_expand` | Boolean | Whether discharge capacity can be expanded | - | true |
 | `discharge_existing_capacity` | Float64 | Initial installed discharge capacity | MWh/hr | 0.0 |
 | `discharge_capacity_size` | Float64 | Unit size for capacity decisions | - | 1.0 |
+
+#### Integer capacity decisions
+Battery charge and discharge edges can be configured to build in integer multiples of `*_capacity_size`. This is controlled by the following fields:
+
+| Field | Type | Description | Default |
+|--------------|---------|------------|----------|
+| `integer_decisions` | Boolean | Apply integer capacity decisions to both charge and discharge edges | false |
+| `charge_integer_decisions` | Boolean | Apply integer capacity decisions to the charge edge only | false |
+| `discharge_integer_decisions` | Boolean | Apply integer capacity decisions to the discharge edge only | false |
+
+Notes:
+- If `integer_decisions` is set, it applies to both edges unless overridden by `charge_integer_decisions` or `discharge_integer_decisions`.
+- These flags apply to edge capacity decisions (MW). Storage energy capacity (MWh) remains continuous.
 
 ##### Asymmetric battery
 If the battery is asymmetric, the following investment parameters are also used:
@@ -235,8 +249,8 @@ If [`MaxStorageLevelConstraint`](@ref max_storage_level_constraint_ref) or [`Min
 
 | Field | Type | Description | Units | Default |
 |--------------|---------|------------|----------------|----------|
-| `storage_max_storage_level` | Float64 | Maximum storage level as fraction of capacity | fraction | 0.0 |
-| `storage_min_storage_level` | Float64 | Minimum storage level as fraction of capacity | fraction | 0.0 |
+| `storage_max_storage_level` | Vector{Float64} | Maximum storage level as fraction of capacity | fraction | [1.0] |
+| `storage_min_storage_level` | Vector{Float64} | Minimum storage level as fraction of capacity | fraction | [0.0] |
 
 **Storage charge/discharge ratio constraint**
 
@@ -282,8 +296,8 @@ The `Battery` asset is defined as follows:
 struct Battery <: AbstractAsset
     id::AssetId
     battery_storage::AbstractStorage{<:Electricity}
-    discharge_edge::Edge{<:Electricity}
-    charge_edge::Edge{<:Electricity}
+    discharge_edge::UnidirectionalEdge{<:Electricity}
+    charge_edge::UnidirectionalEdge{<:Electricity}
 end
 ```
 
@@ -292,7 +306,7 @@ end
 ### Default constructor
 
 ```julia
-Battery(id::AssetId, storage::AbstractStorage{<:Electricity}, discharge_edge::Edge{<:Electricity}, charge_edge::Edge{<:Electricity})
+Battery(id::AssetId, storage::AbstractStorage{<:Electricity}, discharge_edge::UnidirectionalEdge{<:Electricity}, charge_edge::UnidirectionalEdge{<:Electricity})
 ```
 
 ### Factory constructor
@@ -472,7 +486,8 @@ Below is an example of an input file for a battery asset that sets up three batt
                         "can_retire": false,
                         "constraints": {
                             "CapacityConstraint": true,
-                            "StorageDischargeLimitConstraint": true
+                            "StorageDischargeLimitConstraint": true,
+                            "StorageChargeLimitConstraint": true
                         }
                     },
                     "charge_edge": {

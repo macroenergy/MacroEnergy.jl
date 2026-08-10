@@ -3,12 +3,14 @@ module TestWorkflow
 using Test
 using HiGHS
 using Pkg
+using JuMP
 try Pkg.add("Gurobi"); using Gurobi; catch e end
 using CSV, DataFrames, JSON3
 import MacroEnergy:
     System,
     AbstractEdge,
-    Edge,
+    UnidirectionalEdge,
+    BidirectionalEdge,
     EdgeWithUC,
     Node,
     Location,
@@ -23,13 +25,14 @@ import MacroEnergy:
     load_case,
     read_file,
     generate_model,
+    create_optimizer,
+    postprocess!,
     set_optimizer,
     optimize!,
     objective_value,
     commodity_type,
     AssetId,
     VariableRef,
-    collect_results, 
     get_optimal_capacity,
     get_optimal_new_capacity,
     get_optimal_retired_capacity,
@@ -38,12 +41,21 @@ import MacroEnergy:
     compute_undiscounted_costs!,
     get_optimal_discounted_costs,
     get_optimal_undiscounted_costs,
+    solution_algorithm,
     write_capacity,
     write_costs,
     write_undiscounted_costs,
+    write_detailed_costs,
+    get_detailed_costs,
     write_flow,
-    write_results,
-    typesymbol
+    write_curtailment,
+    write_non_served_demand,
+    write_storage_level,
+    write_full_timeseries,
+    write_balance_duals,
+    has_tdr,
+    typesymbol,
+    unidirectional
 
 
 include("utilities.jl")
@@ -51,7 +63,7 @@ include("test_timedata.jl")
 const test_path = joinpath(@__DIR__, "test_inputs")
 const system_data_true_path = joinpath(@__DIR__, "test_inputs/system_data_true.json")
 const optim = is_gurobi_available() ? Gurobi.Optimizer : HiGHS.Optimizer
-const obj_true = 1.5512721762979626e11
+const obj_true = 1.551272176298086e11
 
 function test_configure_settings(data::NamedTuple, data_true::T) where {T<:JSON3.Object}
     @test data.ConstraintScaling == data_true.ConstraintScaling
@@ -66,7 +78,7 @@ function test_load_commodities(
     @test length(commodities) == length(commodities_true)
     for (k, v) in commodities
         @test k in commodities_true
-        @test Symbol(v) in commodities_true
+        @test typesymbol(v) in commodities_true
     end
     return nothing
 end
@@ -118,14 +130,17 @@ function test_load(
     obj_in::Vector{AbstractTypeConstraint},
     data_true::T,
 ) where {T<:JSON3.Object}
-    @test length(obj_in) == length(data_true)
+    active_constraints = Dict(
+        k => v for (k, v) in data_true if v
+    )
+    @test length(obj_in) == length(active_constraints)
     for c in obj_in
         name = Symbol(typeof(c))
-        if !(name in propertynames(data_true))
+        if !(name in keys(active_constraints))
             println("Constraint $name not found in JSON file")
         end
-        @test name in propertynames(data_true)
-        @test data_true[name]   # check that the constraint is set to true in the JSON file
+        @test name in keys(active_constraints)
+        @test active_constraints[name]   # check that the constraint is set to true in the JSON file
     end
     return nothing
 end
@@ -134,7 +149,7 @@ function test_load(e_in::AbstractEdge{T}, e_true::S) where {T<:Commodity,S<:JSON
     @test e_in.start_vertex.id == Symbol(e_true.start_vertex)
     @test e_in.end_vertex.id == Symbol(e_true.end_vertex)
     @test typesymbol(commodity_type(e_in.timedata)) == Symbol(e_true.timedata)
-    @test e_in.unidirectional == get(e_true, :unidirectional, true)
+    @test unidirectional(e_in) == get(e_true, :unidirectional, true)
     @test e_in.has_capacity == get(e_true, :has_capacity, false)
     @test e_in.can_retire == get(e_true, :can_retire, false)
     @test e_in.can_expand == get(e_true, :can_expand, false)
@@ -224,7 +239,7 @@ function test_load(s_in::AbstractStorage{T}, s_true::S) where {T<:Commodity,S<:J
     @test s_in.can_retire == get(s_true, :can_retire, false)
     @test s_in.investment_cost == get(s_true, :investment_cost, 0.0)
     @test s_in.fixed_om_cost == get(s_true, :fixed_om_cost, 0.0)
-    @test s_in.min_storage_level == get(s_true, :min_storage_level, 0.0)
+    @test s_in.min_storage_level == get(s_true, :min_storage_level, [0.0])
     @test s_in.min_duration == get(s_true, :min_duration, 0.0)
     @test s_in.max_duration == get(s_true, :max_duration, 0.0)
     @test s_in.loss_fraction == Float64[]
@@ -239,7 +254,7 @@ function test_load(a_in::AbstractAsset, a_true::T) where {T<:JSON3.Object}
         data_in = getfield(a_in, t)
         if isa(data_in, AssetId)
             test_load(data_in, a_true_instance_data.id)
-        elseif isa(data_in, Edge) || isa(data_in, EdgeWithUC)
+        elseif isa(data_in, UnidirectionalEdge) || isa(data_in, BidirectionalEdge) || isa(data_in, EdgeWithUC)
             test_load(data_in, a_true_instance_data.edges[t])
         elseif isa(data_in, Storage)
             test_load(data_in, a_true_instance_data.storage)
@@ -267,9 +282,12 @@ end
 
 function test_model_generation_and_optimization()
     case = load_case(test_path)
-    model = generate_model(case)
-    set_optimizer(model, optim)
+    @test case.settings.WriteFullTimeseries
+    optimizer = create_optimizer(optim)
+    alg = solution_algorithm(case)
+    model = generate_model(case,optimizer,alg)
     optimize!(model)
+    postprocess!(case, model)
     macro_objval = objective_value(model)
 
     @test macro_objval ≈ obj_true
@@ -282,30 +300,144 @@ end
 function test_writing_outputs(case,model)
     system = case.systems[1];
     settings = case.settings;
-    @test_nowarn collect_results(system, model, settings)
-    @test_nowarn get_optimal_capacity(system)
-    @test_nowarn get_optimal_new_capacity(system)
-    @test_nowarn get_optimal_retired_capacity(system)
-    @test_nowarn get_optimal_capacity(system.assets[1], scaling=1.0)
-    @test_nowarn get_optimal_new_capacity(system.assets[1])
-    @test_nowarn get_optimal_retired_capacity(system.assets[1])
-    @test_nowarn get_optimal_flow(system)
-    @test_nowarn get_optimal_flow(system.assets[1], scaling=1.0)
-    @test_nowarn get_optimal_flow(system.assets[1].elec_edge, 1.0)
+    @test !isempty(system.assets)
+    first_asset = first(system.assets)
+    @test_nowarn get_optimal_capacity(system, 1.0)
+    @test_nowarn get_optimal_new_capacity(system, 1.0)
+    @test_nowarn get_optimal_retired_capacity(system, 1.0)
+    @test_nowarn get_optimal_capacity(first_asset, 1.0)
+    @test_nowarn get_optimal_new_capacity(first_asset, 1.0)
+    @test_nowarn get_optimal_retired_capacity(first_asset, 1.0)
+    @test_nowarn get_optimal_flow(system, 1.0)
+    @test_nowarn get_optimal_flow(first_asset, 1.0)
+    @test_nowarn get_optimal_flow(first_asset.elec_edge, 1.0)
     @test_nowarn create_discounted_cost_expressions!(model,system,settings)
     @test_nowarn compute_undiscounted_costs!(model, system, settings)
-    @test_nowarn get_optimal_discounted_costs(model)
-    @test_nowarn get_optimal_discounted_costs(model,scaling=2.0)
-    @test_nowarn get_optimal_undiscounted_costs(model)
-    @test_nowarn get_optimal_undiscounted_costs(model, scaling=2.0)
-    @test_nowarn write_capacity("test_capacity.csv", system)
-    @test_nowarn write_costs("test_costs.csv", system, model)
-    @test_nowarn write_undiscounted_costs("test_undiscountedcosts.csv", system, model)
-    @test_nowarn write_flow("test_flow.csv", system)
+    @test_nowarn get_optimal_discounted_costs(model, 1.0)
+    @test_nowarn get_optimal_discounted_costs(model, 2.0)
+    @test_nowarn get_optimal_undiscounted_costs(model, 1.0)
+    @test_nowarn get_optimal_undiscounted_costs(model, 2.0)
+    @test_nowarn write_capacity("test_capacity.csv", system, 1.0)
+    @test_nowarn write_costs("test_costs.csv", system, model, 1.0)
+    @test_nowarn write_undiscounted_costs("test_undiscountedcosts.csv", system, model, 1.0)
+    @test_nowarn write_flow("test_flow.csv", system, 1.0)
+    @test_nowarn write_curtailment("test_curtailment.csv", system, 1.0)
+    # Detailed cost breakdown (monolithic)
+    @test_nowarn write_detailed_costs(".", system, model, settings, 1.0)
+    costs_result = get_detailed_costs(system, settings, 1.0)
+    detailed_costs = costs_result.undiscounted
+    @test detailed_costs isa DataFrame
+    @test !isempty(detailed_costs)
+    @test all(c in names(detailed_costs) for c in ["zone", "type", "category", "value"])
+    # Return structure: both discounted and undiscounted have same columns and row count
+    @test names(costs_result.discounted) == ["zone", "type", "category", "value"]
+    @test names(costs_result.undiscounted) == ["zone", "type", "category", "value"]
+    @test size(costs_result.discounted, 1) == size(costs_result.undiscounted, 1)
+    # Grand total from detailed costs should match model total (same values written to test_costs.csv)
+    @test sum(costs_result.discounted.value) ≈ value(model[:eDiscountedFixedCost]) + value(model[:eDiscountedVariableCost])
+    @test sum(costs_result.undiscounted.value) ≈ value(model[:eFixedCost]) + value(model[:eVariableCost])
+    @test isfile("costs_by_type.csv")
+    @test isfile("costs_by_zone.csv")
+    @test isfile("undiscounted_costs_by_type.csv")
+    @test isfile("undiscounted_costs_by_zone.csv")
+    rm("costs_by_type.csv") # clean up
+    rm("costs_by_zone.csv") # clean up
+    rm("undiscounted_costs_by_type.csv") # clean up
+    rm("undiscounted_costs_by_zone.csv") # clean up
     rm("test_capacity.csv")     # clean up
     rm("test_costs.csv")        # clean up
     rm("test_undiscountedcosts.csv")        # clean up
     rm("test_flow.csv")         # clean up
+    isfile("test_curtailment.csv") && rm("test_curtailment.csv")  # clean up
+
+    test_full_timeseries(case)
+
+    return nothing
+end
+
+function test_full_timeseries(case)
+    system = case.systems[1]
+    @test has_tdr(system)
+
+    # Force wide output layout so both rep-period and full timeseries CSVs
+    # share the same column structure (time + component columns)
+    saved_settings = system.settings
+    system.settings = merge(saved_settings, (OutputLayout="wide",))
+
+    # Create a temp directory, write rep-period + full timeseries files
+    results_dir = abspath(mktempdir("."))
+    write_non_served_demand(joinpath(results_dir, "non_served_demand.csv"), system, 1.0)
+    write_storage_level(joinpath(results_dir, "storage_level.csv"), system, 1.0)
+    write_curtailment(joinpath(results_dir, "curtailment.csv"), system, 1.0)
+    write_balance_duals(results_dir, system, 1.0, 1.0)
+    write_full_timeseries(results_dir, system, 1.0, 1.0)
+
+    # Load period map and time data
+    pmap_df = CSV.read(joinpath(test_path, "system", "Period_map.csv"), DataFrame)
+    time_data = JSON3.read(Base.read(joinpath(test_path, "system", "time_data.json"), String))
+    hours_per_subperiod = 168
+    total_hours = time_data[:TotalHoursModeled]
+
+    # Build rep-period offset lookup
+    rep_indices = sort(unique(pmap_df.Rep_Period_Index))
+    rep_offset = Dict(idx => (i - 1) * hours_per_subperiod for (i, idx) in enumerate(rep_indices))
+    sorted_periods = sort(pmap_df, :Period_Index)
+    n_mapped = nrow(sorted_periods) * hours_per_subperiod
+
+    # Validate each variable (skip flows — can be slow)
+    for (name, filename) in [
+        ("Non-served demand", "non_served_demand.csv"),
+        ("Storage level",     "storage_level.csv"),
+        ("Curtailment",       "curtailment.csv"),
+        ("Balance duals",     "balance_duals.csv"),
+    ]
+        rep_path  = joinpath(results_dir, filename)
+        full_path = joinpath(results_dir, "full_time_series", filename)
+        isfile(rep_path)  || continue
+        isfile(full_path) || continue
+
+        rep_df  = CSV.read(rep_path, DataFrame)
+        full_df = CSV.read(full_path, DataFrame)
+        component_cols = setdiff(names(rep_df), ["time"])
+
+        @testset "Full timeseries — $name" begin
+            @test nrow(full_df) == total_hours
+
+            # Check every mapped subperiod
+            for row in eachrow(sorted_periods)
+                cal    = row.Period_Index
+                rep_id = row.Rep_Period_Index
+                f_start = (cal - 1) * hours_per_subperiod + 1
+                f_end   = min(cal * hours_per_subperiod, nrow(full_df))
+                r_start = rep_offset[rep_id] + 1
+                r_end   = rep_offset[rep_id] + hours_per_subperiod
+                for col in component_cols
+                    @test full_df[f_start:f_end, col] ≈ rep_df[r_start:r_end, col]
+                end
+            end
+
+            # Check padding (if mapped hours < total_hours)
+            if n_mapped < total_hours
+                last_rep_id = last(sorted_periods).Rep_Period_Index
+                rs = rep_offset[last_rep_id] + 1
+                re = rep_offset[last_rep_id] + hours_per_subperiod
+                pad_source = rep_df[rs:re, :]
+
+                pad_offset = 0
+                n_padded = total_hours - n_mapped
+                while pad_offset < n_padded
+                    chunk = min(hours_per_subperiod, n_padded - pad_offset)
+                    for col in component_cols
+                        @test full_df[(n_mapped + pad_offset + 1):(n_mapped + pad_offset + chunk), col] ≈ pad_source[1:chunk, col]
+                    end
+                    pad_offset += chunk
+                end
+            end
+        end
+    end
+
+    rm(results_dir; recursive=true)
+    system.settings = saved_settings
     return nothing
 end 
 

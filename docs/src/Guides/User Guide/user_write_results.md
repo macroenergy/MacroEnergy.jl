@@ -1,11 +1,15 @@
-# Writing Results to Files
+# [Writing Results to Files](@id user-write-results)
 
 Currently, Macro supports the following types of outputs:
 
 - [Capacity Results](@ref): final capacity, new capacity and retired capacity for each technology.
 - [Costs](@ref): fixed, variable and total system costs.
+- [Curtailment Results](@ref): curtailment of variable renewable energy (VRE) assets over time.
 - [Flow Results](@ref): flow for each commodity through each edge in the system.
-- [Combined Results](@ref): all results (capacity, costs, flows, non-served demand, storage level) in a single file.
+- [Non-Served Demand Results](@ref): non-served demand for each node with demand.
+- [Storage Level Results](@ref): storage level for each storage unit over time.
+- [Time Weights](@ref time_weights_results): timestep-to-weight mapping for annualization when using time-domain reduction (TDR).
+- [Full Time Series Reconstruction](@ref full_time_series_reconstruction): expand representative-period results back to the full modeled year when using TDR.
 
 For detailed information about output formats and layouts, please refer to the [Output Format](@ref) and [Output Files Layout](@ref) sections below.
 
@@ -49,6 +53,19 @@ write_capacity("capacity.csv", system, commodity="CO2*")
 !!! note "Output Layout"
     Results are written in *long* format by default. To use *wide* format, configure the `OutputLayout: {"Capacity": "wide"}` setting in your Macro settings JSON file (see [Output Files Layout](@ref) for details).
 
+## Curtailment Results
+
+Export curtailment results for variable renewable energy (VRE) assets using the [`write_curtailment`](@ref) function:
+
+```julia
+write_curtailment("curtailment.csv", system)
+```
+
+Curtailment is the difference between available VRE generation (capacity × availability factor) and actual generation (flow). It represents energy that could have been produced but was not dispatched.
+
+!!! note "Output Layout"
+    Results are written in *long* format by default. To use *wide* format, configure the `OutputLayout: {"Curtailment": "wide"}` setting in your Macro settings JSON file (see [Output Files Layout](@ref) for details).
+
 ## Costs
 
 Export system-wide cost results using the [`write_costs`](@ref) function:
@@ -58,6 +75,25 @@ write_costs("costs.csv", system, model)
 ```
 
 Note that the `write_costs` function requires both the `system` and `model` arguments, unlike the `write_capacity` function.
+
+To export undiscounted costs (fixed, variable, total) instead of discounted costs, use [`write_undiscounted_costs`](@ref):
+
+```julia
+write_undiscounted_costs("undiscounted_costs.csv", system, model)
+```
+
+For a detailed cost breakdown by category (Investment, FixedOM, VariableOM, Fuel, NonServedDemand, etc.) and by asset type or zone, use [`write_detailed_costs`](@ref). This writes both discounted and undiscounted breakdown files:
+
+```julia
+write_detailed_costs(results_dir, system, model, settings)
+```
+
+To obtain detailed costs as DataFrames for programmatic use, use [`get_detailed_costs`](@ref):
+
+```julia
+costs = get_detailed_costs(system, settings)
+# costs.discounted and costs.undiscounted are DataFrames with columns: zone, type, category, value
+```
 
 !!! note "Output Layout"
     Results are written in *long* format by default. To use *wide* format, configure the `OutputLayout: {"Costs": "wide"}` setting in your Macro settings JSON file (see [Output Files Layout](@ref) for details).
@@ -86,23 +122,111 @@ write_flow("flows.csv", system, asset_type="ThermalPower*")
 !!! note "Output Layout"
     Results are written in *long* format by default. To use *wide* format, configure the `OutputLayout: {"Flow": "wide"}` setting in your Macro settings JSON file (see [Output Files Layout](@ref) for details).
 
-## Combined Results
+## Non-Served Demand Results
 
-Export all results at once using the [`write_results`](@ref) function:
+Export non-served demand results for all nodes with demand using the [`write_non_served_demand`](@ref) function:
 
 ```julia
-write_results(file_path, system, model, settings, ext=".csv.gz") # Creates multiple .csv.gz files
-write_results(file_path, system, model, settings, ext=".parquet") # Creates multiple .parquet files
+write_non_served_demand("non_served_demand.csv", system)
 ```
 
-!!! note "Multiple Output Files"
-    This function creates multiple files, one for each result type:
-    - `file_path_capacity.ext` - Capacity results
-    - `file_path_flow.ext` - Flow results  
-    - `file_path_non_served_demand.ext` - Non-served demand
-    - `file_path_storage_level.ext` - Storage levels
-    - `file_path_discounted_costs.ext` - Discounted costs
-    - `file_path_undiscounted_costs.ext` - Undiscounted costs
+This function exports non-served demand values only for nodes that have non-served demand variables defined (i.e., nodes with `max_nsd != [0.0]` in the input data). 
+
+!!! note "Segment Handling"
+    Non-served demand can have multiple segments (for piecewise linear cost curves). In *long* format, the `segment` column indicates which segment each value belongs to. In *wide* format, compound column names are used: `{node_id}_seg{segment}` (e.g., `elec_SE_seg1`, `elec_SE_seg2`).
+
+!!! note "Output Layout"
+    Results are written in *long* format by default. To use *wide* format, configure the `OutputLayout: {"NonServedDemand": "wide"}` setting in your Macro settings JSON file (see [Output Files Layout](@ref) for details).
+
+## Storage Level Results
+
+Export storage level results for all storage units using the [`write_storage_level`](@ref) function:
+
+```julia
+write_storage_level("storage_level.csv", system)
+```
+
+Filter results by commodity or asset type using the `commodity` and `asset_type` parameters:
+
+```julia
+# Filter by commodity
+write_storage_level("storage_level.csv", system, commodity="Electricity")
+
+# Filter by asset type
+write_storage_level("storage_level.csv", system, asset_type="Battery")
+```
+
+!!! note "Output Layout"
+    Results are written in *long* format by default. To use *wide* format, configure the `OutputLayout: {"StorageLevel": "wide"}` setting in your Macro settings JSON file (see [Output Files Layout](@ref) for details).
+
+## [Time Weights](@id time_weights_results)
+
+When using time-domain reduction (TDR), export the timestep-to-weight mapping using the [`write_time_weights`](@ref) function:
+
+```julia
+write_time_weights("time_weights.csv", system)
+```
+
+The CSV maps every optimization timestep to its representative sub-period index and the corresponding sub-period weight. This is needed for downstream post-processing — energy revenue, capacity factor calculations, and any other weighted annual sums require knowing each timestep's weight. Weights are normalized so that `Σ_k weight(k) × hours_per_subperiod(k) = TotalHoursModeled`, for each representative sub-period `k`. Without TDR, every timestep receives weight 1.0, unless `TotalHoursModeled` differs from the sum of timestep durations in the model (e.g., partial-year or leap-year), in which case the same normalization applies.
+
+Output columns: 
+- `time`: 1-based timestep index
+- `subperiod_index`: index of the representative sub-period that the timestep belongs to
+- `weight`: weight of the representative sub-period (hours it represents in the full year)
+
+## [Full Time Series Reconstruction](@id full_time_series_reconstruction)
+
+When using time-domain reduction (TDR), the optimization model runs on a reduced set of representative sub-periods (e.g., 3 representative weeks of 168 hours each instead of a full year of 8760 hours). The full time series reconstruction feature expands the optimized results back to the full `TotalHoursModeled` hours using the sub-period map (`Period_map.csv`).
+
+### Enabling Full Time Series Output
+
+Set the `WriteFullTimeseries` option to `true` in your `case_settings.json`:
+
+```json
+{
+  "WriteFullTimeseries": true
+}
+```
+
+When enabled, the following time-series outputs are reconstructed and written to a `full_time_series/` subdirectory inside the results directory:
+
+| File | Description |
+|------|-------------|
+| `flows.csv` | Commodity flow through each edge |
+| `non_served_demand.csv` | Non-served demand for each node |
+| `storage_level.csv` | Storage state for each storage unit |
+| `curtailment.csv` | VRE curtailment |
+| `balance_duals.csv` | Balance constraint duals (only when `DualExportsEnabled` is also `true`) |
+
+Each file contains one row per hour for the full modeled year (e.g., 8760 rows), with the same column structure as the corresponding representative-period output file.
+
+### How Reconstruction Works
+
+The reconstruction uses the `Period_map.csv` file (in the `system/` folder) to map each calendar sub-period to its representative sub-period. For example, if the period map assigns weeks 1, 2, and 4 to representative week 1, then the optimized values for representative week 1 are copied into the full time series at positions corresponding to weeks 1, 2, and 4.
+
+If the period map covers fewer hours than `TotalHoursModeled` (e.g., 52 × 168 = 8736 < 8760), the remaining hours are padded by repeating values from the representative period that corresponds to the last calendar sub-period.
+
+### Calling Directly
+
+You can also call the reconstruction function directly after solving:
+
+```julia
+write_full_timeseries(results_dir, system)
+```
+
+This writes all four time-series files to `results_dir/full_time_series/`. The function checks whether TDR is active and skips silently if no time-domain reduction is detected.
+
+To check whether a system uses TDR:
+
+```julia
+has_tdr(system)  # returns true if the system uses time-domain reduction
+```
+
+!!! note "Output Layout and Compression"
+    Full time series files follow the same `OutputLayout` setting as other outputs. In *long* format, files are written as compressed `.csv.gz` to reduce disk usage (a full-year long-format file can be very large). In *wide* format, files are written as plain `.csv`.
+
+!!! note "Solution Algorithms"
+    Full time series reconstruction is supported for all solution algorithms: Monolithic, Myopic, and Benders decomposition. When `WriteFullTimeseries` is enabled, reconstruction happens automatically as part of `write_outputs`.
 
 ## Writing Case Settings
 
@@ -144,7 +268,9 @@ Macro supports multiple output formats to suit different needs:
 The output format is determined by the file extension. For example, to export results in Parquet format:
 
 ```julia
-write_results("results.parquet", system, model, settings)
+write_capacity("results.parquet", system)
+write_costs("results.parquet", system, model)
+write_flow("results.parquet", system)
 ```
 
 ## Output Files Layout
@@ -166,7 +292,10 @@ or
   "OutputLayout": {
     "Capacity": "wide",
     "Costs": "long",
-    "Flow": "long"
+    "Curtailment": "long",
+    "Flow": "long",
+    "NonServedDemand": "long",
+    "StorageLevel": "wide"
   }
 }
 ```
@@ -174,7 +303,7 @@ or
 Available options:
 - `"OutputLayout": "long"` (applies to all outputs)
 - `"OutputLayout": "wide"` (applies to all outputs)
-- `"OutputLayout": {"Capacity": "wide", "Costs": "long", "Flow": "long"}` (individual layout settings)
+- `"OutputLayout": {"Capacity": "wide", "Costs": "long", "Curtailment": "long", "Flow": "long", "NonServedDemand": "long", "StorageLevel": "wide"}` (individual layout settings)
 
 ## Output Files Location
 
@@ -215,3 +344,41 @@ write_capacity(joinpath(output_path, "capacity.csv"), system) # Creates /path/to
 ```
 
 In this case, the function creates a directory named according to the `OutputDir` setting (e.g., `results`) within your specified path (e.g., `path/to/output/results`).
+
+## Exporting System Data to JSON
+
+To serialize a solved `System` or `Case` object back to a JSON file, use the [`write_to_json`](@ref) function. This is useful for saving the full system state — including all asset parameters, solved variable values, and constraint duals — so it can be inspected or reloaded later.
+
+### Writing a single system
+
+```julia
+write_to_json(system, "output/system_data.json")
+```
+
+### Writing a full case (all periods + settings)
+
+```julia
+write_to_json(case, "output/case_data.json")
+```
+
+When writing a `Case`, the output contains two top-level keys:
+- `case`: an array of per-period system data objects
+- `settings`: the case-level settings
+
+### Compression
+
+By default, output is gzip-compressed. If the provided file path does not end in `.gz`, the extension is appended automatically:
+
+```julia
+# Both of these write to output/case_data.json.gz
+write_to_json(case, "output/case_data.json")
+write_to_json(case, "output/case_data.json.gz")
+```
+
+To write uncompressed JSON, pass `compress=false`:
+
+```julia
+write_to_json(case, "output/case_data.json"; compress=false)
+```
+
+If `file_path` is omitted entirely, the output is written to `output_system_data.json` (or `.gz`) in the current working directory.

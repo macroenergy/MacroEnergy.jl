@@ -238,7 +238,7 @@ Using the example input from the previous section, if we did not have a `locatio
 
 #### AutoCreateNodes
 
-Let's consider a second example where a `ThermalPower{NaturalGas}` Asset has a `location` field set to "boston" and that `Location` exists in the `locations.json` file. Macro will attempt to automatically connect the `Edge{NaturalGas}` and `Edge{Electricity}` of the `ThermalPower{NaturalGas}` Asset to the corresponding `Node` instances in the "boston" location. If one or both of these `Node` instances do not exist, and the `AutoCreateNodes` setting is set to `true`, Macro will automatically create the necessary `Node` instances for the missing commodity types.
+Let's consider a second example where a `ThermalPower{NaturalGas}` Asset has a `location` field set to "boston" and that `Location` exists in the `locations.json` file. Macro will attempt to automatically connect the `UnidirectionalEdge{NaturalGas}` and `UnidirectionalEdge{Electricity}` of the `ThermalPower{NaturalGas}` Asset to the corresponding `Node` instances in the "boston" location. If one or both of these `Node` instances do not exist, and the `AutoCreateNodes` setting is set to `true`, Macro will automatically create the necessary `Node` instances for the missing commodity types.
 
 Note that these `Nodes` will not have any exogeneous demand, supply, constraints or other properties defined. They are simply created to allow the `Asset` to connect to the `Location` without errors.
 

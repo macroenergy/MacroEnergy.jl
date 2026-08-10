@@ -37,6 +37,51 @@ The documentation contains five main sections:
 
 - **[Reference](@ref "References")**: A function reference for Macro's API
 
+## Recent changes
+
+<!-- BEGIN GENERATED RECENT CHANGES -->
+### 0.2.0 - 2026-05-22
+#### Added
+
+- Outputs can now be written to a JSON file using the `write_to_json` method. This method writes to a compressed `.json.gz` but also supports regular `.json` outputs. It is not currently built into any of the run tools.
+- Improved JSON serialization coverage of commodities, storage, constraints, dual values, time data, solution algorithms, named tuples, JuMP containers, and special numeric values like Inf, -Inf, and NaN
+
+#### Changed
+
+- CSV asset input files can now have their `Type` and `Id` columns in any position in the file, instead of needing to be in the first two columns. The `Type` and `Id` columns are still required.
+- `run_case` now returns `(case, solution)` as opposed to `(systems, solution)`. The `case` object contains the `systems` as well as `case`-level settings.
+
+#### Migration guide
+
+- If you are using the `run_case` function, update your code to handle the new return signature of `(case, solution)` instead of `(systems, solution)`.
+
+For example, if you previously had:
+
+```julia
+(system, solution) = run_case(@__DIR__; 
+    optimizer=HiGHS.Optimizer,
+    optimizer_attributes=("solver" => "ipm", "run_crossover" => "off", "ipm_optimality_tolerance" => 1e-3)
+);
+```
+
+You should now use:
+
+```julia
+(case, solution) = run_case(@__DIR__;
+    optimizer=HiGHS.Optimizer,
+    optimizer_attributes=("solver" => "ipm", "run_crossover" => "off", "ipm_optimality_tolerance" => 1e-3)
+);
+```
+
+If you need to access the systems, you can retrieve them from the `case` object.
+
+```julia
+systems = case.systems
+```
+
+For the full release history, see [the changelog](@ref Changelog).
+<!-- END GENERATED RECENT CHANGES -->
+
 ## Macro development strategy
 
 Macro is a very flexible tool for modelling energy systems. However, that flexibility also means the core architecture and functions are complex and difficult to use correctly.

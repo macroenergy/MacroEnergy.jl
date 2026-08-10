@@ -123,7 +123,7 @@ The following tables outline the attributes that can be set for a thermal steam 
 ### Essential Attributes
 | Field | Type | Description |
 |--------------|---------|------------|
-| `Type` | String | Asset type identifier: `"ThermalSteam"` |
+| `type` | String | Asset type identifier: `"ThermalSteam"` |
 | `id` | String | Unique identifier for the co-generation unit instance |
 | `location` | String | Geographic location or node identifier |
 | `fuel_commodity` | String | Primary fuel commodity identifier |
@@ -258,10 +258,10 @@ The `ThermalSteam` asset is defined as follows:
 struct ThermalSteam{T} <: AbstractAsset
     id::AssetId
     steam_transform::Transformation
-    steam_edge::Union{Edge{<:Steam},EdgeWithUC{<:Steam}}
-    fuel_edge::Edge{<:T}
-    elec_edge::Edge{<:Electricity}
-    co2_edge::Edge{<:CO2}
+    steam_edge::Union{UnidirectionalEdge{<:Steam},EdgeWithUC{<:Steam}}
+    fuel_edge::UnidirectionalEdge{<:T}
+    elec_edge::UnidirectionalEdge{<:Electricity}
+    co2_edge::UnidirectionalEdge{<:CO2}
 end
 ```
 
@@ -273,10 +273,10 @@ end
 ThermalSteam(
     id::AssetId,
     steam_transform::Transformation,
-    steam_edge::Union{Edge{<:Steam},EdgeWithUC{<:Steam}},
-    fuel_edge::Edge{<:Fuel},
-    elec_edge::Edge{<:Electricity},
-    co2_edge::Edge{<:CO2}
+    steam_edge::Union{UnidirectionalEdge{<:Steam},EdgeWithUC{<:Steam}},
+    fuel_edge::UnidirectionalEdge{<:Fuel},
+    elec_edge::UnidirectionalEdge{<:Electricity},
+    co2_edge::UnidirectionalEdge{<:CO2}
 )
 ```
 

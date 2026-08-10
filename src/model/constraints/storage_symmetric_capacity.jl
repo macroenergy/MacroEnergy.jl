@@ -28,11 +28,18 @@ function add_model_constraint!(
     e_discharge = g.discharge_edge
     e_charge = g.charge_edge
 
-    ct.constraint_ref = @constraint(
-        model,
-        [t in time_interval(g)],
-        flow(e_discharge, t) + flow(e_charge, t) <= capacity(e_discharge)
-    )
+    if !has_capacity(e_discharge)
+        @warn "Discharge edge for storage $(id(g)) does not have capacity. Ignoring symmetric capacity constraint."
+        return nothing
+    end
+    
+    if has_capacity(e_discharge)
+        ct.constraint_ref = @constraint(
+            model,
+            [t in time_interval(g)],
+            flow(e_discharge, t) + flow(e_charge, t) <= capacity(e_discharge)
+        )
+    end
 
     return nothing
 end

@@ -27,73 +27,121 @@ using JSON3
 using VegaLite
 ```
 
-We first load the inputs:
+## Quick Start: Using `run_case`
+
+The simplest way to run a Macro case is using the `run_case` function, which handles loading inputs, solving the model, and writing outputs automatically:
 
 ```julia
-system = MacroEnergy.load_system("one_zone_electricity_only");
+using MacroEnergy
+using HiGHS
+
+(case, solution) = run_case(
+    "one_zone_electricity_only",
+    optimizer=HiGHS.Optimizer,
+    optimizer_attributes=("solver" => "ipm", "ipm_optimality_tolerance" => 1e-3, "run_crossover" => "off")
+);
 ```
 
-We are now ready to generate the Macro capacity expansion model. Because Macro is designed to be solved by [high performance decomposition algorithms](https://arxiv.org/abs/2403.02559), the model formulation has a specific block structure that can be exploited by these schemes. In the case of 3 operational sub-periods, the block structure looks like this:
+This returns:
+- `case`: A `Case` object containing a vector of solved `System` objects (one per period)
+- `solution`: The solution object (a `Model` for Monolithic, `MyopicResults` for Myopic, or `BendersResults` for Benders)
 
-![model_structure](../images/model_structure.png)
+You can customize the optimizer and other settings:
 
 ```julia
-model = MacroEnergy.generate_model(system)
+using MacroEnergy
+using Gurobi
+
+(case, solution) = run_case(
+    "one_zone_electricity_only";
+    optimizer=Gurobi.Optimizer,
+    optimizer_attributes=("Method" => 2, "Crossover" => 0, "BarConvTol" => 1e-3)
+);
 ```
+
+## Step-by-Step: Manual Workflow
+
+For more control over the workflow, you can load, generate, solve, and write outputs separately.
+
+### Loading Inputs
+
+We first load the inputs using `load_case`, which returns a `Case` object containing one or more systems (for multi-period planning):
+
+```julia
+case = load_case("one_zone_electricity_only");
+```
+
+### Setting the Optimizer
 
 Next, we set the optimizer. Note that we are using the open-source LP solver [HiGHS](https://highs.dev/), alternatives include the commercial solvers [Gurobi](https://www.gurobi.com/), [CPLEX](https://www.ibm.com/products/ilog-cplex-optimization-studio), [COPT](https://www.copt.de/).
 
 ```julia
-MacroEnergy.set_optimizer(model, HiGHS.Optimizer);
+optimizer = create_optimizer(HiGHS.Optimizer)
 ```
 
-Finally, we solve the capacity expansion model:
+### Generating and solving the Model
+
+We are now ready to generate and solve the capacity expansion model. Because Macro is designed to be solved by [high performance decomposition algorithms](https://arxiv.org/abs/2403.02559), the model formulation has a specific block structure that can be exploited by these schemes. In the case of 3 operational sub-periods, the block structure looks like this:
+
+![model_structure](../images/model_structure.png)
 
 ```julia
-MacroEnergy.optimize!(model)
+(case, solution) = solve_case(case, optimizer);
 ```
 
-To output the results in a csv file, we can use the following functions:
+### Writing Outputs
+
+To output the results to CSV files, you can use `write_outputs` which writes all results for all periods:
 
 ```julia
-result_dir = joinpath(@__DIR__, "results")
+case_path = "one_zone_electricity_only"
+write_outputs(case_path, case, solution)
+```
+
+Or write individual result types for a specific system:
+
+```julia
+system = case.systems[1];  # Get the first (or only) system
+result_dir = joinpath(case_path, "results")
 mkpath(result_dir)
 
 write_capacity(joinpath(result_dir, "capacity.csv"), system)
 write_costs(joinpath(result_dir, "costs.csv"), system, model)
 write_flow(joinpath(result_dir, "flow.csv"), system)
-
-# Alternative: Write all results at once (legacy function)
-# Creates multiple files: results_capacity.csv.gz, results_flow.csv.gz, etc.
-write_results(result_dir, system, model, settings)
 ```
 
-To only view the results, we can use the following functions:
+### Viewing Results
+
+To view the results without writing to files, use the following functions:
 
 ```julia
+system = case.systems[1];  # Get the first (or only) system
+
 get_optimal_capacity(system)
+get_optimal_new_capacity(system)
 get_optimal_retired_capacity(system)
-get_optimal_flows(system)
-get_optimal_undiscounted_costs(model)
-get_optimal_flows(system)
+get_optimal_flow(system)
+get_optimal_discounted_costs(solution)
 ```
 
 The total system cost (in dollars) is:
 
 ```julia
-MacroEnergy.objective_value(model)
+MacroEnergy.objective_value(solution)
 ```
 
 and the total emissions (in metric tonnes) are:
 
 ```julia
-co2_node = MacroEnergy.get_nodes_sametype(system.locations, CO2)[1]
-MacroEnergy.value(sum(co2_node.operation_expr[:emissions]))
+system = case.systems[1];  # Get the first (or only) system
+co2_node = MacroEnergy.find_node(system.locations, :co2_sink);
+MacroEnergy.value.(sum(MacroEnergy.get_balance(co2_node, :emissions)))
 ```
 
 We can also plot the electricity generation results using `VegaLite.jl`:
 
 ```julia
+system = case.systems[1];  # Get the first (or only) system
 plot_time_interval = 3600:3624
 natgas_power = MacroEnergy.value.(MacroEnergy.flow(system.assets[2].elec_edge)).data[plot_time_interval] / 1e3;
 solar_power = MacroEnergy.value.(MacroEnergy.flow(system.assets[3].edge)).data[plot_time_interval] / 1e3;
@@ -146,52 +194,65 @@ Open file `one_zone_electricity_only/system/nodes.json`, go to the bottom of the
     ]
 }
 ```
-Then, you need to re-load the inputs:
+
+**Quick approach using `run_case`:**
+
 ```julia
-system = MacroEnergy.load_system("one_zone_electricity_only");
+(case, solution) = run_case("one_zone_electricity_only");
 ```
-generate the Macro model:
+
+**Manual approach for more control:**
+
+Re-load the inputs:
+
 ```julia
-model = MacroEnergy.generate_model(system);
+case = load_case("one_zone_electricity_only");
 ```
-and solve it:
+
+Solve the model:
+
 ```julia
-MacroEnergy.set_optimizer(model, HiGHS.Optimizer);
-MacroEnergy.optimize!(model)
+(case, solution) = solve_case(case, optimizer);
 ```
+
 We can check the results by printing the total system cost:
+
 ```julia
-MacroEnergy.objective_value(model)
+MacroEnergy.objective_value(solution)
 ```
+
 and the new emissions (which should be zero):
+
 ```julia
-co2_node = MacroEnergy.get_nodes_sametype(system.locations, CO2)[1]
-MacroEnergy.value(sum(co2_node.operation_expr[:emissions]))
+system = case.systems[1];
+co2_node = MacroEnergy.find_node(system.locations, :co2_sink);
+MacroEnergy.value.(sum(MacroEnergy.get_balance(co2_node, :emissions)))
 ```
+
 Finally, we plot the generation results:
+
 ```julia
+system = case.systems[1];
 plot_time_interval = 3600:3624
-natgas_power =  MacroEnergy.value.(MacroEnergy.flow(system.assets[2].elec_edge)).data[plot_time_interval]/1e3;
-solar_power = MacroEnergy.value.(MacroEnergy.flow(system.assets[3].edge)).data[plot_time_interval]/1e3;
-wind_power = MacroEnergy.value.(MacroEnergy.flow(system.assets[4].edge)).data[plot_time_interval]/1e3;
+natgas_power = MacroEnergy.value.(MacroEnergy.flow(system.assets[2].elec_edge)).data[plot_time_interval] / 1e3;
+solar_power = MacroEnergy.value.(MacroEnergy.flow(system.assets[3].edge)).data[plot_time_interval] / 1e3;
+wind_power = MacroEnergy.value.(MacroEnergy.flow(system.assets[4].edge)).data[plot_time_interval] / 1e3;
 
-elec_gen =  DataFrame( hours = plot_time_interval, 
-                solar_photovoltaic = solar_power,
-                wind_turbine = wind_power,
-                natural_gas_fired_combined_cycle = natgas_power,
-                )
+elec_gen = DataFrame(hours=plot_time_interval, 
+    solar_photovoltaic=solar_power,
+    wind_turbine=wind_power,
+    natural_gas_fired_combined_cycle=natgas_power,
+)
 
-stack_elec_gen = stack(elec_gen, [:natural_gas_fired_combined_cycle,:wind_turbine,:solar_photovoltaic], variable_name=:resource, value_name=:generation);
+stack_elec_gen = stack(elec_gen, [:natural_gas_fired_combined_cycle, :wind_turbine, :solar_photovoltaic], variable_name=:resource, value_name=:generation);
 
 elc_plot = stack_elec_gen |> 
 @vlplot(
     :area,
     x={:hours, title="Hours"},
-    y={:generation, title="Electricity generation (GWh)",stack=:zero},
+    y={:generation, title="Electricity generation (GWh)", stack=:zero},
     color={"resource:n", scale={scheme=:category10}},
     width=400,
     height=300
 )
 ```
-
-

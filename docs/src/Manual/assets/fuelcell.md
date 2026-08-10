@@ -94,7 +94,7 @@ The following tables outline the attributes that can be set for a fuel cell asse
 ### Essential Attributes
 | Field | Type | Description |
 |--------------|---------|------------|
-| `Type` | String | Asset type identifier: "FuelCell" |
+| `type` | String | Asset type identifier: "FuelCell" |
 | `id` | String | Unique identifier for the fuel cell instance |
 | `location` | String | Geographic location/node identifier |
 
@@ -185,8 +185,8 @@ The `FuelCell` asset is defined as follows:
 struct FuelCell <: AbstractAsset
     id::AssetId
     fuelcell_transform::Transformation
-    h2_edge::Edge{<:Hydrogen}
-    elec_edge::Edge{<:Electricity}
+    h2_edge::UnidirectionalEdge{<:Hydrogen}
+    elec_edge::UnidirectionalEdge{<:Electricity}
 end
 ```
 
@@ -195,7 +195,7 @@ end
 ### Default constructor
 
 ```julia
-FuelCell(id::AssetId, fuelcell_transform::Transformation, h2_edge::Edge{<:Hydrogen}, elec_edge::Edge{<:Electricity})
+FuelCell(id::AssetId, fuelcell_transform::Transformation, h2_edge::UnidirectionalEdge{<:Hydrogen}, elec_edge::UnidirectionalEdge{<:Electricity})
 ```
 
 ### Factory constructor

@@ -131,7 +131,7 @@ The following tables outline the attributes that can be set for a thermal power 
 ### Essential Attributes
 | Field | Type | Description |
 |--------------|---------|------------|
-| `Type` | String | Asset type identifier: "ThermalPower" or "ThermalPowerCCS" |
+| `type` | String | Asset type identifier: "ThermalPower" or "ThermalPowerCCS" |
 | `id` | String | Unique identifier for the thermal power plant instance |
 | `location` | String | Geographic location/node identifier |
 | `fuel_commodity` | String | Fuel commodity identifier |
@@ -264,18 +264,18 @@ The `ThermalPower` and `ThermalPowerCCS` assets are defined as follows:
 struct ThermalPower{T} <: AbstractAsset
     id::AssetId
     thermal_transform::Transformation
-    elec_edge::Union{Edge{<:Electricity},EdgeWithUC{<:Electricity}}
-    fuel_edge::Edge{<:T}
-    co2_edge::Edge{<:CO2}
+    elec_edge::Union{UnidirectionalEdge{<:Electricity},EdgeWithUC{<:Electricity}}
+    fuel_edge::UnidirectionalEdge{<:T}
+    co2_edge::UnidirectionalEdge{<:CO2}
 end
 
 struct ThermalPowerCCS{T} <: AbstractAsset
     id::AssetId
     thermalpowerccs_transform::Transformation
-    elec_edge::Union{Edge{<:Electricity},EdgeWithUC{<:Electricity}}
-    fuel_edge::Edge{<:T}
-    co2_edge::Edge{<:CO2}
-    co2_captured_edge::Edge{<:CO2Captured}
+    elec_edge::Union{UnidirectionalEdge{<:Electricity},EdgeWithUC{<:Electricity}}
+    fuel_edge::UnidirectionalEdge{<:T}
+    co2_edge::UnidirectionalEdge{<:CO2}
+    co2_captured_edge::UnidirectionalEdge{<:CO2Captured}
 end
 ```
 
@@ -284,9 +284,9 @@ end
 ### Default constructor
 
 ```julia
-ThermalPower(id::AssetId, thermal_transform::Transformation, elec_edge::Union{Edge{<:Electricity},EdgeWithUC{<:Electricity}}, fuel_edge::Edge{<:Fuel}, co2_edge::Edge{<:CO2})
+ThermalPower(id::AssetId, thermal_transform::Transformation, elec_edge::Union{UnidirectionalEdge{<:Electricity},EdgeWithUC{<:Electricity}}, fuel_edge::UnidirectionalEdge{<:Fuel}, co2_edge::UnidirectionalEdge{<:CO2})
 
-ThermalPowerCCS(id::AssetId, thermalpowerccs_transform::Transformation, elec_edge::Union{Edge{<:Electricity},EdgeWithUC{<:Electricity}}, fuel_edge::Edge{<:Fuel}, co2_edge::Edge{<:CO2}, co2_captured_edge::Edge{<:CO2Captured})
+ThermalPowerCCS(id::AssetId, thermalpowerccs_transform::Transformation, elec_edge::Union{UnidirectionalEdge{<:Electricity},EdgeWithUC{<:Electricity}}, fuel_edge::UnidirectionalEdge{<:Fuel}, co2_edge::UnidirectionalEdge{<:CO2}, co2_captured_edge::UnidirectionalEdge{<:CO2Captured})
 ```
 
 ### Factory constructor

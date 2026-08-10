@@ -20,7 +20,7 @@ Creating and running a model with Macro can be done without knowing Julia progra
 2. [Create a Macro System](@ref "Creating a new System") and add the Assets and Locations required to represent your real-world system. Import your data into your System.
 3. [Add policy constraints to your System.](@ref "Adding Policy Constraints to a System")
 4. [Configure the settings for your System.](@ref "Configuring Settings")
-5. [Run your case](@ref "Run a Macro Model"), to optimize the design and operation of your System.
+5. [Run your case](@ref "Running a Macro Model"), to optimize the design and operation of your System.
 6. Analyze the results.
 
 From there you might run a sensitivity study on your results by changing some of your input data, adding or removing an Asset, or changing one of System policies.

@@ -49,7 +49,8 @@
                         "can_expand": true,
                         "constraints": {
                             "StorageDischargeLimitConstraint": true,
-                            "CapacityConstraint": true
+                            "CapacityConstraint": true,
+                            "StorageChargeLimitConstraint": true
                         },
                         "min_capacity": 0,
                         "fixed_om_cost": 4895,
@@ -109,7 +110,8 @@
                         "can_expand": true,
                         "constraints": {
                             "StorageDischargeLimitConstraint": true,
-                            "CapacityConstraint": true
+                            "CapacityConstraint": true,
+                            "StorageChargeLimitConstraint": true
                         },
                         "min_capacity": 0,
                         "fixed_om_cost": 4895,
@@ -169,7 +171,8 @@
                         "can_expand": true,
                         "constraints": {
                             "StorageDischargeLimitConstraint": true,
-                            "CapacityConstraint": true
+                            "CapacityConstraint": true,
+                            "StorageChargeLimitConstraint": true
                         },
                         "min_capacity": 0,
                         "fixed_om_cost": 4895,

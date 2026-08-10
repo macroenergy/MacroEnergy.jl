@@ -1,4 +1,4 @@
-function generate_operation_subproblem(system::System,include_subproblem_slacks::Bool)
+function generate_operation_subproblem(system::System,case_settings::NamedTuple,include_subproblem_slacks::Bool)
 
     model = Model()
 
@@ -14,25 +14,36 @@ function generate_operation_subproblem(system::System,include_subproblem_slacks:
 
     operation_model!(system, model)
 
-    if include_subproblem_slacks == true
+    if include_subproblem_slacks == true && !haskey(model, :myslack_max)
         @info("Adding slack variables to ensure subproblems are always feasible")
         slack_penalty = 2*maximum(coefficient(model[:eVariableCost],v) for v in all_variables(model))
-        eq_cons_to_be_relaxed =  get_all_balance_constraints(system);
-        less_ineq_cons_to_be_relaxed = get_all_policy_constraints(system);
+        
+        eq_cons_to_be_relaxed =  get_ldes_constraints_to_relax(system);
+        less_ineq_cons_to_be_relaxed = get_policy_constraints_to_relax(system);
         greater_ineq_cons_to_be_relaxed = get_all_capacity_reserve_margin_constraints(system);
         add_slack_variables!(model,slack_penalty,eq_cons_to_be_relaxed,less_ineq_cons_to_be_relaxed,greater_ineq_cons_to_be_relaxed)
     end
+    
+    period_index = system.time_data[:Electricity].period_index
 
-    @objective(model, Min, model[:eVariableCost])
+    period_lengths = collect(case_settings.PeriodLengths)
+
+    discount_rate = case_settings.DiscountRate
+
+    discount_factor = present_value_factor(discount_rate, period_lengths)
+    
+    opexmult = present_value_annuity_factor.(discount_rate, period_lengths)
+
+    @objective(model, Min, discount_factor[period_index] * opexmult[period_index] * model[:eVariableCost])
 
     return model, linking_variables
 
 
 end
 
-function initialize_subproblem(system::Any,optimizer::Optimizer,include_subproblem_slacks::Bool)
+function initialize_subproblem(system::Any,optimizer::Optimizer,case_settings::NamedTuple,include_subproblem_slacks::Bool)
     
-    subproblem,linking_variables_sub = generate_operation_subproblem(system,include_subproblem_slacks);
+    subproblem,linking_variables_sub = generate_operation_subproblem(system,case_settings,include_subproblem_slacks);
 
     set_optimizer(subproblem, optimizer)
 
@@ -46,12 +57,12 @@ function initialize_subproblem(system::Any,optimizer::Optimizer,include_subprobl
     return subproblem,linking_variables_sub
 end
 
-function initialize_local_subproblems!(system_local::Vector,subproblems_local::Vector{Dict{Any,Any}},local_indices::UnitRange{Int64},optimizer::Optimizer,include_subproblem_slacks)
+function initialize_local_subproblems!(system_local::Vector,subproblems_local::Vector{Dict{Any,Any}},local_indices::UnitRange{Int64},optimizer::Optimizer,case_settings::NamedTuple, include_subproblem_slacks)
 
     nW = length(system_local)
 
     for i=1:nW
-		subproblem,linking_variables_sub = initialize_subproblem(system_local[i],optimizer,include_subproblem_slacks::Bool);
+		subproblem,linking_variables_sub = initialize_subproblem(system_local[i],optimizer,case_settings,include_subproblem_slacks::Bool);
         subproblems_local[i][:model] = subproblem;
         subproblems_local[i][:linking_variables_sub] = linking_variables_sub;
         subproblems_local[i][:subproblem_index] = local_indices[i];
@@ -59,18 +70,18 @@ function initialize_local_subproblems!(system_local::Vector,subproblems_local::V
     end
 end
 
-function initialize_subproblems!(system_decomp::Vector,opt::Dict,distributed_bool::Bool,include_subproblem_slacks::Bool)
+function generate_subproblems(system_decomp::Vector,opt::Dict,case_settings::NamedTuple,distributed_bool::Bool,include_subproblem_slacks::Bool)
     
     if distributed_bool
-        subproblems, linking_variables_sub = initialize_dist_subproblems!(system_decomp,opt,include_subproblem_slacks)
+        subproblems, linking_variables_sub = initialize_dist_subproblems!(system_decomp,opt,case_settings,include_subproblem_slacks)
     else
-        subproblems, linking_variables_sub = initialize_serial_subproblems!(system_decomp,opt,include_subproblem_slacks)
+        subproblems, linking_variables_sub = initialize_serial_subproblems!(system_decomp,opt,case_settings,include_subproblem_slacks)
     end
 
     return subproblems, linking_variables_sub
 end
 
-function initialize_dist_subproblems!(system_decomp::Vector,opt::Dict,include_subproblem_slacks::Bool)
+function initialize_dist_subproblems!(system_decomp::Vector,opt::Dict,case_settings::NamedTuple,include_subproblem_slacks::Bool)
 
     ##### Initialize a distributed arrays of JuMP models
 	## Start pre-solve timer
@@ -84,7 +95,7 @@ function initialize_dist_subproblems!(system_decomp::Vector,opt::Dict,include_su
             W_local = localindices(subproblems_all)[1];
             system_local = [system_decomp[k] for k in W_local];
             optimizer = create_optimizer(opt[:solver], opt_env(opt[:solver]), opt[:attributes])
-            initialize_local_subproblems!(system_local,localpart(subproblems_all),W_local,optimizer,include_subproblem_slacks);
+            initialize_local_subproblems!(system_local,localpart(subproblems_all),W_local,optimizer,case_settings,include_subproblem_slacks);
         end
     end
 
@@ -107,7 +118,7 @@ function initialize_dist_subproblems!(system_decomp::Vector,opt::Dict,include_su
 
 end
 
-function initialize_serial_subproblems!(system_decomp::Vector,opt::Dict,include_subproblem_slacks::Bool)
+function initialize_serial_subproblems!(system_decomp::Vector,opt::Dict,case_settings::NamedTuple,include_subproblem_slacks::Bool)
 
     ##### Initialize a array of JuMP models
 	## Start pre-solve timer
@@ -118,7 +129,7 @@ function initialize_serial_subproblems!(system_decomp::Vector,opt::Dict,include_
 
     subproblems_all = [Dict() for i in 1:length(system_decomp)];
 
-    initialize_local_subproblems!(system_decomp,subproblems_all, 1:length(system_decomp),optimizer,include_subproblem_slacks);
+    initialize_local_subproblems!(system_decomp,subproblems_all, 1:length(system_decomp),optimizer,case_settings,include_subproblem_slacks);
 
     linking_variables_sub = [get_local_linking_variables([subproblems_all[k]]) for k in 1:length(system_decomp)];
     linking_variables_sub = merge(linking_variables_sub...);
@@ -205,23 +216,8 @@ function compute_slack_penalty_value(system::System)
 
 end
 
-function get_all_balance_constraints(system::System)
+function get_ldes_constraints_to_relax(system::System)
     balance_constraints = Vector{JuMPConstraint}();
-    for n in system.locations
-        ### Add slacks also when non-served demand is modeled to cover cases where supply is greater than demand
-        if isa(n,Node) #### && isempty(non_served_demand(n)) 
-            for c in n.constraints
-                if isa(c, BalanceConstraint)
-                    for i in balance_ids(n)
-                        for t in time_interval(n)
-                            push!(balance_constraints, c.constraint_ref[i,t])
-                        end
-                    end
-                end
-            end
-        end
-    end 
-
     for a in system.assets
         for t in fieldnames(typeof(a))
             g = getfield(a,t);
@@ -229,9 +225,9 @@ function get_all_balance_constraints(system::System)
                 for c in g.constraints
                     if isa(c, BalanceConstraint)
                         STARTS = [first(sp) for sp in subperiods(g)];
-                        for i in balance_ids(g)
+                        for i in keys(g.balance_data)
                             for t in STARTS
-                                push!(balance_constraints, c.constraint_ref[i,t])
+                                push!(balance_constraints, c.constraint_ref[i][t])
                             end
                         end
                     end
@@ -249,9 +245,8 @@ end
 
 
 function get_all_capacity_reserve_margin_constraints(system::System)
-    # The capacity reserve margin is a >= row that couples the subproblem's linking capacity
-    # variables with its flow variables. A trial capacity vector from the planning problem can leave
-    # it unsatisfiable, so it is relaxed with a penalised slack to keep subproblems feasible.
+# The capacity reserve margin is a >= row that couples the subproblem's linking capacity variables with its flow variables
+# so it is relaxed with a penalised slack to keep subproblems feasible.
     crm_constraints = Vector{ConstraintRef}();
     for c in system.constraints
         if isa(c, CapacityReserveMarginConstraint) && !ismissing(c.constraint_ref)
@@ -268,7 +263,7 @@ function get_all_capacity_reserve_margin_constraints(system::System)
     return crm_constraints
 end
 
-function get_all_policy_constraints(system::System)
+function get_policy_constraints_to_relax(system::System)
     policy_constraints = Vector{JuMPConstraint}();
     for n in system.locations
         if isa(n,Node) && isempty(n.price_unmet_policy)

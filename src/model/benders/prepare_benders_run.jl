@@ -47,20 +47,28 @@ function get_period_to_subproblem_mapping(periods::Vector{System})
             end
         end
     end
-    return period_to_subproblem_map, collect(1:subperiod_count)
+    return period_to_subproblem_map, subperiod_count
     
 end
 
-function start_distributed_processes!(number_of_processes::Int64,case_path::AbstractString)
+function start_distributed_processes!(case_path::AbstractString, number_of_subproblems::Int64; lsf_cpus_per_task::Int64=1)
 
     # rmprocs.(workers())
 
     if haskey(ENV,"SLURM_NTASKS")
-        ntasks = min(number_of_processes,parse(Int, ENV["SLURM_NTASKS"]));
+        parse(Int, ENV["SLURM_NTASKS"]) > number_of_subproblems ? @warn("SLURM_NTASKS is greater than the number of subproblems specified. Only $number_of_subproblems processes will be used.") : nothing
         cpus_per_task = parse(Int, ENV["SLURM_CPUS_PER_TASK"]);
-        addprocs(ClusterManagers.SlurmManager(ntasks);exeflags=["-t $cpus_per_task"])
+        addprocs(SlurmClusterManager.SlurmManager(); exeflags=["-t $cpus_per_task"])
+    elseif haskey(ENV,"LSB_DJOB_NUMPROC")
+        lsb_numproc = parse(Int, ENV["LSB_DJOB_NUMPROC"])
+        if lsb_numproc ÷ lsf_cpus_per_task > number_of_subproblems*lsf_cpus_per_task
+            @warn("LSB_DJOB_NUMPROC is greater than the number of subproblems multiplied by number of CPUs per task: number_of_subproblems = $number_of_subproblems, cpus_per_task = $lsf_cpus_per_task, LSB_DJOB_NUMPROC = $lsb_numproc.
+            Only $number_of_subproblems processes will be used.")
+        end
+        number_of_processes= min(lsb_numproc ÷ lsf_cpus_per_task, number_of_subproblems)
+        addprocs(number_of_processes; exeflags=["-t $lsf_cpus_per_task"])
     else
-        ntasks = min(number_of_processes,Sys.CPU_THREADS)
+        ntasks = min(number_of_subproblems,Sys.CPU_THREADS)
         cpus_per_task = 1;
         addprocs(ntasks)
     end
@@ -95,9 +103,7 @@ function create_worker_process(pid,project,case_path::AbstractString)
         end
     end
 
-    Distributed.remotecall_eval(Main, pid, :(using MacroEnergySolvers))
-
-    additions_path = user_additions_module_path(case_path)
-    Distributed.remotecall_eval(MacroEnergy, pid, :(MacroEnergy.load_user_additions($additions_path)))
+    Distributed.remotecall_eval(MacroEnergy, pid, :(MacroEnergy.load_user_additions($case_path)))
+    Distributed.remotecall_eval(MacroEnergy, pid, :(MacroEnergy.refresh_user_type_registries!()))
 
 end

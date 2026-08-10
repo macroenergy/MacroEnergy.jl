@@ -107,6 +107,7 @@ end
 
 function make(asset_type::Type{ThermalPowerCCS}, data::AbstractDict{Symbol,Any}, system::System)
     id = AssetId(data[:id])
+    location = as_symbol_or_missing(get(data, :location, missing))
 
     @setup_data(asset_type, data, id)
 
@@ -124,6 +125,7 @@ function make(asset_type::Type{ThermalPowerCCS}, data::AbstractDict{Symbol,Any},
     thermalccs_transform = Transformation(;
         id = Symbol(id, "_", thermalccs_key),
         timedata = system.time_data[Symbol(transform_data[:timedata])],
+        location = location,
         constraints = get(transform_data, :constraints, [BalanceConstraint()]),
     )
 
@@ -247,25 +249,20 @@ function make(asset_type::Type{ThermalPowerCCS}, data::AbstractDict{Symbol,Any},
         co2_captured_end_node,
     )
 
-    thermalccs_transform.balance_data = Dict(
-        :energy => Dict(
-            elec_edge.id => get(transform_data, :fuel_consumption, 1.0),
-            fuel_edge.id => 1.0,
-            co2_edge.id => 0.0,
-            co2_captured_edge.id => 0.0,
-        ),
-        :emissions => Dict(
-            fuel_edge.id => get(transform_data, :emission_rate, 0.0),
-            co2_edge.id => 1.0,
-            elec_edge.id => 0.0,
-            co2_captured_edge.id => 0.0,
-        ),
-        :capture => Dict(
-            fuel_edge.id => get(transform_data, :capture_rate, 0.0),
-            co2_edge.id => 0.0,
-            elec_edge.id => 0.0,
-            co2_captured_edge.id => 1.0,
-        ),
+    @add_balance(
+        thermalccs_transform,
+        :energy,
+        flow(fuel_edge) == get(transform_data, :fuel_consumption, 1.0) * flow(elec_edge)
+    )
+    @add_balance(
+        thermalccs_transform,
+        :emissions,
+        get(transform_data, :emission_rate, 0.0) * flow(fuel_edge) == flow(co2_edge)
+    )
+    @add_balance(
+        thermalccs_transform,
+        :capture,
+        get(transform_data, :capture_rate, 0.0) * flow(fuel_edge) == flow(co2_captured_edge)
     )
 
     return ThermalPowerCCS(id, thermalccs_transform, elec_edge, fuel_edge, co2_edge, co2_captured_edge)

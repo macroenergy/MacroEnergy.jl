@@ -5,7 +5,7 @@ Base.@kwdef mutable struct RampingLimitConstraint <: OperationConstraint
 end
 
 @doc raw"""
-    add_model_constraint!(ct::RampingLimitConstraint, e::Edge, model::Model)
+    add_model_constraint!(ct::RampingLimitConstraint, e::EdgeWithoutUC, model::Model)
 
 Add a ramping limit constraint to the edge `e`. The functional form of the ramping up limit constraint is:
 
@@ -23,35 +23,41 @@ On the other hand, the ramping down limit constraint is:
 ```
 for each time `t` in `time_interval(e)` for the edge `e`. The function [`timestepbefore`](@ref) is used to perform the time wrapping within the subperiods and get the correct time step before `t`.
 """
-function add_model_constraint!(ct::RampingLimitConstraint, e::Edge, model::Model)
+function add_model_constraint!(ct::RampingLimitConstraint, e::EdgeWithoutUC, model::Model)
 
-    #### For now these are set to zero because we are not modeling reserves
-    reserves_term = @expression(model, [t in time_interval(e)], 0 * model[:vREF])
-    regulation_term = @expression(model, [t in time_interval(e)], 0 * model[:vREF])
+    if !has_capacity(e)
+        @warn "Edge $(id(e)) does not have capacity. Ignoring ramping limit constraint."
+        return nothing
+    end
+    if has_capacity(e)
+        #### For now these are set to zero because we are not modeling reserves
+        reserves_term = @expression(model, [t in time_interval(e)], 0 * model[:vREF])
+        regulation_term = @expression(model, [t in time_interval(e)], 0 * model[:vREF])
 
-    eRampUp = @expression(
-        model,
-        [t in time_interval(e)],
-        flow(e, t) - flow(e, timestepbefore(t, 1, subperiods(e))) +
-        regulation_term[t] +
-        reserves_term[t] - ramp_up_fraction(e) * capacity(e)
-    )
+        eRampUp = @expression(
+            model,
+            [t in time_interval(e)],
+            flow(e, t) - flow(e, timestepbefore(t, 1, subperiods(e))) +
+            regulation_term[t] +
+            reserves_term[t] - ramp_up_fraction(e) * capacity(e)
+        )
 
-    eRampDown = @expression(
-        model,
-        [t in time_interval(e)],
-        flow(e, timestepbefore(t, 1, subperiods(e))) - flow(e, t) - regulation_term[t] +
-        reserves_term[timestepbefore(t, 1, subperiods(e))] -
-        ramp_down_fraction(e) * capacity(e)
-    )
+        eRampDown = @expression(
+            model,
+            [t in time_interval(e)],
+            flow(e, timestepbefore(t, 1, subperiods(e))) - flow(e, t) - regulation_term[t] +
+            reserves_term[timestepbefore(t, 1, subperiods(e))] -
+            ramp_down_fraction(e) * capacity(e)
+        )
 
-    ramp_expr_dict = Dict(:RampUp => eRampUp, :RampDown => eRampDown)
+        ramp_expr_dict = Dict(:RampUp => eRampUp, :RampDown => eRampDown)
 
-    ct.constraint_ref = @constraint(
-        model,
-        [s in [:RampUp, :RampDown], t in time_interval(e)],
-        ramp_expr_dict[s][t] <= 0
-    )
+        ct.constraint_ref = @constraint(
+            model,
+            [s in [:RampUp, :RampDown], t in time_interval(e)],
+            ramp_expr_dict[s][t] <= 0
+        )
+    end
 
     return nothing
 end

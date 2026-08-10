@@ -84,6 +84,7 @@ end
 
 function make(asset_type::Type{BECCSGasoline}, data::AbstractDict{Symbol,Any}, system::System)
     id = AssetId(data[:id])
+    location = as_symbol_or_missing(get(data, :location, missing))
 
     @setup_data(asset_type, data, id)
 
@@ -101,6 +102,7 @@ function make(asset_type::Type{BECCSGasoline}, data::AbstractDict{Symbol,Any}, s
     beccs_transform = Transformation(;
         id = Symbol(id, "_", beccs_transform_key),
         timedata = system.time_data[Symbol(transform_data[:timedata])],
+        location = location,
         constraints = transform_data[:constraints],
     )
 
@@ -264,27 +266,30 @@ function make(asset_type::Type{BECCSGasoline}, data::AbstractDict{Symbol,Any}, s
         co2_captured_end_node,
     )
 
-    beccs_transform.balance_data = Dict(
-        :gasoline_production => Dict(
-            gasoline_edge.id => 1.0,
-            biomass_edge.id => get(transform_data, :gasoline_production, 0.0)
-        ),
-        :elec_consumption => Dict(
-            elec_edge.id => -1.0,
-            biomass_edge.id => get(transform_data, :electricity_consumption, 0.0)
-        ),
-        :negative_emissions => Dict(
-            biomass_edge.id => get(transform_data, :co2_content, 0.0),
-            co2_edge.id => -1.0
-        ),
-        :emissions => Dict(
-            biomass_edge.id => get(transform_data, :emission_rate, 1.0),
-            co2_emission_edge.id => 1.0
-        ),
-        :capture =>Dict(
-            biomass_edge.id => get(transform_data, :capture_rate, 1.0),
-            co2_captured_edge.id => 1.0
-        )
+    @add_balance(
+        beccs_transform,
+        :gasoline_production,
+        get(transform_data, :gasoline_production, 0.0) * flow(biomass_edge) == flow(gasoline_edge)
+    )
+    @add_balance(
+        beccs_transform,
+        :elec_consumption,
+        get(transform_data, :electricity_consumption, 0.0) * flow(biomass_edge) == flow(elec_edge)
+    )
+    @add_balance(
+        beccs_transform,
+        :negative_emissions,
+        get(transform_data, :co2_content, 0.0) * flow(biomass_edge) == flow(co2_edge)
+    )
+    @add_balance(
+        beccs_transform,
+        :emissions,
+        get(transform_data, :emission_rate, 1.0) * flow(biomass_edge) == flow(co2_emission_edge)
+    )
+    @add_balance(
+        beccs_transform,
+        :capture,
+        get(transform_data, :capture_rate, 1.0) * flow(biomass_edge) == flow(co2_captured_edge)
     )
 
     return BECCSGasoline(id, beccs_transform, biomass_edge,gasoline_edge,elec_edge,co2_edge,co2_emission_edge,co2_captured_edge) 

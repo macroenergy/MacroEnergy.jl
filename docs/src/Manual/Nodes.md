@@ -63,51 +63,49 @@ For example, a city Location might contain `Node{Electricity}`, `Node{NaturalGas
 
 ### Network Structure
 
-| Field            | Type           | Description                 | Default |
-|------------------|----------------|-----------------------------|---------|
-| `id`             | Symbol         | Unique identifier           | -       |
-| `location`       | Union{Missing,Symbol} | Location where node is placed | missing |
+| Field      | Type                  | Description                    | Default |
+|------------|-----------------------|--------------------------------|---------|
+| `id`       | `Symbol`              | Unique identifier              | `-`     |
+| `location` | `Union{Missing,Symbol}` | Location where node is placed | `missing` |
 
 ### Demand Parameters
 
-| Field                    | Type                      | Description                           | Units    | Default |
-|--------------------------|---------------------------|---------------------------------------|----------|---------|
-| `demand`                 | Vector{Float64}           | Time-varying demand requirements      |  MWh/hr | Float64[] |
-| `max_nsd`                | Vector{Float64}           | Maximum non-served demand by segment  |  MWh/hr | [0.0]   |
-| `min_nsd`                | Vector{Float64}           | Minimum non-served demand by segment  |  MWh/hr | [0.0]   |
-| `price_nsd`              | Vector{Float64}           | Penalty cost for non-served demand    | \$/MWh    | [0.0]   |
+| Field       | Type              | Description                                             | Units                 | Default     |
+|-------------|-------------------|---------------------------------------------------------|-----------------------|-------------|
+| `demand`    | `Vector{Float64}` | Time-varying demand requirements                        | `MWh/hr`              | `Float64[]` |
+| `max_nsd`   | `Vector{Float64}` | Maximum fraction of demand that can be curtailed, per segment | `fraction $\in$ [0,1]` | `[0.0]`     |
+| `price_nsd` | `Vector{Float64}` | Penalty cost for non-served demand                      | `$/MWh`               | `[0.0]`     |
 
 ### Supply Parameters
 
-| Field                    | Type                      | Description                           | Units    | Default |
-|--------------------------|---------------------------|---------------------------------------|----------|---------|
-| `max_supply`             | Vector{Float64}           | Maximum supply by segment             |  MWh/hr | [0.0]   |
-| `price_supply`           | Vector{Float64}           | Cost of supply by segment             | \$/MWh    | [0.0]   |
-| `price`                  | Vector{Float64}           | Time-varying commodity prices         | \$/MWh    | Float64[] |
+| Field    | Type                               | Description | Units | Default |
+|----------|------------------------------------|-------------|-------|---------|
+| `supply` | `OrderedDict{Symbol,SupplySegment}` | Supply segments keyed by segment name. Each `SupplySegment` stores `price`, `min`, and `max` vectors. | `varies` | `OrderedDict{Symbol,SupplySegment}()` |
+| `price`  | `Vector{Float64}`                  | Effective node price by time step, typically populated during postprocessing from realized supply flows | `$/MWh` | `Float64[]` |
 
 ### Policy Parameters
 
-| Field                    | Type                      | Description                           | Units    | Default |
-|--------------------------|---------------------------|---------------------------------------|----------|---------|
-| `price_unmet_policy`     | Dict{Symbol,Any}          | Penalty costs for unmet policy constraints | varies | Dict{Symbol,Any}() |
-| `rhs_policy`             | Dict{Symbol,Any}          | Right-hand side values for policy constraints | varies | Dict{Symbol,Any}() |
+| Field                 | Type               | Description                                 | Units    | Default                 |
+|-----------------------|--------------------|---------------------------------------------|----------|-------------------------|
+| `price_unmet_policy`  | `Dict{Symbol,Any}` | Penalty costs for unmet policy constraints  | `varies` | `Dict{Symbol,Any}()`    |
+| `rhs_policy`          | `Dict{Symbol,Any}` | Right-hand side values for policy constraints | `varies` | `Dict{Symbol,Any}()`  |
 
 ### Balance and Constraint Tracking (Internal)
 
-| Field                    | Type                      | Description                           | Units    | Default |
-|--------------------------|---------------------------|---------------------------------------|----------|---------|
-| `balance_data`           | Dict{Symbol,Dict{Symbol,Float64}} | Balance equation coefficients | -    | Dict{Symbol,Dict{Symbol,Float64}}() |
-| `constraints`            | Vector{AbstractTypeConstraint} | Additional constraints        | -        | Vector{AbstractTypeConstraint}() |
-| `operation_expr`         | Dict                      | Operational JuMP expressions          | -        | Dict() |
+| Field            | Type                               | Description                    | Units | Default                                |
+|------------------|------------------------------------|--------------------------------|-------|----------------------------------------|
+| `balance_data`   | `Dict{Symbol,Any}` | Balance definitions, normalized internally to `BalanceData` | `-`   | `Dict{Symbol,Any}()` |
+| `constraints`    | `Vector{AbstractTypeConstraint}`   | Additional constraints         | `-`   | `Vector{AbstractTypeConstraint}()`     |
+| `operation_expr` | `Dict`                             | Operational JuMP expressions   | `-`   | `Dict()`                               |
 
 ### Operational Variables (Internal)
 
-| Field                    | Type                      | Description                           | Units    | Default |
-|--------------------------|---------------------------|---------------------------------------|----------|---------|
-| `non_served_demand`      | JuMPVariable              | Non-served demand variables           |  MWh/hr | Matrix{VariableRef}(undef, 0, 0) |
-| `supply_flow`            | JuMPVariable              | Supply flow variables                 |  MWh/hr | Matrix{VariableRef}(undef, 0, 0) |
-| `policy_budgeting_vars`  | Dict                      | Policy constraint budgeting variables | varies   | Dict() |
-| `policy_slack_vars`      | Dict                      | Policy constraint slack variables     | varies   | Dict() |
+| Field                   | Type           | Description                           | Units    | Default                             |
+|-------------------------|----------------|---------------------------------------|----------|-------------------------------------|
+| `non_served_demand`     | `JuMPVariable` | Non-served demand variables           | `MWh/hr` | `Matrix{VariableRef}(undef, 0, 0)` |
+| `supply_flow`           | `JuMPVariable` | Supply flow variables                 | `MWh/hr` | `Matrix{VariableRef}(undef, 0, 0)` |
+| `policy_budgeting_vars` | `Dict`         | Policy constraint budgeting variables | `varies` | `Dict()`                            |
+| `policy_slack_vars`     | `Dict`         | Policy constraint slack variables     | `varies` | `Dict()`                            |
 
 ## [Types](@id manual-nodes-types)
 
@@ -138,17 +136,17 @@ Node{T}(; id::Symbol, timedata::TimeData, [additional_fields...])
 
 Direct constructor using keyword arguments for all fields, where `T` is the type of commodity flowing through the Node, e.g. `Electricity`, `NaturalGas`, etc.
 
-| Parameter   | Type                         | Description                           | Required |
-|-------------|------------------------------|---------------------------------------|----------|
-| `id`        | Symbol                       | Unique identifier                     | Yes      |
-| `timedata`  | TimeData                     | Time-related data structure           | Yes      |
-| `location`  | Union{Missing, Symbol}       | Location identifier                   | No       |
-| `demand`    | Vector{Float64}              | Time-varying demand                   | No       |
-| `max_supply`| Vector{Float64}              | Maximum supply by segment             | No       |
-| `price`     | Vector{Float64}              | Time-varying prices                   | No       |
-| `max_nsd`   | Vector{Float64}              | Maximum non-served demand segments    | No       |
-| `price_nsd` | Vector{Float64}              | Penalty prices for non-served demand  | No       |
-| `...`       | Various                      | Additional node-specific fields       | No       |
+| Parameter | Type | Description | Required |
+|-----------|------|-------------|----------|
+| `id` | `Symbol` | Unique identifier | `Yes` |
+| `timedata` | `TimeData` | Time-related data structure | `Yes` |
+| `location` | `Union{Missing, Symbol}` | Location identifier | `No` |
+| `demand` | `Vector{Float64}` | Time-varying demand | `No` |
+| `supply` | `OrderedDict{Symbol,SupplySegment}` | Supply segments keyed by segment name | `No` |
+| `price` | `Vector{Float64}` | Effective node price vector, usually populated during postprocessing rather than supplied directly | `No` |
+| `max_nsd` | `Vector{Float64}` | Maximum non-served demand segments | `No` |
+| `price_nsd` | `Vector{Float64}` | Penalty prices for non-served demand | `No` |
+| `...` | `Various` | Additional node-specific fields | `No` |
 
 ### Primary Constructors
 
@@ -191,10 +189,7 @@ Methods for accessing node data and properties.
 |--------|-------------|-------------|
 | `id(n::Node)` | Get node identifier | `Symbol` |
 | `commodity_type(n::Node{T})` | Get commodity type parameter | `DataType` |
-| `demand(n::Node)` | Get full demand vector | `Vector{Float64}` |
-| `demand(n::Node, t::Int64)` | Get demand at time period t | `Float64` |
-| `price(n::Node)` | Get full price vector | `Vector{Float64}` |
-| `price(n::Node, t::Int64)` | Get price at time period t | `Float64` |
+
 
 ### Demand and Non-Served Demand Methods
 
@@ -202,6 +197,8 @@ Methods for managing demand requirements and non-served demand.
 
 | Method | Description | Return Type |
 |--------|-------------|-------------|
+| `demand(n::Node)` | Get full demand vector | `Vector{Float64}` |
+| `demand(n::Node, t::Int64)` | Get demand at time period t | `Float64` |
 | `max_non_served_demand(n::Node)` | Get maximum non-served demand by segment | `Vector{Float64}` |
 | `max_non_served_demand(n::Node, s::Int64)` | Get maximum non-served demand for segment s | `Float64` |
 | `non_served_demand(n::Node)` | Get non-served demand variables | `JuMPVariable` |
@@ -216,12 +213,22 @@ Methods for managing supply capabilities and flows.
 
 | Method | Description | Return Type |
 |--------|-------------|-------------|
-| `max_supply(n::Node)` | Get maximum supply by segment | `Vector{Float64}` |
-| `max_supply(n::Node, s::Int64)` | Get maximum supply for segment s | `Float64` |
+| `supply(n::Node)` | Get the ordered mapping of supply segment names to `SupplySegment`s | `OrderedDict{Symbol,SupplySegment}` |
+| `supply_segment_names(n::Node)` | Get ordered supply segment names | `Vector{Symbol}` |
+| `supply_segment_name(n::Node, s::Int64)` | Get the name of supply segment s | `Symbol` |
+| `min_supply(n::Node)` | Get minimum supply vectors by segment | `Vector{Vector{Float64}}` |
+| `min_supply(n::Node, s::Int64)` | Get the min supply vector for segment s | `Vector{Float64}` |
+| `min_supply(n::Node, s::Int64, t::Int64)` | Get minimum supply for segment s at time t, reusing the first value if the vector length is 1 | `Float64` |
+| `max_supply(n::Node)` | Get maximum supply vectors by segment | `Vector{Vector{Float64}}` |
+| `max_supply(n::Node, s::Int64)` | Get the max supply vector for segment s | `Vector{Float64}` |
+| `max_supply(n::Node, s::Int64, t::Int64)` | Get maximum supply for segment s at time t, reusing the first value if the vector length is 1 | `Float64` |
 | `supply_flow(n::Node)` | Get supply flow variables | `JuMPVariable` |
 | `supply_flow(n::Node, s::Int64, t::Int64)` | Get supply flow for segment s at time t | `VariableRef` |
-| `price_supply(n::Node, s::Int64)` | Get supply price for segment s | `Float64` |
+| `price_supply(n::Node, s::Int64)` | Get the supply price vector for segment s | `Vector{Float64}` |
+| `price_supply(n::Node, s::Int64, t::Int64)` | Get supply price for segment s at time t, reusing the first value if the vector length is 1 | `Float64` |
 | `supply_segments(n::Node)` | Get range of supply segments | `Base.OneTo{Int64}` |
+| `price(n::Node)` | Get the full node price vector | `Vector{Float64}` |
+| `price(n::Node, t::Int64)` | Get the node price at time period t | `Float64` |
 
 ### Policy Methods
 
@@ -260,6 +267,24 @@ Methods used internally during model construction.
 | `define_available_capacity!(n::Node, model::Model)` | Define available capacity constraints | `Nothing` |
 | `planning_model!(n::Node, model::Model)` | Add planning model constraints | `Nothing` |
 | `operation_model!(n::Node, model::Model)` | Add operational model constraints | `Nothing` |
+
+### Postprocessing
+
+After optimization, `Node.price` is populated during postprocessing for supply nodes. This postprocessed price is an effective realized price, not a direct optimization input like `price_supply`.
+
+For each time step `t`, Macro computes the realized node price as the weighted average cost of the supply segments actually used at that node:
+
+$$
+	ext{price}(t) = \frac{\sum_s \text{price\_supply}(s,t) \cdot \text{supply\_flow}(s,t)}{\sum_s \text{supply\_flow}(s,t)}
+$$
+
+If no supply is used in a time step, the postprocessed node price is set to `0.0` for that time step. If a node has no supply segments or no realized supply-flow variables, the full `price` vector is set to zeros.
+
+This makes `price(n::Node, t)` a convenient summary of the realized marginal-like cost of exogenous supply at the node, while `price_supply` remains the canonical per-segment input data used in the optimization model.
+
+| Method | Description | Return Type |
+|--------|-------------|-------------|
+| `postprocess!(n::Node, solution)` | Compute effective node prices from realized supply flows and write them into `n.price` | `Nothing` |
 
 ### Utility Methods
 
@@ -338,7 +363,9 @@ Lastly, we have added `location` fields to both Nodes. This is not required but 
 
 Nodes can also be used to supply Commodities from outside your System. Here, we define two Biomass Nodes which are used to supply biomass to the System for use as fuel. As in the previous example, we have used a mixture of `global_data` and `instance_data` to define the Nodes. We have also added both to Locations so that other components can connect to them by Location rather than by Node ID.
 
-Adding external supply is similar to adding demand, but we use the `max_supply` and `price_supply` fields and there is no need to add constraints beyong the basic `BalanceConstraint`. The `max_supply` field is a vector of the maximum number of units which can be supplied each time step for each segment. These are individual segments of supply, not cumulative supply. The `price_supply` field is a vector of prices per unit for each segment. We recommend listing the segments in order of increasing price. This is not necessary for Macro to handle them correctly but will make the results easier to interpret.
+Adding external supply is similar to adding demand, but we use the `supply` field and there is no need to add constraints beyond the basic `BalanceConstraint`. Supply is organized into named segments. Each segment contains a `price` vector, a `max` vector, and optionally a `min` vector. If any of these vectors has length `1`, that value is reused for every modeled time step. Omitted `min` entries default to `0.0`, omitted `max` entries default to `Inf`, and Macro validates that `min <= max` for every segment and time step. These are individual segments of supply, not cumulative supply. We recommend listing the segments in order of increasing price. This is not necessary for Macro to handle them correctly but will make the results easier to interpret.
+
+The preferred input format uses a single `supply` object keyed by segment name:
 
 ```json
 {
@@ -353,34 +380,46 @@ Adding external supply is similar to adding demand, but we use the `max_supply` 
         {
             "id": "boston_bioherb",
             "location": "boston",
-            "max_supply": [
-                3000.0,
-                1000.0,
-                2000.0
-            ],
-            "price_supply": [
-                80.0,
-                100.0,
-                150.0
-            ]
+            "supply": {
+                "base": {
+                    "price": [80.0],
+                    "min": [250.0],
+                    "max": [3000.0]
+                },
+                "mid": {
+                    "price": [100.0],
+                    "max": [1000.0]
+                },
+                "peak": {
+                    "price": [150.0],
+                    "max": [2000.0]
+                }
+            }
         },
         {
             "id": "princeton_bioherb",
             "location": "princeton",
-            "max_supply": [
-                500.0,
-                3000.0,
-                1000.0
-            ],
-            "price_supply": [
-                80.0,
-                100.0,
-                150.0
-            ]
+            "supply": {
+                "base": {
+                    "price": [80.0],
+                    "min": [100.0],
+                    "max": [500.0]
+                },
+                "mid": {
+                    "price": [100.0],
+                    "max": [3000.0]
+                },
+                "peak": {
+                    "price": [150.0],
+                    "max": [1000.0]
+                }
+            }
         }
     ]
 }           
 ```
+
+Legacy `price_supply` / `min_supply` / `max_supply` inputs are still accepted by the load-input schema for compatibility and are converted into this `supply` representation during input processing.
 
 #### Emissions Nodes
 
@@ -388,7 +427,7 @@ Tracking and constraining emissions is an important part of many energy system m
 
 Here we define a `co2_sink` Node which we will use to track all `CO2` emissions in our System. We have added a `CO2CapConstraint` and set its right-hand side (RHS) value to 0, meaning the CO2 flows at this Node must net to zero over the period of operations.
 
-Becasue this is a common way to formulate emissions tracking, we have made the `co2_sink` ID a special case in Macro. Most emitting Assets have the ability to automatically connect their `Edge{CO2}` emissions flows to a `co2_sink` Node if it exists in the System.
+Becasue this is a common way to formulate emissions tracking, we have made the `co2_sink` ID a special case in Macro. Most emitting Assets have the ability to automatically connect their `UnidirectionalEdge{CO2}` emissions flows to a `co2_sink` Node if it exists in the System.
 
 In this example we have also added to Nodes to allow for captured CO2 to be sequestered. These `Node{CO2Captured}` Nodes have `CO2StorageConstraint` constraints which allow and limit the tonnes of CO2 that can be injected into each Node annually. The `rhs_policy` field sets the annual limit for each Node, in this case 4,753,600 tonnes for Boston and 5,145,400 tonnes for Princeton.
 
@@ -456,7 +495,7 @@ The [Modellers guide on creating Assets](@ref modeler_create_asset) provides a d
 
 In this example, we create a `StationPowerExample` Asset representing a natural gas power plant with station power requirements. Station power is usually accounted for by the `Transformation` component. The stochiometric balance between the fuel and exported electricity flows will include the station power required to run the pumps, compressors, and other equipment at the plant.
 
-In this case, we will explicitly track the station power using an `Edge{Electricity}` connected to a `Node{Electricity}`. We will add the station power edge as an incoming Edge to the `Transformation`. The stochiometric balance will be used to control the station power required. In the future, we could use the Node to add a fixed station power demand on top of the output-dependent station power.
+In this case, we will explicitly track the station power using an `UnidirectionalEdge{Electricity}` connected to a `Node{Electricity}`. We will add the station power edge as an incoming Edge to the `Transformation`. The stochiometric balance will be used to control the station power required. In the future, we could use the Node to add a fixed station power demand on top of the output-dependent station power.
 
 ```mermaid
 flowchart TD
@@ -480,11 +519,11 @@ struct StationPowerExample <: AbstractAsset
     id::AssetId
     thermal_transform::Transformation
     elec_node::Node{<:Electricity}
-    generated_elec_edge::Union{Edge{<:Electricity},EdgeWithUC{<:Electricity}}
-    station_elec_edge::Edge{<:Electricity}
-    exported_elec_edge::Edge{<:Electricity}
-    fuel_edge::Edge{<:T}
-    co2_edge::Edge{<:CO2}
+    generated_elec_edge::Union{UnidirectionalEdge{<:Electricity},EdgeWithUC{<:Electricity}}
+    station_elec_edge::UnidirectionalEdge{<:Electricity}
+    exported_elec_edge::UnidirectionalEdge{<:Electricity}
+    fuel_edge::UnidirectionalEdge{<:T}
+    co2_edge::UnidirectionalEdge{<:CO2}
 end>
 
 # You will need to define additional constructors and the default inputs here
@@ -514,19 +553,19 @@ function make(asset_type::Type{StationPowerExample}, data::AbstractDict{Symbol,A
     )
 
     generated_elec_key = :generated_elec_edge
-    # ... create an Edge{Electricity} between the Transformation and the Electricity Node
+    # ... create an UnidirectionalEdge{Electricity} between the Transformation and the Electricity Node
 
     station_elec_key = :station_elec_edge
-    # ... create an Edge{Electricity} for the station power, connecting the Node to the Transformation
+    # ... create an UnidirectionalEdge{Electricity} for the station power, connecting the Node to the Transformation
 
     exported_elec_key = :exported_elec_edge
-    # ... create an Edge{Electricity} for the electricity export, connecting the Node to the external demand
+    # ... create an UnidirectionalEdge{Electricity} for the electricity export, connecting the Node to the external demand
 
     fuel_key = :fuel_edge
-    # ... create an Edge{NaturalGas} for the fuel supply, connecting the fuel Node to the Transformation
+    # ... create an UnidirectionalEdge{NaturalGas} for the fuel supply, connecting the fuel Node to the Transformation
 
     co2_key = :co2_edge
-    # ... create an Edge{CO2} for the CO2 emissions, connecting the Transformation to the CO2 sink Node
+    # ... create an UnidirectionalEdge{CO2} for the CO2 emissions, connecting the Transformation to the CO2 sink Node
 
     # ... set up the stochiometric balance between the fuel, station power, and generated electricity flows
 

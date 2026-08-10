@@ -7,7 +7,9 @@ function process_data(data::AbstractDict{Symbol,Any})
     check_and_convert_inf!(data)
     check_and_convert_symbol!(data, :startup_fuel_balance_id)
     check_and_convert_symbol!(data, :capacity_reserve_margin_id)
+    check_and_convert_symbol!(data, :location)
     haskey(data, :demand) && check_and_convert_demand!(data)
+    (haskey(data, :supply) || haskey(data, :price_supply)) && check_and_convert_supply!(data)
     haskey(data, :constraints) && check_and_convert_constraints!(data)
     haskey(data, :rhs_policy) && check_and_convert_rhs_policy!(data)
     haskey(data, :price_unmet_policy) && check_and_convert_price_unmet_policy!(data)
@@ -117,4 +119,46 @@ function check_and_convert_symbol!(data::AbstractDict{Symbol,Any}, key::Symbol)
         data[key] = Symbol(data[key])
     end
     return nothing
+end
+
+# Convert string to Symbol if not missing, otherwise return missing
+function as_symbol_or_missing(x::Union{Missing, AbstractString})::Union{Missing, Symbol}
+    if ismissing(x)
+        return missing
+    end
+    return Symbol(x)
+end
+as_symbol_or_missing(x::Symbol)::Symbol = x
+
+function asnothing(x::Nothing)
+    return nothing
+end
+function asnothing(x::AbstractVector)
+    if isempty(x)
+        return nothing
+    end
+    return x
+end
+function asnothing(x::AbstractDict)
+    if isempty(x)
+        return nothing
+    end
+    return x
+end
+
+function default_segment_names(num_segments::Int)
+    return [Symbol("segment$i") for i in 1:num_segments]
+end
+
+function as_vector(;NumberType=Float64)
+    return NumberType[]
+end
+function as_vector(v::Number; NumberType=Float64)
+    return NumberType[v]
+end
+function as_vector(v::AbstractVector; NumberType=Float64)
+    return NumberType.(v)
+end
+function as_vector(v; NumberType=Float64)
+    throw(ArgumentError("Unexpected value type $(typeof(v)) for as_vector"))
 end

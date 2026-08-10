@@ -19,13 +19,13 @@ macro AbstractStorageBaseAttributes()
         max_capacity::Float64 = $storage_defaults[:max_capacity]
         max_duration::Float64 = $storage_defaults[:max_duration]
         max_new_capacity::Float64 = $storage_defaults[:max_new_capacity]
-        max_storage_level::Float64 = $storage_defaults[:max_storage_level]
+        max_storage_level::Vector{Float64} = $storage_defaults[:max_storage_level]
         min_capacity::Float64 = $storage_defaults[:min_capacity]
         min_duration::Float64 = $storage_defaults[:min_duration]
         min_outflow_fraction::Float64 = $storage_defaults[:min_outflow_fraction]
         min_retired_capacity::Float64 = $storage_defaults[:min_retired_capacity]
         min_retired_capacity_track::Float64 = 0.0
-        min_storage_level::Float64 = $storage_defaults[:min_storage_level]
+        min_storage_level::Vector{Float64} = $storage_defaults[:min_storage_level]
         new_capacity::Union{AffExpr,Float64} = AffExpr(0.0)
         new_capacity_track::Dict{Int64,AffExpr} = Dict(1=>AffExpr(0.0))
         new_units::Union{Missing, JuMPVariable} = missing
@@ -34,8 +34,15 @@ macro AbstractStorageBaseAttributes()
         retirement_period::Int64 = $storage_defaults[:retirement_period]
         retired_units::Union{Missing, JuMPVariable} = missing
         storage_level::JuMPVariable = Vector{VariableRef}()
+        variable_om_cost::Float64 = $storage_defaults[:variable_om_cost]
         wacc::Union{Missing,Float64} = missing
         annualized_investment_cost::Union{Nothing,Float64} = $storage_defaults[:annualized_investment_cost]
+        pv_period_investment_cost::Union{Nothing,Float64} = $storage_defaults[:pv_period_investment_cost]
+        pv_period_fixed_om_cost::Union{Nothing,Float64} = $storage_defaults[:pv_period_fixed_om_cost]
+        pv_period_variable_om_cost::Union{Nothing,Float64} = $storage_defaults[:pv_period_variable_om_cost]
+        cf_period_investment_cost::Union{Nothing,Float64} = $storage_defaults[:cf_period_investment_cost]
+        cf_period_fixed_om_cost::Union{Nothing,Float64} = $storage_defaults[:cf_period_fixed_om_cost]
+        cf_period_variable_om_cost::Union{Nothing,Float64} = $storage_defaults[:cf_period_variable_om_cost]
     end)
 end
 
@@ -47,7 +54,7 @@ end
     # Inherited Attributes
     - id::Symbol: Unique identifier for the storage
     - timedata::TimeData: Time-related data for the storage
-    - balance_data::Dict{Symbol,Dict{Symbol,Float64}}: Dictionary mapping balance equation IDs to coefficients
+    - balance_data::Dict{Symbol,Any}: Dictionary mapping balance equation IDs to balance definitions
     - constraints::Vector{AbstractTypeConstraint}: List of constraints applied to the storage
     - operation_expr::Dict: Dictionary storing operational JuMP expressions for the storage
 
@@ -62,7 +69,6 @@ end
     - existing_capacity::Float64: Initial installed storage capacity
     - fixed_om_cost::Float64: Fixed operation and maintenance costs
     - investment_cost::Float64: CAPEX per unit of new storage capacity
-    - loss_fraction::Float64: Fraction of stored commodity lost at each timestep
     - loss_fraction::Vector{Float64}: Fraction of stored commodity lost at each timestep
     - max_capacity::Float64: Maximum allowed storage capacity
     - max_duration::Float64: Maximum storage duration in hours
@@ -105,6 +111,7 @@ function make_storage(
     data::Dict{Symbol,Any},
     time_data::TimeData,
     commodity::DataType,
+    location::Union{Missing,Symbol} = missing
 )
     # We could instead filter on an explicit list of keys
     # As it is, this will add configure several additional
@@ -113,24 +120,32 @@ function make_storage(
     filtered_data = Dict{Symbol, Any}(
         k => v for (k,v) in data if k in storage_kwargs
     )
-    remove_keys = [:id, :timedata]
+    remove_keys = [:id, :timedata, :location]
     for key in remove_keys
         if haskey(filtered_data, key)
             delete!(filtered_data, key)
         end
     end
     if haskey(filtered_data,:loss_fraction) && !isa(filtered_data[:loss_fraction], Vector{Float64})
-        filtered_data[:loss_fraction] = [filtered_data[:loss_fraction]];
+        filtered_data[:loss_fraction] = Float64[filtered_data[:loss_fraction]...];
     end 
+    if haskey(filtered_data,:min_storage_level) && !isa(filtered_data[:min_storage_level], Vector{Float64})
+        filtered_data[:min_storage_level] = Float64[filtered_data[:min_storage_level]...];
+    end
+    if haskey(filtered_data,:max_storage_level) && !isa(filtered_data[:max_storage_level], Vector{Float64})
+        filtered_data[:max_storage_level] = Float64[filtered_data[:max_storage_level]...];
+    end
+
     _storage = Storage{commodity}(;
         id = id,
         timedata = time_data,
+        location = location,
         filtered_data...
     )
     return _storage
 end
-Storage(id::Symbol, data::Dict{Symbol,Any}, time_data::TimeData, commodity::DataType) =
-    make_storage(id, data, time_data, commodity)
+Storage(id::Symbol, data::Dict{Symbol,Any}, time_data::TimeData, commodity::DataType, location::Union{Missing,Symbol} = missing) =
+    make_storage(id, data, time_data, commodity, location)
 
 ######### Storage interface #########
 all_constraints(g::AbstractStorage) = g.constraints;
@@ -163,12 +178,32 @@ max_capacity(g::AbstractStorage) = g.max_capacity;
 max_duration(g::AbstractStorage) = g.max_duration;
 max_new_capacity(g::AbstractStorage) = g.max_new_capacity;
 max_storage_level(g::AbstractStorage) = g.max_storage_level;
+function max_storage_level(g::AbstractStorage, t::Int64)
+    a = max_storage_level(g)
+    if isempty(a)
+        return 0.0
+    elseif length(a) == 1
+        return a[1]
+    else
+        return a[t]
+    end
+end
 min_capacity(g::AbstractStorage) = g.min_capacity;
 min_duration(g::AbstractStorage) = g.min_duration;
 min_outflow_fraction(g::AbstractStorage) = g.min_outflow_fraction;
-min_retired_capacity(g::AbstractStorage) = g.min_retired_capacity;
+min_retired_capacity(g::AbstractStorage) = g.can_retire ? g.min_retired_capacity : 0.0;
 min_retired_capacity_track(g::AbstractStorage) = g.min_retired_capacity_track;
 min_storage_level(g::AbstractStorage) = g.min_storage_level;
+function min_storage_level(g::AbstractStorage, t::Int64)
+    a = min_storage_level(g)
+    if isempty(a)
+        return 0.0
+    elseif length(a) == 1
+        return a[1]
+    else
+        return a[t]
+    end
+end
 new_capacity(g::AbstractStorage) = g.new_capacity;
 new_capacity_track(g::AbstractStorage) = g.new_capacity_track;
 #### Note that storage "g" may not be present in the inputs for all case
@@ -186,6 +221,13 @@ storage_level(g::AbstractStorage) = g.storage_level;
 storage_level(g::AbstractStorage, t::Int64) = storage_level(g)[t];
 wacc(g::AbstractStorage) = g.wacc;
 annualized_investment_cost(g::AbstractStorage) = g.annualized_investment_cost;
+pv_period_investment_cost(g::AbstractStorage) = g.pv_period_investment_cost;
+cf_period_investment_cost(g::AbstractStorage) = g.cf_period_investment_cost;
+pv_period_fixed_om_cost(g::AbstractStorage) = g.pv_period_fixed_om_cost;
+cf_period_fixed_om_cost(g::AbstractStorage) = g.cf_period_fixed_om_cost;
+variable_om_cost(g::AbstractStorage) = g.variable_om_cost;
+pv_period_variable_om_cost(g::AbstractStorage) = g.pv_period_variable_om_cost;
+cf_period_variable_om_cost(g::AbstractStorage) = g.cf_period_variable_om_cost;
 
 function add_linking_variables!(g::Storage, model::Model)
     if has_capacity(g)
@@ -242,22 +284,8 @@ function operation_model!(g::Storage, model::Model)
         base_name = "vSTOR_$(g.id)_period$(period_index(g))"
     )
 
-    if :storage ∈ balance_ids(g)
-
-        for i in balance_ids(g)
-            if i == :storage 
-                g.operation_expr[:storage] = @expression(
-                    model,
-                    [t in time_interval(g)],
-                    -storage_level(g, t) +
-                    (1 - loss_fraction(g,timestepbefore(t, 1, subperiods(g)))) *
-                    storage_level(g, timestepbefore(t, 1, subperiods(g)))
-                )
-            else
-                g.operation_expr[i] =
-                @expression(model, [t in time_interval(g)], 0 * model[:vREF])
-            end
-        end
+    if haskey(g.balance_data, :storage)
+        build_balance_expressions!(g, model)
     else
         error("A storage vertex requires to have a balance named :storage")
     end
@@ -275,35 +303,52 @@ storage_initial(g::LongDurationStorage, r::Int64) = g.storage_initial[r];
 storage_change(g::LongDurationStorage) = g.storage_change;
 storage_change(g::LongDurationStorage, w::Int64) =  g.storage_change[w];
 
+function resolve_balance_var(g::LongDurationStorage, var::Symbol, t::Int64, lag::Int = 0)
+    tt = shifted_balance_time_index(g, t, lag)
+    if var == :storage_initial
+        return storage_initial(g, current_subperiod(g, tt))
+    elseif var == :storage_change
+        return storage_change(g, current_subperiod(g, tt))
+    end
+    return invoke(resolve_balance_var, Tuple{AbstractStorage, Symbol, Int64, Int64}, g, var, t, lag)
+end
+
 function make_long_duration_storage(
     id::Symbol,
     data::Dict{Symbol,Any},
     time_data::TimeData,
     commodity::DataType,
+    location::Union{Missing,Symbol} = missing
 )
-
     storage_kwargs = Base.fieldnames(LongDurationStorage)
     filtered_data = Dict{Symbol,Any}(
         k => v for (k, v) in data if k in storage_kwargs
     )
-    remove_keys = [:id, :timedata]
+    remove_keys = [:id, :timedata, :location]
     for key in remove_keys
         if haskey(filtered_data, key)
             delete!(filtered_data, key)
         end
     end
     if haskey(filtered_data,:loss_fraction) && !isa(filtered_data[:loss_fraction], Vector{Float64})
-        filtered_data[:loss_fraction] = [filtered_data[:loss_fraction]];
+        filtered_data[:loss_fraction] = Float64[filtered_data[:loss_fraction]...];
     end 
+    if haskey(filtered_data,:min_storage_level) && !isa(filtered_data[:min_storage_level], Vector{Float64})
+        filtered_data[:min_storage_level] = Float64[filtered_data[:min_storage_level]...];
+    end
+    if haskey(filtered_data,:max_storage_level) && !isa(filtered_data[:max_storage_level], Vector{Float64})
+        filtered_data[:max_storage_level] = Float64[filtered_data[:max_storage_level]...];
+    end
     _storage = LongDurationStorage{commodity}(;
         id=id,
         timedata=time_data,
+        location = location,
         filtered_data...
     )
     return _storage
 end
-LongDurationStorage(id::Symbol, data::Dict{Symbol,Any}, time_data::TimeData, commodity::DataType) =
-    make_long_duration_storage(id, data, time_data, commodity)
+LongDurationStorage(id::Symbol, data::Dict{Symbol,Any}, time_data::TimeData, commodity::DataType, location::Union{Missing,Symbol} = missing) =
+    make_long_duration_storage(id, data, time_data, commodity, location)
 
 function add_linking_variables!(g::LongDurationStorage, model::Model)
 
@@ -356,29 +401,8 @@ function operation_model!(g::LongDurationStorage, model::Model)
     )
 
     
-    if :storage ∈ balance_ids(g)
-
-        for i in balance_ids(g)
-            if i == :storage 
-                STARTS = [first(sp) for sp in subperiods(g)];
-                g.operation_expr[:storage] = @expression(
-                    model,
-                    [t in time_interval(g)],
-                    if t ∈ STARTS 
-                        -storage_level(g, t) +
-                        (1 - loss_fraction(g,timestepbefore(t, 1, subperiods(g)))) *
-                        (storage_level(g, timestepbefore(t, 1, subperiods(g))) - storage_change(g, current_subperiod(g,t)))
-                    else
-                        -storage_level(g, t) +
-                        (1 - loss_fraction(g,timestepbefore(t, 1, subperiods(g)))) *
-                        storage_level(g, timestepbefore(t, 1, subperiods(g)))
-                    end
-                )
-            else
-                g.operation_expr[i] =
-                @expression(model, [t in time_interval(g)], 0 * model[:vREF])
-            end
-        end
+    if haskey(g.balance_data, :storage)
+        build_balance_expressions!(g, model)
     else
         error("A storage vertex requires to have a balance named :storage")
     end
@@ -395,31 +419,80 @@ function operation_model!(g::LongDurationStorage, model::Model)
 
 end
 
-function compute_investment_costs!(g::AbstractStorage, model::Model)
+function initialize_balance_expression(g::Storage, balance_id::Symbol, model::Model)
+    if balance_id == :storage
+        return @expression(
+            model,
+            [t in time_interval(g)],
+            -storage_level(g, t) +
+            (1 - loss_fraction(g, timestepbefore(t, 1, subperiods(g)))) *
+            storage_level(g, timestepbefore(t, 1, subperiods(g)))
+        )
+    end
+    return @expression(model, [t in time_interval(g)], 0 * model[:vREF])
+end
+
+function initialize_balance_expression(g::LongDurationStorage, balance_id::Symbol, model::Model)
+    if balance_id == :storage
+        starts = Set(first(sp) for sp in subperiods(g))
+        return @expression(
+            model,
+            [t in time_interval(g)],
+            if t in starts
+                -storage_level(g, t) +
+                (1 - loss_fraction(g, timestepbefore(t, 1, subperiods(g)))) *
+                (storage_level(g, timestepbefore(t, 1, subperiods(g))) - storage_change(g, current_subperiod(g, t)))
+            else
+                -storage_level(g, t) +
+                (1 - loss_fraction(g, timestepbefore(t, 1, subperiods(g)))) *
+                storage_level(g, timestepbefore(t, 1, subperiods(g)))
+            end
+        )
+    end
+    return @expression(model, [t in time_interval(g)], 0 * model[:vREF])
+end
+
+function compute_investment_costs!(g::AbstractStorage, model::Model, cost_type::Function=pv_period_investment_cost)
     if has_capacity(g)
         if can_expand(g)
             add_to_expression!(
                     model[:eInvestmentFixedCost],
-                    annualized_investment_cost(g),
+                    cost_type(g),
                     new_capacity(g),
                 )
         end
     end
 end
 
-function compute_om_fixed_costs!(g::AbstractStorage, model::Model)
+function compute_om_fixed_costs!(g::AbstractStorage, model::Model, cost_type::Function=pv_period_fixed_om_cost)
     if has_capacity(g)
         if fixed_om_cost(g) > 0
             add_to_expression!(
                 model[:eOMFixedCost],
-                fixed_om_cost(g),
+                cost_type(g),
                 capacity(g),
             )
         end
     end
 end
 
-function compute_fixed_costs!(g::AbstractStorage, model::Model)
-    compute_investment_costs!(g, model)
-    compute_om_fixed_costs!(g, model)
+function compute_fixed_costs!(g::AbstractStorage, model::Model, cost_type::Symbol=:PV)
+    allowed_cost_types = [:PV, :CF]
+    if !(cost_type in allowed_cost_types)
+        error("Invalid cost type: $cost_type. Allowed types are: $(allowed_cost_types)")
+    end
+    invesment_cost_function = Dict{Symbol, Function}(
+        :PV => pv_period_investment_cost,
+        :CF => cf_period_investment_cost
+    )
+    fom_cost_function = Dict{Symbol, Function}(
+        :PV => pv_period_fixed_om_cost,
+        :CF => cf_period_fixed_om_cost
+    )
+    compute_investment_costs!(g, model, invesment_cost_function[cost_type])
+    compute_om_fixed_costs!(g, model, fom_cost_function[cost_type])
 end
+
+# Function to filter storages with capacity variables from a Vector of storages.
+storages_with_capacity_variables(storages::Vector{<:AbstractStorage}) =
+    AbstractStorage[storage for storage in storages if has_capacity(storage)]

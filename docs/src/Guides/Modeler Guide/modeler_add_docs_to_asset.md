@@ -197,7 +197,7 @@ The following tables outline the attributes that can be set for a My New Asset a
 #### Essential Attributes
 | Field | Type | Description |
 |--------------|---------|------------|
-| `Type` | String | Asset type identifier: "MyNewAsset" |
+| `type` | String | Asset type identifier: "MyNewAsset" |
 | `id` | String | Unique identifier for the asset instance |
 | `location` | String | Geographic location/node identifier |
 

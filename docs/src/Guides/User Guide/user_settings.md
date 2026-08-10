@@ -16,6 +16,7 @@ Here's an example of a `macro_settings.json` file:
 ```json
 {
     "ConstraintScaling": true,
+    "AllowImplicitTopLevelCommodities": true,
     "OverwriteResults": true,
     "AutoCreateNodes": true,
     "OutputLayout": {
@@ -38,6 +39,7 @@ If the user created the `macro_settings.json` file in a `settings` folder, the `
 
 In this example, the user has enabled:
 - scaling the constraints in the model during the optimization.
+- allowing unknown plain commodity names to be created automatically as top-level commodities.
 - overwriting the results folder if it already exists.
 - creating nodes automatically from locations.
 - setting the layout for the results files to "wide" for the capacity variables, and to "long" for costs and flow variables.

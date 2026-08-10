@@ -6,7 +6,8 @@
     # Inherited Attributes
     - id::Symbol: Unique identifier for the transformation
     - timedata::TimeData: Time-related data for the transformation
-    - balance_data::Dict{Symbol,Dict{Symbol,Float64}}: Dictionary mapping stoichiometric equation IDs to coefficients
+    - location::Union{Missing, Symbol}: Geographic location of the transformation (inherited from AbstractVertex)
+    - balance_data::Dict{Symbol,Any}: Dictionary mapping stoichiometric equation IDs to balance definitions
     - constraints::Vector{AbstractTypeConstraint}: List of constraints applied to the transformation
     - operation_expr::Dict: Dictionary storing operational JuMP expressions for the transformation
 
@@ -32,11 +33,6 @@ function define_available_capacity!(g::Transformation, model::Model)
 end
 
 function operation_model!(g::Transformation, model::Model)
-    if !isempty(balance_ids(g))
-        for i in balance_ids(g)
-            g.operation_expr[i] =
-                @expression(model, [t in time_interval(g)], 0 * model[:vREF])
-        end
-    end
+    build_balance_expressions!(g, model)
     return nothing
 end

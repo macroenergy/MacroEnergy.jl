@@ -113,7 +113,7 @@ The following tables outline the attributes that can be set for a thermal heatin
 ### Essential Attributes
 | Field | Type | Description |
 |--------------|---------|------------|
-| `Type` | String | Asset type identifier: `"ThermalHeating"` |
+| `type` | String | Asset type identifier: `"ThermalHeating"` |
 | `id` | String | Unique identifier for the heating unit instance |
 | `location` | String | Geographic location/node identifier |
 | `fuel_commodity` | String | Fuel commodity identifier |
@@ -244,9 +244,9 @@ The `ThermalHeating` asset is defined as follows:
 struct ThermalHeating{T} <: AbstractAsset
     id::AssetId
     heating_transform::Transformation
-    heat_edge::Union{Edge{<:Heat},EdgeWithUC{<:Heat}}
-    fuel_edge::Edge{<:T}
-    co2_edge::Edge{<:CO2}
+    heat_edge::Union{UnidirectionalEdge{<:Heat},EdgeWithUC{<:Heat}}
+    fuel_edge::UnidirectionalEdge{<:T}
+    co2_edge::UnidirectionalEdge{<:CO2}
 end
 ```
 
@@ -255,7 +255,7 @@ end
 ### Default constructor
 
 ```julia
-ThermalHeating(id::AssetId, heating_transform::Transformation, heat_edge::Union{Edge{<:Heat},EdgeWithUC{<:Heat}}, fuel_edge::Edge{<:Fuel}, co2_edge::Edge{<:CO2})
+ThermalHeating(id::AssetId, heating_transform::Transformation, heat_edge::Union{UnidirectionalEdge{<:Heat},EdgeWithUC{<:Heat}}, fuel_edge::UnidirectionalEdge{<:Fuel}, co2_edge::UnidirectionalEdge{<:CO2})
 ```
 
 ### Factory constructor

@@ -8,8 +8,8 @@ Flow outputs - everything related to flow data extraction and output.
 """
     write_flow(
         file_path::AbstractString, 
-        system::System; 
-        scaling::Float64=1.0, 
+        system::System,
+        scaling::Float64; 
         drop_cols::Vector{<:AbstractString}=String[],
         commodity::Union{AbstractString,Vector{<:AbstractString},Nothing}=nothing,
         asset_type::Union{AbstractString,Vector{<:AbstractString},Nothing}=nothing
@@ -46,19 +46,19 @@ Two types of pattern matching are supported:
 
 # Example
 ```julia
-write_flow("flow.csv", system)
+write_flow("flow.csv", system, 1.0)
 # Filter by commodity
-write_flow("flow.csv", system, commodity="Electricity")
+write_flow("flow.csv", system, 1.0, commodity="Electricity")
 # Filter by commodity and asset type using parameter-free matching
-write_flow("flow.csv", system, commodity="Electricity", asset_type="ThermalPower")
+write_flow("flow.csv", system, 1.0, commodity="Electricity", asset_type="ThermalPower")
 # Filter by commodity and asset type using wildcard matching
-write_flow("flow.csv", system, commodity="Electricity", asset_type="ThermalPower*")
+write_flow("flow.csv", system, 1.0, commodity="Electricity", asset_type="ThermalPower*")
 ```
 """
 function write_flow(
     file_path::AbstractString, 
-    system::System; 
-    scaling::Float64=1.0, 
+    system::System, 
+    scaling::Float64; 
     drop_cols::Vector{<:AbstractString}=String[],
     commodity::Union{AbstractString,Vector{<:AbstractString},Nothing}=nothing,
     asset_type::Union{AbstractString,Vector{<:AbstractString},Nothing}=nothing
@@ -66,7 +66,7 @@ function write_flow(
     @info "Writing flow results to $file_path"
 
     # Get flow results and determine layout (wide or long)
-    flow_results = get_optimal_flow(system; scaling, commodity, asset_type)
+    flow_results = get_optimal_flow(system, scaling; commodity, asset_type)
     layout = get_output_layout(system, :Flow)
 
     if layout == "wide"
@@ -99,8 +99,8 @@ end
 ## Flow extraction functions ##
 """
     get_optimal_flow(
-        system::System; 
-        scaling::Float64=1.0, 
+        system::System,
+        scaling::Float64; 
         commodity::Union{AbstractString,Vector{<:AbstractString},Nothing}=nothing, 
         asset_type::Union{AbstractString,Vector{<:AbstractString},Nothing}=nothing
     )
@@ -133,26 +133,26 @@ Two types of pattern matching are supported:
 
 # Example
 ```julia
-get_optimal_flow(system)
-186984×11 DataFrame
-    Row │ commodity    commodity_subtype  zone        resource_id                component_id                       type              variable  segment  time   value     
-        │ Symbol       Symbol             Symbol      Symbol                     Symbol                             Symbol            Symbol    Int64    Int64  Float64
-────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-      1 │ Biomass      flow               bioherb_SE  SE_BECCS_Electricity_Herb  SE_BECCS_Electricity_Herb_biomas…  BECCSElectricity  flow            1      1  0.0    
-      2 │ Biomass      flow               bioherb_SE  SE_BECCS_Electricity_Herb  SE_BECCS_Electricity_Herb_biomas…  BECCSElectricity  flow            1      2  0.0    
-      3 │ Biomass      flow               bioherb_SE  SE_BECCS_Electricity_Herb  SE_BECCS_Electricity_Herb_biomas…  BECCSElectricity  flow            1      3  0.0    
+get_optimal_flow(system, 1.0)
+186984×10 DataFrame
+    Row │ commodity  zone        resource_id                component_id                       resource_type     component_type     variable  segment  time   value
+        │ Symbol     Symbol      Symbol                     Symbol                             String            String             Symbol    Int64    Int64  Float64
+────────┼────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+      1 │ Biomass    bioherb_SE  SE_BECCS_Electricity_Herb  SE_BECCS_Electricity_Herb_biomas…  BECCSElectricity  Edge{Electricity}  flow      1        1      0.0
+      2 │ Biomass    bioherb_SE  SE_BECCS_Electricity_Herb  SE_BECCS_Electricity_Herb_biomas…  BECCSElectricity  Edge{Electricity}  flow      1        2      0.0
+      3 │ Biomass    bioherb_SE  SE_BECCS_Electricity_Herb  SE_BECCS_Electricity_Herb_biomas…  BECCSElectricity  Edge{Electricity}  flow      1        3      0.0
       ...
 # Filter by commodity
-get_optimal_flow(system, commodity="Electricity")
+get_optimal_flow(system, 1.0, commodity="Electricity")
 # Filter by commodity and asset type using parameter-free matching
-get_optimal_flow(system, commodity="Electricity", asset_type="ThermalPower") # only ThermalPower{Fuel} will be returned
+get_optimal_flow(system, 1.0, commodity="Electricity", asset_type="ThermalPower") # only ThermalPower{Fuel} will be returned
 # Filter by commodity and asset type using wildcard matching
-get_optimal_flow(system, commodity="Electricity", asset_type="ThermalPower*") # all types starting with ThermalPower (e.g., ThermalPower{Fuel}, ThermalPowerCCS{Fuel}) will be returned)
+get_optimal_flow(system, 1.0, commodity="Electricity", asset_type="ThermalPower*") # all types starting with ThermalPower (e.g., ThermalPower{Fuel}, ThermalPowerCCS{Fuel}) will be returned)
 ```
 """
 function get_optimal_flow(
-    system::System; 
-    scaling::Float64=1.0, 
+    system::System, 
+    scaling::Float64; 
     commodity::Union{AbstractString,Vector{<:AbstractString},Nothing}=nothing,
     asset_type::Union{AbstractString,Vector{<:AbstractString},Nothing}=nothing
 )
@@ -180,12 +180,12 @@ function get_optimal_flow(
         @warn "No edges found after filtering"
         return DataFrame()
     end
-    eflow = get_optimal_flow(edges, scaling, edge_asset_map)
+    eflow = get_optimal_flow(edges, scaling; obj_asset_map=edge_asset_map)
     eflow[!, (!isa).(eachcol(eflow), Vector{Missing})] # remove missing columns
 end
 
 """
-    get_optimal_flow(asset::AbstractAsset, scaling::Float64=1.0)
+    get_optimal_flow(asset::AbstractAsset, scaling::Float64)
 
 Get the optimal flow values for all edges in an asset.
 
@@ -199,13 +199,13 @@ Get the optimal flow values for all edges in an asset.
 # Example
 ```julia
 asset = get_asset_by_id(system, :elec_SE)
-get_optimal_flow(asset)
+get_optimal_flow(asset, 1.0)
 ```
 """
-function get_optimal_flow(asset::AbstractAsset; scaling::Float64=1.0)
+function get_optimal_flow(asset::AbstractAsset, scaling::Float64)
     @debug " -- Getting optimal flow values for the asset $(id(asset))"
     edges, edge_asset_map = get_edges(asset, return_ids_map=true)
-    eflow = get_optimal_flow(edges, scaling, edge_asset_map)
+    eflow = get_optimal_flow(edges, scaling; obj_asset_map=edge_asset_map)
     eflow[!, (!isa).(eachcol(eflow), Vector{Missing})] # remove missing columns
 end
 
@@ -213,48 +213,49 @@ end
 # The following functions are used to extract flow values after the model has been solved
 # from a list of MacroObjects (e.g., edges, and storage) 
 function get_optimal_flow(
-    objs::Vector{T},
-    scaling::Float64=1.0,
+    objs::Vector{<:AbstractEdge},
+    scaling::Float64;
     obj_asset_map::Dict{Symbol,Base.RefValue{<:AbstractAsset}}=Dict{Symbol,Base.RefValue{<:AbstractAsset}}()
-) where {T<:Union{AbstractEdge,Storage,Node,Location}}
-    reduce(vcat, [get_optimal_flow(o, scaling, obj_asset_map) for o in objs if !isa(o, Location)]) # filter out locations
+)
+    reduce(vcat, [get_optimal_flow(o, scaling; obj_asset_map) for o in objs])
 end
 
 function get_optimal_flow(
-    obj::T,
-    scaling::Float64=1.0,
+    obj::AbstractEdge,
+    scaling::Float64;
     obj_asset_map::Dict{Symbol,Base.RefValue{<:AbstractAsset}}=Dict{Symbol,Base.RefValue{<:AbstractAsset}}()
-) where {T<:Union{AbstractEdge,Storage,Node}}
+)
     time_axis = time_interval(obj)
+    # Apply sign based on edge direction (negative for Node → Transformation/Storage)
+    flow_sign = isa(obj, AbstractEdge) ? get_flow_sign(obj) : 1.0
     if isempty(obj_asset_map)
         return DataFrame(
             case_name = fill(missing, length(time_axis)),
             commodity = fill(get_commodity_name(obj), length(time_axis)),
-            commodity_subtype = fill(get_commodity_subtype(flow), length(time_axis)),
             node_in = fill(get_node_in(obj), length(time_axis)),
             node_out = fill(get_node_out(obj), length(time_axis)),
             resource_id = fill(get_component_id(obj), length(time_axis)),
             component_id = fill(get_component_id(obj), length(time_axis)),
-            type = fill(get_type(obj), length(time_axis)),
+            component_type = fill(get_type(obj), length(time_axis)),
             variable = :flow,
             year = fill(missing, length(time_axis)),
             time = [t for t in time_axis],
-            value = [value(flow(obj, t)) * scaling for t in time_axis]
+            value = [value(flow(obj, t)) * scaling * flow_sign for t in time_axis]
         )
     else
         return DataFrame(
             case_name = fill(missing, length(time_axis)),
             commodity = fill(get_commodity_name(obj), length(time_axis)),
-            commodity_subtype = fill(get_commodity_subtype(flow), length(time_axis)),
             node_in = fill(get_node_in(obj), length(time_axis)),
             node_out = fill(get_node_out(obj), length(time_axis)),
             resource_id = fill(isa(obj, Node) ? get_resource_id(obj) : get_resource_id(obj, obj_asset_map), length(time_axis)),
             component_id = fill(get_component_id(obj), length(time_axis)),
-            type = fill(isa(obj, Node) ? get_type(obj) : get_type(obj_asset_map[id(obj)]), length(time_axis)),
+            resource_type = fill(isa(obj, Node) ? get_type(obj) : get_type(obj_asset_map[id(obj)]), length(time_axis)),
+            component_type = fill(get_type(obj), length(time_axis)),
             variable = :flow,
             year = fill(missing, length(time_axis)),
             time = [t for t in time_axis],
-            value = [value(flow(obj, t)) * scaling for t in time_axis]
+            value = [value(flow(obj, t)) * scaling * flow_sign for t in time_axis]
         )
     end
 end

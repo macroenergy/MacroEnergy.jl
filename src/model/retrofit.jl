@@ -62,7 +62,7 @@ Where $$e$$ is the edge that can be retrofitted, $$R$$ is the set of edges that 
 !!! note "Turning on retrofitting in settings"
     This constraint is only applied if the ```Retrofitting: true``` setting is set in ```macro_settings.json```.
 """
-function add_retrofit_constraints!(system::System, period_idx::Int, model::Model)
+function add_retrofit_constraints!(system::System, model::Model)
     # Add retrofitting constraints
     
     can_retrofit_edges,is_retrofit_edges = get_retrofit_edges(system)
@@ -71,7 +71,7 @@ function add_retrofit_constraints!(system::System, period_idx::Int, model::Model
         retrofitted_capacity(can_retrofit_edges[edge_id]) ==
         sum(new_capacity(is_retrofit_edges[retrofit_id]) / retrofit_efficiency(is_retrofit_edges[retrofit_id])
         for retrofit_id in retrofit_id(can_retrofit_edges[edge_id])),
-        base_name = "cRetrofitCapacity_period$(period_idx)" 
+        base_name = "cRetrofitCapacity_period$(period_index(system))" 
     )
 
 end

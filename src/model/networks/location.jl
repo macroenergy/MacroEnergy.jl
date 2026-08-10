@@ -12,8 +12,7 @@ id(loc::Location) = loc.id
 function add_node!(loc::Location, node::Node{T}, replace::Bool = false) where {T<:Commodity}
     node_commodity = typesymbol(commodity_type(node))
     # If a node of the same type exists then throw an error unless replace is true
-    if ((node_commodity in loc.commodities) || (node_commodity in keys(loc.nodes))) &&
-       !replace
+    if ((node_commodity in loc.commodities) || (node_commodity in keys(loc.nodes))) && !replace
         error("A $node_commodity node already exists in the $(loc.id) location")
     end
     loc.nodes[node_commodity] = node

@@ -68,6 +68,9 @@ ids = location_ids(system)
 """
 location_ids(system::System) = map(x -> x.id, system.locations)
 
+period_index(system::System) = first(values(system.time_data)).period_index;
+year(system::System) = first(values(system.time_data)).year;
+
 """
     get_asset_types(system::System)
 
@@ -275,9 +278,10 @@ get_assets_sametype(system::System, asset_type::T) where T<:Type{<:AbstractAsset
 
 # Function to extract all the nodes, edges, storages, and transformations from a system
 # If return_ids_map=True, a `Dict` is also returned mapping edge ids to the corresponding asset objects.
-get_nodes(system::System) = system.locations
+get_locations(system::System) = system.locations
+get_nodes(system::System) = Node[node for node in system.locations if isa(node, Node)]
 get_edges(system::System; return_ids_map::Bool=false) = return_ids_map ? get_macro_objs_with_map(system, AbstractEdge) : get_macro_objs(system, AbstractEdge)
-get_storage(system::System; return_ids_map::Bool=false) = return_ids_map ? get_macro_objs_with_map(system, Storage) : get_macro_objs(system, Storage)
+get_storages(system::System; return_ids_map::Bool=false) = return_ids_map ? get_macro_objs_with_map(system, AbstractStorage) : get_macro_objs(system, AbstractStorage)
 get_transformations(system::System; return_ids_map::Bool=false) = return_ids_map ? get_macro_objs_with_map(system, Transformation) : get_macro_objs(system, Transformation)
 
 # Function to extract the edges with capacity variables from a system.
@@ -290,6 +294,18 @@ function edges_with_capacity_variables(system::System; return_ids_map::Bool=fals
         return edges_with_capacity, edges_with_capacity_asset_map
     else
         return edges_with_capacity_variables(system.assets)
+    end
+end
+
+# Function to extract the storages with capacity variables from a system.
+# If return_ids_map=True, a `Dict` is also returned mapping edge ids to the corresponding asset objects.  
+function storages_with_capacity_variables(system::System; return_ids_map::Bool=false)
+    if return_ids_map
+        ### Note: we do not need to filter storages as every storage has capacity variables
+        storages_with_capacity, storages_with_capacity_asset_map = get_storages(system, return_ids_map=true)
+        return storages_with_capacity, storages_with_capacity_asset_map
+    else
+        return storages_with_capacity_variables(system.assets)
     end
 end
 

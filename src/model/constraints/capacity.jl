@@ -5,7 +5,7 @@ Base.@kwdef mutable struct CapacityConstraint <: OperationConstraint
 end
 
 @doc raw"""
-    add_model_constraint!(ct::CapacityConstraint, e::Edge, model::Model)
+    add_model_constraint!(ct::CapacityConstraint, e::UnidirectionalEdge, model::Model)
 
 Add a capacity constraint to the edge `e`. If the edge is unidirectional, the functional form of the constraint is:
 
@@ -15,7 +15,25 @@ Add a capacity constraint to the edge `e`. If the edge is unidirectional, the fu
 \end{aligned}
 ```
 
-If the edge is bidirectional, the constraint is:
+for each time `t` in `time_interval(e)` for the edge `e` and each `i` in `{0, 1}`. The function `availability` returns the time series of the capacity factor of the edge at time `t`.
+"""
+function add_model_constraint!(ct::CapacityConstraint, e::UnidirectionalEdge, model::Model)
+    if has_capacity(e) 
+        ct.constraint_ref = @constraint(
+            model,
+            [t in time_interval(e)],
+            flow(e, t) <= availability(e, t) * capacity(e)
+        )
+    else
+       @warn "Trying to add CapacityConstraint to edge $(e.id) which has has_capacity=false. No constraint added."
+    end
+    return nothing
+end
+
+@doc raw"""
+    add_model_constraint!(ct::CapacityConstraint, e::BidirectionalEdge, model::Model)
+
+Add a capacity constraint to the edge `e`. If the edge is bidirectional, the constraint is:
 
 ```math
 \begin{aligned}
@@ -25,25 +43,17 @@ If the edge is bidirectional, the constraint is:
 
 for each time `t` in `time_interval(e)` for the edge `e` and each `i` in `{0, 1}`. The function `availability` returns the time series of the capacity factor of the edge at time `t`.
 """
-function add_model_constraint!(ct::CapacityConstraint, e::Edge, model::Model)
-
-    if e.unidirectional
-
-        ct.constraint_ref = @constraint(
-            model,
-            [t in time_interval(e)],
-            flow(e, t) <= availability(e, t) * capacity(e)
-        )
-    else
+function add_model_constraint!(ct::CapacityConstraint, e::BidirectionalEdge, model::Model)
+    if has_capacity(e) 
         ct.constraint_ref = @constraint(
             model,
             [i in [-1, 1], t in time_interval(e)],
             i * flow(e, t) <= availability(e, t) * capacity(e)
         )
+    else
+       @warn "Trying to add CapacityConstraint to edge $(e.id) which has has_capacity=false. No constraint added."
     end
-
     return nothing
-
 end
 
 @doc raw"""
@@ -68,20 +78,11 @@ for each time `t` in `time_interval(e)` for the edge `e` and each `i` in `[-1, 1
 """
 function add_model_constraint!(ct::CapacityConstraint, e::EdgeWithUC, model::Model)
 
-    if e.unidirectional
-
-        ct.constraint_ref = @constraint(
-            model,
-            [t in time_interval(e)],
-            flow(e, t) <= availability(e, t) * capacity_size(e) * ucommit(e, t)
-        )
-    else
-        ct.constraint_ref = @constraint(
-            model,
-            [i in [-1, 1], t in time_interval(e)],
-            i * flow(e, t) <= availability(e, t) * capacity_size(e) * ucommit(e, t)
-        )
-    end
+    ct.constraint_ref = @constraint(
+        model,
+        [t in time_interval(e)],
+        flow(e, t) <= availability(e, t) * capacity_size(e) * ucommit(e, t)
+    )
 
     return nothing
 

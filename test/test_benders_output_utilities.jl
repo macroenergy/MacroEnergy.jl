@@ -524,7 +524,7 @@ function test_benders_output_utilities()
             
             # Create BalanceConstraint with duals already extracted
             balance_ct = BalanceConstraint(
-                constraint_ref = balance_constraint,
+                constraint_ref = Dict(:demand => balance_constraint),
                 constraint_dual = Dict(
                     :demand => [dual(balance_constraint[t]) for t in time_indices]
                 )
@@ -577,7 +577,7 @@ function test_benders_output_utilities()
             
             # Balance constraint with multiple balance equations
             balance_ct = BalanceConstraint(
-                constraint_ref = c1,
+                constraint_ref = Dict(:demand => c1),
                 constraint_dual = Dict(
                     :demand => [dual(c1)],
                     :emissions => [dual(c1) * 2.0]

@@ -26,22 +26,27 @@ for each time `t` in `time_interval(e)` for the edge `e`. The function [`timeste
     This constraint will throw an error if the minimum down time is longer than the length of one subperiod.
 """
 function add_model_constraint!(ct::MinDownTimeConstraint, e::EdgeWithUC, model::Model)
+    if !has_capacity(e)
+        @warn "Min down time constraints are only available for edges with capacity"
+        return
+    end
 
     if min_down_time(e) > minimum(length.(subperiods(e)))
         error(
             "The minimum down time for $(id(e)) is longer than the length of one subperiod",
         )
     else
-
-        ct.constraint_ref = @constraint(
-            model,
-            [t in time_interval(e)],
-            capacity(e) / capacity_size(e) - ucommit(e, t) >= sum(
-                ushut(e, s) for
-                s in [timestepbefore(t, h, subperiods(e)) for h = 0:min_down_time(e)-1];
-                init = 0,
+        if has_capacity(e)
+            ct.constraint_ref = @constraint(
+                model,
+                [t in time_interval(e)],
+                capacity(e) / capacity_size(e) - ucommit(e, t) >= sum(
+                    ushut(e, s) for
+                    s in [timestepbefore(t, h, subperiods(e)) for h = 0:min_down_time(e)-1];
+                    init = 0,
+                )
             )
-        )
+        end
     end
 
     return nothing
@@ -63,18 +68,25 @@ for each time `t` in `time_interval(e)` for the edge `e`. The function [`timeste
     This constraint will throw an error if the minimum up time is longer than the length of one subperiod.
 """
 function add_model_constraint!(ct::MinUpTimeConstraint, e::EdgeWithUC, model::Model)
+    if !has_capacity(e)
+        @warn "Min up time constraints are only available for edges with capacity"
+        return
+    end
+
     if min_up_time(e) > minimum(length.(subperiods(e)))
         error("The minimum up time for $(id(e)) is longer than the length of one subperiod")
     else
-        ct.constraint_ref = @constraint(
-            model,
-            [t in time_interval(e)],
-            ucommit(e, t) >= sum(
-                ustart(e, s) for
-                s in [timestepbefore(t, h, subperiods(e)) for h = 0:min_up_time(e)-1];
-                init = 0,
+        if has_capacity(e)
+            ct.constraint_ref = @constraint(
+                model,
+                [t in time_interval(e)],
+                ucommit(e, t) >= sum(
+                    ustart(e, s) for
+                    s in [timestepbefore(t, h, subperiods(e)) for h = 0:min_up_time(e)-1];
+                    init = 0,
+                )
             )
-        )
+        end
     end
 
     return nothing

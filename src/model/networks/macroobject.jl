@@ -20,7 +20,7 @@ end
 # The return_ids_map is used to return a map of the MacroObjects to the asset they belong to
 get_macro_objs(system::System, T::Type{<:MacroObject}) = get_macro_objs(system.assets, T)
 get_macro_objs(assets::Vector{<:AbstractAsset}, T::Type{<:MacroObject}) =
-    reduce(vcat, [get_macro_objs(asset, T) for asset in assets])
+    reduce(vcat, [get_macro_objs(asset, T) for asset in assets]; init=T[])
 function get_macro_objs(asset::AbstractAsset, T::Type{<:MacroObject})
     objects = Vector{T}()
     for field_name in propertynames(asset)
@@ -43,7 +43,7 @@ function get_macro_objs_with_map(assets::Vector{<:AbstractAsset}, T::Type{<:Macr
         Base.merge!(asset_obj_map, object_map)
     end
 
-    return reduce(vcat, all_objects), asset_obj_map
+    return reduce(vcat, all_objects; init=T[]), asset_obj_map
 end
 function get_macro_objs_with_map(asset::AbstractAsset, T::Type{<:MacroObject})
     objects = get_macro_objs(asset, T)

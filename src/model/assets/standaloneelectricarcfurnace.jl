@@ -98,6 +98,8 @@ end
 
 function make(asset_type::Type{ElectricArcFurnace}, data::AbstractDict{Symbol,Any}, system::System)
     id = AssetId(data[:id])
+    location = as_symbol_or_missing(get(data, :location, missing))
+
     @setup_data(asset_type, data, id)
 
     eaf_key = :transforms
@@ -105,6 +107,7 @@ function make(asset_type::Type{ElectricArcFurnace}, data::AbstractDict{Symbol,An
     eaf_transform = Transformation(;
         id = Symbol(id, "_", eaf_key),
         timedata = system.time_data[Symbol(transform_data[:timedata])],
+        location = location,
         constraints = get(transform_data, :constraints, [BalanceConstraint()]),
     )
     # electricity edge 
@@ -134,7 +137,6 @@ function make(asset_type::Type{ElectricArcFurnace}, data::AbstractDict{Symbol,An
         elec_start_node,
         elec_end_node,
     )
-    elec_edge.unidirectional = true
 
     # steel scrap edge
 
@@ -164,7 +166,6 @@ function make(asset_type::Type{ElectricArcFurnace}, data::AbstractDict{Symbol,An
         steelscrap_start_node,
         steelscrap_end_node,
     )
-    steelscrap_edge.unidirectional = true;
 
     # natural gas edge
 
@@ -194,7 +195,6 @@ function make(asset_type::Type{ElectricArcFurnace}, data::AbstractDict{Symbol,An
         naturalgas_start_node,
         naturalgas_end_node,
     )
-    naturalgas_edge.unidirectional = true;
 
     # carbonsource edge
 
@@ -225,7 +225,6 @@ function make(asset_type::Type{ElectricArcFurnace}, data::AbstractDict{Symbol,An
         carbonsource_start_node,
         carbonsource_end_node,
     )
-    carbonsource_edge.unidirectional = true;
 
     # crude steel edge
     crudesteel_edge_key = :crudesteel_edge
@@ -254,7 +253,6 @@ function make(asset_type::Type{ElectricArcFurnace}, data::AbstractDict{Symbol,An
         crudesteel_start_node,
         crudesteel_end_node,
     )
-    crudesteel_edge.unidirectional = get(crudesteel_edge_data, :unidirectional, true)
 
     # co2 edge
     co2_edge_key = :co2_edge
@@ -283,32 +281,32 @@ function make(asset_type::Type{ElectricArcFurnace}, data::AbstractDict{Symbol,An
         co2_end_node,
     )
     co2_edge.constraints = Vector{AbstractTypeConstraint}()
-    co2_edge.unidirectional = true;
 
-    # stochiometry
-    eaf_transform.balance_data = Dict(
-        :electricity_consumption => Dict(
-            crudesteel_edge.id => get(transform_data, :electricity_consumption, 0.0),
-            elec_edge.id => 1.0,
-        ),
-        :steelscrap_consumption => Dict(
-            crudesteel_edge.id => get(transform_data, :steelscrap_consumption, 0.0),
-            steelscrap_edge.id => 1.0
-        ),
-        :naturalgas_consumption => Dict(
-            crudesteel_edge.id => get(transform_data, :naturalgas_consumption, 0.0),
-            naturalgas_edge.id => 1.0,
-        ),
-        :carbonsource_consumption => Dict(
-            crudesteel_edge.id => get(transform_data, :carbonsource_consumption, 0.0),
-            carbonsource_edge.id => 1.0,
-        ),
-        :emissions => Dict(
-            crudesteel_edge.id => get(transform_data, :emission_rate, 0.0),
-            co2_edge.id => -1.0,
-        ) 
+    @add_balance(
+        eaf_transform,
+        :electricity_consumption,
+        flow(elec_edge) == get(transform_data, :electricity_consumption, 0.0) * flow(crudesteel_edge)
     )
-
+    @add_balance(
+        eaf_transform,
+        :steelscrap_consumption,
+        flow(steelscrap_edge) == get(transform_data, :steelscrap_consumption, 0.0) * flow(crudesteel_edge)
+    )
+    @add_balance(
+        eaf_transform,
+        :naturalgas_consumption,
+        flow(naturalgas_edge) == get(transform_data, :naturalgas_consumption, 0.0) * flow(crudesteel_edge)
+    )
+    @add_balance(
+        eaf_transform,
+        :carbonsource_consumption,
+        flow(carbonsource_edge) == get(transform_data, :carbonsource_consumption, 0.0) * flow(crudesteel_edge)
+    )
+    @add_balance(
+        eaf_transform,
+        :emissions,
+        flow(co2_edge) == get(transform_data, :emission_rate, 0.0) * flow(crudesteel_edge)
+    )
 
     return ElectricArcFurnace(id,
             eaf_transform,

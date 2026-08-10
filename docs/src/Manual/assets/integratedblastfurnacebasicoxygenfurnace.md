@@ -112,7 +112,7 @@ The following tables outline the attributes that can be set for a BfBof.
 #### Essential Attributes
 | Field | Type | Description |
 |--------------|---------|------------|
-| `Type` | String | Asset type identifier: "BlastFurnaceBasicOxygenFurnace" |
+| `type` | String | Asset type identifier: "BlastFurnaceBasicOxygenFurnace" |
 | `id` | String | Unique identifier for the asset instance |
 | `location` | String | Geographic location/node identifier |
 | `timedata` | String | Time resolution for the time series data linked to the transformation |
@@ -203,14 +203,14 @@ The BlastFurnaceBasicOxygenFurnace asset is defined as follows:
 struct BlastFurnaceBasicOxygenFurnace <: AbstractAsset
     id::AssetId
     bfbof_transform::Transformation
-    ironore_edge::Edge{<:IronOre}
-    metcoal_edge::Edge{<:Coal}
-    thermalcoal_edge::Edge{<:Coal}
-    steelscrap_edge::Edge{SteelScrap}
-    natgas_edge::Edge{NaturalGas}
-    crudesteel_edge::Edge{CrudeSteel}
-    elec_edge::Edge{Electricity}
-    co2_edge::Edge{CO2}
+    ironore_edge::UnidirectionalEdge{<:IronOre}
+    metcoal_edge::UnidirectionalEdge{<:Coal}
+    thermalcoal_edge::UnidirectionalEdge{<:Coal}
+    steelscrap_edge::UnidirectionalEdge{SteelScrap}
+    natgas_edge::UnidirectionalEdge{NaturalGas}
+    crudesteel_edge::UnidirectionalEdge{CrudeSteel}
+    elec_edge::UnidirectionalEdge{Electricity}
+    co2_edge::UnidirectionalEdge{CO2}
 end
 ```
 
@@ -227,38 +227,22 @@ make(asset_type::Type{BlastFurnaceBasicOxygenFurnace}, data::AbstractDict{Symbol
 | `data` | `AbstractDict{Symbol,Any}` | Dictionary containing the input data for the asset |
 | `system` | `System` | System to which the asset belongs |
 
-### Stochiometry balance data
+### Stoichiometric balance data
 
 ```julia
-bfbof_transform.balance_data = Dict(
-    :ironore_consumption=> Dict(
-        crudesteel_edge.id => get(transform_data, :ironore_consumption, 0.0),
-        ironore_edge.id => 1.0
-    ),
-    :steelscrap_consumption=> Dict(
-        crudesteel_edge.id => get(transform_data, :steelscrap_consumption, 0.0),
-        steelscrap_edge.id => 1.0
-    ),
-    :electricity_production => Dict(
-        crudesteel_edge.id => get(transform_data, :electricity_production, 0.0),
-        elec_edge.id => -1.0
-    ),
-    :metcoal_consumption => Dict(
-        crudesteel_edge.id => get(transform_data, :metcoal_consumption, 0.0),
-        metcoal_edge.id => 1.0
-    ),
-    :thermalcoal_consumption => Dict(
-        crudesteel_edge.id => get(transform_data, :thermalcoal_consumption, 0.0),
-        thermalcoal_edge.id => 1.0
-    ),
-    :natgas_consumption => Dict(
-        crudesteel_edge.id => get(transform_data, :natgas_consumption, 0.0),
-        natgas_edge.id => 1.0
-    ),
-    :emissions => Dict(
-        crudesteel_edge.id => get(transform_data, :emission_rate, 0.0),
-        co2_edge.id => -1.0,
-    )
+@add_stoichiometric_balance(
+    bfbof_transform,
+    :steel_production,
+    get(transform_data, :ironore_consumption, 0.0) * flow(ironore_edge)
+    + get(transform_data, :steelscrap_consumption, 0.0) * flow(steelscrap_edge)
+    + get(transform_data, :metcoal_consumption, 0.0) * flow(metcoal_edge)
+    + get(transform_data, :thermalcoal_consumption, 0.0) * flow(thermalcoal_edge)
+    + get(transform_data, :natgas_consumption, 0.0) * flow(natgas_edge)
+    -->
+    flow(crudesteel_edge)
+    + get(transform_data, :electricity_production, 0.0) * flow(elec_edge)
+    + get(transform_data, :emission_rate, 0.0) * flow(co2_edge),
+    flow(crudesteel_edge),
 )
 ```
 !!! warning "Dictionary keys must match"

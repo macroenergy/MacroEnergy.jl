@@ -1,7 +1,7 @@
 # Reading input functions
 
 ```@index
-Pages = ["1_reading_input.md"]
+Pages = ["2_reading_input.md"]
 ```
 
 ## `add_default_system_data!`

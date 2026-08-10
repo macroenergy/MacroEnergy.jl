@@ -106,7 +106,7 @@ The following tables outline the attributes that can be set for a electric steam
 ### Essential Attributes
 | Field | Type | Description |
 |--------------|---------|------------|
-| `Type` | String | Asset type identifier: `"electricsteam"` |
+| `type` | String | Asset type identifier: `"electricsteam"` |
 | `id` | String | Unique identifier for the steam unit instance |
 | `location` | String | Geographic location/node identifier |
 | `elec_commodity` | String | Electricity commodity identifier |
@@ -234,8 +234,8 @@ The `electricsteam` asset is defined as follows:
 struct electricsteam{T} <: AbstractAsset
     id::AssetId
     steam_transform::Transformation
-    steam_edge::Union{Edge{<:Steam},EdgeWithUC{<:Steam}}
-    elec_edge::Edge{<:T}
+    steam_edge::Union{UnidirectionalEdge{<:Steam},EdgeWithUC{<:Steam}}
+    elec_edge::UnidirectionalEdge{<:T}
 end
 ```
 
@@ -244,7 +244,7 @@ end
 ### Default constructor
 
 ```julia
-electricsteam(id::AssetId, steam_transform::Transformation, steam_edge::Union{Edge{<:Steam},EdgeWithUC{<:Steam}}, elec_edge::Edge{<:Electricity})
+electricsteam(id::AssetId, steam_transform::Transformation, steam_edge::Union{UnidirectionalEdge{<:Steam},EdgeWithUC{<:Steam}}, elec_edge::UnidirectionalEdge{<:Electricity})
 ```
 
 ### Factory constructor

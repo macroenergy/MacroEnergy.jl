@@ -127,7 +127,7 @@ The following tables outline the attributes that can be set for a gas storage as
 ### Essential Attributes
 | Field | Type | Description |
 |--------------|---------|------------|
-| `Type` | String | Asset type identifier: "GasStorage" |
+| `type` | String | Asset type identifier: "GasStorage" |
 | `id` | String | Unique identifier for the gas storage instance |
 | `location` | String | Geographic location/node identifier |
 | `storage_commodity` | String | Commodity identifier for the gas being stored |
@@ -178,7 +178,7 @@ Users can refer to the [Adding Asset Constraints to a System](@ref) section of t
 #### Default constraints
 To simplify the input file and the asset configuration, the following constraints are applied to the gas storage asset by default:
 
-- [Balance constraint](@ref balance_constraint_ref) (applied to the transformation component)
+- [Balance constraint](@ref balance_constraint_ref) (applied to the transformation and storage components)
 - [Capacity constraint](@ref capacity_constraint_ref) (applied to both charge and discharge edges)
 - [Storage capacity constraint](@ref storage_capacity_constraint_ref) (applied to the storage component)
 
@@ -258,8 +258,8 @@ If [`MaxStorageLevelConstraint`](@ref max_storage_level_constraint_ref) or [`Min
 
 | Field | Type | Description | Units | Default |
 |--------------|---------|------------|----------------|----------|
-| `storage_max_storage_level` | Float64 | Maximum storage level as fraction of capacity | fraction | 1.0 |
-| `storage_min_storage_level` | Float64 | Minimum storage level as fraction of capacity | fraction | 0.0 |
+| `storage_max_storage_level` | Vector{Float64} | Maximum storage level as fraction of capacity | fraction | [1.0] |
+| `storage_min_storage_level` | Vector{Float64} | Minimum storage level as fraction of capacity | fraction | [0.0] |
 
 **Minimum flow constraint**
 
@@ -290,12 +290,12 @@ struct GasStorage{T} <: AbstractAsset
     id::AssetId
     pump_transform::Transformation
     gas_storage::AbstractStorage{<:T}
-    charge_edge::Edge{<:T}
-    discharge_edge::Edge{<:T}
-    external_charge_edge::Edge{<:T}
-    external_discharge_edge::Edge{<:T}
-    charge_elec_edge::Edge{<:Electricity}
-    discharge_elec_edge::Edge{<:Electricity}
+    charge_edge::UnidirectionalEdge{<:T}
+    discharge_edge::UnidirectionalEdge{<:T}
+    external_charge_edge::UnidirectionalEdge{<:T}
+    external_discharge_edge::UnidirectionalEdge{<:T}
+    charge_elec_edge::UnidirectionalEdge{<:Electricity}
+    discharge_elec_edge::UnidirectionalEdge{<:Electricity}
 end
 ```
 
@@ -304,7 +304,7 @@ end
 ### Default constructor
 
 ```julia
-GasStorage(id::AssetId, pump_transform::Transformation, gas_storage::AbstractStorage{T}, charge_edge::Edge{T}, discharge_edge::Edge{T}, external_charge_edge::Edge{T}, external_discharge_edge::Edge{T}, charge_elec_edge::Edge{<:Electricity}, discharge_elec_edge::Edge{<:Electricity}) where {T<:Commodity}
+GasStorage(id::AssetId, pump_transform::Transformation, gas_storage::AbstractStorage{T}, charge_edge::UnidirectionalEdge{T}, discharge_edge::UnidirectionalEdge{T}, external_charge_edge::UnidirectionalEdge{T}, external_discharge_edge::UnidirectionalEdge{T}, charge_elec_edge::UnidirectionalEdge{<:Electricity}, discharge_elec_edge::UnidirectionalEdge{<:Electricity}) where {T<:Commodity}
 ```
 
 ### Factory constructor

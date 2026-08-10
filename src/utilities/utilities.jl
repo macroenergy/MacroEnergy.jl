@@ -16,6 +16,10 @@ function all_subtypes!(types::Dict{Symbol,DataType}, type::DataType)
     return nothing
 end
 
+function all_subtypes!(types::Dict{Symbol,DataType}, type::UnionAll)
+    return all_subtypes!(types, Base.unwrap_unionall(type))
+end
+
 function typesymbol(type::DataType)
     return Base.typename(type).name
 end

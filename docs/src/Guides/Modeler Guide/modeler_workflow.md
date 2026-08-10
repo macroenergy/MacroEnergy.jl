@@ -3,13 +3,13 @@
 When developing a new model, and in general when working with Macro and Julia, we recommend that you run your models and Julia commands in a Julia REPL:
 
 ```julia
-julia> using Macro
+julia> using MacroEnergy, HiGHS
 julia> # Load a system
 julia> system = load_system("path/to/system_data.json")
+julia> # Create the optimizer
+julia> optimizer = create_optimizer(HiGHS.Optimizer)
 julia> # Generate a model
-julia> model = generate_model(system)
-julia> # Set the optimizer
-julia> set_optimizer(model, optimizer)
+julia> model = generate_model(system,optimizer)
 julia> # Run optimization
 julia> optimize!(model)
 # [... other commands ...]

@@ -98,7 +98,7 @@ The following tables outline the attributes that can be set for an Electric Arc 
 #### Essential Attributes
 | Field | Type | Description |
 |--------------|---------|------------|
-| `Type` | String | Asset type identifier: "ElectricArcFurnace" |
+| `type` | String | Asset type identifier: "ElectricArcFurnace" |
 | `id` | String | Unique identifier for the asset instance |
 | `location` | String | Geographic location/node identifier |
 | `timedata` | String | Time resolution for the time series data linked to the transformation |
@@ -186,12 +186,12 @@ The ElectricArcFurnace asset is defined as follows:
 struct ElectricArcFurnace{T <: Commodity} <: AbstractAsset
     id::AssetId
     eaf_transform::Transformation
-    crudesteel_edge::Edge{CrudeSteel}
-    elec_edge::Edge{Electricity}
-    steelscrap_edge::Edge{SteelScrap} 
-    naturalgas_edge::Edge{NaturalGas}
-    carbonsource_edge::Edge{T}
-    co2_edge::Edge{CO2}
+    crudesteel_edge::UnidirectionalEdge{CrudeSteel}
+    elec_edge::UnidirectionalEdge{Electricity}
+    steelscrap_edge::UnidirectionalEdge{SteelScrap} 
+    naturalgas_edge::UnidirectionalEdge{NaturalGas}
+    carbonsource_edge::UnidirectionalEdge{T}
+    co2_edge::UnidirectionalEdge{CO2}
 end
 ```
 Here, T denotes the carbon source, which may be metallurgical coal, charcoal, etc.
@@ -209,29 +209,19 @@ make(asset_type::Type{ElectricArcFurnace}, data::AbstractDict{Symbol,Any}, syste
 | `data` | `AbstractDict{Symbol,Any}` | Dictionary containing the input data for the asset |
 | `system` | `System` | System to which the asset belongs |
 
-### Stochiometry balance data
+### Stoichiometric balance data
 ```julia
-eaf_transform.balance_data = Dict(
-    :electricity_consumption => Dict(
-        crudesteel_edge.id => get(transform_data, :electricity_consumption, 0.0),
-        elec_edge.id => 1.0,
-    ),
-    :steelscrap_consumption => Dict(
-        crudesteel_edge.id => get(transform_data, :steelscrap_consumption, 0.0),
-        steelscrap_edge.id => 1.0
-    ),
-    :naturalgas_consumption => Dict(
-        crudesteel_edge.id => get(transform_data, :naturalgas_consumption, 0.0),
-        naturalgas_edge.id => 1.0,
-    ),
-    :carbonsource_consumption => Dict(
-        crudesteel_edge.id => get(transform_data, :carbonsource_consumption, 0.0),
-        carbonsource_edge.id => 1.0,
-    ),
-    :emissions => Dict(
-        crudesteel_edge.id => get(transform_data, :emission_rate, 0.0),
-        co2_edge.id => -1.0,
-    ) 
+@add_stoichiometric_balance(
+    eaf_transform,
+    :steel_production,
+    get(transform_data, :electricity_consumption, 0.0) * flow(elec_edge)
+    + get(transform_data, :steelscrap_consumption, 0.0) * flow(steelscrap_edge)
+    + get(transform_data, :naturalgas_consumption, 0.0) * flow(naturalgas_edge)
+    + get(transform_data, :carbonsource_consumption, 0.0) * flow(carbonsource_edge)
+    -->
+    flow(crudesteel_edge)
+    + get(transform_data, :emission_rate, 0.0) * flow(co2_edge),
+    flow(crudesteel_edge),
 )
 ```
 !!! warning "Dictionary keys must match"

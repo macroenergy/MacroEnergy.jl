@@ -3,12 +3,44 @@
 Currently, Macro includes the following constraints:
 
 ## [Balance constraint](@id balance_constraint_ref)
+`BalanceConstraint` enforces the balance definitions attached to a `Node`, `Transformation`, or `Storage`.
+
+Balances are usually created in asset code with `@add_balance` or `@add_stoichiometric_balance`. A balance can now:
+
+- use `flow(...)` terms with algebraic coefficients
+- use `==`, `<=`, or `>=`
+- use scalar or time-varying coefficients
+
+`@add_balance` expects linear terms: write each variable as a coefficient
+multiplied by `flow(...)`. For example, use `(1 / efficiency) * flow(edge)`;
+`c / flow(edge)` is nonlinear because it divides by a decision variable.
+
+For example, a modeler can define:
+
+```julia
+@add_balance(transform, :energy, flow(fuel_edge) == heat_rate * flow(elec_edge))
+@add_balance(
+    transform,
+    :energy_lb,
+    flow(fuel_edge) >= min_heat_rate * flow(elec_edge),
+)
+@add_stoichiometric_balance(
+    transform,
+    :conversion,
+    fuel_rate * flow(fuel_edge) --> flow(elec_edge) + emission_rate * flow(co2_edge),
+    flow(fuel_edge),
+)
+```
+
+When the `BalanceConstraint` is active on that component, Macro converts each named balance into the corresponding equality or inequality at every time step.
+
 ```@docs
 MacroEnergy.add_model_constraint!(ct::BalanceConstraint, v::MacroEnergy.AbstractVertex, model::Model)
 ```
 ## [Capacity constraint](@id capacity_constraint_ref)
 ```@docs
-MacroEnergy.add_model_constraint!(ct::CapacityConstraint, e::MacroEnergy.Edge, model::Model)
+MacroEnergy.add_model_constraint!(ct::CapacityConstraint, e::MacroEnergy.UnidirectionalEdge, model::Model)
+MacroEnergy.add_model_constraint!(ct::CapacityConstraint, e::MacroEnergy.BidirectionalEdge, model::Model)
 MacroEnergy.add_model_constraint!(ct::CapacityConstraint, e::MacroEnergy.EdgeWithUC, model::Model)
 ```
 ## [CO2 capacity constraint](@id co2_capacity_constraint_ref)
@@ -46,6 +78,10 @@ MacroEnergy.add_model_constraint!(ct::MaxNonServedDemandPerSegmentConstraint, n:
 ```@docs
 MacroEnergy.add_model_constraint!(ct::MaxStorageLevelConstraint, g::AbstractStorage, model::Model)
 ```
+## [Maximum initial storage level constraint](@id max_init_storage_level_constraint_ref)
+```@docs
+MacroEnergy.add_model_constraint!(ct::MaxInitStorageLevelConstraint, g::LongDurationStorage, model::Model)
+```
 ## [Minimum capacity constraint](@id min_capacity_constraint_ref)
 ```@docs
 MacroEnergy.add_model_constraint!(ct::MinCapacityConstraint, y::Union{AbstractEdge,AbstractStorage}, model::Model)
@@ -58,6 +94,10 @@ MacroEnergy.add_model_constraint!(ct::MinFlowConstraint, e::EdgeWithUC, model::M
 ## [Minimum storage level constraint](@id min_storage_level_constraint_ref)
 ```@docs
 MacroEnergy.add_model_constraint!(ct::MinStorageLevelConstraint, g::AbstractStorage, model::Model)
+```
+## [Minimum initial storage level constraint](@id min_init_storage_level_constraint_ref)
+```@docs
+MacroEnergy.add_model_constraint!(ct::MinInitStorageLevelConstraint, g::LongDurationStorage, model::Model)
 ```
 ## [Minimum storage outflow constraint](@id min_storage_outflow_constraint_ref)
 ```@docs
@@ -73,11 +113,11 @@ MacroEnergy.add_model_constraint!(ct::MinDownTimeConstraint, e::EdgeWithUC, mode
 
 ## [Must-run constraint](@id must_run_constraint_ref)
 ```@docs
-MacroEnergy.add_model_constraint!(ct::MustRunConstraint, e::Edge, model::Model)
+MacroEnergy.add_model_constraint!(ct::MustRunConstraint, e::AbstractEdge, model::Model)
 ```
 ## [Ramping limits constraint](@id ramping_limits_constraint_ref)
 ```@docs
-MacroEnergy.add_model_constraint!(ct::RampingLimitConstraint, e::Edge, model::Model)
+MacroEnergy.add_model_constraint!(ct::RampingLimitConstraint, e::EdgeWithoutUC, model::Model)
 MacroEnergy.add_model_constraint!(ct::RampingLimitConstraint, e::EdgeWithUC, model::Model)
 ```
 ## [Storage capacity constraint](@id storage_capacity_constraint_ref)
@@ -86,7 +126,11 @@ MacroEnergy.add_model_constraint!(ct::StorageCapacityConstraint, g::AbstractStor
 ```
 ## [Storage discharge limit constraint](@id storage_discharge_limit_constraint_ref)
 ```@docs
-MacroEnergy.add_model_constraint!(ct::StorageDischargeLimitConstraint, e::Edge, model::Model)
+MacroEnergy.add_model_constraint!(ct::StorageDischargeLimitConstraint, e::AbstractEdge, model::Model)
+```
+## [Storage charge limit constraint](@id storage_charge_limit_constraint_ref)
+```@docs
+MacroEnergy.add_model_constraint!(ct::StorageChargeLimitConstraint, e::AbstractEdge, model::Model)
 ```
 ## [Storage symmetric capacity constraint](@id storage_symmetric_capacity_constraint_ref)
 ```@docs
@@ -110,5 +154,5 @@ MacroEnergy.add_model_constraint!(ct::StorageMinDurationConstraint, g::AbstractS
 ```
 ## [Retrofitting constraint](@id retrofitting_constraint_ref)
 ```@docs
-MacroEnergy.add_retrofit_constraints!(system::MacroEnergy.System, period_idx::Int, model::Model)
+MacroEnergy.add_retrofit_constraints!(system::MacroEnergy.System, model::Model)
 ```

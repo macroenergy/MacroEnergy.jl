@@ -5,7 +5,7 @@ struct Optimizer
     attributes::Tuple
 end
 
-function create_optimizer(optimizer::DataType, optimizer_env::Any, attributes::Tuple)
+function create_optimizer(optimizer::DataType, optimizer_env::Any=nothing, attributes::Tuple=())
     return Optimizer(optimizer, optimizer_env, attributes)
 end
 
@@ -14,8 +14,8 @@ function set_optimizer(model::Model, opt::Optimizer)
         @debug("Setting optimizer with environment $(opt.optimizer_env)")
         try 
             set_optimizer(model, () -> opt.optimizer(opt.optimizer_env));
-        catch
-            error("Error creating optimizer with environment. Check that the environment is valid.")
+        catch e
+            error("Error creating optimizer with environment: $e")
         end
     else
         @debug("Setting optimizer $(opt.optimizer)")

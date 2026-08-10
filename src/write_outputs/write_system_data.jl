@@ -1,24 +1,41 @@
 ###### ###### ###### ###### ###### ######
-# Function to print the system data
+# Function to write the system data to a JSON file
 ###### ###### ###### ###### ###### ######
-# TODO: For now, I commented out the function that prints the system data to a JSON file
-#       because we first need to fix the issue with in-place modification of the edge ids.
-#       We can uncomment it once we have a solution for that.
-function print_to_json(system::System, file_path::AbstractString="")::Nothing
-    # Note: right now System does not have a node field, so we're using locations
+"""
+    write_to_json(system::System, file_path::AbstractString=""; compress::Bool=true)
+    write_to_json(case::Case, file_path::AbstractString=""; compress::Bool=true)
+
+Serialize a `System` or `Case` object to a JSON file.
+
+# Arguments
+- `system` or `case`: The object to serialize.
+- `file_path`: Path to the output file. Defaults to `output_system_data.json` in the current directory.
+  If `compress=true` and the path does not end in `.gz`, the `.gz` extension is appended automatically.
+
+# Keyword Arguments
+- `compress::Bool=true`: Whether to gzip-compress the output file.
+
+# Notes
+- When serializing a `Case`, the output contains two top-level keys: `:case` (a vector of
+  per-period system data) and `:settings` (the case settings).
+- Constraint dual values are included in the output when available.
+"""
+function write_to_json(system::System, file_path::AbstractString=""; compress::Bool=true)::Nothing
     system_data = prepare_to_json(system)
-    write_json(file_path, system_data)
+    file_path = file_path == "" ? joinpath(pwd(), "output_system_data.json") : file_path
+    @info("Writing system data to JSON file at: ", file_path)
+    write_json(file_path, system_data, compress)
     return nothing
 end
 
-function write_system_data(
-    system_data::AbstractDict{Symbol,Any},
-    file_path::AbstractString="",
-)::Nothing
-    if file_path == ""
-        file_path = joinpath(pwd(), "printed_system_data.json")
-    end
-    write_json(file_path, system_data)
+function write_to_json(case::Case, file_path::AbstractString=""; compress::Bool=true)::Nothing
+    case_data = Dict{Symbol, Any}(
+        :case => [prepare_to_json(system) for system in case.systems],
+        :settings => prepare_to_json(case.settings)
+    )
+    file_path = file_path == "" ? joinpath(pwd(), "output_system_data.json") : file_path
+    @info("Writing system data to JSON file at: ", file_path)
+    write_json(file_path, case_data, compress)
     return nothing
 end
 
@@ -31,14 +48,18 @@ function prepare_to_json(system::System)
     for field in Base.fieldnames(typeof(system))    # Loop through the fields of the System object
         data = getfield(system, field)
         if field == :commodities    # commodites are stored as a vector of strings not a dict in the JSON file
-            data = keys(data)
+            data = prepare_commodities_to_json(system.commodities)
         elseif field == :locations  #TODO: Remove this once we have locations
             field = :nodes
-        elseif ismissing(data)
+        elseif ismissing(data) || field == :input_data
             continue    # Skip missing data
         end
         system_data[field] = prepare_to_json(data)
     end
+
+    system_data[:locations] = Dict{Symbol, Any}(
+        :path => "system/locations.json"
+    )
     return system_data
 end
 
@@ -74,13 +95,13 @@ function prepare_to_json(asset::AbstractAsset)
         data = getfield(asset, f)
         if isa(data, AbstractEdge)
             asset_data[:instance_data][:edges][f] = prepare_to_json(data)
-            asset_data[:instance_data][:edges][f][:commodity] = commodity_type(data)
+            asset_data[:instance_data][:edges][f][:commodity] = typesymbol(commodity_type(data))
             if isa(data, EdgeWithUC)
                 asset_data[:instance_data][:edges][f][:uc] = true
             end
         elseif isa(data, Transformation)
             asset_data[:instance_data][:transforms] = prepare_to_json(data)
-        elseif isa(data, Storage)
+        elseif isa(data, AbstractStorage)
             asset_data[:instance_data][:storage] = prepare_to_json(data)
         else    # e.g., AssetId
             asset_data[:instance_data][f] = data
@@ -99,8 +120,12 @@ end
 function prepare_to_json(storage::AbstractStorage)
     fields_to_exclude = [:operation_expr, :discharge_edge, :charge_edge]
     storage_data = prepare_to_json(storage, fields_to_exclude)
-    storage_data[:commodity] = commodity_type(storage)
+    storage_data[:commodity] = typesymbol(commodity_type(storage))
     return storage_data
+end
+
+function prepare_to_json(location::Location)
+    return Dict{Symbol, Any}()
 end
 
 # This function prepares MacroObject objects (e.g., Storage, Transformation, Nodes, Edges)
@@ -124,12 +149,52 @@ end
 
 # Constraints are written as a dictionary of constraint names and true/false values
 function prepare_to_json(constraints::Vector{AbstractTypeConstraint})
-    return Dict(Symbol(typeof(constraint)) => true for constraint in constraints)
+    dict = Dict{Symbol,Any}()
+    for constraint in constraints
+        con_ref = constraint_ref(constraint)
+        if ismissing(con_ref)
+            dict[Symbol(typeof(constraint))] = true
+            continue
+        end            
+        dual_value = dual.(con_ref)
+        if ismissing(dual_value)
+            dict[Symbol(typeof(constraint))] = true
+        else
+            dict[Symbol(typeof(constraint))] = prepare_to_json(dual_value)
+        end
+    end
+    return dict
+end
+
+function prepare_to_json(constraints::Dict{DataType, Union{JuMP.Containers.DenseAxisArray, JuMP.Containers.SparseAxisArray, Array, ConstraintRef}})
+    return Dict(Symbol(k) => true for k in keys(constraints))
+end
+
+function prepare_to_json(data::Dict)
+    return Dict(k => prepare_to_json(v) for (k, v) in data)
 end
 
 # If DataTypes are used as keys in a dictionary, we convert them to symbols
 function prepare_to_json(data::Dict{DataType,Any})
     return Dict(Symbol(k) => v for (k, v) in data)
+end
+
+function prepare_to_json(data::OrderedDict{Symbol,SupplySegment})
+    return OrderedDict{Symbol,OrderedDict{Symbol,Vector{Any}}}(
+        segment_name => prepare_to_json(segment) for (segment_name, segment) in data
+    )
+end
+
+function prepare_to_json(segment::SupplySegment)
+    return OrderedDict{Symbol,Any}(
+        :price => prepare_to_json(segment.price),
+        :min => prepare_to_json(segment.min),
+        :max => prepare_to_json(segment.max),
+    )
+end
+
+function prepare_to_json(data::NamedTuple)
+    return Dict(Symbol(k) => prepare_to_json(v) for (k, v) in pairs(data))
 end
 
 # TimeData field of MacroObjects are written as the commodity type
@@ -142,14 +207,28 @@ function prepare_to_json(data::Dict{Symbol,TimeData})
         :NumberOfSubperiods => 0,
         :HoursPerTimeStep => Dict{Symbol,Int}(),
         :HoursPerSubperiod => Dict{Symbol,Int}(),
+        :TotalHoursModeled => 0.0
     )
     for (k, v) in data
         time_data[:NumberOfSubperiods] = length(v.subperiod_indices)
         time_data[:HoursPerTimeStep][k] = v.hours_per_timestep
         time_data[:HoursPerSubperiod][k] = length(v.subperiods[1]) # TODO: Check this
+        time_data[:TotalHoursModeled] = v.total_hours_modeled
     end
-
+    
+    # Make subperiod map
+    (comm, comm_time_data) = first(data)
+    rep_period_map = Dict(p => idx for (idx,p) in enumerate(comm_time_data.subperiod_indices))
+    period_map = DataFrame([
+       Dict{Symbol,Int64}(:Period_Index => p, :Rep_Period => comm_time_data.subperiod_map[p], :Rep_Period_Index => rep_period_map[comm_time_data.subperiod_map[p]]) for p in 1:time_data[:NumberOfSubperiods]
+    ])
+    # Using JSONTables and JSON3 to automatically handle future formatting changes
+    time_data[:SubPeriodMap] = copy(JSON3.read(objecttable(period_map)))
     return time_data
+end
+
+function prepare_to_json(data::AbstractSolutionAlgorithm)
+    return string(nameof(typeof(data)))
 end
 
 function prepare_to_json(data::Missing)
@@ -160,12 +239,86 @@ function prepare_to_json(data::AbstractJuMPScalar)
     return value(data)
 end
 
+function prepare_to_json(data::JuMP.Containers.DenseAxisArray{<:AbstractJuMPScalar})
+    return value.(data).data
+end
+
+# DenseAxisArray{Float64} (e.g. from dual.(con_ref)) — extract the plain Array first
+# to avoid StepRange axis issues when iterating or collecting
+function prepare_to_json(data::JuMP.Containers.DenseAxisArray)
+    return prepare_to_json(data.data)
+end
+
 function prepare_to_json(data::AbstractArray{<:AbstractJuMPScalar})
     return value.(data)
 end
 
+function prepare_to_json(data::AbstractVector)
+    return [prepare_to_json(v) for v in data]
+end
+
 # In general, for all attributes (Floats, Strings, etc), `prepare_to_json` simply returns the data as it is
 function prepare_to_json(data)
-    data == Inf && return "Inf"
+    if data == Inf 
+        return "Inf"
+    elseif data == -Inf
+        return "-Inf"
+    elseif data == NaN
+        return "NaN"
+    end
     return data
+end
+
+###### ###### ###### ###### ###### ######
+# Specialized function to write Commodities
+###### ###### ###### ###### ###### ######
+# TODO: We should merge this into prepare_to_json using a Type for this kind of data
+function prepare_commodities_to_json(commodities::Dict{Symbol, DataType})
+    # We'll get a dict{Symbol, DataType} where the key is the commodity name and value is the commodity type
+    # We want to check if the parent module of the commodity type is MacroEnergy or UserAdditions
+    # If it's the latter, we'll create the correct input format designating it's parent commodity
+    commodity_defs = Union{Symbol, Dict{Symbol, Any}}
+    commodity_data = Vector{commodity_defs}()
+    commodity_tree = Dict{Symbol, Vector{commodity_defs}}(
+        :Commodity => Vector{Dict{Symbol, Any}}()
+    )
+
+    for (commodity_id, commodity) in commodities
+        super = supertype(commodity)
+        # Top-level commodities, from MacroEnergy or UserAdditions
+        if super == MacroEnergy.Commodity
+            push!(commodity_tree[:Commodity], commodity_id)
+            continue
+        end
+        # Sub-commodities from UserAdditions
+        super_id = typesymbol(super)
+        if !haskey(commodity_tree, super_id)
+            commodity_tree[super_id] = Vector{commodity_defs}()
+        end
+        push!(commodity_tree[super_id], Dict{Symbol, Any}(
+            :name => commodity_id,
+            :acts_like => typesymbol(super),
+        ))
+    end
+
+    # We now iterate through the commodity tree, starting from top-level commodities
+    for commodity in commodity_tree[:Commodity]
+        push!(commodity_data, commodity)
+        if haskey(commodity_tree, commodity)
+            expand_commodity_tree(commodity_tree, commodity, commodity_data)
+        end
+    end
+    
+    return commodity_data
+end
+
+function expand_commodity_tree(commodity_tree, commodity_id::Symbol, commodity_data::Vector)
+    for subcommodity in commodity_tree[commodity_id]
+        push!(commodity_data, subcommodity)
+        subcommodity_id = subcommodity[:name]
+        if haskey(commodity_tree, subcommodity_id)
+            expand_commodity_tree(commodity_tree, subcommodity_id, commodity_data)
+        end
+    end
+    return nothing
 end

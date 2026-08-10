@@ -3,7 +3,7 @@
 # ============================================================================
 
 """
-    write_duals(results_dir::AbstractString, system::System, scaling::Float64=1.0)
+    write_duals(results_dir::AbstractString, system::System, scaling::Float64)
 
 Write dual values for all supported constraint types to separate CSV files.
 
@@ -23,7 +23,7 @@ Currently, this function exports dual values for:
 system = case.systems[1]; # single period case
 
 # Export all dual values
-write_duals("results/", system)
+write_duals("results/", system, 1.0)
 ```
 
 # See Also
@@ -33,54 +33,20 @@ write_duals("results/", system)
 function write_duals(
     results_dir::AbstractString,
     system::System,
-    scaling::Float64=1.0
+    scaling::Float64,
+    var_cost_discount::Float64
 )
     @info "Writing constraint dual values to $results_dir"
     
     # Export each constraint type to its own file
-    write_balance_duals(results_dir, system, scaling)
-    write_co2_cap_duals(results_dir, system, scaling)
+    write_balance_duals(results_dir, system, scaling, var_cost_discount)
+    write_co2_cap_duals(results_dir, system, scaling, var_cost_discount)
     
     return nothing
 end
 
 """
-    write_duals_benders(
-        results_dir::AbstractString,
-        system::System,
-        scaling::Float64=1.0
-    )
-
-Write dual values for Benders decomposition results.
-
-This function is slightly different than the one for other solution algorithms as the 
-dual values for balance constraints are already undiscounted (the objective function 
-for the operational subproblems is already undiscounted). 
-CO2 cap constraint duals come from the planning problem which is discounted (so scaling is applied).
-
-# Arguments
-- `results_dir::AbstractString`: Directory where CSV files will be written
-- `system::System`: The system containing solved constraints with dual values
-- `scaling::Float64`: Scaling factor for CO2 cap constraint duals (default is 1.0)
-"""
-function write_duals_benders(
-    results_dir::AbstractString,
-    system::System,
-    scaling::Float64=1.0
-)
-    @info "Writing constraint dual values to $results_dir"
-
-    # Note: with Benders, the duals for balance constraints don't need to be undiscounted
-    # as the objective function for the operational subproblems is already undiscounted
-    write_balance_duals(results_dir, system)
-    # Duals for CO2 cap constraints comes from the planning problem which is discounted
-    write_co2_cap_duals(results_dir, system, scaling)
-    
-    return nothing
-end
-
-"""
-    write_balance_duals(results_dir::AbstractString, system::System, scaling::Float64=1.0)
+    write_balance_duals(results_dir::AbstractString, system::System, scaling::Float64, var_cost_discount::Float64)
 
 Write balance constraint dual values (marginal prices) to CSV file.
 
@@ -104,22 +70,45 @@ Wide-format CSV with:
 
 # Examples
 ```julia
-write_balance_duals("results/", system)
+write_balance_duals("results/", system, 1.0, 1.0)
 # Creates: results/balance_duals.csv
 ```
 """
 function write_balance_duals(
     results_dir::AbstractString,
     system::System,
-    scaling::Float64=1.0
+    scaling::Float64,
+    var_cost_discount::Float64
 )
     @info "Writing balance constraint dual values to $results_dir"
 
     filename = "balance_duals.csv"
     file_path = joinpath(results_dir, filename)
 
+    balance_duals, node_ids, _ = _extract_balance_duals(system, scaling, var_cost_discount)
+
+    df = DataFrame(balance_duals, node_ids, copycols=false)
+    write_dataframe(file_path, df)
+    @debug "Wrote $(nrow(df)) time steps and $(length(node_ids)) nodes for balance constraints to CSV file: $file_path"
+
+    return nothing
+end
+
+
+"""
+    _extract_balance_duals(system::System, scaling::Float64; with_timedata::Bool=false)
+
+Extract and rescale balance constraint duals for all nodes.
+
+Returns `(duals, node_ids, timedata_vec)` where each element of `duals`
+is the rescaled dual vector for the corresponding node.
+When `with_timedata` is `true`, `timedata_vec` contains the `TimeData` for each node
+(for time-series reconstruction); otherwise it is `nothing`.
+"""
+function _extract_balance_duals(system::System, scaling::Float64, var_cost_discount::Float64; with_timedata::Bool=false)
     balance_duals = Vector{Vector{Float64}}()
     node_ids = Vector{Symbol}()
+    timedata_vec = with_timedata ? Vector{TimeData}() : nothing
 
     for node in filter(n -> n isa Node, system.locations)
         constraint = get_constraint_by_type(node, BalanceConstraint)
@@ -134,7 +123,7 @@ function write_balance_duals(
             set_constraint_dual!(constraint, node)
         end
         
-        # Get the dictornary of dual values for all balance equations
+        # Get the dictionary of dual values for all balance equations
         duals_dict = constraint_dual(constraint)
         
         # Export only the :demand balance duals (skip if not present)
@@ -143,22 +132,19 @@ function write_balance_duals(
         # Add node ID
         push!(node_ids, id(node))
 
-        # Compute subperiod weights for rescaling
+        # Compute subperiod weights and rescale dual values
         weights = Float64[subperiod_weight(node, current_subperiod(node, t)) for t in time_interval(node)]
 
         # Rescale dual values by subperiod weights
-        push!(balance_duals, duals_dict[:demand] ./ (weights .* scaling))
+        push!(balance_duals, scaling * duals_dict[:demand] ./ (weights .* var_cost_discount) )
+        with_timedata && push!(timedata_vec, node.timedata)
     end
 
-    df = DataFrame(balance_duals, node_ids, copycols=false)
-    write_dataframe(file_path, df)
-    @debug "Wrote $(nrow(df)) time steps and $(length(node_ids)) nodes for balance constraints to CSV file: $file_path"
-
-    return nothing
+    return balance_duals, node_ids, timedata_vec
 end
 
 """
-    write_co2_cap_duals(results_dir::AbstractString, system::System, scaling::Float64=1.0)
+    write_co2_cap_duals(results_dir::AbstractString, system::System, scaling::Float64)
 
 Write CO2 cap constraint dual values (carbon prices) and penalty costs to CSV file.
 
@@ -167,9 +153,9 @@ Extracts dual values from CO2 cap policy budget constraints and exports them to
 
 # Output Format
 Long-format CSV with columns:
-- `node`: Node ID
-- `co2_shadow_price`: Carbon price
-- `co2_penalty_cost`: Total penalty cost across subperiods (if slack variables exist)
+- `Node`: Node ID
+- `CO2_Shadow_Price`: Carbon price (shadow price of the CO2 cap constraint)
+- `CO2_Slack`: Total penalty cost across subperiods (if slack variables exist)
 
 # Arguments
 - `results_dir::AbstractString`: Directory where CSV file will be written
@@ -178,14 +164,15 @@ Long-format CSV with columns:
 
 # Examples
 ```julia
-write_co2_cap_duals("results/", system)
+write_co2_cap_duals("results/", system, 1.0)
 # Creates: results/co2_cap_duals.csv
 ```
 """
 function write_co2_cap_duals(
     results_dir::AbstractString,
     system::System,
-    scaling::Float64=1.0
+    scaling::Float64,
+    var_cost_discount::Float64
 )
     @info "Writing CO2 cap constraint dual values to $results_dir"
 
@@ -197,7 +184,7 @@ function write_co2_cap_duals(
 
     node_ids = Vector{Symbol}()
     co2_shadow_prices = Vector{Float64}()
-    co2_slack_vars = Vector{Float64}()
+    co2_slack_vars = Vector{Union{Float64, Missing}}()
 
     for node in filter(n -> n isa Node, system.locations)
         # Skip nodes without CO2 cap policy budget constraint
@@ -210,7 +197,7 @@ function write_co2_cap_duals(
         push!(node_ids, id(node))
 
         # Get CO2 shadow prices
-        co2_shadow_price = -dual(constraint) / scaling
+        co2_shadow_price = -scaling * dual(constraint) / var_cost_discount
         push!(co2_shadow_prices, co2_shadow_price)
 
         # Calculate penalty cost if slack variables exist
@@ -226,6 +213,9 @@ function write_co2_cap_duals(
             end
 
             push!(co2_slack_vars, co2_slack_sum)
+        else
+            # No slack variables for this node
+            push!(co2_slack_vars, missing)
         end
     end
     
@@ -251,13 +241,10 @@ end
 function compute_variable_cost_discount_scaling(period_idx::Int, settings::NamedTuple)
     discount_rate = settings.DiscountRate
     period_lengths = settings.PeriodLengths
+    period_start_year = total_years(period_lengths[1:period_idx-1])
+    discount_factor = present_value_factor(discount_rate, period_start_year)
     
-    cum_years = sum(@view(period_lengths[1:period_idx-1]); init=0)
-    
-    discount_factor = 1 / ((1 + discount_rate)^cum_years)
-    
-    period_length = period_lengths[period_idx]
-    opexmult = sum(1 / (1 + discount_rate)^i for i in 1:period_length)
+    opexmult = present_value_annuity_factor(discount_rate, period_lengths[period_idx])
     
     return discount_factor * opexmult
 end

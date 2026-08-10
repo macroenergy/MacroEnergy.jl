@@ -87,7 +87,7 @@ The following tables outline the attributes that can be set for a VRE asset.
 ### Essential Attributes
 | Field | Type | Description |
 |--------------|---------|------------|
-| `Type` | String | Asset type identifier: "VRE" |
+| `type` | String | Asset type identifier: "VRE" |
 | `id` | String | Unique identifier for the VRE instance |
 | `location` | String | Geographic location/node identifier |
 
@@ -150,7 +150,7 @@ The `VRE` asset is defined as follows:
 struct VRE <: AbstractAsset
     id::AssetId
     energy_transform::Transformation
-    edge::Edge{<:Electricity}
+    edge::UnidirectionalEdge{<:Electricity}
 end
 ```
 
@@ -159,7 +159,7 @@ end
 ### Default constructor
 
 ```julia
-VRE(id::AssetId, energy_transform::Transformation, edge::Edge{<:Electricity})
+VRE(id::AssetId, energy_transform::Transformation, edge::UnidirectionalEdge{<:Electricity})
 ```
 
 ### Factory constructor

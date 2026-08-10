@@ -130,7 +130,7 @@ The following tables outline the attributes that can be set for a BECCS electric
 ### Essential Attributes
 | Field | Type | Description |
 |--------------|---------|------------|
-| `Type` | String | Asset type identifier: "BECCSElectricity" |
+| `type` | String | Asset type identifier: "BECCSElectricity" |
 | `id` | String | Unique identifier for the BECCS electricity instance |
 | `location` | String | Geographic location/node identifier |
 | `biomass_commodity` | String | Commodity identifier for the biomass supply (can be a sub-commodity of `Biomass`) |
@@ -228,11 +228,11 @@ The `BECCSElectricity` asset is defined as follows:
 struct BECCSElectricity <: AbstractAsset
     id::AssetId
     beccs_transform::Transformation
-    biomass_edge::Edge{<:Biomass}
-    elec_edge::Edge{<:Electricity}
-    co2_edge::Edge{<:CO2}
-    co2_emission_edge::Edge{<:CO2}
-    co2_captured_edge::Edge{<:CO2Captured}
+    biomass_edge::UnidirectionalEdge{<:Biomass}
+    elec_edge::UnidirectionalEdge{<:Electricity}
+    co2_edge::UnidirectionalEdge{<:CO2}
+    co2_emission_edge::UnidirectionalEdge{<:CO2}
+    co2_captured_edge::UnidirectionalEdge{<:CO2Captured}
 end
 ```
 
@@ -241,7 +241,7 @@ end
 ### Default constructor
 
 ```julia
-BECCSElectricity(id::AssetId, beccs_transform::Transformation, biomass_edge::Edge{<:Biomass}, co2_edge::Edge{<:CO2}, elec_edge::Edge{<:Electricity}, co2_captured_edge::Edge{<:CO2Captured}, co2_emission_edge::Edge{<:CO2})
+BECCSElectricity(id::AssetId, beccs_transform::Transformation, biomass_edge::UnidirectionalEdge{<:Biomass}, co2_edge::UnidirectionalEdge{<:CO2}, elec_edge::UnidirectionalEdge{<:Electricity}, co2_captured_edge::UnidirectionalEdge{<:CO2Captured}, co2_emission_edge::UnidirectionalEdge{<:CO2})
 ```
 
 ### Factory constructor

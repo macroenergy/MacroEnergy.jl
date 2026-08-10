@@ -17,6 +17,8 @@ jobs:
       - uses: julia-actions/setup-julia@v2
       - uses: julia-actions/cache@v2
       - uses: julia-actions/julia-buildpkg@latest
+      - name: Update generated changelog docs
+        run: julia --project=. docs/scripts/update_changelog.jl
       - uses: julia-actions/julia-docdeploy@latest
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

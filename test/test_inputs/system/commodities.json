@@ -1,14 +1,17 @@
 {
     "commodities": [
         "Electricity",
-        "NaturalGas",
-        "LiquidFuels",
-        "CO2",
-        "Hydrogen",
         "CO2Captured",
+        "Hydrogen",
+        "NaturalGas",
+        "Fossil_NaturalGas",
         "Biomass",
+        "Biomass_Herb",
+        "Biomass_Wood",
         "Uranium",
+        "CO2",
         "Coal",
+        "LiquidFuels",
         "Cement"
     ]
 }

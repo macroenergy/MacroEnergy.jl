@@ -1,7 +1,7 @@
 Base.@kwdef mutable struct BalanceConstraint <: OperationConstraint
     value::Union{Missing,Vector{Float64}} = missing
     constraint_dual::Union{Missing,Dict{Symbol,Vector{Float64}}} = missing
-    constraint_ref::Union{Missing,JuMPConstraint} = missing
+    constraint_ref::Union{Missing,Dict{Symbol,Any}} = missing
 end
 
 @doc raw"""
@@ -19,12 +19,31 @@ Add a balance constraint to the vertex `v`.
 ```
 """
 function add_model_constraint!(ct::BalanceConstraint, v::AbstractVertex, model::Model)
-
-    ct.constraint_ref = @constraint(
-        model,
-        [i in balance_ids(v), t in time_interval(v)],
-        get_balance(v, i, t) == 0.0
-    )
+    ct.constraint_ref = Dict{Symbol,Any}()
+    for balance_id in keys(v.balance_data)
+        sense = balance_sense(v, balance_id)
+        if sense == :eq
+            ct.constraint_ref[balance_id] = @constraint(
+                model,
+                [t in time_interval(v)],
+                get_balance(v, balance_id, t) == 0.0
+            )
+        elseif sense == :le
+            ct.constraint_ref[balance_id] = @constraint(
+                model,
+                [t in time_interval(v)],
+                get_balance(v, balance_id, t) <= 0.0
+            )
+        elseif sense == :ge
+            ct.constraint_ref[balance_id] = @constraint(
+                model,
+                [t in time_interval(v)],
+                get_balance(v, balance_id, t) >= 0.0
+            )
+        else
+            error("Unsupported balance sense $sense on $(id(v))-$balance_id")
+        end
+    end
 
     return nothing
 end
@@ -58,8 +77,10 @@ function set_constraint_dual!(
 
     # Extract dual values for all balance IDs
     constraint.constraint_dual = Dict{Symbol, Vector{Float64}}()
-    for balance_id in balance_ids(v)
-        constraint.constraint_dual[balance_id] = dual.(constraint.constraint_ref[balance_id, :].data)
+    for balance_id in keys(v.balance_data)
+        constraint.constraint_dual[balance_id] = [
+            dual(constraint.constraint_ref[balance_id][t]) for t in time_interval(v)
+        ]
     end
 
     return nothing

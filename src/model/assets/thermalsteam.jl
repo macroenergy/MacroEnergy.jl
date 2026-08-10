@@ -106,6 +106,7 @@ end
 
 function make(asset_type::Type{ThermalSteam}, data::AbstractDict{Symbol,Any}, system::System)
     id = AssetId(data[:id])
+    location = as_symbol_or_missing(get(data, :location, missing))
 
     @setup_data(asset_type, data, id)
 
@@ -123,6 +124,7 @@ function make(asset_type::Type{ThermalSteam}, data::AbstractDict{Symbol,Any}, sy
     steam_transform = Transformation(;
         id = Symbol(id, "_", thermal_key),
         timedata = system.time_data[Symbol(transform_data[:timedata])],
+        location = location,
         constraints = get(transform_data, :constraints, [BalanceConstraint()]),
     )
 
@@ -247,26 +249,21 @@ function make(asset_type::Type{ThermalSteam}, data::AbstractDict{Symbol,Any}, sy
         co2_end_node,
     )
 
-    steam_transform.balance_data = Dict(
-        :energy => Dict(
-            steam_edge.id => get(transform_data, :fuel_consumption, 1.0),
-            fuel_edge.id => 1.0,
-            elec_edge.id => 0.0,
-            co2_edge.id => 0.0,
-        ),
-        :elec_prod => Dict(
-            fuel_edge.id => get(transform_data, :elec_cogen_rate, 1.0),
-            elec_edge.id => 1.0,
-            co2_edge.id => 0.0,
-            steam_edge.id => 0.0,
-        ),
-        :emissions => Dict(
-            fuel_edge.id => get(transform_data, :emission_rate, 0.0),
-            co2_edge.id => 1.0,
-            steam_edge.id => 0.0,
-        ),
+    @add_balance(
+        steam_transform,
+        :energy,
+        flow(fuel_edge) == get(transform_data, :fuel_consumption, 1.0) * flow(steam_edge)
     )
-
+    @add_balance(
+        steam_transform,
+        :elec_prod,
+        get(transform_data, :elec_cogen_rate, 1.0) * flow(fuel_edge) == flow(elec_edge)
+    )
+    @add_balance(
+        steam_transform,
+        :emissions,
+        get(transform_data, :emission_rate, 0.0) * flow(fuel_edge) == flow(co2_edge)
+    )
 
     return ThermalSteam(id, steam_transform, steam_edge, fuel_edge, elec_edge, co2_edge)
 end

@@ -3,6 +3,7 @@ struct Case
     settings::Union{NamedTuple,Nothing}
 end
 solution_algorithm(case::Case) = solution_algorithm(case.settings[:SolutionAlgorithm])
+expansion_horizon(case::Case) = expansion_horizon(case.settings[:ExpansionHorizon])
 number_of_periods(case::Case) = length(case.systems)
 get_periods(case::Case) = case.systems
 get_settings(case::Case) = case.settings
@@ -30,9 +31,13 @@ function generate_case(
     @info("Generating systems")
     
     start_time = time()
+    period_lengths = collect(settings[:PeriodLengths])
     systems::Vector{System} = map(1:num_systems) do system_idx
         system_data = case[system_idx]
         system_data[:time_data][:SystemIndex] = system_idx
+        if !ismissing(settings[:StartYear])
+            system_data[:time_data][:Year] = settings[:StartYear] + total_years(period_lengths[1:system_idx-1])
+        end
         system = empty_system(dirname(path))
         generate_system!(system, system_data)
         return system
@@ -48,6 +53,12 @@ end
 
 
 function prepare_case!(systems::Vector{System}, settings::NamedTuple)
+    # Scale raw input parameters before any cost derivation, so the derived
+    # (annualized/discounted) costs inherit the scaling. Runs before any model
+    # generation / capacity carry-over, so every `existing_capacity` is still a
+    # plain user-supplied number at this point. No-op when scaling is disabled.
+    scale!(systems, parameter_scaling_factor(settings))
+
     for (system_id, system) in enumerate(systems)
         compute_annualized_costs!(system,settings) 
         
@@ -73,7 +84,7 @@ function initialize_min_retired_capacity_track!(system::System)
         for t in fieldnames(typeof(a))
             y = getfield(a,t)
             if :min_retired_capacity ∈ Base.fieldnames(typeof(y))
-                y.min_retired_capacity_track = y.min_retired_capacity
+                y.min_retired_capacity_track = min_retired_capacity(y)
             end
         end
     end
@@ -100,7 +111,7 @@ function track_min_retired_capacity!(a::AbstractAsset, a_prev::AbstractAsset)
         y = getfield(a,t)
         y_prev = getfield(a_prev,t)
         if :min_retired_capacity ∈ Base.fieldnames(typeof(y))
-            y.min_retired_capacity_track = y_prev.min_retired_capacity_track  + y.min_retired_capacity
+            y.min_retired_capacity_track = min_retired_capacity_track(y_prev)  + min_retired_capacity(y)
         end
     end
 

@@ -80,6 +80,7 @@ end
 
 function make(asset_type::Type{HydroRes}, data::AbstractDict{Symbol,Any}, system::System)
     id = AssetId(data[:id])
+    location = as_symbol_or_missing(get(data, :location, missing))
 
     @setup_data(asset_type, data, id)
 
@@ -103,6 +104,7 @@ function make(asset_type::Type{HydroRes}, data::AbstractDict{Symbol,Any}, system
         storage_data,
         system.time_data[:Electricity],
         Electricity,
+        location
     )
     if long_duration
         lds_constraints = [LongDurationStorageImplicitMinMaxConstraint()]
@@ -207,13 +209,17 @@ function make(asset_type::Type{HydroRes}, data::AbstractDict{Symbol,Any}, system
             (inflow_edge_data, :inflow_efficiency),
             (inflow_edge_data, :efficiency)
         ], 1.0)
-
-    hydrostor.balance_data = Dict(
-        :storage => Dict(
-            discharge_edge.id => 1 / discharge_efficiency,
-            inflow_edge.id => inflow_efficiency,
-            spill_edge.id => 1.0
-        )
+    @add_to_storage_balance(
+        hydrostor,
+        1 / discharge_efficiency * flow(discharge_edge),
+    )
+    @add_to_storage_balance(
+        hydrostor,
+        inflow_efficiency * flow(inflow_edge),
+    )
+    @add_to_storage_balance(
+        hydrostor,
+        flow(spill_edge),
     )
 
     return HydroRes(id,hydrostor,discharge_edge,inflow_edge,spill_edge)

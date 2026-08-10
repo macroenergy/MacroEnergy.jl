@@ -8,21 +8,27 @@
 
 `Edges` are connections between components, allowing for one or two-way flows of Commodities. They are one of the four primary components in Macro, alongside `Nodes`, `Storage`, and `Transformations`.
 
-Each `Edge` can only carry one Commodity so they are usually described with reference to that Commodity, e.g. as `Edge{Electricity}`, `Edge{Hydrogen}`, or `Edge{CO2}`. The general description is an `Edge{T}`, where `T` can be any Commodity or sub-Commodity.
+Each edge can only carry one commodity and is parameterized by type `T` (for example `Electricity`, `Hydrogen`, or `CO2`). Macro supports three edge implementations:
+
+- `UnidirectionalEdge{T}` for one-way flow
+- `BidirectionalEdge{T}` for two-way flow
+- `EdgeWithUC{T}` for one-way flow with unit commitment variables
+
+For backwards compatibility, `Edge{T}` is retained as an alias of `UnidirectionalEdge{T}`.
 
 ### Edges in Assets
 
-Most `Edges{T}` are incorporated into Assets, representing the ability of those Assets to transfer Commodities. This is intuitive in some instances but it must be remembered that `Edges` and other primary components within an Asset do not represent physical components. Instead, they represent the capabilities of the Asset as a whole.
+Most edges are incorporated into Assets, representing the ability of those Assets to transfer commodities. This is intuitive in some instances but it must be remembered that edges and other primary components within an Asset do not represent physical components. Instead, they represent the capabilities of the Asset as a whole.
 
 #### Electricity Edges in a transmission line
 
-A simple transmission line Asset has a strong correspondance between the physical component and its representation in Macro. A transmission line Asset can be defined as an `Edge{Electricity}` between two Electricity Nodes (aka. two `Node{Electricty}`). The transmission of electricity is represented by the operational variables of the `Edge{Electricity}`, and those variables are limited by its investment variables. The costs which come with those operations and investments are associated with the `Edge{Electricity}`.
+A simple transmission line Asset has a strong correspondance between the physical component and its representation in Macro. A transmission line Asset can be defined as a `BidirectionalEdge{Electricity}` between two Electricity Nodes (aka. two `Node{Electricty}`). The transmission of electricity is represented by the operational variables of the `BidirectionalEdge{Electricity}`, and those variables are limited by its investment variables. The costs which come with those operations and investments are associated with that edge.
 
 #### Electricity Edges in a natural gas power plant
 
-An `Edge{Electricity}` could also represent the ability of a natural gas power plant (aka. `ThermalPower{NaturalGas}`) to transfer `Electricity` to a grid. The `ThermalPower{NaturalGas}` will be made up of `Edges` carrying `NaturalGas` fuel, `Electricity`, and `CO2` emissions. These `Edges` will all meet at a `Transformation` which regulates the relationship between the three.
+A `UnidirectionalEdge{Electricity}` could also represent the ability of a natural gas power plant (aka. `ThermalPower{NaturalGas}`) to transfer `Electricity` to a grid. The `ThermalPower{NaturalGas}` will be made up of edges carrying `NaturalGas` fuel, `Electricity`, and `CO2` emissions. These edges will all meet at a `Transformation` which regulates the relationship between the three.
 
-It might be intuitive to think of the `Transformation` as the power plant and the three `Edges` as the fuel lines, power lines, and flue-gas stack respectively. However, this is not correct with Macro. The combination of the three `Edges` and `Transform` represent the entire natural gas power plant. This is discussed in more detail in the [Assets documentation](@ref "Assets").
+It might be intuitive to think of the `Transformation` as the power plant and the three edges as the fuel lines, power lines, and flue-gas stack respectively. However, this is not correct with Macro. The combination of the three edges and `Transform` represent the entire natural gas power plant. This is discussed in more detail in the [Assets documentation](@ref "Assets").
 
 ### Edges outside of Assets
 
@@ -30,11 +36,12 @@ It is not currently possible to define `Edges` outside of Assets using the stand
 
 ### Key Concepts
 
-- **Flow Direction**: Edges can be unidirectional or bidirectional
+- **Flow Direction**: Edges can be unidirectional (`UnidirectionalEdge`) or bidirectional (`BidirectionalEdge`)
 - **Commodity Types**: Each Edge carries flows of a single Commodity type
 - **Capacity**: Edges can have capacity limits which limit flows along them. Capacity can be fixed or expandable via investment.
 - **Investment**: Edges can have investment costs associated with investments and operation
 - **Time Dependence**: Support time-varying parameters and constraints
+- **Unit Commitment**: `EdgeWithUC` adds startup/shutdown commitment variables and is always unidirectional
 
 ## [Edge Fields](@id manual-edges-fields)
 
@@ -50,8 +57,6 @@ It is not currently possible to define `Edges` outside of Assets using the stand
 | `id`             | Symbol         | Unique identifier           | -       |
 | `start_vertex`   | AbstractVertex | Origin vertex               | -       |
 | `end_vertex`     | AbstractVertex | Destination vertex          | -       |
-| `commodity`      | Type           | Commodity type              | -       |
-| `unidirectional` | Bool           | Flow direction constraint   | true    |
 
 ### Investment Parameters
 
@@ -80,7 +85,7 @@ It is not currently possible to define `Edges` outside of Assets using the stand
 | `capital_recovery_period` | Int                      | Investment recovery period            | years    | 1          |
 | `retirement_period`      | Int                       | Retirement period                     | years    | 0          |
 
-### Unit Commitment Economic Parameters (EdgeWithUC only)
+### Unit Commitment Economic Parameters (EdgeWithUC only, always unidirectional)
 
 | Field                    | Type                      | Description                           | Units    | Default  |
 |--------------------------|---------------------------|---------------------------------------|----------|----------|
@@ -129,17 +134,30 @@ It is not currently possible to define `Edges` outside of Assets using the stand
 
 ```julia
 AbstractEdge{T}
-├── Edge{T}
+├── EdgeWithoutUC{T}
+│   ├── UnidirectionalEdge{T}
+│   └── BidirectionalEdge{T}
 └── EdgeWithUC{T}
+
+# Alias
+Edge{T} = UnidirectionalEdge{T}
 ```
 
 ### AbstractEdge{T}
 
 Abstract base type for all edges,parameterized by commodity type `T`.
 
-### Edge{T}
+### EdgeWithoutUC{T}
 
-Standard edge implementation, without unit commitment constraints. It is parameterized by commodity type `T`
+Abstract base type for non-UC edges.
+
+### UnidirectionalEdge{T}
+
+Standard one-way edge implementation without unit commitment constraints. It is parameterized by commodity type `T`.
+
+### BidirectionalEdge{T}
+
+Two-way edge implementation without unit commitment constraints. It is parameterized by commodity type `T`.
 
 ### EdgeWithUC{T}
 
@@ -150,11 +168,17 @@ Edge with unit commitment constraints for modeling assets with startup/shutdown 
 ### Keyword Constructors
 
 ```julia
-Edge{T}(; id::Symbol, start_vertex::AbstractVertex, end_vertex::AbstractVertex, 
-        time_data::TimeData, commodity::Type{T}, [additional_fields...])
+UnidirectionalEdge{T}(; id::Symbol, start_vertex::AbstractVertex, end_vertex::AbstractVertex,
+             timedata::TimeData, [additional_fields...])
 
-EdgeWithUC{T}(; id::Symbol, start_vertex::AbstractVertex, end_vertex::AbstractVertex, 
-              time_data::TimeData, commodity::Type{T}, [additional_fields...])
+BidirectionalEdge{T}(; id::Symbol, start_vertex::AbstractVertex, end_vertex::AbstractVertex,
+            timedata::TimeData, [additional_fields...])
+
+EdgeWithUC{T}(; id::Symbol, start_vertex::AbstractVertex, end_vertex::AbstractVertex,
+        timedata::TimeData, [additional_fields...])
+
+# Backwards-compatible alias
+Edge{T}(...) == UnidirectionalEdge{T}(...)
 ```
 
 Direct constructors using keyword arguments for all fields, where `T` is the type of commodity flowing through the edge, e.g. `Electricity`, `NaturalGas`, etc.
@@ -164,9 +188,7 @@ Direct constructors using keyword arguments for all fields, where `T` is the typ
 | `id`        | Symbol                       | Unique identifier                     | Yes      |
 | `start_vertex` | AbstractVertex            | Origin vertex                         | Yes      |
 | `end_vertex` | AbstractVertex              | Destination vertex                    | Yes      |
-| `time_data` | TimeData                     | Time-related data structure           | Yes      |
-| `commodity` | Type{T}                      | Commodity type flowing through edge   | Yes      |
-| `unidirectional` | Bool                    | Flow direction constraint             | No       |
+| `timedata` | TimeData                     | Time-related data structure           | Yes      |
 | `has_capacity` | Bool                      | Whether edge has capacity limits      | No       |
 | `existing_capacity` | Float64               | Initial installed capacity            | No       |
 | `max_capacity` | Float64                   | Maximum total capacity                | No       |
@@ -174,17 +196,22 @@ Direct constructors using keyword arguments for all fields, where `T` is the typ
 | `variable_om_cost` | Float64                | Variable O&M costs                    | No       |
 | `...`       | Various                      | Additional edge-specific fields       | No       |
 
+`commodity` and `unidirectional` are input-data fields used by the dictionary constructors and internal factory methods.
+
 ### Primary Constructors
 
 ```julia
-Edge(id::Symbol, data::AbstractDict{Symbol,Any}, time_data::TimeData, 
-     commodity::Type, start_vertex::AbstractVertex, end_vertex::AbstractVertex)
+Edge(id::Symbol, data::AbstractDict{Symbol,Any}, time_data::TimeData,
+    commodity::Type, start_vertex::AbstractVertex, end_vertex::AbstractVertex)
 
-EdgeWithUC(id::Symbol, data::AbstractDict{Symbol,Any}, time_data::TimeData, 
+BidirectionalEdge(id::Symbol, data::AbstractDict{Symbol,Any}, time_data::TimeData,
+               commodity::Type, start_vertex::AbstractVertex, end_vertex::AbstractVertex)
+
+EdgeWithUC(id::Symbol, data::AbstractDict{Symbol,Any}, time_data::TimeData,
            commodity::Type, start_vertex::AbstractVertex, end_vertex::AbstractVertex)
 ```
 
-Creates Edge components from input data dictionary, time data, commodity type, and vertices.
+Creates edge components from input data dictionary, time data, commodity type, and vertices.
 
 | Parameter    | Type                       | Description                           |
 |--------------|----------------------------|---------------------------------------|
@@ -198,14 +225,17 @@ Creates Edge components from input data dictionary, time data, commodity type, a
 ### Factory Constructors
 
 ```julia
-make_edge(id::Symbol, data::AbstractDict{Symbol,Any}, time_data::TimeData, 
-          commodity::Type, start_vertex::AbstractVertex, end_vertex::AbstractVertex)
+make_edge_unidir(id::Symbol, data::AbstractDict{Symbol,Any}, time_data::TimeData,
+                 commodity::Type, start_vertex::AbstractVertex, end_vertex::AbstractVertex)
 
-make_edge_with_uc(id::Symbol, data::AbstractDict{Symbol,Any}, time_data::TimeData, 
-                  commodity::Type, start_vertex::AbstractVertex, end_vertex::AbstractVertex)
+make_edge_bidir(id::Symbol, data::AbstractDict{Symbol,Any}, time_data::TimeData,
+                commodity::Type, start_vertex::AbstractVertex, end_vertex::AbstractVertex)
+
+make_edge_UC(id::Symbol, data::AbstractDict{Symbol,Any}, time_data::TimeData,
+             commodity::Type, start_vertex::AbstractVertex, end_vertex::AbstractVertex)
 ```
 
-Internal factory methods for creating Edge components with data processing and validation.
+Internal factory methods for creating edge components with data processing and validation.
 
 | Parameter     | Type                        | Description                              |
 |---------------|-----------------------------|------------------------------------------|
@@ -235,6 +265,7 @@ Internal factory methods for creating Edge components with data processing and v
 | `commodity_type(edge)` | Get commodity type | Type |
 | `start_vertex(edge)` | Get origin vertex | AbstractVertex |
 | `end_vertex(edge)` | Get destination vertex | AbstractVertex |
+| `unidirectional(edge)` | Check if edge is unidirectional | Bool |
 
 ### Capacity and Investment
 
@@ -295,7 +326,7 @@ Internal factory methods for creating Edge components with data processing and v
 
 ### Transmission Line
 
-Transmission lines can be represented as `TransmissionLink{Electricity}` Assets. These are made up of an `Edge{Electricity}` between two `Node{Electricity}` vertices.
+Transmission lines can be represented as `TransmissionLink{Electricity}` Assets. These are made up of a `BidirectionalEdge{Electricity}` between two `Node{Electricity}` vertices.
 
 #### Transmission Line Inputs
 
@@ -332,9 +363,9 @@ Using the simplified, standard JSON input format, a transmission line can be def
 
 A transmission line can also be defined using the full, advanced JSON input format. This more closely mirrors the fields of the Assets components. Note that some fields are set to their default values, such as `can_expand`, `can_retire`, and `integer_decisions`. These could be omitted but are often included to make the inputs more explicit or facilitate future changes.
 
-The `commodity` input is not a field of the `Edge{Electricity}`. Here, it is one of the additional inputs required by the `TransmissionLink` Asset. It is used to decide the commodity type of the `Edge` and Asset, in this instance `Electricity`.
+The `commodity` input is not a field of the `BidirectionalEdge{Electricity}`. Here, it is one of the additional inputs required by the `TransmissionLink` Asset. It is used to decide the commodity type of the edge and Asset, in this instance `Electricity`.
 
-Additional inputs like this are set when defining an `Asset` and its `make()` function. They will not be made fields of the Asset's components, but will be used when creating the Asset. Other common examples are the `location` input, which is used to connect an Asset to multiple `Nodes` with the same `location` field, and the `uc` input which is used to specify whether an Asset should use a regular `Edge` or an `EdgeWithUC`.
+Additional inputs like this are set when defining an `Asset` and its `make()` function. They will not be made fields of the Asset's components, but will be used when creating the Asset. Other common examples are the `location` input, which is used to connect an Asset to multiple `Nodes` with the same `location` field, and the `uc` input which is used to specify whether an Asset should use `EdgeWithUC`.
 
 ```json
 {
@@ -375,11 +406,11 @@ First, we add an `Edge` to the `TransmissionLink` Asset struct. `TransmissionLin
 ```julia
 struct TransmissionLink{T} <: AbstractAsset
     id::AssetId
-    transmission_edge::Edge{<:T}
+    transmission_edge::BidirectionalEdge{<:T}
 end
 ```
 
-The next step is to define how the `TransmissionLink` Asset inputs should be parsed into the data required to create the `Edge{Electricity}`. This is done as part of the `TransmissionLink` Assets `make()` function.
+The next step is to define how the `TransmissionLink` Asset inputs should be parsed into the data required to create the `BidirectionalEdge{Electricity}`. This is done as part of the `TransmissionLink` Assets `make()` function.
 
 We will break down the steps of the `make()` function but the entire function is shown below to put the code snippet in context:
 
@@ -417,7 +448,7 @@ function make(asset_type::Type{<:TransmissionLink}, data::AbstractDict{Symbol,An
         [(transmission_edge_data, :end_vertex), (data, :transmission_dest), (data, :location)],
     )
 
-    transmission_edge = Edge(
+    transmission_edge = BidirectionalEdge(
         Symbol(id, "_", transmission_edge_key),
         transmission_edge_data,
         system.time_data[commodity_symbol],
@@ -471,7 +502,7 @@ For example, when searching for the `has_capacity` field, it will look in:
 
 You will note that the search progresses from the most nested / specific location to the least. This makes it easier to mix global and instance input data for Assets.
 
-Ultimately, the `@process_data` macro will extract the relevant data from the input dictionary and store it in the `transmission_edge_data` variable. This variable will then be used to create the `Edge{Electricity}`.
+Ultimately, the `@process_data` macro will extract the relevant data from the input dictionary and store it in the `transmission_edge_data` variable. This variable will then be used to create the `BidirectionalEdge{Electricity}`.
 
 ##### Set the commodity type
 
@@ -499,7 +530,7 @@ commodity = commodity_types()[commodity_symbol]
 )
 ```
 
-The next step is to find the start and end vertices of the `Edge{Electricity}`. In our example these are the `Node{Electricity}`. However, they can be other `Vertices`.
+The next step is to find the start and end vertices of the `BidirectionalEdge{Electricity}`. In our example these are the `Node{Electricity}`. However, they can be other `Vertices`.
 
 The `@start_vertex` and `@end_vertex` macros are similar to the `@process_data` macro in that they allow for flexibility in how the input data is structured. They will search for the `ids` given in the `start_vertex` and `end_vertex` fields of the input data. They will first look in the most specific location before moving to the more general locations.
 
@@ -519,7 +550,7 @@ transmission_edge = Edge(
 return TransmissionLink(id, transmission_edge)
 ```
 
-The final step is to create the `Edge{Electricity}` using the `Edge` constructor. This requires:
+The final step is to create the `BidirectionalEdge{Electricity}` using the `BidirectionalEdge` constructor. This requires:
 
 - A new ID, derived from the Assets unique ID.
 - The `transmission_edge_data` dictionary, which contains the data for the `Edge`.
@@ -527,7 +558,7 @@ The final step is to create the `Edge{Electricity}` using the `Edge` constructor
 - The Commodity type, which was looked up earlier.
 - The start and end vertices, which were found using the `@start_vertex` and `@end_vertex` macros.
 
-The `make()` function then returns a new `TransmissionLink` Asset, which contains the `Edge{Electricity}` as one of its components.
+The `make()` function then returns a new `TransmissionLink` Asset, which contains the `BidirectionalEdge{Electricity}` as one of its components.
 
 ##### Define TransmissionLink Asset Defaults
 

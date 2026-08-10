@@ -82,6 +82,7 @@ end
 
 function make(asset_type::Type{ElectricSteam}, data::AbstractDict{Symbol,Any}, system::System)
     id = AssetId(data[:id])
+    location = as_symbol_or_missing(get(data, :location, missing))
 
     @setup_data(asset_type, data, id)
 
@@ -99,6 +100,7 @@ function make(asset_type::Type{ElectricSteam}, data::AbstractDict{Symbol,Any}, s
     steam_transform = Transformation(;
         id = Symbol(id, "_", thermal_key),
         timedata = system.time_data[Symbol(transform_data[:timedata])],
+        location = location,
         constraints = get(transform_data, :constraints, [BalanceConstraint()]),
     )
 
@@ -158,11 +160,10 @@ function make(asset_type::Type{ElectricSteam}, data::AbstractDict{Symbol,Any}, s
         elec_end_node,
     )
 
-    steam_transform.balance_data = Dict(
-        :energy => Dict(
-            steam_edge.id => get(transform_data, :elec_consumption, 1.0),
-            elec_edge.id => 1.0,
-        ),
+    @add_balance(
+        steam_transform,
+        :energy,
+        flow(elec_edge) == get(transform_data, :elec_consumption, 1.0) * flow(steam_edge)
     )
 
     return ElectricSteam(id, steam_transform, steam_edge, elec_edge)

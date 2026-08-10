@@ -21,7 +21,7 @@ Here is a graphical representation of the Transmission Link asset:
 flowchart LR
   subgraph TransmissionLink
   direction LR
-    A((Commodity)) e1@-->|Transmission| B((Commodity))
+    A((Commodity)) e1@<-->|Transmission| B((Commodity))
     e1@{ animate: true }
  end
     style A r:40,fill:#FFD700,stroke:black,color:black,stroke-dasharray: 3,5;
@@ -81,7 +81,7 @@ The following tables outline the attributes that can be set for a Transmission L
 ### Essential Attributes
 | Field | Type | Description |
 |--------------|---------|------------|
-| `Type` | String | Asset type identifier: "TransmissionLink" |
+| `type` | String | Asset type identifier: "TransmissionLink" |
 | `id` | String | Unique identifier for the Transmission Link instance |
 | `commodity` | String | Commodity type being transmitted (e.g., "Electricity") |
 | `transmission_origin` | String | Origin node identifier |
@@ -146,7 +146,7 @@ The `TransmissionLink` asset is defined as follows:
 ```julia
 struct TransmissionLink{T} <: AbstractAsset
     id::AssetId
-    transmission_edge::Edge{<:T}
+    transmission_edge::BidirectionalEdge{<:T}
 end
 ```
 
@@ -155,7 +155,7 @@ end
 ### Default constructor
 
 ```julia
-TransmissionLink(id::AssetId, transmission_edge::Edge{<:T})
+TransmissionLink(id::AssetId, transmission_edge::BidirectionalEdge{<:T})
 ```
 
 ### Factory constructor
@@ -242,7 +242,7 @@ Macro provides an advanced format for defining Transmission Link assets, offerin
 
 To understand the advanced format, consider the [graph representation](@ref transmissionlink_asset_structure) and the [type definition](@ref transmissionlink_type_definition) of a Transmission Link asset. The input file mirrors this hierarchical structure.
 
-A Transmission Link asset in Macro is composed of a single transmission edge, represented by an `Edge` object. The input file for a Transmission Link asset is therefore organized as follows:
+A Transmission Link asset in Macro is composed of a single transmission edge, represented by a `BidirectionalEdge` object. The input file for a Transmission Link asset is therefore organized as follows:
 
 ```json
 {

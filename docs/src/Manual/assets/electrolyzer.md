@@ -103,7 +103,7 @@ The following tables outline the attributes that can be set for an electrolyzer 
 ### Essential Attributes
 | Field | Type | Description |
 |--------------|---------|------------|
-| `Type` | String | Asset type identifier: "Electrolyzer" |
+| `type` | String | Asset type identifier: "Electrolyzer" |
 | `id` | String | Unique identifier for the electrolyzer instance |
 | `location` | String | Geographic location/node identifier |
 
@@ -194,8 +194,8 @@ The `Electrolyzer` asset is defined as follows:
 struct Electrolyzer <: AbstractAsset
     id::AssetId
     electrolyzer_transform::Transformation
-    h2_edge::Edge{<:Hydrogen}
-    elec_edge::Edge{<:Electricity}
+    h2_edge::UnidirectionalEdge{<:Hydrogen}
+    elec_edge::UnidirectionalEdge{<:Electricity}
 end
 ```
 
@@ -204,7 +204,7 @@ end
 ### Default constructor
 
 ```julia
-Electrolyzer(id::AssetId, electrolyzer_transform::Transformation, h2_edge::Edge{<:Hydrogen}, elec_edge::Edge{<:Electricity})
+Electrolyzer(id::AssetId, electrolyzer_transform::Transformation, h2_edge::UnidirectionalEdge{<:Hydrogen}, elec_edge::UnidirectionalEdge{<:Electricity})
 ```
 
 ### Factory constructor

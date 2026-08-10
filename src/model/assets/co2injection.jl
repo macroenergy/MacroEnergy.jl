@@ -59,6 +59,7 @@ end
 
 function make(asset_type::Type{CO2Injection}, data::AbstractDict{Symbol,Any}, system::System)
     id = AssetId(data[:id])
+    location = as_symbol_or_missing(get(data, :location, missing))
 
     @setup_data(asset_type, data, id)
 
@@ -76,6 +77,7 @@ function make(asset_type::Type{CO2Injection}, data::AbstractDict{Symbol,Any}, sy
     co2injection_transform = Transformation(;
         id = Symbol(id, "_", co2injection_key),
         timedata = system.time_data[Symbol(transform_data[:timedata])],
+        location = location,
         constraints = transform_data[:constraints],
     )
 
@@ -132,11 +134,10 @@ function make(asset_type::Type{CO2Injection}, data::AbstractDict{Symbol,Any}, sy
         co2_storage_end_node,
     )
 
-    co2injection_transform.balance_data = Dict(
-        :co2_injection_to_storage => Dict(
-            co2_captured_edge.id => 1.0,
-            co2_storage_edge.id => 1.0
-        )
+    @add_balance(
+        co2injection_transform,
+        :co2_injection_to_storage,
+        flow(co2_captured_edge) == flow(co2_storage_edge)
     )
 
     return CO2Injection(id, co2injection_transform, co2_captured_edge, co2_storage_edge) 

@@ -9,7 +9,7 @@ Note, you can use the user-additions features of Macro to add new commodities an
 - **Julia** 1.9 or later. We recommend using the latest stable release of Julia. Installation instructions can be found on [the official Julia website](https://julialang.org/install/).
 - **Git**, to clone the repository.
 
-## Installation steps
+## Installation Steps
 
 If you want to use Macro for your own projects without making any changes to the source code, you can install it using the Julia package manager. Open a Julia REPL and run the following commands:
 
@@ -18,7 +18,7 @@ using Pkg
 Pkg.add("MacroEnergy")
 ```
 
-## Source code installation steps
+## Source Code Installation Steps
 
 To download and install the Macro source code, we recommend following these steps:
 
@@ -46,11 +46,14 @@ cd MacroEnergy.jl
 julia --project=. -e "using Pkg; Pkg.instantiate(); Pkg.precompile()"
 ```
 
+This command might not work if you already have a `Manifest.toml` file.
+Please remove the file manually and try again.
+
 - **Test the installation**:
 Start Julia with the project environment in a terminal:
 
 ```bash
-$ julia --project=.
+julia --project=.
 ```
 
 Load Macro in the Julia REPL:
@@ -59,7 +62,7 @@ Load Macro in the Julia REPL:
 using MacroEnergy
 ```
 
-## Editing the installation
+## Editing the Installation
 
 If you want to edit the installation, for example, to install a specific version of a dependent package, you can do so by following the steps below:
 

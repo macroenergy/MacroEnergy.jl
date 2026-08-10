@@ -19,14 +19,18 @@ Test MyopicResults structure and basic functionality
 """
 function test_myopic_results_structure()
     @testset "MyopicResults structure" begin
-        # Test without models stored (this is the memory-optimized case)
-        results_without_models = MyopicResults(nothing)
-        @test isnothing(results_without_models.models)
-        
+        # Test without results stored (this is the memory-optimized case)
+        results_without_models = MyopicResults(nothing, "path/to/output")
+        @test isnothing(results_without_models.results)
+        @test results_without_models.output_path == "path/to/output"
+
         # Test field access
-        @test hasfield(MyopicResults, :models)
-        @test fieldtype(MyopicResults, :models) == Union{Vector{Model}, Nothing}
-        
+        @test hasfield(MyopicResults, :results)
+        @test fieldtype(MyopicResults, :results) == Union{Vector, Nothing}
+
+        @test hasfield(MyopicResults, :output_path)
+        @test fieldtype(MyopicResults, :output_path) == String
+
         # Test that the struct can be created with nothing
         @test isa(results_without_models, MyopicResults)
     end

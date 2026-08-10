@@ -104,7 +104,7 @@ The following tables outline the attributes that can be set for a hydro reservoi
 ### Essential Attributes
 | Field | Type | Description |
 |--------------|---------|------------|
-| `Type` | String | Asset type identifier: "HydroRes" |
+| `type` | String | Asset type identifier: "HydroRes" |
 | `id` | String | Unique identifier for the hydro reservoir instance |
 | `location` | String | Geographic location/node identifier |
 | `hydro_source` | String | ID of the electricity node in the system that represents the hydro source |
@@ -226,9 +226,9 @@ The `HydroRes` asset is defined as follows:
 struct HydroRes <: AbstractAsset
     id::AssetId
     hydrostor::AbstractStorage{<:Electricity}
-    discharge_edge::Edge{<:Electricity}
-    inflow_edge::Edge{<:Electricity}
-    spill_edge::Edge{<:Electricity}
+    discharge_edge::UnidirectionalEdge{<:Electricity}
+    inflow_edge::UnidirectionalEdge{<:Electricity}
+    spill_edge::UnidirectionalEdge{<:Electricity}
 end
 ```
 
@@ -237,7 +237,7 @@ end
 ### Default constructor
 
 ```julia
-HydroRes(id::AssetId, hydrostor::AbstractStorage{<:Electricity}, discharge_edge::Edge{<:Electricity}, inflow_edge::Edge{<:Electricity}, spill_edge::Edge{<:Electricity})
+HydroRes(id::AssetId, hydrostor::AbstractStorage{<:Electricity}, discharge_edge::UnidirectionalEdge{<:Electricity}, inflow_edge::UnidirectionalEdge{<:Electricity}, spill_edge::UnidirectionalEdge{<:Electricity})
 ```
 
 ### Factory constructor

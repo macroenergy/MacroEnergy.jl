@@ -131,10 +131,16 @@ julia> thermal_plant = thermal_plants[1]; # first thermal power plant in the lis
 
 ## Model Generation and Running
 
-### `generate_model`
-Uses JuMP to generate the optimization model for the system data. 
+### `create_optimizer`
+Create an optimizer given a solver, optionally passing also environment and attributes:
 ```julia
-julia> model = MacroEnergy.generate_model(case);
+optimizer = MacroEnergy.create_optimizer(HiGHS.Optimizer)
+```
+
+### `generate_model`
+Uses JuMP to generate the optimization model for the system data.
+```julia
+julia> model = MacroEnergy.generate_model(case,optimizer);
 [ Info: Generating model
 [ Info:  -- Period 1
 [ Info:  -- Adding linking variables
@@ -143,12 +149,6 @@ julia> model = MacroEnergy.generate_model(case);
 [ Info:  -- Including age-based retirements
 [ Info:  -- Generating operational model
 [ Info:  -- Model generation complete, it took 8.293462991714478 seconds
-```
-
-### `set_optimizer`
-Sets the optimizer for the JuMP model.
-```julia
-julia> MacroEnergy.set_optimizer(model, HiGHS.Optimizer);
 ```
 
 ### `optimize!`
@@ -367,9 +367,9 @@ Prints the structure of an asset in terms of its components (edges, transformati
 ```julia
 julia> MacroEnergy.print_struct_info(thermal_plant)
 Field: thermal_transform, Type: Transformation
-Field: elec_edge, Type: Union{Edge{<:Electricity}, EdgeWithUC{<:Electricity}}
-Field: fuel_edge, Type: Edge{<:NaturalGas}
-Field: co2_edge, Type: Edge{<:CO2}
+Field: elec_edge, Type: Union{UnidirectionalEdge{<:Electricity}, EdgeWithUC{<:Electricity}}
+Field: fuel_edge, Type: UnidirectionalEdge{<:NaturalGas}
+Field: co2_edge, Type: UnidirectionalEdge{<:CO2}
 ```
 
 Once you have collected the **names** of the components of an asset, you can use the following function to get a specific component by its name.
@@ -578,9 +578,9 @@ To access the transformation component of an asset, utilize the following functi
 ```julia
 julia> MacroEnergy.print_struct_info(thermal_plant)
 Field: thermal_transform, Type: Transformation
-Field: elec_edge, Type: Union{Edge{<:Electricity}, EdgeWithUC{<:Electricity}}
-Field: fuel_edge, Type: Edge{<:NaturalGas}
-Field: co2_edge, Type: Edge{<:CO2}
+Field: elec_edge, Type: Union{UnidirectionalEdge{<:Electricity}, EdgeWithUC{<:Electricity}}
+Field: fuel_edge, Type: UnidirectionalEdge{<:NaturalGas}
+Field: co2_edge, Type: UnidirectionalEdge{<:CO2}
 
 julia> thermal_transform = MacroEnergy.get_component_by_fieldname(thermal_plant, :thermal_transform);
 
@@ -678,6 +678,47 @@ And data, a 2×24 Matrix{JuMP.ConstraintRef{Model, MathOptInterface.ConstraintIn
  -2.132092034 vFLOW_SE_natural_gas_fired_combined_cycle_1_elec_edge_period1[24] - 295.53638384084 vSTART_SE_natural_gas_fired_combined_cycle_1_elec_edge_period1[24] + vFLOW_SE_natural_gas_fired_combined_cycle_1_fuel_edge_period1[24] = 0)
 ```
 
+### Debugging an asset balance
+
+When a new asset is not behaving as expected, a good balance-debugging workflow is:
+
+1. Inspect the asset structure with [`print_struct_info`](@ref) so you know the names of the transformation, storage, and edge components.
+2. Retrieve the relevant component with [`get_component_by_fieldname`](@ref).
+3. Use [`balance_ids`](@ref), [`balance_data`](@ref), and [`get_balance`](@ref) to inspect the stored balances and the resulting algebraic expressions.
+4. If the asset uses `@add_stoichiometric_balance`, inspect the generated pairwise balances with `@inspect_stoichiometric_balance(...)`.
+5. Create or update a small single-asset solve test in `test/asset_tests`.
+
+For example, if a stoichiometric balance seems to be using the wrong basis, the following macro can be helpful:
+
+```julia
+@inspect_stoichiometric_balance(
+    transform,
+    :production,
+    coeff_a * flow(a_edge) + coeff_b * flow(b_edge) --> flow(c_edge),
+    flow(c_edge),
+)
+```
+
+By default, this prints the generated pairwise algebraic balances without verifying live edge directions. To also verify that left-hand terms are incoming and right-hand terms are outgoing, pass:
+
+```julia
+@inspect_stoichiometric_balance(
+    transform,
+    :production,
+    coeff_a * flow(a_edge) + coeff_b * flow(b_edge) --> flow(c_edge),
+    flow(c_edge),
+    verify_edge_directions = true,
+)
+```
+
+In practice, most balance bugs fall into one of three categories:
+
+- the wrong edge was placed on the left or right of a stoichiometric balance
+- coefficients were written on different unit bases
+- a multi-term balance was underconstrained
+
+Checking the expanded equations early usually catches these issues much faster than debugging them from large-system results alone.
+
 ## Working with Storages
 
 !!! tip "Storage Interface"
@@ -689,8 +730,8 @@ julia> battery = MacroEnergy.get_asset_by_id(system, :battery_SE);
 
 julia> MacroEnergy.print_struct_info(battery)
 Field: battery_storage, Type: AbstractStorage{<:Electricity}
-Field: discharge_edge, Type: Edge{<:Electricity}
-Field: charge_edge, Type: Edge{<:Electricity}
+Field: discharge_edge, Type: UnidirectionalEdge{<:Electricity}
+Field: charge_edge, Type: UnidirectionalEdge{<:Electricity}
 
 julia> storage = MacroEnergy.get_component_by_fieldname(battery, :battery_storage);
 
@@ -791,7 +832,7 @@ julia> MacroEnergy.id(charge_edge)
 :battery_SE_charge_edge
 
 julia> MacroEnergy.typeof(charge_edge)
-Edge{Electricity}
+UnidirectionalEdge{Electricity}
 ```
 
 ### `discharge_edge`
@@ -803,7 +844,7 @@ julia> MacroEnergy.id(discharge_edge)
 :battery_SE_discharge_edge
 
 julia> MacroEnergy.typeof(discharge_edge)
-Edge{Electricity}
+UnidirectionalEdge{Electricity}
 ```
 
 ### `spillage_edge`
@@ -892,11 +933,11 @@ julia> MacroEnergy.subperiod_weight(vertex, 2)
 ### [`reshape_wide`](@ref)
 Reshapes the results to wide format.
 ```julia
-julia> capacity_results = MacroEnergy.get_optimal_capacity(system; scaling=1e3);
+julia> capacity_results = MacroEnergy.get_optimal_capacity(system, 1e3);
 
-julia> new_capacity_results = MacroEnergy.get_optimal_new_capacity(system; scaling=1e3);
+julia> new_capacity_results = MacroEnergy.get_optimal_new_capacity(system, 1e3);
 
-julia> retired_capacity_results = MacroEnergy.get_optimal_retired_capacity(system; scaling=1e3);
+julia> retired_capacity_results = MacroEnergy.get_optimal_retired_capacity(system, 1e3);
 
 julia> all_capacity_results = vcat(capacity_results, new_capacity_results, retired_capacity_results);
 
@@ -955,24 +996,6 @@ julia> write_costs("costs.csv", system, model)
 julia> write_settings(case, "settings.json")
 ```
 This function exports case and system settings to a JSON file, useful for debugging and documentation.
-
-### [`write_results`](@ref)
-
-!!! warning "write_results is a legacy function"
-    The `write_results` function is part of the legacy unified output system. For new code, consider using the specialized output functions instead.
-
-```julia
-julia> write_results(file_path, system, model, settings, ext=".csv.gz")
-julia> write_results(file_path, system, model, settings, ext=".parquet")
-```
-
-This function creates multiple output files, one for each result type:
-- `file_path_capacity.ext` - Capacity results
-- `file_path_flow.ext` - Flow results
-- `file_path_non_served_demand.ext` - Non-served demand
-- `file_path_storage_level.ext` - Storage levels
-- `file_path_discounted_costs.ext` - Discounted costs
-- `file_path_undiscounted_costs.ext` - Undiscounted costs
 
 ```@meta
 DocTestSetup = nothing

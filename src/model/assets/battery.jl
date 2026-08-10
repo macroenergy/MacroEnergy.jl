@@ -30,6 +30,7 @@ function full_default_data(::Type{Battery}, id=missing)
             :charge_edge => @edge_data(
                 :efficiency => 1.0,
                 :commodity => "Electricity",
+                :StorageChargeLimitConstraint => true
             ),
             :discharge_edge => @edge_data(
                 :efficiency => 1.0,
@@ -86,10 +87,10 @@ end
         - existing_capacity: Float64
         - investment_cost: Float64
         - fixed_om_cost: Float64
-        - loss_fraction: Float64
+        - loss_fraction: Vector{Float64}
         - min_duration: Float64
         - max_duration: Float64
-        - min_storage_level: Float64
+        - min_storage_level: Vector{Float64}
         - min_capacity: Float64
         - max_capacity: Float64
         - constraints: Vector{AbstractTypeConstraint}
@@ -112,6 +113,7 @@ end
 """
 function make(asset_type::Type{Battery}, data::AbstractDict{Symbol,Any}, system::System)
     id = AssetId(data[:id])
+    location = as_symbol_or_missing(get(data, :location, missing))
 
     @setup_data(asset_type, data, id)
 
@@ -139,6 +141,7 @@ function make(asset_type::Type{Battery}, data::AbstractDict{Symbol,Any}, system:
         storage_data,
         system.time_data[commodity_symbol],
         commodity,
+        location
     )
 
     # If storage is long duration, add the implicit min-max constraint
@@ -162,6 +165,14 @@ function make(asset_type::Type{Battery}, data::AbstractDict{Symbol,Any}, system:
             (data, Symbol("charge_", key)),
         ]
     )
+    # Use charge_integer_decisions if set, otherwise fall back to global integer_decisions if set
+    charge_integer = get_from([
+        (data, :charge_integer_decisions),
+        (data, :integer_decisions),
+    ], missing, false)
+    if !ismissing(charge_integer)
+        charge_edge_data[:integer_decisions] = charge_integer
+    end
     @start_vertex(
         charge_start_node,
         charge_edge_data,
@@ -188,6 +199,14 @@ function make(asset_type::Type{Battery}, data::AbstractDict{Symbol,Any}, system:
             (data[:edges][discharge_edge_key], Symbol("discharge_", key)),
             (data, Symbol("discharge_", key)),
         ])
+    # Use discharge_integer_decisions if set, otherwise fall back to global integer_decisions if set
+    discharge_integer = get_from([
+        (data, :discharge_integer_decisions),
+        (data, :integer_decisions),
+    ], missing, false)
+    if !ismissing(discharge_integer)
+        discharge_edge_data[:integer_decisions] = discharge_integer
+    end
     discharge_start_node = battery_storage
     @end_vertex(
         discharge_end_node,
@@ -215,11 +234,14 @@ function make(asset_type::Type{Battery}, data::AbstractDict{Symbol,Any}, system:
             (charge_edge_data, :charge_efficiency),
             (charge_edge_data, :efficiency)
         ], 1.0)
-    battery_storage.balance_data = Dict(
-        :storage => Dict(
-            battery_discharge.id => 1 / discharge_efficiency,
-            battery_charge.id => charge_efficiency,
-        ),
+
+    @add_to_storage_balance(
+        battery_storage,
+        1 / discharge_efficiency * flow(battery_discharge),
+    )
+    @add_to_storage_balance(
+        battery_storage,
+        charge_efficiency * flow(battery_charge),
     )
 
     return Battery(id, battery_storage, battery_discharge, battery_charge)

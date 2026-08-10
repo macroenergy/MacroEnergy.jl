@@ -21,7 +21,11 @@ Add a storage max duration constraint to the storage `g`. The functional form of
 function add_model_constraint!(ct::StorageMaxDurationConstraint, g::AbstractStorage, model::Model)
     e = discharge_edge(g)
 
-    if max_duration(g) > 0
+    if !has_capacity(e)
+        @warn "Discharge edge for storage $(id(g)) does not have capacity. Ignoring max duration constraint."
+    end
+
+    if max_duration(g) > 0 && has_capacity(e)
         ct.constraint_ref =
             @constraint(model, capacity(g) <= max_duration(g) * capacity(e))
     end
@@ -53,7 +57,11 @@ Add a storage min duration constraint to the storage `g`. The functional form of
 function add_model_constraint!(ct::StorageMinDurationConstraint, g::AbstractStorage, model::Model)
     e = discharge_edge(g)
 
-    if max_duration(g) > 0
+    if !has_capacity(e)
+        @warn "Discharge edge for storage $(id(g)) does not have capacity. Ignoring min duration constraint."
+    end
+
+    if min_duration(g) > 0 && has_capacity(e)
         ct.constraint_ref =
             @constraint(model, capacity(g) >= min_duration(g) * capacity(e))
     end

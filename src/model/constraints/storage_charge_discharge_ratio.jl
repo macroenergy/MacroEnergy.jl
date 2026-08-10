@@ -24,10 +24,14 @@ function add_model_constraint!(
     g::AbstractStorage,
     model::Model,
 )
-
-    ct.constraint_ref = @constraint(model,
-        charge_discharge_ratio(g)*capacity(g.discharge_edge) == capacity(g.charge_edge)
-        )
-
+    if !has_capacity(g.discharge_edge) || !has_capacity(g.charge_edge)
+         @warn "One of the edges for storage $(id(g)) does not have capacity. Ignoring charge discharge ratio constraint."
+         return nothing
+    end
+    if has_capacity(g.discharge_edge) && has_capacity(g.charge_edge)
+        ct.constraint_ref = @constraint(model,
+            charge_discharge_ratio(g)*capacity(g.discharge_edge) == capacity(g.charge_edge)
+            )
+    end
     return nothing
 end

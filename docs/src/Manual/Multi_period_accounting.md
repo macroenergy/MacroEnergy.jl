@@ -1,4 +1,4 @@
-# General assumptions made by Macro
+# [General assumptions made by Macro](@id manual-multi-period-accounting-general-assumptions)
 
 **Planning periods** (also referred to as "periods") can include multiple years. The number of years can vary between planning periods. (This has implications for how to aggregate variable and O&M costs within a period, see below.)
 
@@ -41,9 +41,8 @@ N_i = \sum_{i=1}^{i-1}L_i
 - $P_i$ is the minimum of the economic lifetime or the total number of years across all remaining periods.
 
 ```math
-P_i = \min(EL_y, \sum_{i}^{|I|}L_i)
+P_i=\min(EL_y, \sum_{s=i}^{|I|}L_s)
 ```
-
 
 ## Fixed O&M cost
 

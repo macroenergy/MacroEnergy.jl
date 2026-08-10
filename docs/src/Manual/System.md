@@ -179,7 +179,7 @@ Methods for accessing system data, components, and properties.
 | `get_assets_sametype(system, asset_type)` | Get all assets of specific type | `Vector{<:AbstractAsset}` |
 | `get_nodes(system)` | Get all nodes and locations | `Vector{Union{Node,Location}}` |
 | `get_edges(system; return_ids_map=false)` | Get all edges from assets | `Vector{AbstractEdge}` or `Tuple` |
-| `get_storage(system; return_ids_map=false)` | Get all storage components from assets | `Vector{Storage}` or `Tuple` |
+| `get_storages(system; return_ids_map=false)` | Get all storage components from assets | `Vector{AbstractStorage}` or `Tuple` |
 | `get_transformations(system; return_ids_map=false)` | Get all transformation components from assets | `Vector{Transformation}` or `Tuple` |
 | `edges_with_capacity_variables(system; return_ids_map=false)` | Get edges with capacity variables | `Vector{AbstractEdge}` or `Tuple` |
 | `find_node(nodes_list, id, commodity=missing)` | Search for node with specified ID and commodity | `Union{Node,Nothing}` |
@@ -235,7 +235,7 @@ file_path = joinpath(pwd(), "system_data.json")  # Path to your system data file
 system = load_system(file_path)  # Load system directly from file
 ```
 
-### System Data File Structure
+### [System Data File Structure](@id manual-system-data-structure)
 
 `Systems` and `Cases` are typically defined in the `system_data.json` file, which contains all the necessary data to define the energy system. Full details on the structure of this file can be found in the [Inputs](@ref) section. Here, we review the structure of the `system_data.json` file:
 

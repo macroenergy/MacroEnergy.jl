@@ -77,6 +77,7 @@ end
 
 function make(asset_type::Type{NaturalGasDAC}, data::AbstractDict{Symbol,Any}, system::System)
     id = AssetId(data[:id])
+    location = as_symbol_or_missing(get(data, :location, missing))
 
     @setup_data(asset_type, data, id)
 
@@ -94,6 +95,7 @@ function make(asset_type::Type{NaturalGasDAC}, data::AbstractDict{Symbol,Any}, s
     natgasdac_transform = Transformation(;
         id = Symbol(id, "_", natgasdac_key),
         timedata = system.time_data[Symbol(transform_data[:timedata])],
+        location = location,
         constraints = get(transform_data, :constraints, [BalanceConstraint()]),
     )
 
@@ -228,24 +230,26 @@ function make(asset_type::Type{NaturalGasDAC}, data::AbstractDict{Symbol,Any}, s
         co2_captured_end_node,
     )
 
-    natgasdac_transform.balance_data = Dict(
-        :elec_production => Dict(
-            elec_edge.id => 1.0,
-            co2_edge.id => get(transform_data, :electricity_production, 0.0)
-        ),
-        :fuel_consumption => Dict(
-            natgas_edge.id => -1.0,
-            co2_edge.id => get(transform_data, :fuel_consumption, 0.0)
-        ),
-        :emissions => Dict(
-            natgas_edge.id => get(transform_data, :emission_rate, 1.0),
-            co2_emission_edge.id => 1.0
-        ),
-        :capture =>Dict(
-            natgas_edge.id => get(transform_data, :capture_rate, 1.0),
-            co2_edge.id => 1.0,
-            co2_captured_edge.id => 1.0
-        )
+    # The capture balance is a three-way algebraic relationship.
+    @add_balance(
+        natgasdac_transform,
+        :elec_production,
+        get(transform_data, :electricity_production, 0.0) * flow(co2_edge) == flow(elec_edge)
+    )
+    @add_balance(
+        natgasdac_transform,
+        :fuel_consumption,
+        get(transform_data, :fuel_consumption, 0.0) * flow(co2_edge) == flow(natgas_edge)
+    )
+    @add_balance(
+        natgasdac_transform,
+        :emissions,
+        get(transform_data, :emission_rate, 1.0) * flow(natgas_edge) == flow(co2_emission_edge)
+    )
+    @add_balance(
+        natgasdac_transform,
+        :capture,
+        get(transform_data, :capture_rate, 1.0) * flow(natgas_edge) + flow(co2_edge) == flow(co2_captured_edge)
     )
 
     return NaturalGasDAC(id, natgasdac_transform, co2_edge,co2_emission_edge, natgas_edge, elec_edge, co2_captured_edge) 

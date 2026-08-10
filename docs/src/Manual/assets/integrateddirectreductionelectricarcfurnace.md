@@ -96,7 +96,7 @@ The following tables outline the attributes that can be set for a DirectReductio
 #### Essential Attributes
 | Field | Type | Description |
 |--------------|---------|------------|
-| `Type` | String | Asset type identifier: "DirectReductionElectricArcFurnace" |
+| `type` | String | Asset type identifier: "DirectReductionElectricArcFurnace" |
 | `id` | String | Unique identifier for the asset instance |
 | `location` | String | Geographic location/node identifier |
 | `timedata` | String | Time resolution for the time series data linked to the transformation |
@@ -186,12 +186,12 @@ The DirectReductionElectricArcFurnace asset is defined as follows:
 struct DirectReductionElectricArcFurnace{T1 <: Commodity,T2 <: Commodity} <: AbstractAsset
     id::AssetId
     dreaf_transform::Transformation
-    crudesteel_edge::Edge{CrudeSteel}
-    reductant_edge::Edge{T1} # natural gas or hydrogen
-    elec_edge::Edge{Electricity}
-    carbonsource_edge::Edge{T2} # coal, charcoal, etc. 
-    ironore_edge::Edge{<:IronOre}
-    co2_edge::Edge{CO2}
+    crudesteel_edge::UnidirectionalEdge{CrudeSteel}
+    reductant_edge::UnidirectionalEdge{T1} # natural gas or hydrogen
+    elec_edge::UnidirectionalEdge{Electricity}
+    carbonsource_edge::UnidirectionalEdge{T2} # coal, charcoal, etc. 
+    ironore_edge::UnidirectionalEdge{<:IronOre}
+    co2_edge::UnidirectionalEdge{CO2}
 end
 ```
 Here, two of the asset edges are parameterized. T1 denotes the reductant, which may be either natural gas or hydrogen, while T2 denotes the carbon source, which may be coal, charcoal, or other carbon materials.
@@ -209,29 +209,19 @@ make(asset_type::Type{DirectReductionElectricArcFurnace}, data::AbstractDict{Sym
 | `data` | `AbstractDict{Symbol,Any}` | Dictionary containing the input data for the asset |
 | `system` | `System` | System to which the asset belongs |
 
-### Stochiometry balance data
+### Stoichiometric balance data
 ```julia
-dreaf_transform.balance_data = Dict(
-    :ironore_consumption=> Dict(
-        crudesteel_edge.id => get(transform_data, :ironore_consumption, 0.0),
-        ironore_edge.id => 1.0
-    ),
-    :electricity_consumption => Dict(
-        crudesteel_edge.id => get(transform_data, :electricity_consumption, 0.0),
-        elec_edge.id => 1.0
-    ),
-    :reductant_consumption => Dict(
-        crudesteel_edge.id => get(transform_data, :reductant_consumption, 0.0),
-        reductant_edge.id => 1.0
-    ),
-    :carbonsource_consumption => Dict(
-        crudesteel_edge.id => get(transform_data, :carbonsource_consumption, 0.0),
-        carbonsource_edge.id => 1.0
-    ),
-    :emissions => Dict(
-        crudesteel_edge.id => get(transform_data, :emission_rate, 0.0),
-        co2_edge.id => -1.0, 
-    ),
+@add_stoichiometric_balance(
+    dreaf_transform,
+    :steel_production,
+    get(transform_data, :ironore_consumption, 0.0) * flow(ironore_edge)
+    + get(transform_data, :electricity_consumption, 0.0) * flow(elec_edge)
+    + get(transform_data, :reductant_consumption, 0.0) * flow(reductant_edge)
+    + get(transform_data, :carbonsource_consumption, 0.0) * flow(carbonsource_edge)
+    -->
+    flow(crudesteel_edge)
+    + get(transform_data, :emission_rate, 0.0) * flow(co2_edge),
+    flow(crudesteel_edge),
 )
 ```
 !!! warning "Dictionary keys must match"

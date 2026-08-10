@@ -85,6 +85,7 @@ end
 """
 function make(asset_type::Type{Electrolyzer}, data::AbstractDict{Symbol,Any}, system::System)
     id = AssetId(data[:id])
+    location = as_symbol_or_missing(get(data, :location, missing))
 
     @setup_data(asset_type, data, id)
 
@@ -102,6 +103,7 @@ function make(asset_type::Type{Electrolyzer}, data::AbstractDict{Symbol,Any}, sy
     electrolyzer = Transformation(;
         id = Symbol(id, "_", electrolyzer_key),
         timedata = system.time_data[Symbol(transform_data[:timedata])],
+        location = location,
         constraints = transform_data[:constraints],
     )
 
@@ -158,11 +160,10 @@ function make(asset_type::Type{Electrolyzer}, data::AbstractDict{Symbol,Any}, sy
         h2_end_node,
     )
 
-    electrolyzer.balance_data = Dict(
-        :energy => Dict(
-            h2_edge.id => 1.0,
-            elec_edge.id => get(transform_data, :efficiency_rate, 1.0),
-        ),
+    @add_balance(
+        electrolyzer,
+        :energy,
+        get(transform_data, :efficiency_rate, 1.0) * flow(elec_edge) == flow(h2_edge)
     )
 
     return Electrolyzer(id, electrolyzer, h2_edge, elec_edge)

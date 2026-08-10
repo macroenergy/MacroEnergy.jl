@@ -129,7 +129,7 @@ The following tables outline the attributes that can be set for a Natural Gas DA
 ### Essential Attributes
 | Field | Type | Description |
 |--------------|---------|------------|
-| `Type` | String | Asset type identifier: "NaturalGasDAC" |
+| `type` | String | Asset type identifier: "NaturalGasDAC" |
 | `id` | String | Unique identifier for the Natural Gas DAC instance |
 | `location` | String | Geographic location/node identifier |
 | `co2_sink` | String | ID of a CO₂ sink vertex (must be defined in the nodes input file) |
@@ -219,11 +219,11 @@ The `NaturalGasDAC` asset is defined as follows:
 struct NaturalGasDAC <: AbstractAsset
     id::AssetId
     natgasdac_transform::Transformation
-    co2_edge::Edge{<:CO2}
-    co2_emission_edge::Edge{<:CO2}
-    natgas_edge::Edge{<:NaturalGas}
-    elec_edge::Edge{<:Electricity}
-    co2_captured_edge::Edge{<:CO2Captured}
+    co2_edge::UnidirectionalEdge{<:CO2}
+    co2_emission_edge::UnidirectionalEdge{<:CO2}
+    natgas_edge::UnidirectionalEdge{<:NaturalGas}
+    elec_edge::UnidirectionalEdge{<:Electricity}
+    co2_captured_edge::UnidirectionalEdge{<:CO2Captured}
 end
 ```
 
@@ -232,7 +232,7 @@ end
 ### Default constructor
 
 ```julia
-NaturalGasDAC(id::AssetId, natgasdac_transform::Transformation, co2_edge::Edge{<:CO2}, co2_emission_edge::Edge{<:CO2}, natgas_edge::Edge{<:NaturalGas}, elec_edge::Edge{<:Electricity}, co2_captured_edge::Edge{<:CO2Captured})
+NaturalGasDAC(id::AssetId, natgasdac_transform::Transformation, co2_edge::UnidirectionalEdge{<:CO2}, co2_emission_edge::UnidirectionalEdge{<:CO2}, natgas_edge::UnidirectionalEdge{<:NaturalGas}, elec_edge::UnidirectionalEdge{<:Electricity}, co2_captured_edge::UnidirectionalEdge{<:CO2Captured})
 ```
 
 ### Factory constructor

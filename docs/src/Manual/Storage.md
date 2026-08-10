@@ -105,8 +105,8 @@ While single period cycles are fine for storage which usually discharge within t
 |--------------------------|---------------------------|---------------------------------------|----------|----------|
 | `min_duration`           | Float64                   | Minimum storage duration              | hours    | 0.0      |
 | `max_duration`           | Float64                   | Maximum storage duration              | hours    | 0.0      |
-| `min_storage_level`      | Float64                   | Minimum storage level (fraction)      | fraction | 0.0      |
-| `max_storage_level`      | Float64                   | Maximum storage level (fraction)      | fraction | 0.0      |
+| `min_storage_level`      | Vector{Float64}           | Minimum storage level per timestep    | fraction | [0.0]    |
+| `max_storage_level`      | Vector{Float64}           | Maximum storage level per timestep    | fraction | [1.0]    |
 | `min_outflow_fraction`   | Float64                   | Minimum discharge rate (fraction)     | fraction | 0.0      |
 | `loss_fraction`          | Vector{Float64}           | Storage losses per timestep           | fraction | Float64[]|
 
@@ -114,7 +114,7 @@ While single period cycles are fine for storage which usually discharge within t
 
 | Field                    | Type                      | Description                           | Units    | Default |
 |--------------------------|---------------------------|---------------------------------------|----------|---------|
-| `balance_data`           | Dict{Symbol,Dict{Symbol,Float64}} | Balance equation coefficients | -    | Dict{Symbol,Dict{Symbol,Float64}}() |
+| `balance_data`           | Dict{Symbol,Any} | Balance definitions, normalized internally to `BalanceData` | -    | Dict{Symbol,Any}() |
 | `constraints`            | Vector{AbstractTypeConstraint} | Additional constraints        | -        | Vector{AbstractTypeConstraint}() |
 | `operation_expr`         | Dict                      | Operational JuMP expressions          | -        | Dict() |
 
@@ -293,8 +293,10 @@ Methods for accessing operational constraints and characteristics.
 |--------|-------------|-------------|
 | `loss_fraction(storage)` | Get storage loss profile | `Vector{Float64}` |
 | `loss_fraction(storage, t)` | Get storage loss at timestep t | `Float64` |
-| `min_storage_level(storage)` | Get minimum storage level | `Float64` |
-| `max_storage_level(storage)` | Get maximum storage level | `Float64` |
+| `min_storage_level(storage)` | Get minimum storage level | `Vector{Float64}` |
+| `max_storage_level(storage)` | Get maximum storage level | `Vector{Float64}` |
+| `min_storage_level(storage, t)` | Get minimum storage level at timestep t | `Float64` |
+| `max_storage_level(storage, t)` | Get maximum storage level at timestep t | `Float64` |
 | `min_duration(storage)` | Get minimum storage duration | `Float64` |
 | `max_duration(storage)` | Get maximum storage duration | `Float64` |
 | `min_outflow_fraction(storage)` | Get minimum discharge rate | `Float64` |
@@ -350,7 +352,7 @@ Methods for creating storage components.
 
 ### Battery Storage
 
-Battery Assets are modeled as a `Storage{Electricity}` component with charging and discharging `Edge{Electricity}`.
+Battery Assets are modeled as a `Storage{Electricity}` component with charging and discharging `UnidirectionalEdge{Electricity}`.
 
 #### Battery Asset, Standard JSON Input Format
 
@@ -387,7 +389,8 @@ As Assets with two `Edges` with capacity, the standard JSON inputs for Battery A
             },
             "discharge_constraints": {
                 "CapacityConstraint": true,
-                "StorageDischargeLimitConstraint": true
+                "StorageDischargeLimitConstraint": true,
+                "StorageChargeLimitConstraint": true
             }
         }
     ]
@@ -420,7 +423,8 @@ Using the advanced input format makes it easier to understand the structure of t
                     "can_retire": false,
                     "constraints": {
                         "CapacityConstraint": true,
-                        "StorageDischargeLimitConstraint": true
+                        "StorageDischargeLimitConstraint": true,
+                        "StorageChargeLimitConstraint": true
                     }
                 },
                 "charge_edge": {
@@ -487,7 +491,8 @@ Some users may find it more straightforward to use some elements of the advanced
                     "efficiency": 0.92,
                     "constraints": {
                         "CapacityConstraint": true,
-                        "StorageDischargeLimitConstraint": true
+                        "StorageDischargeLimitConstraint": true,
+                        "StorageChargeLimitConstraint": true
                     }
                 },
                 "charge_edge": {
@@ -528,12 +533,12 @@ struct GasStorage{T} <: AbstractAsset
     id::AssetId
     pump_transform::Transformation
     gas_storage::AbstractStorage{<:T}
-    charge_edge::Edge{<:T}
-    discharge_edge::Edge{<:T}
-    external_charge_edge::Edge{<:T}
-    external_discharge_edge::Edge{<:T}
-    charge_elec_edge::Edge{<:Electricity}
-    discharge_elec_edge::Edge{<:Electricity}
+    charge_edge::UnidirectionalEdge{<:T}
+    discharge_edge::UnidirectionalEdge{<:T}
+    external_charge_edge::UnidirectionalEdge{<:T}
+    external_discharge_edge::UnidirectionalEdge{<:T}
+    charge_elec_edge::UnidirectionalEdge{<:Electricity}
+    discharge_elec_edge::UnidirectionalEdge{<:Electricity}
 end
 ```
 
@@ -589,6 +594,7 @@ function make(asset_type::Type{GasStorage}, data::AbstractDict{Symbol,Any}, syst
         storage_data,
         system.time_data[commodity_symbol],
         commodity,
+        asset_location
     )
     if long_duration
         lds_constraints = [LongDurationStorageImplicitMinMaxConstraint()]
@@ -675,34 +681,34 @@ function make(asset_type::Type{GasStorage}, data::AbstractDict{Symbol,Any}, syst
     gas_storage.discharge_edge = gas_storage_discharge
     gas_storage.charge_edge = gas_storage_charge
     
-    # Set the gas balance across the gas storage, including any losses.
-    gas_storage.balance_data = Dict(
-        :storage => Dict(
-            gas_storage_discharge.id => 1 / get(discharge_edge_data, :efficiency, 1.0),
-            gas_storage_charge.id => get(charge_edge_data, :efficiency, 1.0),
-        )
+    # Add charge and discharge terms to the built-in storage balance.
+    @add_to_storage_balance(
+        gas_storage,
+        (1 / get(discharge_edge_data, :efficiency, 1.0)) * flow(gas_storage_discharge),
+    )
+    @add_to_storage_balance(
+        gas_storage,
+        get(charge_edge_data, :efficiency, 1.0) * flow(gas_storage_charge),
     )
 
-    # Set the charging and discharging balances on the pump transformation.
-    pump_transform.balance_data = Dict(
-        :charge_electricity_consumption => Dict(
-            #This is multiplied by -1 because they are both edges that enters storage, 
-            #so we need to get one of them on the right side of the equality balance constraint    
-            charge_elec_edge.id => -1.0,
-            external_charge_edge.id => get(transform_data, :charge_electricity_consumption, 0.0), 
-        ),
-        :discharge_electricity_consumption => Dict(
-            discharge_elec_edge.id => 1.0,
-            external_discharge_edge.id => get(transform_data, :discharge_electricity_consumption, 0.0),
-        ),
-        :external_charge_balance => Dict(
-            external_charge_edge.id => 1.0,
-            gas_storage_charge.id => 1.0,
-        ),
-        :external_discharge_balance => Dict(
-            external_discharge_edge.id => 1.0,
-            gas_storage_discharge.id => 1.0,
-        ),
+    # Set the charging and discharging recipes on the pump transformation.
+    @add_stoichiometric_balance(
+        pump_transform,
+        :gasstorage_charging,
+        flow(external_charge_edge) +
+        get(transform_data, :charge_electricity_consumption, 0.0) * flow(charge_elec_edge)
+        -->
+        flow(gas_storage_charge),
+        flow(external_charge_edge),
+    )
+    @add_stoichiometric_balance(
+        pump_transform,
+        :gasstorage_discharging,
+        flow(gas_storage_discharge) +
+        get(transform_data, :discharge_electricity_consumption, 0.0) * flow(discharge_elec_edge)
+        -->
+        flow(external_discharge_edge),
+        flow(external_discharge_edge),
     )
 
     # Create the GasStorage Asset using the constructed components

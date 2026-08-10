@@ -10,8 +10,15 @@ function read_json(file_path::AbstractString)
     return data
 end
 
-function write_json(file_path::AbstractString, data::Dict{Symbol,<:Any})::Nothing
-    io = open(file_path, "w")
+function write_json(file_path::AbstractString, data::AbstractDict, compress::Bool=false)::Nothing
+    if compress || endswith(file_path, ".gz")
+        if !endswith(file_path, ".gz")
+            file_path *= ".gz"
+        end
+        io = GZip.open(file_path, "w")
+    else
+        io = open(file_path, "w")
+    end
     JSON3.pretty(io, data; allow_inf=true)
     close(io)
     return nothing

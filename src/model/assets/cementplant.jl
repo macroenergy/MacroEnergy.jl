@@ -86,6 +86,7 @@ end
 
 function make(asset_type::Type{CementPlant}, data::AbstractDict{Symbol,Any}, system::System)
     id = AssetId(data[:id])
+    location = as_symbol_or_missing(get(data, :location, missing))
 
     @setup_data(asset_type, data, id)
 
@@ -105,6 +106,7 @@ function make(asset_type::Type{CementPlant}, data::AbstractDict{Symbol,Any}, sys
     cement_transform = Transformation(;
         id = Symbol(id, "_", cement_key),
         timedata = system.time_data[Symbol(transform_data[:timedata])],
+        location = location,
         constraints = get(transform_data, :constraints, [BalanceConstraint()]),
     )
 
@@ -251,36 +253,31 @@ function make(asset_type::Type{CementPlant}, data::AbstractDict{Symbol,Any}, sys
         co2_captured_end_node,
     )
 
-    # Balance Constraint Values
-    cement_transform.balance_data = Dict(
-        :elec_to_cement => Dict(
-            elec_edge.id => 1.0,
-            fuel_edge.id => 0,
-            cement_edge.id => get(transform_data, :elec_consumption_rate, 1.0),
-            co2_emissions_edge.id => 0,
-            co2_captured_edge.id => 0,
-        ),
-        :fuel_to_cement => Dict(
-            elec_edge.id => 0,
-            fuel_edge.id => 1.0,
-            cement_edge.id => get(transform_data, :fuel_consumption_rate, 1.0),
-            co2_emissions_edge.id => 0,
-            co2_captured_edge.id => 0,
-        ),
-        :co2_emissions => Dict(
-            elec_edge.id => 0,
-            fuel_edge.id => 0,
-            cement_edge.id => (1 - get(transform_data, :co2_capture_rate, 1.0)) * (get(transform_data, :fuel_emission_rate, 1.0) + get(transform_data, :process_emission_rate, 1.0)),
-            co2_emissions_edge.id => -1.0,
-            co2_captured_edge.id => 0,
-        ),
-        :co2_captured => Dict(
-            elec_edge.id => 0,
-            fuel_edge.id => 0,
-            cement_edge.id => get(transform_data, :co2_capture_rate, 1.0) * (get(transform_data, :fuel_emission_rate, 1.0) + get(transform_data, :process_emission_rate, 1.0)),
-            co2_emissions_edge.id => 0,
-            co2_captured_edge.id => -1.0,
-        )
+    @add_balance(
+        cement_transform,
+        :elec_to_cement,
+        flow(elec_edge) == get(transform_data, :elec_consumption_rate, 1.0) * flow(cement_edge)
+    )
+    @add_balance(
+        cement_transform,
+        :fuel_to_cement,
+        flow(fuel_edge) == get(transform_data, :fuel_consumption_rate, 1.0) * flow(cement_edge)
+    )
+    @add_balance(
+        cement_transform,
+        :co2_emissions,
+        flow(co2_emissions_edge) ==
+        (1 - get(transform_data, :co2_capture_rate, 1.0)) *
+        (get(transform_data, :fuel_emission_rate, 1.0) + get(transform_data, :process_emission_rate, 1.0)) *
+        flow(cement_edge)
+    )
+    @add_balance(
+        cement_transform,
+        :co2_captured,
+        flow(co2_captured_edge) ==
+        get(transform_data, :co2_capture_rate, 1.0) *
+        (get(transform_data, :fuel_emission_rate, 1.0) + get(transform_data, :process_emission_rate, 1.0)) *
+        flow(cement_edge)
     )
     
     return CementPlant(id, cement_transform, elec_edge, fuel_edge, cement_edge, co2_emissions_edge, co2_captured_edge)

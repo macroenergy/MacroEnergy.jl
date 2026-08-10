@@ -79,16 +79,24 @@ The `settings` folder currently contains only one file, `macro_settings.yml`, wh
 | **Attribute** | **Values** | **Default** | **Description** |
 |---------------| :-----------------: | :---------: |-----------------|
 | ConstraintScaling | True, False | False | If true, the model will scale the optimization model constraints to make it more numerically stable. |
-| WriteSubcommodities | True, False | False | If true, the model will write the subcommodities created by the user in the results. |
+| AllowImplicitTopLevelCommodities | True, False | True | If true, unknown plain commodity names in `commodities.json` are treated as new top-level commodities inheriting from `Commodity`; if false, unknown names raise an error. |
+| WriteSubcommodities | True, False | True | If true, the model will write the subcommodities created by the user to file. |
 | OverwriteResults | True, False | False | If true, the model will overwrite the results file if it already exists. |
 | OutputDir | String | "results" | The directory where the results will be saved. |
+| OutputLayout | "long", "wide" | "long" | Switch between "long" and "wide" layouts for CSV output files. |
+| DualExportsEnabled | True, False | False | If true, the model will write duals for balance equations in the results folder |
+| EnableJuMPStringNames | True, False | False | If true, the model will attach a string name to each JuMP variables. Ignored when Benders decomposition is used. |
+| EnableJuMPDirectModel | True, False | False | If true, the model will be generate a JuMP direct model. Ignored when Benders decomposition is used. |
+| AutoCreateNodes | True, False | False | If true, the model will automatically create a new Node if Macro is asked to find a Node of a given Commodity at a Location and the Node does not exist. |
+| AutoCreateLocations | True, False | True |  If true, the model will automatically create a new Location if Macro comes across a Node which is a assigned to a Location that does not exist. |
+| Retrofitting | True, False | False | If true, the model will consider retrofi investments |
 
 ## System folder
 
 The `system` folder currently contains five main files:
 
 - [commodities.json](@ref): Defines the sectors/commodities used in the system.
-- [time_data.json](@ref): Defines the time resolution data for each sector.
+- **`time_data.json`**: Defines the time resolution data for each sector.
 - [nodes.json](@ref): Defines the nodes in the system.
 - [demand.csv](@ref): Contains the demand data.
 - [fuel_prices.csv](@ref): Contains the prices of fuels.
@@ -123,128 +131,6 @@ This file contains a list of sectors/commodities used in the system. The file is
     ]
 }
 ```
-
-### time_data.json
-
-**Format**: JSON
-
-This file contains the data related to the time resolution for each sector. The file is structured as follows:
-
-```json
-{
-    "PeriodLength": <Integer>,  // units: hours
-    "HoursPerTimeStep": {
-        "Sector_1": <Integer>,  // units: hours
-        "Sector_2": <Integer>,  // units: hours
-        ...
-    },
-    "HoursPerSubperiod": {
-        "Sector_1": <Integer>,
-        "Sector_2": <Integer>,
-        ...
-    },
-    "SubPeriodMap": {
-        "path": <String>, // relative path to the period map file
-    },
-    "TotalHoursModeled": <Integer> // units: hours
-}
-```
-
-| **Attribute** | **Values** | **Description** |
-|---------------| :-----------------: |-----------------|
-| PeriodLength | Integer | Total number of **hours** in the simulation. |
-| HoursPerTimeStep | Integer | Number of **hours** in each time step **for each sector**. |
-| HoursPerSubperiod | Integer | Number of **hours** in each subperiod **for each sector**. |
-| SubPeriodMap | String | Relative path to the period map file. For an example of the period map file, see [Period_map.csv](https://github.com/macroenergy/MacroEnergyExamples.jl/blob/main/examples/multisector_three_zones/system/Period_map.csv). |
-| TotalHoursModeled | Integer | Total number of **hours** modeled. **Note**: When using representative periods, this parameter is used to compute the weight of each subperiod. |
-
-!!! note "Subperiods"
-    Subperiods represent the time slices of the simulation used to perform time wrapping for time-coupling constraints (see, for example, [MacroEnergy.timestepbefore](@ref)).
-
-**Example**: Energy system modeled for three weeks, with one hour per time step, and one week per subperiod:
-
-```json
-{
-    "PeriodLength": 504,  // 3 weeks
-    "HoursPerTimeStep": {
-        "Electricity": 1,
-        "Hydrogen": 1,
-        "NaturalGas": 1,
-        "CO2": 1,
-        "Uranium": 1,
-        "Coal": 1
-    },
-    "HoursPerSubperiod": {
-        "Electricity": 168,  // 1 week
-        "Hydrogen": 168,
-        "NaturalGas": 168,
-        "CO2": 168,
-        "Uranium": 168,
-        "Coal": 168
-    },
-    "SubPeriodMap": {
-        "path": "three_weeks/Period_map.csv"
-    },
-    "TotalHoursModeled": 8760
-}
-```
-
-`Period_map.csv`:
-```
-| Period_Index | Rep_Period | Rep_Period_Index |
-|--------------|------------|------------------|
-| 1            | 6          | 1                |
-| 2            | 6          | 1                |
-| 3            | 6          | 1                |
-| 4            | 6          | 1                |
-| 5            | 6          | 1                |
-| 6            | 6          | 1                |
-| 7            | 6          | 1                |
-| 8            | 6          | 1                |
-| 9            | 6          | 1                |
-| 10           | 17         | 2                |
-| ...          | ...        | ...              |
-```
-
-In this example, Macro uses the above input files to create the following parameters:
-
-- **Total time interval**: `[1:PeriodLength] = [1:504]`
-- **`HoursPerTimeStep`**: `1` for all sectors
-- **Subperiods**:
-  1. `[1:168]`: first week
-  2. `[169:336]`: second week
-  3. `[337:504]`: third week
-- **Period map**:
-    This file assigns each week of the `TotalHoursModeled` to one of the representative periods. 
-    For instance:
-    - `week 1` -> `6th representative period`
-    - `week 2` -> `6th representative period`
-    - `week 3` -> `6th representative period`
-    - `week 10` -> `17th representative period`
-    - etc.
-- **Weight of each subperiod**:
-  1. `[1:168]` -> `18.0495`
-  2. `[169:336]` -> `21.0577`
-  3. `[337:504]` -> `13.0357`
-
-    This value is used to 'weight' each hour of the subperiods in the operational model.
-
-The formula used to compute the weight of each subperiod is:
-
-```math
-w_i = \alpha * n_i
-```
-
-where $\alpha$ is a scaling factor defined as:
-
-```math
-\alpha = \frac{TotalHoursModeled}{\sum_{i=1}^{N} HoursPerSubperiod * n_i}
-```
-
-and $n_i$ is the number of times the $i$-th representative period is used in the period map to model periods, and $N$ is the total number of representative periods.
-
-!!! note "Weights without period map"
-    If the period map is not provided, the weights are set to 1 for each representative period.
 
 ### nodes.json
 
@@ -297,12 +183,14 @@ The attributes that can be set for each node (either in `global_data` or `instan
 | **constraints** | `Dict{String,Bool}` | Any Macro constraint type | Empty | List of constraints applied to the node. E.g. `{"BalanceConstraint": true, "MaxNonServedDemandConstraint": true}`.|
 | **demand** | `Dict` | Demand file path and header | Empty | Path to the demand file and column name for the demand time series to link to the node. E.g. `{"timeseries": {"path": "system/demand.csv", "header": "Demand_MW_z1"}}`.|
 | **max_nsd** | `Vector{Float64}` | Vector of numbers $\in$ [0,1] | [0.0] | Maximum allowed non-served demand for each demand segment as a fraction of the total demand. E.g. `[1.0]` for a single segment. |
-| **max_supply** | `Vector{Float64}` | Vector of numbers | [0.0] | Maximum allowed supply for each supply segment. E.g. `[1000.0]` for a single segment. |
-| **price** | `Dict` | Price file path and header | Empty | Path to the price file and column name for the price time series to link to the node. E.g. `{"timeseries": {"path": "system/fuel_prices.csv", "header": "natgas_SE"}}`.|
+| **supply** | `Dict{String,Dict{String,Any}}` | Segment-keyed supply objects | Empty | Preferred external supply format. Each segment must define `price`, may define `min`, and may define `max`. Missing `min` defaults to `0.0`; missing `max` defaults to `Inf`. |
+| **price** | `Vector{Float64}` | Postprocessed output | Empty | Effective node price computed during postprocessing from realized supply flows. This is typically not provided as an input. |
 | **price_nsd** | `Vector{Float64}` | Vector of numbers | [0.0] | Price/penalty for non-served demand by segment. E.g. `[5000.0]` for a single segment. |
-| **price_supply** | `Vector{Float64}` | Vector of numbers | [0.0] | Piecewise linear price for supply curves. E.g. `[0.0, 100.0, 200.0]`. |
 | **price\_unmet\_policy** | `Dict{DataType,Float64}` | Dict of Macro policy types and numbers | Empty | Price/penalty for unmet policy constraints. |
 | **rhs\_policy** | `Dict{DataType,Float64}` | Dict of Macro constraint types and numbers | Empty | Right hand side of the policy constraints. E.g. `{"CO2CapConstraint": 200}`, carbon price of 200 USD/ton. |
+
+!!! note "Supply input format"
+    The preferred format for node supply inputs is a single `supply` dictionary keyed by segment name. Each segment must contain a `price` entry and may optionally contain `min` and `max`. Legacy `price_supply` / `min_supply` / `max_supply` inputs are still accepted and converted internally to the `supply` representation.
 
 !!! tip "Constraints"
     One of the main features of Macro is the ability to include constraints on the system from a pre-defined library of constraints (see [Macro Constraint Library](@ref macro_constraint_library) for more details). To include a constraint to a node, the user needs to add the constraint name to the `constraints` attribute of the node. The example below will show how to include constraints to node instances. 
@@ -335,28 +223,44 @@ Therefore, the system has 4 networks and 8 nodes in total.
             "instance_data": [
                 {   // NaturalGas node 1
                     "id": "natgas_SE",
-                    "price": {
-                        "timeseries": {
-                            "path": "system/fuel_prices.csv", // path to the price file
-                            "header": "natgas_SE" // column name in the price file for the price time series
+                    "supply": {
+                        "segment1": {
+                            "price": {
+                                "timeseries": {
+                                    "path": "system/fuel_prices.csv", // path to the price file
+                                    "header": "natgas_SE" // column name in the price file for the price time series
+                                }
+                            },
+                            "max": [Infinity]
                         }
                     }
                 },  // End of NaturalGas node 1
                 {   // NaturalGas node 2
                     "id": "natgas_MIDAT",
-                    "price": {
-                        "timeseries": {
-                            "path": "system/fuel_prices.csv",
-                            "header": "natgas_MIDAT"
+                    "supply": {
+                        "segment1": {
+                            "price": {
+                                "timeseries": {
+                                    "path": "system/fuel_prices.csv",
+                                    "header": "natgas_MIDAT"
+                                }
+                            },
+                            "max": [Infinity]
                         }
                     }
                 },  // End of NaturalGas node 2
                 {   // NaturalGas node 3
                     "id": "natgas_NE",
-                    "price": {
-                        "timeseries": {
-                            "path": "system/fuel_prices.csv",
-                            "header": "natgas_NE"
+                    "supply": {
+                        "segment1": {
+                            "price": {
+                                "timeseries": {
+                                    "path": "system/fuel_prices.csv",
+                                    "header": "natgas_NE"
+                                }
+                            }
+                            },
+                            "max": [Infinity]
                         }
                     }
                 },  // End of NaturalGas node 3
@@ -445,16 +349,21 @@ Therefore, the system has 4 networks and 8 nodes in total.
                             "header": "Demand_Zero"
                         }
                     },
-                    "max_supply": [  // maximum allowed supply for each supply segment
-                        10000,
-                        20000,
-                        30000
-                    ],
-                    "price_supply": [  // piecewise linear price for supply curves
-                        40,
-                        60,
-                        80
-                    ]
+                    "supply": {
+                        "base": {
+                            "price": [40],
+                            "min": [500],
+                            "max": [10000]
+                        },
+                        "mid": {
+                            "price": [60],
+                            "max": [20000]
+                        },
+                        "peak": {
+                            "price": [80],
+                            "max": [30000]
+                        }
+                    }
                 }
             ]
         }

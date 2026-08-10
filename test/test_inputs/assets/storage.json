@@ -19,6 +19,7 @@
                         "constraints": {
                             "CapacityConstraint": true,
                             "StorageDischargeLimitConstraint": false,
+                            "StorageChargeLimitConstraint": false,
                             "RampingLimitConstraint": false
                         }
                     },

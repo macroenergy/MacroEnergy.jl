@@ -67,7 +67,35 @@ The second way to contribute to MacroEnergy.jl is to open a [pull request](https
    # If you need to make more changes, repeat the process
    ```
 
-7. **Push to your fork**:
+7. **Update the changelog** when your PR includes a user-facing change:
+
+   Add a short entry under the `## [Unreleased]` section in `CHANGELOG.md`. Group the entry under the most relevant heading:
+
+   - `Added` for new features
+   - `Changed` for changes to existing behavior
+   - `Deprecated` for features that will be removed later
+   - `Removed` for removed features
+   - `Fixed` for bug fixes
+   - `Security` for vulnerability fixes
+
+   If the change requires users to update their code, input files, settings, or workflow, also add a `Migration guide` subsection with concrete upgrade instructions:
+
+   ```markdown
+   ## [Unreleased]
+
+   ### Changed
+
+   - Updated node supply inputs to use named supply segments.
+
+   ### Migration guide
+
+   - Replace legacy `price_supply` and `max_supply` inputs with `supply` entries containing `price`, `min`, and `max`.
+   - Use `update_node_supply_inputs(...)` to help convert existing cases.
+   ```
+
+   You do not need to update the generated recent-changes sections in `README.md` or `docs/src/index.md` by hand. They are generated from `CHANGELOG.md` by `docs/scripts/update_changelog.jl`, which runs automatically in GitHub Actions. You may also run it locally before opening a PR if you want the generated files included in your branch.
+
+8. **Push to your fork**:
 
    ```bash
    # Push your branch to your fork
@@ -79,7 +107,7 @@ The second way to contribute to MacroEnergy.jl is to open a [pull request](https
 
 ### How to open a PR (once the changes are in a good state)
 
-8. **Create a Pull Request**:
+9. **Create a Pull Request**:
 
    - Go to your fork on GitHub
    - Click "New Pull Request"
@@ -88,7 +116,7 @@ The second way to contribute to MacroEnergy.jl is to open a [pull request](https
    - Fill out the PR template
    - Submit the PR
 
-9. **Keep your fork up to date** (every time a PR is merged into the upstream repository):
+10. **Keep your fork up to date** (every time a PR is merged into the upstream repository):
 
    ```bash
    # Fetch the latest changes from the main repository
@@ -134,4 +162,3 @@ Alternatively, use the `Sync fork` button in the GitHub website.
 - [Git guide](https://git-scm.com/docs)
 - [ColPrac](https://github.com/SciML/ColPrac): Contributor's Guide on Collaborative Practices for Community Packages
 - [Julia Style Guide](https://docs.julialang.org/en/v1/manual/style-guide/)
-

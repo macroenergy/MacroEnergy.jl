@@ -1,4 +1,4 @@
-struct FossilFuelsUpstream{T} <: AbstractAsset
+struct UpstreamEmissions{T} <: AbstractAsset
     id::AssetId
     fossilfuelsupstream_transform::Transformation
     fossil_fuel_edge::Edge{<:T}
@@ -6,25 +6,27 @@ struct FossilFuelsUpstream{T} <: AbstractAsset
     co2_edge::Edge{<:CO2}
 end
 
-FossilFuelsUpstream(
+const FossilFuelsUpstream = UpstreamEmissions
+
+UpstreamEmissions(
     id::AssetId,
     fossilfuelsupstream_transform::Transformation,
     fossil_fuel_edge::Edge{<:T},
     fuel_edge::Edge{<:T},
     co2_edge::Edge{<:CO2}
 ) where {T<:LiquidFuels} =
-    FossilFuelsUpstream{LiquidFuels}(id, fossilfuelsupstream_transform, fossil_fuel_edge, fuel_edge, co2_edge)
+    UpstreamEmissions{LiquidFuels}(id, fossilfuelsupstream_transform, fossil_fuel_edge, fuel_edge, co2_edge)
 
-    FossilFuelsUpstream(
+    UpstreamEmissions(
     id::AssetId,
     fossilfuelsupstream_transform::Transformation,
     fossil_fuel_edge::Edge{<:T},
     fuel_edge::Edge{T},
     co2_edge::Edge{<:CO2}
 ) where {T<:Commodity} =
-    FossilFuelsUpstream{T}(id, fossilfuelsupstream_transform, fossil_fuel_edge, fuel_edge, co2_edge)
+    UpstreamEmissions{T}(id, fossilfuelsupstream_transform, fossil_fuel_edge, fuel_edge, co2_edge)
 
-function default_data(t::Type{FossilFuelsUpstream}, id=missing, style="full")
+function default_data(t::Type{UpstreamEmissions}, id=missing, style="full")
     if style == "full"
         return full_default_data(t, id)
     else
@@ -32,7 +34,7 @@ function default_data(t::Type{FossilFuelsUpstream}, id=missing, style="full")
     end
 end
     
-function full_default_data(::Type{FossilFuelsUpstream}, id=missing)
+function full_default_data(::Type{UpstreamEmissions}, id=missing)
     return OrderedDict{Symbol,Any}(
         :id => id,
         :transforms => @transform_data(
@@ -57,7 +59,7 @@ function full_default_data(::Type{FossilFuelsUpstream}, id=missing)
     )
 end
 
-function simple_default_data(::Type{FossilFuelsUpstream}, id=missing)
+function simple_default_data(::Type{UpstreamEmissions}, id=missing)
     return OrderedDict{Symbol,Any}(
         :id => id,
         :location => missing,
@@ -68,7 +70,7 @@ function simple_default_data(::Type{FossilFuelsUpstream}, id=missing)
     )
 end
 
-function set_commodity!(::Type{FossilFuelsUpstream}, commodity::Type{<:Commodity}, data::AbstractDict{Symbol,Any})
+function set_commodity!(::Type{UpstreamEmissions}, commodity::Type{<:Commodity}, data::AbstractDict{Symbol,Any})
     edge_keys = [:fossil_fuel_edge, :fuel_edge, :co2_edge]
     if haskey(data, :fuel_commodity)
         data[:fuel_commodity] = string(commodity)
@@ -87,8 +89,9 @@ function set_commodity!(::Type{FossilFuelsUpstream}, commodity::Type{<:Commodity
     end
 end
 
-function make(asset_type::Type{FossilFuelsUpstream}, data::AbstractDict{Symbol,Any}, system::System)
+function make(asset_type::Type{UpstreamEmissions}, data::AbstractDict{Symbol,Any}, system::System)
     id = AssetId(data[:id])
+    location = as_symbol_or_missing(get(data, :location, missing))
 
     @setup_data(asset_type, data, id)
 
@@ -106,6 +109,7 @@ function make(asset_type::Type{FossilFuelsUpstream}, data::AbstractDict{Symbol,A
     fossilfuelsupstream_transform = Transformation(;
         id = Symbol(id, "_", fuelfossilupstream_key),
         timedata = system.time_data[Symbol(transform_data[:timedata])],
+        location = location,
         constraints = transform_data[:constraints],
     )
 
@@ -191,16 +195,16 @@ function make(asset_type::Type{FossilFuelsUpstream}, data::AbstractDict{Symbol,A
         co2_end_node,
     )
 
-    fossilfuelsupstream_transform.balance_data = Dict(
-        :fuel => Dict(
-            fossil_fuel_edge.id => 1.0,
-            fuel_edge.id => 1.0
-        ),
-        :emissions => Dict(
-            fossil_fuel_edge.id => get(transform_data, :emission_rate, 0.0),
-            co2_edge.id => 1.0
-        )
+    @add_balance(
+        fossilfuelsupstream_transform,
+        :fuel,
+        flow(fossil_fuel_edge) == flow(fuel_edge)
+    )
+    @add_balance(
+        fossilfuelsupstream_transform,
+        :emissions,
+        get(transform_data, :emission_rate, 0.0) * flow(fossil_fuel_edge) == flow(co2_edge)
     )
 
-    return FossilFuelsUpstream(id, fossilfuelsupstream_transform, fossil_fuel_edge, fuel_edge, co2_edge) 
+    return UpstreamEmissions(id, fossilfuelsupstream_transform, fossil_fuel_edge, fuel_edge, co2_edge)
 end

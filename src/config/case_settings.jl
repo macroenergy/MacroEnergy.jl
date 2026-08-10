@@ -6,14 +6,21 @@ function default_case_settings()
     return Dict(
         :PeriodLengths => [1],
         :DiscountRate => 0.,
-        :SolutionAlgorithm => "Monolithic"
+        :StartYear => missing,
+        :WriteFullTimeseries => false,
+        :ParameterScaling => false,
+        :ParameterScalingFactor => 1e3,
+        :SolutionAlgorithm => "Monolithic",
+        :ExpansionHorizon => "PerfectForesight"
     )
 end
 
 function default_myopic_settings()
     return Dict(
         :ReturnModels => false,
-        :WriteModelLP => false
+        :WriteModelLP => false,
+        :Restart => Dict(:enabled=>false, :folder => "results_001", :from_period => 1),
+        :StopAfterPeriod => Inf
     )
 end
 
@@ -128,8 +135,9 @@ function configure_case(case_settings::AbstractDict{Symbol,Any})
     settings = merge(settings, case_settings)
     set_period_lengths!(settings)
     set_solution_algorithm!(settings)
+    set_expansion_horizon!(settings)
     isa(settings[:SolutionAlgorithm], Benders) && configure_benders!(settings)
-    isa(settings[:SolutionAlgorithm], Myopic) && configure_myopic!(settings)
+    isa(settings[:ExpansionHorizon], Myopic) && configure_myopic!(settings)
     validate_case_settings(settings)
     return namedtuple(settings)
 end
@@ -137,7 +145,12 @@ end
 function validate_case_settings(case_settings::AbstractDict{Symbol,Any})
     @assert all(case_settings[:PeriodLengths].>0)
     @assert case_settings[:DiscountRate] >= 0
+    @assert ismissing(case_settings[:StartYear]) || isa(case_settings[:StartYear], Integer)
+    @assert isa(case_settings[:WriteFullTimeseries], Bool)
+    @assert isa(case_settings[:ParameterScaling], Bool)
+    @assert case_settings[:ParameterScalingFactor] >= 0
     @assert isa(case_settings[:SolutionAlgorithm], AbstractSolutionAlgorithm)
+    @assert isa(case_settings[:ExpansionHorizon], AbstractExpansionHorizon)
 end
 
 function set_period_lengths!(case_settings::AbstractDict{Symbol,Any})
@@ -153,12 +166,32 @@ function set_solution_algorithm!(case_settings::AbstractDict{Symbol,Any})
     elseif case_settings[:SolutionAlgorithm] == "Benders"
         case_settings[:SolutionAlgorithm] = Benders()
     elseif case_settings[:SolutionAlgorithm] == "Myopic"
-        case_settings[:SolutionAlgorithm] = Myopic()
+        @warn("""
+        Setting SolutionAlgorithm to \"Myopic\" is deprecated.
+        Use ExpansionHorizon: "Myopic" combined with SolutionAlgorithm: "Monolithic" instead.
+        Translating automatically: SolutionAlgorithm => Monolithic, ExpansionHorizon => Myopic.
+        """)
+        case_settings[:SolutionAlgorithm] = Monolithic()
+        case_settings[:ExpansionHorizon] = "Myopic"
     else
         @warn("No solution algorithm specified, defaulting to Monolithic")
         case_settings[:SolutionAlgorithm] = Monolithic()
     end
     @info(" -- Solution algorithm set to $(case_settings[:SolutionAlgorithm])")
+    return nothing
+end
+
+function set_expansion_horizon!(case_settings::AbstractDict{Symbol,Any})
+    @info(" -- Setting expansion horizon")
+    if case_settings[:ExpansionHorizon] == "PerfectForesight"
+        case_settings[:ExpansionHorizon] = PerfectForesight()
+    elseif case_settings[:ExpansionHorizon] == "Myopic"
+        case_settings[:ExpansionHorizon] = Myopic()
+    else
+        @warn("Unknown expansion horizon '$(case_settings[:ExpansionHorizon])', defaulting to PerfectForesight")
+        case_settings[:ExpansionHorizon] = PerfectForesight()
+    end
+    @info(" -- Expansion horizon set to $(case_settings[:ExpansionHorizon])")
     return nothing
 end
 
@@ -201,4 +234,12 @@ end
 function validate_myopic_settings(myopic_settings::AbstractDict{Symbol,Any})
     @assert isa(myopic_settings[:ReturnModels], Bool)
     @assert isa(myopic_settings[:WriteModelLP], Bool)
+    @assert isa(myopic_settings[:Restart][:enabled], Bool)
+    @assert isa(myopic_settings[:Restart][:folder], AbstractString)
+    @assert isa(myopic_settings[:Restart][:from_period], Int)
+    @assert isa(myopic_settings[:StopAfterPeriod], Number)
+    @assert myopic_settings[:StopAfterPeriod] >= 1
+    @assert myopic_settings[:Restart][:from_period] >= 1
+    @assert (!myopic_settings[:Restart][:enabled]) || (myopic_settings[:Restart][:from_period] <= myopic_settings[:StopAfterPeriod])
+
 end

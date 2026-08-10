@@ -140,7 +140,7 @@ The following tables outline the attributes that can be set for a thermal hydrog
 ### Essential Attributes
 | Field | Type | Description |
 |--------------|---------|------------|
-| `Type` | String | Asset type identifier: "ThermalHydrogen" or "ThermalHydrogenCCS" |
+| `type` | String | Asset type identifier: "ThermalHydrogen" or "ThermalHydrogenCCS" |
 | `id` | String | Unique identifier for the thermal hydrogen plant instance |
 | `location` | String | Geographic location/node identifier |
 | `fuel_commodity` | String | Commodity type of the fuel |
@@ -271,20 +271,20 @@ The `ThermalHydrogen` and `ThermalHydrogenCCS` assets are defined as follows:
 struct ThermalHydrogen{T} <: AbstractAsset
     id::AssetId
     thermalhydrogen_transform::Transformation
-    h2_edge::Union{Edge{<:Hydrogen},EdgeWithUC{<:Hydrogen}}
-    elec_edge::Edge{<:Electricity}
-    fuel_edge::Edge{<:T}
-    co2_edge::Edge{<:CO2}
+    h2_edge::Union{UnidirectionalEdge{<:Hydrogen},EdgeWithUC{<:Hydrogen}}
+    elec_edge::UnidirectionalEdge{<:Electricity}
+    fuel_edge::UnidirectionalEdge{<:T}
+    co2_edge::UnidirectionalEdge{<:CO2}
 end
 
 struct ThermalHydrogenCCS{T} <: AbstractAsset
     id::AssetId
     thermalhydrogenccs_transform::Transformation
-    h2_edge::Union{Edge{<:Hydrogen},EdgeWithUC{<:Hydrogen}}
-    elec_edge::Edge{<:Electricity}
-    fuel_edge::Edge{<:T}
-    co2_edge::Edge{<:CO2}
-    co2_captured_edge::Edge{<:CO2Captured}
+    h2_edge::Union{UnidirectionalEdge{<:Hydrogen},EdgeWithUC{<:Hydrogen}}
+    elec_edge::UnidirectionalEdge{<:Electricity}
+    fuel_edge::UnidirectionalEdge{<:T}
+    co2_edge::UnidirectionalEdge{<:CO2}
+    co2_captured_edge::UnidirectionalEdge{<:CO2Captured}
 end
 ```
 
@@ -295,9 +295,9 @@ where `T` is the type of the fuel commodity.
 ### Default constructor
 
 ```julia
-ThermalHydrogen(id::AssetId, thermalhydrogen_transform::Transformation, h2_edge::Union{Edge{<:Hydrogen},EdgeWithUC{<:Hydrogen}}, elec_edge::Edge{<:Electricity}, fuel_edge::Edge{<:T}, co2_edge::Edge{<:CO2})
+ThermalHydrogen(id::AssetId, thermalhydrogen_transform::Transformation, h2_edge::Union{UnidirectionalEdge{<:Hydrogen},EdgeWithUC{<:Hydrogen}}, elec_edge::UnidirectionalEdge{<:Electricity}, fuel_edge::UnidirectionalEdge{<:T}, co2_edge::UnidirectionalEdge{<:CO2})
 
-ThermalHydrogenCCS(id::AssetId, thermalhydrogenccs_transform::Transformation, h2_edge::Union{Edge{<:Hydrogen},EdgeWithUC{<:Hydrogen}}, elec_edge::Edge{<:Electricity}, fuel_edge::Edge{<:T}, co2_edge::Edge{<:CO2}, co2_captured_edge::Edge{<:CO2Captured})
+ThermalHydrogenCCS(id::AssetId, thermalhydrogenccs_transform::Transformation, h2_edge::Union{UnidirectionalEdge{<:Hydrogen},EdgeWithUC{<:Hydrogen}}, elec_edge::UnidirectionalEdge{<:Electricity}, fuel_edge::UnidirectionalEdge{<:T}, co2_edge::UnidirectionalEdge{<:CO2}, co2_captured_edge::UnidirectionalEdge{<:CO2Captured})
 ```
 
 ### Factory constructor

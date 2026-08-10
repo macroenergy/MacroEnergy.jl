@@ -161,6 +161,7 @@ end
 """
 function make(asset_type::Type{ThermalHydrogenCCS}, data::AbstractDict{Symbol,Any}, system::System)
     id = AssetId(data[:id])
+    location = as_symbol_or_missing(get(data, :location, missing))
 
     @setup_data(asset_type, data, id)
 
@@ -178,6 +179,7 @@ function make(asset_type::Type{ThermalHydrogenCCS}, data::AbstractDict{Symbol,An
     thermalhydrogenccs_transform = Transformation(;
         id = Symbol(id, "_", thermalhydrogenccs_key),
         timedata = system.time_data[Symbol(transform_data[:timedata])],
+        location = location,
         constraints = get(transform_data, :constraints, [BalanceConstraint()]),
     )
 
@@ -327,25 +329,26 @@ function make(asset_type::Type{ThermalHydrogenCCS}, data::AbstractDict{Symbol,An
         co2_captured_end_node,
     )
 
-    thermalhydrogenccs_transform.balance_data = Dict(
-        :energy => Dict(
-            h2_edge.id =>  get(transform_data, :fuel_consumption, 1.0),
-            fuel_edge.id => 1.0,
-        ),
-        :electricity => Dict(
-            h2_edge.id => get(transform_data, :electricity_consumption, 0.0),
-            elec_edge.id => 1.0
-        ),
-        :emissions => Dict(
-            fuel_edge.id => get(transform_data, :emission_rate, 0.0),
-            co2_edge.id => 1.0,
-        ),
-        :capture => Dict(
-            fuel_edge.id => get(transform_data, :capture_rate, 0.0),
-            co2_captured_edge.id => 1.0,
-        ),
+    @add_balance(
+        thermalhydrogenccs_transform,
+        :energy,
+        flow(fuel_edge) == get(transform_data, :fuel_consumption, 1.0) * flow(h2_edge)
     )
-
+    @add_balance(
+        thermalhydrogenccs_transform,
+        :electricity,
+        flow(elec_edge) == get(transform_data, :electricity_consumption, 0.0) * flow(h2_edge)
+    )
+    @add_balance(
+        thermalhydrogenccs_transform,
+        :emissions,
+        get(transform_data, :emission_rate, 0.0) * flow(fuel_edge) == flow(co2_edge)
+    )
+    @add_balance(
+        thermalhydrogenccs_transform,
+        :capture,
+        get(transform_data, :capture_rate, 0.0) * flow(fuel_edge) == flow(co2_captured_edge)
+    )
 
     return ThermalHydrogenCCS(id, thermalhydrogenccs_transform, h2_edge, elec_edge,fuel_edge, co2_edge, co2_captured_edge)
 end

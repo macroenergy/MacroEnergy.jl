@@ -1,9 +1,9 @@
 struct TransmissionLink{T} <: AbstractAsset
     id::AssetId
-    transmission_edge::Edge{<:T}
+    transmission_edge::BidirectionalEdge{<:T}
 end
 
-TransmissionLink(id::AssetId, transmission_edge::Edge{T}) where T<:Commodity = TransmissionLink{T}(id, transmission_edge)
+TransmissionLink(id::AssetId, transmission_edge::BidirectionalEdge{T}) where T<:Commodity = TransmissionLink{T}(id, transmission_edge)
 
 function default_data(t::Type{TransmissionLink}, id=missing, style="full")
     if style == "full"
@@ -90,16 +90,20 @@ function make(asset_type::Type{<:TransmissionLink}, data::AbstractDict{Symbol,An
         t_start_node,
         transmission_edge_data,
         commodity,
-        [(transmission_edge_data, :start_vertex), (data, :transmission_origin), (data, :location)],
+        [(transmission_edge_data, :start_vertex), (data, :transmission_origin)],
     )
     @end_vertex(
         t_end_node,
         transmission_edge_data,
         commodity,
-        [(transmission_edge_data, :end_vertex), (data, :transmission_dest), (data, :location)],
+        [(transmission_edge_data, :end_vertex), (data, :transmission_dest)],
     )
 
-    transmission_edge = Edge(
+    if t_start_node == t_end_node
+        @warn "TransmissionLink $id has identical start and end vertices: $(t_start_node.id)."
+    end
+
+    transmission_edge = BidirectionalEdge(
         Symbol(id, "_", transmission_edge_key),
         transmission_edge_data,
         system.time_data[commodity_symbol],

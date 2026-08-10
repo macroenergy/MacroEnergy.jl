@@ -84,7 +84,7 @@ The following tables outline the attributes that can be set for a must-run asset
 ### Essential Attributes
 | Field | Type | Description |
 |--------------|---------|------------|
-| `Type` | String | Asset type identifier: "MustRun" |
+| `type` | String | Asset type identifier: "MustRun" |
 | `id` | String | Unique identifier for the must-run instance |
 | `location` | String | Geographic location/node identifier |
 
@@ -148,7 +148,7 @@ The `MustRun` asset is defined as follows:
 struct MustRun <: AbstractAsset
     id::AssetId
     energy_transform::Transformation
-    elec_edge::Edge{<:Electricity}
+    elec_edge::UnidirectionalEdge{<:Electricity}
 end
 ```
 
@@ -157,7 +157,7 @@ end
 ### Default constructor
 
 ```julia
-MustRun(id::AssetId, energy_transform::Transformation, elec_edge::Edge{<:Electricity})
+MustRun(id::AssetId, energy_transform::Transformation, elec_edge::UnidirectionalEdge{<:Electricity})
 ```
 
 ### Factory constructor

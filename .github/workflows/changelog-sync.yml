@@ -1,0 +1,61 @@
+name: Changelog Sync
+
+on:
+  push:
+    branches-ignore:
+      - gh-pages
+    paths:
+      - CHANGELOG.md
+      - docs/scripts/update_changelog.jl
+      - .github/workflows/changelog-sync.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: julia-actions/setup-julia@v2
+      - name: Update generated changelog outputs
+        run: julia docs/scripts/update_changelog.jl
+      - name: Commit generated changelog outputs
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BASE_BRANCH: ${{ github.ref_name }}
+        run: |
+          if [[ -z "$(git status --porcelain README.md docs/src/index.md docs/src/changelog.md)" ]]; then
+            echo "Generated changelog outputs are already up to date."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          if [[ "$BASE_BRANCH" == "main" || "$BASE_BRANCH" == "develop" ]]; then
+            sync_branch="changelog-sync/${BASE_BRANCH}"
+            git fetch origin "$sync_branch" || true
+            git checkout -B "$sync_branch"
+            git add README.md docs/src/index.md docs/src/changelog.md
+            git commit -m "docs: sync changelog outputs [skip ci]"
+            git push --force-with-lease origin "$sync_branch"
+
+            if gh pr view "$sync_branch" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+              echo "Updated existing changelog sync pull request."
+            else
+              gh pr create \
+                --repo "$GITHUB_REPOSITORY" \
+                --base "$BASE_BRANCH" \
+                --head "$sync_branch" \
+                --title "docs: sync changelog outputs" \
+                --body "This automated PR updates the README and documentation changelog outputs generated from CHANGELOG.md."
+            fi
+          else
+            git add README.md docs/src/index.md docs/src/changelog.md
+            git commit -m "docs: sync changelog outputs [skip ci]"
+            git push
+          fi

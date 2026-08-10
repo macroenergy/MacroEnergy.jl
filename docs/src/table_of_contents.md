@@ -70,6 +70,8 @@ Depth = 2
 ## [References](@ref)
 ```@contents
 Pages = [
+    "Manual/Balances.md",
+    "Manual/Constraints.md",
     "References/1_introduction.md",
     "References/2_reading_input.md",
     "References/3_macro_objects.md",
