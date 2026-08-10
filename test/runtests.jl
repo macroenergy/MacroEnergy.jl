@@ -2,6 +2,9 @@ import Test
 using Logging
 using MacroEnergy
 
+include("utilities.jl")
+
+@info "Running the \"$TEST_SUITE\" test suite"
 
 test_logger = ConsoleLogger(stderr, Logging.Warn)
 
