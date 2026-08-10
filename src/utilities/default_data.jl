@@ -113,9 +113,6 @@ function node_default_data()
         :id => missing,
         :timedata => missing,
         :location => missing,
-        :id => missing,
-        :timedata => missing,
-        :location => missing,
         :capacity_reserve_margin_id => missing,
         :constraints => Dict{Symbol,Bool}(
             :BalanceConstraint => true,
