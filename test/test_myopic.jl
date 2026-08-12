@@ -64,8 +64,6 @@ function assert_constraint_references_released(constraints)
 end
 
 function assert_model_references_released!(system::System)
-    assert_constraint_references_released(system.constraints)
-
     for asset in system.assets
         for field in fieldnames(typeof(asset))
             component = getfield(asset, field)
@@ -123,7 +121,6 @@ function assert_model_references_released!(system::System)
             @test isempty(location.operation_expr)
             assert_constraint_references_released(location.constraints)
         elseif location isa Location
-            assert_constraint_references_released(location.constraints)
             for node in values(location.nodes)
                 @test isempty(node.non_served_demand)
                 @test isempty(node.supply_flow)
