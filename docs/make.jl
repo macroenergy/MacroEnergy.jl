@@ -76,6 +76,7 @@ const pages = [
             "Benders Convergence" => "Manual/outputs/benders.md",
             "Settings" => "Manual/outputs/settings_output.md",
             "Log File" => "Manual/outputs/log_file.md",
+            "Run Status" => "Manual/outputs/run_status.md",
         ],
         "System" => "Manual/System.md",
         "Model" => "Manual/Model.md",
