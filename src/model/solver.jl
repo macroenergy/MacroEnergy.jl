@@ -77,6 +77,61 @@ function assert_solved(bm::BendersModel; label::AbstractString = "")
     return nothing
 end
 
+"""
+    solution_outcome(solution) -> NamedTuple{(:status, :termination_status)}
+
+Summarize how a solve ended, for the run status file written by [`run_case`](@ref).
+
+`assert_solved` throws when a solve produced nothing usable, so anything reaching this point
+has a solution; the question here is whether that solution is provably optimal (`"OK"`) or
+merely usable (`"SUBOPTIMAL"`, e.g. a time limit reached with a feasible incumbent, or a
+Benders solve that stopped on its iteration limit). Without this distinction the status file
+would report a run that ran out of time exactly like one that converged.
+"""
+function solution_outcome(model::Model)
+    return (
+        status = is_solved_and_feasible(model; allow_almost = true) ? "OK" : "SUBOPTIMAL",
+        termination_status = string(termination_status(model)),
+    )
+end
+
+function solution_outcome(bm::BendersModel)
+    bm.convergence === nothing && return (status = "OK", termination_status = "")
+    status = String(bm.convergence.termination_status)
+    # A negative gap means the bounds crossed (UB < LB), and "NONE" means the loop never
+    # reached a termination test.
+    status in ("NEGATIVE GAP", "NONE") &&
+        return (status = "SOLVE_FAILED", termination_status = status)
+    return (status = status == "OPTIMAL" ? "OK" : "SUBOPTIMAL", termination_status = status)
+end
+
+solution_outcome(::Any) = (status = "OK", termination_status = "")
+
+# A Myopic run records how each period ended as it goes; the worst period decides the
+# overall status. Entries are labelled with their period number because `Restart` and
+# `StopAfterPeriod` skip periods, so the nth entry is not necessarily period n.
+function solution_outcome(results::MyopicResults)
+    isempty(results.outcomes) && return (status = "OK", termination_status = "")
+
+    # Worst status wins, in this order. A period whose Benders solve contradicted itself
+    # must not be flattened into SUBOPTIMAL, which tells a consumer the results are usable.
+    statuses = (o.status for o in results.outcomes)
+    overall = if any(==("SOLVE_FAILED"), statuses)
+        "SOLVE_FAILED"
+    elseif all(==("OK"), statuses)
+        "OK"
+    else
+        "SUBOPTIMAL"
+    end
+
+    return (
+        status = overall,
+        termination_status = join(
+            ("$(o.period): $(o.termination_status)" for o in results.outcomes), ", "
+        ),
+    )
+end
+
 ####### Entry point: dispatch on ExpansionHorizon then SolutionAlgorithm #######
 function solve_case(case::Case, opt::O) where O <: Union{Optimizer, Dict{Symbol, Dict{Symbol, Any}}}
     solve_case(case, opt, expansion_horizon(case))
@@ -119,6 +174,10 @@ function solve_case(case::Case, opt::O, ::Myopic) where O <: Union{Optimizer, Di
     # Accumulates each period's capacity summary for the cross-period capacity_summary.csv.
     capacity_summaries = DataFrame[]
 
+    # How each period ended, recorded here rather than read back from `stored`, which is
+    # `nothing` unless `ReturnModels` is set
+    period_outcomes = PeriodOutcome[]
+
     if myopic_settings[:Restart][:enabled]
         if myopic_settings[:Restart][:from_period] == 1
             @warn("Restarting from the first period; no previous period to load, proceeding with normal iteration.")
@@ -152,6 +211,12 @@ function solve_case(case::Case, opt::O, ::Myopic) where O <: Union{Optimizer, Di
         # Check model before carrying capacities forward
         assert_solved(model; label = "period $period_idx")
 
+        outcome = solution_outcome(model)
+        push!(
+            period_outcomes,
+            PeriodOutcome(period_idx, outcome.status, outcome.termination_status),
+        )
+
         period_idx < length(periods) && carry_over_capacities!(periods[period_idx+1], system, perfect_foresight=false)
 
         push!(capacity_summaries, write_outputs(output_path, case, model, system, period_idx))
@@ -163,7 +228,7 @@ function solve_case(case::Case, opt::O, ::Myopic) where O <: Union{Optimizer, Di
 
     write_settings(case, joinpath(output_path, "settings.json"))
 
-    return (case, MyopicResults(stored,output_path))
+    return (case, MyopicResults(stored, output_path, period_outcomes))
 end
 
 ####### optimize! for BendersModel #######

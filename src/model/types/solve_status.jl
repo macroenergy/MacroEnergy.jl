@@ -133,3 +133,23 @@ function Base.showerror(io::IO, e::SolveFailed)
     end
 end
 
+"""
+    PeriodOutcome
+
+How one period of a Myopic run ended.
+
+Recorded as each period is solved, rather than derived from the stored models afterwards:
+`MyopicSettings[:ReturnModels]` is off by default, in which case no models are kept and
+there would be nothing left to inspect.
+
+# Fields
+- `period::Int`: Index of the period, which is not the same as the position in the vector
+  when periods are skipped by `Restart` or `StopAfterPeriod`.
+- `status::String`: `"OK"` if the period solved to optimality, `"SUBOPTIMAL"` otherwise.
+- `termination_status::String`: The solver's own verdict for that period.
+"""
+struct PeriodOutcome
+    period::Int
+    status::String
+    termination_status::String
+end
