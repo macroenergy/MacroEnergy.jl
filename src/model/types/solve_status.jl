@@ -1,3 +1,49 @@
+####### Exceptions and status checks for solved models #######
+
+# Classification of MOI termination statuses used by `assert_solved`. The groups are
+# mutually exclusive; every status outside them is treated as a failed solve, so a status
+# that is not listed here (including any added by a future MOI release) errors rather than
+# passing silently. `test/test_solve_status.jl` checks that the groups stay exhaustive.
+
+# Statuses meaning "the solver proved there is no feasible point"
+const INFEASIBLE_STATUSES = (
+    MOI.INFEASIBLE,
+    MOI.LOCALLY_INFEASIBLE,
+    MOI.ALMOST_INFEASIBLE,
+    # Reported when presolve detects the problem but cannot tell the two cases apart
+    MOI.INFEASIBLE_OR_UNBOUNDED,
+)
+
+# Statuses meaning "the objective is unbounded below (or the dual is infeasible)"
+const UNBOUNDED_STATUSES = (MOI.DUAL_INFEASIBLE, MOI.ALMOST_DUAL_INFEASIBLE)
+
+# Statuses meaning "the solver stopped early", as opposed to "the solver failed".
+# If one of these comes with a feasible incumbent, the solution is usable if sub-optimal.
+const LIMIT_STATUSES = (
+    MOI.ITERATION_LIMIT,
+    MOI.TIME_LIMIT,
+    MOI.NODE_LIMIT,
+    MOI.SOLUTION_LIMIT,
+    MOI.MEMORY_LIMIT,
+    MOI.OBJECTIVE_LIMIT,
+    MOI.NORM_LIMIT,
+    MOI.OTHER_LIMIT,
+    MOI.SLOW_PROGRESS,
+    MOI.INTERRUPTED,
+)
+
+# Statuses accepted as a successful solve, all of which `is_solved_and_feasible` covers
+# (with `allow_almost = true`) when a feasible primal point is also available
+const SOLVED_STATUSES = (
+    MOI.OPTIMAL,
+    MOI.LOCALLY_SOLVED,
+    MOI.ALMOST_OPTIMAL,
+    MOI.ALMOST_LOCALLY_SOLVED,
+)
+
+# Primal statuses that mean "the point held by the solver is a feasible one"
+const FEASIBLE_PRIMAL_STATUSES = (MOI.FEASIBLE_POINT, MOI.NEARLY_FEASIBLE_POINT)
+
 """
     InfeasibleModel <: Exception
 
