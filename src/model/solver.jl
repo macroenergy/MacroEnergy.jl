@@ -1,3 +1,82 @@
+####### Status checks for solved models #######
+# The exception types and status groups these use live in `model/types/solve_status.jl`
+
+"""
+    assert_solved(model::Model; label::AbstractString = "")
+
+Check that `model` has been solved to (near-)optimality and holds a usable primal
+solution, and throw a descriptive exception otherwise.
+
+# Arguments
+- `model::Model`: The JuMP model to check, after `optimize!`.
+
+# Keyword Arguments
+- `label::AbstractString=""`: Description of the model included in error messages, used to
+  identify which model failed when several are solved in sequence (e.g. `"period 3"`).
+
+# Returns
+- `nothing` if the model has a usable solution.
+
+# Throws
+- [`InfeasibleModel`](@ref): For any status in `INFEASIBLE_STATUSES`, i.e. the optimizer
+  proved the model infeasible. This covers `MOI.INFEASIBLE_OR_UNBOUNDED`, which is what
+  solvers commonly report when presolve detects infeasibility.
+- [`UnboundedModel`](@ref): For any status in `UNBOUNDED_STATUSES`.
+- [`SolveFailed`](@ref): For any other status without a usable primal solution, including
+  numerical failures, an invalid model, and limits hit before a feasible point was found.
+
+# Notes
+- Statuses close to optimal (`MOI.ALMOST_OPTIMAL` etc.) are accepted, since the
+  default optimizer attributes solve to a loose barrier tolerance without crossover.
+- Anything else that still carries a feasible point is accepted with a warning, whatever the
+  termination status.
+- The result is that only two things throw: a model the solver proved has no solution, and a
+  solve that left nothing usable behind.
+"""
+function assert_solved(model::Model; label::AbstractString = "")
+    is_solved_and_feasible(model; allow_almost = true) && return nothing
+
+    status = termination_status(model)
+
+    status in INFEASIBLE_STATUSES && throw(InfeasibleModel(status, label))
+    status in UNBOUNDED_STATUSES && throw(UnboundedModel(status, label))
+
+    if primal_status(model) in FEASIBLE_PRIMAL_STATUSES
+        @warn(
+            "Model$(isempty(label) ? "" : " ($label)") terminated with status $(status) " *
+            "but a feasible solution is available. Results are based on this solution and " *
+            "may not be optimal."
+        )
+        return nothing
+    end
+
+    throw(SolveFailed(status, primal_status(model), label))
+end
+
+"""
+    assert_solved(bm::BendersModel; label::AbstractString = "")
+
+Check the outcome of a Benders solve and warn if the algorithm stopped before converging.
+
+# Notes
+- The Benders algorithm stops on convergence, a CPU time limit, a maximum iteration count, 
+  or a negative gap, and each of these leaves a planning solution in place. Infeasibility 
+  of the underlying problem surfaces while solving the planning problem or a subproblem, 
+  not here, so this method warns rather than throwing.
+"""
+function assert_solved(bm::BendersModel; label::AbstractString = "")
+    bm.convergence === nothing && return nothing
+    status = bm.convergence.termination_status
+    if status != "OPTIMAL"
+        @warn(
+            "Benders solve$(isempty(label) ? "" : " ($label)") terminated with status " *
+            "$(status) instead of OPTIMAL. Results are based on the best planning solution " *
+            "found and may not be optimal."
+        )
+    end
+    return nothing
+end
+
 ####### Entry point: dispatch on ExpansionHorizon then SolutionAlgorithm #######
 function solve_case(case::Case, opt::O) where O <: Union{Optimizer, Dict{Symbol, Dict{Symbol, Any}}}
     solve_case(case, opt, expansion_horizon(case))
@@ -14,6 +93,8 @@ function solve_case(case::Case, opt::O, ::PerfectForesight) where O <: Union{Opt
     model = generate_model(case, opt, alg)
 
     optimize!(model)
+
+    assert_solved(model)
 
     return (case, model)
 end
@@ -67,6 +148,9 @@ function solve_case(case::Case, opt::O, ::Myopic) where O <: Union{Optimizer, Di
         model = generate_model(system, opt, settings, alg)
 
         optimize!(model)
+
+        # Check model before carrying capacities forward
+        assert_solved(model; label = "period $period_idx")
 
         period_idx < length(periods) && carry_over_capacities!(periods[period_idx+1], system, perfect_foresight=false)
 
