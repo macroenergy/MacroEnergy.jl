@@ -89,10 +89,13 @@ function initialize_dist_subproblems!(system_decomp::Vector,opt::Dict,case_setti
 
     subproblems_all = distribute([Dict() for i in 1:length(system_decomp)]);
 
-    @sync for p in workers()
+    # Scatter the decomposed systems across the workers as a DArray
+    systems_dist = distribute(system_decomp, subproblems_all);
+
+    @sync for p in procs(subproblems_all)
         @async @spawnat p begin
             W_local = localindices(subproblems_all)[1];
-            system_local = [system_decomp[k] for k in W_local];
+            system_local = localpart(systems_dist);
             optimizer = create_optimizer(opt[:solver], opt_env(opt[:solver]), opt[:attributes])
             initialize_local_subproblems!(system_local,localpart(subproblems_all),W_local,optimizer,case_settings,include_subproblem_slacks);
         end

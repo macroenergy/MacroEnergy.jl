@@ -44,9 +44,10 @@ function add_model_constraint!(ct::CO2CapConstraint, n::Node{CO2}, model::Model)
             lower_bound = 0.0,
             base_name = "v" * string(ct_type) * "_Slack_$(id(n))_period$(period_index(n))"
         )
+        eVariableCost = model[:eVariableCost]::AffExpr
         for w in subperiod_indices(n)
             add_to_expression!(
-                model[:eVariableCost],
+                eVariableCost,
                 subperiod_weight(n, w) * price_unmet_policy(n, ct_type),
                 n.policy_slack_vars[Symbol(string(ct_type) * "_Slack")][w],
             )

@@ -218,7 +218,7 @@ retirement_period(g::AbstractStorage) = g.retirement_period;
 retrofitted_capacity_track(g::AbstractStorage,s::Int64) = 0.0; ### Note that retrofits are not implemented for storage yet
 spillage_edge(g::AbstractStorage) = g.spillage_edge;
 storage_level(g::AbstractStorage) = g.storage_level;
-storage_level(g::AbstractStorage, t::Int64) = storage_level(g)[t];
+storage_level(g::AbstractStorage, t::Int64) = (storage_level(g)::VarArrayOrDense)[t];
 wacc(g::AbstractStorage) = g.wacc;
 annualized_investment_cost(g::AbstractStorage) = g.annualized_investment_cost;
 pv_period_investment_cost(g::AbstractStorage) = g.pv_period_investment_cost;
@@ -280,6 +280,7 @@ function operation_model!(g::Storage, model::Model)
     g.storage_level = @variable(
         model,
         [t in time_interval(g)],
+        container = array_container(time_interval(g)),
         lower_bound = 0.0,
         base_name = "vSTOR_$(g.id)_period$(period_index(g))"
     )
@@ -396,6 +397,7 @@ function operation_model!(g::LongDurationStorage, model::Model)
     g.storage_level = @variable(
         model,
         [t in time_interval(g)],
+        container = array_container(time_interval(g)),
         lower_bound = 0.0,
         base_name = "vSTOR_$(g.id)_period$(period_index(g))"
     )
@@ -424,12 +426,13 @@ function initialize_balance_expression(g::Storage, balance_id::Symbol, model::Mo
         return @expression(
             model,
             [t in time_interval(g)],
+            container = array_container(time_interval(g)),
             -storage_level(g, t) +
             (1 - loss_fraction(g, timestepbefore(t, 1, subperiods(g)))) *
             storage_level(g, timestepbefore(t, 1, subperiods(g)))
         )
     end
-    return @expression(model, [t in time_interval(g)], 0 * model[:vREF])
+    return @expression(model, [t in time_interval(g)], container = array_container(time_interval(g)), 0 * model[:vREF])
 end
 
 function initialize_balance_expression(g::LongDurationStorage, balance_id::Symbol, model::Model)
@@ -438,6 +441,7 @@ function initialize_balance_expression(g::LongDurationStorage, balance_id::Symbo
         return @expression(
             model,
             [t in time_interval(g)],
+            container = array_container(time_interval(g)),
             if t in starts
                 -storage_level(g, t) +
                 (1 - loss_fraction(g, timestepbefore(t, 1, subperiods(g)))) *
@@ -449,7 +453,7 @@ function initialize_balance_expression(g::LongDurationStorage, balance_id::Symbo
             end
         )
     end
-    return @expression(model, [t in time_interval(g)], 0 * model[:vREF])
+    return @expression(model, [t in time_interval(g)], container = array_container(time_interval(g)), 0 * model[:vREF])
 end
 
 function compute_investment_costs!(g::AbstractStorage, model::Model, cost_type::Function=pv_period_investment_cost)

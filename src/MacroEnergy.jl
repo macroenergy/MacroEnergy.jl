@@ -101,10 +101,7 @@ const ME_DEPOT_PATH = joinpath(homedir(), ".macroenergy")
 const H2_MWh = 33.33 # MWh per tonne of H2
 const NG_MWh = 0.29307107 # MWh per MMBTU of NG 
 const AssetId = Symbol
-const JuMPConstraint =
-    Union{Array,Containers.DenseAxisArray,Containers.SparseAxisArray,ConstraintRef}
-const JuMPVariable =
-    Union{Array,Containers.DenseAxisArray,Containers.SparseAxisArray,VariableRef}
+# JuMPConstraint / JuMPVariable moved to model/jump_containers.jl
 
 # Load subcommodities from file when MacroEnergy is loaded
 
@@ -166,6 +163,7 @@ include("utilities/utilities.jl")
 include_all_in_folder("utilities/model_converters")
 
 include("model/units.jl")
+include("model/jump_containers.jl")
 include("model/time_management.jl")
 include("model/networks/vertex.jl")
 include("model/networks/node.jl")

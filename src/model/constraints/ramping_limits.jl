@@ -30,23 +30,27 @@ function add_model_constraint!(ct::RampingLimitConstraint, e::EdgeWithoutUC, mod
         return nothing
     end
     if has_capacity(e)
-        #### For now these are set to zero because we are not modeling reserves
-        reserves_term = @expression(model, [t in time_interval(e)], 0 * model[:vREF])
-        regulation_term = @expression(model, [t in time_interval(e)], 0 * model[:vREF])
+
+        ti = time_interval(e)
+        sps = subperiods(e)
+
+        #### For now these are commented out because we are not modeling reserves
+        # reserves_term = @expression(model, [t in time_interval(e)], container = array_container(time_interval(e)), 0 * model[:vREF])
+        # regulation_term = @expression(model, [t in time_interval(e)], container = array_container(time_interval(e)), 0 * model[:vREF])
 
         eRampUp = @expression(
             model,
-            [t in time_interval(e)],
-            flow(e, t) - flow(e, timestepbefore(t, 1, subperiods(e))) +
-            regulation_term[t] +
-            reserves_term[t] - ramp_up_fraction(e) * capacity(e)
+            [t in ti],
+            container = array_container(ti),
+            flow(e, t) - flow(e, timestepbefore(t, 1, sps)) -
+            ramp_up_fraction(e) * capacity(e)
         )
 
         eRampDown = @expression(
             model,
-            [t in time_interval(e)],
-            flow(e, timestepbefore(t, 1, subperiods(e))) - flow(e, t) - regulation_term[t] +
-            reserves_term[timestepbefore(t, 1, subperiods(e))] -
+            [t in ti],
+            container = array_container(ti),
+            flow(e, timestepbefore(t, 1, sps)) - flow(e, t) -
             ramp_down_fraction(e) * capacity(e)
         )
 
@@ -54,7 +58,7 @@ function add_model_constraint!(ct::RampingLimitConstraint, e::EdgeWithoutUC, mod
 
         ct.constraint_ref = @constraint(
             model,
-            [s in [:RampUp, :RampDown], t in time_interval(e)],
+            [s in [:RampUp, :RampDown], t in ti],
             ramp_expr_dict[s][t] <= 0
         )
     end
@@ -85,16 +89,18 @@ for each time `t` in `time_interval(e)` for the edge `e`. The function [`timeste
 """
 function add_model_constraint!(ct::RampingLimitConstraint, e::EdgeWithUC, model::Model)
 
-    #### For now these are set to zero because we are not modeling reserves
-    reserves_term = @expression(model, [t in time_interval(e)], 0 * model[:vREF])
-    regulation_term = @expression(model, [t in time_interval(e)], 0 * model[:vREF])
+    ti = time_interval(e)
+    sps = subperiods(e)
+
+    #### For now these are commented out because we are not modeling reserves
+    # reserves_term = @expression(model, [t in time_interval(e)], container = array_container(time_interval(e)), 0 * model[:vREF])
+    # regulation_term = @expression(model, [t in time_interval(e)], container = array_container(time_interval(e)), 0 * model[:vREF])
 
     eRampUp = @expression(
         model,
-        [t in time_interval(e)],
-        flow(e, t) - flow(e, timestepbefore(t, 1, subperiods(e))) +
-        regulation_term[t] +
-        reserves_term[t] - (
+        [t in ti],
+        container = array_container(ti),
+        flow(e, t) - flow(e, timestepbefore(t, 1, sps)) - (
             ramp_up_fraction(e) * capacity_size(e) * (ucommit(e, t) - ustart(e, t)) +
             min(availability(e, t), max(min_flow_fraction(e), ramp_up_fraction(e))) *
             capacity_size(e) *
@@ -104,9 +110,9 @@ function add_model_constraint!(ct::RampingLimitConstraint, e::EdgeWithUC, model:
 
     eRampDown = @expression(
         model,
-        [t in time_interval(e)],
-        flow(e, timestepbefore(t, 1, subperiods(e))) - flow(e, t) - regulation_term[t] +
-        reserves_term[timestepbefore(t, 1, subperiods(e))] - (
+        [t in ti],
+        container = array_container(ti),
+        flow(e, timestepbefore(t, 1, sps)) - flow(e, t) - (
             ramp_down_fraction(e) * capacity_size(e) * (ucommit(e, t) - ustart(e, t)) -
             min_flow_fraction(e) * capacity_size(e) * ustart(e, t) +
             min(availability(e, t), max(min_flow_fraction(e), ramp_down_fraction(e))) *
@@ -119,7 +125,7 @@ function add_model_constraint!(ct::RampingLimitConstraint, e::EdgeWithUC, model:
 
     ct.constraint_ref = @constraint(
         model,
-        [s in [:RampUp, :RampDown], t in time_interval(e)],
+        [s in [:RampUp, :RampDown], t in ti],
         ramp_expr_dict[s][t] <= 0
     )
     return nothing
