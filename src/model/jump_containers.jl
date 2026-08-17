@@ -36,7 +36,7 @@ reassigns each subproblem's `time_interval` to its own subperiod's window, and o
 the first subperiod happens to start at 1 (e.g. `1:168`, `169:336`, `337:504`, ...).
 The range stays contiguous but isn't one-based.
 """
-array_container(interval) = first(interval) == 1 ? Array : JuMP.Containers.DenseAxisArray
+array_container(interval) = (first(interval) == 1 && step(interval) == 1) ? Array : JuMP.Containers.DenseAxisArray
 
 """
     _dense_axis_array_type(T, axes...)

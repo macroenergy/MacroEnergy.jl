@@ -138,6 +138,7 @@ end
 
 function test_array_container()
     @test array_container(1:24) === Array
+    @test array_container(1:2:23) === JuMP.Containers.DenseAxisArray
     @test array_container(169:192) === JuMP.Containers.DenseAxisArray
     return nothing
 end
