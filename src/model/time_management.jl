@@ -47,8 +47,9 @@ function timestepbefore(t::Int, h::Int, subperiods::Vector{StepRange{Int64,Int64
     # Find the subperiod that contains time t, and index t within it circularly, h steps back
     for w in subperiods
         if t in w
-            n = length(w)
-            return first(w) + mod(t - first(w) - h, n)
+            step_size = step(w)
+            offset = (t - first(w)) ÷ step_size
+            return first(w) + step_size * mod(offset - h, length(w))
         end
     end
     error("timestepbefore: time $t not found in any subperiod")

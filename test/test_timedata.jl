@@ -129,6 +129,12 @@ function test_timestepbefore_correctness()
     @test timestepbefore(8760, 1, big_subperiods) == 8759
     @test timestepbefore(4380, 100, big_subperiods) == 4280
 
+    # Stepped ranges must return a timestep within the subperiod.
+    stepped_subperiods = [1:2:9]
+    @test timestepbefore(5, 1, stepped_subperiods) == 3
+    @test timestepbefore(1, 1, stepped_subperiods) == 9
+    @test timestepbefore(1, 5, stepped_subperiods) == 1
+
     return nothing
 end
 
