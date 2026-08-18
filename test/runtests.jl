@@ -88,5 +88,9 @@ with_logger(test_logger) do
         include("test_accessor_allocation.jl")
         include("test_node_supply_accessors.jl")
     end
+
+    Test.@testset "Benchmark tooling" begin
+        include("test_benchmark_runner.jl")
+    end
     return nothing
 end
