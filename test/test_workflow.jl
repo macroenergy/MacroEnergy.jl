@@ -2,10 +2,9 @@ module TestWorkflow
 
 using Test
 using HiGHS
-using Pkg
 using JuMP
-try Pkg.add("Gurobi"); using Gurobi; catch e end
 using CSV, DataFrames, JSON3
+import MacroEnergy
 import MacroEnergy:
     System,
     AbstractEdge,
@@ -62,7 +61,8 @@ include("utilities.jl")
 include("test_timedata.jl")
 const test_path = joinpath(@__DIR__, "test_inputs")
 const system_data_true_path = joinpath(@__DIR__, "test_inputs/system_data_true.json")
-const optim = is_gurobi_available() ? Gurobi.Optimizer : HiGHS.Optimizer
+const gurobi_available = is_gurobi_available()
+const optim = gurobi_available ? Gurobi.Optimizer : HiGHS.Optimizer
 const obj_true = 1.551272176298086e11
 
 function test_configure_settings(data::NamedTuple, data_true::T) where {T<:JSON3.Object}
