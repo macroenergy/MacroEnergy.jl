@@ -28,7 +28,8 @@ end
         @test counter[] == 2
     end
     command = worker_command("/tmp/main", "/tmp/case", "/tmp/results/main.json", "main")
-    @test occursin("--project=/tmp/main", string(command))
+    project_argument = only(filter(arg -> startswith(arg, "--project="), command.exec))
+    @test normpath(project_argument[length("--project=")+1:end]) == normpath("/tmp/main")
     @test occursin("worker.jl", string(command))
     @test applicable(with_main_worktree, () -> nothing, "main")
 
