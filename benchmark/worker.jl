@@ -5,9 +5,7 @@ using Logging
 using MacroEnergy
 
 function bootstrap(case_path::AbstractString)
-    MacroEnergy.setup_user_additions(case_path)
-    data = MacroEnergy.load_case_data(joinpath(case_path, "system_data.json"); lazy_load = true)
-    MacroEnergy.generate_case(joinpath(case_path, "system_data.json"), data)
+    MacroEnergy.materialize_user_commodities!(case_path)
     return nothing
 end
 
