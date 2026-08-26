@@ -49,6 +49,11 @@ MacroEnergy.load_system
 MacroEnergy.load_system_data
 ```
 
+## `materialize_user_commodities!`
+```@docs
+MacroEnergy.materialize_user_commodities!
+```
+
 ## `prep_system_data`
 ```@docs
 MacroEnergy.prep_system_data
