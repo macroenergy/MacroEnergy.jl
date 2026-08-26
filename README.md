@@ -1,4 +1,5 @@
 # Macro
+[![Build Status](https://github.com/macroenergy/MacroEnergy.jl/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/macroenergy/MacroEnergy.jl/actions/workflows/ci.yml/badge.svg?branch=main?query=branch%3Amain)[![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://macroenergy.github.io/MacroEnergy.jl/)
 
 **Macro** is a bottom-up, multi-sectoral infrastructure optimization model for macro-energy systems. It co-optimizes the design and operation of user-defined models of multi-sector energy systems and networks. Macro allows users to explore the impact of changing energy policies, technologies, demand patterns, and other factors on an energy system as a whole and as separate sectors.
 
