@@ -12,6 +12,7 @@ using InteractiveUtils
 using Printf: @printf
 using MacroEnergyScaling
 using MacroEnergySolvers
+using Pkg
 using DistributedArrays
 using Distributed
 using SlurmClusterManager
