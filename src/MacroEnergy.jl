@@ -8,12 +8,10 @@ using JSONTables
 using OrderedCollections
 using JuMP
 using HiGHS
-using Revise
 using InteractiveUtils
 using Printf: @printf
 using MacroEnergyScaling
 using MacroEnergySolvers
-using Pkg
 using DistributedArrays
 using Distributed
 using SlurmClusterManager
