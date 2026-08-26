@@ -276,11 +276,11 @@ function planning_model!(g::Storage, model::Model)
 end
 
 function operation_model!(g::Storage, model::Model)
-
+    ti = time_interval(g)
     g.storage_level = @variable(
         model,
-        [t in time_interval(g)],
-        container = array_container(time_interval(g)),
+        [t in ti],
+        container = array_container(ti),
         lower_bound = 0.0,
         base_name = "vSTOR_$(g.id)_period$(period_index(g))"
     )
@@ -393,11 +393,11 @@ end
 
 
 function operation_model!(g::LongDurationStorage, model::Model)
-
+    ti = time_interval(g)
     g.storage_level = @variable(
         model,
-        [t in time_interval(g)],
-        container = array_container(time_interval(g)),
+        [t in ti],
+        container = array_container(ti),
         lower_bound = 0.0,
         base_name = "vSTOR_$(g.id)_period$(period_index(g))"
     )
@@ -422,38 +422,44 @@ function operation_model!(g::LongDurationStorage, model::Model)
 end
 
 function initialize_balance_expression(g::Storage, balance_id::Symbol, model::Model)
+    ti = time_interval(g)
+    sps = subperiods(g)
+    time_container = array_container(ti)
     if balance_id == :storage
         return @expression(
             model,
-            [t in time_interval(g)],
-            container = array_container(time_interval(g)),
+            [t in ti],
+            container = time_container,
             -storage_level(g, t) +
-            (1 - loss_fraction(g, timestepbefore(t, 1, subperiods(g)))) *
-            storage_level(g, timestepbefore(t, 1, subperiods(g)))
+            (1 - loss_fraction(g, timestepbefore(t, 1, sps))) *
+            storage_level(g, timestepbefore(t, 1, sps))
         )
     end
-    return @expression(model, [t in time_interval(g)], container = array_container(time_interval(g)), 0 * model[:vREF])
+    return @expression(model, [t in ti], container = time_container, 0 * model[:vREF])
 end
 
 function initialize_balance_expression(g::LongDurationStorage, balance_id::Symbol, model::Model)
+    ti = time_interval(g)
+    sps = subperiods(g)
+    time_container = array_container(ti)
     if balance_id == :storage
-        starts = Set(first(sp) for sp in subperiods(g))
+        starts = Set(first(sp) for sp in sps)
         return @expression(
             model,
-            [t in time_interval(g)],
-            container = array_container(time_interval(g)),
+            [t in ti],
+            container = time_container,
             if t in starts
                 -storage_level(g, t) +
-                (1 - loss_fraction(g, timestepbefore(t, 1, subperiods(g)))) *
-                (storage_level(g, timestepbefore(t, 1, subperiods(g))) - storage_change(g, current_subperiod(g, t)))
+                (1 - loss_fraction(g, timestepbefore(t, 1, sps))) *
+                (storage_level(g, timestepbefore(t, 1, sps)) - storage_change(g, current_subperiod(g, t)))
             else
                 -storage_level(g, t) +
-                (1 - loss_fraction(g, timestepbefore(t, 1, subperiods(g)))) *
-                storage_level(g, timestepbefore(t, 1, subperiods(g)))
+                (1 - loss_fraction(g, timestepbefore(t, 1, sps))) *
+                storage_level(g, timestepbefore(t, 1, sps))
             end
         )
     end
-    return @expression(model, [t in time_interval(g)], container = array_container(time_interval(g)), 0 * model[:vREF])
+    return @expression(model, [t in ti], container = time_container, 0 * model[:vREF])
 end
 
 function compute_investment_costs!(g::AbstractStorage, model::Model, cost_type::Function=pv_period_investment_cost)

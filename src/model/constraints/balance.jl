@@ -20,24 +20,25 @@ Add a balance constraint to the vertex `v`.
 """
 function add_model_constraint!(ct::BalanceConstraint, v::AbstractVertex, model::Model)
     ct.constraint_ref = Dict{Symbol,Any}()
+    ti = time_interval(v)
     for balance_id in keys(v.balance_data)
         sense = balance_sense(v, balance_id)
         if sense == :eq
             ct.constraint_ref[balance_id] = @constraint(
                 model,
-                [t in time_interval(v)],
+                [t in ti],
                 get_balance(v, balance_id, t) == 0.0
             )
         elseif sense == :le
             ct.constraint_ref[balance_id] = @constraint(
                 model,
-                [t in time_interval(v)],
+                [t in ti],
                 get_balance(v, balance_id, t) <= 0.0
             )
         elseif sense == :ge
             ct.constraint_ref[balance_id] = @constraint(
                 model,
-                [t in time_interval(v)],
+                [t in ti],
                 get_balance(v, balance_id, t) >= 0.0
             )
         else

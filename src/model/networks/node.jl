@@ -191,43 +191,51 @@ end
 
 function operation_model!(n::Node, model::Model)
     build_balance_expressions!(n, model)
+    ti = time_interval(n)
+    time_container = array_container(ti)
 
     if !all(max_non_served_demand(n) .== 0)
         eVariableCost = model[:eVariableCost]::AffExpr
+        non_served_segments = segments_non_served_demand(n)
         n.non_served_demand = @variable(
             model,
-            [s in segments_non_served_demand(n), t in time_interval(n)],
-            container = array_container(time_interval(n)),
+            [s in non_served_segments, t in ti],
+            container = time_container,
             lower_bound = 0.0,
             base_name = "vNSD_$(id(n))_period$(period_index(n))"
         )
-        for t in time_interval(n)
-            w = current_subperiod(n,t)
-            for s in segments_non_served_demand(n)
+        for t in ti
+            w = current_subperiod(n, t)
+            weight = subperiod_weight(n, w)
+            demand_balance = get_balance(n, :demand, t)
+            for s in non_served_segments
                 add_to_expression!(
                     eVariableCost,
-                    subperiod_weight(n, w) * price_non_served_demand(n, s),
+                    weight * price_non_served_demand(n, s),
                     non_served_demand(n, s, t),
                 )
-                add_to_expression!(get_balance(n, :demand, t), non_served_demand(n, s, t))
+                add_to_expression!(demand_balance, non_served_demand(n, s, t))
             end
         end
     end
 
     if !isempty(supply_segments(n))
         eVariableCost = model[:eVariableCost]::AffExpr
+        supply_segment_axis = supply_segments(n)
 
         n.supply_flow = @variable(
             model,
-            [s in supply_segments(n) ,t in time_interval(n)],
-            container = array_container(time_interval(n)),
+            [s in supply_segment_axis, t in ti],
+            container = time_container,
             lower_bound = 0.0,
             base_name = "vSUPPLY_$(id(n))_period$(period_index(n))"
         )
 
-        for t in time_interval(n)
-            w = current_subperiod(n,t)
-            for s in supply_segments(n)
+        for t in ti
+            w = current_subperiod(n, t)
+            weight = subperiod_weight(n, w)
+            demand_balance = get_balance(n, :demand, t)
+            for s in supply_segment_axis
                 sf = supply_flow(n, s, t)
                 min_sf = min_supply(n, s, t)
                 max_sf = max_supply(n, s, t)
@@ -238,9 +246,9 @@ function operation_model!(n::Node, model::Model)
                     @constraint(model, sf <= max_sf)
                 end
 
-                add_to_expression!(eVariableCost, subperiod_weight(n,w) * price_supply(n,s,t), sf)
+                add_to_expression!(eVariableCost, weight * price_supply(n,s,t), sf)
 
-                add_to_expression!(get_balance(n, :demand, t), sf)
+                add_to_expression!(demand_balance, sf)
             end
         end
 
@@ -250,15 +258,17 @@ function operation_model!(n::Node, model::Model)
 end
 
 function initialize_balance_expression(n::Node, balance_id::Symbol, model::Model)
+    ti = time_interval(n)
+    time_container = array_container(ti)
     if balance_id == :demand
         return @expression(
             model,
-            [t in time_interval(n)],
-            container = array_container(time_interval(n)),
+            [t in ti],
+            container = time_container,
             -demand(n, t) * model[:vREF]
         )
     end
-    return @expression(model, [t in time_interval(n)], container = array_container(time_interval(n)), 0 * model[:vREF])
+    return @expression(model, [t in ti], container = time_container, 0 * model[:vREF])
 end
 
 

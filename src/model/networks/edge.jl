@@ -499,8 +499,9 @@ function add_operation_model_varcosts!(e::EdgeWithoutUC, model::Model)
     vom_cost = variable_om_cost(e)
     if vom_cost > 0
         eVariableCost = model[:eVariableCost]::AffExpr
-        for t in time_interval(e)
-            w = current_subperiod(e,t)
+        ti = time_interval(e)
+        for t in ti
+            w = current_subperiod(e, t)
             add_to_expression!(
                 eVariableCost,
                 subperiod_weight(e, w) * vom_cost,
@@ -511,10 +512,11 @@ function add_operation_model_varcosts!(e::EdgeWithoutUC, model::Model)
 end
 
 function operation_model!(e::UnidirectionalEdge, model::Model)
+    ti = time_interval(e)
     e.flow = @variable(
         model,
-        [t in time_interval(e)],
-        container = array_container(time_interval(e)),
+        [t in ti],
+        container = array_container(ti),
         lower_bound = 0.0,
         base_name = "vFLOW_$(id(e))_period$(period_index(e))"
     )
@@ -524,7 +526,8 @@ function operation_model!(e::UnidirectionalEdge, model::Model)
 end
 
 function operation_model!(e::BidirectionalEdge, model::Model)
-    e.flow = @variable(model, [t in time_interval(e)], container = array_container(time_interval(e)), base_name = "vFLOW_$(id(e))_period$(period_index(e))")
+    ti = time_interval(e)
+    e.flow = @variable(model, [t in ti], container = array_container(ti), base_name = "vFLOW_$(id(e))_period$(period_index(e))")
     update_balances!(e, model)
     add_operation_model_varcosts!(e, model)
     return nothing
@@ -651,13 +654,15 @@ function add_operation_model_varcosts!(e::EdgeWithUC, model::Model)
     startup_c = startup_cost(e)
     if vom_cost > 0 || startup_c > 0
         eVariableCost = model[:eVariableCost]::AffExpr
-        for t in time_interval(e)
+        ti = time_interval(e)
+        for t in ti
 
             w = current_subperiod(e,t)
+            weight = subperiod_weight(e, w)
             if vom_cost > 0
                 add_to_expression!(
                     eVariableCost,
-                    subperiod_weight(e, w) * vom_cost,
+                    weight * vom_cost,
                     flow(e, t),
                 )
             end
@@ -665,7 +670,7 @@ function add_operation_model_varcosts!(e::EdgeWithUC, model::Model)
             if startup_c > 0
                 add_to_expression!(
                     eVariableCost,
-                    subperiod_weight(e, w) * startup_c * capacity_size(e),
+                    weight * startup_c * capacity_size(e),
                     ustart(e, t),
                 )
             end
@@ -682,34 +687,37 @@ function operation_model!(e::EdgeWithUC, model::Model)
         return nothing
     end
 
+    ti = time_interval(e)
+    time_container = array_container(ti)
+
     e.flow = @variable(
         model,
-        [t in time_interval(e)],
-        container = array_container(time_interval(e)),
+        [t in ti],
+        container = time_container,
         lower_bound = 0.0,
         base_name = "vFLOW_$(id(e))_period$(period_index(e))"
     )
 
     e.ucommit = @variable(
         model,
-        [t in time_interval(e)],
-        container = array_container(time_interval(e)),
+        [t in ti],
+        container = time_container,
         lower_bound = 0.0,
         base_name = "vCOMMIT_$(id(e))_period$(period_index(e))"
     )
 
     e.ustart = @variable(
         model,
-        [t in time_interval(e)],
-        container = array_container(time_interval(e)),
+        [t in ti],
+        container = time_container,
         lower_bound = 0.0,
         base_name = "vSTART_$(id(e))_period$(period_index(e))"
     )
 
     e.ushut = @variable(
         model,
-        [t in time_interval(e)],
-        container = array_container(time_interval(e)),
+        [t in ti],
+        container = time_container,
         lower_bound = 0.0,
         base_name = "vSHUT_$(id(e))_period$(period_index(e))"
     )
@@ -723,15 +731,15 @@ function operation_model!(e::EdgeWithUC, model::Model)
     @constraints(
         model,
         begin
-            [t in time_interval(e)], ucommit(e, t) <= capacity(e) / capacity_size(e)
-            [t in time_interval(e)], ustart(e, t) <= capacity(e) / capacity_size(e)
-            [t in time_interval(e)], ushut(e, t) <= capacity(e) / capacity_size(e)
+            [t in ti], ucommit(e, t) <= capacity(e) / capacity_size(e)
+            [t in ti], ustart(e, t) <= capacity(e) / capacity_size(e)
+            [t in ti], ushut(e, t) <= capacity(e) / capacity_size(e)
         end
     )
 
     @constraint(
         model,
-        [t in time_interval(e)],
+        [t in ti],
         ucommit(e, t) - ucommit(e, timestepbefore(t, 1, subperiods(e))) ==
         ustart(e, t) - ushut(e, t)
     )
