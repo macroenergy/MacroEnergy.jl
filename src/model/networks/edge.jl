@@ -843,16 +843,16 @@ function update_startup_fuel_balance!(e::EdgeWithUC)
 end
 
 """
-    add_flow_to_vertex_balances!(e, v, effective_flow, outgoing)
+    add_flow_to_vertex_balances!(e, v, add_effective_flow!, outgoing)
 
-Add an edge's effective flow to each matching balance on `v`. `effective_flow(t)`
-returns the flow expression at time `t`; accepting a callable avoids materializing an
-intermediate time-indexed expression container solely for this update.
+Add an edge's effective flow to each matching balance on `v`. `add_effective_flow!`
+directly adds the effective flow's variable terms to a balance expression, avoiding
+both an indexed expression container and temporary scalar affine expressions.
 """
 function add_flow_to_vertex_balances!(
     e::AbstractEdge,
     v::AbstractVertex,
-    effective_flow::F,
+    add_effective_flow!::F,
     outgoing::Bool,
 ) where {F}
     if outgoing
@@ -866,7 +866,7 @@ function add_flow_to_vertex_balances!(
         if isempty(data.terms) && data.constant == 0.0
             balance_expr = (get_balance(v, i)::AffExprArrayOrDense)
             for t in ti
-                add_to_expression!(balance_expr[t], flow_dir, effective_flow(t))
+                add_effective_flow!(balance_expr[t], flow_dir, t)
             end
             continue
         end
@@ -894,7 +894,7 @@ function add_flow_to_vertex_balances!(
                 continue
             end
             for t in ti
-                add_to_expression!(balance_expr[t], balance_coeff, effective_flow(t))
+                add_effective_flow!(balance_expr[t], balance_coeff, t)
             end
             continue
         end
@@ -910,7 +910,7 @@ function add_flow_to_vertex_balances!(
             if balance_coeff == 0.0
                 continue
             end
-            add_to_expression!(balance_expr[t], balance_coeff, effective_flow(t))
+            add_effective_flow!(balance_expr[t], balance_coeff, t)
         end
     end
 end
@@ -919,7 +919,7 @@ function update_balance_start!(e::AbstractEdge, model::Model)
     # This implicitly works for UnidirectionalEdge and EdgeWithUC
     # BidirectionalEdge is handled in a separate method
     v = start_vertex(e)
-    add_flow_to_vertex_balances!(e, v, t -> flow(e, t), true)
+    add_flow_to_vertex_balances!(e, v, (expr, coeff, t) -> add_to_expression!(expr, coeff, flow(e, t)), true)
 end
 
 function update_balance_start!(e::BidirectionalEdge, model::Model)
@@ -934,17 +934,25 @@ function update_balance_start!(e::BidirectionalEdge, model::Model)
         add_flow_to_vertex_balances!(
             e,
             v,
-            t -> flow_pos[t] - (1 - loss_fraction(e, t)) * flow_neg[t],
+            (expr, coeff, t) -> begin
+                add_to_expression!(expr, coeff, flow_pos[t])
+                add_to_expression!(expr, -coeff * (1 - loss_fraction(e, t)), flow_neg[t])
+            end,
             true,
         )
     else
-        add_flow_to_vertex_balances!(e, v, t -> flow(e, t), true)
+        add_flow_to_vertex_balances!(e, v, (expr, coeff, t) -> add_to_expression!(expr, coeff, flow(e, t)), true)
     end
 end
 
 function update_balance_end!(e::AbstractEdge, model::Model)
     v = end_vertex(e)
-    add_flow_to_vertex_balances!(e, v, t -> (1 - loss_fraction(e, t)) * flow(e, t), false)
+    add_flow_to_vertex_balances!(
+        e,
+        v,
+        (expr, coeff, t) -> add_to_expression!(expr, coeff * (1 - loss_fraction(e, t)), flow(e, t)),
+        false,
+    )
 end
 
 function update_balance_end!(e::BidirectionalEdge, model::Model)
@@ -959,10 +967,13 @@ function update_balance_end!(e::BidirectionalEdge, model::Model)
         add_flow_to_vertex_balances!(
             e,
             v,
-            t -> (1 - loss_fraction(e, t)) * flow_pos[t] - flow_neg[t],
+            (expr, coeff, t) -> begin
+                add_to_expression!(expr, coeff * (1 - loss_fraction(e, t)), flow_pos[t])
+                add_to_expression!(expr, -coeff, flow_neg[t])
+            end,
             false,
         )
     else
-        add_flow_to_vertex_balances!(e, v, t -> flow(e, t), false)
+        add_flow_to_vertex_balances!(e, v, (expr, coeff, t) -> add_to_expression!(expr, coeff, flow(e, t)), false)
     end
 end
