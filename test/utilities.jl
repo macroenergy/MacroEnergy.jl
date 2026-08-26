@@ -28,7 +28,16 @@ macro error_logger(block)
 end
 
 function is_gurobi_available()
-    return !isnothing(Base.get_extension(@__MODULE__, :MacroEnergyGurobiExt))
+    Base.find_package("Gurobi") === nothing && return false
+
+    try
+        @eval using Gurobi
+        return !isnothing(Base.get_extension(MacroEnergy, :MacroEnergyGurobiExt))
+    catch e
+        @warn "Gurobi is available but could not be loaded; using HiGHS for tests" exception =
+            (e, catch_backtrace())
+        return false
+    end
 end
 
 function check_if_package_installed(optimizer_name::AbstractString)

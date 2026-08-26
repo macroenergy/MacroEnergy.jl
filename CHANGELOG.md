@@ -17,6 +17,7 @@ and this project follows Julia package versioning through `Project.toml` release
 - Added capacity_summary.csv for multi-period cases, combining per-period capacity outputs into a single long- or wide-format file.
 - Added optional StartYear input in case_settings.json to label periods by calendar year.
 - Added `capex.csv` output file to report per-component asset capital costs.
+- Added repository-local benchmarking tools to compare case loading, case generation, and model generation between `upstream/main` and the current worktree using reproducible example inputs.
 
 ### Changed
 
