@@ -1,6 +1,22 @@
 using Logging
 
 
+# Test suite selection. "short" (the default) skips the tests that solve full
+# cases; "long" runs everything. Select the suite with either:
+#   julia> Pkg.test("MacroEnergy"; test_args=["long"])
+#   $ MACRO_TEST_SUITE=long julia --project=. test/runtests.jl
+function macro_test_suite()
+    for arg in ARGS
+        suite = lowercase(lstrip(arg, '-'))
+        suite in ("short", "long") && return suite
+    end
+    return lowercase(get(ENV, "MACRO_TEST_SUITE", "short"))
+end
+
+const TEST_SUITE = macro_test_suite()
+
+run_long_tests() = TEST_SUITE == "long"
+
 macro log_with_level(log_level, block)
     quote
         result = redirect_stdout(devnull) do

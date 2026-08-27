@@ -175,6 +175,16 @@ MacroEnergy.reconstruct_benders_variable
 MacroEnergy.reconstruct_timeseries
 ```
 
+## `release_model_references!`
+```@docs
+MacroEnergy.release_model_references!
+```
+
+## `release_model!`
+```@docs
+MacroEnergy.release_model!
+```
+
 ## `reshape_wide`
 ```@docs
 MacroEnergy.reshape_wide
