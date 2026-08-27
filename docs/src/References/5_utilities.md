@@ -19,6 +19,11 @@ MacroEnergy.all_constraints_types
 MacroEnergy.array_container
 ```
 
+## `add_flow_to_vertex_balances!`
+```@docs
+MacroEnergy.add_flow_to_vertex_balances!
+```
+
 ## `asset_ids`
 ```@docs
 MacroEnergy.asset_ids
