@@ -1,6 +1,6 @@
 name = "MacroEnergy"
 uuid = "260b7737-bf0e-4e84-9335-3af14438b1f5"
-version = "0.3.0-dev6"
+version = "0.3.0-dev7"
 
 [deps]
 BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
@@ -29,9 +29,7 @@ Parquet2 = "98572fba-bba0-415d-956f-fa77e587d26d"
 Pkg = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
 Printf = "de0858da-6303-5e67-8744-51eddeeeb8d7"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
-Revise = "295af30f-e4ad-537b-8983-00126c2a3abe"
 SlurmClusterManager = "c82cd089-7bf7-41d7-976b-6b5d413cbe0a"
-Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 YAML = "ddb6d928-2868-570f-bddf-ab3f9cf99eb6"
 
 [weakdeps]
@@ -67,7 +65,6 @@ Parquet2 = "0.2"
 Pkg = "1"
 Printf = "1"
 Random = "1"
-Revise = "3"
 SlurmClusterManager = "1"
 Test = "1"
 YAML = "0.4"
