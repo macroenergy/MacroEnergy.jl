@@ -1,0 +1,19 @@
+{
+    "timesteps_per_representative_period": 168,
+    "representative_periods": 3,
+    "method": {
+        "name": "kmeans",
+        "settings": {
+            "restarts": 3
+        }
+    },
+    "scaling": "standardize",
+    "features": [
+        {
+            "id": "availability",
+            "field": "availability",
+            "weight": 1.0
+        }
+    ],
+    "exclude": []
+}
