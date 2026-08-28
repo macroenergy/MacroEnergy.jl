@@ -66,8 +66,11 @@ function tdr_extreme_period_selection(
         return (period=period, value=value)
     end
 
-    value, timestep = specification.select == :max ? findmax(aggregate) : findmin(aggregate)
-    return (period=cld(timestep, period_length), value=value)
+    if specification.aggregation == :peak
+        value, timestep = specification.select == :max ? findmax(aggregate) : findmin(aggregate)
+        return (period=cld(timestep, period_length), value=value)
+    end
+    throw(ArgumentError("Unsupported extreme-period aggregation `$(specification.aggregation)`."))
 end
 
 function tdr_extreme_periods(
