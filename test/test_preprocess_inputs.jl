@@ -66,6 +66,15 @@ end
     @test kmedoids_settings.restarts == 2
     @test kmedoids_settings.verbose
 
+    autoencoder_settings = MacroEnergy.load_tdr_method_settings(Dict(
+        "name" => "autoencoder_simultaneous",
+        "settings" => Dict("epochs" => 1, "latent_dim" => 2, "lambda" => 0.25),
+    ))
+    @test autoencoder_settings isa MacroEnergy.TDRAutoencoderSimultaneousSettings
+    @test autoencoder_settings.epochs == 1
+    @test autoencoder_settings.latent_dim == 2
+    @test autoencoder_settings.lambda == 0.25
+
     demand_reference = (
         json_file="system/nodes.json",
         input_path=Any[],
@@ -101,6 +110,17 @@ end
         PREPARE_CASE_TEST_INPUTS,
     )
     @test MacroEnergy.tdr_extreme_period(extreme_sources, extreme_specification, 2) == 2
+    peak_specification = MacroEnergy.tdr_extreme_period_spec(Dict(
+        "feature" => Dict("field" => "demand"),
+        "aggregation" => "peak",
+        "select" => "max",
+    ))
+    @test peak_specification.aggregation == :peak
+    @test_throws ArgumentError MacroEnergy.tdr_extreme_period_spec(Dict(
+        "feature" => Dict("field" => "demand"),
+        "aggregation" => "absolute",
+        "select" => "max",
+    ))
 
     extreme_settings = MacroEnergy.load_time_domain_reduction_settings(
         joinpath(PREPARE_CASE_TEST_INPUTS, "settings", "time_domain_reduction.json"),
@@ -136,6 +156,38 @@ end
     )
     @test 2 in cluster_representatives
     @test cluster_period_map[2] == findfirst(==(2), cluster_representatives)
+
+    for method_name in ("autoencoder_sequential", "autoencoder_simultaneous")
+        method_settings = MacroEnergy.load_tdr_method_settings(Dict(
+            "name" => method_name,
+            "settings" => Dict(
+                "restarts" => 1,
+                "epochs" => 1,
+                "patience" => 1,
+                "warmup" => 0,
+                "n_filters" => 1,
+                "latent_dim" => 1,
+                "lambda" => 0.1,
+            ),
+        ))
+        autoencoder_cluster_settings = MacroEnergy.TDRSettings(
+            timesteps_per_representative_period=2,
+            representative_periods=2,
+            method_settings=method_settings,
+            scaling=:standardize,
+            all_features=MacroEnergy.TDRFeatureSpec[],
+            features=MacroEnergy.TDRFeatureSpec[],
+            excluded_features=MacroEnergy.TDRFeatureSpec[],
+            extreme_periods=MacroEnergy.TDRExtremePeriodSpec[],
+        )
+        representatives, period_map = MacroEnergy.tdr_cluster(
+            [demand_source],
+            6,
+            autoencoder_cluster_settings,
+        )
+        @test length(representatives) == 2
+        @test length(period_map) == 3
+    end
 
     existing_period_map = DataFrame(
         Period_Index=collect(1:60),
