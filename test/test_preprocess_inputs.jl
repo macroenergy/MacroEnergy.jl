@@ -66,6 +66,20 @@ end
     @test kmedoids_settings.restarts == 2
     @test kmedoids_settings.verbose
 
+    existing_period_map = DataFrame(
+        Period_Index=collect(1:60),
+        Rep_Period=repeat([101, 102, 103, 104]; inner=15),
+        Rep_Period_Index=repeat(collect(1:4); inner=15),
+    )
+    composed_period_map = MacroEnergy.tdr_compose_period_map(
+        existing_period_map,
+        [2, 4],
+        [1, 1, 2, 2],
+    )
+    @test composed_period_map.Period_Index == collect(1:60)
+    @test composed_period_map.Rep_Period == vcat(fill(102, 30), fill(104, 30))
+    @test composed_period_map.Rep_Period_Index == vcat(fill(1, 30), fill(2, 30))
+
     mktempdir() do temporary_root
         source_case = joinpath(temporary_root, "source")
         output_case = joinpath(temporary_root, "reduced")
