@@ -10,12 +10,58 @@ end
 
 tdr_method_name(::TDRKMeansSettings) = :kmeans
 tdr_method_name(::TDRKMedoidsSettings) = :kmedoids
+tdr_method_name(::TDRAutoencoderSequentialSettings) = :autoencoder_sequential
+tdr_method_name(::TDRAutoencoderSimultaneousSettings) = :autoencoder_simultaneous
 tdr_method_restarts(method_settings::AbstractTDRMethodSettings) = method_settings.restarts
 tdr_method_verbose(method_settings::AbstractTDRMethodSettings) = method_settings.verbose
-tdr_method_settings_data(method_settings::AbstractTDRMethodSettings) = Dict(
+tdr_method_settings_data(method_settings::AbstractTDRMethodSettings) = Dict{String,Any}(
     "restarts" => method_settings.restarts,
     "v" => method_settings.verbose,
 )
+
+function tdr_autoencoder_settings_data(
+    method_settings::Union{TDRAutoencoderSequentialSettings,TDRAutoencoderSimultaneousSettings},
+)
+    return Dict(
+        "kernel_size" => method_settings.kernel_size,
+        "stride" => method_settings.stride,
+        "epochs" => method_settings.epochs,
+        "min_err_diff" => method_settings.min_err_diff,
+        "patience" => method_settings.patience,
+        "warmup" => method_settings.warmup,
+        "n_filters" => method_settings.n_filters,
+        "latent_dim" => method_settings.latent_dim,
+    )
+end
+
+function tdr_method_settings_data(method_settings::TDRAutoencoderSequentialSettings)
+    data = invoke(tdr_method_settings_data, Tuple{AbstractTDRMethodSettings}, method_settings)
+    merge!(data, tdr_autoencoder_settings_data(method_settings))
+    return data
+end
+
+function tdr_method_settings_data(method_settings::TDRAutoencoderSimultaneousSettings)
+    data = invoke(tdr_method_settings_data, Tuple{AbstractTDRMethodSettings}, method_settings)
+    merge!(data, tdr_autoencoder_settings_data(method_settings), Dict("lambda" => method_settings.lambda))
+    return data
+end
+
+tdr_method_setup(::AbstractTDRMethodSettings, ::TDRSettings) = Dict{String,Any}()
+
+function tdr_method_setup(
+    method_settings::Union{TDRAutoencoderSequentialSettings,TDRAutoencoderSimultaneousSettings},
+    settings::TDRSettings,
+)
+    scaling_method = settings.scaling == :normalize ? "N" : "S"
+    autoencoder_settings = tdr_autoencoder_settings_data(method_settings)
+    method_settings isa TDRAutoencoderSimultaneousSettings &&
+        (autoencoder_settings["lambda"] = method_settings.lambda)
+    return Dict{String,Any}(
+        "TimestepsPerRepPeriod" => settings.timesteps_per_representative_period,
+        "ScalingMethod" => scaling_method,
+        "AutoEncoder" => autoencoder_settings,
+    )
+end
 
 function tdr_cluster(
     clustering_sources::Vector{TimeSeriesSource},
@@ -55,7 +101,7 @@ function tdr_cluster(
     input = DataFrame(clustering_matrix[:, candidate_periods], :auto)
     _, assignments, _, medoids, _, _, _ = MacroEnergyTimeReduction.cluster(
         nothing,
-        Dict{String,Any}(),
+        tdr_method_setup(settings.method_settings, settings),
         String(tdr_method_name(settings.method_settings)),
         input,
         cluster_count,

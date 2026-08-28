@@ -343,7 +343,7 @@ function tdr_collect_references!(
             excluded = isnothing(feature) ?
                 any(exclusion -> tdr_feature_matches_selector(selector, exclusion), exclusions) :
                 any(exclusion -> tdr_feature_matches_selector(feature, exclusion), exclusions)
-            include = !excluded
+            include = !isnothing(feature) && !excluded
             user_weight = isnothing(feature) ? 1.0 : feature.user_weight
             reference = (
                 json_file=json_file,

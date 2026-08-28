@@ -10,6 +10,33 @@ Base.@kwdef struct TDRKMedoidsSettings <: AbstractTDRMethodSettings
     verbose::Bool = false
 end
 
+Base.@kwdef struct TDRAutoencoderSequentialSettings <: AbstractTDRMethodSettings
+    restarts::Int = 0
+    verbose::Bool = false
+    kernel_size::Int = 3
+    stride::Int = 1
+    epochs::Int = 50
+    min_err_diff::Float64 = 1e-4
+    patience::Int = 10
+    warmup::Int = 5
+    n_filters::Int = 8
+    latent_dim::Int = 4
+end
+
+Base.@kwdef struct TDRAutoencoderSimultaneousSettings <: AbstractTDRMethodSettings
+    restarts::Int = 0
+    verbose::Bool = false
+    kernel_size::Int = 3
+    stride::Int = 1
+    epochs::Int = 50
+    min_err_diff::Float64 = 1e-4
+    patience::Int = 10
+    warmup::Int = 5
+    n_filters::Int = 8
+    latent_dim::Int = 4
+    lambda::Float64 = 0.1
+end
+
 Base.@kwdef struct TDRExtremePeriodSpec
     feature::TDRFeatureSpec
     aggregation::Symbol
@@ -79,8 +106,8 @@ function tdr_extreme_period_spec(data::AbstractDict)
     data["select"] isa AbstractString || throw(ArgumentError("Extreme-period `select` must be a string."))
     aggregation = Symbol(data["aggregation"])
     select = Symbol(data["select"])
-    aggregation in (:integral, :absolute) ||
-        throw(ArgumentError("Extreme-period `aggregation` must be `integral` or `absolute`."))
+    aggregation in (:integral, :peak) ||
+        throw(ArgumentError("Extreme-period `aggregation` must be `integral` or `peak`."))
     select in (:max, :min) ||
         throw(ArgumentError("Extreme-period `select` must be `max` or `min`."))
     return TDRExtremePeriodSpec(
@@ -96,15 +123,76 @@ function load_tdr_method_settings(method_data)::AbstractTDRMethodSettings
     method_data["name"] isa AbstractString || throw(ArgumentError("TDR method `name` must be a string."))
     settings_data = get(method_data, "settings", Dict{String,Any}())
     settings_data isa AbstractDict || throw(ArgumentError("TDR method `settings` must be an object."))
-    restarts = get(settings_data, "restarts", 0)
-    restarts isa Integer && restarts >= 0 || throw(ArgumentError("TDR method setting `restarts` must be a non-negative integer."))
-    verbose = get(settings_data, "v", false)
-    verbose isa Bool || throw(ArgumentError("TDR method setting `v` must be a boolean."))
+    restarts, verbose = tdr_common_method_settings(settings_data)
     method = String(method_data["name"])
     if method == "kmeans"
-        return TDRKMeansSettings(restarts=Int(restarts), verbose=verbose)
+        return TDRKMeansSettings(restarts=restarts, verbose=verbose)
     elseif method == "kmedoids"
-        return TDRKMedoidsSettings(restarts=Int(restarts), verbose=verbose)
+        return TDRKMedoidsSettings(restarts=restarts, verbose=verbose)
+    elseif method == "autoencoder_sequential"
+        return TDRAutoencoderSequentialSettings(
+            ;
+            restarts=restarts,
+            verbose=verbose,
+            tdr_autoencoder_settings(settings_data)...,
+        )
+    elseif method == "autoencoder_simultaneous"
+        lambda = tdr_method_float(settings_data, "lambda", 0.1; minimum=0.0)
+        return TDRAutoencoderSimultaneousSettings(
+            ;
+            restarts=restarts,
+            verbose=verbose,
+            tdr_autoencoder_settings(settings_data)...,
+            lambda=lambda,
+        )
     end
-    throw(ArgumentError("TDR `method.name` must be `kmeans` or `kmedoids`."))
+    throw(ArgumentError(
+        "TDR `method.name` must be `kmeans`, `kmedoids`, `autoencoder_sequential`, or `autoencoder_simultaneous`.",
+    ))
+end
+
+function tdr_common_method_settings(settings_data::AbstractDict)
+    restarts = get(settings_data, "restarts", 0)
+    restarts isa Integer && restarts >= 0 ||
+        throw(ArgumentError("TDR method setting `restarts` must be a non-negative integer."))
+    verbose = get(settings_data, "v", false)
+    verbose isa Bool || throw(ArgumentError("TDR method setting `v` must be a boolean."))
+    return Int(restarts), verbose
+end
+
+function tdr_method_integer(
+    settings_data::AbstractDict,
+    key::String,
+    default::Int;
+    minimum::Int,
+)
+    value = get(settings_data, key, default)
+    value isa Integer && value >= minimum ||
+        throw(ArgumentError("TDR method setting `$key` must be an integer no smaller than $minimum."))
+    return Int(value)
+end
+
+function tdr_method_float(
+    settings_data::AbstractDict,
+    key::String,
+    default::Float64;
+    minimum::Float64,
+)
+    value = get(settings_data, key, default)
+    value isa Real && isfinite(value) && value >= minimum ||
+        throw(ArgumentError("TDR method setting `$key` must be a finite number no smaller than $minimum."))
+    return Float64(value)
+end
+
+function tdr_autoencoder_settings(settings_data::AbstractDict)
+    return (
+        kernel_size=tdr_method_integer(settings_data, "kernel_size", 3; minimum=1),
+        stride=tdr_method_integer(settings_data, "stride", 1; minimum=1),
+        epochs=tdr_method_integer(settings_data, "epochs", 50; minimum=1),
+        min_err_diff=tdr_method_float(settings_data, "min_err_diff", 1e-4; minimum=0.0),
+        patience=tdr_method_integer(settings_data, "patience", 10; minimum=1),
+        warmup=tdr_method_integer(settings_data, "warmup", 5; minimum=0),
+        n_filters=tdr_method_integer(settings_data, "n_filters", 8; minimum=1),
+        latent_dim=tdr_method_integer(settings_data, "latent_dim", 4; minimum=1),
+    )
 end
