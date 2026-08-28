@@ -13,6 +13,7 @@ using InteractiveUtils
 using Printf: @printf
 using MacroEnergyScaling
 using MacroEnergySolvers
+using MacroEnergyTimeReduction
 using Pkg
 using DistributedArrays
 using Distributed
@@ -160,6 +161,7 @@ include("utilities/model_templates.jl")
 include("utilities/run_tools.jl")
 include("utilities/user_additions.jl")
 include("utilities/utilities.jl")
+include("preprocess_inputs/preprocess_inputs.jl")
 include_all_in_folder("utilities/model_converters")
 
 include("model/units.jl")
@@ -334,8 +336,10 @@ export AbstractAsset,
     PlanningConstraint,
     PolicyConstraint,
     postprocess!,
+    preprocess_inputs,
     RampingLimitConstraint,
     run_case,
+    time_domain_reduction,
     solve_case,
     Steam,
     SteelScrap,

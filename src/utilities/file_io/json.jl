@@ -34,3 +34,23 @@ isjson(path::AbstractString) = any(endswith.(path, @JSON_EXT))
 function get_json_files(path::AbstractString)
     return filter(x -> any(endswith.(x, @JSON_EXT)), readdir(path))
 end
+
+"""Convert JSON3 containers into a recursively mutable, string-keyed tree."""
+function mutable_json_data(value)
+    if value isa AbstractDict || value isa JSON3.Object
+        return Dict{String,Any}(String(key) => mutable_json_data(nested_value) for (key, nested_value) in pairs(value))
+    elseif value isa AbstractVector || value isa JSON3.Array
+        return [mutable_json_data(nested_value) for nested_value in value]
+    end
+    return value
+end
+
+"""Replace the value at a nested dictionary/vector path."""
+function set_at_path!(data, path::Vector{Any}, value)
+    target = data
+    for key in path[1:end-1]
+        target = target[key]
+    end
+    target[path[end]] = value
+    return nothing
+end
