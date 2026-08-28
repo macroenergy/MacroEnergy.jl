@@ -49,7 +49,7 @@ my_case/
 
 ### Multi-Period Models
 
-For multi-period (planning) models, the same outer directory is created, and each planning period gets its own `results_period_N/` subdirectory inside it:
+For multi-period (planning) models, the same outer directory is created, and each planning period gets its own `results_period_N/` subdirectory inside it. A single `capacity_summary.csv` combining all periods is also written directly inside the outer directory (see [Capacity Output](@ref "manual-outputs-capacity")):
 
 ```
 my_case/
@@ -58,6 +58,7 @@ my_case/
 └── results_001/                  ← outer directory
     ├── settings.json             ← case-level settings snapshot
     ├── my_case.log               ← copied here after the run
+    ├── capacity_summary.csv      ← cross-period capacity summary
     ├── results_period_1/         ← period 1 outputs
     │   ├── capacity.csv
     │   └── ...
@@ -93,6 +94,7 @@ Instead of a single string, `OutputLayout` can be a JSON object to control layou
 ```json
 "OutputLayout": {
     "Capacity":        "wide",
+    "CapacitySummary": "wide",
     "Costs":           "long",
     "Flow":            "long",
     "StorageLevel":    "long",
@@ -101,7 +103,7 @@ Instead of a single string, `OutputLayout` can be a JSON object to control layou
 }
 ```
 
-Supported keys: `Capacity`, `Costs`, `Flow`, `StorageLevel`, `Curtailment`, `NonServedDemand`.
+Supported keys: `Capacity`, `CapacitySummary`, `Costs`, `Flow`, `StorageLevel`, `Curtailment`, `NonServedDemand`.
 
 ### Full Time Series Setting
 
@@ -125,6 +127,7 @@ The table below lists all output files produced by Macro. Click the file name to
 | File | Description | Written when |
 |---|---|---|
 | [`capacity.csv`](@ref "manual-outputs-capacity") | Optimal, new, retired, retrofitted, and existing capacity for every asset component | Always |
+| [`capacity_summary.csv`](@ref "manual-outputs-capacity-summary") | All periods' `capacity.csv` combined into a single cross-period file | Multi-period case |
 | [`costs.csv`](@ref "manual-outputs-costs-system") | Total discounted system costs (fixed, variable, total) | Always |
 | [`undiscounted_costs.csv`](@ref "manual-outputs-costs-system") | Total undiscounted system costs | Always |
 | [`costs_by_type.csv`](@ref "manual-outputs-costs-breakdown") | Discounted cost breakdown by asset type and cost category | Always |
@@ -154,6 +157,8 @@ The following functions write output files. They are called automatically by `ru
 |---|---|
 | [`write_outputs`](@ref) | All files (orchestrator) |
 | [`write_capacity`](@ref) | `capacity.csv` |
+| [`write_capex`](@ref) | `capex.csv` |
+| [`write_capacity_summary`](@ref) | `capacity_summary.csv` (multi-period only) |
 | [`write_costs`](@ref) | `costs.csv` |
 | [`write_undiscounted_costs`](@ref) | `undiscounted_costs.csv` |
 | [`write_flow`](@ref) | `flows.csv` |
@@ -171,6 +176,7 @@ The following functions return output data as Julia `DataFrame` objects without 
 | Function | Returns |
 |---|---|
 | [`get_optimal_capacity`](@ref) | Optimal total capacity per component |
+| [`get_capex`](@ref) | Upfront CAPEX per capacity component |
 | [`get_optimal_flow`](@ref) | Optimal flow per edge per time step |
 | [`get_optimal_storage_level`](@ref) | Optimal storage state of charge per time step |
 | [`get_optimal_curtailment`](@ref) | Curtailment per VRE edge per time step |
@@ -200,4 +206,3 @@ write_flow("flows_elec_thermal.csv", system, commodity="Electricity", asset_type
 - [Multi-Period Accounting](@ref "manual-multi-period-accounting-general-assumptions") — discounting and cost accounting across periods
 - [Writing Results (User Guide)](@ref "user-write-results") — step-by-step guide to customizing output
 - [Writing Output Data (Reference)](@ref "reference-output-functions") — full API reference for all write functions
-

@@ -75,6 +75,24 @@ MacroEnergy._write_benders_period_outputs
 MacroEnergy.write_capacity
 ```
 
+## `write_capex`
+
+```@docs
+MacroEnergy.write_capex
+```
+
+## `get_capex`
+
+```@docs
+MacroEnergy.get_capex
+```
+
+## `write_capacity_summary`
+
+```@docs
+MacroEnergy.write_capacity_summary
+```
+
 ## `write_co2_cap_duals`
 ```@docs
 MacroEnergy.write_co2_cap_duals

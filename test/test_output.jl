@@ -6,6 +6,29 @@ using MacroEnergy
 using CSV
 using DataFrames
 using OrderedCollections: OrderedDict
+using JuMP
+using HiGHS
+
+include("utilities.jl")
+
+"""
+    fixed_vars(model::Model, values::AbstractArray{Float64})
+
+Build a JuMP variable in `model` for each entry of `values` (preserving its
+shape), fixed to that exact value. Meant for tests that need a real
+`VariableRef` (so `value(...)` and strictly-typed accessors work) but want
+the ergonomics of a plain numeric literal, e.g.
+`flow = fixed_vars(model, [1.0, 2.0, 3.0])` instead of `flow = [1.0, 2.0, 3.0]`.
+"""
+function fixed_vars(model::Model, values::AbstractArray{Float64})
+    vars = similar(values, VariableRef)
+    for i in eachindex(values)
+        vars[i] = @variable(model)
+        fix(vars[i], values[i]; force = true)
+    end
+    return vars
+end
+
 import MacroEnergy:
     TimeData,
     compute_annualized_costs!,
@@ -71,10 +94,14 @@ import MacroEnergy:
     filter_edges_by_commodity!,
     write_curtailment,
     write_time_weights,
+    write_capex,
+    get_capex,
     VRE
 
 
 function test_writing_output()
+    model = Model(HiGHS.Optimizer)
+    set_silent(model)
 
     # Mock objects to use in tests
     node1 = Node{Electricity}(;
@@ -92,8 +119,8 @@ function test_writing_output()
             :seg2 => MacroEnergy.SupplySegment(price = [110.0], min = [0.0], max = [110.0]),
             :seg3 => MacroEnergy.SupplySegment(price = [120.0], min = [0.0], max = [120.0]),
         ),
-        supply_flow = [12.0 15.0 18.0; 0.0 0.0 0.0; 0.0 0.0 0.0],
-        non_served_demand = [1.0 2.0 3.0; 4.0 5.0 6.0; 7.0 8.0 9.0],
+        supply_flow = fixed_vars(model, [12.0 15.0 18.0; 0.0 0.0 0.0; 0.0 0.0 0.0]),
+        non_served_demand = fixed_vars(model, [1.0 2.0 3.0; 4.0 5.0 6.0; 7.0 8.0 9.0]),
         max_nsd=[10.0, 11.0, 12.0],
         price_nsd = [100.0, 110.0, 120.0],
     )
@@ -119,7 +146,7 @@ function test_writing_output()
             subperiod_weights=Dict(1 => 0.3, 2 => 0.5, 3 => 0.2)
         ),
         new_capacity=100.0,
-        storage_level=[1.0, 2.0, 3.0]
+        storage_level=fixed_vars(model, [1.0, 2.0, 3.0])
     )
 
     transformation = Transformation(;
@@ -145,7 +172,7 @@ function test_writing_output()
             subperiod_weights=Dict(1 => 0.3, 2 => 0.5, 3 => 0.2)
         ),
         capacity=100.0,
-        flow=[1.0, 2.0, 3.0]
+        flow=fixed_vars(model, [1.0, 2.0, 3.0])
     )
 
     edge_to_storage = UnidirectionalEdge{Electricity}(;
@@ -160,7 +187,7 @@ function test_writing_output()
             subperiod_weights=Dict(1 => 0.3, 2 => 0.5, 3 => 0.2)
         ),
         capacity=101.0,
-        flow=[4.0, 5.0, 6.0]
+        flow=fixed_vars(model, [4.0, 5.0, 6.0])
     )
 
     edge_to_transformation = UnidirectionalEdge{Electricity}(;
@@ -176,7 +203,7 @@ function test_writing_output()
             subperiod_weights=Dict(1 => 0.3, 2 => 0.5, 3 => 0.2)
         ),
         capacity=102.0,
-        flow=[7.0, 8.0, 9.0]
+        flow=fixed_vars(model, [7.0, 8.0, 9.0])
     )
 
     edge_from_storage = UnidirectionalEdge{Electricity}(;
@@ -191,7 +218,7 @@ function test_writing_output()
             subperiod_weights=Dict(1 => 0.3, 2 => 0.5, 3 => 0.2)
         ),
         capacity=103.0,
-        flow=[10.0, 11.0, 12.0]
+        flow=fixed_vars(model, [10.0, 11.0, 12.0])
     )
 
     edge_from_transformation = UnidirectionalEdge{Electricity}(;
@@ -206,7 +233,7 @@ function test_writing_output()
             subperiod_weights=Dict(1 => 0.3, 2 => 0.5, 3 => 0.2)
         ),
         capacity=104.0,
-        flow=[13.0, 14.0, 15.0]
+        flow=fixed_vars(model, [13.0, 14.0, 15.0])
     )
 
     edge_storage_transformation = UnidirectionalEdge{Electricity}(;
@@ -221,7 +248,7 @@ function test_writing_output()
             subperiod_weights=Dict(1 => 0.3, 2 => 0.5, 3 => 0.2)
         ),
         capacity=105.0,
-        flow=[16.0, 17.0, 18.0]
+        flow=fixed_vars(model, [16.0, 17.0, 18.0])
     )
 
     edge_from_transformation1 = UnidirectionalEdge{NaturalGas}(;
@@ -236,7 +263,7 @@ function test_writing_output()
             subperiod_weights=Dict(1 => 0.3, 2 => 0.5, 3 => 0.2)
         ),
         capacity=102.0,
-        flow=[7.0, 8.0, 9.0]
+        flow=fixed_vars(model, [7.0, 8.0, 9.0])
     )
 
     edge_from_transformation2 = UnidirectionalEdge{CO2}(;
@@ -251,7 +278,7 @@ function test_writing_output()
             subperiod_weights=Dict(1 => 0.3, 2 => 0.5, 3 => 0.2)
         ),
         capacity=102.0,
-        flow=[7.0, 8.0, 9.0]
+        flow=fixed_vars(model, [7.0, 8.0, 9.0])
     )
 
     asset1 = ThermalPower(:asset1, transformation, edge_to_transformation, edge_from_transformation1, edge_from_transformation2)
@@ -275,6 +302,8 @@ function test_writing_output()
     add!(system, node2)
     add!(system, asset1)
     add!(system, asset2)
+
+    optimize!(model)
 
     @testset "Helper Functions Tests" begin
         # Test get_commodity_name for a vertex
@@ -391,6 +420,36 @@ function test_writing_output()
         @test result_fast[1, :value] == 100.0  # No scaling applied
     end
 
+    @testset "write_capacity returns pristine full results, reused for the cross-period summary" begin
+        test_dir = abspath(mktempdir("."))
+        scaling = 1.0
+
+        # This mock system is built by hand (not via generate_case/configure_settings), so
+        # system.time_data and system.settings are never populated.
+        system.time_data[:Electricity] = node1.timedata
+        system.settings = MacroEnergy.configure_settings(NamedTuple())
+
+        returned = write_capacity(joinpath(test_dir, "capacity.csv"), system, scaling)
+        @test returned isa DataFrame
+        @test !isempty(returned)
+
+        # This system wasn't built via generate_case (no StartYear/case-level Year), so `year` is
+        # entirely absent (dropped as all-missing) - exactly the case write_capacity_summary
+        # falls back to a `period` column for.
+        @test !hasproperty(returned, :year)
+
+        # Filtering by commodity/asset_type restricts what's *written* to file, but the returned
+        # value stays the full, unfiltered dataset, so callers can reuse it for the cross-period
+        # summary without recomputing.
+        filtered_path = joinpath(test_dir, "capacity_filtered.csv")
+        returned_with_filter = write_capacity(filtered_path, system, scaling; commodity="Electricity")
+        @test nrow(returned_with_filter) == nrow(returned)
+        written_df = MacroEnergy.load_dataframe(filtered_path)
+        @test nrow(written_df) <= nrow(returned)
+
+        rm(test_dir, recursive=true)
+    end
+
     @testset "Flow Output Functions Tests" begin
         # Test get_optimal_flow
         result = get_optimal_flow(mock_edges, 1.0; obj_asset_map=obj_asset_map)
@@ -453,6 +512,8 @@ function test_writing_output()
     end
 
     @testset "Non-Served Demand Output Functions Tests" begin
+        model = Model(HiGHS.Optimizer)
+        set_silent(model)
         # Create nodes with non-served demand variables
         node_with_nsd = Node{Electricity}(;
             id=:node_nsd,
@@ -464,9 +525,10 @@ function test_writing_output()
                 subperiod_weights=Dict(1 => 0.3, 2 => 0.5, 3 => 0.2)
             ),
             max_nsd=[0.1, 0.2],  # 2 segments
-            non_served_demand=[1.0 2.0 3.0; 4.0 5.0 6.0]  # 2 segments × 3 time steps
+            non_served_demand=fixed_vars(model, [1.0 2.0 3.0; 4.0 5.0 6.0])  # 2 segments × 3 time steps
         )
-        
+        optimize!(model)
+
         # Test get_optimal_non_served_demand for single node
         result = get_optimal_non_served_demand(node_with_nsd, 1.0)
         @test result isa DataFrame
@@ -509,9 +571,10 @@ function test_writing_output()
                 subperiod_weights=Dict(1 => 0.3, 2 => 0.5, 3 => 0.2)
             ),
             max_nsd=[0.1],  # 1 segment
-            non_served_demand=reshape([7.0, 8.0, 9.0], 1, 3)  # 1 segment × 3 time steps
+            non_served_demand=fixed_vars(model, reshape([7.0, 8.0, 9.0], 1, 3))  # 1 segment × 3 time steps
         )
-        
+        optimize!(model)
+
         result_multi = get_optimal_non_served_demand([node_with_nsd, node_with_nsd2], 1.0)
         @test size(result_multi, 1) == 9  # 6 from node1 + 3 from node2
         
@@ -531,6 +594,8 @@ function test_writing_output()
     end
 
     @testset "Storage Level Output Functions Tests" begin
+        model = Model(HiGHS.Optimizer)
+        set_silent(model)
         # Create storage with storage_level values
         storage_for_test = Storage{Electricity}(;
             id=:storage_test,
@@ -541,9 +606,10 @@ function test_writing_output()
                 subperiod_indices=[1, 2, 3],
                 subperiod_weights=Dict(1 => 0.3, 2 => 0.5, 3 => 0.2)
             ),
-            storage_level=[10.0, 20.0, 30.0]
+            storage_level=fixed_vars(model, [10.0, 20.0, 30.0])
         )
-        
+        optimize!(model)
+
         # Test get_optimal_storage_level for single storage (without asset map)
         result = get_optimal_storage_level(storage_for_test, 1.0)
         @test result isa DataFrame
@@ -581,9 +647,10 @@ function test_writing_output()
                 subperiod_indices=[1, 2, 3],
                 subperiod_weights=Dict(1 => 0.3, 2 => 0.5, 3 => 0.2)
             ),
-            storage_level=[40.0, 50.0, 60.0]
+            storage_level=fixed_vars(model, [40.0, 50.0, 60.0])
         )
-        
+        optimize!(model)
+
         result_multi = get_optimal_storage_level([storage_for_test, storage_for_test2], 1.0)
         @test size(result_multi, 1) == 6  # 3 from storage1 + 3 from storage2
         @test result_multi[4, :component_id] == :storage_test2
@@ -624,6 +691,8 @@ function test_writing_output()
     end
 
     @testset "Curtailment Output Functions Tests" begin
+        model = Model(HiGHS.Optimizer)
+        set_silent(model)
         # Create VRE asset with edge that has capacity, flow, and availability
         vre_timedata = TimeData{Electricity}(;
             time_interval=1:3,
@@ -643,9 +712,10 @@ function test_writing_output()
             timedata=vre_timedata,
             has_capacity=true,
             capacity=100.0,
-            flow=[1.0, 2.0, 3.0],
+            flow=fixed_vars(model, [1.0, 2.0, 3.0]),
             availability=[0.5, 0.6, 0.7]
         )
+        optimize!(model)
         vre_asset = VRE(:vre_asset, vre_transform, vre_edge)
 
         # System with VRE for curtailment tests
@@ -1141,6 +1211,96 @@ function test_writing_output()
         rm(empty_dir, recursive = true)
     end
 
+    @testset "get_capex and write_capex" begin
+        # In the test system:
+        #   edge_to_transformation: has_capacity=true, can_expand=false (default)
+        #   storage: has_capacity=true, can_expand=true (default)
+        # Both have investment_cost=0.0 and annualized_investment_cost=nothing by default.
+
+        # --- Structure test (all-zero baseline) ---
+        result = get_capex(system)
+        @test result isa DataFrame
+        @test :capex in result.variable
+        @test all(result.value .== 0.0)
+        @test "value" in names(result)
+        @test "component_id" in names(result)
+
+        # --- Edge: investment_cost > 0 ---
+        edge_to_transformation.can_expand = true
+        edge_to_transformation.investment_cost = 1000.0
+        edge_to_transformation.new_capacity = 8.0
+        result_inv = get_capex(system)
+        edge_row = result_inv[result_inv.component_id .== :edge3, :]
+        @test size(edge_row, 1) == 1
+        @test edge_row[1, :value] ≈ 8000.0            # 1000.0 × 8.0
+        @test edge_row[1, :variable] == :capex
+        @test edge_row[1, :resource_id] == :asset1
+        @test edge_row[1, :resource_type] == "ThermalPower{NaturalGas}"
+        @test edge_row[1, :commodity] == :Electricity
+
+        # --- Edge: only annualized_investment_cost set → back-calculate upfront cost ---
+        edge_to_transformation.investment_cost = 0.0
+        edge_to_transformation.annualized_investment_cost = 200.0
+        edge_to_transformation.wacc = 0.05
+        edge_to_transformation.capital_recovery_period = 20
+        edge_to_transformation.new_capacity = 3.0
+        result_ann = get_capex(system)
+        expected_inv = 200.0 / capital_recovery_factor(0.05, 20)
+        edge_row_ann = result_ann[result_ann.component_id .== :edge3, :]
+        @test edge_row_ann[1, :value] ≈ expected_inv * 3.0
+
+        # --- Edge: annualized_investment_cost with missing wacc (falls back to 0% discount) ---
+        edge_to_transformation.wacc = missing
+        result_mw = get_capex(system)
+        expected_inv_zero_wacc = 200.0 / capital_recovery_factor(0.0, 20)
+        edge_row_mw = result_mw[result_mw.component_id .== :edge3, :]
+        @test edge_row_mw[1, :value] ≈ expected_inv_zero_wacc * 3.0
+
+        # --- Edge: annualized_investment_cost = nothing → zero ---
+        edge_to_transformation.annualized_investment_cost = nothing
+        edge_to_transformation.new_capacity = 5.0
+        result_nothing = get_capex(system)
+        edge_row_nothing = result_nothing[result_nothing.component_id .== :edge3, :]
+        @test edge_row_nothing[1, :value] == 0.0
+
+        # --- can_expand = false → zero even with investment_cost set ---
+        edge_to_transformation.can_expand = false
+        edge_to_transformation.investment_cost = 999.0
+        result_noexp = get_capex(system)
+        edge_row_noexp = result_noexp[result_noexp.component_id .== :edge3, :]
+        @test edge_row_noexp[1, :value] == 0.0
+
+        # --- Scaling ---
+        edge_to_transformation.can_expand = true
+        edge_to_transformation.investment_cost = 500.0
+        edge_to_transformation.new_capacity = 4.0
+        result_scaled = get_capex(system, 2.0)
+        edge_row_scaled = result_scaled[result_scaled.component_id .== :edge3, :]
+        @test edge_row_scaled[1, :value] ≈ 500.0 * 4.0 * (2.0^2)   # investment_cost × new_cap × scaling^2
+
+        # --- write_capex writes a valid CSV ---
+        test_dir = abspath(mktempdir("."))
+        capex_path = joinpath(test_dir, "capex.csv")
+        @test_nowarn write_capex(capex_path, system)
+        @test isfile(capex_path)
+        written = CSV.read(capex_path, DataFrame)
+        @test "value" in names(written)
+        @test "variable" in names(written)
+        @test all(String.(written.variable) .== "capex")
+        edge_written = written[written.component_id .== "edge3", :]
+        @test size(edge_written, 1) == 1
+        @test edge_written[1, :value] ≈ 500.0 * 4.0   # write_capex uses default scaling=1.0
+        rm(test_dir, recursive=true)
+
+        # Restore edge_to_transformation to defaults
+        edge_to_transformation.can_expand = false
+        edge_to_transformation.investment_cost = 0.0
+        edge_to_transformation.annualized_investment_cost = nothing
+        edge_to_transformation.wacc = missing
+        edge_to_transformation.capital_recovery_period = 1
+        edge_to_transformation.new_capacity = 0.0
+    end
+
     @testset "Detailed cost helper functions" begin
         # Test aggregate_costs_by_type
         costs_df = DataFrame(
@@ -1208,6 +1368,123 @@ function test_writing_output()
     end
 end
 
+const CAPACITY_SUMMARY_ID_COLS = ["commodity", "zone", "resource_id", "component_id", "resource_type", "component_type"]
+
+function capacity_summary_row(comp, var, val; year=nothing)
+    n = length(comp)
+    base = (
+        commodity = fill(:Electricity, n),
+        zone = fill(:AZ, n),
+        resource_id = comp,
+        component_id = comp,
+        resource_type = fill("HydroRes", n),
+        component_type = fill("Edge{Electricity}", n),
+        variable = fill(var, n),
+    )
+    return isnothing(year) ? DataFrame(; base..., value = val) : DataFrame(; base..., year = fill(year, n), value = val)
+end
+
+function test_capacity_summary()
+    @testset "write_capacity_summary" begin
+        test_dir = abspath(mktempdir("."))
+
+        @testset "empty input writes nothing" begin
+            @test isnothing(MacroEnergy.write_capacity_summary(test_dir, DataFrame[], "long"))
+            @test !isfile(joinpath(test_dir, "capacity_summary.csv"))
+        end
+
+        @testset "long format, with real year" begin
+            p1 = vcat(
+                capacity_summary_row(["A", "B"], :capacity, [10.0, 20.0]; year=2026),
+                capacity_summary_row(["A", "B"], :existing_capacity, [5.0, 15.0]; year=2026),
+            )
+            p2 = vcat(
+                capacity_summary_row(["A", "B"], :capacity, [12.0, 20.0]; year=2036),
+                capacity_summary_row(["A", "B"], :existing_capacity, [10.0, 20.0]; year=2036),
+            )
+            MacroEnergy.write_capacity_summary(test_dir, [p1, p2], "long")
+            out = MacroEnergy.load_dataframe(joinpath(test_dir, "capacity_summary.csv"))
+
+            @test names(out) == ["commodity", "zone", "resource_id", "component_id", "resource_type", "component_type", "variable", "year", "value"]
+            # existing_capacity dropped for every period except the first
+            @test sort(unique(out[out.year .== 2036, :].variable)) == ["capacity"]
+            @test sort(unique(out[out.year .== 2026, :].variable)) == ["capacity", "existing_capacity"]
+            @test sum(out.value) ≈ 10.0 + 20.0 + 5.0 + 15.0 + 12.0 + 20.0
+        end
+
+        @testset "long format, no year (falls back to period, before value)" begin
+            p1 = capacity_summary_row(["A"], :capacity, [10.0])
+            p2 = capacity_summary_row(["A"], :capacity, [12.0])
+            MacroEnergy.write_capacity_summary(test_dir, [p1, p2], "long")
+            out = MacroEnergy.load_dataframe(joinpath(test_dir, "capacity_summary.csv"))
+
+            @test "period" in names(out)
+            @test !("year" in names(out))
+            @test findfirst(==("period"), names(out)) == findfirst(==("value"), names(out)) - 1
+            @test out.period == [1, 2]
+        end
+
+        @testset "wide format, with real year: column names, order, and zero-fill for a component missing from period 1" begin
+            p1 = vcat(
+                capacity_summary_row(["A", "B"], :capacity, [10.0, 20.0]; year=2026),
+                capacity_summary_row(["A", "B"], :existing_capacity, [5.0, 15.0]; year=2026),
+                capacity_summary_row(["A", "B"], :new_capacity, [5.0, 5.0]; year=2026),
+                capacity_summary_row(["A", "B"], :retired_capacity, [0.0, 0.0]; year=2026),
+            )
+            p2 = vcat(
+                capacity_summary_row(["A", "B", "C"], :capacity, [12.0, 20.0, 3.0]; year=2036),
+                capacity_summary_row(["A", "B", "C"], :existing_capacity, [10.0, 20.0, 0.0]; year=2036),
+                capacity_summary_row(["A", "B", "C"], :new_capacity, [2.0, 0.0, 3.0]; year=2036),
+                capacity_summary_row(["A", "B", "C"], :retired_capacity, [0.0, 0.0, 0.0]; year=2036),
+            )
+            MacroEnergy.write_capacity_summary(test_dir, [p1, p2], "wide")
+            out = MacroEnergy.load_dataframe(joinpath(test_dir, "capacity_summary.csv"))
+
+            @test names(out) == [
+                CAPACITY_SUMMARY_ID_COLS...,
+                "existing_capacity_2026", "new_capacity_2026", "retired_capacity_2026", "capacity_2026",
+                "new_capacity_2036", "retired_capacity_2036", "capacity_2036",
+            ]
+            row_c = only(eachrow(out[out.component_id .== "C", :]))
+            @test row_c.existing_capacity_2026 == 0.0
+            @test row_c.capacity_2026 == 0.0
+            @test row_c.capacity_2036 == 3.0
+        end
+
+        @testset "wide format, no year (falls back to _<period> suffixes)" begin
+            p1 = vcat(
+                capacity_summary_row(["A"], :capacity, [10.0]),
+                capacity_summary_row(["A"], :existing_capacity, [5.0]),
+            )
+            p2 = capacity_summary_row(["A"], :capacity, [12.0])
+            MacroEnergy.write_capacity_summary(test_dir, [p1, p2], "wide")
+            out = MacroEnergy.load_dataframe(joinpath(test_dir, "capacity_summary.csv"))
+
+            @test names(out) == [CAPACITY_SUMMARY_ID_COLS..., "existing_capacity_1", "capacity_1", "capacity_2"]
+        end
+
+        @testset "wide format includes retrofitted_capacity when present" begin
+            p1 = vcat(
+                capacity_summary_row(["A"], :capacity, [10.0]; year=2026),
+                capacity_summary_row(["A"], :existing_capacity, [5.0]; year=2026),
+                capacity_summary_row(["A"], :new_capacity, [5.0]; year=2026),
+                capacity_summary_row(["A"], :retired_capacity, [0.0]; year=2026),
+                capacity_summary_row(["A"], :retrofitted_capacity, [1.0]; year=2026),
+            )
+            MacroEnergy.write_capacity_summary(test_dir, [p1], "wide")
+            out = MacroEnergy.load_dataframe(joinpath(test_dir, "capacity_summary.csv"))
+
+            @test names(out) == [
+                CAPACITY_SUMMARY_ID_COLS...,
+                "existing_capacity_2026", "new_capacity_2026", "retired_capacity_2026", "capacity_2026", "retrofitted_capacity_2026",
+            ]
+        end
+
+        rm(test_dir, recursive=true)
+    end
+end
+
 test_writing_output()
+test_capacity_summary()
 
 end # module TestOutput

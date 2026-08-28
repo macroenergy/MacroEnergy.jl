@@ -2,7 +2,7 @@
 
 ## Contents
 
-[Overview](@ref "manual-outputs-capacity-overview") | [Columns](@ref "manual-outputs-capacity-columns") | [Variable Types](@ref "manual-outputs-capacity-variables") | [Configuration](@ref "manual-outputs-capacity-configuration") | [Assumptions](@ref "manual-outputs-capacity-assumptions") | [Examples](@ref "manual-outputs-capacity-examples") | [See Also](@ref "manual-outputs-capacity-see-also")
+[Overview](@ref "manual-outputs-capacity-overview") | [Columns](@ref "manual-outputs-capacity-columns") | [Variable Types](@ref "manual-outputs-capacity-variables") | [Configuration](@ref "manual-outputs-capacity-configuration") | [Assumptions](@ref "manual-outputs-capacity-assumptions") | [Examples](@ref "manual-outputs-capacity-examples") | [Cross-Period Summary](@ref "manual-outputs-capacity-summary") | [See Also](@ref "manual-outputs-capacity-see-also")
 
 ## [Overview](@id manual-outputs-capacity-overview)
 
@@ -25,6 +25,7 @@ The file uses **long format** by default: every (component, variable) combinatio
 | `resource_type` | String | Asset type of the parent asset (e.g., `Battery`, `ThermalPower{NaturalGas}`, `VRE`) |
 | `component_type` | String | Type of the component (e.g., `UnidirectionalEdge{Electricity}`, `Storage{Electricity}`) |
 | `variable` | String | Which capacity metric is reported (see [Variable Types](@ref "manual-outputs-capacity-variables")) |
+| `year` | Int | The period's calendar year, only present when `StartYear` is set in `case_settings.json` (see [Configuration](@ref "manual-outputs-capacity-configuration")) |
 | `value` | Float64 | Capacity value in the system's power or energy units (default: MW or MWh) |
 
 ## [Variable Types](@id manual-outputs-capacity-variables)
@@ -48,6 +49,7 @@ The `variable` column takes one of five values, all reported for each component 
 |---|---|---|---|
 | `OutputLayout` (or `OutputLayout.Capacity`) | `macro_settings.json` | `"long"` | Set to `"wide"` to pivot the `variable` column into separate columns: `capacity`, `new_capacity`, `retired_capacity`, `existing_capacity` (and `retrofitted_capacity` if applicable). |
 | `Retrofitting` | `macro_settings.json` | `false` | When `true`, a `retrofitted_capacity` row is added for each component. |
+| `StartYear` | `case_settings.json` | not set | The calendar year of the first period (e.g. `2026`). When set, each period's `year` is `StartYear` plus the sum of `PeriodLengths` of all preceding periods, and this populates the `year` column in `capacity.csv` and the `_<year>` column suffixes in [`capacity_summary.csv`](@ref "manual-outputs-capacity-summary"). When not set, `year` is omitted from `capacity.csv` entirely, and `capacity_summary.csv` falls back to labeling periods by their 1-based index instead. |
 
 ## [Assumptions](@id manual-outputs-capacity-assumptions)
 
@@ -95,6 +97,47 @@ write_capacity("storage_vre.csv", system, asset_type=["Battery", "VRE"])
 
 # Get capacity as a DataFrame (no file written)
 df = get_optimal_capacity(system)
+```
+
+## [Cross-Period Summary](@id manual-outputs-capacity-summary)
+
+**File:** `capacity_summary.csv`
+
+For multi-period cases, [`write_capacity_summary`](@ref) combines every period's capacity results into a single file, written once at the top level of the results directory (see [Output Directory Structure](@ref "manual-outputs-directory")) rather than inside any individual `results_period_N/` folder. It is not written for single-period cases.
+
+Each period is labeled either by its calendar `year` (if `StartYear` is set in `case_settings.json`) or by its 1-based period index (if not) — see the `StartYear` row in [Configuration](@ref "manual-outputs-capacity-configuration"). `:existing_capacity` is only included for the first (earliest) period, since for every later period it is always equal to the previous period's final `capacity` and so is redundant.
+
+Like `capacity.csv`, the summary supports both long and wide layouts, controlled independently via `OutputLayout.CapacitySummary`.
+
+### Long Format (default)
+
+Identical schema to `capacity.csv`, stacked across every period, with the period label column (`year` or `period`) placed right before `value`:
+
+| commodity | zone | resource\_id | component\_id | resource\_type | component\_type | variable | year | value |
+|---|---|---|---|---|---|---|---|---|
+| Electricity | SE | battery\_SE | battery\_SE\_storage | Battery | Storage{Electricity} | existing\_capacity | 2026 | 0.0 |
+| Electricity | SE | battery\_SE | battery\_SE\_storage | Battery | Storage{Electricity} | capacity | 2026 | 200.0 |
+| Electricity | SE | battery\_SE | battery\_SE\_storage | Battery | Storage{Electricity} | capacity | 2036 | 250.0 |
+
+### Wide Format (`OutputLayout.CapacitySummary = "wide"`)
+
+One row per component; columns are `<variable>_<year>` (or `<variable>_<period>`) for every variable/period combination actually present, in chronological order:
+
+| commodity | zone | resource\_id | component\_id | resource\_type | component\_type | existing\_capacity\_2026 | new\_capacity\_2026 | retired\_capacity\_2026 | capacity\_2026 | new\_capacity\_2036 | retired\_capacity\_2036 | capacity\_2036 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Electricity | SE | battery\_SE | battery\_SE\_storage | Battery | Storage{Electricity} | 0.0 | 200.0 | 0.0 | 200.0 | 50.0 | 0.0 | 250.0 |
+
+A component that doesn't exist yet in the first period (e.g. a technology only built in a later period) gets `0.0` for its earlier-period columns rather than being omitted.
+
+### Writing the Summary Programmatically
+
+[`write_capacity_summary`](@ref) can also be called directly, given a chronologically-ordered vector of per-period `DataFrame`s (as returned by [`write_capacity`](@ref)) and a layout (`"long"` or `"wide"`):
+
+```julia
+(case, model) = solve_case(case_path, optimizer)
+
+period_results = [write_capacity(joinpath("period_$i.csv"), system, 1.0) for (i, system) in enumerate(case.systems)]
+write_capacity_summary(output_dir, period_results, "wide")
 ```
 
 ## [See Also](@id manual-outputs-capacity-see-also)

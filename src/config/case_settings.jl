@@ -6,6 +6,7 @@ function default_case_settings()
     return Dict(
         :PeriodLengths => [1],
         :DiscountRate => 0.,
+        :StartYear => missing,
         :WriteFullTimeseries => false,
         :ParameterScaling => false,
         :ParameterScalingFactor => 1e3,
@@ -144,6 +145,7 @@ end
 function validate_case_settings(case_settings::AbstractDict{Symbol,Any})
     @assert all(case_settings[:PeriodLengths].>0)
     @assert case_settings[:DiscountRate] >= 0
+    @assert ismissing(case_settings[:StartYear]) || isa(case_settings[:StartYear], Integer)
     @assert isa(case_settings[:WriteFullTimeseries], Bool)
     @assert isa(case_settings[:ParameterScaling], Bool)
     @assert case_settings[:ParameterScalingFactor] >= 0

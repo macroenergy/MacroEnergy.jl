@@ -78,7 +78,7 @@ Get the normalized balance definition for a specific balance equation in a verte
 demand_data = balance_data(elec_node, :demand)
 ```
 """
-function balance_data(v::AbstractVertex, i::Symbol)
+function balance_data(v::AbstractVertex, i::Symbol)::BalanceData
     data = v.balance_data[i]
     if data isa BalanceData
         return data
@@ -120,7 +120,7 @@ demand_expr = get_balance(elec_node, :demand)
 ```
 """
 get_balance(v::AbstractVertex, i::Symbol) = v.operation_expr[i]
-get_balance(v::AbstractVertex, i::Symbol, t::Int64) = get_balance(v, i)[t]
+get_balance(v::AbstractVertex, i::Symbol, t::Int64) = (get_balance(v, i)::AffExprArrayOrDense)[t]
 
 """
     all_constraints(v::AbstractVertex)
@@ -272,7 +272,7 @@ function balance_macro_coeff(v::AbstractVertex, obj, var::Symbol, coeff)
 end
 
 function initialize_balance_expression(v::AbstractVertex, balance_id::Symbol, model::Model)
-    return @expression(model, [t in time_interval(v)], 0 * model[:vREF])
+    return @expression(model, [t in time_interval(v)], container = array_container(time_interval(v)), 0 * model[:vREF])
 end
 
 function balance_term_added_by_edge_updates(term::BalanceTerm)
@@ -366,7 +366,7 @@ function local_balance_terms(data::BalanceData)
 end
 
 function compile_balance_data!(v::AbstractVertex, balance_id::Symbol, model::Model)
-    expr = v.operation_expr[balance_id]
+    expr = (v.operation_expr[balance_id]::AffExprArrayOrDense)
     data = balance_data(v, balance_id)
     terms = local_balance_terms(data)
     for (time_index, t) in enumerate(time_interval(v))

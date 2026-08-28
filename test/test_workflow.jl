@@ -2,10 +2,9 @@ module TestWorkflow
 
 using Test
 using HiGHS
-using Pkg
 using JuMP
-try Pkg.add("Gurobi"); using Gurobi; catch e end
 using CSV, DataFrames, JSON3
+import MacroEnergy
 import MacroEnergy:
     System,
     AbstractEdge,
@@ -62,7 +61,8 @@ include("utilities.jl")
 include("test_timedata.jl")
 const test_path = joinpath(@__DIR__, "test_inputs")
 const system_data_true_path = joinpath(@__DIR__, "test_inputs/system_data_true.json")
-const optim = is_gurobi_available() ? Gurobi.Optimizer : HiGHS.Optimizer
+const gurobi_available = is_gurobi_available()
+const optim = gurobi_available ? Gurobi.Optimizer : HiGHS.Optimizer
 const obj_true = 1.551272176298086e11
 
 function test_configure_settings(data::NamedTuple, data_true::T) where {T<:JSON3.Object}
@@ -239,7 +239,7 @@ function test_load(s_in::AbstractStorage{T}, s_true::S) where {T<:Commodity,S<:J
     @test s_in.can_retire == get(s_true, :can_retire, false)
     @test s_in.investment_cost == get(s_true, :investment_cost, 0.0)
     @test s_in.fixed_om_cost == get(s_true, :fixed_om_cost, 0.0)
-    @test s_in.min_storage_level == get(s_true, :min_storage_level, 0.0)
+    @test s_in.min_storage_level == get(s_true, :min_storage_level, [0.0])
     @test s_in.min_duration == get(s_true, :min_duration, 0.0)
     @test s_in.max_duration == get(s_true, :max_duration, 0.0)
     @test s_in.loss_fraction == Float64[]
