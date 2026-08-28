@@ -35,13 +35,20 @@ function tdr_representative_period_log_data(
     representative_periods::Vector{Int},
     output_period_map::DataFrame,
 )
-    return [
-        Dict(
+    representative_data = Dict[]
+    for (index, period) in enumerate(representative_periods)
+        mapped_periods = Int[
+            row.Period_Index for row in eachrow(output_period_map)
+            if row.Rep_Period_Index == index
+        ]
+        push!(representative_data, Dict(
             "representative_period" => period,
             "representative_period_index" => index,
-            "mapped_periods" => count(==(index), output_period_map.Rep_Period_Index),
-        ) for (index, period) in enumerate(representative_periods)
-    ]
+            "total_mapped_periods" => length(mapped_periods),
+            "mapped_periods" => mapped_periods,
+        ))
+    end
+    return representative_data
 end
 
 function tdr_preprocess_log_data(

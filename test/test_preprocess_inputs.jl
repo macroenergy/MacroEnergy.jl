@@ -217,6 +217,8 @@ end
         @test tdr_log[:clustering_features][:unique_time_series] > 0
         @test !isempty(tdr_log[:clustering_features][:sources])
         @test length(tdr_log[:extreme_periods]) == 1
+        first_representative = first(tdr_log[:representative_periods])
+        @test first_representative[:total_mapped_periods] == length(first_representative[:mapped_periods])
 
         prepared_case = load_case(output_case)
         @test length(prepared_case.systems) == 1
