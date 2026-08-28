@@ -66,6 +66,67 @@ end
     @test kmedoids_settings.restarts == 2
     @test kmedoids_settings.verbose
 
+    demand_reference = (
+        json_file="system/nodes.json",
+        input_path=Any[],
+        feature_id="demand",
+        field="demand",
+        asset=nothing,
+        commodity="Electricity",
+        user_weight=1.0,
+        include_in_clustering=true,
+    )
+    demand_source = MacroEnergy.TimeSeriesSource(
+        "inline:demand",
+        nothing,
+        nothing,
+        "system/nodes.json",
+        Any[],
+        [1.0, 1.0, 5.0, 5.0, 2.0, 2.0],
+        1,
+        NamedTuple[demand_reference],
+        1,
+        1.0,
+        1.0,
+        true,
+    )
+    extreme_specification = MacroEnergy.tdr_extreme_period_spec(Dict(
+        "feature" => Dict("id" => "demand", "field" => "demand", "commodity" => "Electricity"),
+        "aggregation" => "integral",
+        "select" => "max",
+    ))
+    extreme_sources = MacroEnergy.tdr_extreme_period_sources(
+        [demand_source],
+        extreme_specification,
+        PREPARE_CASE_TEST_INPUTS,
+    )
+    @test MacroEnergy.tdr_extreme_period(extreme_sources, extreme_specification, 2) == 2
+
+    extreme_settings = MacroEnergy.load_time_domain_reduction_settings(
+        joinpath(PREPARE_CASE_TEST_INPUTS, "settings", "time_domain_reduction.json"),
+    )
+    @test length(extreme_settings.extreme_periods) == 1
+    @test only(extreme_settings.extreme_periods).feature.commodity == "Electricity"
+
+    forced_cluster_settings = MacroEnergy.TDRSettings(
+        timesteps_per_representative_period=2,
+        representative_periods=2,
+        method_settings=MacroEnergy.TDRKMeansSettings(restarts=1),
+        scaling=:standardize,
+        all_features=MacroEnergy.TDRFeatureSpec[],
+        features=MacroEnergy.TDRFeatureSpec[],
+        excluded_features=MacroEnergy.TDRFeatureSpec[],
+        extreme_periods=MacroEnergy.TDRExtremePeriodSpec[],
+    )
+    cluster_representatives, cluster_period_map = MacroEnergy.tdr_cluster(
+        [demand_source],
+        6,
+        forced_cluster_settings;
+        extreme_periods=[2],
+    )
+    @test 2 in cluster_representatives
+    @test cluster_period_map[2] == findfirst(==(2), cluster_representatives)
+
     existing_period_map = DataFrame(
         Period_Index=collect(1:60),
         Rep_Period=repeat([101, 102, 103, 104]; inner=15),
@@ -132,6 +193,9 @@ end
         @test nrow(reduced_map) == full_length ÷ PREPARE_CASE_PERIOD_LENGTH
         @test length(unique(reduced_map.Rep_Period_Index)) == 3
         @test nrow(CSV.read(joinpath(output_case, "system", "demand.csv"), DataFrame)) == 3 * PREPARE_CASE_PERIOD_LENGTH
+        provenance = JSON3.read(read(joinpath(output_case, "time_domain_reduction_provenance.json"), String))
+        @test length(provenance[:forced_extreme_periods]) == 1
+        @test only(provenance[:forced_extreme_periods]) in provenance[:representative_periods]
 
         prepared_case = load_case(output_case)
         @test length(prepared_case.systems) == 1

@@ -15,5 +15,15 @@
             "weight": 1.0
         }
     ],
+    "extreme_periods": [
+        {
+            "feature": {
+                "field": "demand",
+                "commodity": "Electricity"
+            },
+            "aggregation": "integral",
+            "select": "max"
+        }
+    ],
     "exclude": []
 }

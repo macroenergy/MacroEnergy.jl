@@ -1,4 +1,4 @@
-function tdr_feature_spec(data::AbstractDict{String,Any}; require_field::Bool=true)
+function tdr_feature_spec(data::AbstractDict; require_field::Bool=true)
     require_field && !haskey(data, "field") &&
         throw(ArgumentError("Each TDR feature must define `field`."))
     field = get(data, "field", "")
@@ -315,7 +315,16 @@ function tdr_collect_references!(
                 any(exclusion -> tdr_feature_matches_selector(feature, exclusion), exclusions)
             include = !excluded
             user_weight = isnothing(feature) ? 1.0 : feature.user_weight
-            reference = (json_file=json_file, input_path=copy(path), field=field, asset=asset, commodity=commodity, user_weight=user_weight, include_in_clustering=include)
+            reference = (
+                json_file=json_file,
+                input_path=copy(path),
+                feature_id=isnothing(feature) ? nothing : feature.id,
+                field=field,
+                asset=asset,
+                commodity=commodity,
+                user_weight=user_weight,
+                include_in_clustering=include,
+            )
             tdr_add_reference!(sources, source_key, values; csv_path=csv_path, header=header, reference=reference)
             return nothing
         end
@@ -344,7 +353,16 @@ function tdr_collect_references!(
             feature = tdr_feature_for_reference(all_features, field, json_file, nothing, case_root, asset, commodity)
             if !isnothing(feature)
                 excluded = any(exclusion -> tdr_feature_matches_selector(feature, exclusion), exclusions)
-                reference = (json_file=json_file, input_path=copy(path), field=field, asset=asset, commodity=commodity, user_weight=feature.user_weight, include_in_clustering=!excluded)
+                reference = (
+                    json_file=json_file,
+                    input_path=copy(path),
+                    feature_id=feature.id,
+                    field=field,
+                    asset=asset,
+                    commodity=commodity,
+                    user_weight=feature.user_weight,
+                    include_in_clustering=!excluded,
+                )
                 key = "inline:" * json_file * ":" * join(string.(path), "/")
                 tdr_add_reference!(sources, key, Float64.(data); inline_file=json_file, inline_path=path, reference=reference)
             end
@@ -374,4 +392,3 @@ function tdr_sources(case_root::String, settings::TDRSettings)
     isempty(clustering_sources) && throw(ArgumentError("No TDR clustering features remain after exclusions."))
     return all_sources, clustering_sources, full_length, time_data_path, time_data
 end
-

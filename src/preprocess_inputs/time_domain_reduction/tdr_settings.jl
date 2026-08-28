@@ -10,6 +10,12 @@ Base.@kwdef struct TDRKMedoidsSettings <: AbstractTDRMethodSettings
     verbose::Bool = false
 end
 
+Base.@kwdef struct TDRExtremePeriodSpec
+    feature::TDRFeatureSpec
+    aggregation::Symbol
+    select::Symbol
+end
+
 Base.@kwdef struct TDRSettings
     timesteps_per_representative_period::Int
     representative_periods::Int
@@ -18,6 +24,7 @@ Base.@kwdef struct TDRSettings
     all_features::Vector{TDRFeatureSpec}
     features::Vector{TDRFeatureSpec}
     excluded_features::Vector{TDRFeatureSpec}
+    extreme_periods::Vector{TDRExtremePeriodSpec}
 end
 
 """
@@ -45,6 +52,12 @@ function load_time_domain_reduction_settings(path::AbstractString)::TDRSettings
     active_features = [
         feature for feature in all_features if !any(exclusion -> tdr_feature_matches_selector(feature, exclusion), exclusions)
     ]
+    extreme_periods_data = get(data, "extreme_periods", Any[])
+    extreme_periods_data isa AbstractVector ||
+        throw(ArgumentError("TDR `extreme_periods` must be an array."))
+    extreme_periods = TDRExtremePeriodSpec[
+        tdr_extreme_period_spec(specification) for specification in extreme_periods_data
+    ]
     return TDRSettings(
         timesteps_per_representative_period=Int(period_length),
         representative_periods=Int(n_periods),
@@ -53,6 +66,27 @@ function load_time_domain_reduction_settings(path::AbstractString)::TDRSettings
         all_features=all_features,
         features=active_features,
         excluded_features=exclusions,
+        extreme_periods=extreme_periods,
+    )
+end
+
+function tdr_extreme_period_spec(data::AbstractDict)
+    for key in ("feature", "aggregation", "select")
+        haskey(data, key) || throw(ArgumentError("Each extreme-period specification must define `$key`."))
+    end
+    data["feature"] isa AbstractDict || throw(ArgumentError("Extreme-period `feature` must be an object."))
+    data["aggregation"] isa AbstractString || throw(ArgumentError("Extreme-period `aggregation` must be a string."))
+    data["select"] isa AbstractString || throw(ArgumentError("Extreme-period `select` must be a string."))
+    aggregation = Symbol(data["aggregation"])
+    select = Symbol(data["select"])
+    aggregation in (:integral, :absolute) ||
+        throw(ArgumentError("Extreme-period `aggregation` must be `integral` or `absolute`."))
+    select in (:max, :min) ||
+        throw(ArgumentError("Extreme-period `select` must be `max` or `min`."))
+    return TDRExtremePeriodSpec(
+        feature=tdr_feature_spec(data["feature"]),
+        aggregation=aggregation,
+        select=select,
     )
 end
 

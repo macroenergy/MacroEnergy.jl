@@ -1,6 +1,7 @@
 include("tdr_utilities.jl")
 include("tdr_settings.jl")
 include("tdr_inputs.jl")
+include("tdr_extreme_periods.jl")
 include("tdr_clustering.jl")
 include("tdr_outputs.jl")
 
@@ -21,7 +22,18 @@ function tdr_time_domain_reduction(case_path::AbstractString, parsed_settings::T
     isdir(case_root) || throw(ArgumentError("Case directory does not exist: $case_root"))
 
     sources, clustering_sources, full_length, time_data_path, time_data = tdr_sources(case_root, parsed_settings)
-    representatives, period_map = tdr_cluster(clustering_sources, full_length, parsed_settings)
+    extreme_periods = tdr_extreme_periods(
+        sources,
+        parsed_settings.timesteps_per_representative_period,
+        parsed_settings,
+        case_root,
+    )
+    representatives, period_map = tdr_cluster(
+        clustering_sources,
+        full_length,
+        parsed_settings;
+        extreme_periods,
+    )
     row_indices = tdr_row_indices(representatives, parsed_settings.timesteps_per_representative_period)
     tdr_write_reduced_sources!(sources, row_indices)
     clear_csv_cache!()
@@ -34,8 +46,10 @@ function tdr_time_domain_reduction(case_path::AbstractString, parsed_settings::T
             "method" => String(tdr_method_name(parsed_settings.method_settings)),
             "method_settings" => tdr_method_settings_data(parsed_settings.method_settings),
             "scaling" => String(parsed_settings.scaling),
+            "extreme_periods" => tdr_extreme_period_specification_data.(parsed_settings.extreme_periods),
         ),
         "representative_periods" => representatives,
+        "forced_extreme_periods" => extreme_periods,
         "period_map_path" => relpath(map_path, case_root),
     )
     write_json(joinpath(case_root, "time_domain_reduction_provenance.json"), provenance)
