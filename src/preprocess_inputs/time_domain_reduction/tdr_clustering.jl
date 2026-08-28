@@ -8,10 +8,31 @@ function tdr_scale(values::Vector{Float64}, scaling::Symbol)
     return iszero(σ) ? zeros(length(values)) : (values .- μ) ./ σ
 end
 
-tdr_method_name(::TDRKMeansSettings) = :kmeans
-tdr_method_name(::TDRKMedoidsSettings) = :kmedoids
-tdr_method_name(::TDRAutoencoderSequentialSettings) = :autoencoder_sequential
-tdr_method_name(::TDRAutoencoderSimultaneousSettings) = :autoencoder_simultaneous
+"""
+    tdr_set_clustering_weights!(input_sources, output_sources, output_weight)
+
+Allocate the requested share of the clustering distance to output sources and
+the remaining share to input sources. Within each group, raw feature weights
+(`user_weight * occurrences`) retain their relative influence.
+"""
+function tdr_set_clustering_weights!(
+    input_sources::Vector{TimeSeriesSource},
+    output_sources::Vector{TimeSeriesSource},
+    output_weight::Float64,
+)
+    input_total = sum(source.weight for source in input_sources)
+    output_total = sum(source.weight for source in output_sources)
+    input_total > 0 || throw(ArgumentError("Output-based TDR requires at least one input clustering feature."))
+    output_total > 0 || throw(ArgumentError("Output-based TDR requires at least one output clustering feature."))
+    for source in input_sources
+        source.weight = (1 - output_weight) * source.weight / input_total
+    end
+    for source in output_sources
+        source.weight = output_weight * source.weight / output_total
+    end
+    return nothing
+end
+
 tdr_method_restarts(method_settings::AbstractTDRMethodSettings) = method_settings.restarts
 tdr_method_verbose(method_settings::AbstractTDRMethodSettings) = method_settings.verbose
 tdr_method_settings_data(method_settings::AbstractTDRMethodSettings) = Dict{String,Any}(
@@ -34,21 +55,9 @@ function tdr_autoencoder_settings_data(
     )
 end
 
-function tdr_method_settings_data(method_settings::TDRAutoencoderSequentialSettings)
-    data = invoke(tdr_method_settings_data, Tuple{AbstractTDRMethodSettings}, method_settings)
-    merge!(data, tdr_autoencoder_settings_data(method_settings))
-    return data
-end
-
-function tdr_method_settings_data(method_settings::TDRAutoencoderSimultaneousSettings)
-    data = invoke(tdr_method_settings_data, Tuple{AbstractTDRMethodSettings}, method_settings)
-    merge!(data, tdr_autoencoder_settings_data(method_settings), Dict("lambda" => method_settings.lambda))
-    return data
-end
-
 tdr_method_setup(::AbstractTDRMethodSettings, ::TDRSettings) = Dict{String,Any}()
 
-function tdr_method_setup(
+function tdr_autoencoder_method_setup(
     method_settings::Union{TDRAutoencoderSequentialSettings,TDRAutoencoderSimultaneousSettings},
     settings::TDRSettings,
 )

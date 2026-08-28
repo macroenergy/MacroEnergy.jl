@@ -85,6 +85,40 @@ Every explicit `timeseries` descriptor is materialized in the reduced case. It c
 
 Physical CSV path/header pairs are read once even when several inputs reference them. Their clustering weight is the feature weight multiplied by the number of logical occurrences.
 
+## Output-based features
+
+Output-based features add model results to the clustering matrix. They are configured separately from input features and reserve a share of the total clustering weight. Within the input and output groups, feature weights and repeated occurrences retain their relative influence.
+
+```json
+"output_based_features": {
+  "weight": 0.75,
+  "features": [
+    { "provider": "flow", "weight": 1.0 },
+    {
+      "provider": "flow",
+      "commodity": "Electricity",
+      "asset": "VRE",
+      "weight": 3.0
+    }
+  ]
+}
+```
+
+`weight` is the total output-feature share; input features receive the remaining share. A result matched by more than one feature uses the most specific matching selector, so Electricity VRE flows in the example receive weight `3.0`, not `4.0`. Equal-specificity overlapping selectors are an error.
+
+Built-in providers are `"flow"` and `"storage_level"`. Other names resolve to a MacroEnergy function of the same name, allowing user additions to provide further result accessors. A provider must return a long `DataFrame` with `time`, `component_id`, and `value` columns.
+
+Output-based preprocessing solves the unreduced copied case in memory before clustering; it does not write result files. It currently supports a single Monolithic model period. Pass solver options explicitly through `output_feature_run_kwargs`, for example:
+
+```julia
+preprocess_inputs(
+    "path/to/full_case",
+    "path/to/reduced_case";
+    tdr_settings_path="path/to/tdr_settings.json",
+    output_feature_run_kwargs=(optimizer=HiGHS.Optimizer,),
+)
+```
+
 ## Extreme periods
 
 Extreme periods reserve representative-period slots before the remaining periods are clustered. Each entry selects matching physical time series, sums them, and selects either the largest/smallest period integral or the period containing the largest/smallest individual value.

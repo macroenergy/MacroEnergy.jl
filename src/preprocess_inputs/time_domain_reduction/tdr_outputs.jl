@@ -2,7 +2,9 @@ function tdr_write_reduced_sources!(sources::Vector{TimeSeriesSource}, row_indic
     by_csv = Dict{String,Vector{TimeSeriesSource}}()
     inline = TimeSeriesSource[]
     for source in sources
-        if isnothing(source.csv_path)
+        if isnothing(source.csv_path) && isnothing(source.inline_file)
+            continue
+        elseif isnothing(source.csv_path)
             push!(inline, source)
         else
             push!(get!(by_csv, source.csv_path, TimeSeriesSource[]), source)

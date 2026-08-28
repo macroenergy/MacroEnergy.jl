@@ -6,12 +6,14 @@ function tdr_source_log_data(source::TimeSeriesSource, case_root::String)
             "path" => tdr_relative_path(case_root, source.csv_path),
             "header" => String(source.header),
         )
-    else
+    elseif !isnothing(source.inline_file)
         Dict(
             "type" => "inline_json",
             "path" => tdr_relative_path(case_root, source.inline_file),
             "input_path" => string.(source.inline_path),
         )
+    else
+        Dict("type" => "output_feature")
     end
     return Dict(
         "source" => location,

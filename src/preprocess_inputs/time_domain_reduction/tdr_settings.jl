@@ -1,42 +1,5 @@
 abstract type AbstractTDRMethodSettings end
 
-Base.@kwdef struct TDRKMeansSettings <: AbstractTDRMethodSettings
-    restarts::Int = 0
-    verbose::Bool = false
-end
-
-Base.@kwdef struct TDRKMedoidsSettings <: AbstractTDRMethodSettings
-    restarts::Int = 0
-    verbose::Bool = false
-end
-
-Base.@kwdef struct TDRAutoencoderSequentialSettings <: AbstractTDRMethodSettings
-    restarts::Int = 0
-    verbose::Bool = false
-    kernel_size::Int = 3
-    stride::Int = 1
-    epochs::Int = 50
-    min_err_diff::Float64 = 1e-4
-    patience::Int = 10
-    warmup::Int = 5
-    n_filters::Int = 8
-    latent_dim::Int = 4
-end
-
-Base.@kwdef struct TDRAutoencoderSimultaneousSettings <: AbstractTDRMethodSettings
-    restarts::Int = 0
-    verbose::Bool = false
-    kernel_size::Int = 3
-    stride::Int = 1
-    epochs::Int = 50
-    min_err_diff::Float64 = 1e-4
-    patience::Int = 10
-    warmup::Int = 5
-    n_filters::Int = 8
-    latent_dim::Int = 4
-    lambda::Float64 = 0.1
-end
-
 Base.@kwdef struct TDRExtremePeriodSpec
     feature::TDRFeatureSpec
     aggregation::Symbol
@@ -52,6 +15,7 @@ Base.@kwdef struct TDRSettings
     features::Vector{TDRFeatureSpec}
     excluded_features::Vector{TDRFeatureSpec}
     extreme_periods::Vector{TDRExtremePeriodSpec}
+    output_features::Union{Nothing,TDROutputFeaturesSettings} = nothing
 end
 
 """
@@ -85,6 +49,7 @@ function load_time_domain_reduction_settings(path::AbstractString)::TDRSettings
     extreme_periods = TDRExtremePeriodSpec[
         tdr_extreme_period_spec(specification) for specification in extreme_periods_data
     ]
+    output_features = load_tdr_output_features(get(data, "output_based_features", nothing))
     return TDRSettings(
         timesteps_per_representative_period=Int(period_length),
         representative_periods=Int(n_periods),
@@ -94,6 +59,51 @@ function load_time_domain_reduction_settings(path::AbstractString)::TDRSettings
         features=active_features,
         excluded_features=exclusions,
         extreme_periods=extreme_periods,
+        output_features=output_features,
+    )
+end
+
+function load_tdr_output_features(data)::Union{Nothing,TDROutputFeaturesSettings}
+    isnothing(data) && return nothing
+    data isa AbstractDict || throw(ArgumentError("TDR `output_based_features` must be an object."))
+    weight = get(data, "weight", nothing)
+    weight isa Real && isfinite(weight) && 0.0 < weight < 1.0 || throw(ArgumentError(
+        "TDR `output_based_features.weight` must be a finite number strictly between zero and one.",
+    ))
+    features_data = get(data, "features", nothing)
+    features_data isa AbstractVector && !isempty(features_data) || throw(ArgumentError(
+        "TDR `output_based_features.features` must be a non-empty array.",
+    ))
+    haskey(data, "settings") && throw(ArgumentError(
+        "Output-based TDR run settings must be passed as `output_feature_run_kwargs`; JSON output settings are not supported yet.",
+    ))
+    return TDROutputFeaturesSettings(
+        weight=Float64(weight),
+        features=TDROutputFeatureSpec[tdr_output_feature_spec(feature) for feature in features_data],
+    )
+end
+
+function tdr_output_feature_spec(data::AbstractDict)::TDROutputFeatureSpec
+    provider = get(data, "provider", nothing)
+    provider isa AbstractString && !isempty(provider) || throw(ArgumentError(
+        "Each output-based TDR feature must define a non-empty string `provider`.",
+    ))
+    id = get(data, "id", nothing)
+    asset = get(data, "asset", nothing)
+    commodity = get(data, "commodity", nothing)
+    all(value -> isnothing(value) || value isa AbstractString, (id, asset, commodity)) || throw(ArgumentError(
+        "Output-based TDR feature `id`, `asset`, and `commodity` must be strings when supplied.",
+    ))
+    weight = get(data, "weight", 1.0)
+    weight isa Real && isfinite(weight) && weight > 0 || throw(ArgumentError(
+        "Output-based TDR feature `weight` must be a finite positive number.",
+    ))
+    return TDROutputFeatureSpec(
+        id=isnothing(id) ? nothing : String(id),
+        provider=String(provider),
+        asset=isnothing(asset) ? nothing : String(asset),
+        commodity=isnothing(commodity) ? nothing : String(commodity),
+        user_weight=Float64(weight),
     )
 end
 
@@ -124,31 +134,7 @@ function load_tdr_method_settings(method_data)::AbstractTDRMethodSettings
     settings_data = get(method_data, "settings", Dict{String,Any}())
     settings_data isa AbstractDict || throw(ArgumentError("TDR method `settings` must be an object."))
     restarts, verbose = tdr_common_method_settings(settings_data)
-    method = String(method_data["name"])
-    if method == "kmeans"
-        return TDRKMeansSettings(restarts=restarts, verbose=verbose)
-    elseif method == "kmedoids"
-        return TDRKMedoidsSettings(restarts=restarts, verbose=verbose)
-    elseif method == "autoencoder_sequential"
-        return TDRAutoencoderSequentialSettings(
-            ;
-            restarts=restarts,
-            verbose=verbose,
-            tdr_autoencoder_settings(settings_data)...,
-        )
-    elseif method == "autoencoder_simultaneous"
-        lambda = tdr_method_float(settings_data, "lambda", 0.1; minimum=0.0)
-        return TDRAutoencoderSimultaneousSettings(
-            ;
-            restarts=restarts,
-            verbose=verbose,
-            tdr_autoencoder_settings(settings_data)...,
-            lambda=lambda,
-        )
-    end
-    throw(ArgumentError(
-        "TDR `method.name` must be `kmeans`, `kmedoids`, `autoencoder_sequential`, or `autoencoder_simultaneous`.",
-    ))
+    return tdr_method_settings(Val(Symbol(method_data["name"])), settings_data, restarts, verbose)
 end
 
 function tdr_common_method_settings(settings_data::AbstractDict)

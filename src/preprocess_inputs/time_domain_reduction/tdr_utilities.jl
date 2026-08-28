@@ -24,6 +24,20 @@ mutable struct TimeSeriesSource
     include_in_clustering::Bool
 end
 
+"""A requested result accessor used as an additional TDR clustering feature."""
+Base.@kwdef struct TDROutputFeatureSpec
+    id::Union{Nothing,String} = nothing
+    provider::String
+    asset::Union{Nothing,String} = nothing
+    commodity::Union{Nothing,String} = nothing
+    user_weight::Float64 = 1.0
+end
+
+Base.@kwdef struct TDROutputFeaturesSettings
+    weight::Float64
+    features::Vector{TDROutputFeatureSpec}
+end
+
 const TDR_DEFAULT_FEATURES = TDRFeatureSpec[
     TDRFeatureSpec(id="availability", field="availability"),
     TDRFeatureSpec(id="demand", field="demand"),

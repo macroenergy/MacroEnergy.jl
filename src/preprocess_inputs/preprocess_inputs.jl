@@ -2,16 +2,20 @@ include("time_domain_reduction/time_domain_reduction.jl")
 
 """
     preprocess_inputs(source_case_path, output_case_path;
-                      tdr_settings_path, overwrite=false)
+                      tdr_settings_path, overwrite=false,
+                      output_feature_run_kwargs=NamedTuple())
 
 Copy a source case, then apply configured preprocessing steps to the copy. The
 resulting directory loads and runs through MacroEnergy's ordinary APIs.
+`output_feature_run_kwargs` configures the temporary in-memory solve used only
+when TDR output-based features are enabled.
 """
 function preprocess_inputs(
     source_case_path::AbstractString,
     output_case_path::AbstractString;
     tdr_settings_path::AbstractString,
     overwrite::Bool=false,
+    output_feature_run_kwargs::NamedTuple=NamedTuple(),
 )::Nothing
     source_root = abspath(source_case_path)
     output_root = abspath(output_case_path)
@@ -21,7 +25,12 @@ function preprocess_inputs(
 
     copy_case(source_root, output_root; overwrite)
 
-    tdr_time_domain_reduction(output_root, settings; source_case_path=source_root)
+    tdr_time_domain_reduction(
+        output_root,
+        settings;
+        source_case_path=source_root,
+        output_feature_run_kwargs,
+    )
     return nothing
 end
 

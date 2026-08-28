@@ -75,6 +75,20 @@ end
     @test autoencoder_settings.latent_dim == 2
     @test autoencoder_settings.lambda == 0.25
 
+    output_feature_settings = MacroEnergy.load_tdr_output_features(Dict(
+        "weight" => 0.75,
+        "features" => [
+            Dict("provider" => "flow", "weight" => 1.0),
+            Dict("provider" => "flow", "commodity" => "Electricity", "asset" => "VRE", "weight" => 3.0),
+        ],
+    ))
+    selected_output_feature = MacroEnergy.tdr_selected_output_feature(
+        output_feature_settings.features,
+        "flow",
+    )
+    @test selected_output_feature.user_weight == 3.0
+    @test selected_output_feature.asset == "VRE"
+
     demand_reference = (
         json_file="system/nodes.json",
         input_path=Any[],
@@ -156,6 +170,14 @@ end
     )
     @test 2 in cluster_representatives
     @test cluster_period_map[2] == findfirst(==(2), cluster_representatives)
+
+    output_source = deepcopy(demand_source)
+    output_source.key = "output:flow:vre"
+    output_source.user_weight = 3.0
+    output_source.weight = 3.0
+    MacroEnergy.tdr_set_clustering_weights!([demand_source], [output_source], 0.75)
+    @test demand_source.weight == 0.25
+    @test output_source.weight == 0.75
 
     for method_name in ("autoencoder_sequential", "autoencoder_simultaneous")
         method_settings = MacroEnergy.load_tdr_method_settings(Dict(
