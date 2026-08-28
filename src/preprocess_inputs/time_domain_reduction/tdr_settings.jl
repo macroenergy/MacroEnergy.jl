@@ -74,12 +74,41 @@ function load_tdr_output_features(data)::Union{Nothing,TDROutputFeaturesSettings
     features_data isa AbstractVector && !isempty(features_data) || throw(ArgumentError(
         "TDR `output_based_features.features` must be a non-empty array.",
     ))
-    haskey(data, "settings") && throw(ArgumentError(
-        "Output-based TDR run settings must be passed as `output_feature_run_kwargs`; JSON output settings are not supported yet.",
-    ))
+    subperiod_runs = load_tdr_subperiod_run_settings(get(data, "subperiod_runs", Dict{String,Any}()))
+    save_features = get(data, "save_features", false)
+    reuse_saved_features = get(data, "reuse_saved_features", false)
+    save_features isa Bool || throw(ArgumentError("TDR `output_based_features.save_features` must be a boolean."))
+    reuse_saved_features isa Bool || throw(ArgumentError("TDR `output_based_features.reuse_saved_features` must be a boolean."))
     return TDROutputFeaturesSettings(
         weight=Float64(weight),
         features=TDROutputFeatureSpec[tdr_output_feature_spec(feature) for feature in features_data],
+        subperiod_runs=subperiod_runs,
+        save_features=save_features,
+        reuse_saved_features=reuse_saved_features,
+    )
+end
+
+function load_tdr_subperiod_run_settings(data)::TDRSubperiodRunSettings
+    data isa AbstractDict || throw(ArgumentError("TDR `output_based_features.subperiod_runs` must be an object."))
+    distributed = get(data, "distributed", false)
+    workers = get(data, "workers", 1)
+    include_policy_constraints = get(data, "include_policy_constraints", true)
+    save_subperiod_inputs = get(data, "save_subperiod_inputs", false)
+    save_subperiod_results = get(data, "save_subperiod_results", false)
+    distributed isa Bool || throw(ArgumentError("TDR `subperiod_runs.distributed` must be a boolean."))
+    workers isa Integer && workers > 0 || throw(ArgumentError("TDR `subperiod_runs.workers` must be a positive integer."))
+    include_policy_constraints isa Bool || throw(ArgumentError("TDR `subperiod_runs.include_policy_constraints` must be a boolean."))
+    save_subperiod_inputs isa Bool || throw(ArgumentError("TDR `subperiod_runs.save_subperiod_inputs` must be a boolean."))
+    save_subperiod_results isa Bool || throw(ArgumentError("TDR `subperiod_runs.save_subperiod_results` must be a boolean."))
+    !distributed && workers != 1 && throw(ArgumentError(
+        "TDR `subperiod_runs.workers` must equal 1 when `distributed` is false.",
+    ))
+    return TDRSubperiodRunSettings(
+        distributed,
+        Int(workers),
+        include_policy_constraints,
+        save_subperiod_inputs,
+        save_subperiod_results,
     )
 end
 

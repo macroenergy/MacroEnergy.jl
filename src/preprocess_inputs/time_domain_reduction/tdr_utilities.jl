@@ -33,9 +33,20 @@ Base.@kwdef struct TDROutputFeatureSpec
     user_weight::Float64 = 1.0
 end
 
+Base.@kwdef struct TDRSubperiodRunSettings
+    distributed::Bool = false
+    workers::Int = 1
+    include_policy_constraints::Bool = true
+    save_subperiod_inputs::Bool = false
+    save_subperiod_results::Bool = false
+end
+
 Base.@kwdef struct TDROutputFeaturesSettings
     weight::Float64
     features::Vector{TDROutputFeatureSpec}
+    subperiod_runs::TDRSubperiodRunSettings = TDRSubperiodRunSettings()
+    save_features::Bool = false
+    reuse_saved_features::Bool = false
 end
 
 const TDR_DEFAULT_FEATURES = TDRFeatureSpec[

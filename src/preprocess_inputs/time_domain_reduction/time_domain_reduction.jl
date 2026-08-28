@@ -20,6 +20,7 @@ function time_domain_reduction(
     output_feature_run_kwargs::NamedTuple=NamedTuple(),
 )::Nothing
     parsed_settings = settings isa TDRSettings ? settings : load_time_domain_reduction_settings(settings)
+    @info "*** Time-domain reduction ***"
     tdr_time_domain_reduction(abspath(case_path), parsed_settings; output_feature_run_kwargs)
     return nothing
 end
@@ -35,11 +36,15 @@ function tdr_time_domain_reduction(
 
     sources, clustering_sources, full_length, time_data_path, time_data, trailing_hours =
         tdr_sources(case_root, parsed_settings)
+    input_periods = full_length ÷ parsed_settings.timesteps_per_representative_period
+    @info " -- Found $(length(sources)) unique input time series over $input_periods complete periods ($(full_length) hours)."
+    trailing_hours > 0 && @info " ++ Excluding $trailing_hours trailing source hours from clustering because they do not complete a representative period."
+    subperiod_results = nothing
     if !isnothing(parsed_settings.output_features)
         input_sources = copy(clustering_sources)
-        output_sources = tdr_output_sources(
+        output_sources, subperiod_results = tdr_output_sources(
             case_root,
-            parsed_settings.output_features,
+            parsed_settings,
             full_length;
             run_case_kwargs=output_feature_run_kwargs,
         )
@@ -47,6 +52,7 @@ function tdr_time_domain_reduction(
         append!(clustering_sources, output_sources)
         tdr_set_clustering_weights!(input_sources, output_sources, parsed_settings.output_features.weight)
     end
+    @info "Selecting representative periods using $(length(clustering_sources)) clustering time series."
     extreme_selections = tdr_extreme_period_selections(
         sources,
         parsed_settings.timesteps_per_representative_period,
@@ -61,6 +67,7 @@ function tdr_time_domain_reduction(
         extreme_periods,
     )
     row_indices = tdr_row_indices(representatives, parsed_settings.timesteps_per_representative_period)
+    @info "Writing $(length(representatives)) representative periods ($(length(row_indices)) hours) to the copied inputs."
     tdr_write_reduced_sources!(sources, row_indices)
     clear_csv_cache!()
     map_path, output_period_map = tdr_write_time_data!(
@@ -71,6 +78,7 @@ function tdr_time_domain_reduction(
         representatives,
         period_map,
     )
+    @info " ++ Reduced $input_periods input periods to $(length(representatives)) representative periods; wrote period map to `$(relpath(map_path, case_root))`."
     provenance = Dict(
         "source_case_path" => abspath(source_case_path),
         "settings" => Dict(
@@ -91,12 +99,16 @@ function tdr_time_domain_reduction(
                         "weight" => feature.user_weight,
                     ) for feature in parsed_settings.output_features.features
                 ],
+                "subperiod_runs" => tdr_subperiod_run_settings_data(parsed_settings.output_features.subperiod_runs),
+                "save_features" => parsed_settings.output_features.save_features,
+                "reuse_saved_features" => parsed_settings.output_features.reuse_saved_features,
             ),
         ),
         "representative_periods" => representatives,
         "forced_extreme_periods" => extreme_periods,
         "trailing_source_hours_excluded_from_tdr" => trailing_hours,
         "period_map_path" => relpath(map_path, case_root),
+        "subperiod_solves" => isnothing(parsed_settings.output_features) ? nothing : subperiod_results,
     )
     write_json(joinpath(case_root, "time_domain_reduction_provenance.json"), provenance)
     tdr_write_preprocess_log!(
@@ -110,6 +122,8 @@ function tdr_time_domain_reduction(
         output_period_map,
         map_path,
         trailing_hours,
+        subperiod_results,
     )
+    @info "Finished time-domain reduction for `$case_root`."
     return nothing
 end

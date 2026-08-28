@@ -12,7 +12,7 @@ preprocess_inputs(
 case, solution = run_case("path/to/reduced_case")
 ```
 
-The output directory must not already exist unless `overwrite=true` is passed.
+The output directory must not already exist unless `overwrite=true` is passed. By default, top-level source directories whose names start with `results` are not copied; pass `copy_result_files=true` to retain them.
 
 ## Time-domain reduction settings
 
@@ -92,6 +92,15 @@ Output-based features add model results to the clustering matrix. They are confi
 ```json
 "output_based_features": {
   "weight": 0.75,
+  "save_features": true,
+  "reuse_saved_features": false,
+  "subperiod_runs": {
+    "distributed": true,
+    "workers": 4,
+    "include_policy_constraints": true,
+    "save_subperiod_inputs": false,
+    "save_subperiod_results": false
+  },
   "features": [
     { "provider": "flow", "weight": 1.0 },
     {
@@ -108,7 +117,15 @@ Output-based features add model results to the clustering matrix. They are confi
 
 Built-in providers are `"flow"` and `"storage_level"`. Other names resolve to a MacroEnergy function of the same name, allowing user additions to provide further result accessors. A provider must return a long `DataFrame` with `time`, `component_id`, and `value` columns.
 
-Output-based preprocessing solves the unreduced copied case in memory before clustering; it does not write result files. It currently supports a single Monolithic model period. Pass solver options explicitly through `output_feature_run_kwargs`, for example:
+Output-based preprocessing materializes and solves one temporary input-only case for every candidate period; it never loads the full-horizon case. Set `distributed` and `workers` to run those independent solves concurrently. The worker count caps TDR-created workers, and only those workers are removed when preprocessing finishes. `include_policy_constraints` defaults to `true`; set it to `false` to remove policy constraints from the temporary inputs.
+
+Temporary cases are removed by default. Set `save_subperiod_inputs` to materialize retained isolated inputs before any solve starts; those exact directories are then used by the workers and remain available for live debugging. Set `save_subperiod_results` to retain compact provider outputs. Retained artifacts are written below `TDR/subperiod_solves/period_<n>/`, with results in `results.json.gz`.
+
+Set `save_features` to write the assembled output profiles to `TDR/output_features/output_features.csv.gz` and their metadata to `TDR/output_features/output_metadata.json`. Rows are ordered by `Period_Index` and then `Time_Index`. Set `reuse_saved_features` to reload those validated artifacts and skip every subperiod solve; MacroEnergy checks the input horizon, representative-period length, and output-feature specifications before reuse. If no saved feature files exist, MacroEnergy warns and generates the features; set `save_features` as well to retain them for the next run.
+
+When `preprocess_inputs(...; overwrite=true)` recreates an existing output case and `reuse_saved_features=true`, it preserves that output case's `TDR/output_features` directory through the copy so the cache remains available. Invalid or stale cached features are still rejected by the usual validation.
+
+Output-based TDR currently supports a single Monolithic model period. Pass solver options explicitly through `output_feature_run_kwargs`, for example:
 
 ```julia
 preprocess_inputs(

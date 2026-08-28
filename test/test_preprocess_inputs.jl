@@ -45,6 +45,37 @@ function share_availability_header!(case_path::AbstractString)
 end
 
 @testset "preprocess_inputs" begin
+    mktempdir() do temporary_root
+        source_case = joinpath(temporary_root, "source")
+        output_case = joinpath(temporary_root, "output")
+        mkpath.(joinpath.(source_case, ("system", "results", "results_001", "results_example")))
+        touch(joinpath(source_case, "system", "time_data.json"))
+        MacroEnergy.copy_case(source_case, output_case)
+        @test isfile(joinpath(output_case, "system", "time_data.json"))
+        @test !isdir(joinpath(output_case, "results"))
+        @test !isdir(joinpath(output_case, "results_001"))
+        @test !isdir(joinpath(output_case, "results_example"))
+
+        copied_results_case = joinpath(temporary_root, "output_with_results")
+        MacroEnergy.copy_case(source_case, copied_results_case; copy_result_files=true)
+        @test isdir(joinpath(copied_results_case, "results"))
+        @test isdir(joinpath(copied_results_case, "results_001"))
+        @test isdir(joinpath(copied_results_case, "results_example"))
+
+        output_features_directory = joinpath(output_case, "TDR", "output_features")
+        mkpath(output_features_directory)
+        touch(joinpath(output_features_directory, "output_features.csv.gz"))
+        touch(joinpath(output_features_directory, "output_metadata.json"))
+        MacroEnergy.copy_case(
+            source_case,
+            output_case;
+            overwrite=true,
+            preserve_tdr_output_features=true,
+        )
+        @test isfile(joinpath(output_case, "TDR", "output_features", "output_features.csv.gz"))
+        @test isfile(joinpath(output_case, "TDR", "output_features", "output_metadata.json"))
+    end
+
     scoped_feature = MacroEnergy.tdr_feature_spec(Dict(
         "id" => "availability",
         "field" => "availability",
@@ -77,6 +108,8 @@ end
 
     output_feature_settings = MacroEnergy.load_tdr_output_features(Dict(
         "weight" => 0.75,
+        "save_features" => true,
+        "reuse_saved_features" => false,
         "features" => [
             Dict("provider" => "flow", "weight" => 1.0),
             Dict("provider" => "flow", "commodity" => "Electricity", "asset" => "VRE", "weight" => 3.0),
@@ -88,6 +121,28 @@ end
     )
     @test selected_output_feature.user_weight == 3.0
     @test selected_output_feature.asset == "VRE"
+    @test output_feature_settings.save_features
+    @test !output_feature_settings.reuse_saved_features
+    mktempdir() do temporary_root
+        @test !MacroEnergy.tdr_saved_output_features_exist(temporary_root)
+        mkpath(joinpath(temporary_root, "TDR", "output_features"))
+        touch(MacroEnergy.tdr_output_features_path(temporary_root))
+        @test !MacroEnergy.tdr_saved_output_features_exist(temporary_root)
+        touch(MacroEnergy.tdr_output_metadata_path(temporary_root))
+        @test MacroEnergy.tdr_saved_output_features_exist(temporary_root)
+    end
+    subperiod_run_settings = MacroEnergy.load_tdr_subperiod_run_settings(Dict(
+        "distributed" => true,
+        "workers" => 2,
+        "include_policy_constraints" => false,
+        "save_subperiod_inputs" => true,
+        "save_subperiod_results" => true,
+    ))
+    @test subperiod_run_settings.workers == 2
+    @test !subperiod_run_settings.include_policy_constraints
+    @test_throws ArgumentError MacroEnergy.load_tdr_subperiod_run_settings(Dict(
+        "distributed" => false, "workers" => 2,
+    ))
 
     demand_reference = (
         json_file="system/nodes.json",
@@ -256,6 +311,39 @@ end
         @test !any(feature -> feature.id == "availability", excluded_settings.features)
         excluded_sources, _, _, _, _, _ = MacroEnergy.tdr_sources(source_case, excluded_settings)
         @test !only(filter(source -> source.header == :solar_pv_MA, excluded_sources)).include_in_clustering
+
+        output_settings_path = joinpath(temporary_root, "output_features.json")
+        MacroEnergy.write_json(output_settings_path, Dict(
+            "timesteps_per_representative_period" => 168,
+            "representative_periods" => 3,
+            "method" => Dict("name" => "kmeans", "settings" => Dict("restarts" => 1)),
+            "scaling" => "standardize",
+            "output_based_features" => Dict(
+                "weight" => 0.5,
+                "features" => [Dict("provider" => "flow")],
+                "subperiod_runs" => Dict(
+                    "include_policy_constraints" => false,
+                    "save_subperiod_inputs" => true,
+                    "save_subperiod_results" => true,
+                ),
+            ),
+        ))
+        output_settings = MacroEnergy.load_time_domain_reduction_settings(output_settings_path)
+        subperiod_case = joinpath(temporary_root, "subperiod_case")
+        MacroEnergy.tdr_materialize_subperiod_case!(source_case, subperiod_case, 2, output_settings)
+        subperiod_time_data = JSON3.read(read(joinpath(subperiod_case, "system", "time_data.json"), String))
+        @test subperiod_time_data[:NumberOfSubperiods] == 1
+        @test !haskey(subperiod_time_data, :SubPeriodMap)
+        @test nrow(CSV.read(joinpath(subperiod_case, "system", "demand.csv"), DataFrame)) == 168
+        subperiod_nodes = MacroEnergy.mutable_json_data(MacroEnergy.read_json(joinpath(subperiod_case, "system", "nodes.json")))
+        @test !occursin("CO2CapConstraint", string(subperiod_nodes))
+        result_path = MacroEnergy.tdr_save_subperiod_results!(
+            source_case,
+            2,
+            Dict("output:flow:test" => [(output_settings.output_features.features[1], [1.0, 2.0])]),
+        )
+        @test isfile(result_path)
+        @test MacroEnergy.read_json(result_path)["period"] == 2
 
         nested_output_case = joinpath(source_case, "reduced")
         @test_throws ArgumentError preprocess_inputs(source_case, nested_output_case; tdr_settings_path=settings_path)

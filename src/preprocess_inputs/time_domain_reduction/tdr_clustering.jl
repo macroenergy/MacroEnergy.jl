@@ -94,6 +94,9 @@ function tdr_cluster(
         "Not enough non-extreme periods remain for the requested representative periods.",
     ))
 
+    method = tdr_method_name(settings.method_settings)
+    @info " -- Clustering $(length(candidate_periods)) regular periods into $cluster_count representatives with `$method` ($(length(forced_periods)) forced extreme periods, $(length(clustering_sources)) time series, $(settings.scaling) scaling)."
+
     # Each source contributes one profile row for every timestep in an original
     # period. The final number of rows is therefore known before filling it.
     n_rows = length(clustering_sources) * period_length
@@ -130,6 +133,7 @@ function tdr_cluster(
     for period in forced_periods
         period_map[period] = representative_indices[period]
     end
+    @info " ++ Selected $(length(clustered_representatives)) regular and $(length(forced_periods)) extreme representative periods."
     return representative_periods, period_map
 end
 
