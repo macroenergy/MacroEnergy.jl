@@ -147,6 +147,7 @@ end
         cp(PREPARE_CASE_TEST_INPUTS, source_case)
         full_length = expand_tdr_fixture!(source_case)
         share_availability_header!(source_case)
+        MacroEnergy.write_json(joinpath(source_case, "preprocess_log.json"), Dict("stale" => true))
         settings_path = joinpath(source_case, "settings", "time_domain_reduction.json")
 
         settings = MacroEnergy.load_time_domain_reduction_settings(settings_path)
@@ -184,6 +185,7 @@ end
 
         @test_nowarn preprocess_inputs(source_case, output_case; tdr_settings_path=settings_path)
         @test isfile(joinpath(output_case, "time_domain_reduction_provenance.json"))
+        @test isfile(joinpath(output_case, "preprocess_log.json"))
         @test_throws ArgumentError preprocess_inputs(source_case, output_case; tdr_settings_path=settings_path)
 
         reduced_time_data = JSON3.read(read(joinpath(output_case, "system", "time_data.json"), String))
@@ -196,6 +198,14 @@ end
         provenance = JSON3.read(read(joinpath(output_case, "time_domain_reduction_provenance.json"), String))
         @test length(provenance[:forced_extreme_periods]) == 1
         @test only(provenance[:forced_extreme_periods]) in provenance[:representative_periods]
+        preprocess_log = JSON3.read(read(joinpath(output_case, "preprocess_log.json"), String))
+        @test !haskey(preprocess_log, :stale)
+        tdr_log = preprocess_log[:time_domain_reduction]
+        @test tdr_log[:temporal_summary][:original_hours] == full_length
+        @test tdr_log[:clustering][:regular_representative_periods] == 2
+        @test tdr_log[:clustering_features][:unique_time_series] > 0
+        @test !isempty(tdr_log[:clustering_features][:sources])
+        @test length(tdr_log[:extreme_periods]) == 1
 
         prepared_case = load_case(output_case)
         @test length(prepared_case.systems) == 1

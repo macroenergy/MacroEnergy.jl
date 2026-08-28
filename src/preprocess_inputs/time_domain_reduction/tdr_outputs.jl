@@ -92,5 +92,5 @@ function tdr_write_time_data!(time_data_path::String, case_root::String, source_
     existing_map = tdr_existing_period_map(source_time_data, case_root)
     map = tdr_compose_period_map(existing_map, representative_periods, period_map)
     CSV.write(map_path, map)
-    return map_path
+    return map_path, map
 end

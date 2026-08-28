@@ -39,6 +39,14 @@ function tdr_extreme_period(
     specification::TDRExtremePeriodSpec,
     period_length::Int,
 )
+    return tdr_extreme_period_selection(sources, specification, period_length).period
+end
+
+function tdr_extreme_period_selection(
+    sources::Vector{TimeSeriesSource},
+    specification::TDRExtremePeriodSpec,
+    period_length::Int,
+)
     isempty(sources) && throw(ArgumentError("Extreme-period selection requires at least one time-series source."))
     period_length > 0 || throw(ArgumentError("Extreme-period period length must be positive."))
     full_length = length(first(sources).values)
@@ -54,12 +62,12 @@ function tdr_extreme_period(
 
     if specification.aggregation == :integral
         period_values = vec(sum(reshape(aggregate, period_length, :); dims=1))
-        _, period = specification.select == :max ? findmax(period_values) : findmin(period_values)
-        return period
+        value, period = specification.select == :max ? findmax(period_values) : findmin(period_values)
+        return (period=period, value=value)
     end
 
-    _, timestep = specification.select == :max ? findmax(aggregate) : findmin(aggregate)
-    return cld(timestep, period_length)
+    value, timestep = specification.select == :max ? findmax(aggregate) : findmin(aggregate)
+    return (period=cld(timestep, period_length), value=value)
 end
 
 function tdr_extreme_periods(
@@ -68,16 +76,41 @@ function tdr_extreme_periods(
     settings::TDRSettings,
     case_root::String,
 )
-    periods = Int[]
+    selections = tdr_extreme_period_selections(sources, period_length, settings, case_root)
+    return sort!(unique(Int[selection.period for selection in selections]))
+end
+
+function tdr_extreme_period_selections(
+    sources::Vector{TimeSeriesSource},
+    period_length::Int,
+    settings::TDRSettings,
+    case_root::String,
+)
+    selections = NamedTuple[]
     for specification in settings.extreme_periods
         matching_sources = tdr_extreme_period_sources(sources, specification, case_root)
-        push!(periods, tdr_extreme_period(matching_sources, specification, period_length))
+        selection = tdr_extreme_period_selection(matching_sources, specification, period_length)
+        push!(selections, (
+            specification=specification,
+            sources=matching_sources,
+            period=selection.period,
+            value=selection.value,
+        ))
     end
-    unique!(sort!(periods))
+    periods = unique(Int[selection.period for selection in selections])
     length(periods) < settings.representative_periods || throw(ArgumentError(
         "The $(length(periods)) forced extreme periods must be fewer than representative_periods ($(settings.representative_periods)).",
     ))
-    return periods
+    return selections
+end
+
+function tdr_extreme_period_selection_data(selection)
+    data = tdr_extreme_period_specification_data(selection.specification)
+    data["selected_period"] = selection.period
+    data["selection_value"] = selection.value
+    data["unique_time_series"] = length(selection.sources)
+    data["occurrences"] = sum(source.occurrences for source in selection.sources)
+    return data
 end
 
 function tdr_extreme_period_specification_data(specification::TDRExtremePeriodSpec)
