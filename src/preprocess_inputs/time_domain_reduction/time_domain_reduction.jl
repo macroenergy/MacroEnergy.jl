@@ -22,7 +22,8 @@ function tdr_time_domain_reduction(case_path::AbstractString, parsed_settings::T
     case_root = abspath(case_path)
     isdir(case_root) || throw(ArgumentError("Case directory does not exist: $case_root"))
 
-    sources, clustering_sources, full_length, time_data_path, time_data = tdr_sources(case_root, parsed_settings)
+    sources, clustering_sources, full_length, time_data_path, time_data, trailing_hours =
+        tdr_sources(case_root, parsed_settings)
     extreme_selections = tdr_extreme_period_selections(
         sources,
         parsed_settings.timesteps_per_representative_period,
@@ -59,6 +60,7 @@ function tdr_time_domain_reduction(case_path::AbstractString, parsed_settings::T
         ),
         "representative_periods" => representatives,
         "forced_extreme_periods" => extreme_periods,
+        "trailing_source_hours_excluded_from_tdr" => trailing_hours,
         "period_map_path" => relpath(map_path, case_root),
     )
     write_json(joinpath(case_root, "time_domain_reduction_provenance.json"), provenance)
@@ -72,6 +74,7 @@ function tdr_time_domain_reduction(case_path::AbstractString, parsed_settings::T
         representatives,
         output_period_map,
         map_path,
+        trailing_hours,
     )
     return nothing
 end

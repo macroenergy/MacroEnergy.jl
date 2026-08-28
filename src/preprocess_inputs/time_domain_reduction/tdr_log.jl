@@ -54,6 +54,7 @@ function tdr_preprocess_log_data(
     output_period_map::DataFrame,
     map_path::String,
     case_root::String,
+    trailing_hours::Int,
 )
     forced_periods = sort!(unique(Int[selection.period for selection in extreme_selections]))
     period_length = settings.timesteps_per_representative_period
@@ -65,6 +66,7 @@ function tdr_preprocess_log_data(
         "time_domain_reduction" => Dict(
             "temporal_summary" => Dict(
                 "original_hours" => full_length,
+                "trailing_source_hours_excluded_from_tdr" => trailing_hours,
                 "original_periods" => full_length ÷ period_length,
                 "period_map_rows" => nrow(output_period_map),
                 "timesteps_per_representative_period" => period_length,
@@ -108,6 +110,7 @@ function tdr_write_preprocess_log!(
     representative_periods::Vector{Int},
     output_period_map::DataFrame,
     map_path::String,
+    trailing_hours::Int,
 )
     log_data = tdr_preprocess_log_data(
         sources,
@@ -119,6 +122,7 @@ function tdr_write_preprocess_log!(
         output_period_map,
         map_path,
         case_root,
+        trailing_hours,
     )
     write_json(joinpath(case_root, "preprocess_log.json"), log_data)
     return nothing

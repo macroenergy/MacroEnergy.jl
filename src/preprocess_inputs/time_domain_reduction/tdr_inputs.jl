@@ -168,7 +168,32 @@ function tdr_full_length(time_data_path::String)
     lengths = unique(Int(n_subperiods) * Int(value) for value in values(hps))
     length(lengths) == 1 ||
         throw(ArgumentError("TDR currently requires all commodities to have the same full hourly horizon."))
-    return only(lengths), data
+    explicit_hours = only(lengths)
+    total_hours = get(data, "TotalHoursModeled", explicit_hours)
+    total_hours isa Integer && total_hours >= explicit_hours || throw(ArgumentError(
+        "TDR requires TotalHoursModeled to be an integer no smaller than the explicit " *
+        "subperiod horizon ($explicit_hours hours).",
+    ))
+    return explicit_hours, Int(total_hours), data
+end
+
+function tdr_time_series_values(
+    values,
+    source_description::String,
+    explicit_hours::Int,
+    total_hours::Int,
+)
+    eltype(values) <: Real || throw(ArgumentError("Time-series `$source_description` is not numeric."))
+    if length(values) == explicit_hours
+        return Float64.(values), 0
+    elseif total_hours > explicit_hours && length(values) == total_hours
+        return Float64.(values[1:explicit_hours]), total_hours - explicit_hours
+    end
+    expected_lengths = total_hours == explicit_hours ? "$explicit_hours" : "$explicit_hours or $total_hours"
+    throw(ArgumentError(
+        "Time-series `$source_description` has length $(length(values)); expected $expected_lengths. " *
+        "The explicit MacroEnergy subperiod grid contains $explicit_hours hours.",
+    ))
 end
 
 function tdr_field_name(path::Vector{Any})
@@ -272,6 +297,8 @@ function tdr_collect_references!(
     json_file::String,
     case_root::String,
     full_length::Int,
+    total_hours::Int,
+    trailing_hours::Ref{Int},
     all_features::Vector{TDRFeatureSpec},
     exclusions::Vector{TDRFeatureSpec},
     commodity_names::Set{String},
@@ -296,10 +323,13 @@ function tdr_collect_references!(
             else
                 isfile(csv_path) || throw(ArgumentError("Time-series file does not exist: $csv_path"))
                 frame = read_csv(csv_path, header)
-                values = frame[!, header]
-                eltype(values) <: Real || throw(ArgumentError("Time-series `$header` in $csv_path is not numeric."))
-                length(values) == full_length || throw(ArgumentError("Time-series `$header` in $csv_path has length $(length(values)); expected $full_length."))
-                values = Float64.(values)
+                values, removed_hours = tdr_time_series_values(
+                    frame[!, header],
+                    "$header in $csv_path",
+                    full_length,
+                    total_hours,
+                )
+                trailing_hours[] = max(trailing_hours[], removed_hours)
             end
 
             field = tdr_field_name(path)
@@ -345,10 +375,10 @@ function tdr_collect_references!(
             next_commodity = tdr_commodity_context(data["global_data"], commodity_names)
         end
         for (key, value) in pairs(data)
-            tdr_collect_references!(sources, value, json_file, case_root, full_length, all_features, exclusions, commodity_names, [path; key]; asset=next_asset, commodity=next_commodity)
+            tdr_collect_references!(sources, value, json_file, case_root, full_length, total_hours, trailing_hours, all_features, exclusions, commodity_names, [path; key]; asset=next_asset, commodity=next_commodity)
         end
     elseif data isa AbstractVector
-        if length(data) == full_length && all(value -> value isa Real, data)
+        if length(data) in (full_length, total_hours) && all(value -> value isa Real, data)
             field = tdr_field_name(path)
             feature = tdr_feature_for_reference(all_features, field, json_file, nothing, case_root, asset, commodity)
             if !isnothing(feature)
@@ -364,11 +394,18 @@ function tdr_collect_references!(
                     include_in_clustering=!excluded,
                 )
                 key = "inline:" * json_file * ":" * join(string.(path), "/")
-                tdr_add_reference!(sources, key, Float64.(data); inline_file=json_file, inline_path=path, reference=reference)
+                values, removed_hours = tdr_time_series_values(
+                    data,
+                    "inline vector in $json_file",
+                    full_length,
+                    total_hours,
+                )
+                trailing_hours[] = max(trailing_hours[], removed_hours)
+                tdr_add_reference!(sources, key, values; inline_file=json_file, inline_path=path, reference=reference)
             end
         else
             for (idx, value) in pairs(data)
-                tdr_collect_references!(sources, value, json_file, case_root, full_length, all_features, exclusions, commodity_names, [path; idx]; asset=asset, commodity=commodity)
+                tdr_collect_references!(sources, value, json_file, case_root, full_length, total_hours, trailing_hours, all_features, exclusions, commodity_names, [path; idx]; asset=asset, commodity=commodity)
             end
         end
     end
@@ -378,17 +415,18 @@ end
 function tdr_sources(case_root::String, settings::TDRSettings)
     files = tdr_input_json_files(case_root)
     time_data_path = tdr_time_data_path(case_root, files)
-    full_length, time_data = tdr_full_length(time_data_path)
+    full_length, total_hours, time_data = tdr_full_length(time_data_path)
     full_length % settings.timesteps_per_representative_period == 0 ||
         throw(ArgumentError("The full horizon ($full_length) is not divisible by timesteps_per_representative_period ($(settings.timesteps_per_representative_period))."))
     sources = Dict{String,TimeSeriesSource}()
+    trailing_hours = Ref(0)
     commodity_names = Set(String.(keys(time_data["HoursPerTimeStep"])))
     for file in files
-        tdr_collect_references!(sources, mutable_json_data(read_json(file)), file, case_root, full_length, settings.all_features, settings.excluded_features, commodity_names)
+        tdr_collect_references!(sources, mutable_json_data(read_json(file)), file, case_root, full_length, total_hours, trailing_hours, settings.all_features, settings.excluded_features, commodity_names)
     end
     isempty(sources) && throw(ArgumentError("No time-dependent inputs were discovered for TDR."))
     all_sources = collect(values(sources))
     clustering_sources = filter(source -> source.include_in_clustering, all_sources)
     isempty(clustering_sources) && throw(ArgumentError("No TDR clustering features remain after exclusions."))
-    return all_sources, clustering_sources, full_length, time_data_path, time_data
+    return all_sources, clustering_sources, full_length, time_data_path, time_data, trailing_hours[]
 end

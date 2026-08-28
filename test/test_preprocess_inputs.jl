@@ -108,6 +108,16 @@ end
     @test length(extreme_settings.extreme_periods) == 1
     @test only(extreme_settings.extreme_periods).feature.commodity == "Electricity"
 
+    full_year_values, trailing_hours = MacroEnergy.tdr_time_series_values(
+        collect(1.0:8760.0),
+        "test full-year series",
+        8736,
+        8760,
+    )
+    @test length(full_year_values) == 8736
+    @test full_year_values[end] == 8736.0
+    @test trailing_hours == 24
+
     forced_cluster_settings = MacroEnergy.TDRSettings(
         timesteps_per_representative_period=2,
         representative_periods=2,
@@ -155,7 +165,7 @@ end
         @test availability.user_weight == 1.0
         @test settings.method_settings isa MacroEnergy.TDRKMeansSettings
         @test settings.method_settings.restarts == 3
-        all_sources, _, _, _, _ = MacroEnergy.tdr_sources(source_case, settings)
+        all_sources, _, _, _, _, _ = MacroEnergy.tdr_sources(source_case, settings)
         shared_availability = only(filter(source -> source.header == :solar_pv_MA, all_sources))
         @test shared_availability.occurrences == 2
         @test shared_availability.weight == 2.0
@@ -170,7 +180,7 @@ end
         ))
         excluded_settings = MacroEnergy.load_time_domain_reduction_settings(excluded_settings_path)
         @test !any(feature -> feature.id == "availability", excluded_settings.features)
-        excluded_sources, _, _, _, _ = MacroEnergy.tdr_sources(source_case, excluded_settings)
+        excluded_sources, _, _, _, _, _ = MacroEnergy.tdr_sources(source_case, excluded_settings)
         @test !only(filter(source -> source.header == :solar_pv_MA, excluded_sources)).include_in_clustering
 
         nested_output_case = joinpath(source_case, "reduced")
@@ -202,6 +212,7 @@ end
         @test !haskey(preprocess_log, :stale)
         tdr_log = preprocess_log[:time_domain_reduction]
         @test tdr_log[:temporal_summary][:original_hours] == full_length
+        @test tdr_log[:temporal_summary][:trailing_source_hours_excluded_from_tdr] == 0
         @test tdr_log[:clustering][:regular_representative_periods] == 2
         @test tdr_log[:clustering_features][:unique_time_series] > 0
         @test !isempty(tdr_log[:clustering_features][:sources])
