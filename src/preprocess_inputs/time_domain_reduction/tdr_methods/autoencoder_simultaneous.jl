@@ -38,6 +38,6 @@ function tdr_method_settings(
         restarts,
         verbose,
         tdr_autoencoder_settings(settings_data)...,
-        lambda=tdr_method_float(settings_data, "lambda", 0.1; minimum=0.0),
+        lambda=tdr_method_float(settings_data, "lambda"; minimum=0.0),
     )
 end
