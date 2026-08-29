@@ -487,7 +487,7 @@ function tdr_commodity_context(data::AbstractDict, commodity_names::Set{String})
 end
 
 function tdr_collect_references!(
-    sources,
+    sources::Dict{String,TimeSeriesSource},
     data,
     json_file::String,
     case_root::String,
@@ -497,7 +497,7 @@ function tdr_collect_references!(
     all_features::Vector{TDRFeatureSpec},
     exclusions::Vector{TDRFeatureSpec},
     commodity_names::Set{String},
-    path=Any[];
+    path::Vector{Any}=Any[];
     asset::Union{Nothing,String}=nothing,
     commodity::Union{Nothing,String}=nothing,
 )
@@ -570,7 +570,9 @@ function tdr_collect_references!(
             next_commodity = tdr_commodity_context(data["global_data"], commodity_names)
         end
         for (key, value) in pairs(data)
-            tdr_collect_references!(sources, value, json_file, case_root, full_length, total_hours, trailing_hours, all_features, exclusions, commodity_names, [path; key]; asset=next_asset, commodity=next_commodity)
+            push!(path, key)
+            tdr_collect_references!(sources, value, json_file, case_root, full_length, total_hours, trailing_hours, all_features, exclusions, commodity_names, path; asset=next_asset, commodity=next_commodity)
+            pop!(path)
         end
     elseif data isa AbstractVector
         if length(data) in (full_length, total_hours) && all(value -> value isa Real, data)
@@ -600,7 +602,9 @@ function tdr_collect_references!(
             end
         else
             for (idx, value) in pairs(data)
-                tdr_collect_references!(sources, value, json_file, case_root, full_length, total_hours, trailing_hours, all_features, exclusions, commodity_names, [path; idx]; asset=asset, commodity=commodity)
+                push!(path, idx)
+                tdr_collect_references!(sources, value, json_file, case_root, full_length, total_hours, trailing_hours, all_features, exclusions, commodity_names, path; asset=asset, commodity=commodity)
+                pop!(path)
             end
         end
     end

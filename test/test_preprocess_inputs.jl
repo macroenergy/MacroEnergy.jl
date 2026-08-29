@@ -69,6 +69,31 @@ end
         )
         @test Set(paths) == Set(("inputs/time_data.json", "assets"))
 
+        sources = Dict{String,MacroEnergy.TimeSeriesSource}()
+        MacroEnergy.tdr_collect_references!(
+            sources,
+            Dict(
+                "availability" => collect(1:4),
+                "nested" => Dict("availability" => collect(5:8)),
+            ),
+            "asset.json",
+            ".",
+            4,
+            4,
+            Ref(0),
+            [MacroEnergy.TDRFeatureSpec(field="availability")],
+            MacroEnergy.TDRFeatureSpec[],
+            Set{String}(),
+        )
+        @test Set(Tuple(source.inline_path) for source in values(sources)) == Set((
+            ("availability",),
+            ("nested", "availability"),
+        ))
+        @test Set(Tuple(first(source.references).input_path) for source in values(sources)) == Set((
+            ("availability",),
+            ("nested", "availability"),
+        ))
+
         mktempdir() do case_root
             mkpath.(joinpath.(case_root, ("inputs", "assets", "data")))
             MacroEnergy.write_json(joinpath(case_root, "system_data.json"), Dict(
