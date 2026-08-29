@@ -1,9 +1,16 @@
-tdr_output_features_directory(case_root::String) = joinpath(case_root, "TDR", "output_features")
-tdr_output_features_path(case_root::String) = joinpath(tdr_output_features_directory(case_root), "output_features.csv.gz")
-tdr_output_metadata_path(case_root::String) = joinpath(tdr_output_features_directory(case_root), "output_metadata.json")
+function tdr_output_features_directory(case_root::String; system_index::Union{Nothing,Int}=nothing)
+    isnothing(system_index) && return joinpath(case_root, "TDR", "output_features")
+    return joinpath(case_root, "TDR", "systems", "system_$system_index", "output_features")
+end
 
-function tdr_saved_output_features_exist(case_root::String)
-    return isfile(tdr_output_features_path(case_root)) && isfile(tdr_output_metadata_path(case_root))
+tdr_output_features_path(case_root::String; system_index::Union{Nothing,Int}=nothing) =
+    joinpath(tdr_output_features_directory(case_root; system_index), "output_features.csv.gz")
+tdr_output_metadata_path(case_root::String; system_index::Union{Nothing,Int}=nothing) =
+    joinpath(tdr_output_features_directory(case_root; system_index), "output_metadata.json")
+
+function tdr_saved_output_features_exist(case_root::String; system_index::Union{Nothing,Int}=nothing)
+    return isfile(tdr_output_features_path(case_root; system_index)) &&
+        isfile(tdr_output_metadata_path(case_root; system_index))
 end
 
 function tdr_output_feature_spec_data(feature::TDROutputFeatureSpec)
@@ -51,6 +58,7 @@ function tdr_write_output_features!(
     sources::Vector{TimeSeriesSource},
     settings::TDRSettings,
     full_length::Int,
+    ; system_index::Union{Nothing,Int}=nothing,
 )
     period_length = settings.timesteps_per_representative_period
     n_periods = full_length ÷ period_length
@@ -62,10 +70,11 @@ function tdr_write_output_features!(
     for (source, column) in zip(sources, columns)
         data[!, Symbol(column)] = source.values
     end
-    directory = tdr_output_features_directory(case_root)
+    directory = tdr_output_features_directory(case_root; system_index)
     mkpath(directory)
-    CSV.write(tdr_output_features_path(case_root), data; compress=true)
+    CSV.write(tdr_output_features_path(case_root; system_index), data; compress=true)
     metadata = Dict(
+        "system_index" => system_index,
         "full_length" => full_length,
         "timesteps_per_representative_period" => period_length,
         "feature_specs" => tdr_output_feature_spec_data.(settings.output_features.features),
@@ -84,7 +93,7 @@ function tdr_write_output_features!(
             "weight" => source.weight,
         ) for (source, column) in zip(sources, columns)],
     )
-    write_json(tdr_output_metadata_path(case_root), metadata)
+    write_json(tdr_output_metadata_path(case_root; system_index), metadata)
     return nothing
 end
 
@@ -92,12 +101,16 @@ function tdr_load_output_features(
     case_root::String,
     settings::TDRSettings,
     full_length::Int,
+    ; system_index::Union{Nothing,Int}=nothing,
 )
-    data_path = tdr_output_features_path(case_root)
-    metadata_path = tdr_output_metadata_path(case_root)
+    data_path = tdr_output_features_path(case_root; system_index)
+    metadata_path = tdr_output_metadata_path(case_root; system_index)
     isfile(data_path) || throw(ArgumentError("Saved TDR output features do not exist: $data_path"))
     isfile(metadata_path) || throw(ArgumentError("Saved TDR output metadata does not exist: $metadata_path"))
     metadata = mutable_json_data(read_json(metadata_path))
+    get(metadata, "system_index", nothing) == system_index || throw(ArgumentError(
+        "Saved TDR output features belong to a different System.",
+    ))
     period_length = settings.timesteps_per_representative_period
     get(metadata, "full_length", nothing) == full_length || throw(ArgumentError("Saved TDR output features have a different input horizon."))
     get(metadata, "timesteps_per_representative_period", nothing) == period_length || throw(ArgumentError("Saved TDR output features have a different representative-period length."))

@@ -33,26 +33,51 @@ function tdr_time_domain_reduction(
     source_case_path::AbstractString=case_path,
     output_feature_run_kwargs::NamedTuple=NamedTuple(),
     system_index::Union{Nothing,Int}=nothing,
-)::Nothing
+    precomputed_output=nothing,
+    write_root_records::Bool=true,
+)
     case_root = abspath(case_path)
     isdir(case_root) || throw(ArgumentError("Case directory does not exist: $case_root"))
     if isnothing(system_index)
         number_of_systems = tdr_prepare_system_inputs!(case_root)
         if number_of_systems > 1
-            !isnothing(parsed_settings.output_features) && throw(ArgumentError(
-                "Output-based features are not yet supported for multi-System TDR. " *
-                "Remove `output_based_features` to reduce each System's inputs independently.",
-            ))
             @info "Reducing $number_of_systems Systems independently."
+            output_sources = nothing
+            if !isnothing(parsed_settings.output_features)
+                full_lengths = Dict(
+                    index => first(tdr_full_length(tdr_system_time_data_path(case_root, index)))
+                    for index in 1:number_of_systems
+                )
+                output_sources = tdr_output_sources(
+                    case_root,
+                    parsed_settings,
+                    full_lengths;
+                    run_case_kwargs=output_feature_run_kwargs,
+                )
+            end
+            system_records = Dict{String,Any}()
+            system_logs = Dict{String,Any}()
             for index in 1:number_of_systems
-                tdr_time_domain_reduction(
+                record = tdr_time_domain_reduction(
                     case_root,
                     parsed_settings;
                     source_case_path,
                     output_feature_run_kwargs,
                     system_index=index,
+                    precomputed_output=isnothing(output_sources) ? nothing : output_sources[index],
+                    write_root_records=false,
                 )
+                system_records["system_$index"] = record.provenance
+                system_logs["system_$index"] = record.log["time_domain_reduction"]
             end
+            write_json(joinpath(case_root, "time_domain_reduction_provenance.json"), Dict(
+                "source_case_path" => abspath(source_case_path),
+                "systems" => system_records,
+            ))
+            write_json(joinpath(case_root, "preprocess_log.json"), Dict(
+                "time_domain_reduction" => Dict("systems" => system_logs),
+            ))
+            @info "Finished time-domain reduction for $number_of_systems Systems in `$case_root`."
             return nothing
         end
         system_index = 1
@@ -66,12 +91,9 @@ function tdr_time_domain_reduction(
     subperiod_results = nothing
     if !isnothing(parsed_settings.output_features)
         input_sources = copy(clustering_sources)
-        output_sources, subperiod_results = tdr_output_sources(
-            case_root,
-            parsed_settings,
-            full_length;
-            run_case_kwargs=output_feature_run_kwargs,
-        )
+        output_sources, subperiod_results = isnothing(precomputed_output) ?
+            tdr_output_sources(case_root, parsed_settings, full_length;
+                run_case_kwargs=output_feature_run_kwargs) : precomputed_output
         append!(sources, output_sources)
         append!(clustering_sources, output_sources)
         tdr_set_clustering_weights!(input_sources, output_sources, parsed_settings.output_features.weight)
@@ -104,6 +126,7 @@ function tdr_time_domain_reduction(
     )
     @info " ++ Reduced $input_periods input periods to $(length(representatives)) representative periods; wrote period map to `$(relpath(map_path, case_root))`."
     provenance = Dict(
+        "system_index" => system_index,
         "source_case_path" => abspath(source_case_path),
         "settings" => Dict(
             "timesteps_per_representative_period" => parsed_settings.timesteps_per_representative_period,
@@ -134,9 +157,7 @@ function tdr_time_domain_reduction(
         "period_map_path" => relpath(map_path, case_root),
         "subperiod_solves" => isnothing(parsed_settings.output_features) ? nothing : subperiod_results,
     )
-    write_json(joinpath(case_root, "time_domain_reduction_provenance.json"), provenance)
-    tdr_write_preprocess_log!(
-        case_root,
+    log_data = tdr_preprocess_log_data(
         sources,
         clustering_sources,
         full_length,
@@ -145,9 +166,14 @@ function tdr_time_domain_reduction(
         representatives,
         output_period_map,
         map_path,
+        case_root,
         trailing_hours,
         subperiod_results,
     )
-    @info "Finished time-domain reduction for `$case_root`."
-    return nothing
+    if write_root_records
+        write_json(joinpath(case_root, "time_domain_reduction_provenance.json"), provenance)
+        write_json(joinpath(case_root, "preprocess_log.json"), log_data)
+    end
+    @info "Finished time-domain reduction for System $system_index in `$case_root`."
+    return (provenance=provenance, log=log_data)
 end

@@ -78,11 +78,24 @@ function copy_case(
     
     return mktempdir() do temporary_root
         saved_output_features = joinpath(temporary_root, "output_features")
+        saved_system_output_features = joinpath(temporary_root, "system_output_features")
         has_saved_output_features = preserve_tdr_output_features &&
             tdr_saved_output_features_exist(output_root)
         if has_saved_output_features
             @info " ++ Preserving saved output-based TDR features while replacing the output case."
             cp(tdr_output_features_directory(output_root), saved_output_features; force=false)
+        end
+        if preserve_tdr_output_features
+            source_systems = joinpath(output_root, "TDR", "systems")
+            if isdir(source_systems)
+                for name in readdir(source_systems)
+                    source = joinpath(source_systems, name, "output_features")
+                    isdir(source) || continue
+                    destination = joinpath(saved_system_output_features, name)
+                    mkpath(dirname(destination))
+                    cp(source, destination; force=false)
+                end
+            end
         end
 
         if ispath(output_root)
@@ -105,6 +118,14 @@ function copy_case(
             ispath(destination) && rm(destination; recursive=true, force=true)
             mkpath(dirname(destination))
             cp(saved_output_features, destination; force=false)
+        end
+        if isdir(saved_system_output_features)
+            for name in readdir(saved_system_output_features)
+                source = joinpath(saved_system_output_features, name)
+                destination = joinpath(output_root, "TDR", "systems", name, "output_features")
+                mkpath(dirname(destination))
+                cp(source, destination; force=false)
+            end
         end
         return nothing
     end

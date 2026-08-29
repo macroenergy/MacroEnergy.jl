@@ -156,6 +156,19 @@ end
         )
         @test isfile(joinpath(output_case, "TDR", "output_features", "output_features.csv.gz"))
         @test isfile(joinpath(output_case, "TDR", "output_features", "output_metadata.json"))
+
+        system_features = joinpath(output_case, "TDR", "systems", "system_2", "output_features")
+        mkpath(system_features)
+        touch(joinpath(system_features, "output_features.csv.gz"))
+        touch(joinpath(system_features, "output_metadata.json"))
+        MacroEnergy.copy_case(
+            source_case,
+            output_case;
+            overwrite=true,
+            preserve_tdr_output_features=true,
+        )
+        @test isfile(joinpath(output_case, "TDR", "systems", "system_2", "output_features", "output_features.csv.gz"))
+        @test isfile(joinpath(output_case, "TDR", "systems", "system_2", "output_features", "output_metadata.json"))
     end
 
     scoped_feature = MacroEnergy.tdr_feature_spec(Dict(
@@ -505,5 +518,56 @@ end
         @test length(case.systems) == 1
         @test !isnothing(solution)
         @test_nowarn preprocess_inputs(source_case, output_case; tdr_settings_path=settings_path, overwrite=true)
+    end
+
+    @testset "multi-System output subperiod inputs" begin
+        mktempdir() do temporary_root
+            source_case = joinpath(temporary_root, "source")
+            cp(PREPARE_CASE_TEST_INPUTS, source_case)
+            expand_tdr_fixture!(source_case)
+            system = MacroEnergy.mutable_json_data(MacroEnergy.read_json(joinpath(source_case, "system_data.json")))
+            MacroEnergy.write_json(joinpath(source_case, "system_data.json"), Dict(
+                "case" => Any[system, deepcopy(system)],
+                "settings" => Dict("path" => "settings/case_settings.json"),
+            ))
+            case_settings = MacroEnergy.mutable_json_data(MacroEnergy.read_json(
+                joinpath(source_case, "settings", "case_settings.json"),
+            ))
+            case_settings["PeriodLengths"] = Any[1, 1]
+            MacroEnergy.write_json(joinpath(source_case, "settings", "case_settings.json"), case_settings)
+
+            MacroEnergy.write_json(joinpath(temporary_root, "output_features.json"), Dict(
+                "timesteps_per_representative_period" => 168,
+                "representative_periods" => 3,
+                "method" => Dict("name" => "kmeans"),
+                "scaling" => "standardize",
+                "output_based_features" => Dict(
+                    "weight" => 0.5,
+                    "features" => [Dict("provider" => "flow")],
+                ),
+            ))
+            output_settings = MacroEnergy.load_time_domain_reduction_settings(joinpath(
+                temporary_root, "output_features.json",
+            ))
+            @test MacroEnergy.tdr_prepare_system_inputs!(source_case) == 2
+            subperiod_case = joinpath(temporary_root, "system_2_period_1")
+            MacroEnergy.tdr_materialize_subperiod_case!(
+                source_case,
+                subperiod_case,
+                1,
+                output_settings;
+                system_index=2,
+            )
+            isolated_case_settings = MacroEnergy.read_json(joinpath(
+                subperiod_case, "settings", "case_settings.json",
+            ))
+            @test isolated_case_settings["PeriodLengths"] == [1]
+            @test isolated_case_settings["ExpansionHorizon"] == "PerfectForesight"
+            isolated_case = load_case(subperiod_case)
+            @test length(isolated_case.systems) == 1
+            @test !isdir(MacroEnergy.tdr_output_features_directory(source_case; system_index=2))
+            @test MacroEnergy.tdr_saved_subperiod_directory(source_case, 1; system_index=2) ==
+                joinpath(source_case, "TDR", "systems", "system_2", "subperiod_solves", "period_0001")
+        end
     end
 end

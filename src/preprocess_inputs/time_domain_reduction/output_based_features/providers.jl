@@ -42,6 +42,7 @@ const TDR_OUTPUT_PROVIDERS = Dict{String,Function}(
 """All serializable inputs needed to run one isolated output-feature subperiod."""
 struct TDRSubperiodTask
     source_case_root::String
+    system_index::Int
     period::Int
     settings::TDRSettings
     run_case_kwargs::NamedTuple
@@ -116,12 +117,69 @@ function tdr_write_subperiod_time_data!(time_data_path::String, source_time_data
     return nothing
 end
 
-function tdr_copy_subperiod_case(source_case_root::String, destination_case_root::String)
+function tdr_copy_subperiod_case(
+    source_case_root::String,
+    destination_case_root::String;
+    system_index::Union{Nothing,Int}=nothing,
+)
     mkpath(destination_case_root)
     for name in readdir(source_case_root)
         name == "TDR" && continue
         cp(joinpath(source_case_root, name), joinpath(destination_case_root, name); force=false)
     end
+    if !isnothing(system_index) && length(last(tdr_system_entries(source_case_root))) > 1
+        source_inputs = tdr_system_inputs_directory(source_case_root, system_index)
+        isdir(source_inputs) || throw(ArgumentError(
+            "Prepared inputs for System $system_index do not exist: $source_inputs",
+        ))
+        destination_inputs = tdr_system_inputs_directory(destination_case_root, system_index)
+        mkpath(dirname(destination_inputs))
+        cp(source_inputs, destination_inputs; force=false)
+    end
+    return nothing
+end
+
+function tdr_write_single_system_data!(
+    source_case_root::String,
+    destination_case_root::String,
+    system_index::Int,
+)
+    _, systems = tdr_system_entries(source_case_root)
+    1 <= system_index <= length(systems) || throw(ArgumentError(
+        "System $system_index is outside the case's $(length(systems)) Systems.",
+    ))
+    write_json(joinpath(destination_case_root, "system_data.json"), deepcopy(systems[system_index]))
+    return nothing
+end
+
+function tdr_write_single_system_case_settings!(
+    source_case_root::String,
+    destination_case_root::String,
+    system_index::Int,
+)
+    root, systems = tdr_system_entries(source_case_root)
+    length(systems) > 1 || return nothing
+    haskey(root, "settings") && root["settings"] isa AbstractDict &&
+        haskey(root["settings"], "path") || throw(ArgumentError(
+            "Multi-System output-based TDR requires `settings.path` in system_data.json.",
+        ))
+    source_path = abspath(rel_or_abs_path(String(root["settings"]["path"]), source_case_root))
+    isfile(source_path) || throw(ArgumentError("Case settings file does not exist: $source_path"))
+    settings = mutable_json_data(read_json(source_path))
+    lengths = get(settings, "PeriodLengths", nothing)
+    lengths isa AbstractVector && length(lengths) >= system_index || throw(ArgumentError(
+        "Case settings `PeriodLengths` must contain a period length for System $system_index.",
+    ))
+    settings["PeriodLengths"] = Any[lengths[system_index]]
+    # Each output-feature subproblem represents one independent operational
+    # System. A source Case may be Myopic, but retaining that horizon causes
+    # the one-period solve to release its JuMP model before providers can read
+    # flows or storage levels. There is no inter-System carry-over here, so a
+    # one-period PerfectForesight solve is the appropriate isolated model.
+    settings["ExpansionHorizon"] = "PerfectForesight"
+    destination_path = joinpath(destination_case_root, "settings", "case_settings.json")
+    mkpath(dirname(destination_path))
+    write_json(destination_path, settings)
     return nothing
 end
 
@@ -130,8 +188,13 @@ function tdr_materialize_subperiod_case!(
     destination_case_root::String,
     period::Int,
     settings::TDRSettings,
+    ; system_index::Union{Nothing,Int}=nothing,
 )
-    tdr_copy_subperiod_case(source_case_root, destination_case_root)
+    tdr_copy_subperiod_case(source_case_root, destination_case_root; system_index)
+    if !isnothing(system_index) && length(last(tdr_system_entries(source_case_root))) > 1
+        tdr_write_single_system_data!(source_case_root, destination_case_root, system_index)
+        tdr_write_single_system_case_settings!(source_case_root, destination_case_root, system_index)
+    end
     sources, _, full_length, time_data_path, time_data, _ = tdr_sources(destination_case_root, settings)
     period_length = settings.timesteps_per_representative_period
     n_periods = full_length ÷ period_length
@@ -201,6 +264,7 @@ end
 
 function tdr_run_subperiod(
     source_case_root::String,
+    system_index::Int,
     period::Int,
     settings::TDRSettings,
     run_case_kwargs::NamedTuple,
@@ -214,9 +278,11 @@ function tdr_run_subperiod(
                 settings.output_features,
                 settings.timesteps_per_representative_period,
             )
-            return (period=period, outputs=outputs)
+            return (system_index=system_index, period=period, outputs=outputs)
         catch error
-            throw(ErrorException("Output-based TDR subperiod $period failed: $(sprint(showerror, error))"))
+            throw(ErrorException(
+                "Output-based TDR System $system_index subperiod $period failed: $(sprint(showerror, error))",
+            ))
         end
     end
     if !isnothing(subperiod_case_root)
@@ -224,7 +290,7 @@ function tdr_run_subperiod(
     end
     return mktempdir() do temporary_root
         temporary_case_root = joinpath(temporary_root, "case")
-        tdr_materialize_subperiod_case!(source_case_root, temporary_case_root, period, settings)
+        tdr_materialize_subperiod_case!(source_case_root, temporary_case_root, period, settings; system_index)
         solve_subperiod(temporary_case_root)
     end
 end
@@ -239,6 +305,7 @@ function tdr_run_subperiod_quietly(task::TDRSubperiodTask)
     return with_logger(NullLogger()) do
         tdr_run_subperiod(
             task.source_case_root,
+            task.system_index,
             task.period,
             task.settings,
             task.run_case_kwargs,
@@ -247,8 +314,16 @@ function tdr_run_subperiod_quietly(task::TDRSubperiodTask)
     end
 end
 
-tdr_saved_subperiod_directory(case_root::String, period::Int) =
-    joinpath(case_root, "TDR", "subperiod_solves", "period_$(lpad(period, 4, '0'))")
+function tdr_saved_subperiod_directory(
+    case_root::String,
+    period::Int;
+    system_index::Union{Nothing,Int}=nothing,
+)
+    directory = isnothing(system_index) ?
+        joinpath(case_root, "TDR", "subperiod_solves") :
+        joinpath(case_root, "TDR", "systems", "system_$system_index", "subperiod_solves")
+    return joinpath(directory, "period_$(lpad(period, 4, '0'))")
+end
 
 function tdr_subperiod_run_settings_data(settings::TDRSubperiodRunSettings)
     return Dict(
@@ -260,22 +335,33 @@ function tdr_subperiod_run_settings_data(settings::TDRSubperiodRunSettings)
     )
 end
 
-function tdr_save_subperiod_inputs!(case_root::String, period::Int, settings::TDRSettings)
-    destination = tdr_saved_subperiod_directory(case_root, period)
+function tdr_save_subperiod_inputs!(
+    case_root::String,
+    period::Int,
+    settings::TDRSettings;
+    system_index::Union{Nothing,Int}=nothing,
+)
+    destination = tdr_saved_subperiod_directory(case_root, period; system_index)
     ispath(destination) && rm(destination; recursive=true, force=true)
     mktempdir() do temporary_root
         temporary_case = joinpath(temporary_root, "case")
-        tdr_materialize_subperiod_case!(case_root, temporary_case, period, settings)
+        tdr_materialize_subperiod_case!(case_root, temporary_case, period, settings; system_index)
         mkpath(dirname(destination))
         mv(temporary_case, destination)
     end
     return destination
 end
 
-function tdr_save_subperiod_results!(case_root::String, period::Int, outputs)
-    destination = tdr_saved_subperiod_directory(case_root, period)
+function tdr_save_subperiod_results!(
+    case_root::String,
+    period::Int,
+    outputs;
+    system_index::Union{Nothing,Int}=nothing,
+)
+    destination = tdr_saved_subperiod_directory(case_root, period; system_index)
     mkpath(destination)
     data = Dict(
+        "system_index" => system_index,
         "period" => period,
         "outputs" => Dict(
             key => [Dict(
@@ -296,97 +382,16 @@ function tdr_save_subperiod_results!(case_root::String, period::Int, outputs)
     return path
 end
 
-function tdr_output_sources(
-    case_root::String,
+function tdr_output_sources_from_results(
+    results,
+    periods::Vector{Int},
     tdr_settings::TDRSettings,
-    full_length::Int;
-    run_case_kwargs::NamedTuple=NamedTuple(),
 )
-    settings = tdr_settings.output_features
-    if settings.reuse_saved_features && tdr_saved_output_features_exist(case_root)
-        @info " -- Loading saved output-based TDR features from TDR/output_features."
-        sources = tdr_load_output_features(case_root, tdr_settings, full_length)
-        @info " ++ Loaded $(length(sources)) saved output time series for TDR clustering."
-        return sources, [Dict(
-            "reused_saved_features" => true,
-            "features_path" => relpath(tdr_output_features_path(case_root), case_root),
-            "metadata_path" => relpath(tdr_output_metadata_path(case_root), case_root),
-        )]
-    elseif settings.reuse_saved_features
-        @warn "Saved output-based TDR features were requested but do not exist under TDR/output_features; generating new features instead."
-    end
-    @info "Generating output-based TDR features."
-    if !settings.subperiod_runs.include_policy_constraints
-        setup_user_additions(case_root)
-        load_user_additions(case_root)
-        refresh_user_type_registries!()
-    end
     period_length = tdr_settings.timesteps_per_representative_period
-    n_periods = full_length ÷ period_length
-    periods = collect(1:n_periods)
-    @info " -- Preparing $n_periods isolated subperiod cases for output-based TDR."
-    input_paths = Dict{Int,Union{Nothing,String}}(period => nothing for period in periods)
-    if settings.subperiod_runs.save_subperiod_inputs
-        @info " ++ Writing isolated TDR subperiod inputs under TDR/subperiod_solves."
-        for period in periods
-            input_paths[period] = tdr_save_subperiod_inputs!(case_root, period, tdr_settings)
-        end
-        @info " ++ Finished writing $n_periods isolated TDR subperiod cases."
-    end
-    results = if settings.subperiod_runs.distributed
-        @info " -- Running output-based TDR subperiod solves on up to $(settings.subperiod_runs.workers) workers."
-        original_workers = Set(workers())
-        new_workers = Int[]
-        try
-            new_workers = start_distributed_processes!(
-                case_root,
-                Int(n_periods);
-                max_workers=settings.subperiod_runs.workers,
-                quiet=true,
-            )
-        catch
-            new_workers = setdiff(workers(), collect(original_workers))
-            tdr_register_workers!(new_workers)
-            tdr_release_workers!(new_workers)
-            rethrow()
-        end
-        tdr_register_workers!(new_workers)
-        try
-            tasks = [TDRSubperiodTask(
-                    case_root,
-                    period,
-                    tdr_settings,
-                    run_case_kwargs,
-                    input_paths[period],
-                ) for period in periods]
-            results = pmap(
-                tdr_run_subperiod_quietly,
-                WorkerPool(new_workers),
-                tasks,
-            )
-            @info " -- Finished $n_periods output-based TDR subperiod solves."
-            results
-        finally
-            tdr_release_workers!(new_workers)
-        end
-    else
-        results = Any[]
-        for period in periods
-            @info " -- Running output-based TDR subperiod $period of $n_periods."
-            push!(results, tdr_run_subperiod(
-                case_root,
-                period,
-                tdr_settings,
-                run_case_kwargs,
-                input_paths[period],
-            ))
-        end
-        @info " -- Finished $n_periods output-based TDR subperiod solves."
-        results
-    end
-
     by_period = Dict(result.period => result.outputs for result in results)
-    all(haskey(by_period, period) for period in periods) || throw(ArgumentError("Output-based TDR did not return every candidate period."))
+    all(haskey(by_period, period) for period in periods) || throw(ArgumentError(
+        "Output-based TDR did not return every candidate period.",
+    ))
     output_keys = sort!(unique(reduce(vcat, [collect(keys(by_period[period])) for period in periods]; init=String[])))
     isempty(output_keys) && throw(ArgumentError("No output-based TDR features produced time-series values."))
     sources = TimeSeriesSource[]
@@ -409,22 +414,137 @@ function tdr_output_sources(
             [reference], 1, feature.user_weight, feature.user_weight, true))
     end
     @info " -- Collected $(length(sources)) unique output time series for TDR clustering."
-    if settings.save_features
-        @info " ++ Saving output-based TDR features under TDR/output_features."
-        tdr_write_output_features!(case_root, sources, tdr_settings, full_length)
-    end
-    result_paths = Dict{Int,Union{Nothing,String}}(period => nothing for period in periods)
-    if settings.subperiod_runs.save_subperiod_results
-        @info " ++ Saving output-based TDR subperiod results under TDR/subperiod_solves."
-        for result in results
-            result_paths[result.period] = tdr_save_subperiod_results!(case_root, result.period, result.outputs)
+    return sources
+end
+
+function tdr_output_sources(
+    case_root::String,
+    tdr_settings::TDRSettings,
+    full_lengths::Dict{Int,Int};
+    run_case_kwargs::NamedTuple=NamedTuple(),
+    system_scoped::Bool=true,
+)
+    settings = tdr_settings.output_features
+    period_length = tdr_settings.timesteps_per_representative_period
+    output_data = Dict{Int,Any}()
+    tasks = TDRSubperiodTask[]
+    input_paths = Dict{Tuple{Int,Int},Union{Nothing,String}}()
+    for (system_index, full_length) in sort!(collect(full_lengths); by=first)
+        artifact_system_index = system_scoped ? system_index : nothing
+        cache_path = tdr_output_features_directory(case_root; system_index=artifact_system_index)
+        if settings.reuse_saved_features && tdr_saved_output_features_exist(case_root; system_index=artifact_system_index)
+            @info " -- Loading saved output-based TDR features for System $system_index from `$(relpath(cache_path, case_root))`."
+            sources = tdr_load_output_features(case_root, tdr_settings, full_length; system_index=artifact_system_index)
+            output_data[system_index] = (sources, [Dict(
+                "system_index" => system_index,
+                "reused_saved_features" => true,
+                "features_path" => relpath(tdr_output_features_path(case_root; system_index=artifact_system_index), case_root),
+                "metadata_path" => relpath(tdr_output_metadata_path(case_root; system_index=artifact_system_index), case_root),
+            )])
+            continue
+        elseif settings.reuse_saved_features
+            @warn "Saved output-based TDR features were requested for System $system_index but do not exist under `$(relpath(cache_path, case_root))`; generating new features instead."
+        end
+        n_periods = full_length ÷ period_length
+        for period in 1:n_periods
+            input_path = nothing
+            if settings.subperiod_runs.save_subperiod_inputs
+                input_path = tdr_save_subperiod_inputs!(case_root, period, tdr_settings;
+                    system_index=system_scoped ? system_index : nothing)
+            end
+            input_paths[(system_index, period)] = input_path
+            push!(tasks, TDRSubperiodTask(case_root, system_index, period, tdr_settings, run_case_kwargs, input_path))
         end
     end
-    metadata = [Dict(
-        "period" => result.period,
-        "output_sources" => sort!(collect(keys(result.outputs))),
-        "saved_input_path" => isnothing(input_paths[result.period]) ? nothing : relpath(input_paths[result.period], case_root),
-        "saved_result_path" => isnothing(result_paths[result.period]) ? nothing : relpath(result_paths[result.period], case_root),
-    ) for result in results]
-    return sources, metadata
+    isempty(tasks) && return output_data
+    @info "Generating output-based TDR features."
+    if settings.subperiod_runs.save_subperiod_inputs
+        @info " ++ Wrote $(length(tasks)) isolated TDR subperiod cases under System-specific TDR directories."
+    end
+    if !settings.subperiod_runs.include_policy_constraints
+        setup_user_additions(case_root)
+        load_user_additions(case_root)
+        refresh_user_type_registries!()
+    end
+    worker_ids = Int[]
+    results = if settings.subperiod_runs.distributed
+        @info " -- Running $(length(tasks)) output-based TDR subperiod solves on up to $(settings.subperiod_runs.workers) workers."
+        original_workers = Set(workers())
+        new_workers = Int[]
+        try
+            new_workers = start_distributed_processes!(case_root, length(tasks);
+                max_workers=settings.subperiod_runs.workers, quiet=true)
+        catch
+            new_workers = setdiff(workers(), collect(original_workers))
+            tdr_register_workers!(new_workers)
+            tdr_release_workers!(new_workers)
+            rethrow()
+        end
+        tdr_register_workers!(new_workers)
+        worker_ids = copy(new_workers)
+        try
+            pmap(tdr_run_subperiod_quietly, WorkerPool(new_workers), tasks)
+        finally
+            tdr_release_workers!(new_workers)
+        end
+    else
+        results = Any[]
+        for (index, task) in enumerate(tasks)
+            @info " -- Running output-based TDR System $(task.system_index) subperiod $(task.period) ($(index) of $(length(tasks)))."
+            push!(results, tdr_run_subperiod(task.source_case_root, task.system_index, task.period,
+                task.settings, task.run_case_kwargs, task.subperiod_case_root))
+        end
+        results
+    end
+    @info " -- Finished $(length(tasks)) output-based TDR subperiod solves."
+    for (system_index, full_length) in full_lengths
+        haskey(output_data, system_index) && continue
+        system_results = filter(result -> result.system_index == system_index, results)
+        periods = collect(1:full_length ÷ period_length)
+        sources = tdr_output_sources_from_results(system_results, periods, tdr_settings)
+        @info " -- Collected $(length(sources)) unique output time series for System $system_index."
+        if settings.save_features
+            @info " ++ Saving output-based TDR features for System $system_index under `$(relpath(tdr_output_features_directory(case_root; system_index=system_scoped ? system_index : nothing), case_root))`."
+            tdr_write_output_features!(case_root, sources, tdr_settings, full_length;
+                system_index=system_scoped ? system_index : nothing)
+        end
+        result_paths = Dict{Int,Union{Nothing,String}}(period => nothing for period in periods)
+        if settings.subperiod_runs.save_subperiod_results
+            for result in system_results
+                result_paths[result.period] = tdr_save_subperiod_results!(case_root, result.period, result.outputs;
+                    system_index=system_scoped ? system_index : nothing)
+            end
+        end
+        metadata = [Dict(
+            "system_index" => system_index,
+            "period" => result.period,
+            "worker_ids" => worker_ids,
+            "output_sources" => sort!(collect(keys(result.outputs))),
+            "saved_input_path" => isnothing(input_paths[(system_index, result.period)]) ? nothing : relpath(input_paths[(system_index, result.period)], case_root),
+            "saved_result_path" => isnothing(result_paths[result.period]) ? nothing : relpath(result_paths[result.period], case_root),
+        ) for result in system_results]
+        output_data[system_index] = (sources, metadata)
+    end
+    return output_data
+end
+
+function tdr_output_sources(
+    case_root::String,
+    tdr_settings::TDRSettings,
+    full_length::Int;
+    run_case_kwargs::NamedTuple=NamedTuple(),
+)
+    # Keep single-System artifact locations stable while sharing the multi-System runner.
+    settings = tdr_settings.output_features
+    if settings.reuse_saved_features && tdr_saved_output_features_exist(case_root)
+        @info " -- Loading saved output-based TDR features from TDR/output_features."
+        sources = tdr_load_output_features(case_root, tdr_settings, full_length)
+        return sources, [Dict("reused_saved_features" => true,
+            "features_path" => relpath(tdr_output_features_path(case_root), case_root),
+            "metadata_path" => relpath(tdr_output_metadata_path(case_root), case_root))]
+    end
+    # A synthetic one-System case is intentionally used here to retain the existing paths.
+    output_data = tdr_output_sources(case_root, tdr_settings, Dict(1 => full_length);
+        run_case_kwargs, system_scoped=false)
+    return output_data[1]
 end
