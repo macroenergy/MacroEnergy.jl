@@ -11,7 +11,8 @@ function default_case_settings()
         :ParameterScaling => false,
         :ParameterScalingFactor => 1e3,
         :SolutionAlgorithm => "Monolithic",
-        :ExpansionHorizon => "PerfectForesight"
+        :ExpansionHorizon => "PerfectForesight",
+        :TechnologyLearning => false
     )
 end
 

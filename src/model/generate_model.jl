@@ -9,19 +9,24 @@ function generate_model(case::Case, opt::Optimizer, ::Monolithic)
     end
 
     set_string_names_on_creation(model, case.systems[1].settings.EnableJuMPStringNames)
+    settings = get_settings(case)
 
     @info("Generating model")
+    @info("Technology learning set to $(haskey(settings, :TechnologyLearning) ? settings[:TechnologyLearning] : false)")
+    @info("CO2 cap set to $(haskey(settings, :CO2Cap) ? settings[:CO2Cap] : false)")
+
     start_time = time()
+    
 
     @variable(model, vREF == 1)
 
     periods = get_periods(case)
-    settings = get_settings(case)
+    
     fixed_cost, investment_cost, om_fixed_cost, variable_cost = Dict(), Dict(), Dict(), Dict()
 
     for (period_idx, system) in enumerate(periods)
         next = period_idx < length(periods) ? periods[period_idx+1] : nothing
-        add_period_to_model!(model, system, next, fixed_cost, investment_cost, om_fixed_cost, variable_cost)
+        add_period_to_model!(model, system, next, fixed_cost, investment_cost, om_fixed_cost, variable_cost, settings)
     end
 
     finalize_model_objective!(model, settings, fixed_cost, investment_cost, om_fixed_cost, variable_cost)
@@ -52,7 +57,7 @@ function generate_model(system::System, opt::Optimizer, settings::NamedTuple, ::
 
     fixed_cost, investment_cost, om_fixed_cost, variable_cost = Dict(), Dict(), Dict(), Dict()
 
-    add_period_to_model!(model, system, nothing, fixed_cost, investment_cost, om_fixed_cost, variable_cost)
+    add_period_to_model!(model, system, nothing, fixed_cost, investment_cost, om_fixed_cost, variable_cost, settings)
 
     finalize_model_objective!(model, settings, fixed_cost, investment_cost, om_fixed_cost, variable_cost)
 
@@ -73,21 +78,22 @@ function generate_model(case::Case, opt::Dict{Symbol,Dict{Symbol,Any}}, ::Bender
     optimizer = create_optimizer(planning_optimizer[:solver], opt_env(planning_optimizer[:solver]), planning_optimizer[:attributes])
     set_optimizer(planning_model, optimizer)
     set_silent(planning_model)
-    
+    settings = get_settings(case)
     @info("Generating planning problem")
+    @info("Technology learning set to $(haskey(settings, :TechnologyLearning) ? settings[:TechnologyLearning] : false)")
+    @info("CO2 cap set to $(haskey(settings, :CO2Cap) ? settings[:CO2Cap] : false)")
     start_time = time()
     
     @variable(planning_model, vREF == 1)
     
     periods = get_periods(case)
-    settings = get_settings(case)
     fixed_cost, investment_cost, om_fixed_cost = Dict(), Dict(), Dict()
 
     periods_decomp = generate_decomposed_system(periods)
     
     for (i, system) in enumerate(periods)
         next = i < length(periods) ? periods[i+1] : nothing
-        add_period_to_planning_model!(planning_model, system, next, fixed_cost, investment_cost, om_fixed_cost)
+        add_period_to_planning_model!(planning_model, system, next, fixed_cost, investment_cost, om_fixed_cost, settings)
     end
     
     finalize_planning_model_objective!(planning_model, periods, settings, fixed_cost, investment_cost, om_fixed_cost)
@@ -125,7 +131,7 @@ function generate_model(system::System, opt::Dict{Symbol,Dict{Symbol,Any}}, sett
     
     period_decomp = generate_decomposed_system([system])
     
-    add_period_to_planning_model!(model, system, nothing, fixed_cost, investment_cost, om_fixed_cost)
+    add_period_to_planning_model!(model, system, nothing, fixed_cost, investment_cost, om_fixed_cost, settings)
     
     finalize_planning_model_objective!(model, [system], settings, fixed_cost, investment_cost, om_fixed_cost)
     
@@ -150,11 +156,12 @@ function add_period_to_model!(
     fixed_cost::Dict,
     investment_cost::Dict,
     om_fixed_cost::Dict,
-    variable_cost::Dict
+    variable_cost::Dict,
+    settings::NamedTuple
 )
     model[:eVariableCost] = AffExpr(0.0)
 
-    build_period_planning!(model, system, next_system)
+    build_period_planning!(model, system, next_system, settings)
 
     @info(" -- Generating operational model")
     operation_model!(system, model)
@@ -171,7 +178,7 @@ retirements, and capacity carry-over."""
 function build_period_planning!(
     model::Model,
     system::System,
-    next_system::Union{System, Nothing}
+    next_system::Union{System, Nothing}, settings::NamedTuple
 )
     @info(" -- Period $(period_index(system))")
 
@@ -185,8 +192,13 @@ function build_period_planning!(
     @info(" -- Defining available capacity")
     define_available_capacity!(system, model)
 
+    if settings[:TechnologyLearning] == true
+        @info(" -- Adding technology learning")
+        add_learning!(system, model, period_index(system), settings)
+    end
+
     @info(" -- Generating planning model")
-    planning_model!(system, model)
+    planning_model!(system, model, settings)
 
     if system.settings.Retrofitting
         @info(" -- Adding retrofit constraints")
@@ -198,7 +210,7 @@ function build_period_planning!(
 
     if !isnothing(next_system)
         @info(" -- Available capacity in period $(period_index(system)) is being carried over to period $(period_index(next_system))")
-        carry_over_capacities!(next_system, system)
+        carry_over_capacities!(next_system, system, settings)
     end
 end
 
@@ -246,14 +258,14 @@ function finalize_model_objective!(
     return nothing
 end
 
-function planning_model!(system::System, model::Model)
+function planning_model!(system::System, model::Model, settings::NamedTuple)
 
     for location in system.locations
-        planning_model!(location, model)
+        planning_model!(location, model, settings)
     end
 
     for asset in system.assets
-        planning_model!(asset, model)
+        planning_model!(asset, model, settings)
     end
 
     add_constraints_by_type!(system, model, PlanningConstraint)
@@ -275,9 +287,9 @@ function operation_model!(system::System, model::Model)
     
 end
 
-function planning_model!(a::AbstractAsset, model::Model)
+function planning_model!(a::AbstractAsset, model::Model, settings::NamedTuple)
     for t in fieldnames(typeof(a))
-        planning_model!(getfield(a, t), model)
+        planning_model!(getfield(a, t), model, settings)
     end
     return nothing
 end
@@ -372,7 +384,7 @@ function compute_retirement_period!(a::AbstractAsset, period_lengths::Vector{Int
     return nothing
 end
 
-function carry_over_capacities!(system::System, system_prev::System; perfect_foresight::Bool = true)
+function carry_over_capacities!(system::System, system_prev::System, settings::NamedTuple; perfect_foresight::Bool = true)
 
     for a in system.assets
         a_prev_index = findfirst(id.(system_prev.assets).==id(a))
@@ -381,21 +393,21 @@ function carry_over_capacities!(system::System, system_prev::System; perfect_for
             validate_existing_capacity(a)
         else
             a_prev = system_prev.assets[a_prev_index];
-            carry_over_capacities!(a, a_prev ; perfect_foresight)
+            carry_over_capacities!(a, a_prev, settings; perfect_foresight)
         end
     end
 
 end
 
-function carry_over_capacities!(a::AbstractAsset, a_prev::AbstractAsset; perfect_foresight::Bool = true)
+function carry_over_capacities!(a::AbstractAsset, a_prev::AbstractAsset, settings::NamedTuple; perfect_foresight::Bool = true)
 
     for t in fieldnames(typeof(a))
-        carry_over_capacities!(getfield(a,t), getfield(a_prev,t); perfect_foresight)
+        carry_over_capacities!(getfield(a,t), getfield(a_prev,t), settings; perfect_foresight)
     end
 
 end
 
-function carry_over_capacities!(y::Union{AbstractEdge,AbstractStorage},y_prev::Union{AbstractEdge,AbstractStorage}; perfect_foresight::Bool = true)
+function carry_over_capacities!(y::Union{AbstractEdge,AbstractStorage},y_prev::Union{AbstractEdge,AbstractStorage}, settings::NamedTuple; perfect_foresight::Bool = true)
     if has_capacity(y_prev)
         
         if perfect_foresight
@@ -406,6 +418,15 @@ function carry_over_capacities!(y::Union{AbstractEdge,AbstractStorage},y_prev::U
 
         for prev_period in keys(new_capacity_track(y_prev))
             if perfect_foresight
+
+                # Learning
+                if settings[:TechnologyLearning] && learning_type(y) in settings[:LearningTechnologies]
+                    
+                    y.endogenous_capex_track[prev_period] = endogenous_capex_track(y_prev, prev_period)
+                    
+                    y.endogenous_capex_segment_chosen_track[prev_period] = endogenous_capex_segment_chosen_track(y_prev,prev_period)
+                end
+
                 y.new_capacity_track[prev_period] = new_capacity_track(y_prev,prev_period)
                 y.retired_capacity_track[prev_period] = retired_capacity_track(y_prev,prev_period)
 
@@ -429,10 +450,10 @@ function carry_over_capacities!(y::Union{AbstractEdge,AbstractStorage},y_prev::U
         
     end
 end
-function carry_over_capacities!(g::Transformation,g_prev::Transformation; perfect_foresight::Bool = true)
+function carry_over_capacities!(g::Transformation,g_prev::Transformation, settings::NamedTuple; perfect_foresight::Bool = true)
     return nothing
 end
-function carry_over_capacities!(n::Node,n_prev::Node; perfect_foresight::Bool = true)
+function carry_over_capacities!(n::Node,n_prev::Node, settings::NamedTuple; perfect_foresight::Bool = true)
     return nothing
 end
 
@@ -457,8 +478,14 @@ function compute_annualized_costs!(y::Union{AbstractEdge,AbstractStorage},settin
         if ismissing(wacc(y))
             y.wacc = settings.DiscountRate;
         end
-        y.annualized_investment_cost = investment_cost(y) * capital_recovery_factor(wacc(y), capital_recovery_period(y));
+        y.annualized_investment_cost = investment_cost(y) * capital_recovery_factor(wacc(y), capital_recovery_period(y))
     end
+
+    # Capex is needed for learning. Check if CAPEX was provided. If not, estimate it
+    if investment_cost(y) == 0.0
+        y.investment_cost = annualized_investment_cost(y)/capital_recovery_factor(wacc(y), capital_recovery_period(y))
+    end
+
     return nothing
 end
 
@@ -501,10 +528,11 @@ function discount_fixed_costs!(y::Union{AbstractEdge,AbstractStorage},settings::
         # Placeholder for other future cases like rolling horizon
         nothing
     end
-
-    # This PV is relative to the start of the Case, not the start of the period
-    y.pv_period_investment_cost = annualized_investment_cost(y) * present_value_annuity_factor(discount_rate, payment_years_remaining)
     
+    # This PV is relative to the start of the Case, not the start of the period
+    y.annuities_mult = present_value_annuity_factor(discount_rate, payment_years_remaining)
+    y.pv_period_investment_cost = annualized_investment_cost(y) * y.annuities_mult
+
     period_pv_annuity_factor = present_value_annuity_factor(discount_rate, period_length)
     y.pv_period_fixed_om_cost = fixed_om_cost(y) * period_pv_annuity_factor
     y.pv_period_variable_om_cost = variable_om_cost(y) * period_pv_annuity_factor

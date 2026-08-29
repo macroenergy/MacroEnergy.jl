@@ -43,6 +43,25 @@ macro AbstractStorageBaseAttributes()
         cf_period_investment_cost::Union{Nothing,Float64} = $storage_defaults[:cf_period_investment_cost]
         cf_period_fixed_om_cost::Union{Nothing,Float64} = $storage_defaults[:cf_period_fixed_om_cost]
         cf_period_variable_om_cost::Union{Nothing,Float64} = $storage_defaults[:cf_period_variable_om_cost]
+        # Learning
+        learning_type::String = ""
+        learning_parameter::Float64 = 0.0
+        cumulative_capacity_init::Float64 = 0.0
+        endogenous_capex_segment_chosen_track::Dict{Int64,Union{JuMPVariable}} = Dict(1 => Vector{VariableRef}())
+        endogenous_capex_segment_chosen_from_relevant_period::Union{JuMPVariable,Float64} = Vector{VariableRef}()
+        aux_new_capacity::Union{JuMPVariable,Float64} = 0.0
+        cumulative_experience::Union{JuMPVariable,Float64} = 0.0
+        endogenous_capex::AffExpr = AffExpr(0.0)
+        endogenous_capex_track::Dict{Int64,AffExpr} = Dict(1=>AffExpr(0.0))
+        pwl_capex_slopes::Vector{Float64} = Float64[]
+        annualized_investment_cost_with_learning::AffExpr = AffExpr(0.0)
+        annuities_mult::Float64 = 0.0
+        annualization_factor::Float64 = 0.0
+        endog_annualized_cost::AffExpr = AffExpr(0.0)
+        init_cumul_capacity::Float64 = 0.0
+        endog_annualized_investment_cost::AffExpr = AffExpr(0.0)
+        max_cumul_capacity::Float64 = 0.0
+        learning_delay::Int64 = 1
     end)
 end
 
@@ -228,6 +247,27 @@ cf_period_fixed_om_cost(g::AbstractStorage) = g.cf_period_fixed_om_cost;
 variable_om_cost(g::AbstractStorage) = g.variable_om_cost;
 pv_period_variable_om_cost(g::AbstractStorage) = g.pv_period_variable_om_cost;
 cf_period_variable_om_cost(g::AbstractStorage) = g.cf_period_variable_om_cost;
+# Learning
+learning_type(g::AbstractStorage) = g.learning_type;
+learning_parameter(g::AbstractStorage) = g.learning_parameter;
+cumulative_capacity_init(g::AbstractStorage) = g.cumulative_capacity_init;
+endog_annualized_investment_cost(g::AbstractStorage) = g.endog_annualized_investment_cost;
+endogenous_capex_segment_chosen_from_relevant_period(g::AbstractStorage) = g.endogenous_capex_segment_chosen_from_relevant_period;
+cumulative_experience(g::AbstractStorage) = g.cumulative_experience;
+endogenous_capex(g::AbstractStorage) = g.endogenous_capex;
+endogenous_capex_track(g::AbstractStorage) = g.endogenous_capex_track;
+endogenous_capex_track(g::AbstractStorage,s::Int64) =  (haskey(endogenous_capex_track(g),s) == false) ? 0.0 : g.endogenous_capex_track[s];
+endogenous_capex_segment_chosen_track(g::AbstractStorage) = g.endogenous_capex_segment_chosen_track;
+endogenous_capex_segment_chosen_track(g::AbstractStorage,s::Int64) =  (haskey(endogenous_capex_segment_chosen_track(g),s) == false) ? 0.0 : g.endogenous_capex_segment_chosen_track[s];
+pwl_capex_slopes(g::AbstractStorage) = g.pwl_capex_slopes;
+aux_new_capacity(g::AbstractStorage) = g.aux_new_capacity;
+annualized_investment_cost_with_learning(g::AbstractStorage) = g.annualized_investment_cost_with_learning;
+annuities_mult(g::AbstractStorage) = g.annuities_mult;
+annualization_factor(g::AbstractStorage) = g.annualization_factor;
+endog_annualized_cost(g::AbstractStorage) = g.endog_annualized_cost;
+init_cumul_capacity(g::AbstractStorage) = g.init_cumul_capacity;
+max_cumul_capacity(g::AbstractStorage) = g.max_cumul_capacity;
+learning_delay(g::AbstractStorage) = g.learning_delay;
 
 function add_linking_variables!(g::Storage, model::Model)
     if has_capacity(g)
@@ -259,7 +299,7 @@ function define_available_capacity!(g::AbstractStorage, model::Model)
     end
 end
 
-function planning_model!(g::Storage, model::Model)
+function planning_model!(g::Storage, model::Model, settings::NamedTuple)
 
     if !g.can_expand
         fix(new_units(g), 0.0; force = true)
@@ -269,7 +309,7 @@ function planning_model!(g::Storage, model::Model)
         fix(retired_units(g), 0.0; force = true)
     end
 
-    compute_fixed_costs!(g, model)
+    compute_fixed_costs!(g, model, settings)
 
     @constraint(model, retired_capacity(g) <= existing_capacity(g))
 
@@ -364,7 +404,7 @@ function add_linking_variables!(g::LongDurationStorage, model::Model)
 end
 
 
-function planning_model!(g::LongDurationStorage, model::Model)
+function planning_model!(g::LongDurationStorage, model::Model, settings::NamedTuple)
 
     if !g.can_expand
         fix(new_units(g), 0.0; force = true)
@@ -374,7 +414,7 @@ function planning_model!(g::LongDurationStorage, model::Model)
         fix(retired_units(g), 0.0; force = true)
     end
 
-    compute_fixed_costs!(g, model)
+    compute_fixed_costs!(g, model, settings)
 
     @constraint(model, retired_capacity(g) <= existing_capacity(g))
 
@@ -462,7 +502,7 @@ function initialize_balance_expression(g::LongDurationStorage, balance_id::Symbo
     return @expression(model, [t in ti], container = time_container, 0 * model[:vREF])
 end
 
-function compute_investment_costs!(g::AbstractStorage, model::Model, cost_type::Function=pv_period_investment_cost)
+function compute_investment_costs!(g::AbstractStorage, model::Model, settings::NamedTuple, cost_type::Function=pv_period_investment_cost)
     if has_capacity(g)
         if can_expand(g)
             add_to_expression!(
@@ -486,7 +526,7 @@ function compute_om_fixed_costs!(g::AbstractStorage, model::Model, cost_type::Fu
     end
 end
 
-function compute_fixed_costs!(g::AbstractStorage, model::Model, cost_type::Symbol=:PV)
+function compute_fixed_costs!(g::AbstractStorage, model::Model, settings::NamedTuple, cost_type::Symbol=:PV)
     allowed_cost_types = [:PV, :CF]
     if !(cost_type in allowed_cost_types)
         error("Invalid cost type: $cost_type. Allowed types are: $(allowed_cost_types)")
@@ -499,7 +539,7 @@ function compute_fixed_costs!(g::AbstractStorage, model::Model, cost_type::Symbo
         :PV => pv_period_fixed_om_cost,
         :CF => cf_period_fixed_om_cost
     )
-    compute_investment_costs!(g, model, invesment_cost_function[cost_type])
+    compute_investment_costs!(g, model, settings, invesment_cost_function[cost_type])
     compute_om_fixed_costs!(g, model, fom_cost_function[cost_type])
 end
 

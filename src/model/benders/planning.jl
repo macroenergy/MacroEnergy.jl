@@ -4,9 +4,10 @@ function add_period_to_planning_model!(
     next_system::Union{System, Nothing},
     fixed_cost::Dict,
     investment_cost::Dict,
-    om_fixed_cost::Dict
+    om_fixed_cost::Dict,
+    settings::NamedTuple
 )
-    build_period_planning!(model, system, next_system)
+    build_period_planning!(model, system, next_system, settings)
 
     add_feasibility_constraints!(system, model)
 
