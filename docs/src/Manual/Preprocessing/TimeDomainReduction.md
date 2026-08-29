@@ -85,6 +85,40 @@ Every explicit `timeseries` descriptor is materialized in the reduced case. It c
 
 Physical CSV path/header pairs are read once even when several inputs reference them. Their clustering weight is the feature weight multiplied by the number of logical occurrences.
 
+### Example: override a default feature
+
+This replaces the built-in `demand` feature with an Electricity-only version and gives it twice the default weight. Matching an existing feature by its `id` and `field` is the clearest way to express an override.
+
+```json
+"features": [
+  {
+    "id": "demand",
+    "field": "demand",
+    "commodity": "Electricity",
+    "weight": 2.0
+  }
+]
+```
+
+### Example: add and exclude input features
+
+This adds a more-specific VRE availability feature. It takes precedence over the generic built-in `availability` feature for matching Electricity VRE inputs. The exclusion removes the built-in `supply.max` feature entirely; its time series are still shortened in the generated case, but do not influence clustering.
+
+```json
+"features": [
+  {
+    "id": "electricity_vre_availability",
+    "field": "availability",
+    "asset": "VRE",
+    "commodity": "Electricity",
+    "weight": 3.0
+  }
+],
+"exclude": [
+  { "id": "supply_max" }
+]
+```
+
 ## Output-based features
 
 Output-based features add model results to the clustering matrix. They are configured separately from input features and reserve a share of the total clustering weight. Within the input and output groups, feature weights and repeated occurrences retain their relative influence.
@@ -134,6 +168,114 @@ preprocess_inputs(
     tdr_settings_path="path/to/tdr_settings.json",
     output_feature_run_kwargs=(optimizer=HiGHS.Optimizer,),
 )
+```
+
+### Example: Gurobi subperiod solves
+
+The solver is supplied in Julia rather than in the JSON settings. This example runs up to four isolated subperiod solves concurrently. `Threads => 1` avoids multiplying Gurobi threads by the number of TDR workers; adjust it deliberately if the available compute allocation supports more threads per solve.
+
+```julia
+using Gurobi
+using MacroEnergy
+
+preprocess_inputs(
+    "path/to/full_case",
+    "path/to/reduced_case";
+    tdr_settings_path="path/to/tdr_settings.json",
+    output_feature_run_kwargs=(
+        optimizer=Gurobi.Optimizer,
+        optimizer_attributes=(
+            "Method" => 2,
+            "Crossover" => 0,
+            "BarConvTol" => 1e-3,
+            "Threads" => 1,
+            "OutputFlag" => 0,
+        ),
+    ),
+)
+```
+
+Set the corresponding worker count in the settings:
+
+```json
+"output_based_features": {
+  "weight": 0.5,
+  "subperiod_runs": {
+    "distributed": true,
+    "workers": 4
+  },
+  "features": [
+    { "provider": "flow", "weight": 1.0 }
+  ]
+}
+```
+
+## Combined configuration example
+
+The following complete settings file combines scoped input features, an exclusion, forced extreme periods, output-based features, distributed Gurobi-compatible subperiod settings, and reusable saved output features. Use it with the Julia call above.
+
+```json
+{
+  "timesteps_per_representative_period": 168,
+  "representative_periods": 12,
+  "method": {
+    "name": "kmeans",
+    "settings": { "restarts": 3 }
+  },
+  "scaling": "standardize",
+  "features": [
+    {
+      "id": "demand",
+      "field": "demand",
+      "commodity": "Electricity",
+      "weight": 2.0
+    },
+    {
+      "id": "electricity_vre_availability",
+      "field": "availability",
+      "asset": "VRE",
+      "commodity": "Electricity",
+      "weight": 3.0
+    }
+  ],
+  "exclude": [
+    { "id": "supply_max" }
+  ],
+  "extreme_periods": [
+    {
+      "feature": { "field": "demand", "commodity": "Electricity" },
+      "aggregation": "integral",
+      "select": "max"
+    },
+    {
+      "feature": { "field": "availability", "asset": "VRE", "commodity": "Electricity" },
+      "aggregation": "peak",
+      "select": "min"
+    }
+  ],
+  "output_based_features": {
+    "weight": 0.5,
+    "save_features": true,
+    "reuse_saved_features": true,
+    "subperiod_runs": {
+      "distributed": true,
+      "workers": 4,
+      "include_policy_constraints": true,
+      "save_subperiod_inputs": false,
+      "save_subperiod_results": false
+    },
+    "features": [
+      { "provider": "flow", "weight": 1.0 },
+      {
+        "provider": "flow",
+        "asset": "VRE",
+        "commodity": "Electricity",
+        "weight": 3.0
+      },
+      { "provider": "storage_level", "commodity": "Electricity", "weight": 1.0 }
+    ]
+  }
+}
 ```
 
 ## Extreme periods
