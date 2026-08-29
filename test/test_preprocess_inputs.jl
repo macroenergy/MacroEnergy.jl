@@ -550,6 +550,9 @@ end
                 temporary_root, "output_features.json",
             ))
             @test MacroEnergy.tdr_prepare_system_inputs!(source_case) == 2
+            prepared_system_data = MacroEnergy.read_json(joinpath(source_case, "system_data.json"))
+            @test startswith(prepared_system_data["case"][1]["time_data"]["path"], "system/system_1/")
+            @test startswith(prepared_system_data["case"][2]["assets"]["path"], "assets/system_2/")
             subperiod_case = joinpath(temporary_root, "system_2_period_1")
             MacroEnergy.tdr_materialize_subperiod_case!(
                 source_case,

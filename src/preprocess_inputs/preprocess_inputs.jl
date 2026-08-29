@@ -42,11 +42,14 @@ function preprocess_inputs(
     )
     @info "Applying time-domain reduction."
 
+    tdr_prepare_system_inputs!(output_root; source_case_root=source_root)
+
     tdr_time_domain_reduction(
         output_root,
         settings;
         source_case_path=source_root,
         output_feature_run_kwargs,
+        inputs_prepared=true,
     )
     @info "Finished preprocessing inputs in `$output_root`."
     return nothing

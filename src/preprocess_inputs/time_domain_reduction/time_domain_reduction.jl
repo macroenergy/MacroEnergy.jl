@@ -35,11 +35,13 @@ function tdr_time_domain_reduction(
     system_index::Union{Nothing,Int}=nothing,
     precomputed_output=nothing,
     write_root_records::Bool=true,
+    inputs_prepared::Bool=false,
 )
     case_root = abspath(case_path)
     isdir(case_root) || throw(ArgumentError("Case directory does not exist: $case_root"))
     if isnothing(system_index)
-        number_of_systems = tdr_prepare_system_inputs!(case_root)
+        number_of_systems = inputs_prepared ? length(last(tdr_system_entries(case_root))) :
+            tdr_prepare_system_inputs!(case_root; source_case_root=source_case_path)
         if number_of_systems > 1
             @info "Reducing $number_of_systems Systems independently."
             output_sources = nothing
@@ -70,6 +72,7 @@ function tdr_time_domain_reduction(
                 system_records["system_$index"] = record.provenance
                 system_logs["system_$index"] = record.log["time_domain_reduction"]
             end
+            tdr_consolidate_shared_time_series!(case_root, parsed_settings, number_of_systems)
             write_json(joinpath(case_root, "time_domain_reduction_provenance.json"), Dict(
                 "source_case_path" => abspath(source_case_path),
                 "systems" => system_records,

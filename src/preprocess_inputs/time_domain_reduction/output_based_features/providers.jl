@@ -127,15 +127,6 @@ function tdr_copy_subperiod_case(
         name == "TDR" && continue
         cp(joinpath(source_case_root, name), joinpath(destination_case_root, name); force=false)
     end
-    if !isnothing(system_index) && length(last(tdr_system_entries(source_case_root))) > 1
-        source_inputs = tdr_system_inputs_directory(source_case_root, system_index)
-        isdir(source_inputs) || throw(ArgumentError(
-            "Prepared inputs for System $system_index do not exist: $source_inputs",
-        ))
-        destination_inputs = tdr_system_inputs_directory(destination_case_root, system_index)
-        mkpath(dirname(destination_inputs))
-        cp(source_inputs, destination_inputs; force=false)
-    end
     return nothing
 end
 

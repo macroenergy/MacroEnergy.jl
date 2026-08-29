@@ -160,6 +160,15 @@ function tdr_copy_input_manifest!(source_root::String, output_root::String; copy
         return nothing
     end
     paths = tdr_case_input_manifest(source_root)
+    _, systems = tdr_system_entries(source_root)
+    if length(systems) > 1
+        paths = filter(paths) do path
+            relative_path = relpath(path, source_root)
+            parts = splitpath(relative_path)
+            top_level_private_input = !isempty(parts) && first(parts) in ("system", "assets")
+            !top_level_private_input || endswith(path, ".jl") || endswith(path, ".md")
+        end
+    end
     if !isnothing(settings_path)
         canonical_settings = abspath(settings_path)
         tdr_path_within_case(source_root, canonical_settings) && push!(paths, canonical_settings)
@@ -231,44 +240,135 @@ function tdr_system_time_data_path(case_root::String, system_index::Int)
     return path
 end
 
-tdr_system_inputs_directory(case_root::String, system_index::Int) =
-    joinpath(case_root, "TDR", "systems", "system_$system_index", "inputs")
+"""Return the ordinary generated-case path for one System-specific input file."""
+function tdr_system_input_path(case_root::String, system_index::Int, source_path::String)
+    relative_path = relpath(source_path, case_root)
+    parts = splitpath(relative_path)
+    isempty(parts) && return source_path
+    if first(parts) == "system"
+        return joinpath(case_root, "system", "system_$system_index", parts[2:end]...)
+    elseif first(parts) == "assets"
+        return joinpath(case_root, "assets", "system_$system_index", parts[2:end]...)
+    end
+    return source_path
+end
 
-function tdr_rewrite_input_paths!(data, source_root::String, destination_root::String)
+function tdr_system_specific_input_path(case_root::String, source_path::String)
+    relative_path = relpath(source_path, case_root)
+    parts = splitpath(relative_path)
+    return !isempty(parts) && first(parts) in ("system", "assets")
+end
+
+function tdr_rewrite_system_input_paths!(data, case_root::String, system_index::Int)
     if data isa AbstractDict
         if haskey(data, "path") && data["path"] isa AbstractString
-            source_path = abspath(rel_or_abs_path(String(data["path"]), source_root))
-            if ispath(source_path) && tdr_path_within_case(source_root, source_path)
-                data["path"] = replace(relpath(joinpath(destination_root, relpath(source_path, source_root)), source_root), '\\' => '/')
+            source_path = abspath(rel_or_abs_path(String(data["path"]), case_root))
+            if ispath(source_path) && tdr_path_within_case(case_root, source_path)
+                destination = tdr_system_input_path(case_root, system_index, source_path)
+                data["path"] = replace(relpath(destination, case_root), '\\' => '/')
             end
         end
-        foreach(value -> tdr_rewrite_input_paths!(value, source_root, destination_root), values(data))
+        foreach(value -> tdr_rewrite_system_input_paths!(value, case_root, system_index), values(data))
     elseif data isa AbstractVector
-        foreach(value -> tdr_rewrite_input_paths!(value, source_root, destination_root), data)
+        foreach(value -> tdr_rewrite_system_input_paths!(value, case_root, system_index), data)
     end
     return nothing
 end
 
-function tdr_prepare_system_inputs!(case_root::String)
+function tdr_prepare_system_inputs!(case_root::String; source_case_root::String=case_root)
     root, systems = tdr_system_entries(case_root)
     length(systems) == 1 && return 1
-    manifest = filter(isfile, tdr_case_input_manifest(case_root))
+    source_root = abspath(source_case_root)
+    manifest = filter(isfile, tdr_case_input_manifest(source_root))
     for system_index in eachindex(systems)
-        destination_root = tdr_system_inputs_directory(case_root, system_index)
         for source_path in manifest
-            destination = joinpath(destination_root, relpath(source_path, case_root))
+            source_path == joinpath(source_root, "system_data.json") && continue
+            tdr_system_specific_input_path(source_root, source_path) || continue
+            destination = tdr_system_input_path(case_root, system_index,
+                joinpath(case_root, relpath(source_path, source_root)))
             mkpath(dirname(destination))
             cp(source_path, destination; force=true)
         end
         for source_path in manifest
-            isjson(source_path) || continue
-            destination = joinpath(destination_root, relpath(source_path, case_root))
+            source_path == joinpath(source_root, "system_data.json") && continue
+            isjson(source_path) && tdr_system_specific_input_path(source_root, source_path) || continue
+            destination = tdr_system_input_path(case_root, system_index,
+                joinpath(case_root, relpath(source_path, source_root)))
             data = mutable_json_data(read_json(destination))
-            tdr_rewrite_input_paths!(data, case_root, destination_root)
+            tdr_rewrite_system_input_paths!(data, source_root, system_index)
             write_json(destination, data)
         end
-        tdr_rewrite_input_paths!(systems[system_index], case_root, destination_root)
+        tdr_rewrite_system_input_paths!(systems[system_index], source_root, system_index)
     end
     write_json(joinpath(case_root, "system_data.json"), root)
     return length(systems)
+end
+
+function tdr_shared_input_path(case_root::String, path::String)
+    relative_path = relpath(path, case_root)
+    parts = splitpath(relative_path)
+    length(parts) >= 3 || return nothing
+    first(parts) in ("system", "assets") || return nothing
+    startswith(parts[2], "system_") || return nothing
+    return joinpath(case_root, first(parts), parts[3:end]...)
+end
+
+function tdr_rewrite_csv_paths!(data, case_root::String, replacements::Dict{String,String})
+    if data isa AbstractDict
+        if haskey(data, "path") && data["path"] isa AbstractString
+            source_path = abspath(rel_or_abs_path(String(data["path"]), case_root))
+            if haskey(replacements, source_path)
+                data["path"] = replace(relpath(replacements[source_path], case_root), '\\' => '/')
+            end
+        end
+        foreach(value -> tdr_rewrite_csv_paths!(value, case_root, replacements), values(data))
+    elseif data isa AbstractVector
+        foreach(value -> tdr_rewrite_csv_paths!(value, case_root, replacements), data)
+    end
+    return nothing
+end
+
+"""Consolidate byte-identical reduced CSV inputs while retaining divergent System copies."""
+function tdr_consolidate_shared_time_series!(case_root::String, settings::TDRSettings, number_of_systems::Int)
+    source_paths = Dict{String,Vector{String}}()
+    for system_index in 1:number_of_systems
+        sources, _, _, _, _, _ = tdr_sources(case_root, settings; system_index)
+        for source in sources
+            isnothing(source.csv_path) && continue
+            shared_path = tdr_shared_input_path(case_root, source.csv_path)
+            isnothing(shared_path) && continue
+            push!(get!(source_paths, shared_path, String[]), source.csv_path)
+        end
+    end
+
+    replacements = Dict{String,String}()
+    for (shared_path, paths) in source_paths
+        unique_paths = unique(paths)
+        content_groups = Vector{Vector{String}}()
+        for path in unique_paths
+            group = findfirst(paths_with_same_contents ->
+                read(first(paths_with_same_contents)) == read(path), content_groups)
+            isnothing(group) ? push!(content_groups, [path]) : push!(content_groups[group], path)
+        end
+        for paths_with_same_contents in content_groups
+            length(paths_with_same_contents) > 1 || continue
+            cp(first(paths_with_same_contents), shared_path; force=true)
+            for path in paths_with_same_contents
+                replacements[path] = shared_path
+            end
+        end
+    end
+    isempty(replacements) && return nothing
+
+    for system_index in 1:number_of_systems
+        for json_path in tdr_system_json_files(case_root, system_index)
+            data = mutable_json_data(read_json(json_path))
+            tdr_rewrite_csv_paths!(data, case_root, replacements)
+            write_json(json_path, data)
+        end
+    end
+    for path in keys(replacements)
+        path == replacements[path] || rm(path; force=true)
+    end
+    return nothing
 end
