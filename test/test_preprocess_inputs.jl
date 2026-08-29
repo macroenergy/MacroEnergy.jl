@@ -45,6 +45,63 @@ function share_availability_header!(case_path::AbstractString)
 end
 
 @testset "preprocess_inputs" begin
+    @testset "TDR input-path traversal" begin
+        input_data = Dict(
+            "input" => Dict("path" => "inputs/time_data.json"),
+            "profile" => Dict("timeseries" => Dict(
+                "path" => "data/availability.csv",
+                "header" => "availability",
+            )),
+            "nested" => Any[Dict("path" => "assets")],
+        )
+        paths = String[]
+        MacroEnergy.tdr_visit_input_paths!(path -> push!(paths, path), input_data)
+        @test Set(paths) == Set((
+            "inputs/time_data.json",
+            "data/availability.csv",
+            "assets",
+        ))
+
+        empty!(paths)
+        MacroEnergy.tdr_visit_input_paths!(path -> push!(paths, path), input_data;
+            include_timeseries=false,
+            stop_at_timeseries=true,
+        )
+        @test Set(paths) == Set(("inputs/time_data.json", "assets"))
+
+        mktempdir() do case_root
+            mkpath.(joinpath.(case_root, ("inputs", "assets", "data")))
+            MacroEnergy.write_json(joinpath(case_root, "system_data.json"), Dict(
+                "time_data" => Dict("path" => "inputs/time_data.json"),
+                "assets" => Dict("path" => "assets"),
+            ))
+            MacroEnergy.write_json(joinpath(case_root, "inputs", "time_data.json"), Dict())
+            MacroEnergy.write_json(joinpath(case_root, "assets", "asset.json"), Dict(
+                "availability" => Dict("timeseries" => Dict(
+                    "path" => "data/availability.csv",
+                    "header" => "availability",
+                )),
+                "nested_input" => Dict("path" => "inputs/nested.json"),
+            ))
+            MacroEnergy.write_json(joinpath(case_root, "inputs", "nested.json"), Dict())
+            touch(joinpath(case_root, "data", "availability.csv"))
+            touch(joinpath(case_root, "notes.md"))
+
+            json_files = Set(MacroEnergy.tdr_input_json_files(case_root))
+            @test json_files == Set(abspath.([
+                joinpath(case_root, "system_data.json"),
+                joinpath(case_root, "inputs", "time_data.json"),
+                joinpath(case_root, "assets", "asset.json"),
+                joinpath(case_root, "inputs", "nested.json"),
+            ]))
+
+            manifest = Set(MacroEnergy.tdr_case_input_manifest(case_root))
+            @test joinpath(case_root, "data", "availability.csv") in manifest
+            @test joinpath(case_root, "notes.md") in manifest
+            @test all(ispath, manifest)
+        end
+    end
+
     mktempdir() do temporary_root
         source_case = joinpath(temporary_root, "source")
         output_case = joinpath(temporary_root, "output")

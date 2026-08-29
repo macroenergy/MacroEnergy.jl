@@ -75,6 +75,48 @@ function tdr_merge_features(user_features::Vector{TDRFeatureSpec})
     return features
 end
 
+"""
+Visit every input-path descriptor nested in `data`.
+
+`visit_path!` receives the raw string stored in each descriptor.  Keeping the
+tree traversal here makes the deliberately different handling of time-series
+descriptors explicit at its callers.
+"""
+function tdr_visit_input_paths!(visit_path!::Function, data; include_timeseries::Bool=true, stop_at_timeseries::Bool=false)
+    if data isa AbstractDict
+        if haskey(data, "timeseries")
+            # A time-series descriptor is a leaf for JSON-input discovery,
+            # but its CSV path is an ordinary manifest dependency.
+            stop_at_timeseries && return nothing
+            descriptor = data["timeseries"]
+            if include_timeseries && descriptor isa AbstractDict &&
+               haskey(descriptor, "path") && descriptor["path"] isa AbstractString
+                visit_path!(String(descriptor["path"]))
+            end
+        end
+        if haskey(data, "path") && data["path"] isa AbstractString
+            visit_path!(String(data["path"]))
+        end
+        for (key, value) in pairs(data)
+            # The descriptor path was handled above. Do not visit it again as
+            # an ordinary nested `path` field.
+            key == "timeseries" && continue
+            tdr_visit_input_paths!(visit_path!, value;
+                include_timeseries=include_timeseries,
+                stop_at_timeseries=stop_at_timeseries,
+            )
+        end
+    elseif data isa AbstractVector
+        for value in data
+            tdr_visit_input_paths!(visit_path!, value;
+                include_timeseries=include_timeseries,
+                stop_at_timeseries=stop_at_timeseries,
+            )
+        end
+    end
+    return nothing
+end
+
 function tdr_collect_json_files!(files::Set{String}, case_root::String, path::String)
     canonical_path = abspath(path)
     if canonical_path in files
@@ -92,52 +134,23 @@ function tdr_collect_json_files!(files::Set{String}, case_root::String, path::St
     push!(files, canonical_path)
     data = mutable_json_data(read_json(canonical_path))
 
-    function follow_paths(value)
-        if value isa AbstractDict
-            # Value points to a time-series, probably in a CSV file, not a
-            # nested JSON input. We'll catch this later
-            if haskey(value, "timeseries")
-                return
-
-            # MacroEnergy input references use a `path` field. The target can
-            # be one JSON file or a directory containing several JSON inputs.
-            elseif haskey(value, "path")
-                reference_path = value["path"]
-
-                if reference_path isa AbstractString
-                    target = rel_or_abs_path(reference_path, case_root)
-
-                    if isdir(target)
-                        # Use the same one-level directory interpretation as
-                        # normal MacroEnergy input loading.
-                        for name in get_json_files(target)
-                            tdr_collect_json_files!(files, case_root, joinpath(target, name))
-                        end
-
-                    elseif isjson(target)
-                        # A direct JSON reference contributes one more file to
-                        # the recursively resolved case-input set.
-                        tdr_collect_json_files!(files, case_root, target)
-                    end
-                end
+    function follow_json_path(reference_path::String)
+        target = rel_or_abs_path(reference_path, case_root)
+        if isdir(target)
+            # Use the same one-level directory interpretation as normal
+            # MacroEnergy input loading.
+            for name in get_json_files(target)
+                tdr_collect_json_files!(files, case_root, joinpath(target, name))
             end
-
-            # An object can reference another input and also contain nested
-            # references, so inspect all remaining values as well.
-            for nested_value in values(value)
-                follow_paths(nested_value)
-            end
-
-        elseif value isa AbstractVector
-            # References can occur in lists of asset instances or other input
-            # collections, so inspect every element.
-            for nested_value in value
-                follow_paths(nested_value)
-            end
+        elseif isjson(target)
+            tdr_collect_json_files!(files, case_root, target)
         end
+        return nothing
     end
-
-    follow_paths(data)
+    tdr_visit_input_paths!(follow_json_path, data;
+        include_timeseries=false,
+        stop_at_timeseries=true,
+    )
     return nothing
 end
 
@@ -183,26 +196,14 @@ function tdr_collect_manifest_paths!(paths::Set{String}, case_root::String, path
     push!(visited_json, canonical_path)
     data = mutable_json_data(read_json(canonical_path))
 
-    function collect_paths(value)
-        if value isa AbstractDict
-            if haskey(value, "timeseries") && value["timeseries"] isa AbstractDict
-                descriptor = value["timeseries"]
-                if haskey(descriptor, "path") && descriptor["path"] isa AbstractString
-                    target = abspath(rel_or_abs_path(String(descriptor["path"]), case_root))
-                    ispath(target) && tdr_collect_manifest_paths!(paths, case_root, target, visited_json)
-                end
-            end
-            if haskey(value, "path") && value["path"] isa AbstractString
-                target = abspath(rel_or_abs_path(String(value["path"]), case_root))
-                ispath(target) && tdr_collect_manifest_paths!(paths, case_root, target, visited_json)
-            end
-            foreach(collect_paths, values(value))
-        elseif value isa AbstractVector
-            foreach(collect_paths, value)
+    function collect_manifest_path(reference_path::String)
+        target = abspath(rel_or_abs_path(reference_path, case_root))
+        if ispath(target)
+            tdr_collect_manifest_paths!(paths, case_root, target, visited_json)
         end
         return nothing
     end
-    collect_paths(data)
+    tdr_visit_input_paths!(collect_manifest_path, data)
     return nothing
 end
 
@@ -277,28 +278,21 @@ function tdr_system_json_files(case_root::String, system_index::Int)
     root, systems = tdr_system_entries(case_root)
     1 <= system_index <= length(systems) || throw(ArgumentError("System $system_index is outside the case's $(length(systems)) Systems."))
     files = Set{String}()
-    function collect_paths(value)
-        if value isa AbstractDict
-            if haskey(value, "path") && value["path"] isa AbstractString
-                target = abspath(rel_or_abs_path(String(value["path"]), case_root))
-                if ispath(target)
-                    tdr_path_within_case(case_root, target) || throw(ArgumentError("TDR does not support input paths outside the case directory: $target"))
-                    if isdir(target)
-                        for name in get_json_files(target)
-                            tdr_collect_json_files!(files, case_root, joinpath(target, name))
-                        end
-                    elseif isjson(target)
-                        tdr_collect_json_files!(files, case_root, target)
-                    end
+    function collect_json_path(reference_path::String)
+        target = abspath(rel_or_abs_path(reference_path, case_root))
+        if ispath(target)
+            tdr_path_within_case(case_root, target) || throw(ArgumentError("TDR does not support input paths outside the case directory: $target"))
+            if isdir(target)
+                for name in get_json_files(target)
+                    tdr_collect_json_files!(files, case_root, joinpath(target, name))
                 end
+            elseif isjson(target)
+                tdr_collect_json_files!(files, case_root, target)
             end
-            foreach(collect_paths, values(value))
-        elseif value isa AbstractVector
-            foreach(collect_paths, value)
         end
         return nothing
     end
-    collect_paths(systems[system_index])
+    tdr_visit_input_paths!(collect_json_path, systems[system_index])
     !haskey(root, "case") && push!(files, joinpath(case_root, "system_data.json"))
     return sort!(collect(files))
 end
