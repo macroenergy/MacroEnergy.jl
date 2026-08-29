@@ -486,6 +486,127 @@ function tdr_commodity_context(data::AbstractDict, commodity_names::Set{String})
     return length(values) == 1 ? only(values) : nothing
 end
 
+function tdr_logical_reference(
+    json_file::String,
+    input_path::Vector{Any},
+    field::String,
+    feature::Union{Nothing,TDRFeatureSpec},
+    asset::Union{Nothing,String},
+    commodity::Union{Nothing,String},
+    include_in_clustering::Bool,
+)
+    return (
+        json_file=json_file,
+        input_path=copy(input_path),
+        feature_id=isnothing(feature) ? nothing : feature.id,
+        field=field,
+        asset=asset,
+        commodity=commodity,
+        user_weight=isnothing(feature) ? 1.0 : feature.user_weight,
+        include_in_clustering=include_in_clustering,
+    )
+end
+
+function tdr_collect_csv_reference!(
+    sources::Dict{String,TimeSeriesSource},
+    descriptor::AbstractDict,
+    json_file::String,
+    case_root::String,
+    full_length::Int,
+    total_hours::Int,
+    trailing_hours::Ref{Int},
+    all_features::Vector{TDRFeatureSpec},
+    exclusions::Vector{TDRFeatureSpec},
+    path::Vector{Any},
+    asset::Union{Nothing,String},
+    commodity::Union{Nothing,String},
+)
+    haskey(descriptor, "path") && haskey(descriptor, "header") ||
+        throw(ArgumentError("Timeseries descriptor in $json_file must contain `path` and `header`."))
+    csv_path = abspath(rel_or_abs_path(String(descriptor["path"]), case_root))
+    header = Symbol(descriptor["header"])
+    source_key = "csv:" * csv_path * ":" * String(header)
+
+    # Repeated descriptors can consume one physical CSV column. Its values
+    # and validation are identical, so read it only once.
+    if haskey(sources, source_key)
+        values = sources[source_key].values
+    else
+        isfile(csv_path) || throw(ArgumentError("Time-series file does not exist: $csv_path"))
+        frame = read_csv(csv_path, header)
+        values, removed_hours = tdr_time_series_values(
+            frame[!, header],
+            "$header in $csv_path",
+            full_length,
+            total_hours,
+        )
+        trailing_hours[] = max(trailing_hours[], removed_hours)
+    end
+
+    field = tdr_field_name(path)
+    feature = tdr_feature_for_reference(all_features, field, json_file, csv_path, case_root, asset, commodity)
+    selector = TDRFeatureSpec(
+        file=tdr_relative_path(case_root, csv_path),
+        asset=asset,
+        commodity=commodity,
+        field=field,
+    )
+    excluded = isnothing(feature) ?
+        any(exclusion -> tdr_feature_matches_selector(selector, exclusion), exclusions) :
+        any(exclusion -> tdr_feature_matches_selector(feature, exclusion), exclusions)
+    reference = tdr_logical_reference(
+        json_file,
+        path,
+        field,
+        feature,
+        asset,
+        commodity,
+        !isnothing(feature) && !excluded,
+    )
+    tdr_add_reference!(sources, source_key, values; csv_path=csv_path, header=header, reference)
+    return nothing
+end
+
+function tdr_collect_inline_reference!(
+    sources::Dict{String,TimeSeriesSource},
+    data::AbstractVector,
+    json_file::String,
+    case_root::String,
+    full_length::Int,
+    total_hours::Int,
+    trailing_hours::Ref{Int},
+    all_features::Vector{TDRFeatureSpec},
+    exclusions::Vector{TDRFeatureSpec},
+    path::Vector{Any},
+    asset::Union{Nothing,String},
+    commodity::Union{Nothing,String},
+)
+    field = tdr_field_name(path)
+    feature = tdr_feature_for_reference(all_features, field, json_file, nothing, case_root, asset, commodity)
+    isnothing(feature) && return nothing
+
+    excluded = any(exclusion -> tdr_feature_matches_selector(feature, exclusion), exclusions)
+    reference = tdr_logical_reference(
+        json_file,
+        path,
+        field,
+        feature,
+        asset,
+        commodity,
+        !excluded,
+    )
+    key = "inline:" * json_file * ":" * join(string.(path), "/")
+    values, removed_hours = tdr_time_series_values(
+        data,
+        "inline vector in $json_file",
+        full_length,
+        total_hours,
+    )
+    trailing_hours[] = max(trailing_hours[], removed_hours)
+    tdr_add_reference!(sources, key, values; inline_file=json_file, inline_path=path, reference)
+    return nothing
+end
+
 function tdr_collect_references!(
     sources::Dict{String,TimeSeriesSource},
     data,
@@ -505,52 +626,20 @@ function tdr_collect_references!(
         if haskey(data, "timeseries")
             descriptor = data["timeseries"]
             descriptor isa AbstractDict || throw(ArgumentError("Invalid timeseries descriptor in $json_file."))
-            haskey(descriptor, "path") && haskey(descriptor, "header") ||
-                throw(ArgumentError("Timeseries descriptor in $json_file must contain `path` and `header`."))
-            csv_path = abspath(rel_or_abs_path(String(descriptor["path"]), case_root))
-            header = Symbol(descriptor["header"])
-            source_key = "csv:" * csv_path * ":" * String(header)
-
-            # Repeated descriptors can consume one physical CSV column. Its
-            # values and validation are identical, so read it only once.
-            if haskey(sources, source_key)
-                values = sources[source_key].values
-            else
-                isfile(csv_path) || throw(ArgumentError("Time-series file does not exist: $csv_path"))
-                frame = read_csv(csv_path, header)
-                values, removed_hours = tdr_time_series_values(
-                    frame[!, header],
-                    "$header in $csv_path",
-                    full_length,
-                    total_hours,
-                )
-                trailing_hours[] = max(trailing_hours[], removed_hours)
-            end
-
-            field = tdr_field_name(path)
-            feature = tdr_feature_for_reference(all_features, field, json_file, csv_path, case_root, asset, commodity)
-            selector = TDRFeatureSpec(
-                file=tdr_relative_path(case_root, csv_path),
-                asset=asset,
-                commodity=commodity,
-                field=field,
+            tdr_collect_csv_reference!(
+                sources,
+                descriptor,
+                json_file,
+                case_root,
+                full_length,
+                total_hours,
+                trailing_hours,
+                all_features,
+                exclusions,
+                path,
+                asset,
+                commodity,
             )
-            excluded = isnothing(feature) ?
-                any(exclusion -> tdr_feature_matches_selector(selector, exclusion), exclusions) :
-                any(exclusion -> tdr_feature_matches_selector(feature, exclusion), exclusions)
-            include = !isnothing(feature) && !excluded
-            user_weight = isnothing(feature) ? 1.0 : feature.user_weight
-            reference = (
-                json_file=json_file,
-                input_path=copy(path),
-                feature_id=isnothing(feature) ? nothing : feature.id,
-                field=field,
-                asset=asset,
-                commodity=commodity,
-                user_weight=user_weight,
-                include_in_clustering=include,
-            )
-            tdr_add_reference!(sources, source_key, values; csv_path=csv_path, header=header, reference=reference)
             return nothing
         end
         next_asset = asset
@@ -576,30 +665,20 @@ function tdr_collect_references!(
         end
     elseif data isa AbstractVector
         if length(data) in (full_length, total_hours) && all(value -> value isa Real, data)
-            field = tdr_field_name(path)
-            feature = tdr_feature_for_reference(all_features, field, json_file, nothing, case_root, asset, commodity)
-            if !isnothing(feature)
-                excluded = any(exclusion -> tdr_feature_matches_selector(feature, exclusion), exclusions)
-                reference = (
-                    json_file=json_file,
-                    input_path=copy(path),
-                    feature_id=feature.id,
-                    field=field,
-                    asset=asset,
-                    commodity=commodity,
-                    user_weight=feature.user_weight,
-                    include_in_clustering=!excluded,
-                )
-                key = "inline:" * json_file * ":" * join(string.(path), "/")
-                values, removed_hours = tdr_time_series_values(
-                    data,
-                    "inline vector in $json_file",
-                    full_length,
-                    total_hours,
-                )
-                trailing_hours[] = max(trailing_hours[], removed_hours)
-                tdr_add_reference!(sources, key, values; inline_file=json_file, inline_path=path, reference=reference)
-            end
+            tdr_collect_inline_reference!(
+                sources,
+                data,
+                json_file,
+                case_root,
+                full_length,
+                total_hours,
+                trailing_hours,
+                all_features,
+                exclusions,
+                path,
+                asset,
+                commodity,
+            )
         else
             for (idx, value) in pairs(data)
                 push!(path, idx)
@@ -624,7 +703,7 @@ function tdr_sources(case_root::String, settings::TDRSettings; system_index::Int
         tdr_collect_references!(sources, mutable_json_data(read_json(file)), file, case_root, full_length, total_hours, trailing_hours, settings.all_features, settings.excluded_features, commodity_names)
     end
     isempty(sources) && throw(ArgumentError("No time-dependent inputs were discovered for TDR."))
-    all_sources = collect(values(sources))
+    all_sources = sort!(collect(values(sources)); by=source -> source.key)
     clustering_sources = filter(source -> source.include_in_clustering, all_sources)
     isempty(clustering_sources) && throw(ArgumentError("No TDR clustering features remain after exclusions."))
     return all_sources, clustering_sources, full_length, time_data_path, time_data, trailing_hours[]

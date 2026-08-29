@@ -377,6 +377,7 @@ end
         @test settings.method_settings isa MacroEnergy.TDRKMeansSettings
         @test settings.method_settings.restarts == 3
         all_sources, _, _, _, _, _ = MacroEnergy.tdr_sources(source_case, settings)
+        @test [source.key for source in all_sources] == sort([source.key for source in all_sources])
         shared_availability = only(filter(source -> source.header == :solar_pv_MA, all_sources))
         @test shared_availability.occurrences == 2
         @test shared_availability.weight == 2.0
