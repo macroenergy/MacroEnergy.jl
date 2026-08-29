@@ -5,9 +5,7 @@ include("autoencoder_simultaneous.jl")
 
 function tdr_method_settings(
     method::Val,
-    settings_data::AbstractDict,
-    restarts::Int,
-    verbose::Bool,
+    keyword_arguments::Dict{Symbol,Any},
 )::AbstractTDRMethodSettings
     throw(ArgumentError(
         "TDR `method.name` must be `kmeans`, `kmedoids`, `autoencoder_sequential`, or `autoencoder_simultaneous`; received `$(typeof(method).parameters[1])`.",

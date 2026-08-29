@@ -182,10 +182,7 @@ end
         "extreme_periods",
         "output_based_features",
     ])
-    @test MacroEnergy.default_tdr_method_settings("kmeans") == Dict(
-        "restarts" => 0,
-        "v" => false,
-    )
+    @test MacroEnergy.tdr_method_setting_names("kmeans") == Set(("restarts", "verbose"))
     @test_throws ArgumentError MacroEnergy.tdr_merge_settings(
         Dict("unexpected" => true),
         MacroEnergy.default_tdr_settings(),
@@ -194,7 +191,7 @@ end
 
     kmedoids_settings = MacroEnergy.load_tdr_method_settings(Dict(
         "name" => "kmedoids",
-        "settings" => Dict("restarts" => 2, "v" => true),
+        "settings" => Dict("restarts" => 2, "verbose" => true),
     ))
     @test kmedoids_settings isa MacroEnergy.TDRKMedoidsSettings
     @test kmedoids_settings.restarts == 2
@@ -208,6 +205,11 @@ end
     @test autoencoder_settings.epochs == 1
     @test autoencoder_settings.latent_dim == 2
     @test autoencoder_settings.lambda == 0.25
+    @test_throws ArgumentError MacroEnergy.TDRKMeansSettings(restarts=-1)
+    @test_throws ArgumentError MacroEnergy.TDRAutoencoderSequentialSettings(epochs=0)
+    @test_throws ArgumentError MacroEnergy.TDRAutoencoderSimultaneousSettings(lambda=-0.1)
+    @test_throws ArgumentError MacroEnergy.TDRSubperiodRunSettings(workers=2)
+    @test_throws ArgumentError MacroEnergy.TDROutputFeatureSpec(provider="")
     @test_throws ArgumentError MacroEnergy.load_tdr_method_settings(Dict(
         "name" => "kmeans",
         "settings" => Dict("unexpected" => true),
@@ -230,6 +232,12 @@ end
     @test selected_output_feature.asset == "VRE"
     @test output_feature_settings.save_features
     @test !output_feature_settings.reuse_saved_features
+    @test output_feature_settings.subperiod_runs == MacroEnergy.TDRSubperiodRunSettings()
+    @test_throws ArgumentError MacroEnergy.load_tdr_output_features(Dict(
+        "weight" => 0.75,
+        "features" => [Dict("provider" => "flow")],
+        "unexpected" => true,
+    ))
     mktempdir() do temporary_root
         @test !MacroEnergy.tdr_saved_output_features_exist(temporary_root)
         mkpath(joinpath(temporary_root, "TDR", "output_features"))

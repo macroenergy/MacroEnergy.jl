@@ -35,6 +35,17 @@ TDR settings are JSON. This example creates twelve representative weeks.
 
 `timesteps_per_representative_period` and `representative_periods` must be positive integers. `scaling` is either `"standardize"` or `"normalize"`.
 
+| JSON setting | Description | JSON type | MacroEnergy type | Default |
+| --- | --- | --- | --- | --- |
+| `timesteps_per_representative_period` | Timesteps in each candidate and representative period. | Integer | `Int` | Required |
+| `representative_periods` | Number of periods retained after clustering, including selected extremes. | Integer | `Int` | Required |
+| `method` | Clustering-method name and settings. | Object | `AbstractTDRMethodSettings` subtype | Required |
+| `scaling` | Per-series scaling before clustering. | String: `"standardize"` or `"normalize"` | `Symbol` | Required |
+| `features` | Input-feature additions or overrides. | Array of objects | `Vector{TDRFeatureSpec}` | `[]` |
+| `exclude` | Feature selectors removed from clustering. | Array of objects | `Vector{TDRFeatureSpec}` | `[]` |
+| `extreme_periods` | Feature-based representative periods selected before regular clustering. | Array of objects | `Vector{TDRExtremePeriodSpec}` | `[]` |
+| `output_based_features` | Optional model-output clustering features. | Object or `null` | `Union{Nothing, TDROutputFeaturesSettings}` | `null` |
+
 ### Clustering methods
 
 | `method.name` | Description |
@@ -44,23 +55,23 @@ TDR settings are JSON. This example creates twelve representative weeks.
 | `"autoencoder_sequential"` | Trains an autoencoder, then runs k-means in its latent space. |
 | `"autoencoder_simultaneous"` | Trains an autoencoder with reconstruction and clustering-aware loss, then runs k-means in its latent space. |
 
-All methods accept `restarts` and `v` in `method.settings`. Autoencoder methods additionally accept the following settings; these are their defaults.
+`method.settings` contains only settings supplied by the user; omitted values come from the selected method's validating constructor.
 
-```json
-"settings": {
-  "restarts": 0,
-  "kernel_size": 3,
-  "stride": 1,
-  "epochs": 50,
-  "min_err_diff": 0.0001,
-  "patience": 10,
-  "warmup": 5,
-  "n_filters": 8,
-  "latent_dim": 4
-}
-```
+| JSON setting | Available methods | Description | JSON type | MacroEnergy field type | Default |
+| --- | --- | --- | --- | --- | --- |
+| `restarts` | All | Additional clustering restarts. | Integer | `Int` | `0` |
+| `verbose` | All | Enable verbose output from the clustering method. | Boolean | `Bool` | `false` |
+| `kernel_size` | Autoencoders | Convolution kernel width. | Integer | `Int` | `3` |
+| `stride` | Autoencoders | Convolution stride. | Integer | `Int` | `1` |
+| `epochs` | Autoencoders | Maximum training epochs. | Integer | `Int` | `50` |
+| `min_err_diff` | Autoencoders | Minimum improvement used by early stopping. | Number | `Float64` | `0.0001` |
+| `patience` | Autoencoders | Consecutive non-improving epochs before stopping. | Integer | `Int` | `10` |
+| `warmup` | Autoencoders | Initial epochs before applying early stopping. | Integer | `Int` | `5` |
+| `n_filters` | Autoencoders | Number of convolution filters. | Integer | `Int` | `8` |
+| `latent_dim` | Autoencoders | Latent-space dimension. | Integer | `Int` | `4` |
+| `lambda` | `"autoencoder_simultaneous"` | Clustering-loss weight. | Number | `Float64` | `0.1` |
 
-`"autoencoder_simultaneous"` also accepts `"lambda"`, which defaults to `0.1`. Training occurs during preprocessing and does not write latent-space cache files into the case directory.
+Training occurs during preprocessing and does not write latent-space cache files into the case directory.
 
 ## Clustering features
 
@@ -146,6 +157,26 @@ Output-based features add model results to the clustering matrix. They are confi
   ]
 }
 ```
+
+| JSON setting | Description | JSON type | MacroEnergy type | Default |
+| --- | --- | --- | --- | --- |
+| `weight` | Total clustering-weight share assigned to output features. | Number strictly between `0` and `1` | `Float64` | Required |
+| `features` | Output-feature selectors and their relative weights. | Non-empty array of objects | `Vector{TDROutputFeatureSpec}` | Required |
+| `subperiod_runs` | Controls for isolated candidate-period solves. | Object | `TDRSubperiodRunSettings` | `{}` |
+| `save_features` | Write assembled output profiles and metadata for later reuse. | Boolean | `Bool` | `false` |
+| `reuse_saved_features` | Reuse validated saved output profiles when available. | Boolean | `Bool` | `false` |
+
+`output_based_features` and `subperiod_runs` contain only user-supplied settings; their constructors supply any omitted defaults shown in these tables.
+
+`output_based_features.features` entries require a string `provider`; optional `id`, `asset`, and `commodity` selectors are strings, and `weight` is a positive number with default `1.0`.
+
+| `subperiod_runs` setting | Description | JSON type | MacroEnergy field type | Default |
+| --- | --- | --- | --- | --- |
+| `distributed` | Use worker processes for independent period solves. | Boolean | `Bool` | `false` |
+| `workers` | Maximum TDR-created workers; must be `1` when not distributed. | Positive integer | `Int` | `1` |
+| `include_policy_constraints` | Retain policy constraints in isolated cases. | Boolean | `Bool` | `true` |
+| `save_subperiod_inputs` | Retain isolated input directories. | Boolean | `Bool` | `false` |
+| `save_subperiod_results` | Retain each isolated provider result. | Boolean | `Bool` | `false` |
 
 `weight` is the total output-feature share; input features receive the remaining share. A result matched by more than one feature uses the most specific matching selector, so Electricity VRE flows in the example receive weight `3.0`, not `4.0`. Equal-specificity overlapping selectors are an error.
 

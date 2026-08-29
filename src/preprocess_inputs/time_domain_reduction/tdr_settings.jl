@@ -1,12 +1,20 @@
 abstract type AbstractTDRMethodSettings end
 
-Base.@kwdef struct TDRExtremePeriodSpec
+struct TDRExtremePeriodSpec
     feature::TDRFeatureSpec
     aggregation::Symbol
     select::Symbol
+
+    function TDRExtremePeriodSpec(; feature::TDRFeatureSpec, aggregation::Symbol, select::Symbol)
+        aggregation in (:integral, :peak) ||
+            throw(ArgumentError("Extreme-period `aggregation` must be `integral` or `peak`."))
+        select in (:max, :min) ||
+            throw(ArgumentError("Extreme-period `select` must be `max` or `min`."))
+        new(feature, aggregation, select)
+    end
 end
 
-Base.@kwdef struct TDRSettings
+struct TDRSettings
     timesteps_per_representative_period::Int
     representative_periods::Int
     method_settings::AbstractTDRMethodSettings
@@ -15,7 +23,24 @@ Base.@kwdef struct TDRSettings
     features::Vector{TDRFeatureSpec}
     excluded_features::Vector{TDRFeatureSpec}
     extreme_periods::Vector{TDRExtremePeriodSpec}
-    output_features::Union{Nothing,TDROutputFeaturesSettings} = nothing
+    output_features::Union{Nothing,TDROutputFeaturesSettings}
+
+    function TDRSettings(; timesteps_per_representative_period::Integer,
+        representative_periods::Integer, method_settings::AbstractTDRMethodSettings,
+        scaling::Symbol, all_features::Vector{TDRFeatureSpec}, features::Vector{TDRFeatureSpec},
+        excluded_features::Vector{TDRFeatureSpec}, extreme_periods::Vector{TDRExtremePeriodSpec},
+        output_features::Union{Nothing,TDROutputFeaturesSettings}=nothing)
+        timesteps_per_representative_period > 0 || throw(ArgumentError(
+            "`timesteps_per_representative_period` must be a positive integer.",
+        ))
+        representative_periods > 0 || throw(ArgumentError("`representative_periods` must be a positive integer."))
+        scaling in (:standardize, :normalize) ||
+            throw(ArgumentError("TDR `scaling` must be `standardize` or `normalize`."))
+        new(
+            Int(timesteps_per_representative_period), Int(representative_periods), method_settings,
+            scaling, all_features, features, excluded_features, extreme_periods, output_features,
+        )
+    end
 end
 
 """Return the complete TDR JSON settings schema and its defaults."""
@@ -39,60 +64,36 @@ function default_tdr_method_configuration()
     )
 end
 
-function default_tdr_method_settings(method_name::String)
-    defaults = Dict{String,Any}(
-        "restarts" => 0,
-        "v" => false,
-    )
+function tdr_method_setting_names(method_name::String)
+    names = Set(("restarts", "verbose"))
     if method_name in ("autoencoder_sequential", "autoencoder_simultaneous")
-        merge!(defaults, Dict(
-            "kernel_size" => 3,
-            "stride" => 1,
-            "epochs" => 50,
-            "min_err_diff" => 1e-4,
-            "patience" => 10,
-            "warmup" => 5,
-            "n_filters" => 8,
-            "latent_dim" => 4,
+        union!(names, (
+            "kernel_size", "stride", "epochs", "min_err_diff", "patience", "warmup",
+            "n_filters", "latent_dim",
         ))
     end
     if method_name == "autoencoder_simultaneous"
-        defaults["lambda"] = 0.1
+        push!(names, "lambda")
     elseif !(method_name in ("kmeans", "kmedoids", "autoencoder_sequential"))
         throw(ArgumentError(
             "TDR `method.name` must be `kmeans`, `kmedoids`, `autoencoder_sequential`, or `autoencoder_simultaneous`; received `$method_name`.",
         ))
     end
-    return defaults
+    return names
 end
 
-function default_tdr_output_feature_settings()
-    return Dict{String,Any}(
-        "weight" => nothing,
-        "features" => nothing,
-        "subperiod_runs" => Dict{String,Any}(),
-        "save_features" => false,
-        "reuse_saved_features" => false,
-    )
-end
-
-function default_tdr_subperiod_run_settings()
-    return Dict{String,Any}(
-        "distributed" => false,
-        "workers" => 1,
-        "include_policy_constraints" => true,
-        "save_subperiod_inputs" => false,
-        "save_subperiod_results" => false,
-    )
-end
-
-function tdr_merge_settings(data, defaults::Dict{String,Any}, setting_name::String)
+function tdr_setting_data(data, allowed_keys, setting_name::String)
     data isa AbstractDict || throw(ArgumentError("TDR `$setting_name` must be an object."))
     normalized_data = Dict{String,Any}(String(key) => value for (key, value) in pairs(data))
-    unknown_keys = setdiff(keys(normalized_data), keys(defaults))
+    unknown_keys = setdiff(keys(normalized_data), allowed_keys)
     isempty(unknown_keys) || throw(ArgumentError(
         "TDR `$setting_name` contains unknown setting$(length(unknown_keys) == 1 ? "" : "s"): $(join(sort!(collect(unknown_keys)), ", ")).",
     ))
+    return normalized_data
+end
+
+function tdr_merge_settings(data, defaults::Dict{String,Any}, setting_name::String)
+    normalized_data = tdr_setting_data(data, keys(defaults), setting_name)
     return recursive_merge(defaults, normalized_data)
 end
 
@@ -148,51 +149,44 @@ end
 
 function load_tdr_output_features(data)::Union{Nothing,TDROutputFeaturesSettings}
     isnothing(data) && return nothing
-    data = tdr_merge_settings(data, default_tdr_output_feature_settings(), "output_based_features")
-    weight = data["weight"]
+    data = tdr_setting_data(data, (
+        "weight", "features", "subperiod_runs", "save_features", "reuse_saved_features",
+    ), "output_based_features")
+    weight = get(data, "weight", nothing)
     weight isa Real && isfinite(weight) && 0.0 < weight < 1.0 || throw(ArgumentError(
         "TDR `output_based_features.weight` must be a finite number strictly between zero and one.",
     ))
-    features_data = data["features"]
+    features_data = get(data, "features", nothing)
     features_data isa AbstractVector && !isempty(features_data) || throw(ArgumentError(
         "TDR `output_based_features.features` must be a non-empty array.",
     ))
-    subperiod_runs = load_tdr_subperiod_run_settings(data["subperiod_runs"])
-    save_features = data["save_features"]
-    reuse_saved_features = data["reuse_saved_features"]
-    save_features isa Bool || throw(ArgumentError("TDR `output_based_features.save_features` must be a boolean."))
-    reuse_saved_features isa Bool || throw(ArgumentError("TDR `output_based_features.reuse_saved_features` must be a boolean."))
-    return TDROutputFeaturesSettings(
-        weight=Float64(weight),
-        features=TDROutputFeatureSpec[tdr_output_feature_spec(feature) for feature in features_data],
-        subperiod_runs=subperiod_runs,
-        save_features=save_features,
-        reuse_saved_features=reuse_saved_features,
+    keyword_arguments = Dict{Symbol,Any}(
+        :weight => Float64(weight),
+        :features => TDROutputFeatureSpec[tdr_output_feature_spec(feature) for feature in features_data],
     )
+    haskey(data, "subperiod_runs") &&
+        (keyword_arguments[:subperiod_runs] = load_tdr_subperiod_run_settings(data["subperiod_runs"]))
+    for key in ("save_features", "reuse_saved_features")
+        haskey(data, key) || continue
+        data[key] isa Bool || throw(ArgumentError("TDR `output_based_features.$key` must be a boolean."))
+        keyword_arguments[Symbol(key)] = data[key]
+    end
+    return TDROutputFeaturesSettings(; keyword_arguments...)
 end
 
 function load_tdr_subperiod_run_settings(data)::TDRSubperiodRunSettings
-    data = tdr_merge_settings(data, default_tdr_subperiod_run_settings(), "output_based_features.subperiod_runs")
-    distributed = data["distributed"]
-    workers = data["workers"]
-    include_policy_constraints = data["include_policy_constraints"]
-    save_subperiod_inputs = data["save_subperiod_inputs"]
-    save_subperiod_results = data["save_subperiod_results"]
-    distributed isa Bool || throw(ArgumentError("TDR `subperiod_runs.distributed` must be a boolean."))
-    workers isa Integer && workers > 0 || throw(ArgumentError("TDR `subperiod_runs.workers` must be a positive integer."))
-    include_policy_constraints isa Bool || throw(ArgumentError("TDR `subperiod_runs.include_policy_constraints` must be a boolean."))
-    save_subperiod_inputs isa Bool || throw(ArgumentError("TDR `subperiod_runs.save_subperiod_inputs` must be a boolean."))
-    save_subperiod_results isa Bool || throw(ArgumentError("TDR `subperiod_runs.save_subperiod_results` must be a boolean."))
-    !distributed && workers != 1 && throw(ArgumentError(
-        "TDR `subperiod_runs.workers` must equal 1 when `distributed` is false.",
-    ))
-    return TDRSubperiodRunSettings(
-        distributed,
-        Int(workers),
-        include_policy_constraints,
-        save_subperiod_inputs,
-        save_subperiod_results,
-    )
+    data = tdr_setting_data(data, (
+        "distributed", "workers", "include_policy_constraints", "save_subperiod_inputs",
+        "save_subperiod_results",
+    ), "output_based_features.subperiod_runs")
+    for key in ("distributed", "include_policy_constraints", "save_subperiod_inputs", "save_subperiod_results")
+        haskey(data, key) || continue
+        data[key] isa Bool || throw(ArgumentError("TDR `subperiod_runs.$key` must be a boolean."))
+    end
+    haskey(data, "workers") && !(data["workers"] isa Integer) &&
+        throw(ArgumentError("TDR `subperiod_runs.workers` must be a positive integer."))
+    keyword_arguments = Dict{Symbol,Any}(Symbol(key) => value for (key, value) in pairs(data))
+    return TDRSubperiodRunSettings(; keyword_arguments...)
 end
 
 function tdr_output_feature_spec(data::AbstractDict)::TDROutputFeatureSpec
@@ -243,57 +237,31 @@ function load_tdr_method_settings(method_data)::AbstractTDRMethodSettings
     method_data = tdr_merge_settings(method_data, default_tdr_method_configuration(), "method")
     method_name = tdr_required_setting(method_data, "name", "method")
     method_name isa AbstractString || throw(ArgumentError("TDR method `name` must be a string."))
-    settings_data = tdr_merge_settings(
-        method_data["settings"],
-        default_tdr_method_settings(String(method_name)),
-        "method.settings",
-    )
-    restarts, verbose = tdr_common_method_settings(settings_data)
-    return tdr_method_settings(Val(Symbol(method_name)), settings_data, restarts, verbose)
+    settings_data = method_data["settings"]
+    settings_data isa AbstractDict || throw(ArgumentError("TDR `method.settings` must be an object."))
+    keyword_arguments = Dict{Symbol,Any}(Symbol(key) => value for (key, value) in pairs(settings_data))
+    unknown_keys = setdiff(String.(keys(keyword_arguments)), tdr_method_setting_names(String(method_name)))
+    isempty(unknown_keys) || throw(ArgumentError(
+        "TDR `method.settings` contains unknown setting$(length(unknown_keys) == 1 ? "" : "s"): $(join(sort!(unknown_keys), ", ")).",
+    ))
+    return tdr_method_settings(Val(Symbol(method_name)), keyword_arguments)
 end
 
-function tdr_common_method_settings(settings_data::AbstractDict)
-    restarts = settings_data["restarts"]
-    restarts isa Integer && restarts >= 0 ||
-        throw(ArgumentError("TDR method setting `restarts` must be a non-negative integer."))
-    verbose = settings_data["v"]
-    verbose isa Bool || throw(ArgumentError("TDR method setting `v` must be a boolean."))
-    return Int(restarts), verbose
-end
-
-function tdr_method_integer(
-    settings_data::AbstractDict,
-    key::String,
-    ;
-    minimum::Int,
-)
-    value = settings_data[key]
-    value isa Integer && value >= minimum ||
-        throw(ArgumentError("TDR method setting `$key` must be an integer no smaller than $minimum."))
-    return Int(value)
-end
-
-function tdr_method_float(
-    settings_data::AbstractDict,
-    key::String,
-    ;
-    minimum::Float64,
-)
-    value = settings_data[key]
-    value isa Real && isfinite(value) && value >= minimum ||
-        throw(ArgumentError("TDR method setting `$key` must be a finite number no smaller than $minimum."))
-    return Float64(value)
-end
-
-function tdr_autoencoder_settings(settings_data::AbstractDict)
+function tdr_validated_autoencoder_settings(; kernel_size::Integer=3, stride::Integer=1,
+    epochs::Integer=50, min_err_diff::Real=1e-4, patience::Integer=10, warmup::Integer=5,
+    n_filters::Integer=8, latent_dim::Integer=4)
+    kernel_size >= 1 || throw(ArgumentError("TDR `kernel_size` must be at least 1."))
+    stride >= 1 || throw(ArgumentError("TDR `stride` must be at least 1."))
+    epochs >= 1 || throw(ArgumentError("TDR `epochs` must be at least 1."))
+    isfinite(min_err_diff) && min_err_diff >= 0 ||
+        throw(ArgumentError("TDR `min_err_diff` must be finite and non-negative."))
+    patience >= 1 || throw(ArgumentError("TDR `patience` must be at least 1."))
+    warmup >= 0 || throw(ArgumentError("TDR `warmup` must be non-negative."))
+    n_filters >= 1 || throw(ArgumentError("TDR `n_filters` must be at least 1."))
+    latent_dim >= 1 || throw(ArgumentError("TDR `latent_dim` must be at least 1."))
     return (
-        kernel_size=tdr_method_integer(settings_data, "kernel_size"; minimum=1),
-        stride=tdr_method_integer(settings_data, "stride"; minimum=1),
-        epochs=tdr_method_integer(settings_data, "epochs"; minimum=1),
-        min_err_diff=tdr_method_float(settings_data, "min_err_diff"; minimum=0.0),
-        patience=tdr_method_integer(settings_data, "patience"; minimum=1),
-        warmup=tdr_method_integer(settings_data, "warmup"; minimum=0),
-        n_filters=tdr_method_integer(settings_data, "n_filters"; minimum=1),
-        latent_dim=tdr_method_integer(settings_data, "latent_dim"; minimum=1),
+        kernel_size=Int(kernel_size), stride=Int(stride), epochs=Int(epochs),
+        min_err_diff=Float64(min_err_diff), patience=Int(patience), warmup=Int(warmup),
+        n_filters=Int(n_filters), latent_dim=Int(latent_dim),
     )
 end

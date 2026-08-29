@@ -37,7 +37,7 @@ tdr_method_restarts(method_settings::AbstractTDRMethodSettings) = method_setting
 tdr_method_verbose(method_settings::AbstractTDRMethodSettings) = method_settings.verbose
 tdr_method_settings_data(method_settings::AbstractTDRMethodSettings) = Dict{String,Any}(
     "restarts" => method_settings.restarts,
-    "v" => method_settings.verbose,
+    "verbose" => method_settings.verbose,
 )
 
 function tdr_autoencoder_settings_data(
