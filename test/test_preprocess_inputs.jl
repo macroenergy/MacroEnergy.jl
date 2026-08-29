@@ -171,6 +171,27 @@ end
     @test merged_availability.commodity == "Electricity"
     @test merged_availability.user_weight == 2.0
 
+    tdr_defaults = MacroEnergy.default_tdr_settings()
+    @test Set(keys(tdr_defaults)) == Set([
+        "timesteps_per_representative_period",
+        "representative_periods",
+        "method",
+        "scaling",
+        "features",
+        "exclude",
+        "extreme_periods",
+        "output_based_features",
+    ])
+    @test MacroEnergy.default_tdr_method_settings("kmeans") == Dict(
+        "restarts" => 0,
+        "v" => false,
+    )
+    @test_throws ArgumentError MacroEnergy.tdr_merge_settings(
+        Dict("unexpected" => true),
+        MacroEnergy.default_tdr_settings(),
+        "settings",
+    )
+
     kmedoids_settings = MacroEnergy.load_tdr_method_settings(Dict(
         "name" => "kmedoids",
         "settings" => Dict("restarts" => 2, "v" => true),
@@ -187,6 +208,10 @@ end
     @test autoencoder_settings.epochs == 1
     @test autoencoder_settings.latent_dim == 2
     @test autoencoder_settings.lambda == 0.25
+    @test_throws ArgumentError MacroEnergy.load_tdr_method_settings(Dict(
+        "name" => "kmeans",
+        "settings" => Dict("unexpected" => true),
+    ))
 
     output_feature_settings = MacroEnergy.load_tdr_output_features(Dict(
         "weight" => 0.75,
@@ -317,17 +342,18 @@ end
     @test output_source.weight == 0.75
 
     for method_name in ("autoencoder_sequential", "autoencoder_simultaneous")
+        method_data = Dict{String,Any}(
+            "restarts" => 1,
+            "epochs" => 1,
+            "patience" => 1,
+            "warmup" => 0,
+            "n_filters" => 1,
+            "latent_dim" => 1,
+        )
+        method_name == "autoencoder_simultaneous" && (method_data["lambda"] = 0.1)
         method_settings = MacroEnergy.load_tdr_method_settings(Dict(
             "name" => method_name,
-            "settings" => Dict(
-                "restarts" => 1,
-                "epochs" => 1,
-                "patience" => 1,
-                "warmup" => 0,
-                "n_filters" => 1,
-                "latent_dim" => 1,
-                "lambda" => 0.1,
-            ),
+            "settings" => method_data,
         ))
         autoencoder_cluster_settings = MacroEnergy.TDRSettings(
             timesteps_per_representative_period=2,
