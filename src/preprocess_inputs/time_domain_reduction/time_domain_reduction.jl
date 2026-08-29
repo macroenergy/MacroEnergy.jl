@@ -30,12 +30,34 @@ function tdr_time_domain_reduction(
     parsed_settings::TDRSettings;
     source_case_path::AbstractString=case_path,
     output_feature_run_kwargs::NamedTuple=NamedTuple(),
+    system_index::Union{Nothing,Int}=nothing,
 )::Nothing
     case_root = abspath(case_path)
     isdir(case_root) || throw(ArgumentError("Case directory does not exist: $case_root"))
+    if isnothing(system_index)
+        number_of_systems = tdr_prepare_system_inputs!(case_root)
+        if number_of_systems > 1
+            !isnothing(parsed_settings.output_features) && throw(ArgumentError(
+                "Output-based features are not yet supported for multi-System TDR. " *
+                "Remove `output_based_features` to reduce each System's inputs independently.",
+            ))
+            @info "Reducing $number_of_systems Systems independently."
+            for index in 1:number_of_systems
+                tdr_time_domain_reduction(
+                    case_root,
+                    parsed_settings;
+                    source_case_path,
+                    output_feature_run_kwargs,
+                    system_index=index,
+                )
+            end
+            return nothing
+        end
+        system_index = 1
+    end
 
     sources, clustering_sources, full_length, time_data_path, time_data, trailing_hours =
-        tdr_sources(case_root, parsed_settings)
+        tdr_sources(case_root, parsed_settings; system_index)
     input_periods = full_length ÷ parsed_settings.timesteps_per_representative_period
     @info " -- Found $(length(sources)) unique input time series over $input_periods complete periods ($(full_length) hours)."
     trailing_hours > 0 && @info " ++ Excluding $trailing_hours trailing source hours from clustering because they do not complete a representative period."

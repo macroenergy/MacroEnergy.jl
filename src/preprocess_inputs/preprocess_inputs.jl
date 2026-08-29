@@ -37,6 +37,7 @@ function preprocess_inputs(
         output_root;
         overwrite,
         copy_result_files,
+        settings_path=abspath(tdr_settings_path),
         preserve_tdr_output_features=preserve_output_features,
     )
     @info "Applying time-domain reduction."
@@ -56,6 +57,7 @@ function copy_case(
     output_root::String;
     overwrite::Bool=false,
     copy_result_files::Bool=false,
+    settings_path::Union{Nothing,String}=nothing,
     preserve_tdr_output_features::Bool=false,
 )
     if is_within(output_root, source_root)
@@ -91,13 +93,12 @@ function copy_case(
         end
 
         mkpath(output_root)
-        for source_path in readdir(source_root; join=true)
-            is_result_directory = isdir(source_path) && startswith(basename(source_path), "results")
-            if is_result_directory && !copy_result_files
-                continue
-            end
-            cp(source_path, joinpath(output_root, basename(source_path)); force=false)
-        end
+        tdr_copy_input_manifest!(
+            source_root,
+            output_root;
+            copy_result_files,
+            settings_path,
+        )
 
         if has_saved_output_features
             destination = tdr_output_features_directory(output_root)
