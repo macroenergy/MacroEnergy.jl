@@ -43,7 +43,7 @@ function tdr_time_domain_reduction(
         number_of_systems = inputs_prepared ? length(last(tdr_system_entries(case_root))) :
             tdr_prepare_system_inputs!(case_root; source_case_root=source_case_path)
         if number_of_systems > 1
-            @info "Reducing $number_of_systems Systems independently."
+            @info " -- Reducing $number_of_systems Systems independently."
             output_sources = nothing
             if !isnothing(parsed_settings.output_features)
                 full_lengths = Dict(
@@ -60,6 +60,7 @@ function tdr_time_domain_reduction(
             system_records = Dict{String,Any}()
             system_logs = Dict{String,Any}()
             for index in 1:number_of_systems
+                @info " -- Time-clustering System $index of $number_of_systems."
                 record = tdr_time_domain_reduction(
                     case_root,
                     parsed_settings;
@@ -101,7 +102,7 @@ function tdr_time_domain_reduction(
         append!(clustering_sources, output_sources)
         tdr_set_clustering_weights!(input_sources, output_sources, parsed_settings.output_features.weight)
     end
-    @info "Selecting representative periods using $(length(clustering_sources)) clustering time series."
+    @info " -- Selecting representative periods using $(length(clustering_sources)) clustering time series."
     extreme_selections = tdr_extreme_period_selections(
         sources,
         parsed_settings.timesteps_per_representative_period,
@@ -116,7 +117,7 @@ function tdr_time_domain_reduction(
         extreme_periods,
     )
     row_indices = tdr_row_indices(representatives, parsed_settings.timesteps_per_representative_period)
-    @info "Writing $(length(representatives)) representative periods ($(length(row_indices)) hours) to the copied inputs."
+    @info " -- Writing $(length(representatives)) representative periods ($(length(row_indices)) hours) to the copied inputs."
     tdr_write_reduced_sources!(sources, row_indices)
     clear_csv_cache!()
     map_path, output_period_map = tdr_write_time_data!(
@@ -177,6 +178,6 @@ function tdr_time_domain_reduction(
         write_json(joinpath(case_root, "time_domain_reduction_provenance.json"), provenance)
         write_json(joinpath(case_root, "preprocess_log.json"), log_data)
     end
-    @info "Finished time-domain reduction for System $system_index in `$case_root`."
+    @info " -- Finished time-domain reduction for System $system_index in `$case_root`."
     return (provenance=provenance, log=log_data)
 end

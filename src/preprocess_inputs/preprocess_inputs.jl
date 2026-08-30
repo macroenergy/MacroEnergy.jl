@@ -52,6 +52,7 @@ function preprocess_inputs(
         inputs_prepared=true,
     )
     @info "Finished preprocessing inputs in `$output_root`."
+    @info "*** Finished preprocessing inputs ***"
     return nothing
 end
 
