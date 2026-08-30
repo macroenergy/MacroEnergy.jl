@@ -201,6 +201,10 @@ end
         MacroEnergy.default_tdr_settings(),
         "settings",
     )
+    @test Set(keys(MacroEnergy.TDR_OUTPUT_PROVIDERS)) == Set(("flow", "storage_level"))
+    @test MacroEnergy.tdr_output_provider("flow") === MacroEnergy.tdr_flow_provider
+    @test MacroEnergy.tdr_subperiod_run_kwargs(NamedTuple()).lazy_load
+    @test !MacroEnergy.tdr_subperiod_run_kwargs((lazy_load=false,)).lazy_load
 
     @testset "per-System TDR settings" begin
         mktempdir() do temporary_root

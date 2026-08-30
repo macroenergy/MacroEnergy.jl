@@ -231,7 +231,7 @@ Output-based features add model results to the clustering matrix. They are confi
 
 `weight` is the total output-feature share; input features receive the remaining share. A result matched by more than one feature uses the most specific matching selector, so Electricity VRE flows in the example receive weight `3.0`, not `4.0`. Equal-specificity overlapping selectors are an error.
 
-Built-in providers are `"flow"` and `"storage_level"`. Other names resolve to a MacroEnergy function of the same name, allowing user additions to provide further result accessors. A provider must return a long `DataFrame` with `time`, `component_id`, and `value` columns.
+Built-in providers are `"flow"` and `"storage_level"`. A provider returns a long `DataFrame` with `time`, `component_id`, and `value` columns. Case-specific providers through user additions are planned for a future release; for now, additional providers must be added to MacroEnergy itself.
 
 Output-based preprocessing materializes and solves one temporary input-only case for every candidate period; it never loads the full-horizon case. In a multi-System Case, every `(System, candidate period)` is an independent operational solve. These solves use a one-period `PerfectForesight` horizon, so they do not model investment, state carry-over, or interactions between Systems. Set `distributed` and `workers` to run the complete set of independent solves concurrently. The worker count is a global cap across all Systems, and only TDR-created workers are removed when preprocessing finishes. `include_policy_constraints` defaults to `true`; set it to `false` to remove policy constraints from the temporary inputs.
 
