@@ -529,7 +529,7 @@ end
         @test_throws ArgumentError preprocess_inputs(source_case, colliding_output_case; tdr_settings_path=settings_path)
         rm(previous_output; recursive=true)
 
-        @test_nowarn preprocess_inputs(source_case, output_case; tdr_settings_path=settings_path)
+        @test preprocess_inputs(source_case, output_case; tdr_settings_path=settings_path) === nothing
         @test isfile(joinpath(output_case, "time_domain_reduction_provenance.json"))
         @test isfile(joinpath(output_case, "preprocess_log.json"))
         @test_throws ArgumentError preprocess_inputs(source_case, output_case; tdr_settings_path=settings_path)
@@ -561,7 +561,7 @@ end
         case, solution = run_case(output_case; log_to_console=false, log_to_file=false)
         @test length(case.systems) == 1
         @test !isnothing(solution)
-        @test_nowarn preprocess_inputs(source_case, output_case; tdr_settings_path=settings_path, overwrite=true)
+        @test preprocess_inputs(source_case, output_case; tdr_settings_path=settings_path, overwrite=true) === nothing
     end
 
     @testset "multi-System output subperiod inputs" begin
@@ -596,7 +596,7 @@ end
             @test MacroEnergy.tdr_prepare_system_inputs!(source_case) == 2
             prepared_system_data = MacroEnergy.read_json(joinpath(source_case, "system_data.json"))
             @test startswith(prepared_system_data["case"][1]["time_data"]["path"], "system/system_1/")
-            @test startswith(prepared_system_data["case"][2]["assets"]["path"], "assets/system_2/")
+            @test prepared_system_data["case"][2]["assets"]["path"] == "assets/system_2"
             subperiod_case = joinpath(temporary_root, "system_2_period_1")
             MacroEnergy.tdr_materialize_subperiod_case!(
                 source_case,
