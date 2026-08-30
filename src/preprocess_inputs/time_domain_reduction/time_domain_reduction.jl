@@ -43,8 +43,12 @@ function tdr_time_domain_reduction(
     length(settings_by_system) == number_of_systems || throw(ArgumentError(
         "TDR received $(length(settings_by_system)) settings objects for a Case with $number_of_systems Systems.",
     ))
-    number_of_systems == 1 && return tdr_time_domain_reduction(case_root, only(settings_by_system);
-        source_case_path, output_feature_run_kwargs, inputs_prepared=true)
+    if number_of_systems == 1
+        return tdr_reduce_system!(case_root, only(settings_by_system), 1;
+            source_case_path,
+            output_feature_run_kwargs,
+        )
+    end
     @info " -- Reducing $number_of_systems Systems independently."
     output_sources = nothing
     if any(settings -> !isnothing(settings.output_features), settings_by_system)
@@ -57,8 +61,9 @@ function tdr_time_domain_reduction(
     system_logs = Dict{String,Any}()
     for index in 1:number_of_systems
         @info " -- Time-clustering System $index of $number_of_systems."
-        record = tdr_time_domain_reduction(case_root, settings_by_system[index];
-            source_case_path, output_feature_run_kwargs, system_index=index,
+        record = tdr_reduce_system!(case_root, settings_by_system[index], index;
+            source_case_path,
+            output_feature_run_kwargs,
             precomputed_output=isnothing(output_sources) || !haskey(output_sources, index) ? nothing : output_sources[index],
             write_root_records=false)
         system_records["system_$index"] = record.provenance
@@ -86,56 +91,35 @@ function tdr_time_domain_reduction(
     inputs_prepared::Bool=false,
 )
     case_root = abspath(case_path)
-    isdir(case_root) || throw(ArgumentError("Case directory does not exist: $case_root"))
-    if isnothing(system_index)
-        number_of_systems = inputs_prepared ? length(last(tdr_system_entries(case_root))) :
-            tdr_prepare_system_inputs!(case_root; source_case_root=source_case_path)
-        if number_of_systems > 1
-            @info " -- Reducing $number_of_systems Systems independently."
-            output_sources = nothing
-            if !isnothing(parsed_settings.output_features)
-                full_lengths = Dict(
-                    index => first(tdr_full_length(tdr_system_time_data_path(case_root, index)))
-                    for index in 1:number_of_systems
-                )
-                output_sources = tdr_output_sources(
-                    case_root,
-                    parsed_settings,
-                    full_lengths;
-                    run_case_kwargs=output_feature_run_kwargs,
-                )
-            end
-            system_records = Dict{String,Any}()
-            system_logs = Dict{String,Any}()
-            for index in 1:number_of_systems
-                @info " -- Time-clustering System $index of $number_of_systems."
-                record = tdr_time_domain_reduction(
-                    case_root,
-                    parsed_settings;
-                    source_case_path,
-                    output_feature_run_kwargs,
-                    system_index=index,
-                    precomputed_output=isnothing(output_sources) ? nothing : output_sources[index],
-                    write_root_records=false,
-                )
-                system_records["system_$index"] = record.provenance
-                system_logs["system_$index"] = record.log["time_domain_reduction"]
-            end
-            tdr_consolidate_shared_time_series!(case_root,
-                [deepcopy(parsed_settings) for _ in 1:number_of_systems], number_of_systems)
-            write_json(joinpath(case_root, "time_domain_reduction_provenance.json"), Dict(
-                "source_case_path" => abspath(source_case_path),
-                "systems" => system_records,
-            ))
-            write_json(joinpath(case_root, "preprocess_log.json"), Dict(
-                "time_domain_reduction" => Dict("systems" => system_logs),
-            ))
-            @info "Finished time-domain reduction for $number_of_systems Systems in `$case_root`."
-            return nothing
-        end
-        system_index = 1
+    if !isnothing(system_index)
+        return tdr_reduce_system!(case_root, parsed_settings, system_index;
+            source_case_path,
+            output_feature_run_kwargs,
+            precomputed_output,
+            write_root_records,
+        )
     end
+    number_of_systems = inputs_prepared ? length(last(tdr_system_entries(case_root))) :
+        tdr_prepare_system_inputs!(case_root; source_case_root=source_case_path)
+    settings_by_system = [deepcopy(parsed_settings) for _ in 1:number_of_systems]
+    return tdr_time_domain_reduction(case_root, settings_by_system;
+        source_case_path,
+        output_feature_run_kwargs,
+        inputs_prepared=true,
+    )
+end
 
+"""Reduce one System after its case inputs have been prepared."""
+function tdr_reduce_system!(
+    case_root::String,
+    parsed_settings::TDRSettings,
+    system_index::Int;
+    source_case_path::AbstractString=case_root,
+    output_feature_run_kwargs::NamedTuple=NamedTuple(),
+    precomputed_output=nothing,
+    write_root_records::Bool=true,
+)
+    isdir(case_root) || throw(ArgumentError("Case directory does not exist: $case_root"))
     sources, clustering_sources, full_length, time_data_path, time_data, trailing_hours =
         tdr_sources(case_root, parsed_settings; system_index)
     input_periods = full_length ÷ parsed_settings.timesteps_per_representative_period
