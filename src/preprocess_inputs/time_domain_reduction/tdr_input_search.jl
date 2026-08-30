@@ -329,10 +329,10 @@ function tdr_rewrite_csv_paths!(data, case_root::String, replacements::Dict{Stri
 end
 
 """Consolidate byte-identical reduced CSV inputs while retaining divergent System copies."""
-function tdr_consolidate_shared_time_series!(case_root::String, settings::TDRSettings, number_of_systems::Int)
+function tdr_consolidate_shared_time_series!(case_root::String, settings_by_system::Vector{TDRSettings}, number_of_systems::Int)
     source_paths = Dict{String,Vector{String}}()
     for system_index in 1:number_of_systems
-        sources, _, _, _, _, _ = tdr_sources(case_root, settings; system_index)
+        sources, _, _, _, _, _ = tdr_sources(case_root, settings_by_system[system_index]; system_index)
         for source in sources
             isnothing(source.csv_path) && continue
             shared_path = tdr_shared_input_path(case_root, source.csv_path)

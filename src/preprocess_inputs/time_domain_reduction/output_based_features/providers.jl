@@ -410,17 +410,19 @@ end
 
 function tdr_output_sources(
     case_root::String,
-    tdr_settings::TDRSettings,
+    settings_by_system::Vector{TDRSettings},
     full_lengths::Dict{Int,Int};
     run_case_kwargs::NamedTuple=NamedTuple(),
     system_scoped::Bool=true,
 )
-    settings = tdr_settings.output_features
-    period_length = tdr_settings.timesteps_per_representative_period
     output_data = Dict{Int,Any}()
     tasks = TDRSubperiodTask[]
     input_paths = Dict{Tuple{Int,Int},Union{Nothing,String}}()
     for (system_index, full_length) in sort!(collect(full_lengths); by=first)
+        tdr_settings = settings_by_system[system_index]
+        settings = tdr_settings.output_features
+        isnothing(settings) && continue
+        period_length = tdr_settings.timesteps_per_representative_period
         artifact_system_index = system_scoped ? system_index : nothing
         cache_path = tdr_output_features_directory(case_root; system_index=artifact_system_index)
         if settings.reuse_saved_features && tdr_saved_output_features_exist(case_root; system_index=artifact_system_index)
@@ -449,22 +451,26 @@ function tdr_output_sources(
     end
     isempty(tasks) && return output_data
     @info "Generating output-based TDR features."
-    if settings.subperiod_runs.save_subperiod_inputs
+    if any(settings -> !isnothing(settings.output_features) &&
+            settings.output_features.subperiod_runs.save_subperiod_inputs, settings_by_system)
         @info " ++ Wrote $(length(tasks)) isolated TDR subperiod cases under System-specific TDR directories."
     end
-    if !settings.subperiod_runs.include_policy_constraints
+    if any(settings -> !isnothing(settings.output_features) &&
+            !settings.output_features.subperiod_runs.include_policy_constraints, settings_by_system)
         setup_user_additions(case_root)
         load_user_additions(case_root)
         refresh_user_type_registries!()
     end
     worker_ids = Int[]
-    results = if settings.subperiod_runs.distributed
-        @info " -- Running $(length(tasks)) output-based TDR subperiod solves on up to $(settings.subperiod_runs.workers) workers."
+    distributed = any(task -> task.settings.output_features.subperiod_runs.distributed, tasks)
+    maximum_workers = maximum(task.settings.output_features.subperiod_runs.workers for task in tasks)
+    results = if distributed
+        @info " -- Running $(length(tasks)) output-based TDR subperiod solves on up to $maximum_workers workers."
         original_workers = Set(workers())
         new_workers = Int[]
         try
             new_workers = start_distributed_processes!(case_root, length(tasks);
-                max_workers=settings.subperiod_runs.workers, quiet=true)
+                max_workers=maximum_workers, quiet=true)
         catch
             new_workers = setdiff(workers(), collect(original_workers))
             tdr_register_workers!(new_workers)
@@ -490,6 +496,10 @@ function tdr_output_sources(
     @info " -- Finished $(length(tasks)) output-based TDR subperiod solves."
     for (system_index, full_length) in full_lengths
         haskey(output_data, system_index) && continue
+        tdr_settings = settings_by_system[system_index]
+        settings = tdr_settings.output_features
+        isnothing(settings) && continue
+        period_length = tdr_settings.timesteps_per_representative_period
         system_results = filter(result -> result.system_index == system_index, results)
         periods = collect(1:full_length ÷ period_length)
         sources = tdr_output_sources_from_results(system_results, periods, tdr_settings)
@@ -535,7 +545,7 @@ function tdr_output_sources(
             "metadata_path" => relpath(tdr_output_metadata_path(case_root), case_root))]
     end
     # A synthetic one-System case is intentionally used here to retain the existing paths.
-    output_data = tdr_output_sources(case_root, tdr_settings, Dict(1 => full_length);
+    output_data = tdr_output_sources(case_root, [tdr_settings], Dict(1 => full_length);
         run_case_kwargs, system_scoped=false)
     return output_data[1]
 end

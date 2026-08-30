@@ -109,7 +109,11 @@ Load and validate the JSON settings used by [`preprocess_inputs`](@ref).
 """
 function load_time_domain_reduction_settings(path::AbstractString)::TDRSettings
     isfile(path) || throw(ArgumentError("TDR settings file does not exist: $(abspath(path))"))
-    data = tdr_merge_settings(mutable_json_data(read_json(path)), default_tdr_settings(), "settings")
+    return load_tdr_settings_data(mutable_json_data(read_json(path)))
+end
+
+function load_tdr_settings_data(raw_data)::TDRSettings
+    data = tdr_merge_settings(raw_data, default_tdr_settings(), "settings")
     period_length = tdr_required_setting(data, "timesteps_per_representative_period", "settings")
     n_periods = tdr_required_setting(data, "representative_periods", "settings")
     period_length isa Integer && period_length > 0 || throw(ArgumentError("`timesteps_per_representative_period` must be a positive integer."))
@@ -145,6 +149,37 @@ function load_time_domain_reduction_settings(path::AbstractString)::TDRSettings
         extreme_periods=extreme_periods,
         output_features=output_features,
     )
+end
+
+"""Resolve JSON configuration to one independent TDR settings object per System."""
+function load_tdr_settings_by_system(path::AbstractString, number_of_systems::Int)
+    isfile(path) || throw(ArgumentError("TDR settings file does not exist: $(abspath(path))"))
+    number_of_systems > 0 || throw(ArgumentError("TDR requires at least one System."))
+    data = mutable_json_data(read_json(path))
+    if haskey(data, "systems")
+        keys_without_systems = setdiff(String.(keys(data)), ["systems"])
+        isempty(keys_without_systems) || throw(ArgumentError(
+            "TDR `systems` cannot be combined with top-level settings: $(join(sort!(keys_without_systems), ", ")).",
+        ))
+        configurations = data["systems"]
+        configurations isa AbstractVector || throw(ArgumentError("TDR `systems` must be an array."))
+        length(configurations) == number_of_systems || throw(ArgumentError(
+            "TDR `systems` has $(length(configurations)) entries, but the Case has $number_of_systems Systems.",
+        ))
+        return TDRSettings[load_tdr_settings_data(configuration) for configuration in configurations]
+    end
+    representative_periods = get(data, "representative_periods", nothing)
+    if representative_periods isa AbstractVector
+        length(representative_periods) == number_of_systems || throw(ArgumentError(
+            "TDR `representative_periods` has $(length(representative_periods)) entries, but the Case has $number_of_systems Systems.",
+        ))
+        return TDRSettings[
+            load_tdr_settings_data(recursive_merge(data, Dict("representative_periods" => periods)))
+            for periods in representative_periods
+        ]
+    end
+    settings = load_tdr_settings_data(data)
+    return [deepcopy(settings) for _ in 1:number_of_systems]
 end
 
 function load_tdr_output_features(data)::Union{Nothing,TDROutputFeaturesSettings}

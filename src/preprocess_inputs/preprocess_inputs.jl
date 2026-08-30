@@ -25,12 +25,13 @@ function preprocess_inputs(
     output_root = abspath(output_case_path)
     isdir(source_root) || throw(ArgumentError("Source case directory does not exist: $source_root"))
 
-    settings = load_time_domain_reduction_settings(abspath(tdr_settings_path))
+    number_of_systems = length(last(tdr_system_entries(source_root)))
+    settings_by_system = load_tdr_settings_by_system(abspath(tdr_settings_path), number_of_systems)
 
     @info "*** Preprocessing inputs ***"
 
-    preserve_output_features = !isnothing(settings.output_features) &&
-        settings.output_features.reuse_saved_features
+    preserve_output_features = any(settings -> !isnothing(settings.output_features) &&
+        settings.output_features.reuse_saved_features, settings_by_system)
     @info "Copying inputs from `$source_root` to `$output_root`."
     copy_case(
         source_root,
@@ -46,7 +47,7 @@ function preprocess_inputs(
 
     tdr_time_domain_reduction(
         output_root,
-        settings;
+        settings_by_system;
         source_case_path=source_root,
         output_feature_run_kwargs,
         inputs_prepared=true,

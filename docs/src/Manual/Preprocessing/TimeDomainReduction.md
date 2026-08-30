@@ -35,10 +35,61 @@ TDR settings are JSON. This example creates twelve representative weeks.
 
 `timesteps_per_representative_period` and `representative_periods` must be positive integers. `scaling` is either `"standardize"` or `"normalize"`.
 
+For multi-System Cases, one configuration is applied to every System by default. Set `representative_periods` to an array with one entry per System to vary only that count, or use a top-level `systems` array of complete TDR settings objects to configure every System independently. The entries follow the order in `system_data.json`.
+
+### Multi-System settings examples
+
+The ordinary scalar form applies the same settings to each System in a multi-System Case.
+
+```json
+{
+  "timesteps_per_representative_period": 168,
+  "representative_periods": 12,
+  "method": { "name": "kmeans" },
+  "scaling": "standardize"
+}
+```
+
+To vary only the number of representative periods, provide one count per System. This three-entry configuration applies `8`, `12`, and `16` representative weeks respectively.
+
+```json
+{
+  "timesteps_per_representative_period": 168,
+  "representative_periods": [8, 12, 16],
+  "method": { "name": "kmeans" },
+  "scaling": "standardize"
+}
+```
+
+For fully independent configurations, use `systems`. Each entry is a complete ordinary TDR settings object; the number and order of entries must match the Systems in `system_data.json`.
+
+```json
+{
+  "systems": [
+    {
+      "timesteps_per_representative_period": 168,
+      "representative_periods": 8,
+      "method": { "name": "kmeans", "settings": { "restarts": 3 } },
+      "scaling": "standardize"
+    },
+    {
+      "timesteps_per_representative_period": 24,
+      "representative_periods": 20,
+      "method": { "name": "kmedoids", "settings": { "restarts": 5 } },
+      "scaling": "normalize",
+      "features": [
+        { "field": "demand", "commodity": "Electricity", "weight": 2.0 }
+      ]
+    }
+  ]
+}
+```
+
 | JSON setting | Description | JSON type | MacroEnergy type | Default |
 | --- | --- | --- | --- | --- |
 | `timesteps_per_representative_period` | Timesteps in each candidate and representative period. | Integer | `Int` | Required |
-| `representative_periods` | Number of periods retained after clustering, including selected extremes. | Integer | `Int` | Required |
+| `representative_periods` | Retained-period count, or one count per System in a multi-System Case. | Integer or integer array | `Int` per resolved System | Required |
+| `systems` | Complete per-System TDR configurations. Mutually exclusive with other top-level settings. | Array of objects | `Vector{TDRSettings}` | Not supplied |
 | `method` | Clustering-method name and settings. | Object | `AbstractTDRMethodSettings` subtype | Required |
 | `scaling` | Per-series scaling before clustering. | String: `"standardize"` or `"normalize"` | `Symbol` | Required |
 | `features` | Input-feature additions or overrides. | Array of objects | `Vector{TDRFeatureSpec}` | `[]` |

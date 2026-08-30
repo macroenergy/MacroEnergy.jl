@@ -202,6 +202,50 @@ end
         "settings",
     )
 
+    @testset "per-System TDR settings" begin
+        mktempdir() do temporary_root
+            settings_path = joinpath(temporary_root, "time_domain_reduction.json")
+            base_settings = Dict(
+                "timesteps_per_representative_period" => 24,
+                "representative_periods" => 2,
+                "method" => Dict("name" => "kmeans"),
+                "scaling" => "standardize",
+            )
+            MacroEnergy.write_json(settings_path, base_settings)
+            scalar_settings = MacroEnergy.load_tdr_settings_by_system(settings_path, 2)
+            @test length(scalar_settings) == 2
+            @test scalar_settings[1] !== scalar_settings[2]
+            @test all(settings -> settings.representative_periods == 2, scalar_settings)
+
+            MacroEnergy.write_json(settings_path, merge(base_settings, Dict(
+                "representative_periods" => [2, 3],
+            )))
+            count_settings = MacroEnergy.load_tdr_settings_by_system(settings_path, 2)
+            @test getfield.(count_settings, :representative_periods) == [2, 3]
+            @test_throws ArgumentError MacroEnergy.load_tdr_settings_by_system(settings_path, 3)
+
+            MacroEnergy.write_json(settings_path, Dict("systems" => [
+                base_settings,
+                Dict(
+                    "timesteps_per_representative_period" => 12,
+                    "representative_periods" => 4,
+                    "method" => Dict("name" => "kmedoids"),
+                    "scaling" => "normalize",
+                ),
+            ]))
+            system_settings = MacroEnergy.load_tdr_settings_by_system(settings_path, 2)
+            @test system_settings[1].method_settings isa MacroEnergy.TDRKMeansSettings
+            @test system_settings[2].method_settings isa MacroEnergy.TDRKMedoidsSettings
+            @test system_settings[2].timesteps_per_representative_period == 12
+            @test_throws ArgumentError MacroEnergy.load_tdr_settings_by_system(settings_path, 3)
+
+            MacroEnergy.write_json(settings_path, merge(base_settings, Dict(
+                "systems" => [base_settings, base_settings],
+            )))
+            @test_throws ArgumentError MacroEnergy.load_tdr_settings_by_system(settings_path, 2)
+        end
+    end
+
     kmedoids_settings = MacroEnergy.load_tdr_method_settings(Dict(
         "name" => "kmedoids",
         "settings" => Dict("restarts" => 2, "verbose" => true),
