@@ -97,6 +97,20 @@ For fully independent configurations, use `systems`. Each entry is a complete or
 | `extreme_periods` | Feature-based representative periods selected before regular clustering. | Array of objects | `Vector{TDRExtremePeriodSpec}` | `[]` |
 | `output_based_features` | Optional model-output clustering features. | Object or `null` | `Union{Nothing, TDROutputFeaturesSettings}` | `null` |
 
+### Scaling
+
+TDR scales each physical time series independently before stacking its period
+profiles into the clustering matrix. Choose one of the following required
+`scaling` values:
+
+- `"standardize"`: z-score scaling, `(x - μ) / σ`, where `μ` is the series
+  mean and `σ = sqrt(sum((x - μ)^2) / n)` is its population standard deviation.
+- `"normalize"`: min--max scaling, `(x - minimum(x)) / (maximum(x) - minimum(x))`,
+  producing values from zero to one.
+
+A constant series becomes all zeros under either option, so it does not add
+artificial variation to the clustering distance.
+
 ### Clustering methods
 
 | `method.name` | Description |
