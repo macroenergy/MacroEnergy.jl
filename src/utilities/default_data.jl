@@ -13,6 +13,9 @@ function edge_default_data()
         :can_expand => false,
         :can_retire => false,
         :can_retrofit => false,
+        :capacity_reserve_margin_id => missing,
+        :capacity_reserve_margin_derate_factor => 1.0,
+        :capacity_reserve_margin_use_flow => false,
         :is_retrofit => false,
         :capacity_size => 1.0,
         :existing_capacity => 0.0,
@@ -110,6 +113,7 @@ function node_default_data()
         :id => missing,
         :timedata => missing,
         :location => missing,
+        :capacity_reserve_margin_id => missing,
         :constraints => Dict{Symbol,Bool}(
             :BalanceConstraint => true,
         ),

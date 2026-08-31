@@ -11,6 +11,7 @@ function default_settings()
         AutoCreateNodes = false,
         AutoCreateLocations = true,
         Retrofitting = false,
+        CapacityReserveMargin = Dict{Symbol,Float64}(),
         DualExportsEnabled = true
     )
 end

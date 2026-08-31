@@ -17,9 +17,10 @@ function generate_operation_subproblem(system::System,case_settings::NamedTuple,
     if include_subproblem_slacks == true && !haskey(model, :myslack_max)
         @info("Adding slack variables to ensure subproblems are always feasible")
         slack_penalty = 2*maximum(coefficient(model[:eVariableCost],v) for v in all_variables(model))
+        
         eq_cons_to_be_relaxed =  get_ldes_constraints_to_relax(system);
         less_ineq_cons_to_be_relaxed = get_policy_constraints_to_relax(system);
-        greater_ineq_cons_to_be_relaxed = Vector{ConstraintRef}();
+        greater_ineq_cons_to_be_relaxed = get_all_capacity_reserve_margin_constraints(system);
         add_slack_variables!(model,slack_penalty,eq_cons_to_be_relaxed,less_ineq_cons_to_be_relaxed,greater_ineq_cons_to_be_relaxed)
     end
     
@@ -245,6 +246,25 @@ function get_ldes_constraints_to_relax(system::System)
     return balance_constraints
 end
 
+
+function get_all_capacity_reserve_margin_constraints(system::System)
+# The capacity reserve margin is a >= row that couples the subproblem's linking capacity variables with its flow variables
+# so it is relaxed with a penalised slack to keep subproblems feasible.
+    crm_constraints = Vector{ConstraintRef}();
+    for c in system.constraints
+        if isa(c, CapacityReserveMarginConstraint) && !ismissing(c.constraint_ref)
+            crefs = c.constraint_ref
+            if isa(crefs, ConstraintRef)
+                push!(crm_constraints, crefs)
+            else
+                for cref in crefs
+                    push!(crm_constraints, cref)
+                end
+            end
+        end
+    end
+    return crm_constraints
+end
 
 function get_policy_constraints_to_relax(system::System)
     policy_constraints = Vector{JuMPConstraint}();

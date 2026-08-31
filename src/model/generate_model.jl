@@ -262,6 +262,12 @@ end
 
 
 function operation_model!(system::System, model::Model)
+    # CRM prepared in operation_model! so that the CRM expressions and the edge contributions always emitted into the same model object. 
+    # Done so as to make it compatible with Benders where planning and operation models are separate.
+    if !isempty(system.settings.CapacityReserveMargin)
+        @info(" -- Including capacity reserve margins: $(keys(system.settings.CapacityReserveMargin))")
+        prepare_capacity_reserve_margin!(system, model)
+    end
 
     for location in system.locations
         operation_model!(location, model)
@@ -606,6 +612,74 @@ function validate_existing_capacity(asset::AbstractAsset)
     end
 end
 
+function prepare_capacity_reserve_margin!(system::System, model::Model)
+
+    capacity_reserve_margin_nodes = get_capacity_reserve_margin_nodes(system)
+
+    capacity_reserve_margin_ids = keys(system.settings.CapacityReserveMargin)
+    
+    if capacity_reserve_margin_ids != keys(capacity_reserve_margin_nodes)
+        missing_ids = setdiff(capacity_reserve_margin_ids, keys(capacity_reserve_margin_nodes))
+        extra_ids = setdiff(keys(capacity_reserve_margin_nodes), capacity_reserve_margin_ids)
+        if !isempty(missing_ids)
+            msg  = " ++ Capacity reserve margin ids defined in settings but not associated with any node: $(collect(missing_ids)). Please double check the input data."
+            @error(msg)
+        end
+        if !isempty(extra_ids)
+            msg  = " ++ Capacity reserve margin ids associated with nodes but not defined in settings: $(collect(extra_ids)). Please double check the input data."
+            @error(msg)
+        end
+    end
+
+    if any(system.settings.CapacityReserveMargin[k] == 0.0 for k in capacity_reserve_margin_ids)
+        zero_ids = collect(k for k in capacity_reserve_margin_ids if system.settings.CapacityReserveMargin[k] == 0.0)
+        @warn(" ++ Capacity reserve margin id(s): $zero_ids are set to 0.0")
+    end
+
+    # The requirement is indexed by the timesteps of the nodes it covers, so those nodes must share
+    # a time interval for the demand sum below to be well defined.
+    for k in capacity_reserve_margin_ids
+        nodes_k = capacity_reserve_margin_nodes[k]
+        if !all(time_interval(n) == time_interval(first(nodes_k)) for n in nodes_k)
+            error("Nodes assigned to capacity reserve margin id $k do not share the same time interval: $(collect(id(n) for n in nodes_k)). Please double check the input data.")
+        end
+    end
+
+    # Build the time-indexed expression eCapacityReserveMargin[(k,t)] = -(1+β_k) * Σ_n demand(n,t).
+    # Edges add their contributions during the operational model; see add_crm_contribution!.
+    # A Dict rather than a JuMP container because the index set is not rectangular: each requirement
+    # spans only the timesteps of its own nodes.
+    model[:eCapacityReserveMargin] = Dict{Tuple{Symbol,Int64}, AffExpr}(
+        (k, t) => AffExpr(-(1 + system.settings.CapacityReserveMargin[k]) *
+                           sum(demand(n, t) for n in capacity_reserve_margin_nodes[k]))
+        for k in capacity_reserve_margin_ids
+        for t in time_interval(first(capacity_reserve_margin_nodes[k]))
+    )
+
+    # Guard against re-registering the constraint if a System is reused across model builds.
+    if !any(c -> isa(c, CapacityReserveMarginConstraint), system.constraints)
+        push!(system.constraints, CapacityReserveMarginConstraint())
+    end
+
+    return nothing
+
+end
+
+function get_capacity_reserve_margin_nodes(system::System)
+    capacity_reserve_margin_nodes = Dict{Symbol,Vector{Node}}()
+    nodes = get_nodes(system)
+    for n in nodes
+        crm_id = capacity_reserve_margin_id(n)
+        if !ismissing(crm_id)
+            if !haskey(capacity_reserve_margin_nodes,crm_id)
+                capacity_reserve_margin_nodes[crm_id] = [n]
+            else
+                push!(capacity_reserve_margin_nodes[crm_id], n)
+            end
+        end
+    end
+    return capacity_reserve_margin_nodes
+end
 function create_direct_model_with_optimizer(opt::Optimizer)
     
     if !isnothing(opt.optimizer_env)
