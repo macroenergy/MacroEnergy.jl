@@ -407,4 +407,28 @@ Mixed-resolution input series and total-based resampling are not yet supported.
 
 The reduced case contains its usual inputs plus a period map referenced by `time_data.json`, `time_domain_reduction_provenance.json`, and `preprocess_log.json`.
 
+## Developer API
+
+The following internal interfaces support additional clustering methods,
+input-discovery behavior, and official output providers.
+
+```@docs
+MacroEnergy.time_domain_reduction
+MacroEnergy.load_time_domain_reduction_settings
+MacroEnergy.load_tdr_settings_by_system
+MacroEnergy.default_tdr_settings
+MacroEnergy.TDR_OUTPUT_PROVIDERS
+MacroEnergy.tdr_flow_provider
+MacroEnergy.tdr_storage_level_provider
+MacroEnergy.TDROutputFeatureSpec
+MacroEnergy.TDRSubperiodTask
+MacroEnergy.TimeSeriesSource
+MacroEnergy.tdr_visit_input_paths!
+MacroEnergy.tdr_case_input_manifest
+MacroEnergy.tdr_system_input_path
+MacroEnergy.tdr_reduce_system!
+MacroEnergy.tdr_consolidate_shared_time_series!
+MacroEnergy.tdr_set_clustering_weights!
+```
+
 The TDR section of `preprocess_log.json` records temporal handling, extreme-period decisions, method settings, feature sources and weights, occurrences, and—for every representative period—the total number and list of original periods it represents.

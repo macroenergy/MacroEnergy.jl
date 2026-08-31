@@ -14,3 +14,9 @@ The currently available workflow is:
 
 Additional input preprocessing workflows will be documented here as they are
 added.
+
+## API
+
+```@docs
+MacroEnergy.preprocess_inputs
+```
