@@ -7,6 +7,12 @@ and this project follows Julia package versioning through `Project.toml` release
 
 ## [Unreleased]
 
+## [0.2.3] - 2026-08-31
+
+### Documentation
+
+- Switched documentation math rendering to MathJax3 and pinned Mermaid to 11.16.1 to avoid Mermaid 11.17's RequireJS compatibility regression.
+
 ## [0.2.2] - 2026-08-05
 
 ### Fixed
