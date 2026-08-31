@@ -414,6 +414,7 @@ input-discovery behavior, and official output providers.
 
 ```@docs
 MacroEnergy.time_domain_reduction
+MacroEnergy.TDRSettings
 MacroEnergy.load_time_domain_reduction_settings
 MacroEnergy.load_tdr_settings_by_system
 MacroEnergy.default_tdr_settings

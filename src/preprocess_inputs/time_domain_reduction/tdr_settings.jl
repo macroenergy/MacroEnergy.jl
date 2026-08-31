@@ -14,6 +14,13 @@ struct TDRExtremePeriodSpec
     end
 end
 
+"""
+Validated configuration for one System's time-domain reduction.
+
+`load_time_domain_reduction_settings` and `load_tdr_settings_by_system` build
+this type from JSON settings after applying defaults and validating the selected
+clustering method, features, extreme periods, and optional output features.
+"""
 struct TDRSettings
     timesteps_per_representative_period::Int
     representative_periods::Int
