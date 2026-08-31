@@ -19,6 +19,7 @@ and this project follows Julia package versioning through `Project.toml` release
 - Added capacity_summary.csv for multi-period cases, combining per-period capacity outputs into a single long- or wide-format file.
 - Added optional StartYear input in case_settings.json to label periods by calendar year.
 - Added `capex.csv` output file to report per-component asset capital costs.
+- Added repository-local benchmarking tools to compare case loading, case generation, and model generation between `upstream/main` and the current worktree using reproducible example inputs.
 
 ### Changed
 
@@ -29,6 +30,8 @@ and this project follows Julia package versioning through `Project.toml` release
 - Asset balance definitions have been migrated away from legacy raw `balance_data = Dict(...)` patterns toward `@add_balance`, `@add_to_storage_balance`, and `@add_stoichiometric_balance`.
 - Updated MacroEnergySolvers.jl version to 0.2.2.
 - Updated MacroEnergyScaling.jl compatibility to 0.4. Constraint scaling now updates constraints in place, so existing JuMP `ConstraintRef`s remain valid instead of being invalidated by constraint replacement. This version also allows for objective scaling in the future.
+- Hoisted repeated time-data lookups during model construction and simplified ramping and minimum up/down-time constraints to avoid temporary expression and index containers.
+- Weight policy slack to ensure CO2 slack penalty has economic interpretation.
 
 ### Fixed
 
