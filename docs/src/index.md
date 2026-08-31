@@ -40,10 +40,10 @@ The documentation contains five main sections:
 ## Recent changes
 
 <!-- BEGIN GENERATED RECENT CHANGES -->
-### 0.2.2 - 2026-08-05
-#### Fixed
+### 0.2.3 - 2026-08-31
+#### Documentation
 
-- Duplicate asset IDs within a system are now rejected during system generation, preventing ambiguous myopic capacity carry-over and late wide-output failures.
+- Switched documentation math rendering to MathJax3 and pinned Mermaid to 11.16.1 to avoid Mermaid 11.17's RequireJS compatibility regression.
 
 For the full release history, see [the changelog](@ref Changelog).
 <!-- END GENERATED RECENT CHANGES -->
