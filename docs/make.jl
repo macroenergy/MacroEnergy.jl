@@ -153,6 +153,7 @@ makedocs(;
         canonical="https://macroenergy.github.io/Macro/stable/",
         # sidebar_sitename = false,
         collapselevel=1,
+        mathengine=Documenter.MathJax3(),
     ),
     pages=pages,
 )
