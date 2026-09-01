@@ -32,6 +32,7 @@ and this project follows Julia package versioning through `Project.toml` release
 - Updated MacroEnergyScaling.jl compatibility to 0.4. Constraint scaling now updates constraints in place, so existing JuMP `ConstraintRef`s remain valid instead of being invalidated by constraint replacement. This version also allows for objective scaling in the future.
 - Hoisted repeated time-data lookups during model construction and simplified ramping and minimum up/down-time constraints to avoid temporary expression and index containers.
 - Weight policy slack to ensure CO2 slack penalty has economic interpretation.
+- Storage Charge/Discharge limit constraints now can be applied to `LongDurationStorage`.
 
 ### Fixed
 
@@ -41,6 +42,7 @@ and this project follows Julia package versioning through `Project.toml` release
 
 ### Documentation
 
+- Switched documentation math rendering to MathJax3 and pinned Mermaid to 11.16.1 to avoid Mermaid 11.17's RequireJS compatibility regression.
 - Expanded the balance documentation with guidance on choosing between balance macros, stoichiometric coefficient bases, pairwise expansion limits, multi-term algebraic balances, common mistakes, and numerical sensitivity.
 - Updated modeler documentation to include balance APIs in the asset-construction workflow and to recommend a small single-asset regression test for each new asset.
 - Updated debugging guidance around `balance_data`, `get_balance`, and `@inspect_stoichiometric_balance`.
