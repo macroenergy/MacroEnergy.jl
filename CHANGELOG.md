@@ -18,6 +18,8 @@ and this project follows Julia package versioning through `Project.toml` release
 - Added optional StartYear input in case_settings.json to label periods by calendar year.
 - Added `capex.csv` output file to report per-component asset capital costs.
 - Added repository-local benchmarking tools to compare case loading, case generation, and model generation between `upstream/main` and the current worktree using reproducible example inputs.
+- Added system-wide and per-location capacity constraints for a group of assets selected by type: `MaxCapacityConstraint` and `MinCapacityConstraint` bound the total capacity, and `MaxNewCapacityConstraint` bounds the total newly built capacity. Limits are configured via a `constraints` block in `system_data.json` (whole system) or per location in `locations.json`, keyed by asset type (e.g. `"VRE"`, `"VRE{Solar}"`, `"ThermalPower{NaturalGas}"`, or the `"VRE*"` wildcard). The limit values are scaled with `ParameterScaling` like other capacity inputs.
+- Added `VRE` as a parametric, technology-tagged asset (`VRE{T}`, e.g. `VRE{:Solar}`), so sub-technologies can be defined from input data alone (via a `technology` field) without new Julia code; omitting the tag yields `VRE{:Generic}`.
 
 ### Changed
 
@@ -30,12 +32,15 @@ and this project follows Julia package versioning through `Project.toml` release
 - Updated MacroEnergyScaling.jl compatibility to 0.4. Constraint scaling now updates constraints in place, so existing JuMP `ConstraintRef`s remain valid instead of being invalidated by constraint replacement. This version also allows for objective scaling in the future.
 - Hoisted repeated time-data lookups during model construction and simplified ramping and minimum up/down-time constraints to avoid temporary expression and index containers.
 - Weight policy slack to ensure CO2 slack penalty has economic interpretation.
+- A constraint entry in a `constraints` block may now be an inline configuration object (carrying its settings) instead of only the boolean `true`/`false` toggle, enabling data-driven constraint parameterization.
+- Location entries in `locations.json` may now be objects carrying a `constraints` block (bare id strings still work), allowing location-specific constraints to be loaded from input data.
 
 ### Fixed
 
 - Myopic runs with `MyopicSettings.ReturnModels = false` now actually free each period's model. Each period's references are now released once its results have been written, and the model is emptied. Results are unchanged; scalar capacities remain readable on the returned `Case` as `Float64`.
 - Fix wacc default preventing fallback to DiscountRate. Omitted `wacc` was silently treated as `0.0` instead of falling back to the case-level `DiscountRate`.
 - Duplicate asset IDs within a system are now rejected during system generation, preventing ambiguous myopic capacity carry-over and late wide-output failures.
+>>>>>>> upstream/main
 
 ### Documentation
 

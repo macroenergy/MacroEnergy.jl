@@ -66,9 +66,11 @@ function print_struct_info(info::Vector{Tuple{Symbol, T}}) where T <: Union{Type
     end    
 end
 
-# The following functions are used to extract all the assets of a given type from a System or a Vector of Assets
+# The following functions are used to extract all the assets of a given type from a System or a Vector of Assets.
+# Matching is by subtyping (`isa`), so a parametric base type (e.g. the `VRE` UnionAll) returns all of
+# its variants. For a concrete type this is identical to exact-type matching, since concrete types have no subtypes.
 function get_assets_sametype(assets::Vector{AbstractAsset}, asset_type::T) where T<:Type{<:AbstractAsset}
-    return filter(a -> typeof(a) == asset_type, assets)
+    return filter(a -> isa(a, asset_type), assets)
 end
 
 """

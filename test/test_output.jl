@@ -739,7 +739,7 @@ function test_writing_output()
         @test result[2, :value] ≈ 58.0 # second time step value
         @test result[3, :value] ≈ 67.0 # third time step value
         @test result[1, :resource_id] == :vre_asset
-        @test result[1, :resource_type] == "VRE"
+        @test result[1, :resource_type] == "VRE{Generic}"  # VRE is now parametric (default tag :Generic)
 
         # Test get_optimal_curtailment at system level (with VRE)
         result_system = get_optimal_curtailment(system_with_vre, 1.0)

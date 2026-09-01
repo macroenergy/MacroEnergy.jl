@@ -3,11 +3,13 @@ Base.@kwdef mutable struct Location <: MacroObject
     system::AbstractSystem
     nodes::Dict{Symbol,Node} = Dict{Symbol,Node}()
     commodities::Set{Symbol} = Set{Symbol}()
+    constraints::Vector{AbstractTypeConstraint} = AbstractTypeConstraint[]
     # We could change this to work on commodities, not symbols
     # My feeling is that symbols will be lighter and faster
 end
 
 id(loc::Location) = loc.id
+all_constraints(loc::Location) = loc.constraints
 
 function add_node!(loc::Location, node::Node{T}, replace::Bool = false) where {T<:Commodity}
     node_commodity = typesymbol(commodity_type(node))
@@ -33,6 +35,28 @@ function load_locations!(system::AbstractSystem, rel_or_abs_path::String, data::
     for loc_id in data
         # In the future, we could pre-emptively find the relevant nodes
         push!(locations, Location(;id=Symbol(loc_id), system=system))
+    end
+    system.locations = locations
+    return nothing
+end
+
+# Locations may be given either as bare id strings or as objects carrying a `constraints` block (e.g.
+# a per-location MaxCapacityConstraint). This method handles the mixed/object case.
+function load_locations!(system::AbstractSystem, rel_or_abs_path::String, data::Vector)
+    locations = Location[]
+    for entry in data
+        if isa(entry, AbstractString)
+            push!(locations, Location(; id=Symbol(entry), system=system))
+        elseif isa(entry, AbstractDict)
+            haskey(entry, :constraints) && check_and_convert_constraints!(entry)
+            push!(locations, Location(;
+                id = Symbol(entry[:id]),
+                system = system,
+                constraints = get(entry, :constraints, AbstractTypeConstraint[]),
+            ))
+        else
+            error("Unsupported location entry $(entry); expected an id string or an object with an `id` field")
+        end
     end
     system.locations = locations
     return nothing

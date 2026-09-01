@@ -62,6 +62,9 @@ with_logger(test_logger) do
             include("asset_tests/test_asset_mustrun_balance.jl")
             include("asset_tests/test_asset_electricarcfurnace_balance.jl")
             include("asset_tests/test_asset_vre_balance.jl")
+            include("asset_tests/test_max_capacity_system.jl")
+            include("asset_tests/test_min_capacity_system.jl")
+            include("asset_tests/test_max_new_capacity_system.jl")
         end
     end
 
