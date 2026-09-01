@@ -144,6 +144,51 @@ function setup_user_additions(case_path::AbstractString=pwd())
     return nothing
 end
 
+"""
+    materialize_user_commodities!(case_path)
+    materialize_user_commodities!(case_path, case_data)
+    materialize_user_commodities!(case_path, systems_data)
+
+Materialize the user commodity definitions required by a case without generating its
+locations, time data, nodes, or assets. This is useful when a fresh Julia process must
+write `user_additions/usercommodities.jl` before another process loads the case.
+
+The overloads deliberately separate loading a case from processing its periods: callers
+that already have `case_data` avoid another read, while the vector method applies the
+same commodity preparation to every system period.
+"""
+function materialize_user_commodities!(case_path::AbstractString)
+    data_path = joinpath(case_path, "system_data.json")
+    return materialize_user_commodities!(
+        case_path,
+        load_case_data(data_path; lazy_load=true),
+    )
+end
+
+function materialize_user_commodities!(
+    case_path::AbstractString,
+    case_data::AbstractDict{Symbol,Any},
+)
+    setup_user_additions(case_path)
+    return materialize_user_commodities!(case_path, case_data[:case])
+end
+
+function materialize_user_commodities!(
+    case_path::AbstractString,
+    systems_data::AbstractVector{<:AbstractDict{Symbol,Any}},
+)
+    for system_data in systems_data
+        settings = configure_settings(system_data[:settings], case_path)
+        load_commodities(
+            system_data[:commodities],
+            case_path;
+            write_subcommodities=settings.WriteSubcommodities,
+            allow_implicit_top_level_commodities=settings.AllowImplicitTopLevelCommodities,
+        )
+    end
+    return nothing
+end
+
 function read_unique_nonempty_lines(file_path::AbstractString)
     lines = String[]
     seen = Set{String}()

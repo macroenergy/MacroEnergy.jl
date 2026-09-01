@@ -19,13 +19,13 @@ macro AbstractStorageBaseAttributes()
         max_capacity::Float64 = $storage_defaults[:max_capacity]
         max_duration::Float64 = $storage_defaults[:max_duration]
         max_new_capacity::Float64 = $storage_defaults[:max_new_capacity]
-        max_storage_level::Float64 = $storage_defaults[:max_storage_level]
+        max_storage_level::Vector{Float64} = $storage_defaults[:max_storage_level]
         min_capacity::Float64 = $storage_defaults[:min_capacity]
         min_duration::Float64 = $storage_defaults[:min_duration]
         min_outflow_fraction::Float64 = $storage_defaults[:min_outflow_fraction]
         min_retired_capacity::Float64 = $storage_defaults[:min_retired_capacity]
         min_retired_capacity_track::Float64 = 0.0
-        min_storage_level::Float64 = $storage_defaults[:min_storage_level]
+        min_storage_level::Vector{Float64} = $storage_defaults[:min_storage_level]
         new_capacity::Union{AffExpr,Float64} = AffExpr(0.0)
         new_capacity_track::Dict{Int64,AffExpr} = Dict(1=>AffExpr(0.0))
         new_units::Union{Missing, JuMPVariable} = missing
@@ -69,7 +69,6 @@ end
     - existing_capacity::Float64: Initial installed storage capacity
     - fixed_om_cost::Float64: Fixed operation and maintenance costs
     - investment_cost::Float64: CAPEX per unit of new storage capacity
-    - loss_fraction::Float64: Fraction of stored commodity lost at each timestep
     - loss_fraction::Vector{Float64}: Fraction of stored commodity lost at each timestep
     - max_capacity::Float64: Maximum allowed storage capacity
     - max_duration::Float64: Maximum storage duration in hours
@@ -128,8 +127,15 @@ function make_storage(
         end
     end
     if haskey(filtered_data,:loss_fraction) && !isa(filtered_data[:loss_fraction], Vector{Float64})
-        filtered_data[:loss_fraction] = [filtered_data[:loss_fraction]];
+        filtered_data[:loss_fraction] = Float64[filtered_data[:loss_fraction]...];
     end 
+    if haskey(filtered_data,:min_storage_level) && !isa(filtered_data[:min_storage_level], Vector{Float64})
+        filtered_data[:min_storage_level] = Float64[filtered_data[:min_storage_level]...];
+    end
+    if haskey(filtered_data,:max_storage_level) && !isa(filtered_data[:max_storage_level], Vector{Float64})
+        filtered_data[:max_storage_level] = Float64[filtered_data[:max_storage_level]...];
+    end
+
     _storage = Storage{commodity}(;
         id = id,
         timedata = time_data,
@@ -172,12 +178,32 @@ max_capacity(g::AbstractStorage) = g.max_capacity;
 max_duration(g::AbstractStorage) = g.max_duration;
 max_new_capacity(g::AbstractStorage) = g.max_new_capacity;
 max_storage_level(g::AbstractStorage) = g.max_storage_level;
+function max_storage_level(g::AbstractStorage, t::Int64)
+    a = max_storage_level(g)
+    if isempty(a)
+        return 0.0
+    elseif length(a) == 1
+        return a[1]
+    else
+        return a[t]
+    end
+end
 min_capacity(g::AbstractStorage) = g.min_capacity;
 min_duration(g::AbstractStorage) = g.min_duration;
 min_outflow_fraction(g::AbstractStorage) = g.min_outflow_fraction;
 min_retired_capacity(g::AbstractStorage) = g.can_retire ? g.min_retired_capacity : 0.0;
 min_retired_capacity_track(g::AbstractStorage) = g.min_retired_capacity_track;
 min_storage_level(g::AbstractStorage) = g.min_storage_level;
+function min_storage_level(g::AbstractStorage, t::Int64)
+    a = min_storage_level(g)
+    if isempty(a)
+        return 0.0
+    elseif length(a) == 1
+        return a[1]
+    else
+        return a[t]
+    end
+end
 new_capacity(g::AbstractStorage) = g.new_capacity;
 new_capacity_track(g::AbstractStorage) = g.new_capacity_track;
 #### Note that storage "g" may not be present in the inputs for all case
@@ -192,7 +218,7 @@ retirement_period(g::AbstractStorage) = g.retirement_period;
 retrofitted_capacity_track(g::AbstractStorage,s::Int64) = 0.0; ### Note that retrofits are not implemented for storage yet
 spillage_edge(g::AbstractStorage) = g.spillage_edge;
 storage_level(g::AbstractStorage) = g.storage_level;
-storage_level(g::AbstractStorage, t::Int64) = storage_level(g)[t];
+storage_level(g::AbstractStorage, t::Int64) = (storage_level(g)::VarArrayOrDense)[t];
 wacc(g::AbstractStorage) = g.wacc;
 annualized_investment_cost(g::AbstractStorage) = g.annualized_investment_cost;
 pv_period_investment_cost(g::AbstractStorage) = g.pv_period_investment_cost;
@@ -250,10 +276,11 @@ function planning_model!(g::Storage, model::Model)
 end
 
 function operation_model!(g::Storage, model::Model)
-
+    ti = time_interval(g)
     g.storage_level = @variable(
         model,
-        [t in time_interval(g)],
+        [t in ti],
+        container = array_container(ti),
         lower_bound = 0.0,
         base_name = "vSTOR_$(g.id)_period$(period_index(g))"
     )
@@ -305,8 +332,14 @@ function make_long_duration_storage(
         end
     end
     if haskey(filtered_data,:loss_fraction) && !isa(filtered_data[:loss_fraction], Vector{Float64})
-        filtered_data[:loss_fraction] = [filtered_data[:loss_fraction]];
+        filtered_data[:loss_fraction] = Float64[filtered_data[:loss_fraction]...];
     end 
+    if haskey(filtered_data,:min_storage_level) && !isa(filtered_data[:min_storage_level], Vector{Float64})
+        filtered_data[:min_storage_level] = Float64[filtered_data[:min_storage_level]...];
+    end
+    if haskey(filtered_data,:max_storage_level) && !isa(filtered_data[:max_storage_level], Vector{Float64})
+        filtered_data[:max_storage_level] = Float64[filtered_data[:max_storage_level]...];
+    end
     _storage = LongDurationStorage{commodity}(;
         id=id,
         timedata=time_data,
@@ -360,10 +393,11 @@ end
 
 
 function operation_model!(g::LongDurationStorage, model::Model)
-
+    ti = time_interval(g)
     g.storage_level = @variable(
         model,
-        [t in time_interval(g)],
+        [t in ti],
+        container = array_container(ti),
         lower_bound = 0.0,
         base_name = "vSTOR_$(g.id)_period$(period_index(g))"
     )
@@ -388,36 +422,44 @@ function operation_model!(g::LongDurationStorage, model::Model)
 end
 
 function initialize_balance_expression(g::Storage, balance_id::Symbol, model::Model)
+    ti = time_interval(g)
+    sps = subperiods(g)
+    time_container = array_container(ti)
     if balance_id == :storage
         return @expression(
             model,
-            [t in time_interval(g)],
+            [t in ti],
+            container = time_container,
             -storage_level(g, t) +
-            (1 - loss_fraction(g, timestepbefore(t, 1, subperiods(g)))) *
-            storage_level(g, timestepbefore(t, 1, subperiods(g)))
+            (1 - loss_fraction(g, timestepbefore(t, 1, sps))) *
+            storage_level(g, timestepbefore(t, 1, sps))
         )
     end
-    return @expression(model, [t in time_interval(g)], 0 * model[:vREF])
+    return @expression(model, [t in ti], container = time_container, 0 * model[:vREF])
 end
 
 function initialize_balance_expression(g::LongDurationStorage, balance_id::Symbol, model::Model)
+    ti = time_interval(g)
+    sps = subperiods(g)
+    time_container = array_container(ti)
     if balance_id == :storage
-        starts = Set(first(sp) for sp in subperiods(g))
+        starts = Set(first(sp) for sp in sps)
         return @expression(
             model,
-            [t in time_interval(g)],
+            [t in ti],
+            container = time_container,
             if t in starts
                 -storage_level(g, t) +
-                (1 - loss_fraction(g, timestepbefore(t, 1, subperiods(g)))) *
-                (storage_level(g, timestepbefore(t, 1, subperiods(g))) - storage_change(g, current_subperiod(g, t)))
+                (1 - loss_fraction(g, timestepbefore(t, 1, sps))) *
+                (storage_level(g, timestepbefore(t, 1, sps)) - storage_change(g, current_subperiod(g, t)))
             else
                 -storage_level(g, t) +
-                (1 - loss_fraction(g, timestepbefore(t, 1, subperiods(g)))) *
-                storage_level(g, timestepbefore(t, 1, subperiods(g)))
+                (1 - loss_fraction(g, timestepbefore(t, 1, sps))) *
+                storage_level(g, timestepbefore(t, 1, sps))
             end
         )
     end
-    return @expression(model, [t in time_interval(g)], 0 * model[:vREF])
+    return @expression(model, [t in ti], container = time_container, 0 * model[:vREF])
 end
 
 function compute_investment_costs!(g::AbstractStorage, model::Model, cost_type::Function=pv_period_investment_cost)

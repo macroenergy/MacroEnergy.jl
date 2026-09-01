@@ -21,6 +21,8 @@ The sections below describe each mode in detail: when to choose it, how to confi
 
 In the following sections, we use the term **period** to refer to the investment periods defined by `PeriodLengths` in `case_settings.json` (e.g. 2020-2030, 2030-2040, etc.) and **subperiod** to refer to the representative time steps within each period (e.g. a set of hours or days that capture typical operational conditions) which is configured in the `system/time_data.json` file. The number of periods and subperiods can be configured independently, and both affect the size and complexity of the optimisation problems being solved.
 
+By default, periods are only identified by their 1-based index (period 1, period 2, ...). To have Macro label periods by calendar year instead, set `"StartYear"` (e.g. `2026`) in `case_settings.json` — each period's year is then `StartYear` plus the sum of `PeriodLengths` of all preceding periods (e.g. `2026`, `2036`, `2046` for `PeriodLengths: [10, 10, 10]`). This is optional and purely for labeling: it populates the `year` column in [`capacity.csv`](@ref "manual-outputs-capacity") and the column suffixes in [`capacity_summary.csv`](@ref "manual-outputs-capacity-summary"), but has no effect on the optimization itself.
+
 For illustration purposes, in the descriptions below we assume a case with 3 investment periods of 10 years each, but the concepts apply to any number of periods and lengths.
 
 ## [Perfect Foresight + Monolithic](@id pf_monolithic)

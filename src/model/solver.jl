@@ -35,6 +35,9 @@ function solve_case(case::Case, opt::O, ::Myopic) where O <: Union{Optimizer, Di
     # Only allocate models vector if returning models is requested
     stored = return_results ? Vector{Any}(undef, length(periods)) : nothing
 
+    # Accumulates each period's capacity summary for the cross-period capacity_summary.csv.
+    capacity_summaries = DataFrame[]
+
     if myopic_settings[:Restart][:enabled]
         if myopic_settings[:Restart][:from_period] == 1
             @warn("Restarting from the first period; no previous period to load, proceeding with normal iteration.")
@@ -67,10 +70,18 @@ function solve_case(case::Case, opt::O, ::Myopic) where O <: Union{Optimizer, Di
 
         period_idx < length(periods) && carry_over_capacities!(periods[period_idx+1], system, perfect_foresight=false)
 
-        write_outputs(output_path, case, model, system, period_idx)
+        push!(capacity_summaries, write_outputs(output_path, case, model, system, period_idx))
 
-        return_results ? (stored[period_idx] = model) : (model = nothing; GC.gc())
+        if return_results
+            stored[period_idx] = model
+        else
+            release_model!(system, model)
+            model = nothing
+            GC.gc()
+        end
     end
+
+    length(capacity_summaries) > 1 && write_capacity_summary(output_path, capacity_summaries, get_output_layout(periods[1], :CapacitySummary))
 
     write_settings(case, joinpath(output_path, "settings.json"))
 

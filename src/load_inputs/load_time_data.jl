@@ -4,9 +4,10 @@ function load_time_data(
     rel_path::AbstractString
 )
     period_index = get(data, :SystemIndex, 1)
+    year = get(data, :Year, missing)
     if haskey(data, :path)
         path = rel_or_abs_path(data[:path], rel_path)
-        return load_time_data(path, commodities, rel_path, period_index)
+        return load_time_data(path, commodities, rel_path, period_index, year)
     else
         return load_time_data(data, commodities)
     end
@@ -16,7 +17,8 @@ function load_time_data(
     path::AbstractString,
     commodities::Dict{Symbol,DataType},
     rel_path::AbstractString,
-    period_index::Int = 1
+    period_index::Int = 1,
+    year::Union{Int,Missing} = missing
 )
     path = rel_or_abs_path(path, rel_path)
     if isdir(path)
@@ -31,6 +33,7 @@ function load_time_data(
     haskey(time_data, :SubPeriodMap) && load_subperiod_map!(time_data, rel_path)
     validate_and_set_default_total_hours_modeled!(time_data::AbstractDict{Symbol,Any})
     time_data[:SystemIndex] = period_index
+    time_data[:Year] = year
     return load_time_data(time_data, commodities)
 end
 
@@ -162,6 +165,7 @@ function create_commodity_timedata(
         time_interval = time_interval,
         hours_per_timestep = hours_per_timestep,
         period_index = get(time_data, :SystemIndex, 1),
+        year = get(time_data, :Year, missing),
         subperiods = subperiods,
         subperiod_indices = unique_rep_periods,
         subperiod_weights = Dict(unique_rep_periods .=> weights),

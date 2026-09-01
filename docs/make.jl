@@ -54,6 +54,7 @@ const pages = [
         "Developer Guide" => [
             "Creating a Constraint" => "Guides/Developer Guide/dev_create_constraint.md",
             "Type Hierarchy" => "Guides/Developer Guide/2_type_hierarchy.md",
+            "Running the Test Suite" => "Guides/Developer Guide/dev_running_tests.md",
         ],
     ],
     "Assets" => "Assets/assets_guide.md",
@@ -155,6 +156,7 @@ makedocs(;
         canonical="https://macroenergy.github.io/Macro/stable/",
         # sidebar_sitename = false,
         collapselevel=1,
+        mathengine=Documenter.MathJax3(),
     ),
     pages=pages,
 )

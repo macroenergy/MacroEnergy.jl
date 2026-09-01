@@ -387,7 +387,7 @@ To enable this constraint:
     "storage_constraints": {
         "MinStorageLevelConstraint": true
     },
-    "min_storage_level": 0.3
+    "min_storage_level": [0.3]
 }
 ```
 

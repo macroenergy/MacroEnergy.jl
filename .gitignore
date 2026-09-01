@@ -50,3 +50,4 @@ output.log
 
 *.log
 /examples
+/benchmark/results/

@@ -20,7 +20,7 @@ This file serves as a reproducibility record: given the same input data and the 
 
 | Key | Description |
 |---|---|
-| `case_settings` | Settings from `case_settings.json` (solution algorithm, period lengths, discount rate, full time series flag, etc.) |
+| `case_settings` | Settings from `case_settings.json` (solution algorithm, period lengths, discount rate, start year, full time series flag, etc.) |
 | `system_settings` | Settings from `macro_settings.json` (output layout, dual exports, overwrite behavior, constraint scaling, etc.) |
 
 The `system_settings` are written as JSON arrays (one entry per period for multi-period models, or a single entry for single-period models).

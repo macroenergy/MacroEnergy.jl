@@ -41,6 +41,8 @@ function generate_system!(system::System, system_data::AbstractDict{Symbol,Any})
     # Load the assets
     load!(system, system_data[:assets])
 
+    validate_unique_asset_ids(system)
+
     # Load system-wide constraints
     if haskey(system_data, :constraints)
         @info(" -- Adding system-wide constraints")
@@ -61,5 +63,36 @@ function generate_system!(
     @info("Generating system from $file_path")
     system_data = load_system_data(file_path, system.data_dirpath; lazy_load = lazy_load)
     generate_system!(periods, system_data)
+    return nothing
+end
+
+function validate_unique_asset_ids(system::System)::Nothing
+    id_counts = Dict{AssetId,Int}()
+
+    for asset in system.assets
+        asset_id = id(asset)
+        id_counts[asset_id] = get(id_counts, asset_id, 0) + 1
+    end
+
+    duplicates = sort!(
+        [(asset_id, count) for (asset_id, count) in id_counts if count > 1];
+        by = first,
+    )
+
+    if isempty(duplicates)
+        return nothing
+    end
+
+    duplicate_ids = join(
+        ["$(asset_id): $(count)x" for (asset_id, count) in duplicates],
+        ", ",
+    )
+
+    throw(ArgumentError(
+        "Duplicate IDs in system inputs.
+        System $(period_index(system)) has duplicate asset IDs: $duplicate_ids. 
+        All asset IDs must be unique within each system.
+        Duplicates are allowed across different systems within a case."
+    ))
     return nothing
 end

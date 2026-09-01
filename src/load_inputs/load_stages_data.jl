@@ -6,6 +6,9 @@ function load_case_data(
     start_time = time()
     file_path = abspath(rel_or_abs_path(file_path, rel_path))
 
+    # Clear the CSV cache at the start of each case load
+    clear_csv_cache!()
+
     # Load the system data from the JSON file(s)
     data = load_system_data(file_path, rel_path; lazy_load = lazy_load)
 
@@ -36,10 +39,13 @@ function load_case(
     if isjson(path)
         @info("Loading case from $path")
 
-        case_data = load_case_data(path; lazy_load = lazy_load)
-        case = generate_case(path, case_data)
-        
-        return case
+        try
+            case_data = load_case_data(path; lazy_load = lazy_load)
+            return generate_case(path, case_data)
+        finally
+            # Release the cached input CSVs now that every System owns its own copy (or if the load failed)
+            clear_csv_cache!()
+        end
     else
         msg = "No case data found in $path. Either provide a path to a .JSON file or a directory containing a system_data.json file"
         throw(ArgumentError(msg))
