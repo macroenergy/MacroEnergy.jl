@@ -43,6 +43,77 @@ macro AbstractStorageBaseAttributes()
         cf_period_investment_cost::Union{Nothing,Float64} = $storage_defaults[:cf_period_investment_cost]
         cf_period_fixed_om_cost::Union{Nothing,Float64} = $storage_defaults[:cf_period_fixed_om_cost]
         cf_period_variable_om_cost::Union{Nothing,Float64} = $storage_defaults[:cf_period_variable_om_cost]
+        # Learning
+        learning_type::String = ""
+        learning_parameter::Float64 = 0.0
+        cumulative_capacity_init::Float64 = 0.0
+        endogenous_capex_segment_chosen_track::Dict{Int64,Union{JuMPVariable}} = Dict(1 => Vector{VariableRef}())
+        endogenous_capex_segment_chosen_from_relevant_period::Union{JuMPVariable,Float64} = Vector{VariableRef}()
+        aux_new_capacity::Union{JuMPVariable,Float64} = 0.0
+        cumulative_experience::Union{JuMPVariable,Float64} = 0.0
+        endogenous_capex::AffExpr = AffExpr(0.0)
+        endogenous_capex_track::Dict{Int64,AffExpr} = Dict(1=>AffExpr(0.0))
+        pwl_capex_slopes::Vector{Float64} = Float64[]
+        annualized_investment_cost_with_learning::AffExpr = AffExpr(0.0)
+        annuities_mult::Float64 = 0.0
+        annualization_factor::Float64 = 0.0
+        endog_annualized_cost::AffExpr = AffExpr(0.0)
+        init_cumul_capacity::Float64 = 0.0
+        endog_annualized_investment_cost::AffExpr = 0.0
+        max_cumul_capacity::Float64 = 0.0
+        learning_delay::Int64 = 1
+        interconnect_annuity::Float64 = 0.0
+        interconnect_annuities_mult::Float64 = 0.0
+        # Project development
+        de_duration::Int64 = $storage_defaults[:de_duration]
+        af_duration::Int64 = $storage_defaults[:af_duration]
+        cc_duration::Int64 = $storage_defaults[:cc_duration]
+        # Definition and evaluation (DE)
+        de_cost_perc::Float64 = 0.0
+        de_wacc::Float64 = 0.1
+        de_annualization_factor::Float64 = 0.0
+        de_cap_recovery::Int64 = 1
+        de_annuities_mult::Float64 = 0.0
+        de_annualized_cost::Float64 = 0.0
+        new_de_capacity::AffExpr = AffExpr(0.0)
+        new_de_capacity_track::Dict{Int64,AffExpr} = Dict(1=>AffExpr(0.0))
+        de_capacity::AffExpr = AffExpr(0.0)
+        de_capacity_track::Dict{Int64,AffExpr} = Dict(1=>AffExpr(0.0))
+        new_de_units::Union{JuMPVariable,Float64} = 0.0
+        # Approvals and funding (AF)
+        af_cost_perc::Float64 = 0.0
+        af_wacc::Float64 = 0.1
+        af_annualization_factor::Float64 = 0.0
+        af_cap_recovery::Int64 = 1
+        af_annuities_mult::Float64 = 0.0
+        af_annualized_cost::Float64 = 0.0
+        new_af_capacity::AffExpr = AffExpr(0.0)
+        new_af_capacity_track::Dict{Int64,AffExpr} = Dict(1=>AffExpr(0.0))
+        af_capacity::AffExpr = AffExpr(0.0)
+        af_capacity_track::Dict{Int64,AffExpr} = Dict(1=>AffExpr(0.0))
+        new_af_units::Union{JuMPVariable,Float64} = 0.0
+        # Construction and Commissioning (CC)
+        cc_cost_perc::Float64 = 0.0
+        cc_wacc::Float64 = 0.05
+        cc_annualization_factor::Float64 = 0.0
+        cc_cap_recovery::Int64 = 1
+        cc_annuities_mult::Float64 = 0.0
+        cc_annualized_cost::Float64 = 0.0
+        new_cc_capacity::AffExpr = AffExpr(0.0)
+        new_cc_capacity_track::Dict{Int64,AffExpr} = Dict(1=>AffExpr(0.0))
+        cc_capacity::AffExpr = AffExpr(0.0)
+        cc_capacity_track::Dict{Int64,AffExpr} = Dict(1=>AffExpr(0.0))
+        new_cc_units::Union{JuMPVariable,Float64} = 0.0
+        capacity_in_progress_init::Float64 = 0.0
+        new_capital::Union{AffExpr,Float64} = AffExpr(0.0)
+        new_capital_de::Union{AffExpr,Float64} = AffExpr(0.0)
+        new_capital_af::Union{AffExpr,Float64} = AffExpr(0.0)
+        new_capital_cc::Union{AffExpr,Float64} = AffExpr(0.0)
+        itc_schedule::Vector{Float64} = zeros(30)
+        # Max growth formulation
+        max_new_capacity_init::Float64 = 0.0
+        cagr::Float64 = 0.0
+        cadr::Float64 = 0.0
     end)
 end
 
@@ -228,6 +299,86 @@ cf_period_fixed_om_cost(g::AbstractStorage) = g.cf_period_fixed_om_cost;
 variable_om_cost(g::AbstractStorage) = g.variable_om_cost;
 pv_period_variable_om_cost(g::AbstractStorage) = g.pv_period_variable_om_cost;
 cf_period_variable_om_cost(g::AbstractStorage) = g.cf_period_variable_om_cost;
+# Learning
+learning_type(g::AbstractStorage) = g.learning_type;
+n_learning_pwl_segments(g::AbstractStorage) = g.n_learning_pwl_segments;
+learning_parameter(g::AbstractStorage) = g.learning_parameter;
+cumulative_capacity_init(g::AbstractStorage) = g.cumulative_capacity_init;
+endog_annualized_investment_cost(g::AbstractStorage) = g.endog_annualized_investment_cost;
+endogenous_capex_segment_chosen_from_relevant_period(g::AbstractStorage) = g.endogenous_capex_segment_chosen_from_relevant_period;
+cumulative_experience(g::AbstractStorage) = g.cumulative_experience;
+endogenous_capex(g::AbstractStorage) = g.endogenous_capex;
+endogenous_capex_track(g::AbstractStorage) = g.endogenous_capex_track;
+endogenous_capex_track(g::AbstractStorage,s::Int64) =  (haskey(endogenous_capex_track(g),s) == false) ? 0.0 : g.endogenous_capex_track[s];
+endogenous_capex_segment_chosen_track(g::AbstractStorage) = g.endogenous_capex_segment_chosen_track;
+endogenous_capex_segment_chosen_track(g::AbstractStorage,s::Int64) =  (haskey(endogenous_capex_segment_chosen_track(g),s) == false) ? 0.0 : g.endogenous_capex_segment_chosen_track[s];
+pwl_capex_slopes(g::AbstractStorage) = g.pwl_capex_slopes;
+aux_new_capacity(g::AbstractStorage) = g.aux_new_capacity;
+annualized_investment_cost_with_learning(g::AbstractStorage) = g.annualized_investment_cost_with_learning;
+annuities_mult(g::AbstractStorage) = g.annuities_mult;
+annualization_factor(g::AbstractStorage) = g.annualization_factor;
+endog_annualized_cost(g::AbstractStorage) = g.endog_annualized_cost;
+init_cumul_capacity(g::AbstractStorage) = g.init_cumul_capacity;
+max_cumul_capacity(g::AbstractStorage) = g.max_cumul_capacity;
+learning_delay(g::AbstractStorage) = g.learning_delay;
+interconnect_annuity(g::AbstractStorage) = g.interconnect_annuity;
+interconnect_annuities_mult(g::AbstractStorage) = g.interconnect_annuities_mult;
+# Project development
+de_duration(g::AbstractStorage) = g.de_duration;
+af_duration(g::AbstractStorage) = g.af_duration;
+cc_duration(g::AbstractStorage) = g.cc_duration;
+de_cost_perc(g::AbstractStorage) = g.de_cost_perc;
+af_cost_perc(g::AbstractStorage) = g.af_cost_perc;
+cc_cost_perc(g::AbstractStorage) = g.cc_cost_perc;
+de_wacc(g::AbstractStorage) = g.de_wacc;
+af_wacc(g::AbstractStorage) = g.af_wacc;
+cc_wacc(g::AbstractStorage) = g.cc_wacc;
+de_annualization_factor(g::AbstractStorage) = g.de_annualization_factor;
+af_annualization_factor(g::AbstractStorage) = g.af_annualization_factor;
+cc_annualization_factor(g::AbstractStorage) = g.cc_annualization_factor;
+de_cap_recovery(g::AbstractStorage) = g.de_cap_recovery;
+af_cap_recovery(g::AbstractStorage) = g.af_cap_recovery;
+cc_cap_recovery(g::AbstractStorage) = g.cc_cap_recovery;
+de_annualized_cost(g::AbstractStorage) = g.de_annualized_cost;
+af_annualized_cost(g::AbstractStorage) = g.af_annualized_cost;
+cc_annualized_cost(g::AbstractStorage) = g.cc_annualized_cost;
+de_annuities_mult(g::AbstractStorage) = g.de_annuities_mult;
+af_annuities_mult(g::AbstractStorage) = g.af_annuities_mult;
+cc_annuities_mult(g::AbstractStorage) = g.cc_annuities_mult;
+# Definition and evaluation (DE)
+new_de_capacity(g::AbstractStorage) = g.new_de_capacity;
+de_capacity(g::AbstractStorage) = g.de_capacity;
+new_de_capacity_track(g::AbstractStorage) = g.new_de_capacity_track;
+new_de_capacity_track(g::AbstractStorage,s::Int64) =  (haskey(new_de_capacity_track(g),s) == false) ? 0.0 : g.new_de_capacity_track[s];
+de_capacity_track(g::AbstractStorage) = g.de_capacity_track;
+de_capacity_track(g::AbstractStorage,s::Int64) =  (haskey(de_capacity_track(g),s) == false) ? 0.0 : g.de_capacity_track[s];
+new_de_units(g::AbstractStorage) = g.new_de_units;
+# Approvals and funding (AF)
+new_af_capacity(g::AbstractStorage) = g.new_af_capacity;
+af_capacity(g::AbstractStorage) = g.af_capacity;
+new_af_capacity_track(g::AbstractStorage) = g.new_af_capacity_track;
+new_af_capacity_track(g::AbstractStorage,s::Int64) =  (haskey(new_af_capacity_track(g),s) == false) ? 0.0 : g.new_af_capacity_track[s];
+af_capacity_track(g::AbstractStorage) = g.af_capacity_track;
+af_capacity_track(g::AbstractStorage,s::Int64) =  (haskey(af_capacity_track(g),s) == false) ? 0.0 : g.af_capacity_track[s];
+new_af_units(g::AbstractStorage) = g.new_af_units;
+# Construction and commissioning (CC)
+new_cc_capacity(g::AbstractStorage) = g.new_cc_capacity;
+cc_capacity(g::AbstractStorage) = g.cc_capacity;
+new_cc_capacity_track(g::AbstractStorage) = g.new_cc_capacity_track;
+new_cc_capacity_track(g::AbstractStorage,s::Int64) =  (haskey(new_cc_capacity_track(g),s) == false) ? 0.0 : g.new_cc_capacity_track[s];
+cc_capacity_track(g::AbstractStorage) = g.cc_capacity_track;
+cc_capacity_track(g::AbstractStorage,s::Int64) =  (haskey(cc_capacity_track(g),s) == false) ? 0.0 : g.cc_capacity_track[s];
+new_cc_units(g::AbstractStorage) = g.new_cc_units;
+capacity_in_progress_init(g::AbstractStorage) = g.capacity_in_progress_init;
+new_capital(g::AbstractStorage) = g.new_capital;
+new_capital_de(g::AbstractStorage) = g.new_capital_de;
+new_capital_af(g::AbstractStorage) = g.new_capital_af;
+new_capital_cc(g::AbstractStorage) = g.new_capital_cc;
+itc_schedule(g::AbstractStorage) = g.itc_schedule;
+# Max growth formulation
+max_new_capacity_init(g::AbstractStorage) = g.max_new_capacity_init;
+cagr(g::AbstractStorage) = g.cagr;
+cadr(g::AbstractStorage) = g.cadr;
 
 function add_linking_variables!(g::Storage, model::Model)
     if has_capacity(g)
@@ -252,24 +403,43 @@ function define_available_capacity!(g::AbstractStorage, model::Model)
 
         @constraint(model, capacity(g) == new_capacity(g) - retired_capacity(g) + existing_capacity(g))
 
-        # g.capacity = @expression(
-        #     model,
-        #     new_capacity(g) - retired_capacity(g) + existing_capacity(g)
-        # )
+        # Project development
+        # Definition and evaluation (DE)
+        g.new_de_units = @variable(model, lower_bound = 0.0, base_name = "vNEWDEUNIT_$(id(g))_stage$(period_index(g))")
+        g.new_de_capacity = @expression(model, capacity_size(g) * new_de_units(g))
+        g.new_de_capacity_track[period_index(g)] = new_de_capacity(g)
+        g.de_capacity = @variable(model, lower_bound = 0.0, base_name = "vDECAP_$(id(g))_stage$(period_index(g))")
+        g.de_capacity_track[period_index(g)] = de_capacity(g)
+        # Approvals and funding (AF)
+        g.new_af_units = @variable(model, lower_bound = 0.0, base_name = "vNEWAFUNIT_$(id(g))_stage$(period_index(g))")
+        g.new_af_capacity = @expression(model, capacity_size(g) * new_af_units(g))
+        g.new_af_capacity_track[period_index(g)] = new_af_capacity(g)
+        g.af_capacity = @variable(model, lower_bound = 0.0, base_name = "vAFCAP_$(id(g))_stage$(period_index(g))")
+        g.af_capacity_track[period_index(g)] = af_capacity(g)
+        # Construction and commissioning (CC)
+        g.new_cc_units = @variable(model, lower_bound = 0.0, base_name = "vNEWCCUNIT_$(id(g))_stage$(period_index(g))")
+        g.new_cc_capacity = @expression(model, capacity_size(g) * new_cc_units(g))
+        g.new_cc_capacity_track[period_index(g)] = new_cc_capacity(g)
+        g.cc_capacity = @variable(model, lower_bound = 0.0, base_name = "vCCCAP_$(id(g))_stage$(period_index(g))")
+        g.cc_capacity_track[period_index(g)] = cc_capacity(g)
     end
 end
 
-function planning_model!(g::Storage, model::Model)
+function planning_model!(g::Storage, model::Model, settings::NamedTuple)
 
     if !g.can_expand
         fix(new_units(g), 0.0; force = true)
+        # Project development
+        fix(new_de_units(g), 0.0; force = true)
+        fix(new_af_units(g), 0.0; force = true)
+        fix(new_cc_units(g), 0.0; force = true)
     end
 
     if !g.can_retire
         fix(retired_units(g), 0.0; force = true)
     end
 
-    compute_fixed_costs!(g, model)
+    compute_fixed_costs!(g, model, settings)
 
     @constraint(model, retired_capacity(g) <= existing_capacity(g))
 
@@ -364,7 +534,7 @@ function add_linking_variables!(g::LongDurationStorage, model::Model)
 end
 
 
-function planning_model!(g::LongDurationStorage, model::Model)
+function planning_model!(g::LongDurationStorage, model::Model, settings::NamedTuple)
 
     if !g.can_expand
         fix(new_units(g), 0.0; force = true)
@@ -374,7 +544,7 @@ function planning_model!(g::LongDurationStorage, model::Model)
         fix(retired_units(g), 0.0; force = true)
     end
 
-    compute_fixed_costs!(g, model)
+    compute_fixed_costs!(g, model, settings)
 
     @constraint(model, retired_capacity(g) <= existing_capacity(g))
 
@@ -462,14 +632,50 @@ function initialize_balance_expression(g::LongDurationStorage, balance_id::Symbo
     return @expression(model, [t in ti], container = time_container, 0 * model[:vREF])
 end
 
-function compute_investment_costs!(g::AbstractStorage, model::Model, cost_type::Function=pv_period_investment_cost)
+function compute_investment_costs!(g::AbstractStorage, model::Model, settings::NamedTuple, cost_type::Function=pv_period_investment_cost)
     if has_capacity(g)
         if can_expand(g)
-            add_to_expression!(
-                    model[:eInvestmentFixedCost],
-                    cost_type(g),
-                    new_capacity(g),
+
+            # Apply subsidy depending on stage
+            de_itc_schedule = [g.itc_schedule[(g.de_duration+g.af_duration)+1:end]; zeros(min((g.de_duration+g.af_duration), length(g.itc_schedule)))]
+            af_itc_schedule = [g.itc_schedule[(g.af_duration)+1:end]; zeros(min((g.af_duration), length(g.itc_schedule)))]
+
+            if cost_type == pv_period_investment_cost
+
+                add_to_expression!(
+                model[:eInvestmentFixedCost],
+                de_annualized_cost(g)*de_annuities_mult(g)*(1-de_itc_schedule[period_index(g)]),
+                new_de_capacity(g),
                 )
+                add_to_expression!(
+                    model[:eInvestmentFixedCost],
+                    af_annualized_cost(g)*af_annuities_mult(g)*(1-af_itc_schedule[period_index(g)]),
+                    new_af_capacity(g),
+                )
+                add_to_expression!(
+                    model[:eInvestmentFixedCost],
+                    cc_annualized_cost(g)*cc_annuities_mult(g)*(1-g.itc_schedule[period_index(g)]) ,
+                    new_cc_capacity(g),
+                )
+
+                if settings[:ProjectDevelopment]
+                    g.new_capital = @expression(model, investment_cost(g) * (1 - de_cost_perc(g) - af_cost_perc(g) - cc_cost_perc(g)) * new_capacity(g) * (1 - g.itc_schedule[period_index(g)]))
+                else
+                    g.new_capital = @expression(model, investment_cost(g) * new_capacity(g) * (1 - g.itc_schedule[period_index(g)]))
+                end
+
+                g.new_capital_de = @expression(model, investment_cost(g) * de_cost_perc(g) * new_de_capacity(g) * (1 - de_itc_schedule[period_index(g)]))
+                g.new_capital_af = @expression(model, investment_cost(g) * af_cost_perc(g) * new_af_capacity(g) * (1 - af_itc_schedule[period_index(g)]))
+                g.new_capital_cc = @expression(model, investment_cost(g) * cc_cost_perc(g) * new_cc_capacity(g) * (1 - g.itc_schedule[period_index(g)]))
+            else
+
+                add_to_expression!(
+                        model[:eInvestmentFixedCost],
+                        cost_type(g),
+                        new_capacity(g),
+                    )
+            end
+
         end
     end
 end
@@ -486,7 +692,7 @@ function compute_om_fixed_costs!(g::AbstractStorage, model::Model, cost_type::Fu
     end
 end
 
-function compute_fixed_costs!(g::AbstractStorage, model::Model, cost_type::Symbol=:PV)
+function compute_fixed_costs!(g::AbstractStorage, model::Model, settings::NamedTuple, cost_type::Symbol=:PV)
     allowed_cost_types = [:PV, :CF]
     if !(cost_type in allowed_cost_types)
         error("Invalid cost type: $cost_type. Allowed types are: $(allowed_cost_types)")
@@ -499,7 +705,7 @@ function compute_fixed_costs!(g::AbstractStorage, model::Model, cost_type::Symbo
         :PV => pv_period_fixed_om_cost,
         :CF => cf_period_fixed_om_cost
     )
-    compute_investment_costs!(g, model, invesment_cost_function[cost_type])
+    compute_investment_costs!(g, model, settings, invesment_cost_function[cost_type])
     compute_om_fixed_costs!(g, model, fom_cost_function[cost_type])
 end
 

@@ -1,0 +1,27 @@
+{
+  "PeriodLengths": [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+  "DiscountRate": 0.045,
+  "SolutionAlgorithm": "Benders",
+  "TechnologyLearning": true,
+  "DeploymentInertia": true,
+  "ProjectDevelopment": true,
+  "CO2Cap": false,
+  "LearningTechnologies": ["wind"],
+  "TechsWithInertia": ["wind", "solar"],
+  "InertiaInit": {
+      "wind": 1000,
+      "solar": 1000
+  },
+  "InertiaMinMW": {
+      "wind": 0.2,
+      "solar": 0.07
+  },
+  "InertiaInitialGrowthRate": {
+      "wind": 10,
+      "solar": 10
+  },
+  "InertiaInitialDeclineRate": {
+      "wind": 1,
+      "solar": 1
+    }
+}

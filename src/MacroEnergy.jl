@@ -184,6 +184,7 @@ include_all_in_folder("model/constraints")
 include_all_in_folder("model/benders")
 include("model/release_model.jl")
 include("model/solver.jl")
+include("model/technological_learning.jl")
 
 include("utilities/postprocessing.jl")
 
@@ -313,6 +314,7 @@ export AbstractAsset,
     load_subcommodities_from_file,
     location_ids,
     MaxCapacityConstraint,
+    DeploymentInertiaConstraint,
     MaxNewCapacityConstraint,
     MaxNonServedDemandConstraint,
     MaxNonServedDemandPerSegmentConstraint,

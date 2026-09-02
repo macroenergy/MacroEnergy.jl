@@ -11,7 +11,16 @@ function default_case_settings()
         :ParameterScaling => false,
         :ParameterScalingFactor => 1e3,
         :SolutionAlgorithm => "Monolithic",
-        :ExpansionHorizon => "PerfectForesight"
+        :ExpansionHorizon => "PerfectForesight",
+        :TechnologyLearning => false,
+        :DeploymentInertia => false,
+        :ProjectDevelopment => false,
+        :LearningTechnologies => [],
+        :TechsWithInertia => [],
+        :InertiaInit => Dict{Symbol,Float64}(),
+        :InertiaInitialGrowthRate => Dict{Symbol,Float64}(),
+        :InertiaInitialDeclineRate => Dict{Symbol,Float64}(),
+        :InertiaMinMW => Dict{Symbol,Float64}(),
     )
 end
 

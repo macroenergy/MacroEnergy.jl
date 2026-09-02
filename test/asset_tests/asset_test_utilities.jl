@@ -123,7 +123,7 @@ function build_test_model(system)
 
     add_linking_variables!(system, model)
     define_available_capacity!(system, model)
-    planning_model!(system, model)
+    planning_model!(system, model, settings)
     operation_model!(system, model)
 
     @objective(model, Min, model[:eInvestmentFixedCost] + model[:eOMFixedCost] + model[:eVariableCost])
