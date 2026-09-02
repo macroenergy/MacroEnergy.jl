@@ -40,6 +40,7 @@ and this project follows Julia package versioning through `Project.toml` release
 - Fix wacc default preventing fallback to DiscountRate. Omitted `wacc` was silently treated as `0.0` instead of falling back to the case-level `DiscountRate`.
 - Duplicate asset IDs within a system are now rejected during system generation, preventing ambiguous myopic capacity carry-over and late wide-output failures.
 - Fixed asset component traversal and Benders planning updates for assets whose optional edges are absent.
+- Dual exports now handle unavailable solver duals safely, recording `NaN` instead of failing while preserving `Float64` output arrays.
 
 ### Documentation
 

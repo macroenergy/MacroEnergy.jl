@@ -70,17 +70,28 @@ dictionary in the `constraint_dual` field.
 function set_constraint_dual!(
     constraint::BalanceConstraint,
     v::AbstractVertex,
+    ; duals_available::Union{Nothing,Bool}=nothing,
 )
     # Check if constraint has a reference
     if ismissing(constraint.constraint_ref)
         error("BalanceConstraint on vertex $(id(v)) has no constraint reference")
     end
 
-    # Extract dual values for all balance IDs
+    first_balance_id = first(keys(v.balance_data))
+    first_time = first(time_interval(v))
+    available = isnothing(duals_available) ? has_usable_duals(
+        owner_model(constraint.constraint_ref[first_balance_id][first_time]),
+    ) : duals_available
+
+    # Extract dual values for all balance IDs. `available` is computed once for
+    # this model; `dual_or_nan` still handles a rare unavailable reference.
     constraint.constraint_dual = Dict{Symbol, Vector{Float64}}()
     for balance_id in keys(v.balance_data)
         constraint.constraint_dual[balance_id] = [
-            dual(constraint.constraint_ref[balance_id][t]) for t in time_interval(v)
+            dual_or_nan(
+                constraint.constraint_ref[balance_id][t];
+                duals_available=available,
+            ) for t in time_interval(v)
         ]
     end
 
