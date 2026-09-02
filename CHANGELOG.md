@@ -17,6 +17,9 @@ and this project follows Julia package versioning through `Project.toml` release
 - Added capacity_summary.csv for multi-period cases, combining per-period capacity outputs into a single long- or wide-format file.
 - Added optional StartYear input in case_settings.json to label periods by calendar year.
 - Added `capex.csv` output file to report per-component asset capital costs.
+- Added `ConstrainedFossilLiquidFuels`, a refinery asset with fixed jet-fuel and diesel output ratios and configurable fuel-specific emissions.
+- Added optional auxiliary-fuel inputs to `BECCSHydrogen` and captured-CO₂ return flows to `SyntheticLiquidFuels`.
+- Added unit-commitment support for `Electrolyzer` hydrogen output, including startup electricity consumption, minimum up/down times, and ramping limits.
 
 ### Changed
 
@@ -31,6 +34,7 @@ and this project follows Julia package versioning through `Project.toml` release
 ### Fixed
 
 - Fix wacc default preventing fallback to DiscountRate. Omitted `wacc` was silently treated as `0.0` instead of falling back to the case-level `DiscountRate`.
+- Fixed asset component traversal and Benders planning updates for assets whose optional edges are absent.
 
 ### Documentation
 
