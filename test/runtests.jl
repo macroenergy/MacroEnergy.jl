@@ -82,6 +82,11 @@ with_logger(test_logger) do
         include("test_benders_output_utilities.jl")
     end
     
+    Test.@testset verbose = true "Solve Status Checks" begin
+        include("test_solve_status.jl")
+        include("test_run_status.jl")
+    end
+
     Test.@testset verbose = true "Myopic Functionality" begin
         include("test_myopic.jl")
     end
