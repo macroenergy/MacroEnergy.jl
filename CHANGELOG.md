@@ -17,6 +17,7 @@ and this project follows Julia package versioning through `Project.toml` release
 - Added capacity_summary.csv for multi-period cases, combining per-period capacity outputs into a single long- or wide-format file.
 - Added optional StartYear input in case_settings.json to label periods by calendar year.
 - Added `capex.csv` output file to report per-component asset capital costs.
+- Added repository-local benchmarking tools to compare case loading, case generation, and model generation between `upstream/main` and the current worktree using reproducible example inputs.
 - Added `ConstrainedFossilLiquidFuels`, a refinery asset with fixed jet-fuel and diesel output ratios and configurable fuel-specific emissions.
 - Added optional auxiliary-fuel inputs to `BECCSHydrogen` and captured-CO₂ return flows to `SyntheticLiquidFuels`.
 - Added unit-commitment support for `Electrolyzer` hydrogen output, including startup electricity consumption, minimum up/down times, and ramping limits.
@@ -30,14 +31,19 @@ and this project follows Julia package versioning through `Project.toml` release
 - Asset balance definitions have been migrated away from legacy raw `balance_data = Dict(...)` patterns toward `@add_balance`, `@add_to_storage_balance`, and `@add_stoichiometric_balance`.
 - Updated MacroEnergySolvers.jl version to 0.2.2.
 - Updated MacroEnergyScaling.jl compatibility to 0.4. Constraint scaling now updates constraints in place, so existing JuMP `ConstraintRef`s remain valid instead of being invalidated by constraint replacement. This version also allows for objective scaling in the future.
+- Hoisted repeated time-data lookups during model construction and simplified ramping and minimum up/down-time constraints to avoid temporary expression and index containers.
+- Weight policy slack to ensure CO2 slack penalty has economic interpretation.
 
 ### Fixed
 
+- Myopic runs with `MyopicSettings.ReturnModels = false` now actually free each period's model. Each period's references are now released once its results have been written, and the model is emptied. Results are unchanged; scalar capacities remain readable on the returned `Case` as `Float64`.
 - Fix wacc default preventing fallback to DiscountRate. Omitted `wacc` was silently treated as `0.0` instead of falling back to the case-level `DiscountRate`.
+- Duplicate asset IDs within a system are now rejected during system generation, preventing ambiguous myopic capacity carry-over and late wide-output failures.
 - Fixed asset component traversal and Benders planning updates for assets whose optional edges are absent.
 
 ### Documentation
 
+- Switched documentation math rendering to MathJax3 and pinned Mermaid to 11.16.1 to avoid Mermaid 11.17's RequireJS compatibility regression.
 - Expanded the balance documentation with guidance on choosing between balance macros, stoichiometric coefficient bases, pairwise expansion limits, multi-term algebraic balances, common mistakes, and numerical sensitivity.
 - Updated modeler documentation to include balance APIs in the asset-construction workflow and to recommend a small single-asset regression test for each new asset.
 - Updated debugging guidance around `balance_data`, `get_balance`, and `@inspect_stoichiometric_balance`.

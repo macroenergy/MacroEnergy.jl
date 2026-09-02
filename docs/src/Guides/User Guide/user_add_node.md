@@ -251,7 +251,7 @@ Details on the Node fields can be found in [the Nodes page of the manual](@ref "
 
 Details on adding timeseries data can be found [here](@ref "Timeseries").
 
-## Assing the Node to a Location
+## Adding the Node to a Location
 
 It is recommended to add Nodes to a Location whenever the design of your System allows. This will allow you to use several features which simplify the process of connecting a Node to Assets and other Nodes.
 

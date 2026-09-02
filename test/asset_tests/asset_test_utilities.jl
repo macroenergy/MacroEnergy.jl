@@ -31,12 +31,17 @@ export MOI,
     make_test_timedata,
     push_locations!
 
-function make_test_timedata(::Type{T}, num_steps::Int = 3) where {T}
+function make_test_timedata(::Type{T}, num_steps::Int = 3; start::Int = 1) where {T}
+    # `start` != 1 mimics a Benders subproblem's time_interval: generate_decomposed_system
+    # (src/model/benders/prepare_benders_run.jl) reassigns each subproblem's time_interval
+    # to its own subperiod's absolute window (e.g. 169:336 for the second week), not a
+    # locally-renumbered 1:168 — so it stays contiguous but isn't one-based.
+    interval = start:(start + num_steps - 1)
     return TimeData{T}(;
-        time_interval = 1:num_steps,
+        time_interval = interval,
         hours_per_timestep = 1,
         period_index = 1,
-        subperiods = [1:num_steps],
+        subperiods = [interval],
         subperiod_indices = [1],
         subperiod_weights = Dict(1 => 1.0),
         subperiod_map = Dict(1 => 1),

@@ -19,6 +19,7 @@ import MacroEnergy:
     Commodity,
     register_commodity_types!,
     setup_user_additions,
+    materialize_user_commodities!,
     load_user_additions,
     user_additions_path,
     user_additions_assets_dir,
@@ -235,6 +236,36 @@ function test_subcommodities_dependency_write_order()
 end
 
 """
+Verify commodity materialization writes definitions without constructing a full case.
+
+The two-period input exercises the vector overload while keeping each period's
+commodity declarations independently resolvable.
+"""
+function test_materialize_user_commodities()
+    case_path = mktempdir()
+    top_level = unique_test_symbol("TestMaterializedFuel")
+    child = unique_test_symbol("TestMaterializedFuelChild")
+    settings = Dict{Symbol,Any}(
+        :WriteSubcommodities => true,
+        :AllowImplicitTopLevelCommodities => true,
+    )
+    case_data = Dict{Symbol,Any}(
+        :case => [
+            Dict{Symbol,Any}(:settings => copy(settings), :commodities => Any[String(top_level)]),
+            Dict{Symbol,Any}(:settings => copy(settings), :commodities => Any[
+                Dict{Symbol,Any}(:name => String(child), :acts_like => "LiquidFuels"),
+            ]),
+        ],
+    )
+
+    @test materialize_user_commodities!(case_path, case_data) === nothing
+    @test readlines(user_additions_commodities_path(case_path)) == [
+        "abstract type $(top_level) <: MacroEnergy.Commodity end",
+        "abstract type $(child) <: MacroEnergy.LiquidFuels end",
+    ]
+end
+
+"""
 Verify user-defined assets are loaded into MacroEnergy scope.
 
 Expected behavior:
@@ -327,6 +358,10 @@ function test_user_additions()
 
     @testset "Dependency-ordered subcommodity writes" begin
         test_subcommodities_dependency_write_order()
+    end
+
+    @testset "Commodity materialization" begin
+        test_materialize_user_commodities()
     end
 
     @testset "User asset loading scope" begin

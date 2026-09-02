@@ -2,6 +2,9 @@ import Test
 using Logging
 using MacroEnergy
 
+include("utilities.jl")
+
+@info "Running the \"$TEST_SUITE\" test suite"
 
 test_logger = ConsoleLogger(stderr, Logging.Warn)
 
@@ -82,6 +85,16 @@ with_logger(test_logger) do
     
     Test.@testset verbose = true "Myopic Functionality" begin
         include("test_myopic.jl")
+    end
+
+    Test.@testset verbose = true "Container Types and Accessors" begin
+        include("test_container_types.jl")
+        include("test_accessor_allocation.jl")
+        include("test_node_supply_accessors.jl")
+    end
+
+    Test.@testset "Benchmark tooling" begin
+        include("test_benchmark_runner.jl")
     end
     return nothing
 end
