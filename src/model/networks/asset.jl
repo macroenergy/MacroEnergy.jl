@@ -109,7 +109,10 @@ component_ids = get_component_ids(thermal_plant)
 ```
 """
 function get_component_ids(asset::AbstractAsset)
-    return [id(getfield(asset, t)) for t in fieldnames(typeof(asset))]
+    return [
+        id(getfield(asset, t)) for t in fieldnames(typeof(asset))
+        if getfield(asset, t) isa MacroObject
+    ]
 end
 
 """
@@ -133,7 +136,7 @@ elec_edge = get_component_by_id(thermal_plant, :SE_natural_gas_elec_edge)
 function get_component_by_id(asset::AbstractAsset, component_id::Symbol)
     for t in fieldnames(typeof(asset))
         component = getfield(asset, t)
-        if isequal(id(component), component_id)
+        if component isa MacroObject && isequal(id(component), component_id)
             return component
         end
     end

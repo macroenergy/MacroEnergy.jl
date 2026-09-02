@@ -141,6 +141,14 @@ function test_asset_syntheticliquidfuels_balance()
         end
     end
 
+    @testset "SyntheticLiquidFuels optional captured CO2 edge" begin
+        no_return_case = make_syntheticliquidfuels_case(:default)
+        @test isnothing(no_return_case.asset.co2_captured_return_edge)
+        component_ids = MacroEnergy.get_component_ids(no_return_case.asset)
+        @test :synthetic_liquid_fuels_test_co2_captured_return_edge ∉ component_ids
+        @test isnothing(MacroEnergy.get_component_by_id(no_return_case.asset, :missing_component))
+    end
+
     @test_logs (:warn, "User provided captured-CO₂-related inputs for the synthetic_liquid_fuels_test asset but they will not be used as no captured-CO₂ return end vertex or location has been set") begin
         make_syntheticliquidfuels_case(:add_balance; capture_rate = 1.0)
     end
