@@ -49,6 +49,16 @@ MacroEnergy.create_output_path
 MacroEnergy._dense_axis_array_type
 ```
 
+## `has_usable_duals`
+```@docs
+MacroEnergy.has_usable_duals
+```
+
+## `dual_or_nan`
+```@docs
+MacroEnergy.dual_or_nan
+```
+
 ## `ensure_duals_available!`
 ```@docs
 MacroEnergy.ensure_duals_available!
