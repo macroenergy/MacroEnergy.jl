@@ -197,8 +197,9 @@ function write_co2_cap_duals(
         push!(node_ids, id(node))
 
         # Get CO2 shadow prices
-        co2_shadow_price = -scaling * dual(constraint) / var_cost_discount
-        push!(co2_shadow_prices, co2_shadow_price)
+        duals_available = has_usable_duals(owner_model(constraint))
+        dual_value = dual_or_nan(constraint; duals_available)
+        push!(co2_shadow_prices, -scaling * dual_value / var_cost_discount)
 
         # Calculate penalty cost if slack variables exist
         if haskey(price_unmet_policy(node), ct_type)
