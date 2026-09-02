@@ -106,28 +106,69 @@ function JuMP.optimize!(bm::BendersModel)
 end
 
 """
+    has_usable_duals(model::Model; result::Int=1)
+
+Return `true` when `result` contains a feasible dual point suitable for
+reporting. Unlike JuMP's `has_duals`, this excludes dual rays and other
+non-solution dual statuses.
+"""
+function has_usable_duals(model::Model; result::Int=1)
+    return result_count(model) >= result && dual_status(model; result) == MOI.FEASIBLE_POINT
+end
+
+"""
+    dual_or_nan(con_ref; result::Int=1, duals_available=nothing)
+
+Return the dual value of `con_ref`, or `NaN` when no usable dual solution
+is available. Pass a precomputed `duals_available` value when extracting many
+duals from the same model to avoid repeated status queries.
+
+Only optimizer result-access errors are converted to `missing`; all other
+errors are rethrown so that programming errors are not hidden.
+"""
+function dual_or_nan(con_ref; result::Int=1, duals_available::Union{Nothing,Bool}=nothing)::Float64
+    available = isnothing(duals_available) ?
+        has_usable_duals(owner_model(con_ref); result) : duals_available
+    available || return NaN
+
+    try
+        return dual(con_ref; result)
+    catch err
+        if err isa MOI.ResultIndexBoundsError ||
+           err isa MOI.GetAttributeNotAllowed ||
+           err isa MOI.UnsupportedAttribute
+            return NaN
+        end
+        rethrow()
+    end
+end
+
+"""
     ensure_duals_available!(model::Model)
 
-Ensure that dual values are available in the model. If the model has integer variables
-and duals are not available, fixes the integer variables and re-solves the LP model to 
-compute duals.
+Try to make dual values available in the model. If the model has integer variables
+and usable duals are not available, fixes the integer variables and re-solves the LP
+model to compute duals.
 
 # Arguments
 - `model::Model`: The JuMP model to ensure duals for
 
+# Returns
+- `true` if a feasible dual point is available; `false` if the solver does not provide one
+  after linearization.
+
 # Throws
-- `ErrorException`: If the model is not solved and feasible or if the dual values are not 
-available after linearization
+- `ErrorException`: If the model is not solved and feasible.
 
 # Notes
-- This function modifies the model in-place by fixing integer and binary variables to their 
+- This function modifies the model in-place by fixing integer and binary variables to their
 current values.
 - The model is solved again in silent mode to avoid redundant output
 """
 function ensure_duals_available!(model::Model)
-    if has_duals(model)
+    if has_usable_duals(model)
         @debug "Dual values available in the model"
-        return nothing
+        return true
     end
 
     assert_is_solved_and_feasible(model)
@@ -142,11 +183,12 @@ function ensure_duals_available!(model::Model)
     
     # Verify that duals are now available
     assert_is_solved_and_feasible(model)
-    if dual_status(model) != MOI.FEASIBLE_POINT
-        error("Model is not feasible after linearization.")
+    if !has_usable_duals(model)
+        @warn "Model has no feasible dual point after linearization; dual outputs will be written as NaN."
+        return false
     end
     
     @info "Linearization successful, dual values now available."
     
-    return nothing
+    return true
 end
