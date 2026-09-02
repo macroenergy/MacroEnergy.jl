@@ -17,12 +17,14 @@ import MacroEnergy:
     balance_ids,
     constraint_dual,
     current_subperiod,
+    dual_or_nan,
     ensure_duals_available!,
     generate_model,
     create_optimizer,
     get_constraint_by_type,
     get_transformations,
     has_duals,
+    has_usable_duals,
     id,
     load_case,
     objective_value,
@@ -41,6 +43,25 @@ include("utilities.jl")
 
 const test_path = joinpath(@__DIR__, "test_small_case")
 const optim = HiGHS.Optimizer
+
+function test_dual_accessors()
+    @testset "Dual Accessors" begin
+        model = Model(HiGHS.Optimizer)
+        set_silent(model)
+        @variable(model, x >= 0)
+        c = @constraint(model, x >= 1)
+        @objective(model, Min, x)
+
+        @test !has_usable_duals(model)
+        @test isnan(dual_or_nan(c))
+
+        optimize!(model)
+
+        @test has_usable_duals(model)
+        @test isnan(dual_or_nan(c; duals_available=false))
+        @test dual_or_nan(c) == dual(c)
+    end
+end
 
 # Global variables for true results
 const balance_duals_describe_true = DataFrame(
@@ -88,7 +109,7 @@ function test_ensure_duals_available!()
         @test termination_status(model) == MOI.OPTIMAL
         
         # HiGHS provides duals for LP problems
-        @test_nowarn ensure_duals_available!(model)
+        @test ensure_duals_available!(model)
         @test has_duals(model)
 
         # Return and cache case and model
@@ -409,6 +430,7 @@ end
 Run all dual value export tests.
 """
 function run_all_dual_tests()
+    test_dual_accessors()
     case, model = test_ensure_duals_available!()
     test_set_constraint_dual!(case, model)
     test_multiple_balance_ids(case, model)
@@ -422,4 +444,3 @@ end
 run_all_dual_tests()
 
 end # module TestDuals
-
