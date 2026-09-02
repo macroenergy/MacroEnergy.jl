@@ -1,6 +1,6 @@
 name = "MacroEnergy"
 uuid = "260b7737-bf0e-4e84-9335-3af14438b1f5"
-version = "0.3.0-dev6"
+version = "0.3.0-dev7"
 
 [deps]
 BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
@@ -34,9 +34,6 @@ SlurmClusterManager = "c82cd089-7bf7-41d7-976b-6b5d413cbe0a"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 YAML = "ddb6d928-2868-570f-bddf-ab3f9cf99eb6"
 
-[weakdeps]
-Gurobi = "2e9cd046-0924-5485-92f1-d5272153d98b"
-
 [extensions]
 MacroEnergyGurobiExt = "Gurobi"
 
@@ -51,7 +48,6 @@ DistributedArrays = "0.6"
 DuckDB = "1"
 GZip = "0.7"
 GitHub = "5"
-Gurobi = "1"
 HiGHS = "1"
 InteractiveUtils = "1"
 JSON3 = "1"
@@ -72,6 +68,9 @@ SlurmClusterManager = "1"
 Test = "1"
 YAML = "0.4"
 julia = "1.9"
+
+[weakdeps]
+Gurobi = "2e9cd046-0924-5485-92f1-d5272153d98b"
 
 [extras]
 JLD2 = "033835bb-8acc-5ee8-8aae-3f567f8a3819"

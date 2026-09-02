@@ -167,6 +167,20 @@ If [`MaxCapacityConstraint`](@ref max_capacity_constraint_ref) or [`MinCapacityC
 |--------------|---------|------------|----------------|----------|
 | `availability` | Dict | Path to availability file and column name | - | Empty |
 
+### Unit Commitment Parameters
+
+Set `uc` to `true` on the hydrogen edge to enable unit commitment. Macro then applies minimum-up-time, minimum-down-time, and ramping-limit constraints to that edge.
+
+| Field | Type | Description | Units | Default |
+|--------------|---------|------------|----------------|----------|
+| `uc` | Boolean | Enable unit commitment on the hydrogen edge | - | false |
+| `startup_cost` | Float64 | Cost incurred for each startup | $/MW of hydrogen capacity | 0.0 |
+| `startup_fuel_consumption` | Float64 | Electricity consumed by each startup | MWh_electricity/MW_hydrogen capacity | 0.0 |
+| `min_up_time` | Int | Minimum committed duration | timesteps | 0 |
+| `min_down_time` | Int | Minimum offline duration | timesteps | 0 |
+
+`startup_fuel_consumption` is entered in electricity units. Macro multiplies it by `efficiency_rate` before adding it to the hydrogen-balance equation, so the startup correction is expressed in hydrogen-flow units.
+
 #### Additional Operational Parameters
 
 **Minimum flow constraint**
@@ -194,8 +208,8 @@ The `Electrolyzer` asset is defined as follows:
 struct Electrolyzer <: AbstractAsset
     id::AssetId
     electrolyzer_transform::Transformation
-    h2_edge::UnidirectionalEdge{<:Hydrogen}
-    elec_edge::UnidirectionalEdge{<:Electricity}
+    h2_edge::Union{Edge{<:Hydrogen},EdgeWithUC{<:Hydrogen}}
+    elec_edge::Edge{<:Electricity}
 end
 ```
 
@@ -204,7 +218,7 @@ end
 ### Default constructor
 
 ```julia
-Electrolyzer(id::AssetId, electrolyzer_transform::Transformation, h2_edge::UnidirectionalEdge{<:Hydrogen}, elec_edge::UnidirectionalEdge{<:Electricity})
+Electrolyzer(id::AssetId, electrolyzer_transform::Transformation, h2_edge::Union{Edge{<:Hydrogen},EdgeWithUC{<:Hydrogen}}, elec_edge::Edge{<:Electricity})
 ```
 
 ### Factory constructor
