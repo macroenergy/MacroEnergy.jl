@@ -42,7 +42,7 @@ using Pkg
 Pkg.add("MacroEnergy")
 ```
 
-If you wish to make additons to Macro, please follow the installation instructions in the documentation, [on the Getting Started / Installation page.](https://macroenergy.github.io/MacroEnergy.jl/dev/Getting%20Started/2_installation/)
+If you wish to make additions to Macro, please follow the installation instructions in the documentation, [on the Getting Started / Installation page.](https://macroenergy.github.io/MacroEnergy.jl/dev/Getting%20Started/2_installation/)
 
 ## Recent changes
 
@@ -96,11 +96,11 @@ For the full release history, see [CHANGELOG.md](CHANGELOG.md).
 The Macro documentation [can be found here.](https://macroenergy.github.io/MacroEnergy.jl/). The documentation contains five main resources:
 
 - A getting started section, which shows you how to install and run Macro.
-- Guides, which walk you through how to achieve specfic tasks using Macro.
+- Guides, which walk you through how to achieve specific tasks using Macro.
 - A manual, which describes all the components and features of Macro in detail.
 - Tutorials, which are extended guides with worked examples
 - A function reference, which etails the API and functions available with Macro.
 
 ### Bug reports
 
-Please report any bugs or new feature requrests on [the Issues page of this repository](https://github.com/macroenergy/MacroEnergy.jl/issues).
+Please report any bugs or new feature requests on [the Issues page of this repository](https://github.com/macroenergy/MacroEnergy.jl/issues).

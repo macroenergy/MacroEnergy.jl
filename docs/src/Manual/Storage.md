@@ -36,7 +36,7 @@ While single period cycles are fine for storage which usually discharge within t
 
 ### Storage Outside of Assets
 
-`Storage` components can be used outside of Assets but there is no standard inputs file to do so currently. Most Users will be better served by using `Storage` components within Assets, as this allows for more complex interactions and configurations. However, it is possible to define `Storages` directly in the Julia script you use to build and solve your model. Please feel free to reach out to the developemnt team via a GitHub issue if you have a use case for this.
+`Storage` components can be used outside of Assets but there is no standard inputs file to do so currently. Most Users will be better served by using `Storage` components within Assets, as this allows for more complex interactions and configurations. However, it is possible to define `Storages` directly in the Julia script you use to build and solve your model. Please feel free to reach out to the development team via a GitHub issue if you have a use case for this.
 
 ### Key Concepts
 
@@ -54,7 +54,7 @@ While single period cycles are fine for storage which usually discharge within t
 `Storage` components have the following fields. When running a model, the fields are set by the input files. When creating an Asset, the defaults below can be altered using the `@storage_data` macro. The internal fields are used by Macro and are not intended to be set by users in most circumstances.
 
 !!! note "Units in Macro"
-    In the tables below, we have assumed that the Storage component compoent in question is storing energy, such as electricity or heat. Therefore the unit of storage is MWh. Please swap these for tonnes or other units as appropriate for your use case. We have also assumed that your System is using hour-long time steps. You can use any set of units as long as they are consistent across your operations and investment inputs.
+    In the tables below, we have assumed that the Storage component component in question is storing energy, such as electricity or heat. Therefore the unit of storage is MWh. Please swap these for tonnes or other units as appropriate for your use case. We have also assumed that your System is using hour-long time steps. You can use any set of units as long as they are consistent across your operations and investment inputs.
 
 ### Network Structure
 

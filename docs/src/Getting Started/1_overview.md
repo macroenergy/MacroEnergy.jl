@@ -33,7 +33,7 @@ To create a new sector, you will need to:
 
 1. Create any new Commodities that your sector will require. These Comodities can be energy, material, data, or flows which are important in your new sector.
 2. Create new Assets to represent production, storage, transport, and end-use technologies in your sector. At least some of these should produce, store, transport, and consume your new Commodities.
-3. Assign default inputs for your Assets and specifiy which inputs are optional vs. required.
+3. Assign default inputs for your Assets and specify which inputs are optional vs. required.
 
 ## Helpful packages
 
@@ -63,7 +63,7 @@ To add a Locations to a System, you must [define the constituent Nodes](@ref "Ad
 
 #### 2. Assets
 
-Assets in Macro represent means of producing, storing, transporting, and consuming one or more Commodities. Assets can be sited at a Location, so your Macro System will intuitively represent real-world systems. For example, an Asset can define a power plant that converts a fuel into electricity, which is then assigned to a Location, linking it to the electricity and fuel Nodes at that Location. Each Asset is characterized by a list of Commodities they take as input and output and technical and a range of economic and techical parameters.
+Assets in Macro represent means of producing, storing, transporting, and consuming one or more Commodities. Assets can be sited at a Location, so your Macro System will intuitively represent real-world systems. For example, an Asset can define a power plant that converts a fuel into electricity, which is then assigned to a Location, linking it to the electricity and fuel Nodes at that Location. Each Asset is characterized by a list of Commodities they take as input and output and technical and a range of economic and technical parameters.
 
 Macro has a rich library of Assets already designed and implemented. [You can also create your own Assets.](@ref modeler_create_asset) These can be used just for your project or you can [add it to Macro for others to use](@ref how_to_contribute).
 
