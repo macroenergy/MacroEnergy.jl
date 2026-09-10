@@ -421,6 +421,33 @@ function operation_model!(g::LongDurationStorage, model::Model)
 
 end
 
+function previous_storage_level(g::Storage, model::Model)
+    ti = time_interval(g)
+    time_container = array_container(ti)
+    sps = subperiods(g)
+    return @expression(
+        model, 
+        [t in ti],
+        container = time_container,
+        storage_level(g, timestepbefore(t, 1, sps)))
+end
+
+function previous_storage_level(g::LongDurationStorage, model::Model)
+    sps = subperiods(g)
+    starts = starts = Set(first(sp) for sp in sps)
+    ti = time_interval(g)
+    time_container = array_container(ti)
+    return @expression(
+        model, 
+        [t in ti], 
+        container = time_container,
+        if t ∈ starts
+            storage_level(g, timestepbefore(t, 1, sps)) - storage_change(g, current_subperiod(g, t))
+        else
+            storage_level(g, timestepbefore(t, 1, sps))
+        end)
+end
+
 function initialize_balance_expression(g::Storage, balance_id::Symbol, model::Model)
     ti = time_interval(g)
     sps = subperiods(g)
