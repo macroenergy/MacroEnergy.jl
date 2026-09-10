@@ -40,10 +40,14 @@ The documentation contains five main sections:
 ## Recent changes
 
 <!-- BEGIN GENERATED RECENT CHANGES -->
-### 0.2.3 - 2026-08-31
-#### Documentation
+### 0.2.4 - 2026-09-10
+#### Changed
 
-- Switched documentation math rendering to MathJax3 and pinned Mermaid to 11.16.1 to avoid Mermaid 11.17's RequireJS compatibility regression.
+- Skip Julia CI tests when changes are confined to `CHANGELOG.md`, `README.md`, or `docs/`, while retaining documentation builds and a consistent `CI result` check that reports successful tests or an intentional skip.
+
+#### Fixed
+
+- Removed `[skip ci]` from automated changelog commit messages so release tags pointing to those commits can trigger documentation deployment.
 
 For the full release history, see [the changelog](@ref Changelog).
 <!-- END GENERATED RECENT CHANGES -->
