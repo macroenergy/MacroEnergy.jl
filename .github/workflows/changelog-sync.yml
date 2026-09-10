@@ -36,12 +36,14 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
+          # Do not add [skip ci]: a later release tag may target this commit
+          # and must be able to trigger the documentation workflow.
           if [[ "$BASE_BRANCH" == "main" || "$BASE_BRANCH" == "develop" ]]; then
             sync_branch="changelog-sync/${BASE_BRANCH}"
             git fetch origin "$sync_branch" || true
             git checkout -B "$sync_branch"
             git add README.md docs/src/index.md docs/src/changelog.md
-            git commit -m "docs: sync changelog outputs [skip ci]"
+            git commit -m "docs: sync changelog outputs"
             git push --force-with-lease origin "$sync_branch"
 
             if gh pr view "$sync_branch" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
@@ -56,6 +58,6 @@ jobs:
             fi
           else
             git add README.md docs/src/index.md docs/src/changelog.md
-            git commit -m "docs: sync changelog outputs [skip ci]"
+            git commit -m "docs: sync changelog outputs"
             git push
           fi
