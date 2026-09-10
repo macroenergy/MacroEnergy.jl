@@ -8,7 +8,47 @@ on:
     branches: [main]
 
 jobs:
+  changes:
+    name: Check changed files
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      run_tests: ${{ steps.changes.outputs.run_tests }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Decide whether Julia tests are needed
+        id: changes
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          # Compare the whole PR against its merge base, or the entire pushed range.
+          if [[ "$EVENT_NAME" == "pull_request" ]]; then
+            comparison="$BASE_SHA...$HEAD_SHA"
+          else
+            comparison="$BASE_SHA..$HEAD_SHA"
+          fi
+
+          # Treat renames as a deletion and addition so moving code into docs
+          # still runs tests. NUL delimiters also handle unusual file names.
+          git diff --name-only --no-renames -z "$comparison" -- > "$RUNNER_TEMP/ci-changed-files"
+          run_tests=false
+          while IFS= read -r -d '' path; do
+            case "$path" in
+              CHANGELOG.md|README.md|docs/*) ;;
+              *) run_tests=true ;;
+            esac
+          done < "$RUNNER_TEMP/ci-changed-files"
+          echo "run_tests=$run_tests" >> "$GITHUB_OUTPUT"
+
   test:
+    needs: changes
+    if: needs.changes.outputs.run_tests == 'true'
     name: Julia ${{ matrix.version }} - ${{ matrix.os }} - ${{ github.event_name }}
     runs-on: ${{ matrix.os }}
     strategy:
@@ -24,3 +64,26 @@ jobs:
       - uses: julia-actions/cache@v2
       - uses: julia-actions/julia-buildpkg@v1
       - uses: julia-actions/julia-runtest@v1
+
+  result:
+    name: CI result
+    needs: [changes, test]
+    if: always()
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - name: Report CI result
+        shell: bash
+        env:
+          CHANGES_RESULT: ${{ needs.changes.result }}
+          RUN_TESTS: ${{ needs.changes.outputs.run_tests }}
+          TEST_RESULT: ${{ needs.test.result }}
+        run: |
+          if [[ "$CHANGES_RESULT" == "success" && "$RUN_TESTS" == "false" && "$TEST_RESULT" == "skipped" ]]; then
+            echo "Tests unnecessary: only CHANGELOG.md, README.md, or docs/ changed (or no files changed)." >> "$GITHUB_STEP_SUMMARY"
+          elif [[ "$CHANGES_RESULT" == "success" && "$RUN_TESTS" == "true" && "$TEST_RESULT" == "success" ]]; then
+            echo "All Julia tests passed." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "CI did not pass: change detection=$CHANGES_RESULT; tests=$TEST_RESULT." >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
