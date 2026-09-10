@@ -7,6 +7,16 @@ and this project follows Julia package versioning through `Project.toml` release
 
 ## [Unreleased]
 
+## [0.2.4] - 2026-09-10
+
+### Changed
+
+- Skip Julia CI tests when changes are confined to `CHANGELOG.md`, `README.md`, or `docs/`, while retaining documentation builds and a consistent `CI result` check that reports successful tests or an intentional skip.
+
+### Fixed
+
+- Removed `[skip ci]` from automated changelog commit messages so release tags pointing to those commits can trigger documentation deployment.
+
 ## [0.2.3] - 2026-08-31
 
 ### Documentation
