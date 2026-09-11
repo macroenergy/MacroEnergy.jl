@@ -8,7 +8,6 @@ using JSONTables
 using OrderedCollections
 using JuMP
 using HiGHS
-using Revise
 using InteractiveUtils
 using Printf: @printf
 using MacroEnergyScaling
