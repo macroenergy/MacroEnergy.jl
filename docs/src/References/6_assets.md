@@ -18,6 +18,12 @@ Modules = [MacroEnergy]
 Pages = ["electrolyzer.jl"]
 ```
 
+## Constrained Fossil Liquid Fuels (make function)
+```@autodocs
+Modules = [MacroEnergy]
+Pages = ["constrainedfossilliquidfuels.jl"]
+```
+
 ## ThermalHydrogen (make function)
 ```@autodocs
 Modules = [MacroEnergy]

@@ -166,6 +166,10 @@ function compute_fixed_costs!(a::AbstractAsset, model::Model, cost_type::Symbol=
     end
 end
 
+function compute_fixed_costs!(a, model::Model, cost_type::Symbol=:PV)
+    return nothing
+end
+
 function compute_fixed_costs!(g::Union{Node,Transformation},model::Model, cost_type::Symbol=:PV)
     return nothing
 end
@@ -183,6 +187,10 @@ function compute_investment_costs!(a::AbstractAsset, model::Model, cost_type::Fu
 end
 
 function compute_investment_costs!(g::Union{Node,Transformation}, model::Model, cost_type::Function=pv_period_investment_cost)
+    return nothing
+end
+
+function compute_investment_costs!(g, model::Model, cost_type::Function=pv_period_investment_cost)
     return nothing
 end
 

@@ -290,7 +290,7 @@ This is done be calling `template_asset` for each one. This keeps each file simp
 
 ### Create additional instances in one Asset file
 
-This is the recommended appraoch. Each entry in the `instance_data` field corresponds to a version of the Asset. The `type` field determines the Asset which will be created. Assets described in this manner can also share `global_data`, which is [discussed in a subsequent section](@ref "Creating Global Data").
+This is the recommended approach. Each entry in the `instance_data` field corresponds to a version of the Asset. The `type` field determines the Asset which will be created. Assets described in this manner can also share `global_data`, which is [discussed in a subsequent section](@ref "Creating Global Data").
 
 To create additional versions of an Asset in this manner, copy-paste additional entries into the `instance_data` field of your Asset file.
 
@@ -547,7 +547,7 @@ All of the steps described above also work for CSV-based input files, with the e
 
 It is also more challenging to include multiple Asset types in the same file, as it will require many empty columns. Therefore, we recommend using separate Asset files for each type.
 
-For Assets of the same type, each field in the JSON file is replaced with a column. Nested JSON fields have nested CSV headers, with each name separated by a `--` character. This makes it much more prefereable to use the `simple` format for your CSV input files.
+For Assets of the same type, each field in the JSON file is replaced with a column. Nested JSON fields have nested CSV headers, with each name separated by a `--` character. This makes it much more preferable to use the `simple` format for your CSV input files.
 
 A `simple` CSV input file will look like:
 

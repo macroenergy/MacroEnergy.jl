@@ -72,7 +72,13 @@ function solve_case(case::Case, opt::O, ::Myopic) where O <: Union{Optimizer, Di
 
         push!(capacity_summaries, write_outputs(output_path, case, model, system, period_idx))
 
-        return_results ? (stored[period_idx] = model) : (model = nothing; GC.gc())
+        if return_results
+            stored[period_idx] = model
+        else
+            release_model!(system, model)
+            model = nothing
+            GC.gc()
+        end
     end
 
     length(capacity_summaries) > 1 && write_capacity_summary(output_path, capacity_summaries, get_output_layout(periods[1], :CapacitySummary))
