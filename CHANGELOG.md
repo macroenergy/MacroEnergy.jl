@@ -34,6 +34,10 @@ and this project follows Julia package versioning through `Project.toml` release
 - Weight policy slack to ensure CO2 slack penalty has economic interpretation.
 - Reduced model-generation allocations in edge balance updates by inserting flow variables directly into vertex balance expressions instead of constructing temporary effective-flow expressions.
 
+### Removed
+
+- Removed `Revise` and `Test` from the package dependencies. `MacroEnergy.jl` no longer loads `Revise` at package load time, so developers who relied on that must now load it themselves; `Test` remains available to the test suite through `[extras]`/`[targets]`.
+
 ### Fixed
 
 - Myopic runs with `MyopicSettings.ReturnModels = false` now actually free each period's model. Each period's references are now released once its results have been written, and the model is emptied. Results are unchanged; scalar capacities remain readable on the returned `Case` as `Float64`.
