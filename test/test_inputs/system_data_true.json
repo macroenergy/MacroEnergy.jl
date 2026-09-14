@@ -27422,6 +27422,9 @@
                         "startup_cost": 0
                     },
                     "charge_edge": {
+                        "constraints": {
+                            "StorageChargeLimitConstraint": true
+                        },
                         "new_capacity": 0,
                         "integer_decisions": false,
                         "can_retire": false,
@@ -27539,6 +27542,9 @@
                         "startup_cost": 0
                     },
                     "charge_edge": {
+                        "constraints": {
+                            "StorageChargeLimitConstraint": true
+                        },
                         "new_capacity": 0,
                         "integer_decisions": false,
                         "can_retire": false,
@@ -27656,6 +27662,9 @@
                         "startup_cost": 0
                     },
                     "charge_edge": {
+                        "constraints": {
+                            "StorageChargeLimitConstraint": true
+                        },
                         "new_capacity": 0,
                         "integer_decisions": false,
                         "can_retire": false,
