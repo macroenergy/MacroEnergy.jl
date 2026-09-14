@@ -42,6 +42,7 @@ and this project follows Julia package versioning through `Project.toml` release
 - Fix wacc default preventing fallback to DiscountRate. Omitted `wacc` was silently treated as `0.0` instead of falling back to the case-level `DiscountRate`.
 - Duplicate asset IDs within a system are now rejected during system generation, preventing ambiguous myopic capacity carry-over and late wide-output failures.
 - Fixed asset component traversal and Benders planning updates for assets whose optional edges are absent.
+- `StorageChargeLimitConstraint` is now attached to a `Battery`'s charge edge. Before, it was declared as a top-level key in the charge edge's default data instead of inside its `constraints` dictionary, so it was silently dropped.
 
 ### Documentation
 
