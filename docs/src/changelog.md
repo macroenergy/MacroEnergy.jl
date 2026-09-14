@@ -90,6 +90,9 @@ or, when the relationship is best represented as a recipe:
 - When extending the `:storage` balance of a storage component, use `@add_to_storage_balance(storage, coeff * flow(edge))`. In normal usage, write positive magnitudes for both inflows and outflows and let MacroEnergy apply the effective sign through edge direction.
 - During migration, inspect generated pairwise equations with `@inspect_stoichiometric_balance(...)`, inspect stored coefficients with `balance_data(component, balance_id)`, inspect compiled expressions with `get_balance(component, balance_id)`, and validate the asset with a small single-asset solve test.
 - Small differences in large-system results do not automatically indicate a balance bug. Algebraically equivalent formulations can change row scaling and solver tie-breaking in large, near-degenerate systems, so localized single-asset regression tests are the primary evidence that migrated balances remain correct.
+- **Results change:** no public API changed, but any case using a `Battery` asset could now produce different results. The charge limit (`charge_flow[t] <= capacity - storage_level[t-1]`, scaled by the charge efficiency) was previously not included by default and is now enforced. To keep the old behavior, disable it explicitly on the charge edge: `"charge_edge": {"constraints": {"StorageChargeLimitConstraint": false}}`.
+- If you set `StorageChargeLimitConstraint` as a top-level key on a charge edge, rather than inside that edge's `constraints` dictionary, it was and still is ignored. Move it inside `constraints` for it to take effect.
+- `StorageChargeLimitConstraint` only applies to an edge whose end vertex is the storage, i.e. the charge edge. Setting it on the discharge edge (or via `discharge_constraints` in the simple input format) has no effect.
 
 ## [0.2.4] - 2026-09-10
 
