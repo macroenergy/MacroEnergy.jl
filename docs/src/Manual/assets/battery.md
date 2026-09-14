@@ -486,14 +486,16 @@ Below is an example of an input file for a battery asset that sets up three batt
                         "can_retire": false,
                         "constraints": {
                             "CapacityConstraint": true,
-                            "StorageDischargeLimitConstraint": true,
-                            "StorageChargeLimitConstraint": true
+                            "StorageDischargeLimitConstraint": true
                         }
                     },
                     "charge_edge": {
                         "type": "Electricity",
                         "unidirectional": true,
-                        "has_capacity": false
+                        "has_capacity": false,
+                        "constraints": {
+                            "StorageChargeLimitConstraint": true
+                        }
                     }
                 }
             },

@@ -387,7 +387,9 @@ As Assets with two `Edges` with capacity, the standard JSON inputs for Battery A
             },
             "discharge_constraints": {
                 "CapacityConstraint": true,
-                "StorageDischargeLimitConstraint": true,
+                "StorageDischargeLimitConstraint": true
+            },
+            "charge_constraints": {
                 "StorageChargeLimitConstraint": true
             }
         }
@@ -421,8 +423,7 @@ Using the advanced input format makes it easier to understand the structure of t
                     "can_retire": false,
                     "constraints": {
                         "CapacityConstraint": true,
-                        "StorageDischargeLimitConstraint": true,
-                        "StorageChargeLimitConstraint": true
+                        "StorageDischargeLimitConstraint": true
                     }
                 },
                 "charge_edge": {
@@ -431,7 +432,10 @@ Using the advanced input format makes it easier to understand the structure of t
                     "variable_om_cost": 1,
                     "commodity": "Electricity",
                     "unidirectional": true,
-                    "has_capacity": false
+                    "has_capacity": false,
+                    "constraints": {
+                        "StorageChargeLimitConstraint": true
+                    }
                 }
             },
             "storage":{
@@ -489,13 +493,15 @@ Some users may find it more straightforward to use some elements of the advanced
                     "efficiency": 0.92,
                     "constraints": {
                         "CapacityConstraint": true,
-                        "StorageDischargeLimitConstraint": true,
-                        "StorageChargeLimitConstraint": true
+                        "StorageDischargeLimitConstraint": true
                     }
                 },
                 "charge_edge": {
                     "efficiency": 0.92,
                     "variable_om_cost": 1,
+                    "constraints": {
+                        "StorageChargeLimitConstraint": true
+                    }
                 }
             }
         }
