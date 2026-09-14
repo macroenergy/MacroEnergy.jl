@@ -40,7 +40,9 @@ make_long_duration_storage(id::Symbol, data::Dict{Symbol,Any}, time_data::TimeDa
             },
             &quot;discharge_constraints&quot;: {
                 &quot;CapacityConstraint&quot;: true,
-                &quot;StorageDischargeLimitConstraint&quot;: true,
+                &quot;StorageDischargeLimitConstraint&quot;: true
+            },
+            &quot;charge_constraints&quot;: {
                 &quot;StorageChargeLimitConstraint&quot;: true
             }
         }
@@ -66,8 +68,7 @@ make_long_duration_storage(id::Symbol, data::Dict{Symbol,Any}, time_data::TimeDa
                     &quot;can_retire&quot;: false,
                     &quot;constraints&quot;: {
                         &quot;CapacityConstraint&quot;: true,
-                        &quot;StorageDischargeLimitConstraint&quot;: true,
-                        &quot;StorageChargeLimitConstraint&quot;: true
+                        &quot;StorageDischargeLimitConstraint&quot;: true
                     }
                 },
                 &quot;charge_edge&quot;: {
@@ -76,7 +77,10 @@ make_long_duration_storage(id::Symbol, data::Dict{Symbol,Any}, time_data::TimeDa
                     &quot;variable_om_cost&quot;: 1,
                     &quot;commodity&quot;: &quot;Electricity&quot;,
                     &quot;unidirectional&quot;: true,
-                    &quot;has_capacity&quot;: false
+                    &quot;has_capacity&quot;: false,
+                    &quot;constraints&quot;: {
+                        &quot;StorageChargeLimitConstraint&quot;: true
+                    }
                 }
             },
             &quot;storage&quot;:{
@@ -126,13 +130,15 @@ make_long_duration_storage(id::Symbol, data::Dict{Symbol,Any}, time_data::TimeDa
                     &quot;efficiency&quot;: 0.92,
                     &quot;constraints&quot;: {
                         &quot;CapacityConstraint&quot;: true,
-                        &quot;StorageDischargeLimitConstraint&quot;: true,
-                        &quot;StorageChargeLimitConstraint&quot;: true
+                        &quot;StorageDischargeLimitConstraint&quot;: true
                     }
                 },
                 &quot;charge_edge&quot;: {
                     &quot;efficiency&quot;: 0.92,
                     &quot;variable_om_cost&quot;: 1,
+                    &quot;constraints&quot;: {
+                        &quot;StorageChargeLimitConstraint&quot;: true
+                    }
                 }
             }
         }
@@ -459,4 +465,4 @@ mermaid.initialize({
     startOnLoad: true,
     theme: "neutral"
 });
-</script></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../Nodes/">« Nodes</a><a class="docs-footer-nextpage" href="../Transformations/">Transformations »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.19.0 on <span class="colophon-date" title="Friday 11 September 2026 21:20">Friday 11 September 2026</span>. Using Julia version 1.13.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+</script></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../Nodes/">« Nodes</a><a class="docs-footer-nextpage" href="../Transformations/">Transformations »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.19.0 on <span class="colophon-date" title="Monday 14 September 2026 20:58">Monday 14 September 2026</span>. Using Julia version 1.13.0.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
