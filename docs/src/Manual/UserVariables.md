@@ -127,11 +127,8 @@ different components. JuMP names include the variable name, component ID, and pe
 
 ## Model Release
 
-`MacroEnergy.release_user_variable_references!(component)` clears each stored
-user-variable reference while retaining the immutable specification for rebuilding.
-This branch does not include automatic system-wide model release; call the helper
-on each component when discarding a model. Other component references and the
-JuMP model itself require their own cleanup. Read results before release, and retrieve new
+Model release clears each stored JuMP reference while retaining the immutable
+specification for rebuilding. Read results before release, and retrieve new
 references after rebuilding. A previously saved `UserVariable` or JuMP reference
 still refers to the old model; it is not updated when a dictionary entry is replaced.
 

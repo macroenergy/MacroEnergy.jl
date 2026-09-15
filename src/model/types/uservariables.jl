@@ -49,24 +49,6 @@ function with_variable_ref(variable::UserVariable, ref::Union{Nothing,JuMPVariab
 end
 
 """
-    release_user_variable_references!(component)
-
-Clear user-variable references on an edge or vertex by replacing the immutable
-entries in `component.variables`. Preserve all specification fields for rebuilding.
-Previously saved entries and references are not modified. Call this helper on
-each component before discarding its model. It clears only
-user-variable references; it does not empty the JuMP model or release other fields.
-"""
-function release_user_variable_references!(component::Union{AbstractEdge,AbstractVertex})
-    for (name, variable) in component.variables
-        if variable.variable_ref !== nothing
-            component.variables[name] = with_variable_ref(variable, nothing)
-        end
-    end
-    return nothing
-end
-
-"""
     USER_VARIABLE_TYPES
 
 Allowed variable type labels for user-defined variables.

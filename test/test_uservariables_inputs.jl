@@ -442,6 +442,11 @@ function test_variable_names_must_be_nonempty_and_unique()
     @test_throws ErrorException MacroEnergy.user_variable_spec(node, :missing)
 end
 
+struct VariableCleanupAsset <: MacroEnergy.AbstractAsset
+    id::Symbol
+    components::Tuple
+end
+
 function test_user_variable_cleanup_and_rebuild()
     specs = MacroEnergy.check_and_convert_uservar([
         Dict(:name => "build", :time_varying => false, :operation_variable => false,
@@ -461,6 +466,9 @@ function test_user_variable_cleanup_and_rebuild()
         push!(components, T(; id=Symbol(nameof(T)), timedata, variables=copy(specs),
                            start_vertex=node, end_vertex=node))
     end
+    system = MacroEnergy.empty_system(@__DIR__)
+    push!(system.locations, node)
+    push!(system.assets, VariableCleanupAsset(:cleanup, Tuple(components[2:end])))
     model = Model(HiGHS.Optimizer)
     set_silent(model)
     for component in components
@@ -476,8 +484,7 @@ function test_user_variable_cleanup_and_rebuild()
     optimize!(model)
     @test termination_status(model) == MOI.OPTIMAL
     old_ref = MacroEnergy.user_variable(node, :build)[1]
-    foreach(MacroEnergy.release_user_variable_references!, components)
-    empty!(model)
+    MacroEnergy.release_model!(system, model)
     @test num_variables(model) == 0
     @test !is_valid(model, old_ref)
     for component in components
@@ -486,8 +493,8 @@ function test_user_variable_cleanup_and_rebuild()
             @test_throws r"has been released" MacroEnergy.user_variable(component, name)
         end
     end
-    # Clearing references is idempotent.
-    foreach(MacroEnergy.release_user_variable_references!, components)
+    # Releasing twice also works for components without live capacity variables.
+    MacroEnergy.release_model_references!(system)
     rebuilt = Model()
     for component in components
         MacroEnergy.add_uservariables!(component, rebuilt, false)

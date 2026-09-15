@@ -144,13 +144,10 @@ objective terms must still be added explicitly, as above.
   after its references have been released.
 - `MacroEnergy.user_variable_spec(component, :name)` returns the specification,
   including its current `variable_ref`. It can be called before model creation.
-- Read results with JuMP's `value` before discarding the model. Call
-  `MacroEnergy.release_user_variable_references!(component)` on each component
-  to replace each user variable's reference with `nothing` while retaining
+- Read results with JuMP's `value` before releasing the model. Macro's model-release
+  traversal replaces each user variable's reference with `nothing` while retaining
   its name, bounds, type, and indexing settings. Retrieve fresh references after
   rebuilding; previously saved specifications and references are not updated.
-  The helper clears only user-variable references. This branch does not provide
-  automatic system-wide model release.
 
 Build each stage once per model. Recreating user variables that still have valid
 references in the same model emits a warning and proceeds; the original variables
