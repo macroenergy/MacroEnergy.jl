@@ -14,6 +14,7 @@ with_logger(test_logger) do
         include("test_balance_data.jl")
         include("test_supply_inputs.jl")
         include("test_download_examples.jl")
+        include("test_uservariables_inputs.jl")
         include("test_user_additions.jl")
         include("test_registry_user_smoke.jl")
         include("test_case_settings.jl")
