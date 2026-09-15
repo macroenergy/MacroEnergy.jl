@@ -77,11 +77,13 @@ function set_constraint_dual!(
         error("BalanceConstraint on vertex $(id(v)) has no constraint reference")
     end
 
-    first_balance_id = first(keys(v.balance_data))
-    first_time = first(time_interval(v))
-    available = isnothing(duals_available) ? has_usable_duals(
-        owner_model(constraint.constraint_ref[first_balance_id][first_time]),
-    ) : duals_available
+    available = if isnothing(duals_available)
+        first_balance_id = first(keys(v.balance_data))
+        first_time = first(time_interval(v))
+        has_usable_duals(owner_model(constraint.constraint_ref[first_balance_id][first_time]))
+    else
+        duals_available
+    end
 
     # Extract dual values for all balance IDs. `available` is computed once for
     # this model; `dual_or_nan` still handles a rare unavailable reference.

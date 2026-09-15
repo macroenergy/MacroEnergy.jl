@@ -185,6 +185,7 @@ function write_co2_cap_duals(
     node_ids = Vector{Symbol}()
     co2_shadow_prices = Vector{Float64}()
     co2_slack_vars = Vector{Union{Float64, Missing}}()
+    duals_available = nothing
 
     for node in filter(n -> n isa Node, system.locations)
         # Skip nodes without CO2 cap policy budget constraint
@@ -197,7 +198,9 @@ function write_co2_cap_duals(
         push!(node_ids, id(node))
 
         # Get CO2 shadow prices
-        duals_available = has_usable_duals(owner_model(constraint))
+        if isnothing(duals_available)
+            duals_available = has_usable_duals(owner_model(constraint))
+        end
         dual_value = dual_or_nan(constraint; duals_available)
         push!(co2_shadow_prices, -scaling * dual_value / var_cost_discount)
 

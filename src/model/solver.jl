@@ -123,7 +123,7 @@ Return the dual value of `con_ref`, or `NaN` when no usable dual solution
 is available. Pass a precomputed `duals_available` value when extracting many
 duals from the same model to avoid repeated status queries.
 
-Only optimizer result-access errors are converted to `missing`; all other
+Only optimizer result-access errors are converted to `NaN`; all other
 errors are rethrown so that programming errors are not hidden.
 """
 function dual_or_nan(con_ref; result::Int=1, duals_available::Union{Nothing,Bool}=nothing)::Float64
