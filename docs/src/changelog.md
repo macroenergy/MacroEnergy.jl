@@ -31,21 +31,23 @@ and this project follows Julia package versioning through `Project.toml` release
 - `@add_balance` now validates balance expressions more strictly and rejects unsupported non-`flow(...)` variable terms.
 - `@add_stoichiometric_balance` now expands recipe-style balances using a consistent proportional rule around the selected `base_term`.
 - Asset balance definitions have been migrated away from legacy raw `balance_data = Dict(...)` patterns toward `@add_balance`, `@add_to_storage_balance`, and `@add_stoichiometric_balance`.
-- Updated MacroEnergySolvers.jl version to 0.2.2.
 - Updated MacroEnergyScaling.jl compatibility to 0.4. Constraint scaling now updates constraints in place, so existing JuMP `ConstraintRef`s remain valid instead of being invalidated by constraint replacement. This version also allows for objective scaling in the future.
 - Hoisted repeated time-data lookups during model construction and simplified ramping and minimum up/down-time constraints to avoid temporary expression and index containers.
 - Weight policy slack to ensure CO2 slack penalty has economic interpretation.
+- Reduced model-generation allocations in edge balance updates by inserting flow variables directly into vertex balance expressions instead of constructing temporary effective-flow expressions.
+
+### Removed
+
+- Removed `Revise` and `Test` from the package dependencies. `MacroEnergy.jl` no longer loads `Revise` at package load time, so developers who relied on that must now load it themselves; `Test` remains available to the test suite through `[extras]`/`[targets]`.
 
 ### Fixed
 
 - Myopic runs with `MyopicSettings.ReturnModels = false` now actually free each period's model. Each period's references are now released once its results have been written, and the model is emptied. Results are unchanged; scalar capacities remain readable on the returned `Case` as `Float64`.
-- Fix wacc default preventing fallback to DiscountRate. Omitted `wacc` was silently treated as `0.0` instead of falling back to the case-level `DiscountRate`.
-- Duplicate asset IDs within a system are now rejected during system generation, preventing ambiguous myopic capacity carry-over and late wide-output failures.
 - Fixed asset component traversal and Benders planning updates for assets whose optional edges are absent.
+- `StorageChargeLimitConstraint` is now attached to a `Battery`'s charge edge. Before, it was declared as a top-level key in the charge edge's default data instead of inside its `constraints` dictionary, so it was silently dropped.
 
 ### Documentation
 
-- Switched documentation math rendering to MathJax3 and pinned Mermaid to 11.16.1 to avoid Mermaid 11.17's RequireJS compatibility regression.
 - Expanded the balance documentation with guidance on choosing between balance macros, stoichiometric coefficient bases, pairwise expansion limits, multi-term algebraic balances, common mistakes, and numerical sensitivity.
 - Updated modeler documentation to include balance APIs in the asset-construction workflow and to recommend a small single-asset regression test for each new asset.
 - Updated debugging guidance around `balance_data`, `get_balance`, and `@inspect_stoichiometric_balance`.
@@ -88,6 +90,45 @@ or, when the relationship is best represented as a recipe:
 - When extending the `:storage` balance of a storage component, use `@add_to_storage_balance(storage, coeff * flow(edge))`. In normal usage, write positive magnitudes for both inflows and outflows and let MacroEnergy apply the effective sign through edge direction.
 - During migration, inspect generated pairwise equations with `@inspect_stoichiometric_balance(...)`, inspect stored coefficients with `balance_data(component, balance_id)`, inspect compiled expressions with `get_balance(component, balance_id)`, and validate the asset with a small single-asset solve test.
 - Small differences in large-system results do not automatically indicate a balance bug. Algebraically equivalent formulations can change row scaling and solver tie-breaking in large, near-degenerate systems, so localized single-asset regression tests are the primary evidence that migrated balances remain correct.
+- **Results change:** no public API changed, but any case using a `Battery` asset could now produce different results. The charge limit (`charge_flow[t] <= capacity - storage_level[t-1]`, scaled by the charge efficiency) was previously not included by default and is now enforced. To keep the old behavior, disable it explicitly on the charge edge: `"charge_edge": {"constraints": {"StorageChargeLimitConstraint": false}}`.
+- If you set `StorageChargeLimitConstraint` as a top-level key on a charge edge, rather than inside that edge's `constraints` dictionary, it was and still is ignored. Move it inside `constraints` for it to take effect.
+- `StorageChargeLimitConstraint` only applies to an edge whose end vertex is the storage, i.e. the charge edge. Setting it on the discharge edge (or via `discharge_constraints` in the simple input format) has no effect.
+
+## [0.2.4] - 2026-09-10
+
+### Changed
+
+- Skip Julia CI tests when changes are confined to `CHANGELOG.md`, `README.md`, or `docs/`, while retaining documentation builds and a consistent `CI result` check that reports successful tests or an intentional skip.
+
+### Fixed
+
+- Removed `[skip ci]` from automated changelog commit messages so release tags pointing to those commits can trigger documentation deployment.
+
+## [0.2.3] - 2026-08-31
+
+### Documentation
+
+- Switched documentation math rendering to MathJax3 and pinned Mermaid to 11.16.1 to avoid Mermaid 11.17's RequireJS compatibility regression.
+
+## [0.2.2] - 2026-08-05
+
+### Fixed
+
+- Duplicate asset IDs within a system are now rejected during system generation, preventing ambiguous myopic capacity carry-over and late wide-output failures.
+
+## [0.2.1] - 2026-07-15
+
+### Changed
+
+- Updated MacroEnergySolvers.jl version to 0.2.2
+
+### Fixed
+
+- Fix wacc default preventing fallback to DiscountRate. Omitted `wacc` was silently treated as `0.0` instead of falling back to the case-level `DiscountRate`.
+
+### Migration guide
+
+- **Results change:** no public API changed, but any case that omits an asset's `wacc` will now produce different results. Previously the missing `wacc` defaulted to `0.0`; it now falls back to the case's `DiscountRate`. Cases relying on the old default will see different annualized investment costs after upgrading. To keep the old behavior, set `wacc` explicitly to `0.0` for the affected asset(s).
 
 ## [0.2.0] - 2026-05-22
 
