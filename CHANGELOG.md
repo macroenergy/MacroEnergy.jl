@@ -43,6 +43,7 @@ and this project follows Julia package versioning through `Project.toml` release
 - Myopic runs with `MyopicSettings.ReturnModels = false` now actually free each period's model. Each period's references are now released once its results have been written, and the model is emptied. Results are unchanged; scalar capacities remain readable on the returned `Case` as `Float64`.
 - Fixed asset component traversal and Benders planning updates for assets whose optional edges are absent.
 - `StorageChargeLimitConstraint` is now attached to a `Battery`'s charge edge. Before, it was declared as a top-level key in the charge edge's default data instead of inside its `constraints` dictionary, so it was silently dropped.
+- Dual exports now handle unavailable solver duals safely, recording `NaN` instead of failing while preserving `Float64` output arrays.
 
 ### Documentation
 

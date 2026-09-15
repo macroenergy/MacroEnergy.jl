@@ -156,8 +156,8 @@ function prepare_to_json(constraints::Vector{AbstractTypeConstraint})
             dict[Symbol(typeof(constraint))] = true
             continue
         end            
-        dual_value = dual.(con_ref)
-        if ismissing(dual_value)
+        dual_value = dual_or_nan.(con_ref)
+        if dual_value isa AbstractArray ? all(isnan, dual_value) : isnan(dual_value)
             dict[Symbol(typeof(constraint))] = true
         else
             dict[Symbol(typeof(constraint))] = prepare_to_json(dual_value)
