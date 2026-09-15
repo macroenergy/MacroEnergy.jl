@@ -50,7 +50,7 @@ Parse and validate user-defined variable specifications from input data.
 Each variable in the vector should have the form:
 ```
 {
-    :name => <Symbol or String>,       # Optional, defaults to ""
+    :name => <Symbol or String>,       # Required, nonempty and unique
     :time_varying => <Bool>,           # Required
     :operation_variable => <Bool>,     # Optional, defaults to true
     :number_segments => <Int>,         # Optional, defaults to 1
@@ -64,7 +64,7 @@ Each variable in the vector should have the form:
 - `Dict{Symbol, UserVariable}`: Dictionary mapping stored variable keys to their configurations
 
 # Validation
-- `name`: Optional, must be `Symbol` or `String` if present; defaults to `""`
+- `name`: Required, must be a nonempty, unique `Symbol` or `String`
 - `time_varying`: Required, must be `Bool`
 - `operation_variable`: Optional, must be `Bool` if present; defaults to `true`
 - `number_segments`: Optional, must be positive `Int` if present; defaults to `1`
@@ -72,8 +72,7 @@ Each variable in the vector should have the form:
 - `lower_bound`/`upper_bound`: Optional, must be numeric if present
 - `Semiinteger`/`Semicontinuous` variables require both `lower_bound` and `upper_bound`
 
-If a variable is unnamed, or if the same name is repeated, a unique fallback key
-such as `:variable1` is assigned in the returned dictionary.
+Missing, empty, and duplicate names are rejected.
 """
 function check_and_convert_uservar(variables_input::Union{AbstractVector, Nothing}, node_id::Symbol)::Dict{Symbol, UserVariable}
     variables = Dict{Symbol, UserVariable}()
@@ -83,33 +82,23 @@ function check_and_convert_uservar(variables_input::Union{AbstractVector, Nothin
         return variables
     end
     
-    default_counter = 1
-    
     for (idx, var_config) in enumerate(variables_input)
         if !isa(var_config, AbstractDict)
             error("Variable $idx in node $node_id must be a dictionary. Got $(typeof(var_config))")
         end
         
-        # Extract name (optional, defaults to "")
-        var_name_raw = _get_uservar_field(var_config, :name, "")
-        if isa(var_name_raw, Symbol)
-            var_name = var_name_raw
-        elseif isa(var_name_raw, String)
-            var_name = Symbol(var_name_raw)
-        else
+        _has_uservar_field(var_config, :name) ||
+            error("Variable $idx in node $node_id missing required 'name' field")
+        var_name_raw = _get_uservar_field(var_config, :name, nothing)
+        if !(var_name_raw isa Union{Symbol,AbstractString})
             error("Variable $idx in node $node_id: 'name' must be a Symbol or String, got $(typeof(var_name_raw))")
         end
-        
-        # Determine dictionary key: use var_name if unique, otherwise auto-generate
-        var_key = var_name
-        if var_key == Symbol("") || haskey(variables, var_key)
-            while haskey(variables, Symbol("variable$default_counter"))
-                default_counter += 1
-            end
-            var_key = Symbol("variable$default_counter")
-            default_counter += 1
-        end
-        
+        var_name = Symbol(var_name_raw)
+        isempty(strip(String(var_name))) &&
+            error("Variable $idx in node $node_id: 'name' must not be empty")
+        haskey(variables, var_name) &&
+            error("Variable $idx in node $node_id: duplicate variable name '$var_name'")
+
         # Extract and validate time_varying (required, must be Bool)
         if !_has_uservar_field(var_config, :time_varying)
             error("Variable $idx in node $node_id missing required 'time_varying' field")
@@ -160,8 +149,8 @@ function check_and_convert_uservar(variables_input::Union{AbstractVector, Nothin
             error("Variable $idx in node $node_id: '$(variable_type)' variables require both 'lower_bound' and 'upper_bound'")
         end
         
-        # Store with var_key, but UserVariable stores the original user-provided name
-        variables[var_key] = UserVariable(
+        # Store each variable under its unique declared name
+        variables[var_name] = UserVariable(
             var_name,
             time_varying,
             operation_variable,
@@ -208,6 +197,7 @@ function check_and_convert_variables!(data::AbstractDict{Symbol,Any})
         end
 
         if all(value -> isa(value, UserVariable), values(data[:variables]))
+            _validate_user_variable_names(data[:variables], node_id)
             return nothing
         end
     end

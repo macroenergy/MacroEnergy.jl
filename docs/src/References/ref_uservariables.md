@@ -48,3 +48,10 @@ MacroEnergy._user_variable_lookup_key
 ```@docs
 MacroEnergy._set_user_variable_attributes!
 ```
+
+## Model-reference helpers
+
+```@docs
+MacroEnergy.with_variable_ref
+MacroEnergy.release_user_variable_references!
+```

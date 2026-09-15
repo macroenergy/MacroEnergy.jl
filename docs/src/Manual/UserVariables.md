@@ -5,6 +5,8 @@ components of an asset, such as its nodes, edges, storage components, or
 transformations. These variables can then be used in user-defined constraints,
 expressions, and custom model logic.
 
+For a worked asset example, see [Creating and Using User Variables](@ref modeler_user_variables).
+
 ## What This Feature Does
 
 Each component may define a `variables` entry in its input data. Macro parses
@@ -44,7 +46,7 @@ defines one user variable.
 
 Supported fields are:
 
-- `name`: Optional `String` or `Symbol`
+- `name`: Required, nonempty `String` or `Symbol`, unique within the component
 - `time_varying`: Required `Bool`
 - `operation_variable`: Optional `Bool`, default `true`
 - `number_segments`: Optional positive `Int`, default `1`
@@ -63,12 +65,8 @@ Supported variable types are:
 For `Semiinteger` and `Semicontinuous`, both `lower_bound` and `upper_bound`
 must be provided.
 
-Bounds can also be supplied through the usual Macro input-loading patterns
-instead of being written directly as literals. For example, a user may point
-`lower_bound` or `upper_bound` to data loaded from JSON using the same
-distributed-input conventions used elsewhere in Macro input files. This can be
-useful when a user wants variable bounds to be configured from external case
-data rather than hard-coded in an asset definition.
+Bounds are scalar numbers applied to every entry in the variable container.
+Time series or vectors of bounds are not accepted.
 
 ## Planning vs Operational Variables
 
@@ -104,15 +102,18 @@ Most user-defined constraints will want the JuMP variable reference directly.
 Use:
 
 ```julia
-user_variable(component, :my_variable)
+MacroEnergy.user_variable(component, :my_variable)
 ```
 
-This returns the `variable_ref` field for the matching user variable.
+This returns the `variable_ref` field for the matching user variable. Access before
+creation or after model release throws an error. Time-varying variables are indexed
+as `[t, segment]`; time-independent variables are indexed as `[segment]`. The
+segment index is required even when `number_segments` is one.
 
 If you need the full specification, use:
 
 ```julia
-user_variable_spec(component, :my_variable)
+MacroEnergy.user_variable_spec(component, :my_variable)
 ```
 
 This returns the full `UserVariable` object, including metadata such as
@@ -120,18 +121,25 @@ This returns the full `UserVariable` object, including metadata such as
 
 ## Notes on Naming
 
-Macro stores user variables in a dictionary keyed by a unique identifier. If a
-variable is unnamed, or if duplicate names are provided, Macro generates unique
-fallback keys such as `:variable1` and `:variable2`.
+Macro stores user variables in a dictionary keyed by their declared names.
+Missing, empty, and duplicate names are rejected. The same name may be used on
+different components. JuMP names include the variable name, component ID, and period.
 
-JuMP variable names are built from these stored keys so that unnamed and
-duplicate user variables still receive stable, unique names in the model.
+## Model Release
+
+`MacroEnergy.release_user_variable_references!(component)` clears each stored
+user-variable reference while retaining the immutable specification for rebuilding.
+This branch does not include automatic system-wide model release; call the helper
+on each component when discarding a model. Other component references and the
+JuMP model itself require their own cleanup. Read results before release, and retrieve new
+references after rebuilding. A previously saved `UserVariable` or JuMP reference
+still refers to the old model; it is not updated when a dictionary entry is replaced.
 
 ## Typical Workflow
 
 1. Add a `variables` field to the relevant component input data.
 2. Build the asset as usual.
-3. Use `user_variable(component, :name)` inside custom constraints or
-   expressions.
-4. Let Macro create the variables automatically during planning or operational
-   model construction, depending on `operation_variable`.
+3. Let Macro create the variables during planning or operational model
+   construction, depending on `operation_variable`.
+4. Use `MacroEnergy.user_variable(component, :name)` in constraints or expressions
+   after the corresponding variables have been created.

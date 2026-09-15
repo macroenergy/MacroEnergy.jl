@@ -46,6 +46,7 @@ const pages = [
             "Energy System Graph-Based Representation" => "Guides/Modeler Guide/modeler_es_graph.md",
             "Creating a New Sector" => "Guides/Modeler Guide/modeler_build_sectors.md",
             "Creating a New Asset" => "Guides/Modeler Guide/modeler_build_asset.md",
+            "Creating and Using User Variables" => "Guides/Modeler Guide/modeler_user_variables.md",
             "Documenting an Asset" => "Guides/Modeler Guide/modeler_add_docs_to_asset.md",
             "Creating a New Example Case" => "Guides/Modeler Guide/modeler_create_example_case.md",
             "Suggested Development Workflow" => "Guides/Modeler Guide/modeler_workflow.md",
