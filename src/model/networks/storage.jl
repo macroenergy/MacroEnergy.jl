@@ -444,7 +444,7 @@ function previous_storage_level(g::LongDurationStorage, model::Model)
         if t ∈ starts
             storage_level(g, timestepbefore(t, 1, sps)) - storage_change(g, current_subperiod(g, t))
         else
-            storage_level(g, timestepbefore(t, 1, sps))
+            storage_level(g, timestepbefore(t, 1, sps)) - zero(AffExpr)
         end)
 end
 
