@@ -434,7 +434,7 @@ end
 
 function previous_storage_level(g::LongDurationStorage, model::Model)
     sps = subperiods(g)
-    starts = starts = Set(first(sp) for sp in sps)
+    starts = Set(first(sp) for sp in sps)
     ti = time_interval(g)
     time_container = array_container(ti)
     return @expression(
