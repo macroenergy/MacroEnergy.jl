@@ -62,6 +62,10 @@ const pages = [
         "Introduction" => "Manual/manual_introduction.md",
         "Inputs" => "Manual/Inputs.md",
         "Time Data" => "Manual/TimeData.md",
+        "Preprocessing Inputs" => [
+            "Overview" => "Manual/Preprocessing.md",
+            "Time-Domain Reduction" => "Manual/Preprocessing/TimeDomainReduction.md",
+        ],
         "Timeseries" => "Manual/Timeseries.md",
         "Outputs" => [
             "Overview" => "Manual/Outputs.md",
