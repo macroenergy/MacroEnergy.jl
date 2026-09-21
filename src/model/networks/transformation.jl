@@ -24,6 +24,7 @@ function add_linking_variables!(g::Transformation, model::Model)
 end
 
 function planning_model!(g::Transformation, model::Model)
+    add_uservariables!(g, model, false)
     return nothing
 end
 
@@ -33,5 +34,6 @@ end
 
 function operation_model!(g::Transformation, model::Model)
     build_balance_expressions!(g, model)
+    add_uservariables!(g, model, true)
     return nothing
 end

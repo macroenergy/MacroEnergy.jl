@@ -142,6 +142,7 @@ function include_all_in_folder(folder::AbstractString, root_path::AbstractString
     return nothing
 end
 
+include("model/jump_containers.jl")
 include_all_in_folder("model/types/")
 
 include("utilities/file_io/json.jl")
@@ -162,7 +163,6 @@ include("utilities/utilities.jl")
 include_all_in_folder("utilities/model_converters")
 
 include("model/units.jl")
-include("model/jump_containers.jl")
 include("model/time_management.jl")
 include("model/networks/vertex.jl")
 include("model/networks/node.jl")

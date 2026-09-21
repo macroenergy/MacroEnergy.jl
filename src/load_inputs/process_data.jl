@@ -10,6 +10,7 @@ function process_data(data::AbstractDict{Symbol,Any})
     haskey(data, :demand) && check_and_convert_demand!(data)
     (haskey(data, :supply) || haskey(data, :price_supply)) && check_and_convert_supply!(data)
     haskey(data, :constraints) && check_and_convert_constraints!(data)
+    haskey(data, :variables) && check_and_convert_variables!(data)
     haskey(data, :rhs_policy) && check_and_convert_rhs_policy!(data)
     haskey(data, :price_unmet_policy) && check_and_convert_price_unmet_policy!(data)
     return data
