@@ -32,6 +32,9 @@ Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 SlurmClusterManager = "c82cd089-7bf7-41d7-976b-6b5d413cbe0a"
 YAML = "ddb6d928-2868-570f-bddf-ab3f9cf99eb6"
 
+[weakdeps]
+Gurobi = "2e9cd046-0924-5485-92f1-d5272153d98b"
+
 [extensions]
 MacroEnergyGurobiExt = "Gurobi"
 
@@ -44,7 +47,7 @@ Dates = "1"
 Distributed = "1"
 DistributedArrays = "0.6"
 DuckDB = "1"
-GZip = "0.7"
+GZip = "0.7, 0.8"
 GitHub = "5"
 HiGHS = "1"
 InteractiveUtils = "1"
@@ -65,9 +68,6 @@ SlurmClusterManager = "1"
 Test = "1"
 YAML = "0.4"
 julia = "1.9"
-
-[weakdeps]
-Gurobi = "2e9cd046-0924-5485-92f1-d5272153d98b"
 
 [extras]
 JLD2 = "033835bb-8acc-5ee8-8aae-3f567f8a3819"
