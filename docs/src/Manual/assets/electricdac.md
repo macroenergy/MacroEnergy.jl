@@ -207,6 +207,7 @@ The `ElectricDAC` asset is defined as follows:
 ```julia
 struct ElectricDAC <: AbstractAsset
     id::AssetId
+    tags::AssetTags
     electricdac_transform::Transformation
     co2_edge::UnidirectionalEdge{<:CO2}
     elec_edge::UnidirectionalEdge{<:Electricity}

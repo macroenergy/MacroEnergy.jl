@@ -295,6 +295,7 @@ The `Battery` asset is defined as follows:
 ```julia
 struct Battery <: AbstractAsset
     id::AssetId
+    tags::AssetTags
     battery_storage::AbstractStorage{<:Electricity}
     discharge_edge::UnidirectionalEdge{<:Electricity}
     charge_edge::UnidirectionalEdge{<:Electricity}

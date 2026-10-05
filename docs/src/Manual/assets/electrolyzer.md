@@ -193,6 +193,7 @@ The `Electrolyzer` asset is defined as follows:
 ```julia
 struct Electrolyzer <: AbstractAsset
     id::AssetId
+    tags::AssetTags
     electrolyzer_transform::Transformation
     h2_edge::UnidirectionalEdge{<:Hydrogen}
     elec_edge::UnidirectionalEdge{<:Electricity}

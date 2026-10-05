@@ -517,6 +517,7 @@ flowchart TD
 ```julia
 struct StationPowerExample <: AbstractAsset
     id::AssetId
+    tags::AssetTags
     thermal_transform::Transformation
     elec_node::Node{<:Electricity}
     generated_elec_edge::Union{UnidirectionalEdge{<:Electricity},EdgeWithUC{<:Electricity}}

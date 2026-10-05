@@ -183,6 +183,7 @@ The Alumina Plant asset is defined as follows:
 ```julia
 struct AluminaPlant{T} <: AbstractAsset
     id::AssetId
+    tags::AssetTags
     aluminaplant_transform::Transformation
     elec_edge::Union{UnidirectionalEdge{<:Electricity},EdgeWithUC{<:Electricity}}
     alumina_edge::UnidirectionalEdge{<:Alumina}

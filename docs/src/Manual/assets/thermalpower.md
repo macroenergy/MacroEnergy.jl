@@ -263,6 +263,7 @@ The `ThermalPower` and `ThermalPowerCCS` assets are defined as follows:
 ```julia
 struct ThermalPower{T} <: AbstractAsset
     id::AssetId
+    tags::AssetTags
     thermal_transform::Transformation
     elec_edge::Union{UnidirectionalEdge{<:Electricity},EdgeWithUC{<:Electricity}}
     fuel_edge::UnidirectionalEdge{<:T}
@@ -271,6 +272,7 @@ end
 
 struct ThermalPowerCCS{T} <: AbstractAsset
     id::AssetId
+    tags::AssetTags
     thermalpowerccs_transform::Transformation
     elec_edge::Union{UnidirectionalEdge{<:Electricity},EdgeWithUC{<:Electricity}}
     fuel_edge::UnidirectionalEdge{<:T}

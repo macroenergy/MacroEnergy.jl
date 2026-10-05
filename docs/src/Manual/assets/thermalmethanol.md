@@ -228,6 +228,7 @@ The Thermal Methanol asset (without CCS) is defined as follows:
 ```julia
 struct ThermalMethanol{T} <: AbstractAsset
     id::AssetId
+    tags::AssetTags
     thermalmethanol_transform::Transformation
     ch3oh_edge::Union{UnidirectionalEdge{<:Methanol},EdgeWithUC{<:Methanol}}
     elec_edge::UnidirectionalEdge{<:Electricity}
@@ -241,6 +242,7 @@ The Thermal Methanol with CCS asset is defined as follows:
 ```julia
 struct ThermalMethanolCCS{T} <: AbstractAsset
     id::AssetId
+    tags::AssetTags
     thermalmethanolccs_transform::Transformation
     ch3oh_edge::Union{UnidirectionalEdge{<:Methanol},EdgeWithUC{<:Methanol}}
     elec_edge::UnidirectionalEdge{<:Electricity}
