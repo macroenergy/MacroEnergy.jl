@@ -40,7 +40,16 @@ function generate_system!(system::System, system_data::AbstractDict{Symbol,Any})
 
     # Load the assets
     load!(system, system_data[:assets])
+
     validate_unique_asset_ids(system)
+
+    # Load system-wide constraints
+    if haskey(system_data, :constraints)
+        @info(" -- Adding system-wide constraints")
+        check_and_convert_constraints!(system_data)
+        system.constraints = system_data[:constraints]
+        validate_required_constraint_configs!(system.constraints, "system scope")
+    end
 
     @info("Done generating system. It took $(round(time() - start_time, digits=2)) seconds")
     return nothing

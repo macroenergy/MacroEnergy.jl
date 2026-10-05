@@ -537,6 +537,7 @@ Constructing this Asset requires internal and external `Edges`. Under our formul
 ```julia
 struct GasStorage{T} <: AbstractAsset
     id::AssetId
+    tags::AssetTags
     pump_transform::Transformation
     gas_storage::AbstractStorage{<:T}
     charge_edge::UnidirectionalEdge{<:T}

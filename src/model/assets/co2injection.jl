@@ -1,5 +1,6 @@
 struct CO2Injection <: AbstractAsset
     id::AssetId
+    tags::AssetTags
     co2injection_transform::Transformation
     co2_captured_edge::Edge{<:CO2Captured}
     co2_storage_edge::Edge{<:CO2Captured}
@@ -140,5 +141,5 @@ function make(asset_type::Type{CO2Injection}, data::AbstractDict{Symbol,Any}, sy
         flow(co2_captured_edge) == flow(co2_storage_edge)
     )
 
-    return CO2Injection(id, co2injection_transform, co2_captured_edge, co2_storage_edge) 
+    return CO2Injection(id, asset_tags(data), co2injection_transform, co2_captured_edge, co2_storage_edge)
 end

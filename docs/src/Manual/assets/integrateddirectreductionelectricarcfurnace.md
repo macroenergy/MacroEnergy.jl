@@ -185,6 +185,7 @@ The DirectReductionElectricArcFurnace asset is defined as follows:
 ```julia
 struct DirectReductionElectricArcFurnace{T1 <: Commodity,T2 <: Commodity} <: AbstractAsset
     id::AssetId
+    tags::AssetTags
     dreaf_transform::Transformation
     crudesteel_edge::UnidirectionalEdge{CrudeSteel}
     reductant_edge::UnidirectionalEdge{T1} # natural gas or hydrogen

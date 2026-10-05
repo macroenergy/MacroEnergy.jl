@@ -250,6 +250,7 @@ The `BECCSHydrogen` asset is defined as follows:
 ```julia
 struct BECCSHydrogen <: AbstractAsset
     id::AssetId
+    tags::AssetTags
     beccs_transform::Transformation
     biomass_edge::UnidirectionalEdge{<:Biomass}
     h2_edge::UnidirectionalEdge{<:Hydrogen}

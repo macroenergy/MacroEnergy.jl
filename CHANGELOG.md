@@ -18,6 +18,8 @@ and this project follows Julia package versioning through `Project.toml` release
 - Added optional StartYear input in case_settings.json to label periods by calendar year.
 - Added `capex.csv` output file to report per-component asset capital costs.
 - Added repository-local benchmarking tools to compare case loading, case generation, and model generation between `upstream/main` and the current worktree using reproducible example inputs.
+- Added system-wide and per-location capacity constraints for selected groups of assets: `MaxCapacityConstraint` and `MinCapacityConstraint` bound total capacity, and `MaxNewCapacityConstraint` bounds newly built capacity. Limits are configured via a `constraints` block in `system_data.json` (whole system) or per location in `locations.json`, using asset-type and tag selectors. The limit values are scaled with `ParameterScaling` like other capacity inputs.
+- For `VRE`, the optional `technology` input is normalized into an asset tag (for example, `technology: "Solar"` adds `:solar`) without changing the asset's Julia type.
 - Added `ConstrainedFossilLiquidFuels`, a refinery asset with fixed jet-fuel and diesel output ratios and configurable fuel-specific emissions.
 - Added optional auxiliary-fuel inputs to `BECCSHydrogen` and captured-CO₂ return flows to `SyntheticLiquidFuels`.
 - Added unit-commitment support for `Electrolyzer` hydrogen output, including startup electricity consumption, minimum up/down times, and ramping limits.
@@ -32,6 +34,8 @@ and this project follows Julia package versioning through `Project.toml` release
 - Updated MacroEnergyScaling.jl compatibility to 0.4. Constraint scaling now updates constraints in place, so existing JuMP `ConstraintRef`s remain valid instead of being invalidated by constraint replacement. This version also allows for objective scaling in the future.
 - Hoisted repeated time-data lookups during model construction and simplified ramping and minimum up/down-time constraints to avoid temporary expression and index containers.
 - Weight policy slack to ensure CO2 slack penalty has economic interpretation.
+- A constraint entry in a `constraints` block may now be an inline configuration object (carrying its settings) instead of only the boolean `true`/`false` toggle, enabling data-driven constraint parameterization.
+- Location entries in `locations.json` may now be objects carrying a `constraints` block (bare id strings still work), allowing location-specific constraints to be loaded from input data.
 - Reduced model-generation allocations in edge balance updates by inserting flow variables directly into vertex balance expressions instead of constructing temporary effective-flow expressions.
 
 ### Removed

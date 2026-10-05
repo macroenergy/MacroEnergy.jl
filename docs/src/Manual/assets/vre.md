@@ -149,6 +149,7 @@ The `VRE` asset is defined as follows:
 ```julia
 struct VRE <: AbstractAsset
     id::AssetId
+    tags::AssetTags
     energy_transform::Transformation
     edge::UnidirectionalEdge{<:Electricity}
 end

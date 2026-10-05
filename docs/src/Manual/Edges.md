@@ -406,6 +406,7 @@ First, we add an `Edge` to the `TransmissionLink` Asset struct. `TransmissionLin
 ```julia
 struct TransmissionLink{T} <: AbstractAsset
     id::AssetId
+    tags::AssetTags
     transmission_edge::BidirectionalEdge{<:T}
 end
 ```
@@ -456,7 +457,7 @@ function make(asset_type::Type{<:TransmissionLink}, data::AbstractDict{Symbol,An
         t_start_node,
         t_end_node,
     )
-    return TransmissionLink(id, transmission_edge)
+    return TransmissionLink(id, asset_tags(data), transmission_edge)
 end
 ```
 
@@ -547,7 +548,7 @@ transmission_edge = Edge(
     t_start_node,
     t_end_node,
 )
-return TransmissionLink(id, transmission_edge)
+return TransmissionLink(id, asset_tags(data), transmission_edge)
 ```
 
 The final step is to create the `BidirectionalEdge{Electricity}` using the `BidirectionalEdge` constructor. This requires:

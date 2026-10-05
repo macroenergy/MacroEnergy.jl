@@ -33,6 +33,7 @@ const pages = [
             "Adding Assets" => "Guides/User Guide/user_add_asset.md",
             "Adding Policy constraints" => "Guides/User Guide/user_policy_constraints.md",
             "Adding Assets constraints" => "Guides/User Guide/user_asset_constraints.md",
+            "Grouped Capacity Constraints" => "Guides/User Guide/user_grouped_capacity_constraints.md",
             "Configuring Settings" => "Guides/User Guide/user_settings.md",
             "Running Models" => "Guides/User Guide/user_run_model.md",
             "Solution Modes" => "Guides/User Guide/user_solution_modes.md",

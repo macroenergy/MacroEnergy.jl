@@ -1,5 +1,6 @@
 struct BECCSLiquidFuels <: AbstractAsset
     id::AssetId
+    tags::AssetTags
     beccs_transform::Transformation
     biomass_edge::Edge{<:Biomass}
     gasoline_edge::Edge{<:LiquidFuels}
@@ -410,5 +411,5 @@ function make(asset_type::Type{BECCSLiquidFuels}, data::AbstractDict{Symbol,Any}
         get(transform_data, :capture_rate, 1.0) * flow(biomass_edge) == flow(co2_captured_edge)
     )
 
-    return BECCSLiquidFuels(id, beccs_transform, biomass_edge, gasoline_edge, jetfuel_edge, diesel_edge, elec_production_edge, elec_consumption_edge, co2_edge, co2_emission_edge, co2_captured_edge) 
+    return BECCSLiquidFuels(id, asset_tags(data), beccs_transform, biomass_edge, gasoline_edge, jetfuel_edge, diesel_edge, elec_production_edge, elec_consumption_edge, co2_edge, co2_emission_edge, co2_captured_edge)
 end

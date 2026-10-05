@@ -69,6 +69,7 @@ The three `*_ratio` and three `*_emission_rate` fields are expressed per unit of
 ```julia
 struct ConstrainedFossilLiquidFuels <: AbstractAsset
     id::AssetId
+    tags::AssetTags
     refinery_transform::Transformation
     fossil_gasoline_edge::Edge{<:LiquidFuels}
     fossil_jetfuel_edge::Edge{<:LiquidFuels}

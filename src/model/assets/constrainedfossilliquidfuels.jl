@@ -1,5 +1,6 @@
 struct ConstrainedFossilLiquidFuels <: AbstractAsset
     id::AssetId
+    tags::AssetTags
     refinery_transform::Transformation
     fossil_gasoline_edge::Edge{<:LiquidFuels}
     fossil_jetfuel_edge::Edge{<:LiquidFuels}
@@ -316,6 +317,7 @@ function make(asset_type::Type{ConstrainedFossilLiquidFuels}, data::AbstractDict
 
     return ConstrainedFossilLiquidFuels(
         id,
+        asset_tags(data),
         refinery_transform,
         fossil_gasoline_edge,
         fossil_jetfuel_edge,

@@ -1,5 +1,6 @@
 struct ThermalPowerCCS{T} <: AbstractAsset
     id::AssetId
+    tags::AssetTags
     thermalpowerccs_transform::Transformation
     elec_edge::Union{Edge{<:Electricity},EdgeWithUC{<:Electricity}}
     fuel_edge::Edge{<:T}
@@ -8,7 +9,10 @@ struct ThermalPowerCCS{T} <: AbstractAsset
 end
 
 ThermalPowerCCS(id::AssetId, thermal_transform::Transformation, elec_edge::Union{Edge{<:Electricity},EdgeWithUC{<:Electricity}}, fuel_edge::Edge{T}, co2_edge::Edge{<:CO2},co2_captured_edge::Edge{<:CO2Captured}) where T<:Commodity =
-    ThermalPowerCCS{T}(id, thermal_transform, elec_edge, fuel_edge, co2_edge,co2_captured_edge)
+    ThermalPowerCCS{T}(id, nothing, thermal_transform, elec_edge, fuel_edge, co2_edge,co2_captured_edge)
+
+ThermalPowerCCS(id::AssetId, tags::AssetTags, thermal_transform::Transformation, elec_edge::Union{Edge{<:Electricity},EdgeWithUC{<:Electricity}}, fuel_edge::Edge{T}, co2_edge::Edge{<:CO2},co2_captured_edge::Edge{<:CO2Captured}) where T<:Commodity =
+    ThermalPowerCCS{T}(id, tags, thermal_transform, elec_edge, fuel_edge, co2_edge,co2_captured_edge)
 
 function default_data(t::Type{ThermalPowerCCS}, id=missing, style="full")
     if style == "full"
@@ -265,5 +269,5 @@ function make(asset_type::Type{ThermalPowerCCS}, data::AbstractDict{Symbol,Any},
         get(transform_data, :capture_rate, 0.0) * flow(fuel_edge) == flow(co2_captured_edge)
     )
 
-    return ThermalPowerCCS(id, thermalccs_transform, elec_edge, fuel_edge, co2_edge, co2_captured_edge)
+    return ThermalPowerCCS(id, asset_tags(data), thermalccs_transform, elec_edge, fuel_edge, co2_edge, co2_captured_edge)
 end

@@ -166,6 +166,7 @@ The Aluminum Refining asset is defined as follows:
 ```julia
 struct AluminumRefining <: AbstractAsset
     id::AssetId
+    tags::AssetTags
     aluminum_transform::Transformation
     elec_edge::UnidirectionalEdge{<:Electricity}
     aluminumscrap_edge::UnidirectionalEdge{<:AluminumScrap}

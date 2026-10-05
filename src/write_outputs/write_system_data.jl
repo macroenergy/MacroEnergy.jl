@@ -93,7 +93,9 @@ function prepare_to_json(asset::AbstractAsset)
 
     for f in Base.fieldnames(typeof(asset))
         data = getfield(asset, f)
-        if isa(data, AbstractEdge)
+        if f == :tags
+            isnothing(data) || (asset_data[:instance_data][:tags] = sort!(string.(collect(data))))
+        elseif isa(data, AbstractEdge)
             asset_data[:instance_data][:edges][f] = prepare_to_json(data)
             asset_data[:instance_data][:edges][f][:commodity] = typesymbol(commodity_type(data))
             if isa(data, EdgeWithUC)

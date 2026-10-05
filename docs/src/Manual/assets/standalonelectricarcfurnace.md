@@ -185,6 +185,7 @@ The ElectricArcFurnace asset is defined as follows:
 ```julia
 struct ElectricArcFurnace{T <: Commodity} <: AbstractAsset
     id::AssetId
+    tags::AssetTags
     eaf_transform::Transformation
     crudesteel_edge::UnidirectionalEdge{CrudeSteel}
     elec_edge::UnidirectionalEdge{Electricity}

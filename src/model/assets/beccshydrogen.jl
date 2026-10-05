@@ -1,5 +1,6 @@
 struct BECCSHydrogen <: AbstractAsset
     id::AssetId
+    tags::AssetTags
     beccs_transform::Transformation
     biomass_edge::Edge{<:Biomass}
     h2_edge::Edge{<:Hydrogen}
@@ -356,6 +357,7 @@ function make(asset_type::Type{BECCSHydrogen}, data::AbstractDict{Symbol,Any}, s
 
     return BECCSHydrogen(
         id,
+        asset_tags(data),
         beccs_transform,
         biomass_edge,
         h2_edge,

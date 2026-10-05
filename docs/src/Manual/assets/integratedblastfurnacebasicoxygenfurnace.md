@@ -202,6 +202,7 @@ The BlastFurnaceBasicOxygenFurnace asset is defined as follows:
 ```julia
 struct BlastFurnaceBasicOxygenFurnace <: AbstractAsset
     id::AssetId
+    tags::AssetTags
     bfbof_transform::Transformation
     ironore_edge::UnidirectionalEdge{<:IronOre}
     metcoal_edge::UnidirectionalEdge{<:Coal}
