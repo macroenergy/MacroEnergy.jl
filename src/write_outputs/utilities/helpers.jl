@@ -72,6 +72,18 @@ get_type(asset::Base.RefValue{<:AbstractAsset}) = get_type(asset[])
 # Get the type of a MacroObject
 get_type(obj::T) where {T<:Union{AbstractEdge,Node,AbstractStorage}} = string(typeof(obj))
 
+# Format asset tags for a single, spreadsheet-friendly output column. Tags are normalized when an
+# asset is constructed, so `|` is an unambiguous delimiter and ordering is stable.
+format_asset_tags(asset::AbstractAsset) = isnothing(asset.tags) ? "" : join(string.(asset.tags), "|")
+
+function add_asset_tags!(results::DataFrame, system::System)
+    hasproperty(system.settings, :OutputAssetTags) && !system.settings.OutputAssetTags && return results
+    hasproperty(results, :resource_id) || return results
+    tags_by_asset = Dict(id(asset) => format_asset_tags(asset) for asset in system.assets)
+    results[!, :tags] = [get(tags_by_asset, resource_id, "") for resource_id in results.resource_id]
+    return results
+end
+
 # Get the unit of a MacroObject
 get_unit(obj::AbstractEdge, f::Function) = unit(commodity_type(obj.timedata), f)    #TODO: check if this is correct
 get_unit(obj::T, f::Function) where {T<:Union{Node,AbstractStorage}} = unit(commodity_type(obj), f)

@@ -1,5 +1,6 @@
 struct MustRun <: AbstractAsset
     id::AssetId
+    tags::AssetTags
     energy_transform::Transformation
     elec_edge::Edge{<:Electricity}
 end
@@ -99,5 +100,5 @@ function make(asset_type::Type{MustRun}, data::AbstractDict{Symbol,Any}, system:
         elec_end_node,
     )
 
-    return asset_type(id, mustrun_transform, elec_edge)
+    return asset_type(id, asset_tags(data), mustrun_transform, elec_edge)
 end

@@ -1,5 +1,6 @@
 struct FuelCell <: AbstractAsset
     id::AssetId
+    tags::AssetTags
     fuelcell_transform::Transformation
     h2_edge::Edge{<:Hydrogen}
     elec_edge::Edge{<:Electricity}
@@ -165,5 +166,5 @@ function make(asset_type::Type{FuelCell}, data::AbstractDict{Symbol,Any}, system
         get(transform_data, :efficiency_rate, 1.0) * flow(h2_edge) == flow(elec_edge)
     )
 
-    return FuelCell(id, fuelcell, h2_edge, elec_edge)
+    return FuelCell(id, asset_tags(data), fuelcell, h2_edge, elec_edge)
 end

@@ -1,15 +1,34 @@
+"""
+    MinCapacityConstraintConfig(groups)
+
+Typed payload for a system-wide or location-level `MinCapacityConstraint`. `groups` contains
+[`GroupConfig`](@ref) entries whose `value` is a lower bound on the sum of total capacity over the
+selected assets.
+"""
+struct MinCapacityConstraintConfig <: AbstractGroupedConstraintConfig
+    groups::Vector{GroupConfig}
+end
+
 Base.@kwdef mutable struct MinCapacityConstraint <: PlanningConstraint
     value::Union{Missing,Vector{Float64}} = missing
     constraint_dual::Union{Missing,Vector{Float64},Dict{Symbol,Float64}} = missing
     constraint_ref::Union{Missing,JuMPConstraint,Dict{Symbol,Any}} = missing
-    # System-wide / per-location configuration: asset-type key => Dict(:edge => fieldname, :value => floor).
-    # Populated at load time from the `constraints` block in system_data.json / locations.json.
-    config::Union{Missing,Dict{Symbol,Any}} = missing
+    # System-wide / per-location payload, parsed from the `constraints` block at load time.
+    config::Union{Missing,MinCapacityConstraintConfig} = missing
 end
 
-# Store inline configuration parsed from a `constraints` block; see the generic
-# `configure_constraint!` fallback in constraints_utils.jl.
-configure_constraint!(ct::MinCapacityConstraint, cfg) = (ct.config = cfg; nothing)
+requires_constraint_config(::MinCapacityConstraint) = true
+required_constraint_config_type(::MinCapacityConstraint) = MinCapacityConstraintConfig
+constraint_config_is_missing(ct::MinCapacityConstraint) = ismissing(ct.config)
+
+function configure_constraint!(ct::MinCapacityConstraint, raw::AbstractDict)
+    ct.config = parse_grouped_constraint_config(
+        raw,
+        MinCapacityConstraintConfig,
+        "MinCapacityConstraint",
+    )
+    return nothing
+end
 
 @doc raw"""
     add_model_constraint!(ct::MinCapacityConstraint, y::Union{AbstractEdge,AbstractStorage}, model::Model)
@@ -29,16 +48,10 @@ function add_model_constraint!(ct::MinCapacityConstraint, y::Union{AbstractEdge,
     return nothing
 end
 
-# Parameter scaling hook (see scaling.jl): the floor `value`s are extensive (capacity) quantities, so
-# they are scaled by the same factor as capacity inputs (1/S on scale!, S on unscale!).
 function _scale_constraint_config!(ct::MinCapacityConstraint, factor::Float64, visited::Set{UInt64})
     (ismissing(ct.config) || objectid(ct) in visited) && return nothing
     push!(visited, objectid(ct))
-    for spec in values(ct.config)
-        if haskey(spec, :value) && spec[:value] isa Real
-            spec[:value] = spec[:value] * factor
-        end
-    end
+    ct.config = scale_grouped_constraint_config(ct.config, factor)
     return nothing
 end
 
@@ -56,7 +69,15 @@ of a named edge across all assets of that type to be at least `value`. Configura
 ```
 """
 function add_model_constraint!(ct::MinCapacityConstraint, system::System, model::Model)
-    build_grouped_capacity_constraints!(ct, system, model; var=capacity, sense=:geq, name="MinCapacityConstraint")
+    ismissing(ct.config) && error("MinCapacityConstraint has no configuration; it must be enabled with a config object in the `constraints` block")
+    ct.constraint_ref = build_grouped_capacity_constraints(
+        ct.config,
+        system,
+        model;
+        variable=capacity,
+        sense=:geq,
+        constraint_name="MinCapacityConstraint",
+    )
     return nothing
 end
 
@@ -68,6 +89,15 @@ edge is located in `location` contribute. Configuration is carried on `ct.config
 `constraints` block of this location in `locations.json`).
 """
 function add_model_constraint!(ct::MinCapacityConstraint, location::Location, model::Model)
-    build_grouped_capacity_constraints!(ct, location.system, model; var=capacity, sense=:geq, name="MinCapacityConstraint", loc=location.id)
+    ismissing(ct.config) && error("MinCapacityConstraint has no configuration; it must be enabled with a config object in the `constraints` block")
+    ct.constraint_ref = build_grouped_capacity_constraints(
+        ct.config,
+        location.system,
+        model;
+        variable=capacity,
+        sense=:geq,
+        constraint_name="MinCapacityConstraint",
+        location=location.id,
+    )
     return nothing
 end

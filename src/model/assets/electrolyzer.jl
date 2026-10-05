@@ -1,5 +1,6 @@
 struct Electrolyzer <: AbstractAsset
     id::AssetId
+    tags::AssetTags
     electrolyzer_transform::Transformation
     h2_edge::Edge{<:Hydrogen}
     elec_edge::Edge{<:Electricity}
@@ -166,5 +167,5 @@ function make(asset_type::Type{Electrolyzer}, data::AbstractDict{Symbol,Any}, sy
         get(transform_data, :efficiency_rate, 1.0) * flow(elec_edge) == flow(h2_edge)
     )
 
-    return Electrolyzer(id, electrolyzer, h2_edge, elec_edge)
+    return Electrolyzer(id, asset_tags(data), electrolyzer, h2_edge, elec_edge)
 end

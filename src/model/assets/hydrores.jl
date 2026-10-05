@@ -1,5 +1,6 @@
 struct HydroRes <: AbstractAsset
     id::AssetId
+    tags::AssetTags
     hydrostor::AbstractStorage{<:Electricity}
     discharge_edge::Edge{<:Electricity}
     inflow_edge::Edge{<:Electricity}
@@ -222,5 +223,5 @@ function make(asset_type::Type{HydroRes}, data::AbstractDict{Symbol,Any}, system
         flow(spill_edge),
     )
 
-    return HydroRes(id,hydrostor,discharge_edge,inflow_edge,spill_edge)
+    return HydroRes(id, asset_tags(data), hydrostor, discharge_edge, inflow_edge, spill_edge)
 end

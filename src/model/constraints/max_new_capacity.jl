@@ -1,15 +1,34 @@
+"""
+    MaxNewCapacityConstraintConfig(groups)
+
+Typed payload for a system-wide or location-level `MaxNewCapacityConstraint`. `groups` contains
+[`GroupConfig`](@ref) entries whose `value` is an upper bound on the sum of newly built capacity
+over the selected assets.
+"""
+struct MaxNewCapacityConstraintConfig <: AbstractGroupedConstraintConfig
+    groups::Vector{GroupConfig}
+end
+
 Base.@kwdef mutable struct MaxNewCapacityConstraint <: PlanningConstraint
     value::Union{Missing,Vector{Float64}} = missing
     constraint_dual::Union{Missing,Vector{Float64},Dict{Symbol,Float64}} = missing
     constraint_ref::Union{Missing,JuMPConstraint,Dict{Symbol,Any}} = missing
-    # System-wide / per-location configuration: asset-type key => Dict(:edge => fieldname, :value => cap).
-    # Populated at load time from the `constraints` block in system_data.json / locations.json.
-    config::Union{Missing,Dict{Symbol,Any}} = missing
+    # System-wide / per-location payload, parsed from the `constraints` block at load time.
+    config::Union{Missing,MaxNewCapacityConstraintConfig} = missing
 end
 
-# Store inline configuration parsed from a `constraints` block; see the generic
-# `configure_constraint!` fallback in constraints_utils.jl.
-configure_constraint!(ct::MaxNewCapacityConstraint, cfg) = (ct.config = cfg; nothing)
+requires_constraint_config(::MaxNewCapacityConstraint) = true
+required_constraint_config_type(::MaxNewCapacityConstraint) = MaxNewCapacityConstraintConfig
+constraint_config_is_missing(ct::MaxNewCapacityConstraint) = ismissing(ct.config)
+
+function configure_constraint!(ct::MaxNewCapacityConstraint, raw::AbstractDict)
+    ct.config = parse_grouped_constraint_config(
+        raw,
+        MaxNewCapacityConstraintConfig,
+        "MaxNewCapacityConstraint",
+    )
+    return nothing
+end
 
 @doc raw"""
     add_model_constraint!(ct::MaxNewCapacityConstraint, y::Union{AbstractEdge,AbstractStorage}, model::Model)
@@ -30,16 +49,10 @@ function add_model_constraint!(ct::MaxNewCapacityConstraint, y::Union{AbstractEd
 
 end
 
-# Parameter scaling hook (see scaling.jl): the cap `value`s are extensive (capacity) quantities, so
-# they are scaled by the same factor as capacity inputs (1/S on scale!, S on unscale!).
 function _scale_constraint_config!(ct::MaxNewCapacityConstraint, factor::Float64, visited::Set{UInt64})
     (ismissing(ct.config) || objectid(ct) in visited) && return nothing
     push!(visited, objectid(ct))
-    for spec in values(ct.config)
-        if haskey(spec, :value) && spec[:value] isa Real
-            spec[:value] = spec[:value] * factor
-        end
-    end
+    ct.config = scale_grouped_constraint_config(ct.config, factor)
     return nothing
 end
 
@@ -57,7 +70,15 @@ built capacity of a named edge across all assets of that type. Configuration is 
 ```
 """
 function add_model_constraint!(ct::MaxNewCapacityConstraint, system::System, model::Model)
-    build_grouped_capacity_constraints!(ct, system, model; var=new_capacity, sense=:leq, name="MaxNewCapacityConstraint")
+    ismissing(ct.config) && error("MaxNewCapacityConstraint has no configuration; it must be enabled with a config object in the `constraints` block")
+    ct.constraint_ref = build_grouped_capacity_constraints(
+        ct.config,
+        system,
+        model;
+        variable=new_capacity,
+        sense=:leq,
+        constraint_name="MaxNewCapacityConstraint",
+    )
     return nothing
 end
 
@@ -69,6 +90,15 @@ capped edge is located in `location` contribute. Configuration is carried on `ct
 the `constraints` block of this location in `locations.json`).
 """
 function add_model_constraint!(ct::MaxNewCapacityConstraint, location::Location, model::Model)
-    build_grouped_capacity_constraints!(ct, location.system, model; var=new_capacity, sense=:leq, name="MaxNewCapacityConstraint", loc=location.id)
+    ismissing(ct.config) && error("MaxNewCapacityConstraint has no configuration; it must be enabled with a config object in the `constraints` block")
+    ct.constraint_ref = build_grouped_capacity_constraints(
+        ct.config,
+        location.system,
+        model;
+        variable=new_capacity,
+        sense=:leq,
+        constraint_name="MaxNewCapacityConstraint",
+        location=location.id,
+    )
     return nothing
 end

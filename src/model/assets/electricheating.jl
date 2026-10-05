@@ -1,5 +1,6 @@
 struct ElectricHeating <: AbstractAsset
     id::AssetId
+    tags::AssetTags
     heating_transform::Transformation
     heat_edge::Edge{<:Heat}
     elec_edge::Edge{<:Electricity}
@@ -166,5 +167,5 @@ function make(asset_type::Type{ElectricHeating}, data::AbstractDict{Symbol,Any},
         flow(elec_edge) == get(transform_data, :elec_consumption, 1.0) * flow(heat_edge)
     )
 
-    return ElectricHeating(id, heating_transform, heat_edge, elec_edge)
+    return ElectricHeating(id, asset_tags(data), heating_transform, heat_edge, elec_edge)
 end

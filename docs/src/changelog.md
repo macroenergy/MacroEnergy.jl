@@ -20,8 +20,8 @@ and this project follows Julia package versioning through `Project.toml` release
 - Added optional StartYear input in case_settings.json to label periods by calendar year.
 - Added `capex.csv` output file to report per-component asset capital costs.
 - Added repository-local benchmarking tools to compare case loading, case generation, and model generation between `upstream/main` and the current worktree using reproducible example inputs.
-- Added system-wide and per-location capacity constraints for a group of assets selected by type: `MaxCapacityConstraint` and `MinCapacityConstraint` bound the total capacity, and `MaxNewCapacityConstraint` bounds the total newly built capacity. Limits are configured via a `constraints` block in `system_data.json` (whole system) or per location in `locations.json`, keyed by asset type (e.g. `"VRE"`, `"VRE{Solar}"`, `"ThermalPower{NaturalGas}"`, or the `"VRE*"` wildcard). The limit values are scaled with `ParameterScaling` like other capacity inputs.
-- Added `VRE` as a parametric, technology-tagged asset (`VRE{T}`, e.g. `VRE{:Solar}`), so sub-technologies can be defined from input data alone (via a `technology` field) without new Julia code; omitting the tag yields `VRE{:Generic}`.
+- Added system-wide and per-location capacity constraints for selected groups of assets: `MaxCapacityConstraint` and `MinCapacityConstraint` bound total capacity, and `MaxNewCapacityConstraint` bounds newly built capacity. Limits are configured via a `constraints` block in `system_data.json` (whole system) or per location in `locations.json`, using asset-type and tag selectors. The limit values are scaled with `ParameterScaling` like other capacity inputs.
+- For `VRE`, the optional `technology` input is normalized into an asset tag (for example, `technology: "Solar"` adds `:solar`) without changing the asset's Julia type.
 
 ### Changed
 

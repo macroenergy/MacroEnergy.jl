@@ -1,5 +1,6 @@
 struct Battery <: AbstractAsset
     id::AssetId
+    tags::AssetTags
     battery_storage::AbstractStorage{<:Electricity}
     discharge_edge::Edge{<:Electricity}
     charge_edge::Edge{<:Electricity}
@@ -244,5 +245,5 @@ function make(asset_type::Type{Battery}, data::AbstractDict{Symbol,Any}, system:
         charge_efficiency * flow(battery_charge),
     )
 
-    return Battery(id, battery_storage, battery_discharge, battery_charge)
+    return Battery(id, asset_tags(data), battery_storage, battery_discharge, battery_charge)
 end

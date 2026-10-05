@@ -1,5 +1,6 @@
 struct ElectricSteam <: AbstractAsset
     id::AssetId
+    tags::AssetTags
     steam_transform::Transformation
     steam_edge::Edge{<:Steam}
     elec_edge::Edge{<:Electricity}
@@ -166,5 +167,5 @@ function make(asset_type::Type{ElectricSteam}, data::AbstractDict{Symbol,Any}, s
         flow(elec_edge) == get(transform_data, :elec_consumption, 1.0) * flow(steam_edge)
     )
 
-    return ElectricSteam(id, steam_transform, steam_edge, elec_edge)
+    return ElectricSteam(id, asset_tags(data), steam_transform, steam_edge, elec_edge)
 end

@@ -1,5 +1,6 @@
 struct BECCSHydrogen <: AbstractAsset
     id::AssetId
+    tags::AssetTags
     beccs_transform::Transformation
     biomass_edge::Edge{<:Biomass}
     h2_edge::Edge{<:Hydrogen}
@@ -291,5 +292,5 @@ function make(asset_type::Type{BECCSHydrogen}, data::AbstractDict{Symbol,Any}, s
         get(transform_data, :capture_rate, 1.0) * flow(biomass_edge) == flow(co2_captured_edge)
     )
 
-    return BECCSHydrogen(id, beccs_transform, biomass_edge,h2_edge,elec_edge,co2_edge,co2_emission_edge,co2_captured_edge) 
+    return BECCSHydrogen(id, asset_tags(data), beccs_transform, biomass_edge,h2_edge,elec_edge,co2_edge,co2_emission_edge,co2_captured_edge)
 end

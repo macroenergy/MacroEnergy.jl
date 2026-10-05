@@ -49,6 +49,10 @@ function load_locations!(system::AbstractSystem, rel_or_abs_path::String, data::
             push!(locations, Location(; id=Symbol(entry), system=system))
         elseif isa(entry, AbstractDict)
             haskey(entry, :constraints) && check_and_convert_constraints!(entry)
+            haskey(entry, :constraints) && validate_required_constraint_configs!(
+                entry[:constraints],
+                "location `$(entry[:id])`",
+            )
             push!(locations, Location(;
                 id = Symbol(entry[:id]),
                 system = system,

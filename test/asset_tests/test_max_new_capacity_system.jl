@@ -13,6 +13,9 @@ import MacroEnergy:
     VRE,
     Location,
     MaxNewCapacityConstraint,
+    MaxNewCapacityConstraintConfig,
+    GroupConfig,
+    GroupSelector,
     make,
     new_capacity,
     get_type,
@@ -48,7 +51,9 @@ function build_system()
     return system
 end
 
-vre_cfg(value) = Dict{Symbol,Any}(:VRE => Dict{Symbol,Any}(:edge => "edge", :value => value))
+vre_cfg(value) = MaxNewCapacityConstraintConfig([
+    GroupConfig(:VRE, GroupSelector(:VRE), :edge, value),
+])
 nterms(cref) = length(JuMP.constraint_object(cref).func.terms)
 # An upper-bound constraint is stored with a LessThan set.
 is_leq(cref) = JuMP.constraint_object(cref).set isa MOI.LessThan
@@ -64,7 +69,7 @@ function test_max_new_capacity()
             build_test_model(system)
 
             @test ct.constraint_ref isa Dict{Symbol,Any}
-            # :VRE groups every VRE{...} in the system -> both assets contribute their new_capacity.
+            # :VRE groups both VRE assets in the system -> both contribute their new_capacity.
             @test nterms(ct.constraint_ref[:VRE]) == 2
             @test is_leq(ct.constraint_ref[:VRE])
         end
@@ -98,12 +103,12 @@ function test_max_new_capacity()
             S = 1000.0
             MacroEnergy.scale!(system, S)
             # Cap values are scaled by 1/S, like other capacity inputs.
-            @test ctsys.config[:VRE][:value] == 1.0
-            @test ctloc.config[:VRE][:value] == 0.3
+            @test only(ctsys.config.groups).value == 1.0
+            @test only(ctloc.config.groups).value == 0.3
 
             MacroEnergy.unscale!(system, S)
-            @test ctsys.config[:VRE][:value] == 1000.0
-            @test ctloc.config[:VRE][:value] == 300.0
+            @test only(ctsys.config.groups).value == 1000.0
+            @test only(ctloc.config.groups).value == 300.0
         end
     end
     return nothing

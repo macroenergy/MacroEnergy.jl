@@ -1,5 +1,6 @@
 struct SyntheticLiquidFuels <: AbstractAsset
     id::AssetId
+    tags::AssetTags
     synthetic_liquid_fuels_transform::Transformation
     co2_captured_edge::Edge{<:CO2Captured}
     gasoline_edge::Edge{<:LiquidFuels}
@@ -337,5 +338,5 @@ function make(asset_type::Type{SyntheticLiquidFuels}, data::AbstractDict{Symbol,
         get(transform_data, :emission_rate, 1.0) * flow(co2_captured_edge) == flow(co2_emission_edge)
     )
 
-    return SyntheticLiquidFuels(id, synthetic_liquid_fuels_transform, co2_captured_edge, gasoline_edge, jetfuel_edge, diesel_edge, elec_edge, h2_edge, co2_emission_edge)
+    return SyntheticLiquidFuels(id, asset_tags(data), synthetic_liquid_fuels_transform, co2_captured_edge, gasoline_edge, jetfuel_edge, diesel_edge, elec_edge, h2_edge, co2_emission_edge)
 end

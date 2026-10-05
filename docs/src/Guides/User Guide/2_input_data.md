@@ -84,6 +84,7 @@ The `settings` folder currently contains only one file, `macro_settings.yml`, wh
 | OverwriteResults | True, False | False | If true, the model will overwrite the results file if it already exists. |
 | OutputDir | String | "results" | The directory where the results will be saved. |
 | OutputLayout | "long", "wide" | "long" | Switch between "long" and "wide" layouts for CSV output files. |
+| OutputAssetTags | True, False | True | If true, `capacity.csv`, `capacity_summary.csv`, and `capex.csv` include a pipe-separated `tags` column for filtering assets. |
 | DualExportsEnabled | True, False | False | If true, the model will write duals for balance equations in the results folder |
 | EnableJuMPStringNames | True, False | False | If true, the model will attach a string name to each JuMP variables. Ignored when Benders decomposition is used. |
 | EnableJuMPDirectModel | True, False | False | If true, the model will be generate a JuMP direct model. Ignored when Benders decomposition is used. |
