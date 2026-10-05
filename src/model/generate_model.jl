@@ -260,6 +260,10 @@ function planning_model!(system::System, model::Model)
 
 end
 
+function planning_model!(g, model::Model)
+    return nothing
+end
+
 
 function operation_model!(system::System, model::Model)
 
@@ -273,6 +277,10 @@ function operation_model!(system::System, model::Model)
 
     add_constraints_by_type!(system, model, OperationConstraint)
     
+end
+
+function operation_model!(g, model::Model)
+    return nothing
 end
 
 function planning_model!(a::AbstractAsset, model::Model)
@@ -306,6 +314,10 @@ function add_linking_variables!(a::AbstractAsset, model::Model)
     end
 end
 
+function add_linking_variables!(a, model::Model)
+    nothing
+end
+
 function define_available_capacity!(system::System, model::Model)
 
     for location in system.locations
@@ -321,6 +333,10 @@ function define_available_capacity!(a::AbstractAsset, model::Model)
     for t in fieldnames(typeof(a))
         define_available_capacity!(getfield(a, t), model)
     end
+end
+
+function define_available_capacity!(a, model::Model)
+    return nothing
 end
 
 function add_age_based_retirements!(a::AbstractAsset,model::Model)
@@ -468,6 +484,9 @@ end
 function compute_annualized_costs!(n::Node,settings::NamedTuple)
     return nothing
 end
+function compute_annualized_costs!(n,settings::NamedTuple)
+    return nothing
+end
 
 function discount_fixed_costs!(system::System, settings::NamedTuple)
     for a in system.assets
@@ -516,6 +535,9 @@ end
 function discount_fixed_costs!(n::Node,settings::NamedTuple)
     return nothing
 end
+function discount_fixed_costs!(n,settings::NamedTuple)
+    return nothing
+end
 
 function undo_discount_fixed_costs!(system::System, settings::NamedTuple)
     for a in system.assets
@@ -555,6 +577,9 @@ end
 function undo_discount_fixed_costs!(n::Node,settings::NamedTuple)
     return nothing
 end
+function undo_discount_fixed_costs!(n,settings::NamedTuple)
+    return nothing
+end
 
 function add_costs_not_seen_by_myopic!(system::System, settings::NamedTuple)
     for a in system.assets
@@ -591,6 +616,10 @@ function add_costs_not_seen_by_myopic!(g::Transformation,settings::NamedTuple)
 end
 
 function add_costs_not_seen_by_myopic!(n::Node,settings::NamedTuple)
+    return nothing
+end
+
+function add_costs_not_seen_by_myopic!(n,settings::NamedTuple)
     return nothing
 end
 

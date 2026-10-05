@@ -63,6 +63,13 @@ struct UntaggedUserAsset <: MacroEnergy.AbstractAsset
     id::Symbol
 end
 
+# Asset whose optional edge is absent, as for BECCSHydrogen's `fuel_edge`.
+struct OptionalEdgeAsset <: MacroEnergy.AbstractAsset
+    id::Symbol
+    tags::MacroEnergy.AssetTags
+    edge::Union{Nothing,MacroEnergy.Edge}
+end
+
 function test_max_capacity()
     @testset "MaxCapacityConstraint" begin
         @testset "asset location resolution" begin
@@ -168,6 +175,18 @@ function test_max_capacity()
             @test MacroEnergy.tag_selector_matches(asset, GroupSelector(nothing, Symbol[], Symbol[], [:retired]))
             @test !MacroEnergy.tag_selector_matches(asset, GroupSelector(nothing, [:solar], Symbol[], Symbol[]))
             @test_throws MethodError UntaggedUserAsset()
+        end
+
+        @testset "absent optional edges are skipped" begin
+            system = build_system()
+            push!(system.assets, OptionalEdgeAsset(:no_fuel, [:optional], nothing))
+            config = MaxCapacityConstraintConfig([
+                GroupConfig(:optional, GroupSelector(nothing, [:optional], Symbol[], Symbol[]), :edge, 1.0),
+            ])
+            refs = @test_logs (:warn, r"optional edge field `edge` of asset no_fuel .* is absent") MacroEnergy.build_grouped_capacity_constraints(
+                config, system, JuMP.Model(); variable = capacity, sense = :leq, constraint_name = "MaxCapacityConstraint",
+            )
+            @test isempty(refs)
         end
 
         @testset "system-wide scope" begin

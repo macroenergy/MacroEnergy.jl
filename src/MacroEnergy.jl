@@ -8,7 +8,6 @@ using JSONTables
 using OrderedCollections
 using JuMP
 using HiGHS
-using Revise
 using InteractiveUtils
 using Printf: @printf
 using MacroEnergyScaling
@@ -213,6 +212,7 @@ include("model/assets/hydrores.jl")
 include("model/assets/mustrun.jl")
 include("model/assets/upstreamemissions.jl")
 include("model/assets/downstreamemissions.jl")
+include("model/assets/constrainedfossilliquidfuels.jl")
 include("model/assets/syntheticnaturalgas.jl")
 include("model/assets/syntheticliquidfuels.jl")
 include("model/assets/syntheticammonia.jl")
@@ -250,6 +250,7 @@ export AbstractAsset,
     AluminumRefining,
     AluminumSmelting,
     AluminaPlant,
+    assert_solved,
     Bauxite,
     BalanceConstraint,
     Battery,
@@ -287,6 +288,7 @@ export AbstractAsset,
     ElectricHeating,
     ElectricSteam,
     UpstreamEmissions,
+    ConstrainedFossilLiquidFuels,
     FuelCell,
     DownstreamEmissions,
     ThermalHeating,
@@ -308,6 +310,7 @@ export AbstractAsset,
     Heat,
     HydroRes,
     Hydrogen,
+    InfeasibleModel,
     IronOre,
     LongDurationStorage,
     LongDurationStorageImplicitMinMaxConstraint,
@@ -344,6 +347,7 @@ export AbstractAsset,
     RampingLimitConstraint,
     run_case,
     solve_case,
+    SolveFailed,
     Steam,
     SteelScrap,
     Storage,
@@ -363,6 +367,7 @@ export AbstractAsset,
     TransmissionLink,
     OneWayTransmissionLink,
     Transformation,
+    UnboundedModel,
     Uranium,
     VRE,
     write_capacity,

@@ -12,6 +12,8 @@ import MacroEnergy:
     Electricity,
     LongDurationStorage,
     Storage,
+    StorageChargeLimitConstraint,
+    StorageDischargeLimitConstraint,
     flow,
     loss_fraction,
     make,
@@ -86,6 +88,19 @@ function assert_battery_solution(asset, model)
     end
 end
 
+function test_battery_default_constraints()
+    battery_case = make_battery_case()
+
+    charge_constraints = typeof.(battery_case.asset.charge_edge.constraints)
+    discharge_constraints = typeof.(battery_case.asset.discharge_edge.constraints)
+
+    @test StorageChargeLimitConstraint in charge_constraints
+    @test StorageDischargeLimitConstraint in discharge_constraints
+    @test !(StorageChargeLimitConstraint in discharge_constraints)
+
+    return nothing
+end
+
 function test_asset_battery_balance()
     @testset "Battery Small Solve Case" begin
         battery_case = make_battery_case()
@@ -96,6 +111,10 @@ function test_asset_battery_balance()
 
     @testset "Integer storage profiles" begin
         test_integer_storage_profiles()
+    end
+
+    @testset "Default edge constraints" begin
+        test_battery_default_constraints()
     end
 
     return nothing

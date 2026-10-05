@@ -328,6 +328,10 @@ function build_grouped_capacity_constraints(
                 "$constraint_name: group `$name` selected asset $(id(asset)) (`$(get_type(asset))`) without edge field `$edge_field`",
             )
             edge = get_component_by_fieldname(asset, edge_field)
+            if isnothing(edge)
+                @warn "$constraint_name: optional edge field `$edge_field` of asset $(id(asset)) (`$(get_type(asset))`) is absent; skipping"
+                continue
+            end
             if !has_capacity(edge)
                 @warn "$constraint_name: edge field `$edge_field` of asset $(id(asset)) (`$(get_type(asset))`) has no capacity variable; skipping"
                 continue
@@ -401,6 +405,14 @@ function add_constraints_by_type!(
             add_model_constraint!(c, location, model)
         end
     end
+    return nothing
+end
+
+function add_constraints_by_type!(
+    other,
+    model::Model,
+    constraint_type::DataType
+)
     return nothing
 end
 

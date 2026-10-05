@@ -84,6 +84,12 @@ function get_available_capacity!(g::Transformation, AvailableCapacity::Dict{Tupl
 
 end
 
+function get_available_capacity!(::Nothing, AvailableCapacity::Dict{Tuple{Symbol,Int64}, Union{JuMPVariable,AffExpr}})
+
+    return nothing
+
+end
+
 function get_available_capacity!(g::AbstractStorage, AvailableCapacity::Dict{Tuple{Symbol,Int64}, Union{JuMPVariable,AffExpr}})
 
     AvailableCapacity[g.id,period_index(g)] = g.capacity;
@@ -131,6 +137,12 @@ function update_with_planning_solution!(n::Node, planning_variable_values::Dict)
 
 end
 function update_with_planning_solution!(g::Transformation, planning_variable_values::Dict)
+
+    return nothing
+
+end
+
+function update_with_planning_solution!(::Nothing, planning_variable_values::Dict)
 
     return nothing
 

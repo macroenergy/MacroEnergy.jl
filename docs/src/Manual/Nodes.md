@@ -307,7 +307,7 @@ In this example, we'll define two Electricity Nodes with non-served demand (NSD)
 
 1. Providing a vector of demand segments in the `max_nsd` field. Each segment is the fraction of this Nodes's demand that can be met by NSD each time step. A value of `[1.0]` indicated that the entire demand can be non-served.  
 2. Providing a vector of prices in the `price_nsd` field, of the same length as the `max_nsd` field. Each segment is the price per MWh of non-served demand for the corresponding segment. Here, we have defined a NSD price of \$5000/MWh.
-3. We have to add a `MaxNonServedDemandConstraint` constraint to the `constraints` field to enfore the NSD limit. If we wish to use multiple segments, we also need to add a `MaxNonServedDemandPerSegmentConstraint` constraint.
+3. We have to add a `MaxNonServedDemandConstraint` constraint to the `constraints` field to enforce the NSD limit. If we wish to use multiple segments, we also need to add a `MaxNonServedDemandPerSegmentConstraint` constraint.
 
 We want both Nodes to have the same NSD limits, so we can define these in the `global_data` field. To define different limits or prices, we could move the `max_nsd` and / or `price_nsd` fields to the `instance_data` field of each Node.
 

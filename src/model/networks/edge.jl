@@ -842,18 +842,31 @@ function update_startup_fuel_balance!(e::EdgeWithUC)
 
 end
 
-function add_flow_to_vertex_balances!(e::AbstractEdge, v::AbstractVertex, effective_flow::Union{AffExprArrayOrDense,VarArrayOrDense}, outgoing::Bool)
+"""
+    add_flow_to_vertex_balances!(e, v, add_effective_flow!, outgoing)
+
+Add an edge's effective flow to each matching balance on `v`. `add_effective_flow!`
+directly adds the effective flow's variable terms to a balance expression, avoiding
+both an indexed expression container and temporary scalar affine expressions.
+"""
+function add_flow_to_vertex_balances!(
+    e::AbstractEdge,
+    v::AbstractVertex,
+    add_effective_flow!::F,
+    outgoing::Bool,
+) where {F}
     if outgoing
         flow_dir = -1.0
     else
         flow_dir = 1.0
     end
+    ti = time_interval(e)
     for i in keys(v.balance_data)
         data = balance_data(v, i)
         if isempty(data.terms) && data.constant == 0.0
             balance_expr = (get_balance(v, i)::AffExprArrayOrDense)
-            for t in time_interval(e)
-                add_to_expression!(balance_expr[t], flow_dir, effective_flow[t])
+            for t in ti
+                add_effective_flow!(balance_expr[t], flow_dir, t)
             end
             continue
         end
@@ -880,13 +893,13 @@ function add_flow_to_vertex_balances!(e::AbstractEdge, v::AbstractVertex, effect
             if balance_coeff == 0.0
                 continue
             end
-            for t in time_interval(e)
-                add_to_expression!(balance_expr[t], balance_coeff, effective_flow[t])
+            for t in ti
+                add_effective_flow!(balance_expr[t], balance_coeff, t)
             end
             continue
         end
 
-        for (time_index, t) in enumerate(time_interval(e))
+        for (time_index, t) in enumerate(ti)
             balance_coeff = scalar_coeff
             for term in data.terms
                 if balance_term_matches(term, e, :flow) && !(term.coeff isa Float64)
@@ -897,7 +910,7 @@ function add_flow_to_vertex_balances!(e::AbstractEdge, v::AbstractVertex, effect
             if balance_coeff == 0.0
                 continue
             end
-            add_to_expression!(balance_expr[t], balance_coeff, effective_flow[t])
+            add_effective_flow!(balance_expr[t], balance_coeff, t)
         end
     end
 end
@@ -906,8 +919,7 @@ function update_balance_start!(e::AbstractEdge, model::Model)
     # This implicitly works for UnidirectionalEdge and EdgeWithUC
     # BidirectionalEdge is handled in a separate method
     v = start_vertex(e)
-    effective_flow = @expression(model, [t in time_interval(e)], container = array_container(time_interval(e)), flow(e, t))
-    add_flow_to_vertex_balances!(e, v, effective_flow, true)
+    add_flow_to_vertex_balances!(e, v, (expr, coeff, t) -> add_to_expression!(expr, coeff, flow(e, t)), true)
 end
 
 function update_balance_start!(e::BidirectionalEdge, model::Model)
@@ -919,17 +931,28 @@ function update_balance_start!(e::BidirectionalEdge, model::Model)
         if has_capacity(e) && any(isa.(e.constraints, CapacityConstraint))
             @constraint(model, [t in time_interval(e)], flow_pos[t] + flow_neg[t] <= availability(e, t) * capacity(e))
         end
-        effective_flow = @expression(model, [t in time_interval(e)], container = array_container(time_interval(e)), flow_pos[t] - (1 - loss_fraction(e,t)) * flow_neg[t])
+        add_flow_to_vertex_balances!(
+            e,
+            v,
+            (expr, coeff, t) -> begin
+                add_to_expression!(expr, coeff, flow_pos[t])
+                add_to_expression!(expr, -coeff * (1 - loss_fraction(e, t)), flow_neg[t])
+            end,
+            true,
+        )
     else
-        effective_flow = @expression(model, [t in time_interval(e)], container = array_container(time_interval(e)), flow(e, t))
+        add_flow_to_vertex_balances!(e, v, (expr, coeff, t) -> add_to_expression!(expr, coeff, flow(e, t)), true)
     end
-    add_flow_to_vertex_balances!(e, v, effective_flow, true)
 end
 
 function update_balance_end!(e::AbstractEdge, model::Model)
     v = end_vertex(e)
-    effective_flow = @expression(model, [t in time_interval(e)], container = array_container(time_interval(e)), (1-loss_fraction(e,t)) * flow(e, t))
-    add_flow_to_vertex_balances!(e, v, effective_flow, false)
+    add_flow_to_vertex_balances!(
+        e,
+        v,
+        (expr, coeff, t) -> add_to_expression!(expr, coeff * (1 - loss_fraction(e, t)), flow(e, t)),
+        false,
+    )
 end
 
 function update_balance_end!(e::BidirectionalEdge, model::Model)
@@ -941,9 +964,16 @@ function update_balance_end!(e::BidirectionalEdge, model::Model)
         if has_capacity(e) && any(isa.(e.constraints, CapacityConstraint))
             @constraint(model, [t in time_interval(e)], flow_pos[t] + flow_neg[t] <= availability(e, t) * capacity(e))
         end        
-        effective_flow = @expression(model, [t in time_interval(e)], container = array_container(time_interval(e)), (1 - loss_fraction(e,t)) * flow_pos[t] - flow_neg[t])
+        add_flow_to_vertex_balances!(
+            e,
+            v,
+            (expr, coeff, t) -> begin
+                add_to_expression!(expr, coeff * (1 - loss_fraction(e, t)), flow_pos[t])
+                add_to_expression!(expr, -coeff, flow_neg[t])
+            end,
+            false,
+        )
     else
-        effective_flow = @expression(model, [t in time_interval(e)], container = array_container(time_interval(e)), flow(e, t))
+        add_flow_to_vertex_balances!(e, v, (expr, coeff, t) -> add_to_expression!(expr, coeff, flow(e, t)), false)
     end
-    add_flow_to_vertex_balances!(e, v, effective_flow, false)
 end

@@ -22,7 +22,7 @@ Most edges are incorporated into Assets, representing the ability of those Asset
 
 #### Electricity Edges in a transmission line
 
-A simple transmission line Asset has a strong correspondance between the physical component and its representation in Macro. A transmission line Asset can be defined as a `BidirectionalEdge{Electricity}` between two Electricity Nodes (aka. two `Node{Electricty}`). The transmission of electricity is represented by the operational variables of the `BidirectionalEdge{Electricity}`, and those variables are limited by its investment variables. The costs which come with those operations and investments are associated with that edge.
+A simple transmission line Asset has a strong correspondence between the physical component and its representation in Macro. A transmission line Asset can be defined as a `BidirectionalEdge{Electricity}` between two Electricity Nodes (aka. two `Node{Electricty}`). The transmission of electricity is represented by the operational variables of the `BidirectionalEdge{Electricity}`, and those variables are limited by its investment variables. The costs which come with those operations and investments are associated with that edge.
 
 #### Electricity Edges in a natural gas power plant
 
@@ -32,7 +32,7 @@ It might be intuitive to think of the `Transformation` as the power plant and th
 
 ### Edges outside of Assets
 
-It is not currently possible to define `Edges` outside of Assets using the standard input files. We believe most users will be better served using a simple Asset to represent a connection. However, it is possible to define `Edges` directly in the Julia script you use to build and solve your model. Please feel free to reach out to the developemnt team via a GitHub issue if you have a use case for this.
+It is not currently possible to define `Edges` outside of Assets using the standard input files. We believe most users will be better served using a simple Asset to represent a connection. However, it is possible to define `Edges` directly in the Julia script you use to build and solve your model. Please feel free to reach out to the development team via a GitHub issue if you have a use case for this.
 
 ### Key Concepts
 
