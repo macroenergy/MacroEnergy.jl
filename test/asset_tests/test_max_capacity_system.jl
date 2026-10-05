@@ -58,6 +58,11 @@ vre_cfg(value) = MaxCapacityConstraintConfig([
 ])
 nterms(cref) = length(JuMP.constraint_object(cref).func.terms)
 
+# Out-of-tree asset defined without a `tags` field.
+struct UntaggedUserAsset <: MacroEnergy.AbstractAsset
+    id::Symbol
+end
+
 function test_max_capacity()
     @testset "MaxCapacityConstraint" begin
         @testset "asset location resolution" begin
@@ -131,6 +136,38 @@ function test_max_capacity()
             @test parsed.selector.all == selector.all
             @test parsed.selector.any == selector.any
             @test parsed.selector.exclude == selector.exclude
+        end
+
+        @testset "commodity-parametric asset types" begin
+            parse_key(key) = begin
+                data = Dict{Symbol,Any}(:constraints => Dict{Symbol,Any}(
+                    :MaxCapacityConstraint => Dict{Symbol,Any}(
+                        Symbol(key) => Dict{Symbol,Any}(:edge => "elec_edge", :value => 1.0),
+                    ),
+                ))
+                MacroEnergy.check_and_convert_constraints!(data)
+                return only(only(data[:constraints]).config.groups).selector
+            end
+            legacy = parse_key("ThermalPower{NaturalGas}")
+            @test legacy.asset_type == Symbol("ThermalPower{NaturalGas}")
+            @test isempty(legacy.all)
+            @test MacroEnergy.get_asset_type(legacy.asset_type) === MacroEnergy.ThermalPower{MacroEnergy.NaturalGas}
+            @test_throws ArgumentError parse_key("ThermalPower{Unobtainium}")
+            @test_throws ArgumentError MacroEnergy.get_asset_type(Symbol("Battery{Electricity}"))
+
+            explicit = MacroEnergy.parse_group_selector(
+                Dict{Symbol,Any}(:asset_type => "ThermalPower{NaturalGas}"), "MaxCapacityConstraint", :gas,
+            )
+            @test explicit.asset_type == Symbol("ThermalPower{NaturalGas}")
+        end
+
+        @testset "assets without a tags field" begin
+            asset = UntaggedUserAsset(:user_asset)
+            @test MacroEnergy.asset_tags(asset) === nothing
+            @test MacroEnergy.format_asset_tags(asset) == ""
+            @test MacroEnergy.tag_selector_matches(asset, GroupSelector(nothing, Symbol[], Symbol[], [:retired]))
+            @test !MacroEnergy.tag_selector_matches(asset, GroupSelector(nothing, [:solar], Symbol[], Symbol[]))
+            @test_throws MethodError UntaggedUserAsset()
         end
 
         @testset "system-wide scope" begin

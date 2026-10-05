@@ -129,8 +129,9 @@ do not contribute to that group's expression.
 ## Selecting assets
 
 `asset_type` uses the Julia asset type hierarchy, so `"VRE"` selects every VRE variant and
-`"ThermalPower"` selects every commodity variant of thermal power. Tags refine or replace that
-structural selection. All selectors use the following logic:
+`"ThermalPower"` selects every commodity variant of thermal power. A single commodity variant is
+selected with `"ThermalPower{NaturalGas}"`; this match is exact, so assets built on a subcommodity of
+`NaturalGas` are not included. Tags refine or replace that structural selection. All selectors use the following logic:
 
 ```text
 asset_type matches (when supplied)
@@ -156,7 +157,9 @@ snake-case symbols, and stored on the constructed asset. For example, `"Utility 
 `"utility-scale"` both become `:utility_scale`.
 
 The prototype key form `"VRE{Solar}"` remains valid as a compatibility input. It is parsed as
-`asset_type = "VRE"` with `all = ["solar"]`; it does not invoke parametric-type matching. VRE
+`asset_type = "VRE"` with `all = ["solar"]`; it does not invoke parametric-type matching. On a
+commodity-parametric asset type the braces name a commodity instead, so the key
+`"ThermalPower{NaturalGas}"` is parsed as `asset_type = "ThermalPower{NaturalGas}"`. VRE
 assets automatically receive their normalized `technology` value as a tag, so existing
 `"technology": "Solar"` input works with that compatibility form.
 

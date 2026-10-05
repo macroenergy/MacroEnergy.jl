@@ -45,10 +45,13 @@ function asset_tags(data::AbstractDict{Symbol,Any})::AssetTags
     return sort!(unique!(tags))
 end
 
-# All asset structs keep `id` and optional `tags` as their first two fields. This fallback preserves
+# Out-of-tree asset structs may predate the `tags` field; treat them as untagged.
+asset_tags(asset::AbstractAsset)::AssetTags = hasfield(typeof(asset), :tags) ? asset.tags : nothing
+
+# In-tree asset structs keep `id` and optional `tags` as their first two fields. This fallback preserves
 # existing positional constructors for callers that do not provide tags explicitly.
 function (::Type{T})(args::Vararg{Any,N}) where {T<:AbstractAsset,N}
-    N == fieldcount(T) - 1 || throw(MethodError(T, args))
+    (N >= 1 && N == fieldcount(T) - 1 && fieldname(T, 2) === :tags) || throw(MethodError(T, args))
     return T(args[1], nothing, args[2:end]...)
 end
 

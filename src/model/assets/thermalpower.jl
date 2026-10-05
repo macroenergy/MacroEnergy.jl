@@ -102,6 +102,7 @@ end
 """
     make(::Type{ThermalPower}, data::AbstractDict{Symbol, Any}, system::System) -> ThermalPower
 """
+
 function make(asset_type::Type{ThermalPower}, data::AbstractDict{Symbol,Any}, system::System)
     id = AssetId(data[:id])
     location = as_symbol_or_missing(get(data, :location, missing))

@@ -74,7 +74,10 @@ get_type(obj::T) where {T<:Union{AbstractEdge,Node,AbstractStorage}} = string(ty
 
 # Format asset tags for a single, spreadsheet-friendly output column. Tags are normalized when an
 # asset is constructed, so `|` is an unambiguous delimiter and ordering is stable.
-format_asset_tags(asset::AbstractAsset) = isnothing(asset.tags) ? "" : join(string.(asset.tags), "|")
+function format_asset_tags(asset::AbstractAsset)
+    tags = asset_tags(asset)
+    return isnothing(tags) ? "" : join(string.(tags), "|")
+end
 
 function add_asset_tags!(results::DataFrame, system::System)
     hasproperty(system.settings, :OutputAssetTags) && !system.settings.OutputAssetTags && return results

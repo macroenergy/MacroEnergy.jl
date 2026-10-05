@@ -180,7 +180,7 @@ function asset_type_matches(asset::AbstractAsset, asset_type)
 end
 
 function tag_selector_matches(asset::AbstractAsset, selector::GroupSelector)
-    tags = asset.tags
+    tags = asset_tags(asset)
     isnothing(tags) && return isempty(selector.all) && isempty(selector.any)
     return all(tag -> tag in tags, selector.all) &&
            (isempty(selector.any) || any(tag -> tag in tags, selector.any)) &&
@@ -188,6 +188,8 @@ function tag_selector_matches(asset::AbstractAsset, selector::GroupSelector)
 end
 
 function get_asset_type(name::Symbol)
+    matched = match(r"^([A-Za-z][A-Za-z0-9_]*)\{([A-Za-z][A-Za-z0-9_]*)\}$", String(name))
+    isnothing(matched) || return parametric_asset_type(Symbol(matched[1]), Symbol(matched[2]))
     isdefined(MacroEnergy, name) || throw(ArgumentError("Unknown asset type `$name`."))
     T = getfield(MacroEnergy, name)
     (isa(T, Type) || isa(T, UnionAll)) && T <: AbstractAsset || throw(ArgumentError(
@@ -195,6 +197,25 @@ function get_asset_type(name::Symbol)
     ))
     return T
 end
+
+# `T{C}` names one commodity variant of a parametric asset type, e.g. `ThermalPower{NaturalGas}`.
+# Type parameters are invariant, so `isa` matching excludes assets built on subcommodities of `C`.
+function parametric_asset_type(base::Symbol, commodity::Symbol)
+    T = get_asset_type(base)
+    T isa UnionAll || throw(ArgumentError("`$base` is not a parametric asset type."))
+    commodities = commodity_types()
+    haskey(commodities, commodity) || throw(ArgumentError(
+        "Unknown commodity `$commodity` in asset type `$base{$commodity}`.",
+    ))
+    try
+        return T{commodities[commodity]}
+    catch e
+        e isa TypeError || rethrow()
+        throw(ArgumentError("`$base` cannot be parametrized by commodity `$commodity`."))
+    end
+end
+
+is_parametric_asset_type(name::Symbol) = get_asset_type(name) isa UnionAll
 
 function parse_group_selector(raw::AbstractDict, constraint_name::String, group_name::Symbol)
     selector_keys = Set(Symbol(key) for key in keys(raw))
@@ -252,7 +273,11 @@ function parse_legacy_group_selector(raw_name, constraint_name::String)
     matched = match(r"^([A-Za-z][A-Za-z0-9_]*)\{([^{}]+)\}$", name)
     if !isnothing(matched)
         asset_type = Symbol(matched.captures[1])
-        get_asset_type(asset_type)
+        # On a parametric type the braces name a commodity (`ThermalPower{NaturalGas}`); otherwise a tag (`VRE{Solar}`).
+        if is_parametric_asset_type(asset_type)
+            get_asset_type(Symbol(name))
+            return GroupSelector(Symbol(name))
+        end
         return GroupSelector(asset_type, [normalize_tag(matched.captures[2], "legacy selector `$name`")], Symbol[], Symbol[])
     end
     asset_type = Symbol(name)
