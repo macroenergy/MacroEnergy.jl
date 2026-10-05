@@ -281,7 +281,10 @@ function make(asset_type::Type{ElectricArcFurnace}, data::AbstractDict{Symbol,An
         co2_start_node,
         co2_end_node,
     )
-    co2_edge.constraints = Vector{AbstractTypeConstraint}()
+    co2_edge.constraints = get(
+        co2_edge_data,
+        :constraints,
+        Vector{AbstractTypeConstraint}())
 
     @add_balance(
         eaf_transform,
