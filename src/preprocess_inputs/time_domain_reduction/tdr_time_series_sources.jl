@@ -115,7 +115,7 @@ function tdr_collect_csv_reference!(
 )
     haskey(descriptor, "path") && haskey(descriptor, "header") ||
         throw(ArgumentError("Timeseries descriptor in $json_file must contain `path` and `header`."))
-    csv_path = abspath(rel_or_abs_path(String(descriptor["path"]), case_root))
+    csv_path = abspath(joinpath(case_root, String(descriptor["path"])))
     header = Symbol(descriptor["header"])
     source_key = "csv:" * csv_path * ":" * String(header)
 

@@ -65,7 +65,7 @@ function tdr_collect_json_files!(files::Set{String}, case_root::String, path::St
     data = mutable_json_data(read_json(canonical_path))
 
     function follow_json_path(reference_path::String)
-        target = rel_or_abs_path(reference_path, case_root)
+        target = abspath(joinpath(case_root, reference_path))
         if isdir(target)
             # Use the same one-level directory interpretation as normal
             # MacroEnergy input loading.
@@ -94,8 +94,7 @@ function tdr_input_json_files(case_root::String)
 end
 
 function tdr_path_within_case(case_root::String, path::String)
-    relative = relpath(path, case_root)
-    return relative != ".." && !startswith(relative, "../") && !startswith(relative, "..\\")
+    return is_within(path, case_root)
 end
 
 """
@@ -159,7 +158,7 @@ function tdr_collect_manifest_references!(manifest::Dict{String,TDRTrackedInput}
     visited_json::Set{String}; recursive_directories::Bool=true,
     destination_root::String=case_root, system_index::Union{Nothing,Int}=nothing)
     function collect_manifest_path(reference_path::String)
-        target = abspath(rel_or_abs_path(reference_path, case_root))
+        target = abspath(joinpath(case_root, reference_path))
         if ispath(target)
             tdr_collect_manifest_paths!(manifest, case_root, target, visited_json;
                 recursive_directories, destination_root, system_index)
@@ -176,7 +175,7 @@ function tdr_collect_manifest_timeseries!(manifest::Dict{String,TDRTrackedInput}
     destination_root::String=case_root, system_index::Union{Nothing,Int}=nothing)
     haskey(descriptor, "header") && descriptor["header"] isa AbstractString ||
         throw(ArgumentError("Timeseries descriptors must contain a string `header`."))
-    target = abspath(rel_or_abs_path(String(descriptor["path"]), case_root))
+    target = abspath(joinpath(case_root, String(descriptor["path"])))
     tdr_manifest_path!(manifest, case_root, target; destination_root, system_index,
         columns=Set([Symbol(descriptor["header"])]))
     return nothing
@@ -281,7 +280,7 @@ function tdr_system_json_files(case_root::String, system_index::Int)
     1 <= system_index <= length(systems) || throw(ArgumentError("System $system_index is outside the case's $(length(systems)) Systems."))
     files = Set{String}()
     function collect_json_path(reference_path::String)
-        target = abspath(rel_or_abs_path(reference_path, case_root))
+        target = abspath(joinpath(case_root, reference_path))
         if ispath(target)
             tdr_path_within_case(case_root, target) || throw(ArgumentError("TDR does not support input paths outside the case directory: $target"))
             if isdir(target)
@@ -306,7 +305,7 @@ function tdr_system_time_data_path(case_root::String, system_index::Int)
         haskey(system["time_data"], "path") || throw(ArgumentError(
             "System $system_index must define `time_data.path` in system_data.json.",
         ))
-    path = abspath(rel_or_abs_path(String(system["time_data"]["path"]), case_root))
+    path = abspath(joinpath(case_root, String(system["time_data"]["path"])))
     tdr_path_within_case(case_root, path) || throw(ArgumentError("TDR does not support time_data outside the case directory: $path"))
     return path
 end
@@ -332,9 +331,9 @@ to `source_root` and write replacement paths relative to `destination_root`.
 function tdr_rewrite_input_paths!(data, source_root::String, destination_root::String, replacements::Dict{String,TDRTrackedInput})
     if data isa AbstractDict
         if haskey(data, "path") && data["path"] isa AbstractString
-            source_path = abspath(rel_or_abs_path(String(data["path"]), source_root))
+            source_path = abspath(joinpath(source_root, String(data["path"])))
             if haskey(replacements, source_path)
-                data["path"] = replace(relpath(replacements[source_path].destination_path, destination_root), '\\' => '/')
+                data["path"] = tdr_normalize_path(relpath(replacements[source_path].destination_path, destination_root))
             end
         end
         foreach(value -> tdr_rewrite_input_paths!(value, source_root, destination_root, replacements), values(data))

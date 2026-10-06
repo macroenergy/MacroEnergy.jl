@@ -1,3 +1,9 @@
+"""Normalize a portable TDR path, removing `.`/`..` and using `/` separators."""
+function tdr_normalize_path(path::AbstractString)
+    portable = replace(String(path), '\\' => '/')
+    return replace(normpath(portable), '\\' => '/')
+end
+
 struct TDRFeatureSpec
     id::Union{Nothing,String}
     file::Union{Nothing,String}
@@ -15,7 +21,7 @@ struct TDRFeatureSpec
             throw(ArgumentError("TDR feature `weight` must be a finite positive number."))
         new(
             isnothing(id) ? nothing : String(id),
-            isnothing(file) ? nothing : String(file),
+            isnothing(file) ? nothing : tdr_normalize_path(file),
             isnothing(asset) ? nothing : String(asset),
             isnothing(commodity) ? nothing : String(commodity),
             String(field),

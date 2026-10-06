@@ -75,7 +75,7 @@ function tdr_write_single_system_case_settings!(
         haskey(root["settings"], "path") || throw(ArgumentError(
             "Multi-System output-based TDR requires `settings.path` in system_data.json.",
         ))
-    source_path = abspath(rel_or_abs_path(String(root["settings"]["path"]), source_case_root))
+    source_path = abspath(joinpath(source_case_root, String(root["settings"]["path"])))
     isfile(source_path) || throw(ArgumentError("Case settings file does not exist: $source_path"))
     settings = mutable_json_data(read_json(source_path))
     lengths = get(settings, "PeriodLengths", nothing)

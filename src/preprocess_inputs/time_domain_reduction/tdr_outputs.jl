@@ -39,7 +39,7 @@ function tdr_existing_period_map(time_data::Dict{String,Any}, case_root::String)
     map_data = time_data["SubPeriodMap"]
     map_data isa AbstractDict && haskey(map_data, "path") ||
         throw(ArgumentError("TDR requires SubPeriodMap to contain a CSV `path`."))
-    map_path = rel_or_abs_path(String(map_data["path"]), case_root)
+    map_path = abspath(joinpath(case_root, String(map_data["path"])))
     isfile(map_path) || throw(ArgumentError("Sub-period map file does not exist: $map_path"))
     period_map = read_csv(map_path)
     names(period_map) == ["Period_Index", "Rep_Period", "Rep_Period_Index"] ||
@@ -89,7 +89,7 @@ function tdr_write_time_data!(time_data_path::String, case_root::String, source_
     data = deepcopy(source_time_data)
     data["NumberOfSubperiods"] = settings.representative_periods
     map_path = joinpath(dirname(time_data_path), "period_map.csv")
-    data["SubPeriodMap"] = Dict("path" => replace(relpath(map_path, case_root), '\\' => '/'))
+    data["SubPeriodMap"] = Dict("path" => tdr_normalize_path(relpath(map_path, case_root)))
     write_json(time_data_path, data)
     existing_map = tdr_existing_period_map(source_time_data, case_root)
     map = tdr_compose_period_map(existing_map, representative_periods, period_map)

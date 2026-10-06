@@ -62,9 +62,17 @@ function copy_case(
     copy_result_files::Bool=false,
     settings_path::Union{Nothing,String}=nothing,
 )
-    if is_within(output_root, source_root)
+    source_location = tdr_case_location(source_root)
+    output_location = tdr_case_location(output_root)
+    if is_within(output_location, source_location)
         throw(ArgumentError(
             "Output case directory must not be inside the source case directory. " *
+            "Choose a sibling or another external directory: $output_root",
+        ))
+    end
+    if is_within(source_location, output_location)
+        throw(ArgumentError(
+            "Output case directory must not contain the source case directory. " *
             "Choose a sibling or another external directory: $output_root",
         ))
     end
@@ -89,11 +97,17 @@ function copy_case(
     return nothing
 end
 
+"""Resolve existing symlinks, including parents of a not-yet-created case."""
+function tdr_case_location(path::String)
+    absolute_path = abspath(path)
+    ispath(absolute_path) && return realpath(absolute_path)
+    parent = dirname(absolute_path)
+    parent == absolute_path && return absolute_path
+    return joinpath(tdr_case_location(parent), basename(absolute_path))
+end
+
 function is_within(path::String, parent::String)
     relative_path = relpath(path, parent)
-    return relative_path == "." || !(
-        relative_path == ".." ||
-        startswith(relative_path, "../") ||
-        startswith(relative_path, "..\\")
-    )
+    # Windows returns an absolute path when the paths are on different drives.
+    return !isabspath(relative_path) && first(splitpath(relative_path)) != ".."
 end

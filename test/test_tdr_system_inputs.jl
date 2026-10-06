@@ -4,7 +4,8 @@ using CSV, DataFrames, MacroEnergy, Test
     mktempdir() do root
         source = joinpath(root, "source")
         output = joinpath(root, "output")
-        mkpath.(joinpath.(source, ("data", "custom/one", "custom/two", "custom/one/unused", "settings")))
+        mkpath.(joinpath.(source, ("data", joinpath("custom", "one"),
+            joinpath("custom", "two"), joinpath("custom", "one", "unused"), "settings")))
         time_data = Dict(
             "HoursPerTimeStep" => Dict("Electricity" => 1),
             "HoursPerSubperiod" => Dict("Electricity" => 2),
@@ -22,8 +23,8 @@ using CSV, DataFrames, MacroEnergy, Test
                 "input" => Dict("path" => "shared.json")))
         end
         # A directory reference loads immediate files, not an unrelated subdirectory.
-        MacroEnergy.write_json(joinpath(source, "custom/one/unused/other.json"), Dict())
-        MacroEnergy.write_json(joinpath(source, "settings/case_settings.json"), Dict("PeriodLengths" => [1, 1]))
+        MacroEnergy.write_json(joinpath(source, "custom", "one", "unused", "other.json"), Dict())
+        MacroEnergy.write_json(joinpath(source, "settings", "case_settings.json"), Dict("PeriodLengths" => [1, 1]))
         systems = [Dict(
             "time_data" => Dict("path" => "time_data.json"),
             "assets" => Dict("path" => "custom/$name"),
@@ -31,7 +32,8 @@ using CSV, DataFrames, MacroEnergy, Test
         MacroEnergy.write_json(joinpath(source, "system_data.json"), Dict(
             "case" => systems, "settings" => Dict("path" => "settings/case_settings.json")))
         manifest = Set(relpath(path, source) for path in keys(MacroEnergy.tdr_system_input_manifest(source, systems[1])))
-        @test manifest == Set(("time_data.json", "custom/one", "custom/one/asset.json", "shared.json", "data/demand.csv"))
+        @test manifest == Set(("time_data.json", joinpath("custom", "one"),
+            joinpath("custom", "one", "asset.json"), "shared.json", joinpath("data", "demand.csv")))
 
         settings_path = joinpath(root, "tdr.json")
         MacroEnergy.write_json(settings_path, Dict(
@@ -42,7 +44,7 @@ using CSV, DataFrames, MacroEnergy, Test
         @test preprocess_inputs(source, output; tdr_settings_path=settings_path) === nothing
         generated = MacroEnergy.read_json(joinpath(output, "system_data.json"))
         @test generated["settings"]["path"] == "settings/case_settings.json"
-        @test isfile(joinpath(output, "settings/case_settings.json"))
+        @test isfile(joinpath(output, "settings", "case_settings.json"))
         for (index, name) in enumerate(("one", "two"))
             private = joinpath(output, "inputs", "system_$index")
             @test generated["case"][index]["assets"]["path"] == "inputs/system_$index/custom/$name"
@@ -55,21 +57,21 @@ using CSV, DataFrames, MacroEnergy, Test
             shared = MacroEnergy.read_json(joinpath(private, "shared.json"))
             @test shared["demand"]["timeseries"]["path"] == "inputs/system_$index/data/demand.csv"
             @test length(shared["availability"]) == 2 * index
-            @test nrow(CSV.read(joinpath(private, "data/demand.csv"), DataFrame)) == 2 * index
+            @test nrow(CSV.read(joinpath(private, "data", "demand.csv"), DataFrame)) == 2 * index
         end
-        @test nrow(CSV.read(joinpath(source, "data/demand.csv"), DataFrame)) == 4
+        @test nrow(CSV.read(joinpath(source, "data", "demand.csv"), DataFrame)) == 4
         @test MacroEnergy.read_json(joinpath(source, "shared.json"))["availability"] == [0.1, 0.1, 0.9, 0.9]
-        @test !isfile(joinpath(output, "data/demand.csv"))
+        @test !isfile(joinpath(output, "data", "demand.csv"))
         # Preparation can be repeated without nesting inputs/system_N again.
         @test MacroEnergy.tdr_prepare_system_inputs!(output) == 2
         @test MacroEnergy.read_json(joinpath(output, "system_data.json")) == generated
-        @test !isdir(joinpath(output, "inputs/system_1/inputs"))
+        @test !isdir(joinpath(output, "inputs", "system_1", "inputs"))
     end
 
     @testset "distinct groups of identical reduced CSVs" begin
         mktempdir() do root
             mkpath(joinpath(root, "data"))
-            CSV.write(joinpath(root, "data/demand.csv"), DataFrame(demand=[1, 1, 9, 9]))
+            CSV.write(joinpath(root, "data", "demand.csv"), DataFrame(demand=[1, 1, 9, 9]))
             MacroEnergy.write_json(joinpath(root, "time_data.json"), Dict(
                 "HoursPerTimeStep" => Dict("Electricity" => 1),
                 "HoursPerSubperiod" => Dict("Electricity" => 2),

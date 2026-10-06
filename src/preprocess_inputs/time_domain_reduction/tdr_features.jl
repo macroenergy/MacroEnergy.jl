@@ -76,7 +76,7 @@ function tdr_merge_features(user_features::Vector{TDRFeatureSpec})
 end
 
 function tdr_relative_path(case_root::String, path::String)
-    return replace(relpath(path, case_root), '\\' => '/')
+    return tdr_normalize_path(relpath(path, case_root))
 end
 
 function tdr_feature_for_reference(
