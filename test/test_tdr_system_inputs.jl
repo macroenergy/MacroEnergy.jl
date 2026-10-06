@@ -30,7 +30,7 @@ using CSV, DataFrames, MacroEnergy, Test
         ) for name in ("one", "two")]
         MacroEnergy.write_json(joinpath(source, "system_data.json"), Dict(
             "case" => systems, "settings" => Dict("path" => "settings/case_settings.json")))
-        manifest = Set(relpath(path, source) for path in MacroEnergy.tdr_system_input_manifest(source, systems[1]))
+        manifest = Set(relpath(path, source) for path in keys(MacroEnergy.tdr_system_input_manifest(source, systems[1])))
         @test manifest == Set(("time_data.json", "custom/one", "custom/one/asset.json", "shared.json", "data/demand.csv"))
 
         settings_path = joinpath(root, "tdr.json")

@@ -120,7 +120,7 @@ end
                 joinpath(case_root, "inputs", "nested.json"),
             ]))
 
-            manifest = Set(MacroEnergy.tdr_case_input_manifest(case_root))
+            manifest = Set(keys(MacroEnergy.tdr_case_input_manifest(case_root)))
             @test joinpath(case_root, "data", "availability.csv") in manifest
             @test joinpath(case_root, "notes.md") in manifest
             @test all(ispath, manifest)

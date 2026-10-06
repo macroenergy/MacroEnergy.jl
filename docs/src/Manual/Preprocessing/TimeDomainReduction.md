@@ -437,7 +437,9 @@ multi-System case, preparation builds a separate dependency manifest from each
 System entry in `system_data.json`. It follows nested JSON and time-series
 references, and includes the immediate files in referenced input directories.
 Only that System's dependencies are copied into `inputs/system_<n>/`, preserving
-their complete source-relative paths. For example:
+their complete source-relative paths. Internally, a manifest is a dictionary
+keyed by source path, with one `TDRTrackedInput` entry per dependency. Each entry
+keeps its source path, destination path, and required columns together. For example:
 
 ```text
 Source input                  System 1 copy
@@ -455,7 +457,17 @@ to the case root. This gives each System its own inputs to shorten when it
 selects different representative periods. Shared dependencies receive a private
 copy for every System that references them, regardless of directory name.
 Case-level settings and supporting scripts remain available in the general case
-copy. CSVs are copied with all their columns.
+copy.
+
+For a CSV referenced exclusively through `timeseries` descriptors, each private
+copy retains the union of headers requested by that System, in source-column
+order, along with recognized time/index columns (`time_index`, `time`, `index`,
+`hour`, and `datetime`, ignoring case). This includes referenced series excluded
+from clustering, since the generated model still needs them. A CSV referenced
+as an ordinary input file or included in an ordinary input-directory reference
+is copied intact. That complete-file requirement takes precedence if the same
+file is also used through time-series descriptors. Column selection occurs
+during private copying, before representative-period rows are selected.
 
 ### Construct candidate periods and clustering profiles
 
@@ -580,6 +592,7 @@ MacroEnergy.TimeSeriesSource
 MacroEnergy.tdr_visit_input_paths!
 MacroEnergy.tdr_case_input_manifest
 MacroEnergy.tdr_system_input_manifest
+MacroEnergy.TDRTrackedInput
 MacroEnergy.tdr_system_input_path
 MacroEnergy.tdr_reduce_system!
 MacroEnergy.tdr_consolidate_shared_time_series!
