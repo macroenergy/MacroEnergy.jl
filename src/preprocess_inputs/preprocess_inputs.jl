@@ -9,7 +9,8 @@ include("time_domain_reduction/time_domain_reduction.jl")
 Copy a source case, then apply configured preprocessing steps to the copy. The
 resulting directory loads and runs through MacroEnergy's ordinary APIs.
 `output_feature_run_kwargs` configures the temporary in-memory solve used only
-when TDR output-based features are enabled.
+when TDR output-based features are enabled. Their caches and retained subperiod
+artifacts are saved under `source_case_path/TDR/`; source model inputs are unchanged.
 Set `copy_result_files=true` to retain top-level directories whose names begin
 with `results` when copying the source case.
 """
@@ -30,8 +31,6 @@ function preprocess_inputs(
 
     @info "*** Preprocessing inputs ***"
 
-    preserve_output_features = any(settings -> !isnothing(settings.output_features) &&
-        settings.output_features.reuse_saved_features, settings_by_system)
     @info "Copying inputs from `$source_root` to `$output_root`."
     copy_case(
         source_root,
@@ -39,7 +38,6 @@ function preprocess_inputs(
         overwrite,
         copy_result_files,
         settings_path=abspath(tdr_settings_path),
-        preserve_tdr_output_features=preserve_output_features,
     )
     @info "Applying time-domain reduction."
 
@@ -63,7 +61,6 @@ function copy_case(
     overwrite::Bool=false,
     copy_result_files::Bool=false,
     settings_path::Union{Nothing,String}=nothing,
-    preserve_tdr_output_features::Bool=false,
 )
     if is_within(output_root, source_root)
         throw(ArgumentError(
@@ -80,60 +77,16 @@ function copy_case(
             "output and would be copied into the new case. Remove or move it before preprocessing.",
         ))
     end
-    
-    return mktempdir() do temporary_root
-        saved_output_features = joinpath(temporary_root, "output_features")
-        saved_system_output_features = joinpath(temporary_root, "system_output_features")
-        has_saved_output_features = preserve_tdr_output_features &&
-            tdr_saved_output_features_exist(output_root)
-        if has_saved_output_features
-            @info " ++ Preserving saved output-based TDR features while replacing the output case."
-            cp(tdr_output_features_directory(output_root), saved_output_features; force=false)
-        end
-        if preserve_tdr_output_features
-            source_systems = joinpath(output_root, "TDR", "systems")
-            if isdir(source_systems)
-                for name in readdir(source_systems)
-                    source = joinpath(source_systems, name, "output_features")
-                    isdir(source) || continue
-                    destination = joinpath(saved_system_output_features, name)
-                    mkpath(dirname(destination))
-                    cp(source, destination; force=false)
-                end
-            end
-        end
 
-        if ispath(output_root)
-            if !overwrite
-                throw(ArgumentError("Output case directory already exists: $output_root. Pass overwrite=true to replace it."))
-            end
-            rm(output_root; recursive=true, force=true)
+    if ispath(output_root)
+        if !overwrite
+            throw(ArgumentError("Output case directory already exists: $output_root. Pass overwrite=true to replace it."))
         end
-
-        mkpath(output_root)
-        tdr_copy_input_manifest!(
-            source_root,
-            output_root;
-            copy_result_files,
-            settings_path,
-        )
-
-        if has_saved_output_features
-            destination = tdr_output_features_directory(output_root)
-            ispath(destination) && rm(destination; recursive=true, force=true)
-            mkpath(dirname(destination))
-            cp(saved_output_features, destination; force=false)
-        end
-        if isdir(saved_system_output_features)
-            for name in readdir(saved_system_output_features)
-                source = joinpath(saved_system_output_features, name)
-                destination = joinpath(output_root, "TDR", "systems", name, "output_features")
-                mkpath(dirname(destination))
-                cp(source, destination; force=false)
-            end
-        end
-        return nothing
+        rm(output_root; recursive=true, force=true)
     end
+    mkpath(output_root)
+    tdr_copy_input_manifest!(source_root, output_root; copy_result_files, settings_path)
+    return nothing
 end
 
 function is_within(path::String, parent::String)

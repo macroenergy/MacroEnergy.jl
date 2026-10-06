@@ -6,7 +6,8 @@ that should be explicit, reproducible, and independent of `run_case`.
 
 Each preprocessing workflow copies the source case, applies its transformations
 to that copy, and writes a `preprocess_log.json` describing what changed. The
-source case is not modified.
+source model inputs are not modified. Saved output-feature caches and retained
+subperiod artifacts are written under the source case’s `TDR/` directory.
 
 The currently available workflow is:
 

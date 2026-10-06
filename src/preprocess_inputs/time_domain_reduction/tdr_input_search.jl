@@ -204,8 +204,9 @@ function tdr_case_input_manifest(case_root::String; destination_root::String=cas
     isfile(root_file) || throw(ArgumentError("Case has no system_data.json at $(abspath(root_file))"))
     manifest = Dict{String,TDRTrackedInput}()
     tdr_collect_manifest_paths!(manifest, case_root, root_file; destination_root)
-    for (directory, _, files) in walkdir(case_root)
-        startswith(basename(directory), "results") && continue
+    for (directory, subdirectories, files) in walkdir(case_root)
+        filter!(name -> !startswith(name, "results") &&
+            !(directory == case_root && name == "TDR"), subdirectories)
         for file in files
             (endswith(file, ".jl") || endswith(file, ".md")) || continue
             tdr_manifest_path!(manifest, case_root, joinpath(directory, file); destination_root)
@@ -221,6 +222,7 @@ end
 function tdr_copy_input_manifest!(source_root::String, output_root::String; copy_result_files::Bool=false, settings_path::Union{Nothing,String}=nothing)
     if !isfile(joinpath(source_root, "system_data.json"))
         for source_path in readdir(source_root; join=true)
+            basename(source_path) == "TDR" && continue
             is_result_directory = isdir(source_path) && startswith(basename(source_path), "results")
             is_result_directory && !copy_result_files && continue
             cp(source_path, joinpath(output_root, basename(source_path)); force=true)

@@ -1,6 +1,6 @@
 function tdr_output_features_directory(case_root::String; system_index::Union{Nothing,Int}=nothing)
     isnothing(system_index) && return joinpath(case_root, "TDR", "output_features")
-    return joinpath(case_root, "TDR", "systems", "system_$system_index", "output_features")
+    return joinpath(case_root, "TDR", "output_features", "system_$system_index")
 end
 
 tdr_output_features_path(case_root::String; system_index::Union{Nothing,Int}=nothing) =

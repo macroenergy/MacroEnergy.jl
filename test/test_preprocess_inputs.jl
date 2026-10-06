@@ -144,31 +144,15 @@ end
         @test isdir(joinpath(copied_results_case, "results_001"))
         @test isdir(joinpath(copied_results_case, "results_example"))
 
-        output_features_directory = joinpath(output_case, "TDR", "output_features")
+        output_features_directory = joinpath(source_case, "TDR", "output_features")
         mkpath(output_features_directory)
         touch(joinpath(output_features_directory, "output_features.csv.gz"))
         touch(joinpath(output_features_directory, "output_metadata.json"))
-        MacroEnergy.copy_case(
-            source_case,
-            output_case;
-            overwrite=true,
-            preserve_tdr_output_features=true,
-        )
-        @test isfile(joinpath(output_case, "TDR", "output_features", "output_features.csv.gz"))
-        @test isfile(joinpath(output_case, "TDR", "output_features", "output_metadata.json"))
+        MacroEnergy.copy_case(source_case, output_case; overwrite=true)
+        @test isfile(joinpath(output_features_directory, "output_features.csv.gz"))
+        @test isfile(joinpath(output_features_directory, "output_metadata.json"))
+        @test !isdir(joinpath(output_case, "TDR"))
 
-        system_features = joinpath(output_case, "TDR", "systems", "system_2", "output_features")
-        mkpath(system_features)
-        touch(joinpath(system_features, "output_features.csv.gz"))
-        touch(joinpath(system_features, "output_metadata.json"))
-        MacroEnergy.copy_case(
-            source_case,
-            output_case;
-            overwrite=true,
-            preserve_tdr_output_features=true,
-        )
-        @test isfile(joinpath(output_case, "TDR", "systems", "system_2", "output_features", "output_features.csv.gz"))
-        @test isfile(joinpath(output_case, "TDR", "systems", "system_2", "output_features", "output_metadata.json"))
     end
 
     scoped_feature = MacroEnergy.tdr_feature_spec(Dict(
@@ -618,7 +602,7 @@ end
             @test length(isolated_case.systems) == 1
             @test !isdir(MacroEnergy.tdr_output_features_directory(source_case; system_index=2))
             @test MacroEnergy.tdr_saved_subperiod_directory(source_case, 1; system_index=2) ==
-                joinpath(source_case, "TDR", "systems", "system_2", "subperiod_solves", "period_0001")
+                joinpath(source_case, "TDR", "subperiod_solves", "system_2", "subperiod_0001")
         end
     end
 end

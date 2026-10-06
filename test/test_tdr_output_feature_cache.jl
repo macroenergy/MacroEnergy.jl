@@ -30,9 +30,9 @@ using CSV, DataFrames, MacroEnergy, Test
         results = [(period=period, outputs=Dict("output:flow:test" => [(feature, values)]))
             for (period, values) in enumerate(([2.0, 2.0], [8.0, 8.0]))]
         sources = MacroEnergy.tdr_output_sources_from_results(results, [1, 2], settings)
-        # Seed the existing output directory so preprocessing must preserve and reuse
-        # its cache, then complete both provenance and log writing without a solve.
-        MacroEnergy.tdr_write_output_features!(output, sources, settings, 4)
+        # Seed the source cache so preprocessing can reuse it in a new destination,
+        # then complete both provenance and log writing without a solve.
+        MacroEnergy.tdr_write_output_features!(source, sources, settings, 4)
         @test preprocess_inputs(source, output; tdr_settings_path=settings_path, overwrite=true) === nothing
         provenance = MacroEnergy.mutable_json_data(MacroEnergy.read_json(
             joinpath(output, "time_domain_reduction_provenance.json")))

@@ -1,6 +1,6 @@
 # Time-Domain Reduction
 
-`preprocess_inputs` creates a new, ordinary MacroEnergy case directory from an existing case. The source case is unchanged, and the generated directory loads with `load_case` and runs with `run_case` without TDR-specific run settings.
+`preprocess_inputs` creates a new, ordinary MacroEnergy case directory from an existing case. The generated directory loads with `load_case` and runs with `run_case` without TDR-specific run settings. Source model inputs are unchanged. Saved output-feature caches and retained subperiod artifacts are written under the source case’s `TDR/` directory.
 
 ```julia
 preprocess_inputs(
@@ -247,13 +247,13 @@ Output-based features add model results to the clustering matrix. They are confi
 
 Built-in providers are `"flow"` and `"storage_level"`. A provider returns a long `DataFrame` with `time`, `component_id`, and `value` columns. Case-specific providers through user additions are planned for a future release; for now, additional providers must be added to MacroEnergy itself.
 
-Output-based preprocessing materializes and solves one temporary input-only case for every candidate period; it never loads the full-horizon case. In a multi-System Case, every `(System, candidate period)` is an independent operational solve. These solves use a one-period `PerfectForesight` horizon, so they do not model investment, state carry-over, or interactions between Systems. Set `distributed` and `workers` to run the complete set of independent solves concurrently. The worker count is a global cap across all Systems, and only TDR-created workers are removed when preprocessing finishes. `include_policy_constraints` defaults to `true`; set it to `false` to remove policy constraints from the temporary inputs.
+Output-based preprocessing materializes and solves one temporary input-only case for every candidate period; it never loads the full-horizon case. Each isolated case uses the selected System’s input manifest to copy only its dependencies, with the same time-series column selection as private System inputs, plus user additions. In a multi-System Case, every `(System, candidate period)` is an independent operational solve. These solves use a one-period `PerfectForesight` horizon, so they do not model investment, state carry-over, or interactions between Systems. Set `distributed` and `workers` to run the complete set of independent solves concurrently. The worker count is a global cap across all Systems, and only TDR-created workers are removed when preprocessing finishes. `include_policy_constraints` defaults to `true`; set it to `false` to remove policy constraints from the temporary inputs.
 
-Temporary cases are removed by default. Set `save_subperiod_inputs` to materialize retained isolated inputs before any solve starts; those exact directories are then used by the workers and remain available for live debugging. Set `save_subperiod_results` to retain compact provider outputs. Single-System artifacts are written below `TDR/subperiod_solves/period_<n>/`; multi-System artifacts are written below `TDR/systems/system_<n>/subperiod_solves/period_<p>/`, with results in `results.json.gz`.
+Temporary cases are removed by default. Set `save_subperiod_inputs` to materialize retained isolated inputs before any solve starts; those exact directories are then used by the workers and remain available for live debugging. Set `save_subperiod_results` to retain compact provider outputs. Retained artifacts are written below `source/TDR/subperiod_solves/system_<n>/subperiod_<p>/`, with results in `results.json.gz`. `system_<n>` identifies a System in the original Case; `subperiod_<p>` identifies a candidate subperiod, padded to four digits (for example, `subperiod_0001`). Single-System Cases use `system_1` too.
 
-Set `save_features` to write the assembled output profiles to `TDR/output_features/output_features.csv.gz` and their metadata to `TDR/output_features/output_metadata.json`. In multi-System Cases, each System instead uses `TDR/systems/system_<n>/output_features/`. Rows are ordered by `Period_Index` and then `Time_Index`. Set `reuse_saved_features` to reload those validated artifacts and skip every matching System's subperiod solves; MacroEnergy checks the System identity, input horizon, representative-period length, and output-feature specifications before reuse. If no saved feature files exist, MacroEnergy warns and generates the features; set `save_features` as well to retain them for the next run.
+Set `save_features` to write the assembled output profiles to `source/TDR/output_features/output_features.csv.gz` and their metadata to `source/TDR/output_features/output_metadata.json`. In multi-System Cases, each System instead uses `source/TDR/output_features/system_<n>/`. Here, `source` is the original directory passed as `source_case_path`, not the reduced destination. Rows are ordered by `Period_Index` and then `Time_Index`. Set `reuse_saved_features` to reload those validated artifacts and skip every matching System's subperiod solves; MacroEnergy checks the System identity, input horizon, representative-period length, and output-feature specifications before reuse. If no saved feature files exist, MacroEnergy warns and generates the features; set `save_features` as well to retain them for the next run.
 
-When `preprocess_inputs(...; overwrite=true)` recreates an existing output case and `reuse_saved_features=true`, it preserves the existing single-System or System-scoped output-feature cache directories through the copy so they remain available. Invalid or stale cached features are still rejected by the usual validation.
+Cache lookup and saving both use the original source directory. You can therefore reuse saved features when clustering the same source inputs into a new destination, or when replacing a destination with `overwrite=true`. Source `TDR/` artifacts are excluded from ordinary case copying. Existing caches in reduced destination directories are not automatically migrated; move them to the corresponding source cache directory to reuse them. Cache validation is unchanged.
 
 Output-based TDR currently supports a single Monolithic model period. Pass solver options explicitly through `output_feature_run_kwargs`, for example:
 
@@ -566,7 +566,9 @@ case, and period-map location. The log records discovered features, weights and
 occurrences, extreme-period decisions, temporal handling, and the original
 periods assigned to every representative. Multi-System records are grouped by
 System. Optional output-feature caches and retained subperiod inputs/results
-are stored under `TDR/`, as described in the output-based features section.
+are stored under the original source’s `TDR/`, as described in the output-based
+features section. Saved-artifact paths in the destination’s provenance and logs
+point to those source locations.
 
 Inspect the period map and log to understand which periods were retained and
 how they represent the original horizon, then load and run the generated case

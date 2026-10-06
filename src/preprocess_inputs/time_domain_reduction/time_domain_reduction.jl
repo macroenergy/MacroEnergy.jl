@@ -55,7 +55,7 @@ function tdr_time_domain_reduction(
         full_lengths = Dict(index => first(tdr_full_length(tdr_system_time_data_path(case_root, index)))
             for index in 1:number_of_systems)
         output_sources = tdr_output_sources(case_root, settings_by_system, full_lengths;
-            run_case_kwargs=output_feature_run_kwargs)
+            run_case_kwargs=output_feature_run_kwargs, artifact_root=abspath(source_case_path))
     end
     system_records = Dict{String,Any}()
     system_logs = Dict{String,Any}()
@@ -130,7 +130,7 @@ function tdr_reduce_system!(
         input_sources = copy(clustering_sources)
         output_sources, subperiod_results = isnothing(precomputed_output) ?
             tdr_output_sources(case_root, parsed_settings, full_length;
-                run_case_kwargs=output_feature_run_kwargs) : precomputed_output
+                run_case_kwargs=output_feature_run_kwargs, artifact_root=abspath(source_case_path)) : precomputed_output
         append!(sources, output_sources)
         append!(clustering_sources, output_sources)
         tdr_set_clustering_weights!(input_sources, output_sources, parsed_settings.output_features.weight)

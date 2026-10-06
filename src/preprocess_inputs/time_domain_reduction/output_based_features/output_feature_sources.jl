@@ -34,6 +34,7 @@ function tdr_output_sources(
     settings_by_system::Vector{TDRSettings},
     full_lengths::Dict{Int,Int};
     run_case_kwargs::NamedTuple=NamedTuple(),
+    artifact_root::String=case_root,
     system_scoped::Bool=true,
 )
     output_data = Dict{Int,Any}()
@@ -45,26 +46,26 @@ function tdr_output_sources(
         isnothing(settings) && continue
         period_length = tdr_settings.timesteps_per_representative_period
         artifact_system_index = system_scoped ? system_index : nothing
-        cache_path = tdr_output_features_directory(case_root; system_index=artifact_system_index)
-        if settings.reuse_saved_features && tdr_saved_output_features_exist(case_root; system_index=artifact_system_index)
-            @info " -- Loading saved output-based TDR features for System $system_index from `$(relpath(cache_path, case_root))`."
-            sources = tdr_load_output_features(case_root, tdr_settings, full_length; system_index=artifact_system_index)
+        cache_path = tdr_output_features_directory(artifact_root; system_index=artifact_system_index)
+        if settings.reuse_saved_features && tdr_saved_output_features_exist(artifact_root; system_index=artifact_system_index)
+            @info " -- Loading saved output-based TDR features for System $system_index from `$(cache_path)`."
+            sources = tdr_load_output_features(artifact_root, tdr_settings, full_length; system_index=artifact_system_index)
             output_data[system_index] = (sources, [Dict(
                 "system_index" => system_index,
                 "reused_saved_features" => true,
-                "features_path" => relpath(tdr_output_features_path(case_root; system_index=artifact_system_index), case_root),
-                "metadata_path" => relpath(tdr_output_metadata_path(case_root; system_index=artifact_system_index), case_root),
+                "features_path" => tdr_output_features_path(artifact_root; system_index=artifact_system_index),
+                "metadata_path" => tdr_output_metadata_path(artifact_root; system_index=artifact_system_index),
             )])
             continue
         elseif settings.reuse_saved_features
-            @warn "Saved output-based TDR features were requested for System $system_index but do not exist under `$(relpath(cache_path, case_root))`; generating new features instead."
+            @warn "Saved output-based TDR features were requested for System $system_index but do not exist under `$(cache_path)`; generating new features instead."
         end
         n_periods = full_length ÷ period_length
         for period in 1:n_periods
             input_path = nothing
             if settings.subperiod_runs.save_subperiod_inputs
                 input_path = tdr_save_subperiod_inputs!(case_root, period, tdr_settings;
-                    system_index=system_scoped ? system_index : nothing)
+                    system_index, artifact_root)
             end
             input_paths[(system_index, period)] = input_path
             push!(tasks, TDRSubperiodTask(case_root, system_index, period, tdr_settings, run_case_kwargs, input_path))
@@ -95,15 +96,15 @@ function tdr_output_sources(
         sources = tdr_output_sources_from_results(system_results, periods, tdr_settings)
         @info " -- Collected $(length(sources)) unique output time series for System $system_index."
         if settings.save_features
-            @info " ++ Saving output-based TDR features for System $system_index under `$(relpath(tdr_output_features_directory(case_root; system_index=system_scoped ? system_index : nothing), case_root))`."
-            tdr_write_output_features!(case_root, sources, tdr_settings, full_length;
+            @info " ++ Saving output-based TDR features for System $system_index under `$(tdr_output_features_directory(artifact_root; system_index=system_scoped ? system_index : nothing))`."
+            tdr_write_output_features!(artifact_root, sources, tdr_settings, full_length;
                 system_index=system_scoped ? system_index : nothing)
         end
         result_paths = Dict{Int,Union{Nothing,String}}(period => nothing for period in periods)
         if settings.subperiod_runs.save_subperiod_results
             for result in system_results
-                result_paths[result.period] = tdr_save_subperiod_results!(case_root, result.period, result.outputs;
-                    system_index=system_scoped ? system_index : nothing)
+                result_paths[result.period] = tdr_save_subperiod_results!(artifact_root, result.period, result.outputs;
+                    system_index)
             end
         end
         metadata = [Dict(
@@ -111,8 +112,8 @@ function tdr_output_sources(
             "period" => result.period,
             "worker_ids" => worker_ids,
             "output_sources" => sort!(collect(keys(result.outputs))),
-            "saved_input_path" => isnothing(input_paths[(system_index, result.period)]) ? nothing : relpath(input_paths[(system_index, result.period)], case_root),
-            "saved_result_path" => isnothing(result_paths[result.period]) ? nothing : relpath(result_paths[result.period], case_root),
+            "saved_input_path" => input_paths[(system_index, result.period)],
+            "saved_result_path" => result_paths[result.period],
         ) for result in system_results]
         output_data[system_index] = (sources, metadata)
     end
@@ -124,16 +125,9 @@ function tdr_output_sources(
     tdr_settings::TDRSettings,
     full_length::Int;
     run_case_kwargs::NamedTuple=NamedTuple(),
+    artifact_root::String=case_root,
 )
-    settings = tdr_settings.output_features
-    if settings.reuse_saved_features && tdr_saved_output_features_exist(case_root)
-        @info " -- Loading saved output-based TDR features from TDR/output_features."
-        sources = tdr_load_output_features(case_root, tdr_settings, full_length)
-        return sources, [Dict("reused_saved_features" => true,
-            "features_path" => relpath(tdr_output_features_path(case_root), case_root),
-            "metadata_path" => relpath(tdr_output_metadata_path(case_root), case_root))]
-    end
     output_data = tdr_output_sources(case_root, [tdr_settings], Dict(1 => full_length);
-        run_case_kwargs, system_scoped=false)
+        run_case_kwargs, artifact_root, system_scoped=false)
     return output_data[1]
 end
