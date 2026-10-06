@@ -61,6 +61,23 @@ function release_model_references!(x::Union{AbstractArray,AbstractDict,Tuple})
     return nothing
 end
 
+"""
+    release_user_variable_references!(component)
+
+Clear user-variable references on an edge or vertex by replacing the immutable
+entries in `component.variables`. Preserve all specification fields for rebuilding.
+Previously saved entries and references are not modified. This helper is called
+by [`release_model_references!`](@ref) during model cleanup.
+"""
+function release_user_variable_references!(component::Union{AbstractEdge,AbstractVertex})
+    for (name, variable) in component.variables
+        if variable.variable_ref !== nothing
+            component.variables[name] = with_variable_ref(variable, nothing)
+        end
+    end
+    return nothing
+end
+
 function release_model_references!(e::AbstractEdge)
     e.capacity = solution_value(capacity(e))
     e.existing_capacity = solution_value(existing_capacity(e))
@@ -72,6 +89,7 @@ function release_model_references!(e::AbstractEdge)
     e.retrofitted_units = solution_value(retrofitted_units(e))
     release_capacity_tracks!(e)
     e.flow = Vector{VariableRef}()
+    release_user_variable_references!(e)
     for constraint in e.constraints
         release_model_references!(constraint)
     end
@@ -125,6 +143,7 @@ end
 
 # `operation_expr` holds the balance expressions, which are `AffExpr`s over the model's variables
 function release_vertex_references!(v::AbstractVertex)
+    release_user_variable_references!(v)
     empty!(v.operation_expr)
     for constraint in v.constraints
         release_model_references!(constraint)

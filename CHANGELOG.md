@@ -23,6 +23,9 @@ and this project follows Julia package versioning through `Project.toml` release
 - Added `ConstrainedFossilLiquidFuels`, a refinery asset with fixed jet-fuel and diesel output ratios and configurable fuel-specific emissions.
 - Added optional auxiliary-fuel inputs to `BECCSHydrogen` and captured-CO₂ return flows to `SyntheticLiquidFuels`.
 - Added unit-commitment support for `Electrolyzer` hydrogen output, including startup electricity consumption, minimum up/down times, and ramping limits.
+- Named user-defined variables on asset components, with planning or operational creation, variable types, bounds, and accessors for custom constraints.
+- A helper to clear user-variable model references while retaining immutable specifications for rebuilding.
+- A Modeler Guide example that creates and solves a toy asset with user variables.
 
 ### Changed
 
@@ -37,6 +40,9 @@ and this project follows Julia package versioning through `Project.toml` release
 - A constraint entry in a `constraints` block may now be an inline configuration object (carrying its settings) instead of only the boolean `true`/`false` toggle, enabling data-driven constraint parameterization.
 - Location entries in `locations.json` may now be objects carrying a `constraints` block (bare id strings still work), allowing location-specific constraints to be loaded from input data.
 - Reduced model-generation allocations in edge balance updates by inserting flow variables directly into vertex balance expressions instead of constructing temporary effective-flow expressions.
+- User-variable names must be nonempty and unique within each component.
+- Accessing unbuilt or released user variables reports an error.
+- Recreating user variables with live references in the same model emits a warning and preserves the existing creation behavior.
 
 ### Removed
 
