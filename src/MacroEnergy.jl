@@ -2,6 +2,7 @@ module MacroEnergy
 
 using CSV, JSON3, GZip, Parquet2
 using Dates
+using SHA
 using DuckDB
 using DataFrames
 using JSONTables

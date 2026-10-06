@@ -1,3 +1,4 @@
+include("cache_fingerprint.jl")
 include("output_features.jl")
 include("providers.jl")
 include("subperiod_cases.jl")

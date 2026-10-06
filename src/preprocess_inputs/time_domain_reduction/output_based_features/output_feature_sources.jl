@@ -40,6 +40,9 @@ function tdr_output_sources(
     output_data = Dict{Int,Any}()
     tasks = TDRSubperiodTask[]
     input_paths = Dict{Tuple{Int,Int},Union{Nothing,String}}()
+    file_hashes = Dict{String,String}()
+    fingerprints = Dict{Int,Any}()
+    solver_provenance = tdr_output_solver_provenance(run_case_kwargs)
     for (system_index, full_length) in sort!(collect(full_lengths); by=first)
         tdr_settings = settings_by_system[system_index]
         settings = tdr_settings.output_features
@@ -47,16 +50,32 @@ function tdr_output_sources(
         period_length = tdr_settings.timesteps_per_representative_period
         artifact_system_index = system_scoped ? system_index : nothing
         cache_path = tdr_output_features_directory(artifact_root; system_index=artifact_system_index)
+        if settings.reuse_saved_features || settings.save_features
+            fingerprints[system_index] = tdr_output_cache_fingerprint(artifact_root, tdr_settings, full_length;
+                system_index=artifact_system_index, file_hashes)
+        end
         if settings.reuse_saved_features && tdr_saved_output_features_exist(artifact_root; system_index=artifact_system_index)
             @info " -- Loading saved output-based TDR features for System $system_index from `$(cache_path)`."
-            sources = tdr_load_output_features(artifact_root, tdr_settings, full_length; system_index=artifact_system_index)
-            output_data[system_index] = (sources, [Dict(
-                "system_index" => system_index,
-                "reused_saved_features" => true,
-                "features_path" => tdr_output_features_path(artifact_root; system_index=artifact_system_index),
-                "metadata_path" => tdr_output_metadata_path(artifact_root; system_index=artifact_system_index),
-            )])
-            continue
+            sources = try
+                tdr_load_output_features(artifact_root, tdr_settings, full_length;
+                    system_index=artifact_system_index, fingerprint=fingerprints[system_index])
+            catch error
+                error isa TDROutputCacheMismatch || rethrow()
+                @warn "$(sprint(showerror, error)) Regenerating output features for System $system_index."
+                nothing
+            end
+            if !isnothing(sources)
+                saved_metadata = mutable_json_data(read_json(tdr_output_metadata_path(artifact_root;
+                    system_index=artifact_system_index)))
+                output_data[system_index] = (sources, [Dict(
+                    "system_index" => system_index,
+                    "reused_saved_features" => true,
+                    "features_path" => tdr_output_features_path(artifact_root; system_index=artifact_system_index),
+                    "metadata_path" => tdr_output_metadata_path(artifact_root; system_index=artifact_system_index),
+                    "solver_provenance" => get(saved_metadata, "solver_provenance", nothing),
+                )])
+                continue
+            end
         elseif settings.reuse_saved_features
             @warn "Saved output-based TDR features were requested for System $system_index but do not exist under `$(cache_path)`; generating new features instead."
         end
@@ -98,7 +117,9 @@ function tdr_output_sources(
         if settings.save_features
             @info " ++ Saving output-based TDR features for System $system_index under `$(tdr_output_features_directory(artifact_root; system_index=system_scoped ? system_index : nothing))`."
             tdr_write_output_features!(artifact_root, sources, tdr_settings, full_length;
-                system_index=system_scoped ? system_index : nothing)
+                system_index=system_scoped ? system_index : nothing,
+                fingerprint=fingerprints[system_index],
+                solver_provenance)
         end
         result_paths = Dict{Int,Union{Nothing,String}}(period => nothing for period in periods)
         if settings.subperiod_runs.save_subperiod_results
@@ -112,6 +133,7 @@ function tdr_output_sources(
             "period" => result.period,
             "worker_ids" => worker_ids,
             "output_sources" => sort!(collect(keys(result.outputs))),
+            "solver_provenance" => solver_provenance,
             "saved_input_path" => input_paths[(system_index, result.period)],
             "saved_result_path" => result_paths[result.period],
         ) for result in system_results]
