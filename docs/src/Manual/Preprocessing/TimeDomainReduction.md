@@ -403,9 +403,155 @@ Some cases retain `TotalHoursModeled = 8760` with 52 weekly subperiods, so their
 
 Mixed-resolution input series and total-based resampling are not yet supported.
 
-## Generated files
+## How TDR works
 
-The reduced case contains its usual inputs plus a period map referenced by `time_data.json`, `time_domain_reduction_provenance.json`, and `preprocess_log.json`.
+TDR selects actual periods from the source inputs, retains their hourly profiles,
+and records which original periods they represent. The generated case uses the
+ordinary MacroEnergy loader and solver; the period map carries the information
+needed to weight the retained periods.
+
+### Discover and copy the inputs
+
+`preprocess_inputs` starts at `system_data.json` and follows its input-path
+references through the referenced JSON files and directories. It copies those
+inputs into the output case, along with supporting Julia files, Markdown files,
+and `user_additions/`. This creates the working copy that TDR modifies.
+
+For each System, TDR reads its time data to determine the explicit hourly
+horizon. It searches the referenced JSON inputs for explicit `timeseries`
+descriptors and numeric inline vectors matching the horizon and a configured
+feature field. CSV path/header pairs identify physical series: repeated
+references to the same pair share one series, with their logical occurrences
+recorded separately.
+
+Discovery and clustering-feature selection serve different purposes. Every
+explicit CSV time-series descriptor is discovered for reduction, but only
+matching, non-excluded features influence clustering. Inline-vector discovery
+depends on matching a configured feature field. Excluded matching inline
+vectors are still reduced.
+
+### Prepare separate inputs for multiple Systems
+
+A single-System case retains its input paths within the copied case. For a
+multi-System case, the current preparation step creates private copies of
+manifest files under `system/` and `assets/` for every System. For example:
+
+```text
+Source input                  System 1 copy
+system/time_data.json      -> system/system_1/time_data.json
+system/nodes.json          -> system/system_1/nodes.json
+system/demand.csv          -> system/system_1/demand.csv
+assets/vre.json            -> assets/system_1/vre.json
+assets/availability.csv    -> assets/system_1/availability.csv
+```
+
+The corresponding System entry in `system_data.json` and the nested paths in
+its copied JSON files are rewritten to these locations. Paths remain relative
+to the case root. This gives each System its own inputs to shorten when it
+selects different representative periods. Currently, inputs outside these two
+top-level directories remain shared during this preparation step.
+
+### Construct candidate periods and clustering profiles
+
+TDR divides the explicit horizon into consecutive blocks of
+`timesteps_per_representative_period` hours. These blocks are the candidate
+periods. For example, six daily source periods contain 144 hours; setting the
+period length to 24 gives six candidates, each containing a full daily profile.
+
+Each clustering series is scaled over the explicit horizon using the chosen
+scaling method. Its scaled values are multiplied by the square root of its
+clustering weight, so the weight controls its contribution to squared distance.
+The hourly profiles of all selected series are stacked into a matrix with one
+column per candidate period and one row per feature/timestep combination.
+
+If output-based features are enabled, TDR first obtains the selected provider
+profiles from isolated candidate-period solves, or loads saved profiles. It
+appends those profiles to the input features and allocates the configured
+input/output weight shares before constructing the matrix. In multi-System
+cases, output profiles are obtained before any System's input horizon is
+shortened.
+
+### Select extremes and cluster the remaining periods
+
+Extreme-period rules operate on the original, unscaled feature values. Each
+rule sums its matching physical series and selects a period using its integral
+or peak criterion. Duplicate selections reserve one slot. Forced extreme
+periods are removed from the regular clustering candidates and each represents
+itself in the period map.
+
+The remaining representative-period slots are filled by the configured
+clustering method. Each regular candidate is assigned to a cluster, and each
+cluster supplies an actual source period as its representative. The final
+representatives, including forced extremes, are sorted by source-period index.
+
+For example, suppose six daily candidates are reduced to two representatives,
+days 2 and 5, with assignments `[1, 1, 1, 2, 2, 2]`. The retained hourly inputs
+come from those two days, and the assignments record how all six days are
+represented. The exact selections and assignments depend on the data, method,
+and settings.
+
+### Write the retained hourly inputs
+
+TDR selects the source rows belonging to the representative periods in their
+sorted order. In the example, the output contains day 2's 24 hours followed by
+day 5's 24 hours, for a total of 48 explicit hours.
+
+For each discovered CSV, the entire table is shortened to those rows. Recognized
+time/index columns are reset to consecutive indices. Discovered inline vectors
+are shortened at their original locations in the copied JSON files. The values
+written are the original source values; scaling is used only for clustering.
+
+### Write the period map and load representative-period weights
+
+TDR updates `NumberOfSubperiods` in the System's time-data file and adds a
+`SubPeriodMap` reference to `period_map.csv` beside that file. For the example,
+the map is:
+
+| `Period_Index` | `Rep_Period` | `Rep_Period_Index` |
+| --- | --- | --- |
+| 1 | 2 | 1 |
+| 2 | 2 | 1 |
+| 3 | 2 | 1 |
+| 4 | 5 | 2 |
+| 5 | 5 | 2 |
+| 6 | 5 | 2 |
+
+`Period_Index` identifies an original period. `Rep_Period` identifies the source
+period selected to represent it. `Rep_Period_Index` gives that representative's
+position in the shortened inputs: source day 2 is stored first, and source day 5
+second.
+
+When the generated case is loaded, the ordinary time-data loader counts the
+original periods mapped to each representative and scales their weights so
+weighted subperiod hours sum to `TotalHoursModeled`. With 24-hour subperiods and
+`TotalHoursModeled = 144`, the two representatives above each have weight 3.
+TDR preserves `TotalHoursModeled`, even though fewer hours are explicitly stored.
+
+If the source already has a period map and the candidate-period length matches
+its existing subperiod length, TDR composes the maps. Each original period's
+previous representative index is mapped to a new representative index, while
+the original `Period_Index` rows and selected source-period labels are retained.
+This preserves the connection to the original horizon through another reduction.
+
+### Consolidate files and inspect the result
+
+After reducing every System independently, multi-System TDR compares the
+reduced CSVs in the private `system/` and `assets/` trees. Its consolidation step
+groups byte-identical files, copies shared content back to an ordinary shared
+input path, rewrites the JSON references, and removes redundant private CSVs.
+Private JSON files and divergent CSVs remain in their System directories.
+
+The output case also contains `time_domain_reduction_provenance.json` and
+`preprocess_log.json`. Provenance records the settings, selected periods, source
+case, and period-map location. The log records discovered features, weights and
+occurrences, extreme-period decisions, temporal handling, and the original
+periods assigned to every representative. Multi-System records are grouped by
+System. Optional output-feature caches and retained subperiod inputs/results
+are stored under `TDR/`, as described in the output-based features section.
+
+Inspect the period map and log to understand which periods were retained and
+how they represent the original horizon, then load and run the generated case
+with the ordinary `load_case` and `run_case` APIs.
 
 ## Developer API
 
