@@ -47,7 +47,7 @@ function tdr_write_output_features!(
     settings::TDRSettings,
     full_length::Int,
     ; system_index::Union{Nothing,Int}=nothing,
-    fingerprint=tdr_output_cache_fingerprint(case_root, settings, full_length; system_index),
+    fingerprint::TDROutputCacheFingerprint=tdr_output_cache_fingerprint(case_root, settings, full_length; system_index),
     solver_provenance=nothing,
 )
     period_length = settings.timesteps_per_representative_period
@@ -65,7 +65,7 @@ function tdr_write_output_features!(
     CSV.write(tdr_output_features_path(case_root; system_index), data; compress=true)
     metadata = Dict(
         "cache_version" => TDR_OUTPUT_CACHE_VERSION,
-        "fingerprint" => fingerprint,
+        "fingerprint" => tdr_cache_data(fingerprint),
         "solver_provenance" => solver_provenance,
         "system_index" => system_index,
         "full_length" => full_length,
@@ -95,7 +95,7 @@ function tdr_load_output_features(
     settings::TDRSettings,
     full_length::Int,
     ; system_index::Union{Nothing,Int}=nothing,
-    fingerprint=tdr_output_cache_fingerprint(case_root, settings, full_length; system_index),
+    fingerprint::TDROutputCacheFingerprint=tdr_output_cache_fingerprint(case_root, settings, full_length; system_index),
 )
     data_path = tdr_output_features_path(case_root; system_index)
     metadata_path = tdr_output_metadata_path(case_root; system_index)
@@ -105,7 +105,7 @@ function tdr_load_output_features(
     get(metadata, "cache_version", nothing) == TDR_OUTPUT_CACHE_VERSION ||
         throw(TDROutputCacheMismatch("Saved TDR output features use an older or unsupported cache format."))
     saved_fingerprint = get(metadata, "fingerprint", nothing)
-    saved_fingerprint isa AbstractDict && get(saved_fingerprint, "sha256", nothing) == fingerprint["sha256"] ||
+    saved_fingerprint isa AbstractDict && get(saved_fingerprint, "sha256", nothing) == fingerprint.sha256 ||
         throw(TDROutputCacheMismatch("Saved TDR output features have different source inputs or output-generation settings."))
     get(metadata, "system_index", nothing) == system_index || throw(TDROutputCacheMismatch(
         "Saved TDR output features belong to a different System.",

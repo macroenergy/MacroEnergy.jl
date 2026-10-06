@@ -41,7 +41,7 @@ function tdr_output_sources(
     tasks = TDRSubperiodTask[]
     input_paths = Dict{Tuple{Int,Int},Union{Nothing,String}}()
     file_hashes = Dict{String,String}()
-    fingerprints = Dict{Int,Any}()
+    fingerprints = Dict{Int,TDROutputCacheFingerprint}()
     solver_provenance = tdr_output_solver_provenance(run_case_kwargs)
     for (system_index, full_length) in sort!(collect(full_lengths); by=first)
         tdr_settings = settings_by_system[system_index]
