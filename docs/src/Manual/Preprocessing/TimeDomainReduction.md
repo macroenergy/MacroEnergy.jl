@@ -433,23 +433,29 @@ vectors are still reduced.
 ### Prepare separate inputs for multiple Systems
 
 A single-System case retains its input paths within the copied case. For a
-multi-System case, the current preparation step creates private copies of
-manifest files under `system/` and `assets/` for every System. For example:
+multi-System case, preparation builds a separate dependency manifest from each
+System entry in `system_data.json`. It follows nested JSON and time-series
+references, and includes the immediate files in referenced input directories.
+Only that System's dependencies are copied into `inputs/system_<n>/`, preserving
+their complete source-relative paths. For example:
 
 ```text
 Source input                  System 1 copy
-system/time_data.json      -> system/system_1/time_data.json
-system/nodes.json          -> system/system_1/nodes.json
-system/demand.csv          -> system/system_1/demand.csv
-assets/vre.json            -> assets/system_1/vre.json
-assets/availability.csv    -> assets/system_1/availability.csv
+system/time_data.json      -> inputs/system_1/system/time_data.json
+system/nodes.json          -> inputs/system_1/system/nodes.json
+system/demand.csv          -> inputs/system_1/system/demand.csv
+assets/vre.json            -> inputs/system_1/assets/vre.json
+data/availability.csv      -> inputs/system_1/data/availability.csv
+nodes.json                 -> inputs/system_1/nodes.json
 ```
 
 The corresponding System entry in `system_data.json` and the nested paths in
 its copied JSON files are rewritten to these locations. Paths remain relative
 to the case root. This gives each System its own inputs to shorten when it
-selects different representative periods. Currently, inputs outside these two
-top-level directories remain shared during this preparation step.
+selects different representative periods. Shared dependencies receive a private
+copy for every System that references them, regardless of directory name.
+Case-level settings and supporting scripts remain available in the general case
+copy. CSVs are copied with all their columns.
 
 ### Construct candidate periods and clustering profiles
 
@@ -536,10 +542,11 @@ This preserves the connection to the original horizon through another reduction.
 ### Consolidate files and inspect the result
 
 After reducing every System independently, multi-System TDR compares the
-reduced CSVs in the private `system/` and `assets/` trees. Its consolidation step
+reduced CSVs in the private `inputs/system_<n>/` trees. Its consolidation step
 groups byte-identical files, copies shared content back to an ordinary shared
 input path, rewrites the JSON references, and removes redundant private CSVs.
-Private JSON files and divergent CSVs remain in their System directories.
+Distinct content groups use separate destinations. Private JSON files and CSVs
+without identical counterparts remain in their System directories.
 
 The output case also contains `time_domain_reduction_provenance.json` and
 `preprocess_log.json`. Provenance records the settings, selected periods, source
@@ -572,6 +579,7 @@ MacroEnergy.TDRSubperiodTask
 MacroEnergy.TimeSeriesSource
 MacroEnergy.tdr_visit_input_paths!
 MacroEnergy.tdr_case_input_manifest
+MacroEnergy.tdr_system_input_manifest
 MacroEnergy.tdr_system_input_path
 MacroEnergy.tdr_reduce_system!
 MacroEnergy.tdr_consolidate_shared_time_series!

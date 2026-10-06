@@ -216,6 +216,17 @@ function load_tdr_output_features(data)::Union{Nothing,TDROutputFeaturesSettings
     return TDROutputFeaturesSettings(; keyword_arguments...)
 end
 
+"""Serialize the resolved subperiod-run settings for TDR provenance."""
+function tdr_subperiod_run_settings_data(settings::TDRSubperiodRunSettings)
+    return Dict{String,Any}(
+        "distributed" => settings.distributed,
+        "workers" => settings.workers,
+        "include_policy_constraints" => settings.include_policy_constraints,
+        "save_subperiod_inputs" => settings.save_subperiod_inputs,
+        "save_subperiod_results" => settings.save_subperiod_results,
+    )
+end
+
 function load_tdr_subperiod_run_settings(data)::TDRSubperiodRunSettings
     data = tdr_setting_data(data, (
         "distributed", "workers", "include_policy_constraints", "save_subperiod_inputs",

@@ -101,14 +101,16 @@ function tdr_manifest_path!(paths::Set{String}, case_root::String, path::String)
     return nothing
 end
 
-function tdr_collect_manifest_paths!(paths::Set{String}, case_root::String, path::String, visited_json::Set{String}=Set{String}())
+function tdr_collect_manifest_paths!(paths::Set{String}, case_root::String, path::String, visited_json::Set{String}=Set{String}(); recursive_directories::Bool=true)
     tdr_manifest_path!(paths, case_root, path)
     isdir(path) && begin
-        for (directory, _, files) in walkdir(path)
+        directories = recursive_directories ? walkdir(path) : [(path, String[], readdir(path))]
+        for (directory, _, files) in directories
             for file in files
                 child = joinpath(directory, file)
+                isfile(child) || continue
                 tdr_manifest_path!(paths, case_root, child)
-                isjson(child) && tdr_collect_manifest_paths!(paths, case_root, child, visited_json)
+                isjson(child) && tdr_collect_manifest_paths!(paths, case_root, child, visited_json; recursive_directories)
             end
         end
         return nothing
@@ -122,12 +124,26 @@ function tdr_collect_manifest_paths!(paths::Set{String}, case_root::String, path
     function collect_manifest_path(reference_path::String)
         target = abspath(rel_or_abs_path(reference_path, case_root))
         if ispath(target)
-            tdr_collect_manifest_paths!(paths, case_root, target, visited_json)
+            tdr_collect_manifest_paths!(paths, case_root, target, visited_json; recursive_directories)
         end
         return nothing
     end
     tdr_visit_input_paths!(collect_manifest_path, data)
     return nothing
+end
+
+"""Collect dependencies of one System, including nested CSV references and directory inputs."""
+function tdr_system_input_manifest(case_root::String, system)
+    paths = Set{String}()
+    visited_json = Set{String}()
+    tdr_visit_input_paths!(system) do reference_path
+        target = abspath(rel_or_abs_path(reference_path, case_root))
+        ispath(target) || return nothing
+        # Ordinary input directories load their immediate files. Nested directories
+        # are dependencies only when an input explicitly references them.
+        tdr_collect_manifest_paths!(paths, case_root, target, visited_json; recursive_directories=false)
+    end
+    return sort!(collect(paths))
 end
 
 """Return the complete ordinary-input copy manifest rooted at `system_data.json`."""
@@ -160,13 +176,15 @@ function tdr_copy_input_manifest!(source_root::String, output_root::String; copy
         return nothing
     end
     paths = tdr_case_input_manifest(source_root)
-    _, systems = tdr_system_entries(source_root)
+    root, systems = tdr_system_entries(source_root)
     if length(systems) > 1
+        case_inputs = tdr_system_input_manifest(source_root,
+            Dict(key => value for (key, value) in root if key != "case"))
+        additions = user_additions_path(source_root)
         paths = filter(paths) do path
-            relative_path = relpath(path, source_root)
-            parts = splitpath(relative_path)
-            top_level_private_input = !isempty(parts) && first(parts) in ("system", "assets")
-            !top_level_private_input || endswith(path, ".jl") || endswith(path, ".md")
+            path == joinpath(source_root, "system_data.json") || path in case_inputs ||
+                endswith(path, ".jl") || endswith(path, ".md") ||
+                tdr_path_within_case(additions, path)
         end
     end
     if !isnothing(settings_path)
@@ -243,34 +261,28 @@ end
 """Return the ordinary generated-case path for one System-specific input file."""
 function tdr_system_input_path(case_root::String, system_index::Int, source_path::String)
     relative_path = relpath(source_path, case_root)
+    tdr_path_within_case(case_root, source_path) || throw(ArgumentError(
+        "TDR does not support input paths outside the case directory: $source_path",
+    ))
     parts = splitpath(relative_path)
-    isempty(parts) && return source_path
-    if first(parts) == "system"
-        return joinpath(case_root, "system", "system_$system_index", parts[2:end]...)
-    elseif first(parts) == "assets"
-        return joinpath(case_root, "assets", "system_$system_index", parts[2:end]...)
+    # Re-preparing an already private input must not add another copy layer.
+    if length(parts) >= 3 && parts[1] == "inputs" && occursin(r"^system_\d+$", parts[2])
+        relative_path = joinpath(parts[3:end]...)
     end
-    return source_path
+    return joinpath(case_root, "inputs", "system_$system_index", relative_path)
 end
 
-function tdr_system_specific_input_path(case_root::String, source_path::String)
-    relative_path = relpath(source_path, case_root)
-    parts = splitpath(relative_path)
-    return !isempty(parts) && first(parts) in ("system", "assets")
-end
-
-function tdr_rewrite_system_input_paths!(data, case_root::String, system_index::Int)
+function tdr_rewrite_system_input_paths!(data, source_root::String, case_root::String, destinations::Dict{String,String})
     if data isa AbstractDict
         if haskey(data, "path") && data["path"] isa AbstractString
-            source_path = abspath(rel_or_abs_path(String(data["path"]), case_root))
-            if ispath(source_path) && tdr_path_within_case(case_root, source_path)
-                destination = tdr_system_input_path(case_root, system_index, source_path)
-                data["path"] = replace(relpath(destination, case_root), '\\' => '/')
+            source_path = abspath(rel_or_abs_path(String(data["path"]), source_root))
+            if haskey(destinations, source_path)
+                data["path"] = replace(relpath(destinations[source_path], case_root), '\\' => '/')
             end
         end
-        foreach(value -> tdr_rewrite_system_input_paths!(value, case_root, system_index), values(data))
+        foreach(value -> tdr_rewrite_system_input_paths!(value, source_root, case_root, destinations), values(data))
     elseif data isa AbstractVector
-        foreach(value -> tdr_rewrite_system_input_paths!(value, case_root, system_index), data)
+        foreach(value -> tdr_rewrite_system_input_paths!(value, source_root, case_root, destinations), data)
     end
     return nothing
 end
@@ -279,26 +291,31 @@ function tdr_prepare_system_inputs!(case_root::String; source_case_root::String=
     root, systems = tdr_system_entries(case_root)
     length(systems) == 1 && return 1
     source_root = abspath(source_case_root)
-    manifest = filter(isfile, tdr_case_input_manifest(source_root))
+    # Discover all Systems before changing files, including for in-place reduction.
+    manifests = [tdr_system_input_manifest(source_root, system) for system in systems]
+    destination_maps = [Dict(path => tdr_system_input_path(case_root, index,
+        joinpath(case_root, relpath(path, source_root))) for path in manifest)
+        for (index, manifest) in enumerate(manifests)]
     for system_index in eachindex(systems)
+        manifest = manifests[system_index]
+        destinations = destination_maps[system_index]
         for source_path in manifest
-            source_path == joinpath(source_root, "system_data.json") && continue
-            tdr_system_specific_input_path(source_root, source_path) || continue
-            destination = tdr_system_input_path(case_root, system_index,
-                joinpath(case_root, relpath(source_path, source_root)))
-            mkpath(dirname(destination))
-            cp(source_path, destination; force=true)
+            destination = destinations[source_path]
+            if isdir(source_path)
+                mkpath(destination)
+            elseif source_path != destination
+                mkpath(dirname(destination))
+                cp(source_path, destination; force=true)
+            end
         end
         for source_path in manifest
-            source_path == joinpath(source_root, "system_data.json") && continue
-            isjson(source_path) && tdr_system_specific_input_path(source_root, source_path) || continue
-            destination = tdr_system_input_path(case_root, system_index,
-                joinpath(case_root, relpath(source_path, source_root)))
+            isfile(source_path) && isjson(source_path) || continue
+            destination = destinations[source_path]
             data = mutable_json_data(read_json(destination))
-            tdr_rewrite_system_input_paths!(data, source_root, system_index)
+            tdr_rewrite_system_input_paths!(data, source_root, case_root, destinations)
             write_json(destination, data)
         end
-        tdr_rewrite_system_input_paths!(systems[system_index], source_root, system_index)
+        tdr_rewrite_system_input_paths!(systems[system_index], source_root, case_root, destinations)
     end
     write_json(joinpath(case_root, "system_data.json"), root)
     return length(systems)
@@ -308,9 +325,8 @@ function tdr_shared_input_path(case_root::String, path::String)
     relative_path = relpath(path, case_root)
     parts = splitpath(relative_path)
     length(parts) >= 3 || return nothing
-    first(parts) in ("system", "assets") || return nothing
-    startswith(parts[2], "system_") || return nothing
-    return joinpath(case_root, first(parts), parts[3:end]...)
+    parts[1] == "inputs" && occursin(r"^system_\d+$", parts[2]) || return nothing
+    return joinpath(case_root, parts[3:end]...)
 end
 
 function tdr_rewrite_csv_paths!(data, case_root::String, replacements::Dict{String,String})
@@ -350,11 +366,15 @@ function tdr_consolidate_shared_time_series!(case_root::String, settings_by_syst
                 read(first(paths_with_same_contents)) == read(path), content_groups)
             isnothing(group) ? push!(content_groups, [path]) : push!(content_groups[group], path)
         end
-        for paths_with_same_contents in content_groups
+        for (group_index, paths_with_same_contents) in enumerate(content_groups)
             length(paths_with_same_contents) > 1 || continue
-            cp(first(paths_with_same_contents), shared_path; force=true)
+            # Distinct content groups must never overwrite the same shared file.
+            destination = group_index == 1 ? shared_path : joinpath(case_root,
+                "inputs", "shared", "group_$group_index", relpath(shared_path, case_root))
+            mkpath(dirname(destination))
+            cp(first(paths_with_same_contents), destination; force=true)
             for path in paths_with_same_contents
-                replacements[path] = shared_path
+                replacements[path] = destination
             end
         end
     end
