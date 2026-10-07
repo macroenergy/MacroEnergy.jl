@@ -101,3 +101,50 @@ using CSV, DataFrames, MacroEnergy, Test
         end
     end
 end
+
+@testset "directly referenced JSON consolidation" begin
+    mktempdir() do root
+        mkpath(joinpath(root, "assets"))
+        MacroEnergy.write_json(joinpath(root, "time.json"), Dict(
+            "HoursPerTimeStep" => Dict("Electricity" => 1),
+            "HoursPerSubperiod" => Dict("Electricity" => 2),
+            "NumberOfSubperiods" => 2, "TotalHoursModeled" => 4))
+        MacroEnergy.write_json(joinpath(root, "static.json"), Dict("commodities" => ["Electricity"]))
+        MacroEnergy.write_json(joinpath(root, "parent.json"), Dict("child" => Dict("path" => "static.json")))
+        MacroEnergy.write_json(joinpath(root, "assets", "asset.json"), Dict("value" => 1))
+        MacroEnergy.write_json(joinpath(root, "variable.json"), Dict("availability" => [1, 1, 2, 2]))
+        system = Dict("time_data" => Dict("path" => "time.json"),
+            "commodities" => Dict("path" => "static.json"),
+            "settings" => Dict("path" => "parent.json"),
+            "nodes" => Dict("path" => "variable.json"),
+            "assets" => Dict("path" => "assets"),
+            "direct_asset" => Dict("path" => "assets/asset.json"))
+        MacroEnergy.write_json(joinpath(root, "system_data.json"), Dict("case" => [deepcopy(system), deepcopy(system)]))
+        settings = joinpath(root, "tdr.json")
+        MacroEnergy.write_json(settings, Dict("timesteps_per_representative_period" => 2,
+            "representative_periods" => [1, 2], "method" => Dict("name" => "kmeans"),
+            "scaling" => "standardize"))
+        time_domain_reduction(root, settings)
+        systems = MacroEnergy.read_json(joinpath(root, "system_data.json"))["case"]
+        path(index, key) = String(systems[index][key]["path"])
+        @test path(1, "commodities") == path(2, "commodities") == "static.json"
+        @test path(1, "settings") == path(2, "settings") == "parent.json"
+        parent = MacroEnergy.read_json(joinpath(root, path(1, "settings")))
+        @test parent["child"]["path"] == path(1, "commodities")
+        @test path(1, "nodes") != path(2, "nodes")
+        @test path(1, "time_data") != path(2, "time_data")
+        @test path(1, "direct_asset") != path(2, "direct_asset")
+        for index in 1:2
+            @test isfile(joinpath(root, path(index, "assets"), "asset.json"))
+            @test isfile(joinpath(root, path(index, "direct_asset")))
+            @test !isfile(joinpath(root, "inputs", "system_$index", "static.json"))
+            @test !isfile(joinpath(root, "inputs", "system_$index", "parent.json"))
+            @test isfile(joinpath(root, path(index, "nodes")))
+        end
+        @test MacroEnergy.read_json(joinpath(root, "static.json"))["commodities"] == ["Electricity"]
+        # A subsequent preprocessing pass can discover the consolidated tree.
+        prepared = MacroEnergy.tdr_prepare_inputs(root,
+            MacroEnergy.load_tdr_settings_by_system(settings, 2))
+        @test length(prepared.systems) == 2
+    end
+end

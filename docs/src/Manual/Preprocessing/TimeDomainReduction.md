@@ -495,7 +495,7 @@ preprocess_inputs(source_root, output_root; tdr_settings_path, ...)
    │     └─ [Build provenance and the log using tdr_preprocess_log_data(...)]
    │
    ├─ IF a multi-System Case
-   │  └─ [Consolidate reduced CSVs using tdr_consolidate_shared_time_series!(..., prepared_systems)]
+   │  └─ [Consolidate reduced CSVs and directly referenced JSON using tdr_consolidate_shared_inputs!(..., prepared_systems)]
    └─ [Write provenance and log using write_json(...); group by System for multi-System Cases]
 ```
 
@@ -753,8 +753,13 @@ After reducing every System independently, multi-System TDR compares the
 reduced CSVs in the private `inputs/system_<n>/` trees. Its consolidation step
 groups byte-identical files, copies shared content back to an ordinary shared
 input path, rewrites the JSON references, and removes redundant private CSVs.
-Distinct content groups use separate destinations. Private JSON files and CSVs
-without identical counterparts remain in their System directories.
+Distinct content groups use separate destinations. It then consolidates
+byte-identical, directly referenced JSON files at their original case-relative
+locations, updating references in the System definitions and other JSON inputs. Comparison repeats
+after references change, allowing identical parent files to share consolidated
+children. Additional content groups or conflicting earlier consolidations use
+separate destinations under `inputs/shared/`. Time-data files and JSON files
+loaded through directory references remain private. Files without identical counterparts also remain private.
 
 The output case also contains `time_domain_reduction_provenance.json` and
 `preprocess_log.json`. Provenance records the settings, selected periods, source
@@ -795,7 +800,7 @@ MacroEnergy.tdr_system_input_path
 MacroEnergy.tdr_prepare_inputs
 MacroEnergy.tdr_cluster_candidates
 MacroEnergy.tdr_reduce_system!
-MacroEnergy.tdr_consolidate_shared_time_series!
+MacroEnergy.tdr_consolidate_shared_inputs!
 MacroEnergy.tdr_set_clustering_weights!
 ```
 

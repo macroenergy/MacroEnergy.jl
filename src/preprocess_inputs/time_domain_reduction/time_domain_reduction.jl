@@ -63,7 +63,7 @@ function tdr_time_domain_reduction(
         system_logs["system_$index"] = record.log["time_domain_reduction"]
     end
     if number_of_systems > 1
-        tdr_consolidate_shared_time_series!(case_root, prepared.systems)
+        tdr_consolidate_shared_inputs!(case_root, prepared.systems)
     end
     # Preserve the established single-System record layout; only serialization
     # and shared-file consolidation depend on the number of Systems.

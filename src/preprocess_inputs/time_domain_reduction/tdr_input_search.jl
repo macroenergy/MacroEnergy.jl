@@ -402,10 +402,47 @@ function tdr_shared_input_path(case_root::String, path::String)
     return joinpath(case_root, parts[3:end]...)
 end
 
-"""Consolidate byte-identical reduced CSV inputs while retaining divergent System copies."""
-function tdr_consolidate_shared_time_series!(case_root::String, prepared_systems)
+"""Find shared destinations for byte-identical copies of the same input."""
+function tdr_shared_input_replacements(case_root::String, source_paths; json_inputs::Bool=false, occupied_paths=Set{String}())
+    replacements = Dict{String,TDRTrackedInput}()
+    for (shared_path, paths) in source_paths
+        content_groups = Vector{Vector{String}}()
+        for path in sort!(unique(paths))
+            group = findfirst(group -> read(first(group)) == read(path), content_groups)
+            isnothing(group) ? push!(content_groups, [path]) : push!(content_groups[group], path)
+        end
+        for (group_index, group) in enumerate(content_groups)
+            length(group) > 1 || continue
+            # The first content group reuses the original case-relative path.
+            # Additional groups and conflicting earlier consolidations stay separate.
+            destination = group_index == 1 ? shared_path : joinpath(case_root,
+                "inputs", "shared", "group_$group_index", relpath(shared_path, case_root))
+            if json_inputs
+                destination_index = group_index
+                while (destination != shared_path || destination in occupied_paths) &&
+                      isfile(destination) && read(destination) != read(first(group))
+                    destination_index += 1
+                    destination = joinpath(case_root, "inputs", "shared",
+                        "group_$destination_index", relpath(shared_path, case_root))
+                end
+            end
+            mkpath(dirname(destination))
+            cp(first(group), destination; force=true)
+            for path in group
+                replacements[path] = TDRTrackedInput(path, destination, nothing)
+            end
+        end
+    end
+    return replacements
+end
+
+"""Consolidate identical reduced CSVs and directly referenced JSON inputs."""
+function tdr_consolidate_shared_inputs!(case_root::String, prepared_systems)
     source_paths = Dict{String,Vector{String}}()
+    json_paths = Set{String}([joinpath(case_root, "system_data.json")])
+    time_paths = Set(inputs.time_data_path for inputs in prepared_systems)
     for inputs in prepared_systems
+        union!(json_paths, keys(inputs.json_data))
         for source in inputs.sources
             isnothing(source.csv_path) && continue
             shared_path = tdr_shared_input_path(case_root, source.csv_path)
@@ -413,39 +450,42 @@ function tdr_consolidate_shared_time_series!(case_root::String, prepared_systems
             push!(get!(source_paths, shared_path, String[]), source.csv_path)
         end
     end
-
-    replacements = Dict{String,TDRTrackedInput}()
-    for (shared_path, paths) in source_paths
-        unique_paths = unique(paths)
-        content_groups = Vector{Vector{String}}()
-        for path in unique_paths
-            group = findfirst(paths_with_same_contents ->
-                read(first(paths_with_same_contents)) == read(path), content_groups)
-            isnothing(group) ? push!(content_groups, [path]) : push!(content_groups[group], path)
+    replacements = tdr_shared_input_replacements(case_root, source_paths)
+    while true
+        # Rewrite before comparing JSON: shared children can make their parents
+        # identical. Track shared JSON destinations for subsequent passes.
+        for path in json_paths
+            data = mutable_json_data(read_json(path))
+            tdr_rewrite_input_paths!(data, case_root, case_root, replacements)
+            write_json(path, data)
         end
-        for (group_index, paths_with_same_contents) in enumerate(content_groups)
-            length(paths_with_same_contents) > 1 || continue
-            # Distinct content groups must never overwrite the same shared file.
-            destination = group_index == 1 ? shared_path : joinpath(case_root,
-                "inputs", "shared", "group_$group_index", relpath(shared_path, case_root))
-            mkpath(dirname(destination))
-            cp(first(paths_with_same_contents), destination; force=true)
-            for path in paths_with_same_contents
-                replacements[path] = TDRTrackedInput(path, destination, nothing)
+        for input in values(replacements)
+            if isjson(input.source_path)
+                delete!(json_paths, input.source_path)
+                push!(json_paths, input.destination_path)
+            end
+            rm(input.source_path; force=true)
+        end
+
+        direct_paths = Set{String}()
+        directory_paths = Set{String}()
+        for path in json_paths
+            tdr_visit_input_paths!(mutable_json_data(read_json(path)); include_timeseries=false) do reference
+                target = abspath(joinpath(case_root, reference))
+                isdir(target) && push!(directory_paths, target)
+                isfile(target) && isjson(target) && push!(direct_paths, target)
             end
         end
-    end
-    isempty(replacements) && return nothing
-
-    for inputs in prepared_systems
-        for json_path in keys(inputs.json_data)
-            data = mutable_json_data(read_json(json_path))
-            tdr_rewrite_input_paths!(data, case_root, case_root, replacements)
-            write_json(json_path, data)
+        empty!(source_paths)
+        for path in direct_paths
+            path in json_paths || continue
+            path in time_paths && continue
+            any(directory -> is_within(path, directory), directory_paths) && continue
+            shared_path = tdr_shared_input_path(case_root, path)
+            isnothing(shared_path) && continue
+            push!(get!(source_paths, shared_path, String[]), path)
         end
+        replacements = tdr_shared_input_replacements(case_root, source_paths; json_inputs=true, occupied_paths=json_paths)
+        isempty(replacements) && return nothing
     end
-    for input in values(replacements)
-        input.source_path == input.destination_path || rm(input.source_path; force=true)
-    end
-    return nothing
 end
