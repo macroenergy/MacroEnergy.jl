@@ -1,5 +1,4 @@
-function tdr_full_length(time_data_path::String)
-    data = mutable_json_data(read_json(time_data_path))
+function tdr_full_length(time_data_path::String, data=mutable_json_data(read_json(time_data_path)))
     hpt = get(data, "HoursPerTimeStep", nothing)
     hps = get(data, "HoursPerSubperiod", nothing)
     n_subperiods = get(data, "NumberOfSubperiods", nothing)
@@ -282,21 +281,19 @@ function tdr_collect_references!(
     return nothing
 end
 
-function tdr_sources(case_root::String, settings::TDRSettings; system_index::Int=1)
-    files = tdr_system_json_files(case_root, system_index)
-    time_data_path = tdr_system_time_data_path(case_root, system_index)
-    full_length, total_hours, time_data = tdr_full_length(time_data_path)
-    full_length % settings.timesteps_per_representative_period == 0 ||
-        throw(ArgumentError("The full horizon ($full_length) is not divisible by timesteps_per_representative_period ($(settings.timesteps_per_representative_period))."))
+"""Discover physical series from an already validated time grid and dependency snapshot."""
+function tdr_sources(case_root::String, settings::TDRSettings, time_grid, json_data)
+    (; full_length, total_hours, time_data) = time_grid
     sources = Dict{String,TimeSeriesSource}()
     trailing_hours = Ref(0)
     commodity_names = Set(String.(keys(time_data["HoursPerTimeStep"])))
-    for file in files
-        tdr_collect_references!(sources, mutable_json_data(read_json(file)), file, case_root, full_length, total_hours, trailing_hours, settings.all_features, settings.excluded_features, commodity_names)
+    for file in sort!(collect(keys(json_data)))
+        tdr_collect_references!(sources, json_data[file], file, case_root, full_length, total_hours,
+            trailing_hours, settings.all_features, settings.excluded_features, commodity_names)
     end
     isempty(sources) && throw(ArgumentError("No time-dependent inputs were discovered for TDR."))
     all_sources = sort!(collect(values(sources)); by=source -> source.key)
-    clustering_sources = filter(source -> source.include_in_clustering, all_sources)
-    isempty(clustering_sources) && throw(ArgumentError("No TDR clustering features remain after exclusions."))
-    return all_sources, clustering_sources, full_length, time_data_path, time_data, trailing_hours[]
+    any(source -> source.include_in_clustering, all_sources) ||
+        throw(ArgumentError("No TDR clustering features remain after exclusions."))
+    return (; sources=all_sources, trailing_hours=trailing_hours[])
 end

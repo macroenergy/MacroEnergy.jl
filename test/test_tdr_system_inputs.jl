@@ -63,7 +63,9 @@ using CSV, DataFrames, MacroEnergy, Test
         @test MacroEnergy.read_json(joinpath(source, "shared.json"))["availability"] == [0.1, 0.1, 0.9, 0.9]
         @test !isfile(joinpath(output, "data", "demand.csv"))
         # Preparation can be repeated without nesting inputs/system_N again.
-        @test MacroEnergy.tdr_prepare_system_inputs!(output) == 2
+        prepared = MacroEnergy.tdr_prepare_inputs(output,
+            MacroEnergy.load_tdr_settings_by_system(settings_path, 2))
+        @test length(MacroEnergy.tdr_prepare_system_inputs!(output, prepared).systems) == 2
         @test MacroEnergy.read_json(joinpath(output, "system_data.json")) == generated
         @test !isdir(joinpath(output, "inputs", "system_1", "inputs"))
     end

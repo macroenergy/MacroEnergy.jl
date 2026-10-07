@@ -64,33 +64,37 @@ function tdr_preprocess_log_data(
     map_path::String,
     case_root::String,
     trailing_hours::Int,
-    subperiod_solves,
+    subperiod_solves;
+    candidates::Union{Nothing,TDRCandidatePeriods}=nothing,
 )
     forced_periods = sort!(unique(Int[selection.period for selection in extreme_selections]))
     period_length = settings.timesteps_per_representative_period
+    input_periods = isnothing(candidates) ? full_length ÷ period_length : length(candidates.ranges)
+    temporal_summary = Dict{String,Any}(
+        "original_hours" => full_length,
+        "trailing_source_hours_excluded_from_tdr" => trailing_hours,
+        "original_periods" => input_periods,
+        "period_map_rows" => nrow(output_period_map),
+        "timesteps_per_representative_period" => period_length,
+        "representative_periods" => length(representative_periods),
+        "reduced_hours" => length(representative_periods) * period_length,
+        "period_map_path" => tdr_relative_path(case_root, map_path),
+    )
+    !isnothing(candidates) && merge!(temporal_summary, tdr_candidate_summary(candidates))
     clustering_source_data = [
         tdr_source_log_data(source, case_root)
         for source in sort(clustering_sources; by=source -> source.key)
     ]
     return Dict(
         "time_domain_reduction" => Dict(
-            "temporal_summary" => Dict(
-                "original_hours" => full_length,
-                "trailing_source_hours_excluded_from_tdr" => trailing_hours,
-                "original_periods" => full_length ÷ period_length,
-                "period_map_rows" => nrow(output_period_map),
-                "timesteps_per_representative_period" => period_length,
-                "representative_periods" => settings.representative_periods,
-                "reduced_hours" => settings.representative_periods * period_length,
-                "period_map_path" => tdr_relative_path(case_root, map_path),
-            ),
+            "temporal_summary" => temporal_summary,
             "extreme_periods" => tdr_extreme_period_selection_data.(extreme_selections),
             "clustering" => Dict(
                 "method" => String(tdr_method_name(settings.method_settings)),
                 "method_settings" => tdr_method_settings_data(settings.method_settings),
                 "scaling" => String(settings.scaling),
                 "forced_extreme_periods" => forced_periods,
-                "regular_periods_clustered" => full_length ÷ period_length - length(forced_periods),
+                "regular_periods_clustered" => input_periods - length(forced_periods),
                 "regular_representative_periods" => settings.representative_periods - length(forced_periods),
             ),
             "clustering_features" => Dict(

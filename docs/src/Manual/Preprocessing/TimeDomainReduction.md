@@ -401,7 +401,7 @@ Extreme periods reserve representative-period slots before the remaining periods
 
 ## Temporal requirements
 
-TDR currently supports hourly inputs only. All discovered time series must cover the same explicit subperiod horizon, and that horizon must divide evenly into the requested representative-period length.
+TDR currently supports hourly inputs only. All discovered time series must cover the same explicit subperiod horizon. The requested representative-period length must not exceed the source `HoursPerSubperiod`, even for inputs without a period map: separate source periods are not assumed to form a continuous sequence.
 
 Some cases retain `TotalHoursModeled = 8760` with 52 weekly subperiods, so their explicit grid has only 52 × 168 = 8736 hours. TDR accepts a full 8760-hour source series in this case, uses its first 8736 hours, and records the remaining 24 hours in the provenance and preprocessing log. This follows MacroEnergy's existing fixed-week weighting and padding convention.
 
@@ -413,6 +413,173 @@ TDR selects actual periods from the source inputs, retains their hourly profiles
 and records which original periods they represent. The generated case uses the
 ordinary MacroEnergy loader and solver; the period map carries the information
 needed to weight the retained periods.
+
+### Function workflow
+
+The trees below show the current implementation. Function calls have parentheses;
+bracketed notes explain the purpose of a step and can name the function used.
+`IF`, `ELSE`, and `FOR EACH` identify branches and iteration. `(...)` omits
+arguments where their details would obscure the flow. The dotted connection
+below `preprocess_inputs(...)` separates the general preprocessing entry point
+from TDR; it does not represent another step implemented today. The
+[preprocessing overview](../Preprocessing.md#preprocessing-workflow) shows the
+shorter Case-level workflow.
+
+```text
+preprocess_inputs(source_root, output_root; tdr_settings_path, ...)
+⋮
+[TDR workflow within preprocessing]
+├─ [Read settings and prepare validated input data before copying]
+│  ├─ [Find number of systems using tdr_system_entries(source_root)]
+│  ├─ load_tdr_settings_by_system(tdr_settings_path, number_of_systems)
+│  └─ tdr_prepare_inputs(source_root, settings_by_system; definition)
+│     ├─ [Validate the number of settings objects against the Systems]
+│     ├─ [Read Case settings and shared cache dependencies when needed]
+│     └─ FOR EACH (system_index, settings)
+│        ├─ [Discover dependencies using tdr_system_input_manifest(...)]
+│        ├─ [Read dependency JSON into a snapshot; reuse shared JSON reads]
+│        ├─ [Read and validate the time grid using tdr_full_length(...)]
+│        ├─ tdr_build_candidate_periods(time_data, source_root, settings)
+│        │  └─ [Read an existing period map using tdr_existing_period_map(...)]
+│        ├─ [Discover physical series using tdr_sources(..., time_grid, json_data)]
+│        ├─ IF output features are enabled
+│        │  └─ [Prepare isolated Case settings using tdr_single_system_case_settings(...)]
+│        └─ IF saving or reusing output features
+│           └─ [Fingerprint source inputs using tdr_output_cache_fingerprint(...; prepared)]
+│
+├─ copy_case(source_root, output_root; prepared, settings_path, ...)
+│  ├─ [Check source/destination separation and overwrite requirements]
+│  └─ tdr_copy_input_manifest!(...; prepared, settings_path, ...)
+│     └─ [Copy Case inputs and supporting files; include an in-source TDR settings file]
+│
+├─ tdr_prepare_system_inputs!(output_root, prepared)
+│  ├─ FOR EACH prepared System
+│  │  ├─ [Translate snapshot paths using tdr_relocate_inputs(...)]
+│  │  └─ IF a multi-System Case
+│  │     ├─ [Copy each dependency using tdr_copy_system_input!(...); select time-series columns]
+│  │     └─ [Write the translated JSON snapshots into the private System tree]
+│  └─ [Write the translated System entries into system_data.json]
+│
+└─ tdr_time_domain_reduction(output_root, settings_by_system, working_inputs; ...)
+   ├─ IF output features are enabled
+   │  └─ [Obtain features before shortening any System using tdr_output_sources(...)]
+   │
+   ├─ FOR EACH prepared System
+   │  └─ tdr_reduce_system!(output_root, settings, inputs; output_data, ...)
+   │     ├─ [Reuse discovered series, time data and the candidate plan]
+   │     ├─ [Prepare retained candidate profiles using tdr_candidate_sources(...)]
+   │     ├─ [Select sources enabled for clustering using filter(...)]
+   │     ├─ [Record retained and trimmed hours using tdr_candidate_summary(...)]
+   │     ├─ IF output features are enabled
+   │     │  └─ [Append prepared features and balance shares using tdr_set_clustering_weights!(...)]
+   │     ├─ [Select forced representatives using tdr_extreme_period_selections(...)]
+   │     │
+   │     ├─ tdr_cluster(...; extreme_periods, candidate_weights=candidates.weights)
+   │     │  ├─ [Validate counts and separate forced extremes from clustering candidates]
+   │     │  ├─ FOR EACH clustering source
+   │     │  │  ├─ [Scale values using tdr_scale(...)]
+   │     │  │  └─ [Apply the feature weight and fill the matrix]
+   │     │  ├─ tdr_cluster_candidates(matrix, candidate_periods, weights, cluster_count, settings)
+   │     │  │  ├─ [Expand weighted observations using tdr_weighted_candidates(...)]
+   │     │  │  ├─ [Fit the configured method using MacroEnergyTimeReduction.cluster(...)]
+   │     │  │  ├─ [Choose distinct source candidates using tdr_distinct_representatives(...)]
+   │     │  │  └─ [Translate backend assignments to one assignment per original candidate]
+   │     │  └─ [Combine forced extremes; sort representatives; map representatives to themselves]
+   │     │
+   │     ├─ [Find selected source rows using tdr_candidate_rows(...)]
+   │     ├─ [Reduce CSV and inline JSON inputs using tdr_write_reduced_sources!(...)]
+   │     ├─ tdr_write_time_data!(..., representatives, period_map, candidates)
+   │     │  ├─ [Update period length and count using tdr_reduced_time_data(...)]
+   │     │  ├─ [Rebuild chronological occurrences using tdr_compose_period_map(...)]
+   │     │  └─ [Write period_map.csv and the time-data JSON]
+   │     └─ [Build provenance and the log using tdr_preprocess_log_data(...)]
+   │
+   ├─ IF a multi-System Case
+   │  └─ [Consolidate reduced CSVs using tdr_consolidate_shared_time_series!(..., prepared_systems)]
+   └─ [Write provenance and log using write_json(...); group by System for multi-System Cases]
+```
+
+`preprocess_inputs(...)` and `time_domain_reduction(...)` are the validated
+entry points. Preparation builds each System's candidate plan once and discovers
+its physical series once, before any destination replacement or input mutation.
+The internal orchestration and reduction functions consume prepared data rather
+than repeating that work. Path translation changes the file locations in the
+snapshots while sharing the original series values and candidate plan. No global
+prepared-input cache is retained between preprocessing calls.
+
+Each prepared System carries its dependency manifest, JSON snapshots, discovered
+`sources`, time-grid metadata, `trailing_hours`, and `candidates`, together with
+isolated Case settings and an output-cache fingerprint when needed.
+`TDRTrackedInput` describes file dependencies and required columns;
+`TDRCandidatePeriods` describes temporal ranges, chronological occurrences,
+weights, and representative labels. Consolidation uses the CSV paths and JSON
+file list already present in the prepared data, while reading the modified files
+when comparing contents and rewriting references.
+
+Single- and multi-System Cases use the same orchestration loop. A single-System
+Case retains paths in the general copy; multi-System Cases receive private trees.
+The single-System cache location and ungrouped provenance/log format are retained.
+
+The optional output-feature branch expands as follows. A valid saved cache
+bypasses the candidate solves. Otherwise each stored candidate is solved once;
+its occurrence weight influences clustering afterwards.
+
+```text
+tdr_output_sources(case_root, settings_by_system, prepared_systems; ...)
+├─ FOR EACH prepared System with output features enabled
+│  ├─ [Use the fingerprint computed during source preparation]
+│  ├─ IF reuse is enabled and saved features exist
+│  │  └─ tdr_load_output_features(...; fingerprint)
+│  │     ├─ [Valid cache: retain features and skip this System's solve tasks]
+│  │     └─ [Fingerprint mismatch: regenerate features]
+│  └─ IF features must be generated
+│     ├─ [Prepare one reusable solve snapshot using tdr_prepare_subperiod_inputs(inputs)]
+│     └─ FOR EACH candidate period
+│        ├─ IF retaining subperiod inputs
+│        │  └─ tdr_save_subperiod_inputs!(inputs, period, settings; ...)
+│        │     └─ tdr_materialize_subperiod_case!(inputs, destination, period, settings)
+│        │        ├─ tdr_copy_subperiod_case(inputs, destination)
+│        │        │  ├─ [Translate the prepared snapshot using tdr_relocate_inputs(...)]
+│        │        │  └─ [Copy dependencies and write cached JSON and isolated Case settings]
+│        │        ├─ [Select the candidate's prepared source range]
+│        │        ├─ [Write candidate rows using tdr_write_reduced_sources!(...)]
+│        │        ├─ [Set length and one subperiod using tdr_write_subperiod_time_data!(...)]
+│        │        └─ IF policy constraints are excluded
+│        │           └─ [Remove policy constraints using tdr_remove_policy_constraints!(...)]
+│        └─ [Queue a TDRSubperiodTask]
+│
+├─ IF solve tasks were queued
+│  └─ tdr_run_subperiod_tasks(tasks, inputs_by_system)
+│     ├─ IF distributed
+│     │  └─ [Cache prepared snapshots once per worker using CachingPool(...)]
+│     └─ FOR EACH task [serial or distributed]
+│        └─ tdr_run_subperiod(task, inputs)
+│           ├─ IF inputs were not retained
+│           │  └─ [Materialize temporary inputs using tdr_materialize_subperiod_case!(...)]
+│           ├─ tdr_solve_subperiod_case(...)
+│           │  └─ tdr_solve_subperiod_case_impl(...)
+│           │     ├─ [Load the isolated Case using load_case(...)]
+│           │     ├─ [Create the configured optimizer using create_optimizer(...)]
+│           │     ├─ [Solve the isolated Case using solve_case(...)]
+│           │     └─ [Postprocess the solution using postprocess!(...)]
+│           └─ [Extract selected provider outputs using tdr_subperiod_output_data(...)]
+│
+└─ FOR EACH System whose features were generated
+   ├─ [Assemble feature profiles using tdr_output_sources_from_results(...)]
+   ├─ IF saving features
+   │  └─ [Save features under source/TDR/output_features/ using tdr_write_output_features!(...)]
+   ├─ IF retaining subperiod results
+   │  └─ FOR EACH candidate result
+   │     └─ [Save results under source/TDR/subperiod_solves/ using tdr_save_subperiod_results!(...)]
+   └─ [Return feature sources and solve provenance]
+```
+
+The direct `time_domain_reduction(case_path, settings)` entry point performs the
+same validation and preparation, then joins `tdr_time_domain_reduction(...)`
+without `copy_case(...)`. It modifies the supplied Case directory. Internal
+helpers require the prepared inputs described above. Running the final reduced
+model is a separate `run_case(output_root; ...)` call; only the optional
+output-feature branch solves models during preprocessing.
 
 ### Discover and copy the inputs
 
@@ -475,13 +642,23 @@ during private copying, before representative-period rows are selected.
 
 ### Construct candidate periods and clustering profiles
 
-TDR divides the explicit horizon into consecutive blocks of
+TDR splits each source subperiod independently into complete blocks of
 `timesteps_per_representative_period` hours. These blocks are the candidate
-periods. For example, six daily source periods contain 144 hours; setting the
-period length to 24 gives six candidates, each containing a full daily profile.
+periods; they never cross source-subperiod boundaries. This is the same workflow
+for initial clustering and reclustering. Without a source period map, each
+source period occurs once. With a map, its representative's occurrence count
+becomes the weight of each child candidate.
 
-Each clustering series is scaled over the explicit horizon using the chosen
-scaling method. Its scaled values are multiplied by the square root of its
+A 168-hour source period gives seven 24-hour candidates. At a length of 20,
+it gives eight candidates and trims its final eight hours. TDR reports both the
+stored hours omitted and their occurrence-weighted represented hours, and
+records them in provenance and the preprocessing log. A single 8760-hour source
+period can similarly produce 52 weekly candidates with 24 trailing hours
+trimmed. Longer candidate periods are rejected before destination replacement;
+TDR does not join daily source periods into weeks.
+
+Each clustering series is scaled over retained candidate hours using the chosen
+scaling method. Standardization accounts for candidate occurrence weights. Its scaled values are multiplied by the square root of its
 clustering weight, so the weight controls its contribution to squared distance.
 The hourly profiles of all selected series are stacked into a matrix with one
 column per candidate period and one row per feature/timestep combination.
@@ -489,7 +666,7 @@ column per candidate period and one row per feature/timestep combination.
 If output-based features are enabled, TDR first obtains the selected provider
 profiles from isolated candidate-period solves, or loads saved profiles. It
 appends those profiles to the input features and allocates the configured
-input/output weight shares before constructing the matrix. In multi-System
+input/output weight shares before constructing the matrix. For both single- and multi-System
 cases, output profiles are obtained before any System's input horizon is
 shortened.
 
@@ -502,7 +679,12 @@ periods are removed from the regular clustering candidates and each represents
 itself in the period map.
 
 The remaining representative-period slots are filled by the configured
-clustering method. Each regular candidate is assigned to a cluster, and each
+clustering method. Candidate occurrence weights influence selection as well as
+final model weights. The clustering backend receives repeated candidate columns
+according to integer occurrence counts, divided by their common divisor to
+avoid unnecessary repetitions. This supports all configured methods, including
+autoencoder training. Unequal counts can increase backend memory and computation,
+including its pairwise distance matrix. Each regular candidate is assigned to a cluster, and each
 cluster supplies an actual source period as its representative. The final
 representatives, including forced extremes, are sorted by source-period index.
 
@@ -549,11 +731,21 @@ weighted subperiod hours sum to `TotalHoursModeled`. With 24-hour subperiods and
 `TotalHoursModeled = 144`, the two representatives above each have weight 3.
 TDR preserves `TotalHoursModeled`, even though fewer hours are explicitly stored.
 
-If the source already has a period map and the candidate-period length matches
-its existing subperiod length, TDR composes the maps. Each original period's
-previous representative index is mapped to a new representative index, while
-the original `Period_Index` rows and selected source-period labels are retained.
-This preserves the connection to the original horizon through another reduction.
+TDR rebuilds the entire period map at the requested length. Each chronological
+source occurrence expands into its retained child candidates, in order, and the
+new `Period_Index` values run from 1 to the number of child occurrences. The
+selected representative labels identify their originating occurrences in this
+new chronology; weekly indices therefore become daily indices when reclustering
+weeks into days. Equal-length reclustering uses the same process with one child
+per source period. Stored representative profiles retain their source-label order.
+
+Both reduced inputs and isolated output-feature inputs set `HoursPerSubperiod`
+for every commodity to the requested period length. `NumberOfSubperiods` is the
+number of selected representatives, or one for an isolated solve.
+`TotalHoursModeled` is preserved. Consequently, trimming redistributes omitted
+hours through the loader's weight normalization rather than reducing that
+modeled total. Long-duration storage treatment of elapsed time omitted by
+trimming remains a separate follow-up.
 
 ### Consolidate files and inspect the result
 
@@ -600,6 +792,8 @@ MacroEnergy.tdr_case_input_manifest
 MacroEnergy.tdr_system_input_manifest
 MacroEnergy.TDRTrackedInput
 MacroEnergy.tdr_system_input_path
+MacroEnergy.tdr_prepare_inputs
+MacroEnergy.tdr_cluster_candidates
 MacroEnergy.tdr_reduce_system!
 MacroEnergy.tdr_consolidate_shared_time_series!
 MacroEnergy.tdr_set_clustering_weights!

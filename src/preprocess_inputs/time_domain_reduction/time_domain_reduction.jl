@@ -3,6 +3,8 @@ include("tdr_features.jl")
 include("tdr_settings.jl")
 include("tdr_input_search.jl")
 include("tdr_time_series_sources.jl")
+include("tdr_candidate_periods.jl")
+include("tdr_prepared_inputs.jl")
 include("tdr_extreme_periods.jl")
 include("tdr_methods/tdr_methods.jl")
 include("tdr_clustering.jl")
@@ -21,123 +23,96 @@ function time_domain_reduction(
     settings;
     output_feature_run_kwargs::NamedTuple=NamedTuple(),
 )::Nothing
-    number_of_systems = length(last(tdr_system_entries(abspath(case_path))))
+    case_root = abspath(case_path)
+    definition = tdr_system_entries(case_root)
+    number_of_systems = length(last(definition))
     parsed_settings = settings isa Vector{TDRSettings} ? settings : settings isa TDRSettings ?
         [deepcopy(settings) for _ in 1:number_of_systems] :
         load_tdr_settings_by_system(settings, number_of_systems)
     @info "*** Time-domain reduction ***"
-    tdr_time_domain_reduction(abspath(case_path), parsed_settings; output_feature_run_kwargs)
+    prepared = tdr_prepare_inputs(case_root, parsed_settings; definition)
+    working_inputs = tdr_prepare_system_inputs!(case_root, prepared)
+    tdr_time_domain_reduction(case_root, parsed_settings, working_inputs; output_feature_run_kwargs)
     return nothing
 end
 
 function tdr_time_domain_reduction(
     case_path::AbstractString,
-    settings_by_system::Vector{TDRSettings};
+    settings_by_system::Vector{TDRSettings},
+    prepared;
     source_case_path::AbstractString=case_path,
     output_feature_run_kwargs::NamedTuple=NamedTuple(),
-    inputs_prepared::Bool=false,
 )
     case_root = abspath(case_path)
-    number_of_systems = inputs_prepared ? length(last(tdr_system_entries(case_root))) :
-        tdr_prepare_system_inputs!(case_root; source_case_root=source_case_path)
-    length(settings_by_system) == number_of_systems || throw(ArgumentError(
-        "TDR received $(length(settings_by_system)) settings objects for a Case with $number_of_systems Systems.",
-    ))
-    if number_of_systems == 1
-        return tdr_reduce_system!(case_root, only(settings_by_system), 1;
-            source_case_path,
-            output_feature_run_kwargs,
-        )
-    end
+    number_of_systems = length(prepared.systems)
     @info " -- Reducing $number_of_systems Systems independently."
     output_sources = nothing
     if any(settings -> !isnothing(settings.output_features), settings_by_system)
-        full_lengths = Dict(index => first(tdr_full_length(tdr_system_time_data_path(case_root, index)))
-            for index in 1:number_of_systems)
-        output_sources = tdr_output_sources(case_root, settings_by_system, full_lengths;
-            run_case_kwargs=output_feature_run_kwargs, artifact_root=abspath(source_case_path))
+        output_sources = tdr_output_sources(case_root, settings_by_system, prepared.systems;
+            run_case_kwargs=output_feature_run_kwargs, artifact_root=abspath(source_case_path),
+            system_scoped=number_of_systems > 1)
     end
     system_records = Dict{String,Any}()
     system_logs = Dict{String,Any}()
     for index in 1:number_of_systems
         @info " -- Time-clustering System $index of $number_of_systems."
-        record = tdr_reduce_system!(case_root, settings_by_system[index], index;
+        record = tdr_reduce_system!(case_root, settings_by_system[index], prepared.systems[index];
             source_case_path,
-            output_feature_run_kwargs,
-            precomputed_output=isnothing(output_sources) || !haskey(output_sources, index) ? nothing : output_sources[index],
-            write_root_records=false)
+            output_data=isnothing(output_sources) ? nothing : get(output_sources, index, nothing))
         system_records["system_$index"] = record.provenance
         system_logs["system_$index"] = record.log["time_domain_reduction"]
     end
-    tdr_consolidate_shared_time_series!(case_root, settings_by_system, number_of_systems)
-    write_json(joinpath(case_root, "time_domain_reduction_provenance.json"), Dict(
+    if number_of_systems > 1
+        tdr_consolidate_shared_time_series!(case_root, prepared.systems)
+    end
+    # Preserve the established single-System record layout; only serialization
+    # and shared-file consolidation depend on the number of Systems.
+    provenance = number_of_systems == 1 ? only(values(system_records)) : Dict(
         "source_case_path" => abspath(source_case_path), "systems" => system_records,
-    ))
-    write_json(joinpath(case_root, "preprocess_log.json"), Dict(
-        "time_domain_reduction" => Dict("systems" => system_logs),
-    ))
+    )
+    tdr_log = number_of_systems == 1 ? only(values(system_logs)) : Dict("systems" => system_logs)
+    write_json(joinpath(case_root, "time_domain_reduction_provenance.json"), provenance)
+    write_json(joinpath(case_root, "preprocess_log.json"), Dict("time_domain_reduction" => tdr_log))
     @info "Finished time-domain reduction for $number_of_systems Systems in `$case_root`."
     return nothing
 end
 
-function tdr_time_domain_reduction(
-    case_path::AbstractString,
-    parsed_settings::TDRSettings;
-    source_case_path::AbstractString=case_path,
-    output_feature_run_kwargs::NamedTuple=NamedTuple(),
-    system_index::Union{Nothing,Int}=nothing,
-    precomputed_output=nothing,
-    write_root_records::Bool=true,
-    inputs_prepared::Bool=false,
-)
-    case_root = abspath(case_path)
-    if !isnothing(system_index)
-        return tdr_reduce_system!(case_root, parsed_settings, system_index;
-            source_case_path,
-            output_feature_run_kwargs,
-            precomputed_output,
-            write_root_records,
-        )
-    end
-    number_of_systems = inputs_prepared ? length(last(tdr_system_entries(case_root))) :
-        tdr_prepare_system_inputs!(case_root; source_case_root=source_case_path)
-    settings_by_system = [deepcopy(parsed_settings) for _ in 1:number_of_systems]
-    return tdr_time_domain_reduction(case_root, settings_by_system;
-        source_case_path,
-        output_feature_run_kwargs,
-        inputs_prepared=true,
-    )
-end
+"""
+    tdr_reduce_system!(case_root, settings, inputs; source_case_path, output_data)
 
-"""Reduce one System after its case inputs have been prepared."""
+Reduce one System using its prepared inputs from [`tdr_prepare_inputs`](@ref),
+translated by `tdr_prepare_system_inputs!`. Output features, when enabled, must
+already be supplied in `output_data`. The caller writes root provenance/logs.
+"""
 function tdr_reduce_system!(
     case_root::String,
     parsed_settings::TDRSettings,
-    system_index::Int;
+    inputs;
     source_case_path::AbstractString=case_root,
-    output_feature_run_kwargs::NamedTuple=NamedTuple(),
-    precomputed_output=nothing,
-    write_root_records::Bool=true,
+    output_data=nothing,
 )
-    isdir(case_root) || throw(ArgumentError("Case directory does not exist: $case_root"))
-    sources, clustering_sources, full_length, time_data_path, time_data, trailing_hours =
-        tdr_sources(case_root, parsed_settings; system_index)
-    input_periods = full_length ÷ parsed_settings.timesteps_per_representative_period
-    @info " -- Found $(length(sources)) unique input time series over $input_periods complete periods ($(full_length) hours)."
+    (; system_index, sources, full_length, time_data_path, time_data, trailing_hours, candidates) = inputs
+    sources = copy(sources)
+    candidate_sources = tdr_candidate_sources(sources, candidates)
+    clustering_sources = filter(source -> source.include_in_clustering, candidate_sources)
+    candidate_length = tdr_candidate_length(candidates)
+    input_periods = length(candidates.ranges)
+    @info " -- Found $(length(sources)) unique input time series over $input_periods complete candidates ($candidate_length retained hours)."
+    summary = tdr_candidate_summary(candidates)
+    candidates.trimmed_hours_per_source_period > 0 && @info " ++ Trimming $(candidates.trimmed_hours_per_source_period) hours from each source subperiod: $(summary["trimmed_stored_hours"]) stored hours, $(summary["trimmed_represented_hours"]) represented hours. Weights retain TotalHoursModeled and redistribute omitted hours."
     trailing_hours > 0 && @info " ++ Excluding $trailing_hours trailing source hours from clustering because they do not complete a representative period."
     subperiod_results = nothing
     if !isnothing(parsed_settings.output_features)
         input_sources = copy(clustering_sources)
-        output_sources, subperiod_results = isnothing(precomputed_output) ?
-            tdr_output_sources(case_root, parsed_settings, full_length;
-                run_case_kwargs=output_feature_run_kwargs, artifact_root=abspath(source_case_path)) : precomputed_output
+        output_sources, subperiod_results = output_data
         append!(sources, output_sources)
+        append!(candidate_sources, output_sources)
         append!(clustering_sources, output_sources)
         tdr_set_clustering_weights!(input_sources, output_sources, parsed_settings.output_features.weight)
     end
     @info " -- Selecting representative periods using $(length(clustering_sources)) clustering time series."
     extreme_selections = tdr_extreme_period_selections(
-        sources,
+        candidate_sources,
         parsed_settings.timesteps_per_representative_period,
         parsed_settings,
         case_root,
@@ -145,11 +120,12 @@ function tdr_reduce_system!(
     extreme_periods = sort!(unique(Int[selection.period for selection in extreme_selections]))
     representatives, period_map = tdr_cluster(
         clustering_sources,
-        full_length,
+        candidate_length,
         parsed_settings;
         extreme_periods,
+        candidate_weights=candidates.weights,
     )
-    row_indices = tdr_row_indices(representatives, parsed_settings.timesteps_per_representative_period)
+    row_indices = tdr_candidate_rows(candidates, representatives)
     @info " -- Writing $(length(representatives)) representative periods ($(length(row_indices)) hours) to the copied inputs."
     tdr_write_reduced_sources!(sources, row_indices)
     clear_csv_cache!()
@@ -157,9 +133,9 @@ function tdr_reduce_system!(
         time_data_path,
         case_root,
         time_data,
-        parsed_settings,
         representatives,
         period_map,
+        candidates,
     )
     @info " ++ Reduced $input_periods input periods to $(length(representatives)) representative periods; wrote period map to `$(relpath(map_path, case_root))`."
     provenance = Dict(
@@ -189,8 +165,10 @@ function tdr_reduce_system!(
             ),
         ),
         "representative_periods" => representatives,
+        "representative_period_labels" => candidates.labels[representatives],
         "forced_extreme_periods" => extreme_periods,
         "trailing_source_hours_excluded_from_tdr" => trailing_hours,
+        "candidate_periods" => summary,
         "period_map_path" => relpath(map_path, case_root),
         "subperiod_solves" => isnothing(parsed_settings.output_features) ? nothing : subperiod_results,
     )
@@ -205,12 +183,9 @@ function tdr_reduce_system!(
         map_path,
         case_root,
         trailing_hours,
-        subperiod_results,
+        subperiod_results;
+        candidates,
     )
-    if write_root_records
-        write_json(joinpath(case_root, "time_domain_reduction_provenance.json"), provenance)
-        write_json(joinpath(case_root, "preprocess_log.json"), log_data)
-    end
     @info " -- Finished time-domain reduction for System $system_index in `$case_root`."
     return (provenance=provenance, log=log_data)
 end

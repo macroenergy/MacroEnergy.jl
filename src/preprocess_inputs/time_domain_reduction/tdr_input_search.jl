@@ -198,11 +198,26 @@ function tdr_system_input_manifest(case_root::String, system;
 end
 
 """Return the complete ordinary-input copy manifest rooted at `system_data.json`."""
-function tdr_case_input_manifest(case_root::String; destination_root::String=case_root)
+function tdr_case_input_manifest(case_root::String; destination_root::String=case_root, prepared=nothing)
     root_file = joinpath(case_root, "system_data.json")
     isfile(root_file) || throw(ArgumentError("Case has no system_data.json at $(abspath(root_file))"))
     manifest = Dict{String,TDRTrackedInput}()
-    tdr_collect_manifest_paths!(manifest, case_root, root_file; destination_root)
+    if isnothing(prepared)
+        tdr_collect_manifest_paths!(manifest, case_root, root_file; destination_root)
+    else
+        tdr_manifest_path!(manifest, case_root, root_file; destination_root)
+        case_definition = Dict(key => value for (key, value) in prepared.root if key != "case")
+        if haskey(prepared.root, "case")
+            tdr_collect_manifest_references!(manifest, case_root, case_definition, Set{String}();
+                recursive_directories=false, destination_root)
+        end
+        if length(prepared.systems) == 1
+            for input in values(only(prepared.systems).manifest)
+                manifest[input.source_path] = TDRTrackedInput(input.source_path,
+                    joinpath(destination_root, relpath(input.source_path, case_root)), nothing)
+            end
+        end
+    end
     for (directory, subdirectories, files) in walkdir(case_root)
         filter!(name -> !startswith(name, "results") &&
             !(directory == case_root && name == "TDR"), subdirectories)
@@ -218,7 +233,7 @@ function tdr_case_input_manifest(case_root::String; destination_root::String=cas
     return manifest
 end
 
-function tdr_copy_input_manifest!(source_root::String, output_root::String; copy_result_files::Bool=false, settings_path::Union{Nothing,String}=nothing)
+function tdr_copy_input_manifest!(source_root::String, output_root::String; copy_result_files::Bool=false, settings_path::Union{Nothing,String}=nothing, prepared=nothing)
     if !isfile(joinpath(source_root, "system_data.json"))
         for source_path in readdir(source_root; join=true)
             basename(source_path) == "TDR" && continue
@@ -228,9 +243,9 @@ function tdr_copy_input_manifest!(source_root::String, output_root::String; copy
         end
         return nothing
     end
-    manifest = tdr_case_input_manifest(source_root; destination_root=output_root)
+    manifest = tdr_case_input_manifest(source_root; destination_root=output_root, prepared)
     root, systems = tdr_system_entries(source_root)
-    if length(systems) > 1
+    if length(systems) > 1 && isnothing(prepared)
         case_inputs = tdr_system_input_manifest(source_root,
             Dict(key => value for (key, value) in root if key != "case"))
         additions = user_additions_path(source_root)
@@ -275,32 +290,12 @@ function tdr_system_entries(case_root::String)
     return root, Any[root]
 end
 
-function tdr_system_json_files(case_root::String, system_index::Int)
-    root, systems = tdr_system_entries(case_root)
-    1 <= system_index <= length(systems) || throw(ArgumentError("System $system_index is outside the case's $(length(systems)) Systems."))
-    files = Set{String}()
-    function collect_json_path(reference_path::String)
-        target = abspath(joinpath(case_root, reference_path))
-        if ispath(target)
-            tdr_path_within_case(case_root, target) || throw(ArgumentError("TDR does not support input paths outside the case directory: $target"))
-            if isdir(target)
-                for name in get_json_files(target)
-                    tdr_collect_json_files!(files, case_root, joinpath(target, name))
-                end
-            elseif isjson(target)
-                tdr_collect_json_files!(files, case_root, target)
-            end
-        end
-        return nothing
-    end
-    tdr_visit_input_paths!(collect_json_path, systems[system_index])
-    !haskey(root, "case") && push!(files, joinpath(case_root, "system_data.json"))
-    return sort!(collect(files))
-end
-
 function tdr_system_time_data_path(case_root::String, system_index::Int)
     _, systems = tdr_system_entries(case_root)
-    system = systems[system_index]
+    return tdr_system_time_data_path(case_root, systems[system_index]; system_index)
+end
+
+function tdr_system_time_data_path(case_root::String, system::AbstractDict; system_index::Int=1)
     haskey(system, "time_data") && system["time_data"] isa AbstractDict &&
         haskey(system["time_data"], "path") || throw(ArgumentError(
             "System $system_index must define `time_data.path` in system_data.json.",
@@ -343,28 +338,34 @@ function tdr_rewrite_input_paths!(data, source_root::String, destination_root::S
     return nothing
 end
 
-function tdr_prepare_system_inputs!(case_root::String; source_case_root::String=case_root)
-    root, systems = tdr_system_entries(case_root)
-    length(systems) == 1 && return 1
-    source_root = abspath(source_case_root)
-    # Discover all Systems before changing files, including for in-place reduction.
-    manifests = [tdr_system_input_manifest(source_root, system;
-        destination_root=case_root, system_index=index) for (index, system) in enumerate(systems)]
-    for (system_index, manifest) in enumerate(manifests)
-        inputs = sort!(collect(values(manifest)); by=input -> input.source_path)
-        for input in inputs
-            tdr_copy_system_input!(input)
+"""Copy prepared dependencies and translate their snapshots to the working Case."""
+function tdr_prepare_system_inputs!(case_root::String, prepared)
+    number_of_systems = length(prepared.systems)
+    working = map(prepared.systems) do inputs
+        relocated = tdr_relocate_inputs(inputs, case_root;
+            private_index=number_of_systems > 1 ? inputs.system_index : nothing)
+        if number_of_systems > 1
+            for (path, input) in inputs.manifest
+                destination = tdr_system_input_path(case_root, inputs.system_index,
+                    joinpath(case_root, relpath(path, inputs.source_root)))
+                isfile(path) && isjson(path) && continue
+                tdr_copy_system_input!(TDRTrackedInput(path, destination, input.columns))
+            end
+            for (path, data) in relocated.json_data
+                mkpath(dirname(path))
+                write_json(path, data)
+            end
         end
-        for input in inputs
-            isfile(input.source_path) && isjson(input.source_path) || continue
-            data = mutable_json_data(read_json(input.destination_path))
-            tdr_rewrite_input_paths!(data, source_root, case_root, manifest)
-            write_json(input.destination_path, data)
-        end
-        tdr_rewrite_input_paths!(systems[system_index], source_root, case_root, manifest)
+        relocated
+    end
+    root = deepcopy(prepared.root)
+    if haskey(root, "case")
+        root["case"] = [inputs.system for inputs in working]
+    else
+        root = only(working).system
     end
     write_json(joinpath(case_root, "system_data.json"), root)
-    return length(systems)
+    return merge(prepared, (; source_root=case_root, root, systems=working))
 end
 
 """Copy an ordinary input intact, or retain only the requested time-series columns."""
@@ -402,11 +403,10 @@ function tdr_shared_input_path(case_root::String, path::String)
 end
 
 """Consolidate byte-identical reduced CSV inputs while retaining divergent System copies."""
-function tdr_consolidate_shared_time_series!(case_root::String, settings_by_system::Vector{TDRSettings}, number_of_systems::Int)
+function tdr_consolidate_shared_time_series!(case_root::String, prepared_systems)
     source_paths = Dict{String,Vector{String}}()
-    for system_index in 1:number_of_systems
-        sources, _, _, _, _, _ = tdr_sources(case_root, settings_by_system[system_index]; system_index)
-        for source in sources
+    for inputs in prepared_systems
+        for source in inputs.sources
             isnothing(source.csv_path) && continue
             shared_path = tdr_shared_input_path(case_root, source.csv_path)
             isnothing(shared_path) && continue
@@ -437,8 +437,8 @@ function tdr_consolidate_shared_time_series!(case_root::String, settings_by_syst
     end
     isempty(replacements) && return nothing
 
-    for system_index in 1:number_of_systems
-        for json_path in tdr_system_json_files(case_root, system_index)
+    for inputs in prepared_systems
+        for json_path in keys(inputs.json_data)
             data = mutable_json_data(read_json(json_path))
             tdr_rewrite_input_paths!(data, case_root, case_root, replacements)
             write_json(json_path, data)

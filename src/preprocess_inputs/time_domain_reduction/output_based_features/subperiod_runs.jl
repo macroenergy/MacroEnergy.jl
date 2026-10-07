@@ -83,14 +83,8 @@ function tdr_solve_subperiod_case_impl(case_root::String, run_case_kwargs::Named
     end
 end
 
-function tdr_run_subperiod(
-    source_case_root::String,
-    system_index::Int,
-    period::Int,
-    settings::TDRSettings,
-    run_case_kwargs::NamedTuple,
-    subperiod_case_root::Union{Nothing,String}=nothing,
-)
+function tdr_run_subperiod(task::TDRSubperiodTask, inputs)
+    (; system_index, period, settings, run_case_kwargs, subperiod_case_root) = task
     function solve_subperiod(case_root::String)
         try
             system = tdr_solve_subperiod_case(case_root, run_case_kwargs)
@@ -111,31 +105,18 @@ function tdr_run_subperiod(
     end
     return mktempdir() do temporary_root
         temporary_case_root = joinpath(temporary_root, "case")
-        tdr_materialize_subperiod_case!(source_case_root, temporary_case_root, period, settings; system_index)
+        tdr_materialize_subperiod_case!(inputs, temporary_case_root, period, settings)
         solve_subperiod(temporary_case_root)
     end
 end
 
-function tdr_run_subperiod_quietly(args...)
+function tdr_run_subperiod_quietly(task::TDRSubperiodTask, inputs)
     return with_logger(NullLogger()) do
-        tdr_run_subperiod(args...)
+        tdr_run_subperiod(task, inputs)
     end
 end
 
-function tdr_run_subperiod_quietly(task::TDRSubperiodTask)
-    return with_logger(NullLogger()) do
-        tdr_run_subperiod(
-            task.source_case_root,
-            task.system_index,
-            task.period,
-            task.settings,
-            task.run_case_kwargs,
-            task.subperiod_case_root,
-        )
-    end
-end
-
-function tdr_run_subperiod_tasks(tasks::Vector{TDRSubperiodTask})
+function tdr_run_subperiod_tasks(tasks::Vector{TDRSubperiodTask}, inputs_by_system)
     worker_ids = Int[]
     distributed = any(task -> task.settings.output_features.subperiod_runs.distributed, tasks)
     maximum_workers = maximum(task.settings.output_features.subperiod_runs.workers for task in tasks)
@@ -155,7 +136,16 @@ function tdr_run_subperiod_tasks(tasks::Vector{TDRSubperiodTask})
         tdr_register_workers!(new_workers)
         worker_ids = copy(new_workers)
         try
-            pmap(tdr_run_subperiod_quietly, WorkerPool(new_workers), tasks)
+            # Cache the captured per-System snapshots once per worker rather than
+            # serializing their full profiles with every candidate task.
+            pool = CachingPool(new_workers)
+            try
+                let prepared = inputs_by_system
+                    pmap(task -> tdr_run_subperiod_quietly(task, prepared[task.system_index]), pool, tasks)
+                end
+            finally
+                clear!(pool)
+            end
         finally
             tdr_release_workers!(new_workers)
         end
@@ -163,14 +153,7 @@ function tdr_run_subperiod_tasks(tasks::Vector{TDRSubperiodTask})
         results = Any[]
         for (index, task) in enumerate(tasks)
             @info " -- Running output-based TDR System $(task.system_index) subperiod $(task.period) ($(index) of $(length(tasks)))."
-            push!(results, tdr_run_subperiod(
-                task.source_case_root,
-                task.system_index,
-                task.period,
-                task.settings,
-                task.run_case_kwargs,
-                task.subperiod_case_root,
-            ))
+            push!(results, tdr_run_subperiod(task, inputs_by_system[task.system_index]))
         end
         results
     end

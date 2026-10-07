@@ -26,8 +26,10 @@ function preprocess_inputs(
     output_root = abspath(output_case_path)
     isdir(source_root) || throw(ArgumentError("Source case directory does not exist: $source_root"))
 
-    number_of_systems = length(last(tdr_system_entries(source_root)))
+    definition = tdr_system_entries(source_root)
+    number_of_systems = length(last(definition))
     settings_by_system = load_tdr_settings_by_system(abspath(tdr_settings_path), number_of_systems)
+    prepared = tdr_prepare_inputs(source_root, settings_by_system; definition)
 
     @info "*** Preprocessing inputs ***"
 
@@ -38,17 +40,18 @@ function preprocess_inputs(
         overwrite,
         copy_result_files,
         settings_path=abspath(tdr_settings_path),
+        prepared,
     )
     @info "Applying time-domain reduction."
 
-    tdr_prepare_system_inputs!(output_root; source_case_root=source_root)
+    working_inputs = tdr_prepare_system_inputs!(output_root, prepared)
 
     tdr_time_domain_reduction(
         output_root,
-        settings_by_system;
+        settings_by_system,
+        working_inputs;
         source_case_path=source_root,
         output_feature_run_kwargs,
-        inputs_prepared=true,
     )
     @info "Finished preprocessing inputs in `$output_root`."
     @info "*** Finished preprocessing inputs ***"
@@ -61,6 +64,7 @@ function copy_case(
     overwrite::Bool=false,
     copy_result_files::Bool=false,
     settings_path::Union{Nothing,String}=nothing,
+    prepared=nothing,
 )
     source_location = tdr_case_location(source_root)
     output_location = tdr_case_location(output_root)
@@ -93,7 +97,7 @@ function copy_case(
         rm(output_root; recursive=true, force=true)
     end
     mkpath(output_root)
-    tdr_copy_input_manifest!(source_root, output_root; copy_result_files, settings_path)
+    tdr_copy_input_manifest!(source_root, output_root; copy_result_files, settings_path, prepared)
     return nothing
 end
 

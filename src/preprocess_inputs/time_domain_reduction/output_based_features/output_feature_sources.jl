@@ -32,7 +32,7 @@ end
 function tdr_output_sources(
     case_root::String,
     settings_by_system::Vector{TDRSettings},
-    full_lengths::Dict{Int,Int};
+    prepared_systems;
     run_case_kwargs::NamedTuple=NamedTuple(),
     artifact_root::String=case_root,
     system_scoped::Bool=true,
@@ -40,10 +40,12 @@ function tdr_output_sources(
     output_data = Dict{Int,Any}()
     tasks = TDRSubperiodTask[]
     input_paths = Dict{Tuple{Int,Int},Union{Nothing,String}}()
-    file_hashes = Dict{String,String}()
+    inputs_by_system = Dict{Int,Any}()
     fingerprints = Dict{Int,TDROutputCacheFingerprint}()
     solver_provenance = tdr_output_solver_provenance(run_case_kwargs)
-    for (system_index, full_length) in sort!(collect(full_lengths); by=first)
+    for inputs in prepared_systems
+        system_index = inputs.system_index
+        full_length = tdr_candidate_length(inputs.candidates)
         tdr_settings = settings_by_system[system_index]
         settings = tdr_settings.output_features
         isnothing(settings) && continue
@@ -51,8 +53,7 @@ function tdr_output_sources(
         artifact_system_index = system_scoped ? system_index : nothing
         cache_path = tdr_output_features_directory(artifact_root; system_index=artifact_system_index)
         if settings.reuse_saved_features || settings.save_features
-            fingerprints[system_index] = tdr_output_cache_fingerprint(artifact_root, tdr_settings, full_length;
-                system_index=artifact_system_index, file_hashes)
+            fingerprints[system_index] = inputs.cache_fingerprint
         end
         if settings.reuse_saved_features && tdr_saved_output_features_exist(artifact_root; system_index=artifact_system_index)
             @info " -- Loading saved output-based TDR features for System $system_index from `$(cache_path)`."
@@ -79,12 +80,13 @@ function tdr_output_sources(
         elseif settings.reuse_saved_features
             @warn "Saved output-based TDR features were requested for System $system_index but do not exist under `$(cache_path)`; generating new features instead."
         end
-        n_periods = full_length ÷ period_length
+        subperiod_inputs = tdr_prepare_subperiod_inputs(inputs)
+        inputs_by_system[system_index] = settings.subperiod_runs.save_subperiod_inputs ? nothing : subperiod_inputs
+        n_periods = length(inputs.candidates.ranges)
         for period in 1:n_periods
             input_path = nothing
             if settings.subperiod_runs.save_subperiod_inputs
-                input_path = tdr_save_subperiod_inputs!(case_root, period, tdr_settings;
-                    system_index, artifact_root)
+                input_path = tdr_save_subperiod_inputs!(subperiod_inputs, period, tdr_settings; artifact_root)
             end
             input_paths[(system_index, period)] = input_path
             push!(tasks, TDRSubperiodTask(case_root, system_index, period, tdr_settings, run_case_kwargs, input_path))
@@ -102,9 +104,11 @@ function tdr_output_sources(
         load_user_additions(case_root)
         refresh_user_type_registries!()
     end
-    results, worker_ids = tdr_run_subperiod_tasks(tasks)
+    results, worker_ids = tdr_run_subperiod_tasks(tasks, inputs_by_system)
     @info " -- Finished $(length(tasks)) output-based TDR subperiod solves."
-    for (system_index, full_length) in full_lengths
+    for inputs in prepared_systems
+        system_index = inputs.system_index
+        full_length = tdr_candidate_length(inputs.candidates)
         haskey(output_data, system_index) && continue
         tdr_settings = settings_by_system[system_index]
         settings = tdr_settings.output_features
@@ -140,16 +144,4 @@ function tdr_output_sources(
         output_data[system_index] = (sources, metadata)
     end
     return output_data
-end
-
-function tdr_output_sources(
-    case_root::String,
-    tdr_settings::TDRSettings,
-    full_length::Int;
-    run_case_kwargs::NamedTuple=NamedTuple(),
-    artifact_root::String=case_root,
-)
-    output_data = tdr_output_sources(case_root, [tdr_settings], Dict(1 => full_length);
-        run_case_kwargs, artifact_root, system_scoped=false)
-    return output_data[1]
 end

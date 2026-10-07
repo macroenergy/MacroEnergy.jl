@@ -125,7 +125,8 @@ end
         saved = MacroEnergy.mutable_json_data(MacroEnergy.read_json(
             MacroEnergy.tdr_output_metadata_path(source; system_index=1)))
         @test saved["fingerprint"] == legacy_fingerprint
-        reused = MacroEnergy.tdr_output_sources(source, [settings, settings], Dict(1 => 4);
+        reused = MacroEnergy.tdr_output_sources(source, [settings, settings],
+            MacroEnergy.tdr_prepare_inputs(source, [settings, settings]).systems[1:1];
             run_case_kwargs=(optimizer=:different, optimizer_attributes=("tolerance" => 0.1,)))
         @test only(reused[1][2])["reused_saved_features"]
         @test only(reused[1][2])["solver_provenance"] == solver
@@ -237,7 +238,10 @@ end
                     "output_based_features" => Dict("weight" => 0.5, "features" => [Dict("provider" => "flow")],
                         "subperiod_runs" => Dict("include_policy_constraints" => true))))
                 index = representation == :multi ? 2 : nothing
-                MacroEnergy.tdr_materialize_subperiod_case!(source, destination, 2, settings; system_index=index)
+                prepared = MacroEnergy.tdr_prepare_inputs(source,
+                    fill(settings, representation == :multi ? 2 : 1))
+                subperiod_inputs = MacroEnergy.tdr_prepare_subperiod_inputs(prepared.systems[something(index, 1)])
+                MacroEnergy.tdr_materialize_subperiod_case!(subperiod_inputs, destination, 2, settings)
                 # Follow the standalone-System loader's actual settings discovery/configuration.
                 discovered = MacroEnergy.single_system_case_settings(joinpath(destination, "system_data.json"))
                 configured = MacroEnergy.configure_case(discovered, destination)

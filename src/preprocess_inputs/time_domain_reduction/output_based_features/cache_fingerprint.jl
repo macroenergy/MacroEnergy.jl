@@ -108,20 +108,26 @@ function tdr_output_cache_fingerprint(
     case_root::String, settings::TDRSettings, full_length::Int;
     system_index::Union{Nothing,Int}=nothing,
     file_hashes::Dict{String,String}=Dict{String,String}(),
+    prepared=nothing,
 )
     case_root = abspath(case_root)
-    root, systems = tdr_system_entries(case_root)
-    index = isnothing(system_index) ? 1 : system_index
-    system = systems[index]
-    manifest = tdr_system_input_manifest(case_root, system)
-    case_definition = haskey(root, "case") ? Dict(key => value for (key, value) in root if key != "case") : Dict()
-    tdr_collect_manifest_references!(manifest, case_root, case_definition, Set{String}();
-        recursive_directories=false)
-    # Bare single-System cases also load this conventional settings file implicitly.
-    implicit_settings = joinpath(case_root, "settings", "case_settings.json")
-    isfile(implicit_settings) && tdr_collect_manifest_paths!(manifest, case_root, implicit_settings)
-    additions = user_additions_path(case_root)
-    isdir(additions) && tdr_collect_manifest_paths!(manifest, case_root, additions)
+    system, case_definition, manifest = if isnothing(prepared)
+        root, systems = tdr_system_entries(case_root)
+        index = isnothing(system_index) ? 1 : system_index
+        system = systems[index]
+        manifest = tdr_system_input_manifest(case_root, system)
+        case_definition = haskey(root, "case") ? Dict(key => value for (key, value) in root if key != "case") : Dict()
+        tdr_collect_manifest_references!(manifest, case_root, case_definition, Set{String}();
+            recursive_directories=false)
+        # Bare single-System cases also load this conventional settings file implicitly.
+        implicit_settings = joinpath(case_root, "settings", "case_settings.json")
+        isfile(implicit_settings) && tdr_collect_manifest_paths!(manifest, case_root, implicit_settings)
+        additions = user_additions_path(case_root)
+        isdir(additions) && tdr_collect_manifest_paths!(manifest, case_root, additions)
+        system, case_definition, manifest
+    else
+        prepared.system, prepared.case_definition, prepared.manifest
+    end
     files = [TDROutputCacheFile(
         tdr_normalize_path(relpath(path, case_root)),
         get!(file_hashes, path) do

@@ -22,97 +22,87 @@ function tdr_remove_policy_constraints!(value, policy_names::Set{String})
     return nothing
 end
 
-function tdr_write_subperiod_time_data!(time_data_path::String, source_time_data::Dict{String,Any})
-    data = deepcopy(source_time_data)
-    data["NumberOfSubperiods"] = 1
-    pop!(data, "SubPeriodMap", nothing)
+function tdr_write_subperiod_time_data!(time_data_path::String, source_time_data::Dict{String,Any}, period_length::Int)
+    data = tdr_reduced_time_data(source_time_data, period_length, 1)
     write_json(time_data_path, data)
     return nothing
 end
 
-function tdr_copy_subperiod_case(
-    source_case_root::String,
-    destination_case_root::String;
-    system_index::Union{Nothing,Int}=nothing,
-)
-    _, systems = tdr_system_entries(source_case_root)
-    index = isnothing(system_index) ? 1 : system_index
-    1 <= index <= length(systems) || throw(ArgumentError(
-        "System $index is outside the case's $(length(systems)) Systems.",
-    ))
-    length(systems) > 1 && isnothing(system_index) && throw(ArgumentError(
-        "Multi-System subperiod cases require a system_index.",
-    ))
-    system = deepcopy(systems[index])
-    manifest = tdr_system_input_manifest(source_case_root, system;
-        destination_root=destination_case_root)
-    additions = user_additions_path(source_case_root)
+"""Prepare the reusable dependency snapshot for isolated candidate solves."""
+function tdr_prepare_subperiod_inputs(inputs)
+    manifest = copy(inputs.manifest)
+    additions = user_additions_path(inputs.source_root)
     if isdir(additions)
-        tdr_collect_manifest_paths!(manifest, source_case_root, additions;
-            destination_root=destination_case_root)
+        tdr_collect_manifest_paths!(manifest, inputs.source_root, additions;
+            destination_root=inputs.source_root)
     end
-    mkpath(destination_case_root)
-    for input in sort!(collect(values(manifest)); by=input -> input.source_path)
-        tdr_copy_system_input!(input)
-        isfile(input.source_path) && isjson(input.source_path) || continue
-        data = mutable_json_data(read_json(input.destination_path))
-        tdr_rewrite_input_paths!(data, source_case_root, destination_case_root, manifest)
-        write_json(input.destination_path, data)
+    json_data = copy(inputs.json_data)
+    for path in keys(manifest)
+        isfile(path) && isjson(path) && !haskey(json_data, path) || continue
+        json_data[path] = mutable_json_data(read_json(path))
     end
-    tdr_rewrite_input_paths!(system, source_case_root, destination_case_root, manifest)
-    write_json(joinpath(destination_case_root, "system_data.json"), system)
-    tdr_write_single_system_case_settings!(source_case_root, destination_case_root, index)
-    return nothing
+    return merge(inputs, (; manifest, json_data))
 end
 
-function tdr_write_single_system_case_settings!(
-    source_case_root::String,
-    destination_case_root::String,
-    system_index::Int,
-)
-    root, _ = tdr_system_entries(source_case_root)
-    # Match the loader's Case-settings discovery for explicit Cases and bare Systems.
+function tdr_read_case_settings(case_root::String, root)
     source_settings = haskey(root, "case") ? get(root, "settings", default_case_settings()) :
-        single_system_case_settings(joinpath(source_case_root, "system_data.json"))
+        single_system_case_settings(joinpath(case_root, "system_data.json"))
     settings = Dict{String,Any}(String(key) => value for (key, value) in source_settings)
     if haskey(settings, "path")
-        source_path = abspath(joinpath(source_case_root, String(settings["path"])))
+        source_path = abspath(joinpath(case_root, String(settings["path"])))
         isfile(source_path) || throw(ArgumentError("Case settings file does not exist: $source_path"))
         settings = mutable_json_data(read_json(source_path))
     end
-    settings = merge(Dict{String,Any}(String(key) => value for (key, value) in default_case_settings()), settings)
-    lengths = get(settings, "PeriodLengths", nothing)
+    return settings
+end
+
+function tdr_single_system_case_settings(source_settings, system_index::Int)
+    settings = deepcopy(source_settings)
+    defaults = Dict{String,Any}(String(key) => value for (key, value) in default_case_settings())
+    lengths = get(settings, "PeriodLengths", defaults["PeriodLengths"])
     lengths isa AbstractVector && length(lengths) >= system_index || throw(ArgumentError(
         "Case settings `PeriodLengths` must contain a period length for System $system_index.",
     ))
     settings["PeriodLengths"] = Any[lengths[system_index]]
     settings["ExpansionHorizon"] = "PerfectForesight"
-    # Omit missing defaults (e.g. StartYear): JSON null would reload as nothing.
-    filter!(entry -> !ismissing(last(entry)), settings)
-    destination_path = joinpath(destination_case_root, "settings", "case_settings.json")
-    mkpath(dirname(destination_path))
-    write_json(destination_path, settings)
-    return nothing
+    settings["SolutionAlgorithm"] = get(settings, "SolutionAlgorithm", defaults["SolutionAlgorithm"])
+    # Omit defaults so the loader restores their original Julia types.
+    filter!(settings) do entry
+        key, value = entry
+        !ismissing(value) && (key in ("PeriodLengths", "ExpansionHorizon", "SolutionAlgorithm") ||
+            !haskey(defaults, key) || !isequal(value, defaults[key]))
+    end
+    return settings
 end
 
-function tdr_materialize_subperiod_case!(
-    source_case_root::String,
-    destination_case_root::String,
-    period::Int,
-    settings::TDRSettings,
-    ; system_index::Union{Nothing,Int}=nothing,
-)
-    tdr_copy_subperiod_case(source_case_root, destination_case_root; system_index)
-    sources, _, full_length, time_data_path, time_data, _ = tdr_sources(destination_case_root, settings)
-    period_length = settings.timesteps_per_representative_period
-    n_periods = full_length ÷ period_length
-    1 <= period <= n_periods || throw(ArgumentError("Subperiod $period is outside the $n_periods-period input horizon."))
-    indices = collect((period - 1) * period_length + 1:period * period_length)
-    tdr_write_reduced_sources!(sources, indices)
-    tdr_write_subperiod_time_data!(time_data_path, time_data)
+function tdr_copy_subperiod_case(inputs, destination_case_root::String)
+    relocated = tdr_relocate_inputs(inputs, destination_case_root)
+    mkpath(destination_case_root)
+    for input in sort!(collect(values(inputs.manifest)); by=input -> input.source_path)
+        isfile(input.source_path) && isjson(input.source_path) && continue
+        destination = joinpath(destination_case_root, relpath(input.source_path, inputs.source_root))
+        tdr_copy_system_input!(TDRTrackedInput(input.source_path, destination, input.columns))
+    end
+    for (path, data) in relocated.json_data
+        mkpath(dirname(path))
+        write_json(path, data)
+    end
+    write_json(joinpath(destination_case_root, "system_data.json"), relocated.system)
+    destination_path = joinpath(destination_case_root, "settings", "case_settings.json")
+    mkpath(dirname(destination_path))
+    write_json(destination_path, inputs.case_settings)
+    return relocated
+end
+
+function tdr_materialize_subperiod_case!(inputs, destination_case_root::String,
+    period::Int, settings::TDRSettings)
+    relocated = tdr_copy_subperiod_case(inputs, destination_case_root)
+    indices = collect(inputs.candidates.ranges[period])
+    tdr_write_reduced_sources!(relocated.sources, indices)
+    tdr_write_subperiod_time_data!(relocated.time_data_path, inputs.time_data, inputs.candidates.period_length)
     if !settings.output_features.subperiod_runs.include_policy_constraints
         policy_names = tdr_policy_constraint_names()
-        for path in tdr_input_json_files(destination_case_root)
+        for path in union(collect(keys(relocated.json_data)), [joinpath(destination_case_root, "system_data.json")])
             data = mutable_json_data(read_json(path))
             tdr_remove_policy_constraints!(data, policy_names)
             write_json(path, data)
@@ -133,17 +123,16 @@ function tdr_saved_subperiod_directory(
 end
 
 function tdr_save_subperiod_inputs!(
-    case_root::String,
+    inputs,
     period::Int,
     settings::TDRSettings;
-    system_index::Union{Nothing,Int}=nothing,
-    artifact_root::String=case_root,
+    artifact_root::String=inputs.source_root,
 )
-    destination = tdr_saved_subperiod_directory(artifact_root, period; system_index)
+    destination = tdr_saved_subperiod_directory(artifact_root, period; system_index=inputs.system_index)
     ispath(destination) && rm(destination; recursive=true, force=true)
     mktempdir() do temporary_root
         temporary_case = joinpath(temporary_root, "case")
-        tdr_materialize_subperiod_case!(case_root, temporary_case, period, settings; system_index)
+        tdr_materialize_subperiod_case!(inputs, temporary_case, period, settings)
         mkpath(dirname(destination))
         mv(temporary_case, destination)
     end

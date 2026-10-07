@@ -429,16 +429,19 @@ end
 
     existing_period_map = DataFrame(
         Period_Index=collect(1:60),
-        Rep_Period=repeat([101, 102, 103, 104]; inner=15),
+        Rep_Period=repeat([1, 16, 31, 46]; inner=15),
         Rep_Period_Index=repeat(collect(1:4); inner=15),
     )
+    existing_candidates = MacroEnergy.TDRCandidatePeriods(1, 1,
+        Int.(existing_period_map.Rep_Period_Index), [period:period for period in 1:4],
+        Int.(existing_period_map.Rep_Period_Index), fill(15, 4), [1, 16, 31, 46], 0)
     composed_period_map = MacroEnergy.tdr_compose_period_map(
-        existing_period_map,
+        existing_candidates,
         [2, 4],
         [1, 1, 2, 2],
     )
     @test composed_period_map.Period_Index == collect(1:60)
-    @test composed_period_map.Rep_Period == vcat(fill(102, 30), fill(104, 30))
+    @test composed_period_map.Rep_Period == vcat(fill(16, 30), fill(46, 30))
     @test composed_period_map.Rep_Period_Index == vcat(fill(1, 30), fill(2, 30))
 
     mktempdir() do temporary_root
@@ -455,7 +458,7 @@ end
         @test availability.user_weight == 1.0
         @test settings.method_settings isa MacroEnergy.TDRKMeansSettings
         @test settings.method_settings.restarts == 3
-        all_sources, _, _, _, _, _ = MacroEnergy.tdr_sources(source_case, settings)
+        all_sources = only(MacroEnergy.tdr_prepare_inputs(source_case, [settings]).systems).sources
         @test [source.key for source in all_sources] == sort([source.key for source in all_sources])
         shared_availability = only(filter(source -> source.header == :solar_pv_MA, all_sources))
         @test shared_availability.occurrences == 2
@@ -471,7 +474,7 @@ end
         ))
         excluded_settings = MacroEnergy.load_time_domain_reduction_settings(excluded_settings_path)
         @test !any(feature -> feature.id == "availability", excluded_settings.features)
-        excluded_sources, _, _, _, _, _ = MacroEnergy.tdr_sources(source_case, excluded_settings)
+        excluded_sources = only(MacroEnergy.tdr_prepare_inputs(source_case, [excluded_settings]).systems).sources
         @test !only(filter(source -> source.header == :solar_pv_MA, excluded_sources)).include_in_clustering
 
         output_settings_path = joinpath(temporary_root, "output_features.json")
@@ -492,7 +495,9 @@ end
         ))
         output_settings = MacroEnergy.load_time_domain_reduction_settings(output_settings_path)
         subperiod_case = joinpath(temporary_root, "subperiod_case")
-        MacroEnergy.tdr_materialize_subperiod_case!(source_case, subperiod_case, 2, output_settings)
+        MacroEnergy.tdr_materialize_subperiod_case!(
+            MacroEnergy.tdr_prepare_subperiod_inputs(only(MacroEnergy.tdr_prepare_inputs(source_case, [output_settings]).systems)),
+            subperiod_case, 2, output_settings)
         subperiod_time_data = JSON3.read(read(joinpath(subperiod_case, "system", "time_data.json"), String))
         @test subperiod_time_data[:NumberOfSubperiods] == 1
         @test !haskey(subperiod_time_data, :SubPeriodMap)
@@ -546,7 +551,9 @@ end
 
         prepared_case = load_case(output_case)
         @test length(prepared_case.systems) == 1
-        case, solution = run_case(output_case; log_to_console=false, log_to_file=false)
+        # Local runners may supply another optimizer without adding a test dependency.
+        solver_kwargs = @isdefined(PREPROCESS_TEST_RUN_KWARGS) ? PREPROCESS_TEST_RUN_KWARGS : NamedTuple()
+        case, solution = run_case(output_case; log_to_console=false, log_to_file=false, solver_kwargs...)
         @test length(case.systems) == 1
         @test !isnothing(solution)
         @test preprocess_inputs(source_case, output_case; tdr_settings_path=settings_path, overwrite=true) === nothing
@@ -581,17 +588,18 @@ end
             output_settings = MacroEnergy.load_time_domain_reduction_settings(joinpath(
                 temporary_root, "output_features.json",
             ))
-            @test MacroEnergy.tdr_prepare_system_inputs!(source_case) == 2
+            prepared = MacroEnergy.tdr_prepare_inputs(source_case, [output_settings, output_settings])
+            @test length(MacroEnergy.tdr_prepare_system_inputs!(source_case, prepared).systems) == 2
             prepared_system_data = MacroEnergy.read_json(joinpath(source_case, "system_data.json"))
             @test startswith(prepared_system_data["case"][1]["time_data"]["path"], "inputs/system_1/system/")
             @test prepared_system_data["case"][2]["assets"]["path"] == "inputs/system_2/assets"
             subperiod_case = joinpath(temporary_root, "system_2_period_1")
             MacroEnergy.tdr_materialize_subperiod_case!(
-                source_case,
+                MacroEnergy.tdr_prepare_subperiod_inputs(MacroEnergy.tdr_prepare_inputs(source_case,
+                    [output_settings, output_settings]).systems[2]),
                 subperiod_case,
                 1,
-                output_settings;
-                system_index=2,
+                output_settings,
             )
             isolated_case_settings = MacroEnergy.read_json(joinpath(
                 subperiod_case, "settings", "case_settings.json",
@@ -609,3 +617,4 @@ end
 
 include("test_tdr_system_inputs.jl")
 include("test_tdr_output_feature_cache.jl")
+include("test_tdr_candidate_periods.jl")
