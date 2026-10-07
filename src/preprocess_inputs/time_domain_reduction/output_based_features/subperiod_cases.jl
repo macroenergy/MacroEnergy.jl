@@ -61,6 +61,7 @@ function tdr_copy_subperiod_case(
     end
     tdr_rewrite_input_paths!(system, source_case_root, destination_case_root, manifest)
     write_json(joinpath(destination_case_root, "system_data.json"), system)
+    tdr_write_single_system_case_settings!(source_case_root, destination_case_root, index)
     return nothing
 end
 
@@ -69,21 +70,25 @@ function tdr_write_single_system_case_settings!(
     destination_case_root::String,
     system_index::Int,
 )
-    root, systems = tdr_system_entries(source_case_root)
-    length(systems) > 1 || return nothing
-    haskey(root, "settings") && root["settings"] isa AbstractDict &&
-        haskey(root["settings"], "path") || throw(ArgumentError(
-            "Multi-System output-based TDR requires `settings.path` in system_data.json.",
-        ))
-    source_path = abspath(joinpath(source_case_root, String(root["settings"]["path"])))
-    isfile(source_path) || throw(ArgumentError("Case settings file does not exist: $source_path"))
-    settings = mutable_json_data(read_json(source_path))
+    root, _ = tdr_system_entries(source_case_root)
+    # Match the loader's Case-settings discovery for explicit Cases and bare Systems.
+    source_settings = haskey(root, "case") ? get(root, "settings", default_case_settings()) :
+        single_system_case_settings(joinpath(source_case_root, "system_data.json"))
+    settings = Dict{String,Any}(String(key) => value for (key, value) in source_settings)
+    if haskey(settings, "path")
+        source_path = abspath(joinpath(source_case_root, String(settings["path"])))
+        isfile(source_path) || throw(ArgumentError("Case settings file does not exist: $source_path"))
+        settings = mutable_json_data(read_json(source_path))
+    end
+    settings = merge(Dict{String,Any}(String(key) => value for (key, value) in default_case_settings()), settings)
     lengths = get(settings, "PeriodLengths", nothing)
     lengths isa AbstractVector && length(lengths) >= system_index || throw(ArgumentError(
         "Case settings `PeriodLengths` must contain a period length for System $system_index.",
     ))
     settings["PeriodLengths"] = Any[lengths[system_index]]
     settings["ExpansionHorizon"] = "PerfectForesight"
+    # Omit missing defaults (e.g. StartYear): JSON null would reload as nothing.
+    filter!(entry -> !ismissing(last(entry)), settings)
     destination_path = joinpath(destination_case_root, "settings", "case_settings.json")
     mkpath(dirname(destination_path))
     write_json(destination_path, settings)
@@ -98,9 +103,6 @@ function tdr_materialize_subperiod_case!(
     ; system_index::Union{Nothing,Int}=nothing,
 )
     tdr_copy_subperiod_case(source_case_root, destination_case_root; system_index)
-    if !isnothing(system_index) && length(last(tdr_system_entries(source_case_root))) > 1
-        tdr_write_single_system_case_settings!(source_case_root, destination_case_root, system_index)
-    end
     sources, _, full_length, time_data_path, time_data, _ = tdr_sources(destination_case_root, settings)
     period_length = settings.timesteps_per_representative_period
     n_periods = full_length ÷ period_length
