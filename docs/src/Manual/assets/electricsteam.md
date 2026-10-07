@@ -233,6 +233,7 @@ The `electricsteam` asset is defined as follows:
 ```julia
 struct electricsteam{T} <: AbstractAsset
     id::AssetId
+    tags::AssetTags
     steam_transform::Transformation
     steam_edge::Union{UnidirectionalEdge{<:Steam},EdgeWithUC{<:Steam}}
     elec_edge::UnidirectionalEdge{<:T}

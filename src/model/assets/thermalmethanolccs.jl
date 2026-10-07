@@ -1,5 +1,6 @@
 struct ThermalMethanolCCS{T} <: AbstractAsset
     id::AssetId
+    tags::AssetTags
     thermalmethanolccs_transform::Transformation
     ch3oh_edge::Union{Edge{<:Methanol},EdgeWithUC{<:Methanol}}
     elec_edge::Edge{<:Electricity}
@@ -10,7 +11,11 @@ end
 
 ThermalMethanolCCS(id::AssetId, thermalmethanolccs_transform::Transformation, ch3oh_edge::Union{Edge{<:Methanol},EdgeWithUC{<:Methanol}}, elec_edge::Edge{<:Electricity},
 fuel_edge::Edge{T}, co2_edge::Edge{<:CO2}, co2_captured_edge::Edge{<:CO2Captured}) where T<:Commodity =
-    ThermalMethanolCCS{T}(id, thermalmethanolccs_transform, ch3oh_edge, elec_edge, fuel_edge, co2_edge, co2_captured_edge)
+    ThermalMethanolCCS{T}(id, nothing, thermalmethanolccs_transform, ch3oh_edge, elec_edge, fuel_edge, co2_edge, co2_captured_edge)
+
+ThermalMethanolCCS(id::AssetId, tags::AssetTags, thermalmethanolccs_transform::Transformation, ch3oh_edge::Union{Edge{<:Methanol},EdgeWithUC{<:Methanol}}, elec_edge::Edge{<:Electricity},
+fuel_edge::Edge{T}, co2_edge::Edge{<:CO2}, co2_captured_edge::Edge{<:CO2Captured}) where T<:Commodity =
+    ThermalMethanolCCS{T}(id, tags, thermalmethanolccs_transform, ch3oh_edge, elec_edge, fuel_edge, co2_edge, co2_captured_edge)
 
 function default_data(t::Type{ThermalMethanolCCS}, id=missing, style="full")
     if style == "full"
@@ -294,5 +299,5 @@ function make(asset_type::Type{ThermalMethanolCCS}, data::AbstractDict{Symbol,An
         get(transform_data, :capture_rate, 0.0) * flow(fuel_edge) == flow(co2_captured_edge)
     )
 
-    return ThermalMethanolCCS(id, thermalmethanolccs_transform, ch3oh_edge, elec_edge, fuel_edge, co2_edge, co2_captured_edge)
+    return ThermalMethanolCCS(id, asset_tags(data), thermalmethanolccs_transform, ch3oh_edge, elec_edge, fuel_edge, co2_edge, co2_captured_edge)
 end

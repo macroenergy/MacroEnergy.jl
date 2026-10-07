@@ -83,9 +83,15 @@ function check_and_convert_constraints!(data::AbstractDict{Symbol,Any})
     contraint_library = constraint_types()
     constraints = Vector{AbstractTypeConstraint}()
     for (name, flag) in data[:constraints]
-        if flag == true
+        if flag === true
             push!(constraints, contraint_library[name]()) # Note: This is a constructor call, not a type (e.g., BalanceConstraint())
+        elseif isa(flag, AbstractDict)
+            # An object value means the constraint is enabled and carries inline configuration.
+            ct = contraint_library[name]()
+            configure_constraint!(ct, flag)
+            push!(constraints, ct)
         end
+        # `false` (or anything else) leaves the constraint disabled.
     end
     data[:constraints] = constraints
     return nothing

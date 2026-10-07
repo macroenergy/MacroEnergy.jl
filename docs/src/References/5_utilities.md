@@ -19,6 +19,11 @@ MacroEnergy.all_constraints_types
 MacroEnergy.array_container
 ```
 
+## `add_flow_to_vertex_balances!`
+```@docs
+MacroEnergy.add_flow_to_vertex_balances!
+```
+
 ## `asset_ids`
 ```@docs
 MacroEnergy.asset_ids
@@ -52,6 +57,16 @@ MacroEnergy.set_at_path!
 ## `_dense_axis_array_type`
 ```@docs
 MacroEnergy._dense_axis_array_type
+```
+
+## `has_usable_duals`
+```@docs
+MacroEnergy.has_usable_duals
+```
+
+## `dual_or_nan`
+```@docs
+MacroEnergy.dual_or_nan
 ```
 
 ## `ensure_duals_available!`

@@ -146,6 +146,7 @@ The `TransmissionLink` asset is defined as follows:
 ```julia
 struct TransmissionLink{T} <: AbstractAsset
     id::AssetId
+    tags::AssetTags
     transmission_edge::BidirectionalEdge{<:T}
 end
 ```

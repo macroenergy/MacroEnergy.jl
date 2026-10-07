@@ -2,6 +2,7 @@
 # It inherits from AbstractAsset and contains edges for electricity input, aluminum scrap input, and aluminum output
 struct AluminumRefining <: AbstractAsset
     id::AssetId                                    # Unique identifier for the asset
+    tags::AssetTags
     aluminum_transform::Transformation             # Transformation process that converts inputs to outputs
     elec_edge::Edge{<:Electricity}                  # Edge representing electricity input
     aluminumscrap_edge::Edge{<:AluminumScrap}       # Edge representing aluminum scrap input
@@ -206,5 +207,5 @@ function make(asset_type::Type{AluminumRefining}, data::AbstractDict{Symbol,Any}
         flow(aluminumscrap_edge) == get(transform_data, :aluminumscrap_aluminum_rate, 1.0) * flow(aluminum_edge)
     )
 
-    return AluminumRefining(id, aluminumrefining_transform, elec_edge, aluminumscrap_edge, aluminum_edge)
+    return AluminumRefining(id, asset_tags(data), aluminumrefining_transform, elec_edge, aluminumscrap_edge, aluminum_edge)
 end

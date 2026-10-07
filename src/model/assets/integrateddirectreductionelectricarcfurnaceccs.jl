@@ -1,5 +1,6 @@
 struct DirectReductionElectricArcFurnaceCCS <: AbstractAsset
     id::AssetId
+    tags::AssetTags
     dreafccs_transform::Transformation
     crudesteel_edge::Edge{CrudeSteel}
     reductant_edge::Edge{NaturalGas}
@@ -313,7 +314,7 @@ function make(asset_type::Type{DirectReductionElectricArcFurnaceCCS}, data::Abst
         flow(co2_captured_edge) == get(transform_data, :capture_rate, 0.0) * flow(crudesteel_edge)
     )
 
-    return DirectReductionElectricArcFurnaceCCS(id,
+    return DirectReductionElectricArcFurnaceCCS(id, asset_tags(data),
             dreafccs_transform,
             crudesteel_edge,
             reductant_edge,

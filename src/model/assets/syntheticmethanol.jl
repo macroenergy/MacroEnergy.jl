@@ -1,5 +1,6 @@
 struct SyntheticMethanol <: AbstractAsset
     id::AssetId
+    tags::AssetTags
     synthetic_methanol_transform::Transformation
     co2_captured_edge::Edge{<:CO2Captured} ## tonnes
     ch3oh_edge::Edge{<:Methanol} ## MWh
@@ -256,5 +257,5 @@ function make(asset_type::Type{SyntheticMethanol}, data::AbstractDict{Symbol,Any
         get(transform_data, :emission_rate, 0.0) * flow(co2_captured_edge) == flow(co2_emission_edge)
     )
 
-    return SyntheticMethanol(id, synthetic_methanol_transform, co2_captured_edge, ch3oh_edge, elec_edge, h2_edge, co2_emission_edge) 
+    return SyntheticMethanol(id, asset_tags(data), synthetic_methanol_transform, co2_captured_edge, ch3oh_edge, elec_edge, h2_edge, co2_emission_edge)
 end

@@ -17,6 +17,44 @@ asset_id = id(thermal_plant)  # Returns the ID of the thermal plant
 """
 id(asset::AbstractAsset) = asset.id
 
+const AssetTags = Union{Nothing,Vector{Symbol}}
+
+function tag_values(raw_tags)
+    raw_tags isa Union{AbstractString,Symbol} && return [raw_tags]
+    raw_tags isa AbstractVector || throw(ArgumentError("Asset tags must be a string or an array of strings."))
+    return raw_tags
+end
+
+function normalize_tag(raw::Union{Symbol,AbstractString}, context::AbstractString)::Symbol
+    tag = strip(String(raw))
+    occursin(r"^[A-Za-z][A-Za-z0-9 _-]*$", tag) || throw(ArgumentError(
+        "Invalid tag `$raw` in $context. Tags must begin with a letter and contain only letters, numbers, spaces, underscores, or hyphens.",
+    ))
+    return Symbol(replace(lowercase(tag), r"[ _-]+" => "_"))
+end
+
+function asset_tags(data::AbstractDict{Symbol,Any})::AssetTags
+    haskey(data, :tags) || return nothing
+    raw_tags = tag_values(data[:tags])
+    isempty(raw_tags) && return nothing
+    tags = Symbol[]
+    for raw_tag in raw_tags
+        raw_tag isa Union{AbstractString,Symbol} || throw(ArgumentError("Asset tags must be strings."))
+        push!(tags, normalize_tag(raw_tag, "asset tags"))
+    end
+    return sort!(unique!(tags))
+end
+
+# Out-of-tree asset structs may predate the `tags` field; treat them as untagged.
+asset_tags(asset::AbstractAsset)::AssetTags = hasfield(typeof(asset), :tags) ? asset.tags : nothing
+
+# In-tree asset structs keep `id` and optional `tags` as their first two fields. This fallback preserves
+# existing positional constructors for callers that do not provide tags explicitly.
+function (::Type{T})(args::Vararg{Any,N}) where {T<:AbstractAsset,N}
+    (N >= 1 && N == fieldcount(T) - 1 && fieldname(T, 2) === :tags) || throw(MethodError(T, args))
+    return T(args[1], nothing, args[2:end]...)
+end
+
 """
     struct_info(t::Type{T}) where T
 
@@ -66,9 +104,11 @@ function print_struct_info(info::Vector{Tuple{Symbol, T}}) where T <: Union{Type
     end    
 end
 
-# The following functions are used to extract all the assets of a given type from a System or a Vector of Assets
+# The following functions are used to extract all the assets of a given type from a System or a Vector of Assets.
+# Matching is by subtyping (`isa`). For a concrete type this is identical to exact-type matching, since
+# concrete types have no subtypes.
 function get_assets_sametype(assets::Vector{AbstractAsset}, asset_type::T) where T<:Type{<:AbstractAsset}
-    return filter(a -> typeof(a) == asset_type, assets)
+    return filter(a -> isa(a, asset_type), assets)
 end
 
 """
@@ -109,7 +149,10 @@ component_ids = get_component_ids(thermal_plant)
 ```
 """
 function get_component_ids(asset::AbstractAsset)
-    return [id(getfield(asset, t)) for t in fieldnames(typeof(asset))]
+    return [
+        id(getfield(asset, t)) for t in fieldnames(typeof(asset))
+        if getfield(asset, t) isa MacroObject
+    ]
 end
 
 """
@@ -133,7 +176,7 @@ elec_edge = get_component_by_id(thermal_plant, :SE_natural_gas_elec_edge)
 function get_component_by_id(asset::AbstractAsset, component_id::Symbol)
     for t in fieldnames(typeof(asset))
         component = getfield(asset, t)
-        if isequal(id(component), component_id)
+        if component isa MacroObject && isequal(id(component), component_id)
             return component
         end
     end

@@ -1,9 +1,13 @@
 struct OneWayTransmissionLink{T} <: AbstractAsset
     id::AssetId
+    tags::AssetTags
     transmission_edge::UnidirectionalEdge{<:T}
 end
 
-OneWayTransmissionLink(id::AssetId, transmission_edge::UnidirectionalEdge{T}) where T<:Commodity = OneWayTransmissionLink{T}(id, transmission_edge)
+OneWayTransmissionLink(id::AssetId, transmission_edge::UnidirectionalEdge{T}) where T<:Commodity = OneWayTransmissionLink{T}(id, nothing, transmission_edge)
+
+OneWayTransmissionLink(id::AssetId, tags::AssetTags, transmission_edge::UnidirectionalEdge{T}) where T<:Commodity = OneWayTransmissionLink{T}(id, tags, transmission_edge)
+
 
 function default_data(t::Type{OneWayTransmissionLink}, id=missing, style="full")
     if style == "full"
@@ -111,5 +115,5 @@ function make(asset_type::Type{<:OneWayTransmissionLink}, data::AbstractDict{Sym
         t_start_node,
         t_end_node,
     )
-    return OneWayTransmissionLink(id, transmission_edge)
+    return OneWayTransmissionLink(id, asset_tags(data), transmission_edge)
 end

@@ -1,5 +1,6 @@
 struct ThermalHeating{T} <: AbstractAsset
     id::AssetId
+    tags::AssetTags
     heating_transform::Transformation
     heat_edge::Union{Edge{<:Heat},EdgeWithUC{<:Heat}}
     fuel_edge::Edge{<:T}
@@ -7,7 +8,10 @@ struct ThermalHeating{T} <: AbstractAsset
 end
 
 ThermalHeating(id::AssetId, heating_transform::Transformation, heat_edge::Union{Edge{<:Heat},EdgeWithUC{<:Heat}}, fuel_edge::Edge{T}, co2_edge::Edge{<:CO2}) where T<:Commodity =
-    ThermalHeating{T}(id, heating_transform, heat_edge, fuel_edge, co2_edge)
+    ThermalHeating{T}(id, nothing, heating_transform, heat_edge, fuel_edge, co2_edge)
+
+ThermalHeating(id::AssetId, tags::AssetTags, heating_transform::Transformation, heat_edge::Union{Edge{<:Heat},EdgeWithUC{<:Heat}}, fuel_edge::Edge{T}, co2_edge::Edge{<:CO2}) where T<:Commodity =
+    ThermalHeating{T}(id, tags, heating_transform, heat_edge, fuel_edge, co2_edge)
 
 function default_data(t::Type{ThermalHeating}, id=missing, style="full")
     if style == "full"
@@ -226,5 +230,5 @@ function make(asset_type::Type{ThermalHeating}, data::AbstractDict{Symbol,Any}, 
         get(transform_data, :emission_rate, 0.0) * flow(fuel_edge) == flow(co2_edge)
     )
 
-    return ThermalHeating(id, heating_transform, heat_edge, fuel_edge, co2_edge)
+    return ThermalHeating(id, asset_tags(data), heating_transform, heat_edge, fuel_edge, co2_edge)
 end

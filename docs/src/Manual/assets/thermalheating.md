@@ -243,6 +243,7 @@ The `ThermalHeating` asset is defined as follows:
 ```julia
 struct ThermalHeating{T} <: AbstractAsset
     id::AssetId
+    tags::AssetTags
     heating_transform::Transformation
     heat_edge::Union{UnidirectionalEdge{<:Heat},EdgeWithUC{<:Heat}}
     fuel_edge::UnidirectionalEdge{<:T}

@@ -1,5 +1,6 @@
 struct ThermalAmmoniaCCS{T} <: AbstractAsset
     id::AssetId
+    tags::AssetTags
     thermalammoniaccs_transform::Transformation
     nh3_edge::Union{Edge{<:Ammonia},EdgeWithUC{<:Ammonia}}
     elec_edge::Edge{<:Electricity}
@@ -10,7 +11,11 @@ end
 
 ThermalAmmoniaCCS(id::AssetId, thermalammoniaccs_transform::Transformation, nh3_edge::Union{Edge{<:Ammonia},EdgeWithUC{<:Ammonia}}, elec_edge::Edge{<:Electricity},
 fuel_edge::Edge{T}, co2_edge::Edge{<:CO2}, co2_captured_edge::Edge{<:CO2Captured}) where T<:Commodity =
-    ThermalAmmoniaCCS{T}(id, thermalammoniaccs_transform, nh3_edge, elec_edge, fuel_edge, co2_edge, co2_captured_edge)
+    ThermalAmmoniaCCS{T}(id, nothing, thermalammoniaccs_transform, nh3_edge, elec_edge, fuel_edge, co2_edge, co2_captured_edge)
+
+ThermalAmmoniaCCS(id::AssetId, tags::AssetTags, thermalammoniaccs_transform::Transformation, nh3_edge::Union{Edge{<:Ammonia},EdgeWithUC{<:Ammonia}}, elec_edge::Edge{<:Electricity},
+fuel_edge::Edge{T}, co2_edge::Edge{<:CO2}, co2_captured_edge::Edge{<:CO2Captured}) where T<:Commodity =
+    ThermalAmmoniaCCS{T}(id, tags, thermalammoniaccs_transform, nh3_edge, elec_edge, fuel_edge, co2_edge, co2_captured_edge)
 
 function default_data(t::Type{ThermalAmmoniaCCS}, id=missing, style="full")
     if style == "full"
@@ -294,5 +299,5 @@ function make(asset_type::Type{ThermalAmmoniaCCS}, data::AbstractDict{Symbol,Any
         get(transform_data, :capture_rate, 0.0) * flow(fuel_edge) == flow(co2_captured_edge)
     )
 
-    return ThermalAmmoniaCCS(id, thermalammoniaccs_transform, nh3_edge, elec_edge, fuel_edge, co2_edge, co2_captured_edge)
+    return ThermalAmmoniaCCS(id, asset_tags(data), thermalammoniaccs_transform, nh3_edge, elec_edge, fuel_edge, co2_edge, co2_captured_edge)
 end

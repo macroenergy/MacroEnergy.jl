@@ -54,7 +54,8 @@ function add_model_constraint!(ct::CO2CapConstraint, n::Node{CO2}, model::Model)
 
             add_to_expression!(
                 subperiod_balance[w],
-                -n.policy_slack_vars[Symbol(string(ct_type) * "_Slack")][w],
+                -subperiod_weight(n, w),
+                n.policy_slack_vars[Symbol(string(ct_type) * "_Slack")][w],
             )
         end
     end

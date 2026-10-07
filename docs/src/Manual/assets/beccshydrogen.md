@@ -157,7 +157,7 @@ The following tables outline the attributes that can be set for a BECCS hydrogen
 | `co2_sink` | String | ID of a CO₂ sink vertex (must be defined in the nodes input file) |
 
 ### [Conversion Process Parameters](@id beccshydrogen_conversion_process_parameters)
-The following set of parameters control the converssion process and stoichiometry of the BECCS hydrogen asset (see [Flow Equations](@ref beccshydrogen_flow_equations) for more details).
+The following set of parameters control the conversion process and stoichiometry of the BECCS hydrogen asset (see [Flow Equations](@ref beccshydrogen_flow_equations) for more details).
 
 | Field | Type | Description | Units | Default |
 |--------------|---------|------------|----------------|----------|
@@ -250,6 +250,7 @@ The `BECCSHydrogen` asset is defined as follows:
 ```julia
 struct BECCSHydrogen <: AbstractAsset
     id::AssetId
+    tags::AssetTags
     beccs_transform::Transformation
     biomass_edge::UnidirectionalEdge{<:Biomass}
     h2_edge::UnidirectionalEdge{<:Hydrogen}

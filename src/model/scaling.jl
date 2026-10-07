@@ -45,9 +45,24 @@ function _apply_scaling!(systems::Vector{System}, factor::Float64, S::Float64)
         for n in get_nodes(system)
             _scale_object!(n, factor, visited)
         end
+        # Scale RHS values carried in constraint configs (system-wide and per-location), so they stay
+        # consistent with the scaled capacity variables — same as `rhs_policy` above.
+        for c in system.constraints
+            _scale_constraint_config!(c, factor, visited)
+        end
+        for loc in system.locations
+            loc isa Location || continue
+            for c in loc.constraints
+                _scale_constraint_config!(c, factor, visited)
+            end
+        end
     end
     return nothing
 end
+
+# RHS values carried in a constraint's inline `config` (e.g. MaxCapacityConstraint caps) are scaled
+# like other extensive inputs. Constraints without a scalable config fall through to this no-op.
+_scale_constraint_config!(::AbstractTypeConstraint, ::Float64, ::Set{UInt64}) = nothing
 
 # Scale the scalar numeric fields of an edge or storage. Only fields whose value
 # is currently a `Real` are touched: this skips `nothing`/`missing` (e.g. an

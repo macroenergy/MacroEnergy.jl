@@ -206,6 +206,7 @@ The `UpstreamEmissions` asset is defined as follows:
 ```julia
 struct UpstreamEmissions{T} <: AbstractAsset
     id::AssetId
+    tags::AssetTags
     fossilfuelsupstream_transform::Transformation
     fossil_fuel_edge::Edge{<:T}
     fuel_edge::Edge{<:T}

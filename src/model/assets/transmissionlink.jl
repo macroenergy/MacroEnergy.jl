@@ -1,9 +1,12 @@
 struct TransmissionLink{T} <: AbstractAsset
     id::AssetId
+    tags::AssetTags
     transmission_edge::BidirectionalEdge{<:T}
 end
 
-TransmissionLink(id::AssetId, transmission_edge::BidirectionalEdge{T}) where T<:Commodity = TransmissionLink{T}(id, transmission_edge)
+TransmissionLink(id::AssetId, transmission_edge::BidirectionalEdge{T}) where T<:Commodity = TransmissionLink{T}(id, nothing, transmission_edge)
+
+TransmissionLink(id::AssetId, tags::AssetTags, transmission_edge::BidirectionalEdge{T}) where T<:Commodity = TransmissionLink{T}(id, tags, transmission_edge)
 
 function default_data(t::Type{TransmissionLink}, id=missing, style="full")
     if style == "full"
@@ -111,5 +114,5 @@ function make(asset_type::Type{<:TransmissionLink}, data::AbstractDict{Symbol,An
         t_start_node,
         t_end_node,
     )
-    return TransmissionLink(id, transmission_edge)
+    return TransmissionLink(id, asset_tags(data), transmission_edge)
 end

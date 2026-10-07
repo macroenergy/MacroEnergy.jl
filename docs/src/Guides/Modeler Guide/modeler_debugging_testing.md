@@ -63,7 +63,7 @@ A `System` consists of six primary fields, each of which can be accessed using d
 julia> system.data_dirpath
 "doctest"
 julia> system.settings
-(ConstraintScaling = true, WriteSubcommodities = true, OverwriteResults = false, OutputDir = "results", OutputLayout = "long", AutoCreateNodes = false, AutoCreateLocations = true, Retrofitting = false, DualExportsEnabled = true)
+(ConstraintScaling = true, WriteSubcommodities = true, OverwriteResults = false, OutputDir = "results", OutputLayout = "long", OutputAssetTags = true, AutoCreateNodes = false, AutoCreateLocations = true, Retrofitting = false, DualExportsEnabled = true)
 ```
 
 When interacting with a `System`, users might need to **retrieve information** about specific nodes, locations, or assets. The functions listed below are helpful for these tasks:

@@ -281,7 +281,7 @@ function test_writing_output()
         flow=fixed_vars(model, [7.0, 8.0, 9.0])
     )
 
-    asset1 = ThermalPower(:asset1, transformation, edge_to_transformation, edge_from_transformation1, edge_from_transformation2)
+    asset1 = ThermalPower(:asset1, [:dispatchable, :natural_gas], transformation, edge_to_transformation, edge_from_transformation1, edge_from_transformation2)
     asset_ref = Ref(asset1)
     asset_map = Dict{Symbol, Base.RefValue{<: AbstractAsset}}(
         :edge3 => asset_ref,
@@ -432,6 +432,9 @@ function test_writing_output()
         returned = write_capacity(joinpath(test_dir, "capacity.csv"), system, scaling)
         @test returned isa DataFrame
         @test !isempty(returned)
+        @test all(returned[returned.resource_id .== :asset1, :tags] .== "dispatchable|natural_gas")
+        written_capacity = MacroEnergy.load_dataframe(joinpath(test_dir, "capacity.csv"))
+        @test all(written_capacity[written_capacity.resource_id .== "asset1", :tags] .== "dispatchable|natural_gas")
 
         # This system wasn't built via generate_case (no StartYear/case-level Year), so `year` is
         # entirely absent (dropped as all-missing) - exactly the case write_capacity_summary
@@ -446,6 +449,12 @@ function test_writing_output()
         @test nrow(returned_with_filter) == nrow(returned)
         written_df = MacroEnergy.load_dataframe(filtered_path)
         @test nrow(written_df) <= nrow(returned)
+
+        system.settings = MacroEnergy.configure_settings((OutputAssetTags=false,))
+        without_tags = write_capacity(joinpath(test_dir, "capacity_without_tags.csv"), system, scaling)
+        @test !hasproperty(without_tags, :tags)
+        @test !hasproperty(MacroEnergy.load_dataframe(joinpath(test_dir, "capacity_without_tags.csv")), :tags)
+        system.settings = MacroEnergy.configure_settings(NamedTuple())
 
         rm(test_dir, recursive=true)
     end
@@ -1286,10 +1295,12 @@ function test_writing_output()
         written = CSV.read(capex_path, DataFrame)
         @test "value" in names(written)
         @test "variable" in names(written)
+        @test "tags" in names(written)
         @test all(String.(written.variable) .== "capex")
         edge_written = written[written.component_id .== "edge3", :]
         @test size(edge_written, 1) == 1
         @test edge_written[1, :value] ≈ 500.0 * 4.0   # write_capex uses default scaling=1.0
+        @test edge_written[1, :tags] == "dispatchable|natural_gas"
         rm(test_dir, recursive=true)
 
         # Restore edge_to_transformation to defaults

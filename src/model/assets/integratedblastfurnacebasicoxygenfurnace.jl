@@ -1,5 +1,6 @@
 struct BlastFurnaceBasicOxygenFurnace <: AbstractAsset
     id::AssetId
+    tags::AssetTags
     bfbof_transform::Transformation
     ironore_edge::Edge{<:IronOre}
     metcoal_edge::Edge{<:Coal}
@@ -392,7 +393,7 @@ function make(asset_type::Type{BlastFurnaceBasicOxygenFurnace}, data::AbstractDi
         flow(co2_edge) == get(transform_data, :emission_rate, 0.0) * flow(crudesteel_edge)
     )
 
-    return BlastFurnaceBasicOxygenFurnace(id,
+    return BlastFurnaceBasicOxygenFurnace(id, asset_tags(data),
             bfbof_transform, 
             ironore_edge, 
             metcoal_edge, 
