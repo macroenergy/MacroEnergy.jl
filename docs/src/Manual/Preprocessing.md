@@ -55,4 +55,5 @@ perform isolated candidate-period solves while preprocessing.
 
 ```@docs
 MacroEnergy.preprocess_inputs
+MacroEnergy.tdr_case_location
 ```

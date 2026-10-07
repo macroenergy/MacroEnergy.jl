@@ -780,28 +780,70 @@ with the ordinary `load_case` and `run_case` APIs.
 The following internal interfaces support additional clustering methods,
 input-discovery behavior, and official output providers.
 
+### Entry points and settings
+
 ```@docs
 MacroEnergy.time_domain_reduction
 MacroEnergy.TDRSettings
 MacroEnergy.load_time_domain_reduction_settings
 MacroEnergy.load_tdr_settings_by_system
 MacroEnergy.default_tdr_settings
+MacroEnergy.tdr_subperiod_run_settings_data
+```
+
+### Input discovery, copying, and consolidation
+
+```@docs
+MacroEnergy.TimeSeriesSource
+MacroEnergy.TDRTrackedInput
+MacroEnergy.tdr_normalize_path
+MacroEnergy.tdr_visit_input_paths!
+MacroEnergy.tdr_case_input_manifest
+MacroEnergy.tdr_system_input_manifest
+MacroEnergy.tdr_collect_manifest_references!
+MacroEnergy.tdr_system_input_path
+MacroEnergy.tdr_prepare_inputs
+MacroEnergy.tdr_relocate_inputs
+MacroEnergy.tdr_sources
+MacroEnergy.tdr_rewrite_input_paths!
+MacroEnergy.tdr_prepare_system_inputs!
+MacroEnergy.tdr_copy_system_input!
+MacroEnergy.tdr_shared_input_replacements
+MacroEnergy.tdr_consolidate_shared_inputs!
+```
+
+### Candidate periods and clustering
+
+```@docs
+MacroEnergy.TDRCandidatePeriods
+MacroEnergy.tdr_reduced_time_data
+MacroEnergy.tdr_weighted_candidates
+MacroEnergy.tdr_cluster_candidates
+MacroEnergy.tdr_reduce_system!
+MacroEnergy.tdr_set_clustering_weights!
+```
+
+### Output-feature providers and isolated inputs
+
+```@docs
 MacroEnergy.TDR_OUTPUT_PROVIDERS
 MacroEnergy.tdr_flow_provider
 MacroEnergy.tdr_storage_level_provider
 MacroEnergy.TDROutputFeatureSpec
 MacroEnergy.TDRSubperiodTask
-MacroEnergy.TimeSeriesSource
-MacroEnergy.tdr_visit_input_paths!
-MacroEnergy.tdr_case_input_manifest
-MacroEnergy.tdr_system_input_manifest
-MacroEnergy.TDRTrackedInput
-MacroEnergy.tdr_system_input_path
-MacroEnergy.tdr_prepare_inputs
-MacroEnergy.tdr_cluster_candidates
-MacroEnergy.tdr_reduce_system!
-MacroEnergy.tdr_consolidate_shared_inputs!
-MacroEnergy.tdr_set_clustering_weights!
+MacroEnergy.tdr_prepare_subperiod_inputs
+```
+
+### Output-feature cache validation
+
+```@docs
+MacroEnergy.TDROutputCacheFile
+MacroEnergy.TDROutputCacheFeatureSelection
+MacroEnergy.TDROutputCacheInputs
+MacroEnergy.TDROutputCacheFingerprint
+MacroEnergy.tdr_output_feature_selection
+MacroEnergy.tdr_output_cache_fingerprint
+MacroEnergy.tdr_output_solver_provenance
 ```
 
 The TDR section of `preprocess_log.json` records temporal handling, extreme-period decisions, method settings, feature sources and weights, occurrences, and—for every representative period—the total number and list of original periods it represents.
