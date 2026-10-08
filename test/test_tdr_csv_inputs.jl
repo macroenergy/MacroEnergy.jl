@@ -19,6 +19,7 @@ using CSV, DataFrames, MacroEnergy, Test
             mv(path, moved)
             rm(moved)
             @test !ispath(path) && !ispath(moved)
+            @test tables[path] == DataFrame("Type" => ["CO2"], "id" => ["co2_node"])
         end
     end
 end

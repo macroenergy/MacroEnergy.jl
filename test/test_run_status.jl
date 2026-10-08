@@ -24,7 +24,7 @@ import MacroEnergy:
 include("utilities.jl")
 
 const test_path = joinpath(@__DIR__, "test_small_case")
-const optim = HiGHS.Optimizer
+const optim = is_gurobi_available() ? Gurobi.Optimizer : HiGHS.Optimizer
 
 set_logger(true, true, Logging.Error, joinpath(test_path, "test_run_status.log"))
 
@@ -295,7 +295,8 @@ function test_run_case_writes_status_on_success()
             cp(test_path, case_dir)
 
             result = @warn_error_logger run_case(
-                case_dir; log_to_console = false, log_to_file = false
+                case_dir; log_to_console = false, log_to_file = true,
+                optimizer = optim, optimizer_attributes = ()
             )
             # run_case still returns (case, solution), even though the internal
             # implementation now also passes the output path back up
@@ -315,6 +316,10 @@ function test_run_case_writes_status_on_success()
             results_copy = joinpath(status.output_path, "run_status.json")
             @test isfile(results_copy)
             @test read_json(results_copy).status == "OK"
+            log_path = joinpath(case_dir, "case.log")
+            @test isfile(joinpath(status.output_path, "case.log"))
+            rm(log_path)
+            @test !ispath(log_path)
         end
     end
 end
