@@ -5,9 +5,11 @@
 function read_json(file_path::AbstractString)
     iscompressed = endswith(file_path, ".json.gz")
     io = iscompressed ? GZip.open(file_path, "r") : open(file_path, "r")
-    data = JSON3.read(io; allow_inf=true)
-    close(io)
-    return data
+    try
+        return JSON3.read(io; allow_inf=true)
+    finally
+        close(io)
+    end
 end
 
 function write_json(file_path::AbstractString, data::AbstractDict, compress::Bool=false)::Nothing
@@ -19,8 +21,11 @@ function write_json(file_path::AbstractString, data::AbstractDict, compress::Boo
     else
         io = open(file_path, "w")
     end
-    JSON3.pretty(io, data; allow_inf=true)
-    close(io)
+    try
+        JSON3.pretty(io, data; allow_inf=true)
+    finally
+        close(io)
+    end
     return nothing
 end
 
