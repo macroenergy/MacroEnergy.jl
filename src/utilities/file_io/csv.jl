@@ -95,10 +95,9 @@ function csv_headers(file_path::AbstractString)::Vector{Symbol}
 end
 
 function csv_header(path::AbstractString)
-    f = open(path, "r")
-    header = readline(f)
-    close(f)
-    header
+    return open(path, "r") do io
+        readline(io)
+    end
 end
 
 macro CSV_EXT()

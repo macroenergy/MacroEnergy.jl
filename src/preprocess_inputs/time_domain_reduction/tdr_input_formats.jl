@@ -8,7 +8,7 @@ function tdr_read_input_data(path::String, csv_tables::Dict{String,DataFrame}=Di
     iscsv(path) || return nothing
     headers = csv_headers(path)
     :Type in headers && :id in headers || return nothing
-    table = DataFrame(duckdb_read(path))
+    table = duckdb_read(path)
     rows = csv_to_json(copy(table))
     csv_tables[path] = table
     name = splitext(basename(path))[1]

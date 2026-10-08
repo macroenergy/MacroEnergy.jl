@@ -86,7 +86,7 @@ function insert_data(dict::Dict{Symbol, Any}, keys::Vector{Symbol}, data::Any)
 end
 
 function csv_to_json(file_path::AbstractString, nesting_str::AbstractString="--")::Vector{Dict{Symbol,Any}}
-    data = DataFrame(duckdb_read(file_path))
+    data = duckdb_read(file_path)
     return csv_to_json(data, nesting_str)
 end
 
