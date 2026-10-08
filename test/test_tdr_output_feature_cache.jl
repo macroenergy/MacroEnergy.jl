@@ -1,5 +1,28 @@
 using CSV, DataFrames, MacroEnergy, Test
 
+@testset "selective TDR policy exclusion settings" begin
+    parse(exclude) = MacroEnergy.load_tdr_subperiod_run_settings(Dict("exclude_policy_constraints" => exclude))
+    @test MacroEnergy.TDRSubperiodRunSettings().exclude_policy_constraints === false
+    @test isempty(MacroEnergy.tdr_policy_constraint_names(parse(false).exclude_policy_constraints))
+    @test MacroEnergy.tdr_policy_constraint_names(parse(true).exclude_policy_constraints) == MacroEnergy.tdr_policy_constraint_names()
+    @test isempty(MacroEnergy.tdr_policy_constraint_names(parse(String[]).exclude_policy_constraints))
+    named = parse(["CO2CapConstraint", "AggregatedDemandConstraint", "CO2CapConstraint"])
+    @test named.exclude_policy_constraints == ["AggregatedDemandConstraint", "CO2CapConstraint"]
+    @test MacroEnergy.tdr_subperiod_run_settings_data(named)["exclude_policy_constraints"] == named.exclude_policy_constraints
+    for invalid in ("CO2CapConstraint", 1, nothing, [true], ["AggregatedDemandConstrain"], ["BalanceConstraint"])
+        @test_throws ArgumentError parse(invalid)
+    end
+    @test_throws ArgumentError MacroEnergy.load_tdr_subperiod_run_settings(Dict("include_policy_constraints" => true))
+    @test_throws ArgumentError MacroEnergy.load_tdr_subperiod_run_settings(Dict(
+        "include_policy_constraints" => true, "exclude_policy_constraints" => false))
+    data = Dict("constraints" => Dict("CO2CapConstraint" => true, "AggregatedDemandConstraint" => true,
+        "BalanceConstraint" => false), "rhs_policy" => Dict("CO2CapConstraint" => 100, "AggregatedDemandConstraint" => 200),
+        "price_unmet_policy" => Dict("CO2CapConstraint" => 10, "AggregatedDemandConstraint" => 20))
+    MacroEnergy.tdr_remove_policy_constraints!(data, MacroEnergy.tdr_policy_constraint_names(["CO2CapConstraint"]))
+    @test data == Dict("constraints" => Dict("AggregatedDemandConstraint" => true, "BalanceConstraint" => false),
+        "rhs_policy" => Dict("AggregatedDemandConstraint" => 200), "price_unmet_policy" => Dict("AggregatedDemandConstraint" => 20))
+end
+
 @testset "single-System cached output-feature provenance" begin
     mktempdir() do root
         source = joinpath(root, "source")
@@ -16,7 +39,7 @@ using CSV, DataFrames, MacroEnergy, Test
             "demand" => Dict("timeseries" => Dict("path" => "demand.csv", "header" => "demand"))))
         CSV.write(joinpath(source, "demand.csv"), DataFrame(demand=[1, 1, 9, 9]))
         run_settings = Dict(
-            "distributed" => true, "workers" => 2, "include_policy_constraints" => false,
+            "distributed" => true, "workers" => 2, "exclude_policy_constraints" => true,
             "save_subperiod_inputs" => true, "save_subperiod_results" => true)
         settings_path = joinpath(root, "tdr.json")
         MacroEnergy.write_json(settings_path, Dict(
@@ -84,14 +107,14 @@ end
         @test baseline.inputs isa MacroEnergy.TDROutputCacheInputs
         @test eltype(baseline.inputs.files) == MacroEnergy.TDROutputCacheFile
         @test eltype(baseline.inputs.feature_selection) == MacroEnergy.TDROutputCacheFeatureSelection
-        # Preserve the original dictionary schema and digest across this refactor.
+        # The typed payload and its serialized form describe the same exclusions.
         legacy_inputs = Dict(
             "cache_version" => MacroEnergy.TDR_OUTPUT_CACHE_VERSION, "system_index" => 1,
             "system" => baseline.inputs.system, "case" => baseline.inputs.case,
             "files" => [Dict("path" => file.path, "sha256" => file.sha256)
                 for file in baseline.inputs.files],
             "full_length" => 4, "timesteps_per_representative_period" => 2,
-            "include_policy_constraints" => true,
+            "exclude_policy_constraints" => String[],
             "feature_selection" => [Dict("id" => nothing, "provider" => "flow",
                 "asset" => nothing, "commodity" => nothing)],
         )
@@ -99,6 +122,17 @@ end
             MacroEnergy.tdr_cache_json(legacy_inputs))), "inputs" => legacy_inputs)
         @test baseline.sha256 == legacy_fingerprint["sha256"]
         @test MacroEnergy.tdr_cache_data(baseline) == legacy_fingerprint
+        function exclusion_fingerprint(exclusion)
+            changed = deepcopy(config)
+            changed["output_based_features"]["subperiod_runs"] = Dict("exclude_policy_constraints" => exclusion)
+            return MacroEnergy.tdr_output_cache_fingerprint(source, parse_config(changed), 4; system_index=1)
+        end
+        @test exclusion_fingerprint(String[]).sha256 == baseline.sha256
+        selected = exclusion_fingerprint(["CO2CapConstraint", "AggregatedDemandConstraint"])
+        @test selected.sha256 == exclusion_fingerprint(["AggregatedDemandConstraint", "CO2CapConstraint", "CO2CapConstraint"]).sha256
+        @test selected.sha256 != baseline.sha256
+        @test selected.sha256 != exclusion_fingerprint(["CO2CapConstraint"]).sha256
+        @test exclusion_fingerprint(true).sha256 == exclusion_fingerprint(sort!(collect(MacroEnergy.tdr_policy_constraint_names()))).sha256
         hashes = Dict{String,String}()
         @test fingerprint(; file_hashes=hashes).sha256 == baseline.sha256
         first_count = length(hashes)
@@ -149,7 +183,7 @@ end
         for change in (:policy, :period, :selection)
             changed = deepcopy(config)
             if change == :policy
-                changed["output_based_features"]["subperiod_runs"] = Dict("include_policy_constraints" => false)
+                changed["output_based_features"]["subperiod_runs"] = Dict("exclude_policy_constraints" => true)
             elseif change == :period
                 changed["timesteps_per_representative_period"] = 4
             else
@@ -236,7 +270,7 @@ end
                     "timesteps_per_representative_period" => 2, "representative_periods" => 1,
                     "method" => Dict("name" => "kmeans"), "scaling" => "standardize",
                     "output_based_features" => Dict("weight" => 0.5, "features" => [Dict("provider" => "flow")],
-                        "subperiod_runs" => Dict("include_policy_constraints" => true))))
+                        "subperiod_runs" => Dict("exclude_policy_constraints" => false))))
                 index = representation == :multi ? 2 : nothing
                 prepared = MacroEnergy.tdr_prepare_inputs(source,
                     fill(settings, representation == :multi ? 2 : 1))

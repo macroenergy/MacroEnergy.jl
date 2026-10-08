@@ -221,7 +221,7 @@ function tdr_subperiod_run_settings_data(settings::TDRSubperiodRunSettings)
     return Dict{String,Any}(
         "distributed" => settings.distributed,
         "workers" => settings.workers,
-        "include_policy_constraints" => settings.include_policy_constraints,
+        "exclude_policy_constraints" => settings.exclude_policy_constraints,
         "save_subperiod_inputs" => settings.save_subperiod_inputs,
         "save_subperiod_results" => settings.save_subperiod_results,
     )
@@ -229,10 +229,10 @@ end
 
 function load_tdr_subperiod_run_settings(data)::TDRSubperiodRunSettings
     data = tdr_setting_data(data, (
-        "distributed", "workers", "include_policy_constraints", "save_subperiod_inputs",
+        "distributed", "workers", "exclude_policy_constraints", "save_subperiod_inputs",
         "save_subperiod_results",
     ), "output_based_features.subperiod_runs")
-    for key in ("distributed", "include_policy_constraints", "save_subperiod_inputs", "save_subperiod_results")
+    for key in ("distributed", "save_subperiod_inputs", "save_subperiod_results")
         haskey(data, key) || continue
         data[key] isa Bool || throw(ArgumentError("TDR `subperiod_runs.$key` must be a boolean."))
     end

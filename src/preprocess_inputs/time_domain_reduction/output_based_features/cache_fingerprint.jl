@@ -29,7 +29,7 @@ struct TDROutputCacheInputs
     files::Vector{TDROutputCacheFile}
     full_length::Int
     timesteps_per_representative_period::Int
-    include_policy_constraints::Bool
+    exclude_policy_constraints::Vector{String}
     feature_selection::Vector{TDROutputCacheFeatureSelection}
 end
 
@@ -52,7 +52,7 @@ tdr_cache_data(inputs::TDROutputCacheInputs) = Dict(
     "files" => tdr_cache_data.(inputs.files),
     "full_length" => inputs.full_length,
     "timesteps_per_representative_period" => inputs.timesteps_per_representative_period,
-    "include_policy_constraints" => inputs.include_policy_constraints,
+    "exclude_policy_constraints" => inputs.exclude_policy_constraints,
     "feature_selection" => tdr_cache_data.(inputs.feature_selection))
 tdr_cache_data(fingerprint::TDROutputCacheFingerprint) = Dict(
     "sha256" => fingerprint.sha256, "inputs" => tdr_cache_data(fingerprint.inputs))
@@ -144,7 +144,7 @@ function tdr_output_cache_fingerprint(
         sort!(files; by=file -> file.path),
         full_length,
         settings.timesteps_per_representative_period,
-        settings.output_features.subperiod_runs.include_policy_constraints,
+        sort!(collect(tdr_policy_constraint_names(settings.output_features.subperiod_runs.exclude_policy_constraints))),
         tdr_output_feature_selection(settings.output_features.features),
     )
     return TDROutputCacheFingerprint(bytes2hex(SHA.sha256(tdr_cache_json(inputs))), inputs)

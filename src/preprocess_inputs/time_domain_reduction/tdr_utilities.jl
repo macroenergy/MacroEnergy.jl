@@ -72,21 +72,52 @@ struct TDROutputFeatureSpec
     end
 end
 
+function tdr_policy_constraint_names()
+    names = Set{String}()
+    function collect_names(type)
+        for subtype in subtypes(type)
+            push!(names, String(nameof(subtype)))
+            collect_names(subtype)
+        end
+    end
+    collect_names(PolicyConstraint)
+    return names
+end
+
+tdr_policy_constraint_names(exclude::Bool) = exclude ? tdr_policy_constraint_names() : Set{String}()
+
+function tdr_policy_constraint_names(exclude::AbstractVector)
+    all(name -> name isa AbstractString, exclude) || throw(ArgumentError(
+        "TDR `subperiod_runs.exclude_policy_constraints` must be a boolean or a list of policy constraint names.",
+    ))
+    names = Set{String}(exclude)
+    unknown = setdiff(names, tdr_policy_constraint_names())
+    isempty(unknown) || throw(ArgumentError(
+        "Unknown policy constraints in TDR `subperiod_runs.exclude_policy_constraints`: $(join(sort!(collect(unknown)), ", ")).",
+    ))
+    return names
+end
+
 struct TDRSubperiodRunSettings
     distributed::Bool
     workers::Int
-    include_policy_constraints::Bool
+    exclude_policy_constraints::Union{Bool,Vector{String}}
     save_subperiod_inputs::Bool
     save_subperiod_results::Bool
 
     function TDRSubperiodRunSettings(; distributed::Bool=false, workers::Integer=1,
-        include_policy_constraints::Bool=true, save_subperiod_inputs::Bool=false,
+        exclude_policy_constraints=false, save_subperiod_inputs::Bool=false,
         save_subperiod_results::Bool=false)
         workers > 0 || throw(ArgumentError("TDR `subperiod_runs.workers` must be a positive integer."))
         !distributed && workers != 1 && throw(ArgumentError(
             "TDR `subperiod_runs.workers` must equal 1 when `distributed` is false.",
         ))
-        new(distributed, Int(workers), include_policy_constraints, save_subperiod_inputs, save_subperiod_results)
+        exclude_policy_constraints isa Union{Bool,AbstractVector} || throw(ArgumentError(
+            "TDR `subperiod_runs.exclude_policy_constraints` must be a boolean or a list of policy constraint names.",
+        ))
+        exclusions = exclude_policy_constraints isa Bool ? exclude_policy_constraints :
+            sort!(collect(tdr_policy_constraint_names(exclude_policy_constraints)))
+        new(distributed, Int(workers), exclusions, save_subperiod_inputs, save_subperiod_results)
     end
 end
 

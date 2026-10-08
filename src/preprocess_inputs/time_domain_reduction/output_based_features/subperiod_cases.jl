@@ -1,15 +1,3 @@
-function tdr_policy_constraint_names()
-    names = Set{String}()
-    function collect_names(type)
-        for subtype in subtypes(type)
-            push!(names, String(nameof(subtype)))
-            collect_names(subtype)
-        end
-    end
-    collect_names(PolicyConstraint)
-    return names
-end
-
 function tdr_remove_policy_constraints!(value, policy_names::Set{String})
     if value isa AbstractDict
         for name in policy_names
@@ -104,8 +92,8 @@ function tdr_materialize_subperiod_case!(inputs, destination_case_root::String,
     indices = collect(inputs.candidates.ranges[period])
     tdr_write_reduced_sources!(relocated.sources, indices)
     tdr_write_subperiod_time_data!(relocated.time_data_path, inputs.time_data, inputs.candidates.period_length)
-    if !settings.output_features.subperiod_runs.include_policy_constraints
-        policy_names = tdr_policy_constraint_names()
+    policy_names = tdr_policy_constraint_names(settings.output_features.subperiod_runs.exclude_policy_constraints)
+    if !isempty(policy_names)
         for path in union(collect(keys(relocated.input_data)), [joinpath(destination_case_root, "system_data.json")])
             data = tdr_read_input_data(path, relocated.csv_tables)
             tdr_remove_policy_constraints!(data, policy_names)

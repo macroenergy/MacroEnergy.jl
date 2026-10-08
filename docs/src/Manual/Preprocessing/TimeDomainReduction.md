@@ -207,7 +207,7 @@ Output-based features add model results to the clustering matrix. They are confi
   "subperiod_runs": {
     "distributed": true,
     "workers": 4,
-    "include_policy_constraints": true,
+    "exclude_policy_constraints": false,
     "save_subperiod_inputs": false,
     "save_subperiod_results": false
   },
@@ -239,7 +239,7 @@ Output-based features add model results to the clustering matrix. They are confi
 | --- | --- | --- | --- | --- |
 | `distributed` | Use worker processes for independent period solves. | Boolean | `Bool` | `false` |
 | `workers` | Maximum TDR-created workers; must be `1` when not distributed. | Positive integer | `Int` | `1` |
-| `include_policy_constraints` | Retain policy constraints in isolated cases. | Boolean | `Bool` | `true` |
+| `exclude_policy_constraints` | Remove all policies with `true`, or only the named policies with a list; `false` retains all policies. | Boolean or array of strings | `Union{Bool,Vector{String}}` | `false` |
 | `save_subperiod_inputs` | Retain isolated input directories. | Boolean | `Bool` | `false` |
 | `save_subperiod_results` | Retain each isolated provider result. | Boolean | `Bool` | `false` |
 
@@ -247,7 +247,7 @@ Output-based features add model results to the clustering matrix. They are confi
 
 Built-in providers are `"flow"` and `"storage_level"`. A provider returns a long `DataFrame` with `time`, `component_id`, and `value` columns. Case-specific providers through user additions are planned for a future release; for now, additional providers must be added to MacroEnergy itself.
 
-Output-based preprocessing materializes and solves one temporary input-only case for every candidate period; it never loads the full-horizon case. Each isolated case uses the selected System’s input manifest to copy only its dependencies, with the same time-series column selection as private System inputs, plus user additions. In a multi-System Case, every `(System, candidate period)` is an independent operational solve. These solves use a one-period `PerfectForesight` horizon, so they do not model investment, state carry-over, or interactions between Systems. Set `distributed` and `workers` to run the complete set of independent solves concurrently. The worker count is a global cap across all Systems, and only TDR-created workers are removed when preprocessing finishes. `include_policy_constraints` defaults to `true`; set it to `false` to remove policy constraints from the temporary inputs.
+Output-based preprocessing materializes and solves one temporary input-only case for every candidate period; it never loads the full-horizon case. Each isolated case uses the selected System’s input manifest to copy only its dependencies, with the same time-series column selection as private System inputs, plus user additions. In a multi-System Case, every `(System, candidate period)` is an independent operational solve. These solves use a one-period `PerfectForesight` horizon, so they do not model investment, state carry-over, or interactions between Systems. Set `distributed` and `workers` to run the complete set of independent solves concurrently. The worker count is a global cap across all Systems, and only TDR-created workers are removed when preprocessing finishes. `exclude_policy_constraints` defaults to `false`. Set it to `true` to remove all policy constraints, or provide a list such as `["AggregatedDemandConstraint", "CO2CapConstraint"]` to remove only those policies. An empty list retains all policies. Names must identify known `PolicyConstraint` subtypes; unknown names and non-policy constraints are errors. These rules apply to JSON and CSV inputs, including associated policy budgets and penalties. The former `include_policy_constraints` setting is no longer accepted.
 
 Single- and multi-System sources use the same Case-settings materialization workflow. Explicit Cases supply their Case-level settings, while standalone Systems use `settings/case_settings.json` or the loader defaults. Each isolated case retains these settings, selects the original System's `PeriodLengths` entry, and sets `ExpansionHorizon` to `"PerfectForesight"`. The resulting settings are written to the isolated case's `settings/case_settings.json`.
 
@@ -360,7 +360,7 @@ The following complete settings file combines scoped input features, an exclusio
     "subperiod_runs": {
       "distributed": true,
       "workers": 4,
-      "include_policy_constraints": true,
+      "exclude_policy_constraints": false,
       "save_subperiod_inputs": false,
       "save_subperiod_results": false
     },

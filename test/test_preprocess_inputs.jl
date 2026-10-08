@@ -294,12 +294,12 @@ end
     subperiod_run_settings = MacroEnergy.load_tdr_subperiod_run_settings(Dict(
         "distributed" => true,
         "workers" => 2,
-        "include_policy_constraints" => false,
+        "exclude_policy_constraints" => true,
         "save_subperiod_inputs" => true,
         "save_subperiod_results" => true,
     ))
     @test subperiod_run_settings.workers == 2
-    @test !subperiod_run_settings.include_policy_constraints
+    @test subperiod_run_settings.exclude_policy_constraints
     @test_throws ArgumentError MacroEnergy.load_tdr_subperiod_run_settings(Dict(
         "distributed" => false, "workers" => 2,
     ))
@@ -487,7 +487,7 @@ end
                 "weight" => 0.5,
                 "features" => [Dict("provider" => "flow")],
                 "subperiod_runs" => Dict(
-                    "include_policy_constraints" => false,
+                    "exclude_policy_constraints" => true,
                     "save_subperiod_inputs" => true,
                     "save_subperiod_results" => true,
                 ),

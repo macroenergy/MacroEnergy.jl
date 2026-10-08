@@ -99,7 +99,7 @@ function tdr_output_sources(
         @info " ++ Wrote $(length(tasks)) isolated TDR subperiod cases under System-specific TDR directories."
     end
     if any(settings -> !isnothing(settings.output_features) &&
-            !settings.output_features.subperiod_runs.include_policy_constraints, settings_by_system)
+            !isempty(tdr_policy_constraint_names(settings.output_features.subperiod_runs.exclude_policy_constraints)), settings_by_system)
         setup_user_additions(case_root)
         load_user_additions(case_root)
         refresh_user_type_registries!()

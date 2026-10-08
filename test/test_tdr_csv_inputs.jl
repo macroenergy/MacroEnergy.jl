@@ -28,8 +28,10 @@ using CSV, DataFrames, MacroEnergy, Test
         node_table = DataFrame("Type" => ["CO2"], "id" => ["co2_node"],
             "time_interval" => ["CO2"],
             "constraints--CO2CapConstraint" => [true],
+            "constraints--AggregatedDemandConstraint" => [true],
             "constraints--BalanceConstraint" => [false],
-            "rhs_policy--CO2CapConstraint" => [100])
+            "rhs_policy--CO2CapConstraint" => [100],
+            "rhs_policy--AggregatedDemandConstraint" => [200])
         CSV.write(joinpath(source, "nodes.csv"), node_table)
         system = Dict("time_data" => Dict("path" => "time.json"),
             "nodes" => Dict("path" => "nodes.csv"),
@@ -73,7 +75,7 @@ using CSV, DataFrames, MacroEnergy, Test
             "scaling" => "standardize", "method" => Dict("name" => "kmeans"),
             "output_based_features" => Dict("weight" => 0.5, "save_features" => true,
                 "features" => [Dict("provider" => "flow")],
-                "subperiod_runs" => Dict("include_policy_constraints" => false))))
+                "subperiod_runs" => Dict("exclude_policy_constraints" => true))))
         output_inputs = MacroEnergy.tdr_prepare_inputs(source, [output_settings, deepcopy(output_settings)])
         fingerprint = output_inputs.systems[1].cache_fingerprint
         @test "data/profiles.csv" in [file.path for file in fingerprint.inputs.files]
@@ -87,11 +89,30 @@ using CSV, DataFrames, MacroEnergy, Test
         @test subperiod_frame[!, "metadata--path"] == fill("metadata.json", 2)
         @test CSV.read(joinpath(subperiod, "data", "profiles.csv"), DataFrame).solar == [9, 9]
         subperiod_nodes = CSV.read(joinpath(subperiod, "nodes.csv"), DataFrame)
-        @test names(subperiod_nodes) == filter(header -> !endswith(header, "--CO2CapConstraint"), names(node_table))
+        @test names(subperiod_nodes) == filter(header -> !any(endswith(header, "--" * policy)
+            for policy in ("CO2CapConstraint", "AggregatedDemandConstraint")), names(node_table))
         subperiod_data = MacroEnergy.tdr_read_input_data(joinpath(subperiod, "nodes.csv"))
         node = only(only(values(subperiod_data)))["instance_data"]
         @test !haskey(node["constraints"], "CO2CapConstraint")
         @test node["constraints"]["BalanceConstraint"] == false
+        for exclusion in (false, String[], ["CO2CapConstraint"], ["AggregatedDemandConstraint"])
+            selective = MacroEnergy.load_tdr_settings_data(Dict(
+                "timesteps_per_representative_period" => 2, "representative_periods" => 1,
+                "scaling" => "standardize", "method" => Dict("name" => "kmeans"),
+                "output_based_features" => Dict("weight" => 0.5, "features" => [Dict("provider" => "flow")],
+                    "subperiod_runs" => Dict("exclude_policy_constraints" => exclusion))))
+            MacroEnergy.tdr_materialize_subperiod_case!(template, subperiod, 2, selective)
+            frame = CSV.read(joinpath(subperiod, "nodes.csv"), DataFrame)
+            excluded = MacroEnergy.tdr_policy_constraint_names(exclusion)
+            @test names(frame) == filter(header -> !any(endswith(header, "--" * policy)
+                for policy in excluded), names(node_table))
+            parsed = only(only(values(MacroEnergy.tdr_read_input_data(joinpath(subperiod, "nodes.csv")))))["instance_data"]
+            for policy in ("CO2CapConstraint", "AggregatedDemandConstraint")
+                @test haskey(parsed["constraints"], policy) == !(policy in excluded)
+                @test haskey(get(parsed, "rhs_policy", Dict()), policy) == !(policy in excluded)
+            end
+            @test parsed["constraints"]["BalanceConstraint"] == false
+        end
         CSV.write(joinpath(source, "data", "profiles.csv"), DataFrame(
             Time_Index=1:4, solar=[1, 1, 10, 10], hydro=[2, 2, 8, 8], unused=11:14))
         changed = MacroEnergy.tdr_prepare_inputs(source, [output_settings, deepcopy(output_settings)])
