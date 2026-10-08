@@ -72,8 +72,7 @@ function tdr_time_domain_reduction(
         "source_case_path" => abspath(source_case_path), "systems" => system_records,
     )
     tdr_log = number_of_systems == 1 ? only(values(system_logs)) : Dict("systems" => system_logs)
-    write_json(joinpath(case_root, "time_domain_reduction_provenance.json"), provenance)
-    write_json(joinpath(case_root, "preprocess_log.json"), Dict("time_domain_reduction" => tdr_log))
+    tdr_write_preprocessing_logs!(case_root, provenance, Dict("time_domain_reduction" => tdr_log))
     @info "Finished time-domain reduction for $number_of_systems Systems in `$case_root`."
     return nothing
 end

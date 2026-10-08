@@ -208,32 +208,14 @@ function tdr_preprocess_log_data(
     )
 end
 
-function tdr_write_preprocess_log!(
-    case_root::String,
-    sources::Vector{TimeSeriesSource},
-    clustering_sources::Vector{TimeSeriesSource},
-    full_length::Int,
-    settings::TDRSettings,
-    extreme_selections,
-    representative_periods::Vector{Int},
-    output_period_map::DataFrame,
-    map_path::String,
-    trailing_hours::Int,
-    subperiod_solves=nothing,
-)
-    log_data = tdr_preprocess_log_data(
-        sources,
-        clustering_sources,
-        full_length,
-        settings,
-        extreme_selections,
-        representative_periods,
-        output_period_map,
-        map_path,
-        case_root,
-        trailing_hours,
-        subperiod_solves,
-    )
-    write_json(joinpath(case_root, "preprocess_log.json"), log_data)
+"""Write assembled Case-level provenance and preprocessing logs in `preprocessing_logs/`.
+
+The caller supplies the complete records, including any per-System grouping.
+This writer owns directory creation and filenames; it does not rebuild log data.
+"""
+function tdr_write_preprocessing_logs!(case_root::String, provenance::AbstractDict, log_data::AbstractDict)
+    log_root = mkpath(joinpath(case_root, "preprocessing_logs"))
+    write_json(joinpath(log_root, "time_domain_reduction_provenance.json"), provenance)
+    write_json(joinpath(log_root, "preprocess_log.json"), log_data)
     return nothing
 end

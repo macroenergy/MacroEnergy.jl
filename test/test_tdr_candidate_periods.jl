@@ -97,7 +97,7 @@ end
         @test frame.Time_Index == 1:4
         @test MacroEnergy.read_json(joinpath(output, "nodes.json"))["availability"] == frame.demand
         @test nrow(CSV.read(joinpath(output, "period_map.csv"), DataFrame)) == 4
-        temporal = MacroEnergy.read_json(joinpath(output, "preprocess_log.json"))["time_domain_reduction"]["temporal_summary"]
+        temporal = MacroEnergy.read_json(joinpath(output, "preprocessing_logs", "preprocess_log.json"))["time_domain_reduction"]["temporal_summary"]
         @test temporal["candidate_periods"] == 4
         @test temporal["trimmed_stored_hours"] == 2
         loaded = MacroEnergy.load_time_data(joinpath(output, "time_data.json"),
@@ -252,7 +252,7 @@ end
             @test time_data["TotalHoursModeled"] == 8760
             @test nrow(CSV.read(joinpath(output, "demand.csv"), DataFrame)) == 336
             @test nrow(CSV.read(joinpath(output, "period_map.csv"), DataFrame)) == 52
-            temporal = MacroEnergy.read_json(joinpath(output, "preprocess_log.json"))["time_domain_reduction"]["temporal_summary"]
+            temporal = MacroEnergy.read_json(joinpath(output, "preprocessing_logs", "preprocess_log.json"))["time_domain_reduction"]["temporal_summary"]
             @test temporal["trimmed_stored_hours"] == 24
             @test temporal["trimmed_represented_hours"] == 24
             loaded = MacroEnergy.load_time_data(joinpath(output, "time_data.json"),

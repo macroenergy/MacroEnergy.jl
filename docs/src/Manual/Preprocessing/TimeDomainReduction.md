@@ -784,8 +784,8 @@ children. Additional content groups or conflicting earlier consolidations use
 separate destinations under `inputs/shared/`. Time-data files and JSON files
 loaded through directory references remain private. Files without identical counterparts also remain private.
 
-The output case also contains `time_domain_reduction_provenance.json` and
-`preprocess_log.json`. Provenance records the settings, selected periods, source
+The output case stores `time_domain_reduction_provenance.json` and
+`preprocess_log.json` under its `preprocessing_logs/` directory. Provenance records the settings, selected periods, source
 case, and period-map location. The log records discovered features, weights and
 occurrences, extreme-period decisions, temporal handling, and the original
 periods assigned to every representative. Multi-System records are grouped by
@@ -891,6 +891,7 @@ MacroEnergy.tdr_output_solver_provenance
 MacroEnergy.TDRLogLocation
 MacroEnergy.TDRLogReference
 MacroEnergy.TDRLogEntry
+MacroEnergy.tdr_write_preprocessing_logs!
 ```
 
 The TDR section of `preprocess_log.json` records temporal handling, extreme-period decisions, method settings, feature sources and weights, occurrences, and—for every representative period—the total number and list of original periods it represents.

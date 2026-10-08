@@ -58,10 +58,10 @@ end
         MacroEnergy.tdr_write_output_features!(source, sources, settings, 4)
         @test preprocess_inputs(source, output; tdr_settings_path=settings_path, overwrite=true) === nothing
         provenance = MacroEnergy.mutable_json_data(MacroEnergy.read_json(
-            joinpath(output, "time_domain_reduction_provenance.json")))
+            joinpath(output, "preprocessing_logs", "time_domain_reduction_provenance.json")))
         @test provenance["settings"]["output_based_features"]["subperiod_runs"] == run_settings
         @test only(provenance["subperiod_solves"])["reused_saved_features"]
-        @test isfile(joinpath(output, "preprocess_log.json"))
+        @test isfile(joinpath(output, "preprocessing_logs", "preprocess_log.json"))
         @test nrow(CSV.read(joinpath(output, "demand.csv"), DataFrame)) == 2
         @test nrow(CSV.read(joinpath(source, "demand.csv"), DataFrame)) == 4
     end

@@ -112,7 +112,8 @@ end
             touch(joinpath(case_root, "data", "availability.csv"))
             touch(joinpath(case_root, "notes.md"))
 
-            json_files = Set(MacroEnergy.tdr_input_json_files(case_root))
+            manifest = Set(keys(MacroEnergy.tdr_case_input_manifest(case_root)))
+            json_files = Set(path for path in manifest if MacroEnergy.isjson(path))
             @test json_files == Set(abspath.([
                 joinpath(case_root, "system_data.json"),
                 joinpath(case_root, "inputs", "time_data.json"),
@@ -120,7 +121,6 @@ end
                 joinpath(case_root, "inputs", "nested.json"),
             ]))
 
-            manifest = Set(keys(MacroEnergy.tdr_case_input_manifest(case_root)))
             @test joinpath(case_root, "data", "availability.csv") in manifest
             @test joinpath(case_root, "notes.md") in manifest
             @test all(ispath, manifest)
@@ -338,7 +338,7 @@ end
         extreme_specification,
         PREPARE_CASE_TEST_INPUTS,
     )
-    @test MacroEnergy.tdr_extreme_period(extreme_sources, extreme_specification, 2) == 2
+    @test MacroEnergy.tdr_extreme_period_selection(extreme_sources, extreme_specification, 2).period == 2
     peak_specification = MacroEnergy.tdr_extreme_period_spec(Dict(
         "feature" => Dict("field" => "demand"),
         "aggregation" => "peak",
@@ -523,8 +523,10 @@ end
         rm(previous_output; recursive=true)
 
         @test preprocess_inputs(source_case, output_case; tdr_settings_path=settings_path) === nothing
-        @test isfile(joinpath(output_case, "time_domain_reduction_provenance.json"))
-        @test isfile(joinpath(output_case, "preprocess_log.json"))
+        @test isfile(joinpath(output_case, "preprocessing_logs", "time_domain_reduction_provenance.json"))
+        @test isfile(joinpath(output_case, "preprocessing_logs", "preprocess_log.json"))
+        @test !isfile(joinpath(output_case, "preprocess_log.json"))
+        @test !isfile(joinpath(output_case, "time_domain_reduction_provenance.json"))
         @test_throws ArgumentError preprocess_inputs(source_case, output_case; tdr_settings_path=settings_path)
 
         reduced_time_data = JSON3.read(read(joinpath(output_case, "system", "time_data.json"), String))
@@ -534,10 +536,10 @@ end
         @test nrow(reduced_map) == full_length ÷ PREPARE_CASE_PERIOD_LENGTH
         @test length(unique(reduced_map.Rep_Period_Index)) == 3
         @test nrow(CSV.read(joinpath(output_case, "system", "demand.csv"), DataFrame)) == 3 * PREPARE_CASE_PERIOD_LENGTH
-        provenance = JSON3.read(read(joinpath(output_case, "time_domain_reduction_provenance.json"), String))
+        provenance = JSON3.read(read(joinpath(output_case, "preprocessing_logs", "time_domain_reduction_provenance.json"), String))
         @test length(provenance[:forced_extreme_periods]) == 1
         @test only(provenance[:forced_extreme_periods]) in provenance[:representative_periods]
-        preprocess_log = JSON3.read(read(joinpath(output_case, "preprocess_log.json"), String))
+        preprocess_log = JSON3.read(read(joinpath(output_case, "preprocessing_logs", "preprocess_log.json"), String))
         @test !haskey(preprocess_log, :stale)
         tdr_log = preprocess_log[:time_domain_reduction]
         @test tdr_log[:temporal_summary][:original_hours] == full_length

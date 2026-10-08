@@ -68,7 +68,7 @@ using CSV, DataFrames, MacroEnergy, Test
             @test reduced[field] == data[field]
         end
         @test read(path) == original
-        log = MacroEnergy.read_json(joinpath(output, "preprocess_log.json"))["time_domain_reduction"]
+        log = MacroEnergy.read_json(joinpath(output, "preprocessing_logs", "preprocess_log.json"))["time_domain_reduction"]
         logged = Dict(only(series["fields"]) => series for series in log["discovered_time_series"]["sources"])
         @test length(logged) == length(sources)
         @test all(series["reduced"] for series in values(logged))
