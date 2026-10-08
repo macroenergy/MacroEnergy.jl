@@ -128,8 +128,9 @@ function tdr_manifest_path!(manifest::Dict{String,TDRTrackedInput}, case_root::S
 end
 
 function tdr_collect_manifest_paths!(manifest::Dict{String,TDRTrackedInput}, case_root::String, path::String,
-    visited_json::Set{String}=Set{String}(); recursive_directories::Bool=true,
-    destination_root::String=case_root, system_index::Union{Nothing,Int}=nothing)
+    visited_inputs::Set{String}=Set{String}(); recursive_directories::Bool=true,
+    destination_root::String=case_root, system_index::Union{Nothing,Int}=nothing,
+    read_input::Function=tdr_read_input_data)
     tdr_manifest_path!(manifest, case_root, path; destination_root, system_index)
     if isdir(path)
         directories = recursive_directories ? walkdir(path) : [(path, String[], readdir(path))]
@@ -137,31 +138,33 @@ function tdr_collect_manifest_paths!(manifest::Dict{String,TDRTrackedInput}, cas
             for file in files
                 child = joinpath(directory, file)
                 isfile(child) || continue
-                tdr_collect_manifest_paths!(manifest, case_root, child, visited_json;
-                    recursive_directories, destination_root, system_index)
+                tdr_collect_manifest_paths!(manifest, case_root, child, visited_inputs;
+                    recursive_directories, destination_root, system_index, read_input)
             end
         end
         return nothing
     end
-    isjson(path) || return nothing
+    (isjson(path) || iscsv(path)) || return nothing
     canonical_path = abspath(path)
-    canonical_path in visited_json && return nothing
-    push!(visited_json, canonical_path)
-    data = mutable_json_data(read_json(canonical_path))
-    tdr_collect_manifest_references!(manifest, case_root, data, visited_json;
-        recursive_directories, destination_root, system_index)
+    canonical_path in visited_inputs && return nothing
+    push!(visited_inputs, canonical_path)
+    data = read_input(canonical_path)
+    isnothing(data) && return nothing
+    tdr_collect_manifest_references!(manifest, case_root, data, visited_inputs;
+        recursive_directories, destination_root, system_index, read_input)
     return nothing
 end
 
 """Follow ordinary and time-series references using the same manifest traversal rules."""
 function tdr_collect_manifest_references!(manifest::Dict{String,TDRTrackedInput}, case_root::String, data,
-    visited_json::Set{String}; recursive_directories::Bool=true,
-    destination_root::String=case_root, system_index::Union{Nothing,Int}=nothing)
+    visited_inputs::Set{String}; recursive_directories::Bool=true,
+    destination_root::String=case_root, system_index::Union{Nothing,Int}=nothing,
+    read_input::Function=tdr_read_input_data)
     function collect_manifest_path(reference_path::String)
         target = abspath(joinpath(case_root, reference_path))
         if ispath(target)
-            tdr_collect_manifest_paths!(manifest, case_root, target, visited_json;
-                recursive_directories, destination_root, system_index)
+            tdr_collect_manifest_paths!(manifest, case_root, target, visited_inputs;
+                recursive_directories, destination_root, system_index, read_input)
         end
         return nothing
     end
@@ -187,13 +190,14 @@ entries keyed by source path. Supply `destination_root` and `system_index` to
 assign private output paths during discovery.
 """
 function tdr_system_input_manifest(case_root::String, system;
-    destination_root::String=case_root, system_index::Union{Nothing,Int}=nothing)
+    destination_root::String=case_root, system_index::Union{Nothing,Int}=nothing,
+    read_input::Function=tdr_read_input_data)
     manifest = Dict{String,TDRTrackedInput}()
-    visited_json = Set{String}()
+    visited_inputs = Set{String}()
     # Ordinary input directories load their immediate files. Nested directories
     # are dependencies only when an input explicitly references them.
-    tdr_collect_manifest_references!(manifest, case_root, system, visited_json;
-        recursive_directories=false, destination_root, system_index)
+    tdr_collect_manifest_references!(manifest, case_root, system, visited_inputs;
+        recursive_directories=false, destination_root, system_index, read_input)
     return manifest
 end
 
@@ -348,13 +352,13 @@ function tdr_prepare_system_inputs!(case_root::String, prepared)
             for (path, input) in inputs.manifest
                 destination = tdr_system_input_path(case_root, inputs.system_index,
                     joinpath(case_root, relpath(path, inputs.source_root)))
-                isfile(path) && isjson(path) && continue
+                haskey(inputs.input_data, path) && continue
                 tdr_copy_system_input!(TDRTrackedInput(path, destination, input.columns))
             end
-            for (path, data) in relocated.json_data
-                mkpath(dirname(path))
-                write_json(path, data)
-            end
+        end
+        for (path, data) in relocated.input_data
+            mkpath(dirname(path))
+            tdr_write_input_data(path, data, relocated.csv_tables)
         end
         relocated
     end
@@ -439,10 +443,12 @@ end
 """Consolidate identical reduced CSVs and directly referenced JSON inputs."""
 function tdr_consolidate_shared_inputs!(case_root::String, prepared_systems)
     source_paths = Dict{String,Vector{String}}()
-    json_paths = Set{String}([joinpath(case_root, "system_data.json")])
+    input_paths = Set{String}([joinpath(case_root, "system_data.json")])
+    csv_tables = Dict{String,DataFrame}()
     time_paths = Set(inputs.time_data_path for inputs in prepared_systems)
     for inputs in prepared_systems
-        union!(json_paths, keys(inputs.json_data))
+        union!(input_paths, keys(inputs.input_data))
+        merge!(csv_tables, inputs.csv_tables)
         for source in inputs.sources
             isnothing(source.csv_path) && continue
             shared_path = tdr_shared_input_path(case_root, source.csv_path)
@@ -454,23 +460,27 @@ function tdr_consolidate_shared_inputs!(case_root::String, prepared_systems)
     while true
         # Rewrite before comparing JSON: shared children can make their parents
         # identical. Track shared JSON destinations for subsequent passes.
-        for path in json_paths
-            data = mutable_json_data(read_json(path))
+        union!(input_paths, (input.destination_path for input in values(replacements)
+            if isjson(input.source_path)))
+        current_data = Dict{String,Any}()
+        for path in input_paths
+            data = tdr_read_input_data(path, csv_tables)
             tdr_rewrite_input_paths!(data, case_root, case_root, replacements)
-            write_json(path, data)
+            tdr_write_input_data(path, data, csv_tables)
+            current_data[path] = data
         end
         for input in values(replacements)
             if isjson(input.source_path)
-                delete!(json_paths, input.source_path)
-                push!(json_paths, input.destination_path)
+                delete!(input_paths, input.source_path)
+                delete!(current_data, input.source_path)
             end
             rm(input.source_path; force=true)
         end
 
         direct_paths = Set{String}()
         directory_paths = Set{String}()
-        for path in json_paths
-            tdr_visit_input_paths!(mutable_json_data(read_json(path)); include_timeseries=false) do reference
+        for path in input_paths
+            tdr_visit_input_paths!(current_data[path]; include_timeseries=false) do reference
                 target = abspath(joinpath(case_root, reference))
                 isdir(target) && push!(directory_paths, target)
                 isfile(target) && isjson(target) && push!(direct_paths, target)
@@ -478,14 +488,14 @@ function tdr_consolidate_shared_inputs!(case_root::String, prepared_systems)
         end
         empty!(source_paths)
         for path in direct_paths
-            path in json_paths || continue
+            path in input_paths || continue
             path in time_paths && continue
             any(directory -> is_within(path, directory), directory_paths) && continue
             shared_path = tdr_shared_input_path(case_root, path)
             isnothing(shared_path) && continue
             push!(get!(source_paths, shared_path, String[]), path)
         end
-        replacements = tdr_shared_input_replacements(case_root, source_paths; json_inputs=true, occupied_paths=json_paths)
+        replacements = tdr_shared_input_replacements(case_root, source_paths; json_inputs=true, occupied_paths=input_paths)
         isempty(replacements) && return nothing
     end
 end

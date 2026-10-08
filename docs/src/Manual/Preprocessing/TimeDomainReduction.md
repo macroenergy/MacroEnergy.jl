@@ -437,11 +437,11 @@ preprocess_inputs(source_root, output_root; tdr_settings_path, ...)
 │     ├─ [Read Case settings and shared cache dependencies when needed]
 │     └─ FOR EACH (system_index, settings)
 │        ├─ [Discover dependencies using tdr_system_input_manifest(...)]
-│        ├─ [Read dependency JSON into a snapshot; reuse shared JSON reads]
+│        ├─ [Normalize JSON and model CSV using tdr_read_input_data(...); reuse shared reads]
 │        ├─ [Read and validate the time grid using tdr_full_length(...)]
 │        ├─ tdr_build_candidate_periods(time_data, source_root, settings)
 │        │  └─ [Read an existing period map using tdr_existing_period_map(...)]
-│        ├─ [Discover physical series using tdr_sources(..., time_grid, json_data)]
+│        ├─ [Discover physical series using tdr_sources(..., time_grid, input_data)]
 │        ├─ IF output features are enabled
 │        │  └─ [Prepare isolated Case settings using tdr_single_system_case_settings(...)]
 │        └─ IF saving or reusing output features
@@ -455,9 +455,9 @@ preprocess_inputs(source_root, output_root; tdr_settings_path, ...)
 ├─ tdr_prepare_system_inputs!(output_root, prepared)
 │  ├─ FOR EACH prepared System
 │  │  ├─ [Translate snapshot paths using tdr_relocate_inputs(...)]
-│  │  └─ IF a multi-System Case
-│  │     ├─ [Copy each dependency using tdr_copy_system_input!(...); select time-series columns]
-│  │     └─ [Write the translated JSON snapshots into the private System tree]
+│  │  ├─ IF a multi-System Case
+│  │  │  └─ [Copy ordinary dependencies using tdr_copy_system_input!(...); select time-series columns]
+│  │  └─ [Write translated snapshots in their original formats using tdr_write_input_data(...)]
 │  └─ [Write the translated System entries into system_data.json]
 │
 └─ tdr_time_domain_reduction(output_root, settings_by_system, working_inputs; ...)
@@ -507,13 +507,14 @@ than repeating that work. Path translation changes the file locations in the
 snapshots while sharing the original series values and candidate plan. No global
 prepared-input cache is retained between preprocessing calls.
 
-Each prepared System carries its dependency manifest, JSON snapshots, discovered
+Each prepared System carries its dependency manifest, parsed input snapshots, discovered
 `sources`, time-grid metadata, `trailing_hours`, and `candidates`, together with
 isolated Case settings and an output-cache fingerprint when needed.
 `TDRTrackedInput` describes file dependencies and required columns;
 `TDRCandidatePeriods` describes temporal ranges, chronological occurrences,
-weights, and representative labels. Consolidation uses the CSV paths and JSON
-file list already present in the prepared data, while reading the modified files
+weights, and representative labels. `input_data` holds the normalized snapshots;
+`csv_tables` retains original model CSV tables for format-preserving writes.
+Consolidation uses the CSV paths and parsed-input file list already present in the prepared data, while reading the modified files
 when comparing contents and rewriting references.
 
 Single- and multi-System Cases use the same orchestration loop. A single-System
@@ -540,7 +541,7 @@ tdr_output_sources(case_root, settings_by_system, prepared_systems; ...)
 │        │     └─ tdr_materialize_subperiod_case!(inputs, destination, period, settings)
 │        │        ├─ tdr_copy_subperiod_case(inputs, destination)
 │        │        │  ├─ [Translate the prepared snapshot using tdr_relocate_inputs(...)]
-│        │        │  └─ [Copy dependencies and write cached JSON and isolated Case settings]
+│        │        │  └─ [Copy dependencies and write cached inputs in their original formats and isolated Case settings]
 │        │        ├─ [Select the candidate's prepared source range]
 │        │        ├─ [Write candidate rows using tdr_write_reduced_sources!(...)]
 │        │        ├─ [Set length and one subperiod using tdr_write_subperiod_time_data!(...)]
@@ -584,12 +585,12 @@ output-feature branch solves models during preprocessing.
 ### Discover and copy the inputs
 
 `preprocess_inputs` starts at `system_data.json` and follows its input-path
-references through the referenced JSON files and directories. It copies those
+references through the referenced JSON files, model-input CSV files and directories. It copies those
 inputs into the output case, along with supporting Julia files, Markdown files,
 and `user_additions/`. This creates the working copy that TDR modifies.
 
 For each System, TDR reads its time data to determine the explicit hourly
-horizon. It searches the referenced JSON inputs for explicit `timeseries`
+horizon. It searches the normalized JSON and model CSV inputs for explicit `timeseries`
 descriptors and numeric inline vectors matching the horizon and a configured
 feature field. CSV path/header pairs identify physical series: repeated
 references to the same pair share one series, with their logical occurrences
@@ -605,8 +606,8 @@ vectors are still reduced.
 
 A single-System case retains its input paths within the copied case. For a
 multi-System case, preparation builds a separate dependency manifest from each
-System entry in `system_data.json`. It follows nested JSON and time-series
-references, and includes the immediate files in referenced input directories.
+System entry in `system_data.json`. It follows nested references in JSON and
+model-input CSV files, including ordinary paths and time-series descriptors, and includes the immediate files in referenced input directories.
 Only that System's dependencies are copied into `inputs/system_<n>/`, preserving
 their complete source-relative paths. Internally, a manifest is a dictionary
 keyed by source path, with one `TDRTrackedInput` entry per dependency. Each entry
@@ -623,12 +624,24 @@ nodes.json                 -> inputs/system_1/nodes.json
 ```
 
 The corresponding System entry in `system_data.json` and the nested paths in
-its copied JSON files are rewritten to these locations. Paths remain relative
+its copied JSON and model-input CSV files are rewritten to these locations. Paths remain relative
 to the case root. This gives each System its own inputs to shorten when it
 selects different representative periods. Shared dependencies receive a private
 copy for every System that references them, regardless of directory name.
 Case-level settings and supporting scripts remain available in the general case
 copy.
+
+Model-input CSVs (with `Type` and `id` columns) are parsed lazily using the
+ordinary CSV-to-dictionary parser. Dependency discovery, feature selection and
+path rewriting then use the same nested representation as JSON inputs. Copied
+model inputs remain CSV: a format adapter transfers the adjusted values back
+through the original headers' `--` addresses, preserving row order, column order
+and unchanged cell values. Both ordinary `path` references and
+`timeseries--path` references participate; no temporary JSON files are generated.
+These same snapshots and CSV tables are reused for isolated subperiod inputs.
+If policy constraints are excluded there, their corresponding CSV columns are
+omitted; the remaining columns retain their original order.
+After reduction, consolidation also rewrites references in model CSV consumers.
 
 For a CSV referenced exclusively through `timeseries` descriptors, each private
 copy retains the union of headers requested by that System, in source-column
@@ -752,10 +765,12 @@ trimming remains a separate follow-up.
 After reducing every System independently, multi-System TDR compares the
 reduced CSVs in the private `inputs/system_<n>/` trees. Its consolidation step
 groups byte-identical files, copies shared content back to an ordinary shared
-input path, rewrites the JSON references, and removes redundant private CSVs.
+input path, rewrites references in JSON and model-input CSVs, and removes
+redundant private time-series CSVs.
 Distinct content groups use separate destinations. It then consolidates
 byte-identical, directly referenced JSON files at their original case-relative
-locations, updating references in the System definitions and other JSON inputs. Comparison repeats
+locations, updating references in the System definitions and other JSON or
+model CSV inputs. Comparison repeats
 after references change, allowing identical parent files to share consolidated
 children. Additional content groups or conflicting earlier consolidations use
 separate destinations under `inputs/shared/`. Time-data files and JSON files
@@ -797,6 +812,8 @@ MacroEnergy.tdr_subperiod_run_settings_data
 MacroEnergy.TimeSeriesSource
 MacroEnergy.TDRTrackedInput
 MacroEnergy.tdr_normalize_path
+MacroEnergy.tdr_read_input_data
+MacroEnergy.tdr_write_input_data
 MacroEnergy.tdr_visit_input_paths!
 MacroEnergy.tdr_case_input_manifest
 MacroEnergy.tdr_system_input_manifest

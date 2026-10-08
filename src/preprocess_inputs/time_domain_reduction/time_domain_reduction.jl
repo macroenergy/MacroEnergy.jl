@@ -1,6 +1,7 @@
 include("tdr_utilities.jl")
 include("tdr_features.jl")
 include("tdr_settings.jl")
+include("tdr_input_formats.jl")
 include("tdr_input_search.jl")
 include("tdr_time_series_sources.jl")
 include("tdr_candidate_periods.jl")

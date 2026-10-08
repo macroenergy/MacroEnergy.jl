@@ -87,6 +87,10 @@ end
 
 function csv_to_json(file_path::AbstractString, nesting_str::AbstractString="--")::Vector{Dict{Symbol,Any}}
     data = DataFrame(duckdb_read(file_path))
+    return csv_to_json(data, nesting_str)
+end
+
+function csv_to_json(data::DataFrame, nesting_str::AbstractString="--")::Vector{Dict{Symbol,Any}}
     # Rearrange Type and id to be the first two columns if they exist
     col_names = propertynames(data)
     if :Type in col_names && :id in col_names
@@ -346,4 +350,3 @@ function convert_jsons_to_csv(dir_path::AbstractString, rel_path::AbstractString
 
     return dataframes
 end
-

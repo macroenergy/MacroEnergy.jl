@@ -31,17 +31,21 @@ end
 """Prepare the reusable dependency snapshot for isolated candidate solves."""
 function tdr_prepare_subperiod_inputs(inputs)
     manifest = copy(inputs.manifest)
+    input_data = copy(inputs.input_data)
+    csv_tables = copy(inputs.csv_tables)
+    function read_input(path)
+        data = get!(input_data, path) do
+            tdr_read_input_data(path, csv_tables)
+        end
+        return data
+    end
     additions = user_additions_path(inputs.source_root)
     if isdir(additions)
         tdr_collect_manifest_paths!(manifest, inputs.source_root, additions;
-            destination_root=inputs.source_root)
+            destination_root=inputs.source_root, read_input)
     end
-    json_data = copy(inputs.json_data)
-    for path in keys(manifest)
-        isfile(path) && isjson(path) && !haskey(json_data, path) || continue
-        json_data[path] = mutable_json_data(read_json(path))
-    end
-    return merge(inputs, (; manifest, json_data))
+    filter!(entry -> !isnothing(entry.second), input_data)
+    return merge(inputs, (; manifest, input_data, csv_tables))
 end
 
 function tdr_read_case_settings(case_root::String, root)
@@ -79,13 +83,13 @@ function tdr_copy_subperiod_case(inputs, destination_case_root::String)
     relocated = tdr_relocate_inputs(inputs, destination_case_root)
     mkpath(destination_case_root)
     for input in sort!(collect(values(inputs.manifest)); by=input -> input.source_path)
-        isfile(input.source_path) && isjson(input.source_path) && continue
+        haskey(inputs.input_data, input.source_path) && continue
         destination = joinpath(destination_case_root, relpath(input.source_path, inputs.source_root))
         tdr_copy_system_input!(TDRTrackedInput(input.source_path, destination, input.columns))
     end
-    for (path, data) in relocated.json_data
+    for (path, data) in relocated.input_data
         mkpath(dirname(path))
-        write_json(path, data)
+        tdr_write_input_data(path, data, relocated.csv_tables)
     end
     write_json(joinpath(destination_case_root, "system_data.json"), relocated.system)
     destination_path = joinpath(destination_case_root, "settings", "case_settings.json")
@@ -102,10 +106,10 @@ function tdr_materialize_subperiod_case!(inputs, destination_case_root::String,
     tdr_write_subperiod_time_data!(relocated.time_data_path, inputs.time_data, inputs.candidates.period_length)
     if !settings.output_features.subperiod_runs.include_policy_constraints
         policy_names = tdr_policy_constraint_names()
-        for path in union(collect(keys(relocated.json_data)), [joinpath(destination_case_root, "system_data.json")])
-            data = mutable_json_data(read_json(path))
+        for path in union(collect(keys(relocated.input_data)), [joinpath(destination_case_root, "system_data.json")])
+            data = tdr_read_input_data(path, relocated.csv_tables)
             tdr_remove_policy_constraints!(data, policy_names)
-            write_json(path, data)
+            tdr_write_input_data(path, data, relocated.csv_tables)
         end
     end
     clear_csv_cache!()

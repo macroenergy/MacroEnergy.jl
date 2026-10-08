@@ -282,13 +282,13 @@ function tdr_collect_references!(
 end
 
 """Discover physical series from an already validated time grid and dependency snapshot."""
-function tdr_sources(case_root::String, settings::TDRSettings, time_grid, json_data)
+function tdr_sources(case_root::String, settings::TDRSettings, time_grid, input_data)
     (; full_length, total_hours, time_data) = time_grid
     sources = Dict{String,TimeSeriesSource}()
     trailing_hours = Ref(0)
     commodity_names = Set(String.(keys(time_data["HoursPerTimeStep"])))
-    for file in sort!(collect(keys(json_data)))
-        tdr_collect_references!(sources, json_data[file], file, case_root, full_length, total_hours,
+    for file in sort!(collect(keys(input_data)))
+        tdr_collect_references!(sources, input_data[file], file, case_root, full_length, total_hours,
             trailing_hours, settings.all_features, settings.excluded_features, commodity_names)
     end
     isempty(sources) && throw(ArgumentError("No time-dependent inputs were discovered for TDR."))
