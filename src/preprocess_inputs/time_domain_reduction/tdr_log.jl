@@ -1,36 +1,125 @@
-function tdr_source_log_data(source::TimeSeriesSource, case_root::String)
+"""Physical location of a logged input series or generated output feature.
+
+`type` is `"csv"`, `"inline_json"` or `"output_feature"`. Optional location fields
+are omitted from JSON when they do not apply to that source type.
+"""
+Base.@kwdef struct TDRLogLocation
+    type::String
+    path::Union{Nothing,String} = nothing
+    header::Union{Nothing,String} = nothing
+    input_path::Vector{String} = String[]
+end
+
+"""One logical reference to a logged series, including its clustering decision.
+
+An output feature has no input-file `path`. `clustering_exclusion_reason` is
+`nothing` for a clustered reference; otherwise it records `"no_matching_feature"`,
+`"explicitly_excluded"` or `"zero_clustering_weight"`.
+"""
+Base.@kwdef struct TDRLogReference
+    path::Union{Nothing,String} = nothing
+    input_path::Vector{String} = String[]
+    field::String = ""
+    feature_id::Union{Nothing,String} = nothing
+    include_in_clustering::Bool = false
+    clustering_exclusion_reason::Union{Nothing,String} = nothing
+end
+
+"""One physical series in the discovered-input or clustering-source log.
+
+`source` identifies its location; the selector lists summarize `references`.
+`occurrences` counts logical uses, `user_weight` is the configured feature weight
+and `weight` records the series weight. `include_in_clustering` reports actual
+clustering membership. `reduced` indicates whether the series is written back
+into model inputs; generated output features are not reduced.
+"""
+Base.@kwdef struct TDRLogEntry
+    source::TDRLogLocation
+    feature_ids::Vector{String} = String[]
+    fields::Vector{String} = String[]
+    assets::Vector{String} = String[]
+    commodities::Vector{String} = String[]
+    occurrences::Int = 0
+    user_weight::Float64 = 1.0
+    weight::Float64 = 0.0
+    include_in_clustering::Bool = false
+    reduced::Bool = false
+    references::Vector{TDRLogReference} = TDRLogReference[]
+end
+
+# Keep the existing JSON layout explicit at the serialization boundary.
+function tdr_log_data(location::TDRLogLocation)
+    data = Dict{String,Any}("type" => location.type)
+    if location.type == "csv"
+        data["path"] = location.path
+        data["header"] = location.header
+    elseif location.type == "inline_json"
+        data["path"] = location.path
+        data["input_path"] = location.input_path
+    end
+    return data
+end
+
+tdr_log_data(reference::TDRLogReference) = Dict(
+    "path" => reference.path, "input_path" => reference.input_path,
+    "field" => reference.field, "feature_id" => reference.feature_id,
+    "include_in_clustering" => reference.include_in_clustering,
+    "clustering_exclusion_reason" => reference.clustering_exclusion_reason,
+)
+
+tdr_log_data(entry::TDRLogEntry) = Dict(
+    "source" => tdr_log_data(entry.source), "feature_ids" => entry.feature_ids,
+    "fields" => entry.fields, "assets" => entry.assets, "commodities" => entry.commodities,
+    "occurrences" => entry.occurrences, "user_weight" => entry.user_weight,
+    "weight" => entry.weight, "include_in_clustering" => entry.include_in_clustering,
+    "reduced" => entry.reduced, "references" => tdr_log_data.(entry.references),
+)
+
+function TDRLogEntry(source::TimeSeriesSource, case_root::String;
+    include_in_clustering::Bool=source.include_in_clustering)
     references = source.references
     location = if !isnothing(source.csv_path)
-        Dict(
-            "type" => "csv",
-            "path" => tdr_relative_path(case_root, source.csv_path),
-            "header" => String(source.header),
-        )
+        TDRLogLocation(type="csv", path=tdr_relative_path(case_root, source.csv_path),
+            header=String(source.header))
     elseif !isnothing(source.inline_file)
-        Dict(
-            "type" => "inline_json",
-            "path" => tdr_relative_path(case_root, source.inline_file),
-            "input_path" => string.(source.inline_path),
-        )
+        TDRLogLocation(type="inline_json", path=tdr_relative_path(case_root, source.inline_file),
+            input_path=string.(source.inline_path))
     else
-        Dict("type" => "output_feature")
+        TDRLogLocation(type="output_feature")
     end
-    return Dict(
-        "source" => location,
-        "feature_ids" => sort!(unique([
+    return TDRLogEntry(
+        source=location,
+        feature_ids=sort!(unique(String[
             reference.feature_id for reference in references if !isnothing(reference.feature_id)
         ])),
-        "fields" => sort!(unique(reference.field for reference in references)),
-        "assets" => sort!(unique([
+        fields=sort!(unique(String[reference.field for reference in references])),
+        assets=sort!(unique(String[
             reference.asset for reference in references if !isnothing(reference.asset)
         ])),
-        "commodities" => sort!(unique([
+        commodities=sort!(unique(String[
             reference.commodity for reference in references if !isnothing(reference.commodity)
         ])),
-        "occurrences" => source.occurrences,
-        "user_weight" => source.user_weight,
-        "weight" => source.weight,
+        occurrences=source.occurrences,
+        user_weight=source.user_weight,
+        weight=source.weight,
+        include_in_clustering=include_in_clustering,
+        reduced=!isnothing(source.csv_path) || !isnothing(source.inline_file),
+        references=[TDRLogReference(
+            path=isnothing(reference.json_file) ? nothing : tdr_relative_path(case_root, reference.json_file),
+            input_path=string.(reference.input_path), field=reference.field,
+            feature_id=reference.feature_id,
+            include_in_clustering=reference.include_in_clustering && include_in_clustering,
+            clustering_exclusion_reason=reference.include_in_clustering ?
+                (include_in_clustering ? nothing : "zero_clustering_weight") :
+                get(reference, :clustering_exclusion_reason,
+                    isnothing(reference.feature_id) ? "no_matching_feature" : "explicitly_excluded"),
+        ) for reference in references],
     )
+end
+
+function tdr_source_log_data(source::TimeSeriesSource, case_root::String;
+    include_in_clustering::Bool=source.include_in_clustering)
+    return tdr_log_data(TDRLogEntry(source, case_root; include_in_clustering))
 end
 
 function tdr_representative_period_log_data(
@@ -85,6 +174,7 @@ function tdr_preprocess_log_data(
         tdr_source_log_data(source, case_root)
         for source in sort(clustering_sources; by=source -> source.key)
     ]
+    clustering_keys = Set(source.key for source in clustering_sources)
     return Dict(
         "time_domain_reduction" => Dict(
             "temporal_summary" => temporal_summary,
@@ -105,6 +195,9 @@ function tdr_preprocess_log_data(
             "discovered_time_series" => Dict(
                 "unique_time_series" => length(sources),
                 "occurrences" => sum(source.occurrences for source in sources),
+                "sources" => [tdr_source_log_data(source, case_root;
+                    include_in_clustering=source.key in clustering_keys)
+                    for source in sort(sources; by=source -> source.key)],
             ),
             "subperiod_solves" => subperiod_solves,
             "representative_periods" => tdr_representative_period_log_data(

@@ -152,7 +152,8 @@ function tdr_collect_csv_reference!(
         feature,
         asset,
         commodity,
-        !isnothing(feature) && !excluded,
+        !isnothing(feature) && !excluded;
+        explicitly_excluded=excluded,
     )
     tdr_add_reference!(sources, source_key, values; csv_path=csv_path, header=header, reference)
     return nothing
@@ -174,9 +175,10 @@ function tdr_collect_inline_reference!(
 )
     field = tdr_field_name(path)
     feature = tdr_feature_for_reference(all_features, field, json_file, nothing, case_root, asset, commodity)
-    isnothing(feature) && return nothing
-
-    excluded = any(exclusion -> tdr_feature_matches_selector(feature, exclusion), exclusions)
+    selector = isnothing(feature) ? TDRFeatureSpec(
+        file=tdr_relative_path(case_root, json_file), asset=asset, commodity=commodity, field=field,
+    ) : feature
+    excluded = any(exclusion -> tdr_feature_matches_selector(selector, exclusion), exclusions)
     reference = tdr_logical_reference(
         json_file,
         path,
@@ -184,7 +186,8 @@ function tdr_collect_inline_reference!(
         feature,
         asset,
         commodity,
-        !excluded,
+        !isnothing(feature) && !excluded;
+        explicitly_excluded=excluded,
     )
     key = "inline:" * json_file * ":" * join(string.(path), "/")
     values, removed_hours = tdr_time_series_values(
@@ -255,7 +258,7 @@ function tdr_collect_references!(
             pop!(path)
         end
     elseif data isa AbstractVector
-        if length(data) in (full_length, total_hours) && all(value -> value isa Real, data)
+        if length(data) > 1 && length(data) in (full_length, total_hours) && all(value -> value isa Real, data)
             tdr_collect_inline_reference!(
                 sources,
                 data,

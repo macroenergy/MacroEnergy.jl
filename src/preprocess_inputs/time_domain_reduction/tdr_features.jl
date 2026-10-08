@@ -116,7 +116,8 @@ function tdr_logical_reference(
     feature::Union{Nothing,TDRFeatureSpec},
     asset::Union{Nothing,String},
     commodity::Union{Nothing,String},
-    include_in_clustering::Bool,
+    include_in_clustering::Bool;
+    explicitly_excluded::Bool=false,
 )
     return (
         json_file=json_file,
@@ -127,5 +128,7 @@ function tdr_logical_reference(
         commodity=commodity,
         user_weight=isnothing(feature) ? 1.0 : feature.user_weight,
         include_in_clustering=include_in_clustering,
+        clustering_exclusion_reason=include_in_clustering ? nothing :
+            explicitly_excluded ? "explicitly_excluded" : "no_matching_feature",
     )
 end

@@ -617,5 +617,6 @@ end
 
 include("test_tdr_system_inputs.jl")
 include("test_tdr_csv_inputs.jl")
+include("test_tdr_inline_inputs.jl")
 include("test_tdr_output_feature_cache.jl")
 include("test_tdr_candidate_periods.jl")

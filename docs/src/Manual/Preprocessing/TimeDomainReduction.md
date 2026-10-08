@@ -591,16 +591,24 @@ and `user_additions/`. This creates the working copy that TDR modifies.
 
 For each System, TDR reads its time data to determine the explicit hourly
 horizon. It searches the normalized JSON and model CSV inputs for explicit `timeseries`
-descriptors and numeric inline vectors matching the horizon and a configured
-feature field. CSV path/header pairs identify physical series: repeated
+descriptors and numeric inline vectors matching the source time-series length,
+independently of whether their fields are configured for clustering. Scalar and
+one-element constant inputs remain unchanged. CSV path/header pairs identify physical series: repeated
 references to the same pair share one series, with their logical occurrences
 recorded separately.
 
 Discovery and clustering-feature selection serve different purposes. Every
-explicit CSV time-series descriptor is discovered for reduction, but only
-matching, non-excluded features influence clustering. Inline-vector discovery
-depends on matching a configured feature field. Excluded matching inline
-vectors are still reduced.
+explicit CSV time-series descriptor and matching-length numeric inline vector
+is discovered for reduction, but only matching, non-excluded features influence
+clustering. Unselected and explicitly excluded vectors are still reduced and
+sliced for isolated subperiod solves. The user-supplied exclusion list is not
+expanded during discovery. Inline vectors use the same explicit-horizon and
+full-source-length rules as CSV series, including permitted trailing-source trimming.
+
+Length-based recognition assumes matching-length numeric vectors are temporal.
+Short segment-indexed NSD arrays and legacy supply arrays can coincidentally
+match a short horizon and be treated as temporal; migration to named per-segment
+inputs is a planned follow-up.
 
 ### Prepare separate inputs for multiple Systems
 
@@ -786,6 +794,20 @@ are stored under the original source’s `TDR/`, as described in the output-base
 features section. Saved-artifact paths in the destination’s provenance and logs
 point to those source locations.
 
+`discovered_time_series.sources` lists every input series that was reduced,
+including its file/header or inline field path and whether it influenced
+clustering. Each logical reference reports `include_in_clustering` and a
+`clustering_exclusion_reason`: `no_matching_feature`, `explicitly_excluded`, or
+`zero_clustering_weight` when an eligible input receives no clustering weight.
+Clustering references have a `null` reason. `clustering_features.sources` lists
+the series actually used, including output features; generated output profiles
+are marked `reduced=false` because they are not rewritten into model inputs.
+
+Internally, each series is represented by `TDRLogEntry`, with typed location and
+reference records (`TDRLogLocation` and `TDRLogReference`). Their fields and
+defaults define the source-entry schema; conversion to dictionaries preserves
+the JSON layout described above.
+
 Inspect the period map and log to understand which periods were retained and
 how they represent the original horizon, then load and run the generated case
 with the ordinary `load_case` and `run_case` APIs.
@@ -861,6 +883,14 @@ MacroEnergy.TDROutputCacheFingerprint
 MacroEnergy.tdr_output_feature_selection
 MacroEnergy.tdr_output_cache_fingerprint
 MacroEnergy.tdr_output_solver_provenance
+```
+
+### Log entries
+
+```@docs
+MacroEnergy.TDRLogLocation
+MacroEnergy.TDRLogReference
+MacroEnergy.TDRLogEntry
 ```
 
 The TDR section of `preprocess_log.json` records temporal handling, extreme-period decisions, method settings, feature sources and weights, occurrences, and—for every representative period—the total number and list of original periods it represents.
