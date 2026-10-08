@@ -496,7 +496,8 @@ preprocess_inputs(source_root, output_root; tdr_settings_path, ...)
    │
    ├─ IF a multi-System Case
    │  └─ [Consolidate reduced CSVs and directly referenced JSON using tdr_consolidate_shared_inputs!(..., prepared_systems)]
-   └─ [Write provenance and log using write_json(...); group by System for multi-System Cases]
+   ├─ [Assemble Case-level records; group by System for multi-System Cases]
+   └─ tdr_write_preprocessing_logs!(case_root, provenance, log_data)
 ```
 
 `preprocess_inputs(...)` and `time_domain_reduction(...)` are the validated

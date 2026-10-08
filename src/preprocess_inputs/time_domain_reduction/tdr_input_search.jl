@@ -47,52 +47,6 @@ function tdr_visit_input_paths!(visit_path!::Function, data; include_timeseries:
     return nothing
 end
 
-function tdr_collect_json_files!(files::Set{String}, case_root::String, path::String)
-    canonical_path = abspath(path)
-    if canonical_path in files
-        # Multiple input references can point to the same JSON file. Avoid
-        # reading it twice and following a cyclic reference forever.
-        return nothing
-    end
-
-    if !(isfile(canonical_path) && isjson(canonical_path))
-        # References may also point to CSV files or optional/missing files.
-        # JSON files are the only inputs that may contain further references.
-        return nothing
-    end
-
-    push!(files, canonical_path)
-    data = mutable_json_data(read_json(canonical_path))
-
-    function follow_json_path(reference_path::String)
-        target = abspath(joinpath(case_root, reference_path))
-        if isdir(target)
-            # Use the same one-level directory interpretation as normal
-            # MacroEnergy input loading.
-            for name in get_json_files(target)
-                tdr_collect_json_files!(files, case_root, joinpath(target, name))
-            end
-        elseif isjson(target)
-            tdr_collect_json_files!(files, case_root, target)
-        end
-        return nothing
-    end
-    tdr_visit_input_paths!(follow_json_path, data;
-        include_timeseries=false,
-        stop_at_timeseries=true,
-    )
-    return nothing
-end
-
-function tdr_input_json_files(case_root::String)
-    root_file = joinpath(case_root, "system_data.json")
-    isfile(root_file) || throw(ArgumentError("Case has no system_data.json at $(abspath(root_file))"))
-
-    files = Set{String}()
-    tdr_collect_json_files!(files, case_root, root_file)
-    return sort!(collect(files))
-end
-
 function tdr_path_within_case(case_root::String, path::String)
     return is_within(path, case_root)
 end

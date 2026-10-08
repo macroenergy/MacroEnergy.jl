@@ -34,14 +34,6 @@ function tdr_extreme_period_sources(
     return matches
 end
 
-function tdr_extreme_period(
-    sources::Vector{TimeSeriesSource},
-    specification::TDRExtremePeriodSpec,
-    period_length::Int,
-)
-    return tdr_extreme_period_selection(sources, specification, period_length).period
-end
-
 function tdr_extreme_period_selection(
     sources::Vector{TimeSeriesSource},
     specification::TDRExtremePeriodSpec,
@@ -71,16 +63,6 @@ function tdr_extreme_period_selection(
         return (period=cld(timestep, period_length), value=value)
     end
     throw(ArgumentError("Unsupported extreme-period aggregation `$(specification.aggregation)`."))
-end
-
-function tdr_extreme_periods(
-    sources::Vector{TimeSeriesSource},
-    period_length::Int,
-    settings::TDRSettings,
-    case_root::String,
-)
-    selections = tdr_extreme_period_selections(sources, period_length, settings, case_root)
-    return sort!(unique(Int[selection.period for selection in selections]))
 end
 
 function tdr_extreme_period_selections(
