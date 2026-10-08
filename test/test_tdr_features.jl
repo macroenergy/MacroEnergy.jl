@@ -16,9 +16,9 @@ using MacroEnergy, Test
         @test select(added, "ThermalPower").user_weight == 2
         @test select(added, "VRE").user_weight == 1
         overridden = merge_specs(Dict("id" => "availability", "asset" => "ThermalPower",
-            "field" => "availability", "weight" => 2))
+            "field" => "availability", "commodity" => "Electricity", "weight" => 2))
         @test length(availability(overridden)) == 1
-        @test generic(overridden).asset == "ThermalPower"
+        @test generic(overridden).asset == "ThermalPower" && generic(overridden).commodity == "Electricity"
         @test select(overridden, "ThermalPower").user_weight == 2
         @test isnothing(select(overridden, "VRE"))
 
@@ -88,19 +88,4 @@ using MacroEnergy, Test
         @test_throws ArgumentError merge_specs(
             Dict("id" => "duplicate", "field" => "availability"), Dict("field" => "availability", "weight" => 2))
     end
-end
-
-@testset "Explicit feature override scope" begin
-    scoped_feature = MacroEnergy.tdr_feature_spec(Dict(
-        "id" => "availability",
-        "field" => "availability",
-        "asset" => "VRE",
-        "commodity" => "Electricity",
-        "weight" => 2.0,
-    ))
-    merged_features = MacroEnergy.tdr_merge_features([scoped_feature])
-    merged_availability = only(filter(feature -> feature.id == "availability", merged_features))
-    @test merged_availability.asset == "VRE"
-    @test merged_availability.commodity == "Electricity"
-    @test merged_availability.user_weight == 2.0
 end

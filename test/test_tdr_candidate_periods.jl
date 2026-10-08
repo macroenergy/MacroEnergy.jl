@@ -173,8 +173,6 @@ end
             @test anchored.labels == [3, 4, 7, 8]
             anchored_map = MacroEnergy.tdr_compose_period_map(anchored, [1, 3], [1, 1, 2, 2])
             @test anchored_map.Rep_Period == [3, 3, 3, 3, 7, 7, 7, 7]
-            @test anchored_map.Rep_Period[3] == 3
-            @test anchored_map.Rep_Period[7] == 7
         end
     end
 
@@ -191,22 +189,6 @@ end
         end
         @test MacroEnergy.tdr_scale([0.0, 10.0], :standardize; period_weights=[1, 9]) ≈ [-3.0, 1/3]
         @test_throws ArgumentError MacroEnergy.tdr_cluster([source], 2, candidate_test_settings(1); candidate_weights=[0, 1])
-        for method in ("autoencoder_sequential", "autoencoder_simultaneous")
-            method_settings = Dict{String,Any}("kernel_size" => 1, "stride" => 1,
-                "epochs" => 1, "min_err_diff" => 0.0, "patience" => 1,
-                "warmup" => 0, "n_filters" => 2, "latent_dim" => 2)
-            method == "autoencoder_simultaneous" && (method_settings["lambda"] = 0.1)
-            settings = MacroEnergy.load_tdr_settings_data(Dict(
-                "timesteps_per_representative_period" => 2, "representative_periods" => 2,
-                "method" => Dict("name" => method, "settings" => method_settings), "scaling" => "standardize"))
-            profiles = MacroEnergy.TimeSeriesSource("demand", nothing, nothing, nothing, Any[],
-                [0., 0, 2, 2, 10, 10], 1, NamedTuple[], 1, 1.0, 1.0, true)
-            representatives, assignments = MacroEnergy.tdr_cluster([profiles], 6, settings; candidate_weights=[3, 1, 1])
-            @test length(representatives) == 2
-            @test allunique(representatives)
-            @test length(assignments) == 3
-            @test Set(assignments) == Set((1, 2))
-        end
     end
 
     @testset "repeated clustering preserves frequencies" begin

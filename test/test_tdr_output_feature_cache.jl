@@ -108,7 +108,6 @@ end
         )
         legacy_fingerprint = Dict("sha256" => bytes2hex(MacroEnergy.SHA.sha256(
             MacroEnergy.tdr_cache_json(legacy_inputs))), "inputs" => legacy_inputs)
-        @test baseline.sha256 == legacy_fingerprint["sha256"]
         @test MacroEnergy.tdr_cache_data(baseline) == legacy_fingerprint
         function exclusion_fingerprint(exclusion)
             changed = deepcopy(config)

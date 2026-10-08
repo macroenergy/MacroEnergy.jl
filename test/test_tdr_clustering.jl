@@ -91,39 +91,6 @@ using DataFrames, MacroEnergy, Test
     @test demand_source.weight == 0.25
     @test output_source.weight == 0.75
 
-    for method_name in ("autoencoder_sequential", "autoencoder_simultaneous")
-        method_data = Dict{String,Any}(
-            "restarts" => 1,
-            "epochs" => 1,
-            "patience" => 1,
-            "warmup" => 0,
-            "n_filters" => 1,
-            "latent_dim" => 1,
-        )
-        method_name == "autoencoder_simultaneous" && (method_data["lambda"] = 0.1)
-        method_settings = MacroEnergy.load_tdr_method_settings(Dict(
-            "name" => method_name,
-            "settings" => method_data,
-        ))
-        autoencoder_cluster_settings = MacroEnergy.TDRSettings(
-            timesteps_per_representative_period=2,
-            representative_periods=2,
-            method_settings=method_settings,
-            scaling=:standardize,
-            all_features=MacroEnergy.TDRFeatureSpec[],
-            features=MacroEnergy.TDRFeatureSpec[],
-            excluded_features=MacroEnergy.TDRFeatureSpec[],
-            extreme_periods=MacroEnergy.TDRExtremePeriodSpec[],
-        )
-        representatives, period_map = MacroEnergy.tdr_cluster(
-            [demand_source],
-            6,
-            autoencoder_cluster_settings,
-        )
-        @test length(representatives) == 2
-        @test length(period_map) == 3
-    end
-
     existing_period_map = DataFrame(
         Period_Index=collect(1:60),
         Rep_Period=repeat([1, 16, 31, 46]; inner=15),
@@ -140,4 +107,28 @@ using DataFrames, MacroEnergy, Test
     @test composed_period_map.Period_Index == collect(1:60)
     @test composed_period_map.Rep_Period == vcat(fill(16, 30), fill(46, 30))
     @test composed_period_map.Rep_Period_Index == vcat(fill(1, 30), fill(2, 30))
+end
+
+@testset "TDR autoencoder clustering" begin
+    for method in ("autoencoder_sequential", "autoencoder_simultaneous")
+        method_settings = Dict{String,Any}("kernel_size" => 1, "stride" => 1,
+            "epochs" => 1, "min_err_diff" => 0.0, "patience" => 1,
+            "warmup" => 0, "n_filters" => 2, "latent_dim" => 2)
+        method == "autoencoder_simultaneous" && (method_settings["lambda"] = 0.1)
+        settings = MacroEnergy.load_tdr_settings_data(Dict(
+            "timesteps_per_representative_period" => 2, "representative_periods" => 2,
+            "method" => Dict("name" => method, "settings" => method_settings), "scaling" => "standardize"))
+        profiles = MacroEnergy.TimeSeriesSource("demand", nothing, nothing, nothing, Any[],
+            [0., 0, 2, 2, 10, 10], 1, NamedTuple[], 1, 1.0, 1.0, true)
+        for weights in (nothing, [3, 1, 1])
+            @testset "$method, candidate weights: $weights" begin
+                clustering_kwargs = isnothing(weights) ? NamedTuple() : (; candidate_weights=weights)
+                representatives, assignments = MacroEnergy.tdr_cluster([profiles], 6, settings; clustering_kwargs...)
+                @test length(representatives) == 2
+                @test allunique(representatives)
+                @test length(assignments) == 3
+                @test Set(assignments) == Set((1, 2))
+            end
+        end
+    end
 end

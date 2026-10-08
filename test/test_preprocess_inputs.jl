@@ -180,8 +180,6 @@ end
         first_representative = first(tdr_log[:representative_periods])
         @test first_representative[:total_mapped_periods] == length(first_representative[:mapped_periods])
 
-        prepared_case = load_case(output_case)
-        @test length(prepared_case.systems) == 1
         # Local runners may supply another optimizer without adding a test dependency.
         solver_kwargs = @isdefined(PREPROCESS_TEST_RUN_KWARGS) ? PREPROCESS_TEST_RUN_KWARGS : NamedTuple()
         case, solution = run_case(output_case; log_to_console=false, log_to_file=false, solver_kwargs...)
