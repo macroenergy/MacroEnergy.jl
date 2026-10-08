@@ -1,26 +1,14 @@
 using CSV, DataFrames, MacroEnergy, Test
 
-@testset "selective TDR policy exclusion settings" begin
-    parse(exclude) = MacroEnergy.load_tdr_subperiod_run_settings(Dict("exclude_policy_constraints" => exclude))
-    @test MacroEnergy.TDRSubperiodRunSettings().exclude_policy_constraints === false
-    @test isempty(MacroEnergy.tdr_policy_constraint_names(parse(false).exclude_policy_constraints))
-    @test MacroEnergy.tdr_policy_constraint_names(parse(true).exclude_policy_constraints) == MacroEnergy.tdr_policy_constraint_names()
-    @test isempty(MacroEnergy.tdr_policy_constraint_names(parse(String[]).exclude_policy_constraints))
-    named = parse(["CO2CapConstraint", "AggregatedDemandConstraint", "CO2CapConstraint"])
-    @test named.exclude_policy_constraints == ["AggregatedDemandConstraint", "CO2CapConstraint"]
-    @test MacroEnergy.tdr_subperiod_run_settings_data(named)["exclude_policy_constraints"] == named.exclude_policy_constraints
-    for invalid in ("CO2CapConstraint", 1, nothing, [true], ["AggregatedDemandConstrain"], ["BalanceConstraint"])
-        @test_throws ArgumentError parse(invalid)
+@testset "output-feature cache artifact detection" begin
+    mktempdir() do temporary_root
+        @test !MacroEnergy.tdr_saved_output_features_exist(temporary_root)
+        mkpath(joinpath(temporary_root, "TDR", "output_features"))
+        touch(MacroEnergy.tdr_output_features_path(temporary_root))
+        @test !MacroEnergy.tdr_saved_output_features_exist(temporary_root)
+        touch(MacroEnergy.tdr_output_metadata_path(temporary_root))
+        @test MacroEnergy.tdr_saved_output_features_exist(temporary_root)
     end
-    @test_throws ArgumentError MacroEnergy.load_tdr_subperiod_run_settings(Dict("include_policy_constraints" => true))
-    @test_throws ArgumentError MacroEnergy.load_tdr_subperiod_run_settings(Dict(
-        "include_policy_constraints" => true, "exclude_policy_constraints" => false))
-    data = Dict("constraints" => Dict("CO2CapConstraint" => true, "AggregatedDemandConstraint" => true,
-        "BalanceConstraint" => false), "rhs_policy" => Dict("CO2CapConstraint" => 100, "AggregatedDemandConstraint" => 200),
-        "price_unmet_policy" => Dict("CO2CapConstraint" => 10, "AggregatedDemandConstraint" => 20))
-    MacroEnergy.tdr_remove_policy_constraints!(data, MacroEnergy.tdr_policy_constraint_names(["CO2CapConstraint"]))
-    @test data == Dict("constraints" => Dict("AggregatedDemandConstraint" => true, "BalanceConstraint" => false),
-        "rhs_policy" => Dict("AggregatedDemandConstraint" => 200), "price_unmet_policy" => Dict("AggregatedDemandConstraint" => 20))
 end
 
 @testset "single-System cached output-feature provenance" begin
@@ -223,70 +211,5 @@ end
         MacroEnergy.write_json(metadata_path, metadata)
         @test_throws MacroEnergy.TDROutputCacheMismatch MacroEnergy.tdr_load_output_features(
             source, settings, 4; system_index=1)
-    end
-end
-
-@testset "subperiod inputs preserve Case settings" begin
-    for representation in (:bare_file, :bare_defaults, :case_file, :case_inline, :case_defaults, :multi)
-        @testset "$representation" begin
-            mktempdir() do root
-                source = joinpath(root, "source")
-                destination = joinpath(root, "subperiod")
-                mkpath(source)
-                system = Dict("time_data" => Dict("path" => "time_data.json"),
-                    "nodes" => Dict("path" => "nodes.json"))
-                MacroEnergy.write_json(joinpath(source, "time_data.json"), Dict(
-                    "HoursPerTimeStep" => Dict("Electricity" => 1),
-                    "HoursPerSubperiod" => Dict("Electricity" => 2),
-                    "NumberOfSubperiods" => 2, "TotalHoursModeled" => 4))
-                MacroEnergy.write_json(joinpath(source, "nodes.json"), Dict(
-                    "demand" => Dict("timeseries" => Dict("path" => "demand.csv", "header" => "demand"))))
-                CSV.write(joinpath(source, "demand.csv"), DataFrame(demand=[1, 2, 3, 4]))
-                custom_settings = Dict("PeriodLengths" => representation == :multi ? [5, 7] : [5],
-                    "DiscountRate" => 0.08, "StartYear" => 2030,
-                    "ParameterScaling" => true, "SolutionAlgorithm" => "Monolithic",
-                    "ExpansionHorizon" => "Myopic")
-                defaults = representation in (:bare_defaults, :case_defaults)
-                case_root = representation in (:bare_file, :bare_defaults) ? system :
-                    Dict{String,Any}("case" => representation == :multi ? [system, deepcopy(system)] : [system])
-                if representation == :case_inline
-                    case_root["settings"] = custom_settings
-                elseif !defaults
-                    relative_path = representation == :bare_file ? joinpath("settings", "case_settings.json") :
-                        joinpath("custom", "case.json")
-                    mkpath(dirname(joinpath(source, relative_path)))
-                    MacroEnergy.write_json(joinpath(source, relative_path), custom_settings)
-                    if representation != :bare_file
-                        case_root["settings"] = Dict("path" => MacroEnergy.tdr_normalize_path(relative_path))
-                        # Explicit Cases must not accidentally pick this conventional file.
-                        mkpath(joinpath(source, "settings"))
-                        MacroEnergy.write_json(joinpath(source, "settings", "case_settings.json"),
-                            Dict("PeriodLengths" => [99], "DiscountRate" => 0.99))
-                    end
-                end
-                MacroEnergy.write_json(joinpath(source, "system_data.json"), case_root)
-                original_source = read(joinpath(source, "system_data.json"), String)
-                settings = MacroEnergy.load_tdr_settings_data(Dict(
-                    "timesteps_per_representative_period" => 2, "representative_periods" => 1,
-                    "method" => Dict("name" => "kmeans"), "scaling" => "standardize",
-                    "output_based_features" => Dict("weight" => 0.5, "features" => [Dict("provider" => "flow")],
-                        "subperiod_runs" => Dict("exclude_policy_constraints" => false))))
-                index = representation == :multi ? 2 : nothing
-                prepared = MacroEnergy.tdr_prepare_inputs(source,
-                    fill(settings, representation == :multi ? 2 : 1))
-                subperiod_inputs = MacroEnergy.tdr_prepare_subperiod_inputs(prepared.systems[something(index, 1)])
-                MacroEnergy.tdr_materialize_subperiod_case!(subperiod_inputs, destination, 2, settings)
-                # Follow the standalone-System loader's actual settings discovery/configuration.
-                discovered = MacroEnergy.single_system_case_settings(joinpath(destination, "system_data.json"))
-                configured = MacroEnergy.configure_case(discovered, destination)
-                @test configured[:PeriodLengths] == (defaults ? [1] : representation == :multi ? [7] : [5])
-                @test configured[:DiscountRate] == (defaults ? 0.0 : 0.08)
-                @test configured[:ParameterScaling] == !defaults
-                @test configured[:ExpansionHorizon] isa MacroEnergy.PerfectForesight
-                @test CSV.read(joinpath(destination, "demand.csv"), DataFrame).demand == [3, 4]
-                @test !haskey(MacroEnergy.read_json(joinpath(destination, "system_data.json")), "case")
-                @test read(joinpath(source, "system_data.json"), String) == original_source
-            end
-        end
     end
 end

@@ -35,10 +35,9 @@ function tdr_feature_matches_selector(feature::TDRFeatureSpec, selector::TDRFeat
 end
 
 function tdr_feature_override_matches(feature::TDRFeatureSpec, addition::TDRFeatureSpec)
-    !isnothing(addition.id) && feature.id != addition.id && return false
-    feature.field != addition.field && return false
-    !isnothing(addition.file) && feature.file != addition.file && return false
-    return true
+    !isnothing(addition.id) && return feature.id == addition.id
+    return feature.field == addition.field && feature.file == addition.file &&
+        feature.asset == addition.asset && feature.commodity == addition.commodity
 end
 
 function tdr_merge_features(user_features::Vector{TDRFeatureSpec})

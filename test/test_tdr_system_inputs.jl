@@ -1,5 +1,87 @@
 using CSV, DataFrames, MacroEnergy, Test
 
+@testset "TDR input-path traversal" begin
+    input_data = Dict(
+        "input" => Dict("path" => "inputs/time_data.json"),
+        "profile" => Dict("timeseries" => Dict(
+            "path" => "data/availability.csv",
+            "header" => "availability",
+        )),
+        "nested" => Any[Dict("path" => "assets")],
+    )
+    paths = String[]
+    MacroEnergy.tdr_visit_input_paths!(path -> push!(paths, path), input_data)
+    @test Set(paths) == Set((
+        "inputs/time_data.json",
+        "data/availability.csv",
+        "assets",
+    ))
+
+    empty!(paths)
+    MacroEnergy.tdr_visit_input_paths!(path -> push!(paths, path), input_data;
+        include_timeseries=false,
+        stop_at_timeseries=true,
+    )
+    @test Set(paths) == Set(("inputs/time_data.json", "assets"))
+
+    sources = Dict{String,MacroEnergy.TimeSeriesSource}()
+    MacroEnergy.tdr_collect_references!(
+        sources,
+        Dict(
+            "availability" => collect(1:4),
+            "nested" => Dict("availability" => collect(5:8)),
+        ),
+        "asset.json",
+        ".",
+        4,
+        4,
+        Ref(0),
+        [MacroEnergy.TDRFeatureSpec(field="availability")],
+        MacroEnergy.TDRFeatureSpec[],
+        Set{String}(),
+    )
+    @test Set(Tuple(source.inline_path) for source in values(sources)) == Set((
+        ("availability",),
+        ("nested", "availability"),
+    ))
+    @test Set(Tuple(first(source.references).input_path) for source in values(sources)) == Set((
+        ("availability",),
+        ("nested", "availability"),
+    ))
+
+    mktempdir() do case_root
+        mkpath.(joinpath.(case_root, ("inputs", "assets", "data")))
+        MacroEnergy.write_json(joinpath(case_root, "system_data.json"), Dict(
+            "time_data" => Dict("path" => "inputs/time_data.json"),
+            "assets" => Dict("path" => "assets"),
+        ))
+        MacroEnergy.write_json(joinpath(case_root, "inputs", "time_data.json"), Dict())
+        MacroEnergy.write_json(joinpath(case_root, "assets", "asset.json"), Dict(
+            "availability" => Dict("timeseries" => Dict(
+                "path" => "data/availability.csv",
+                "header" => "availability",
+            )),
+            "nested_input" => Dict("path" => "inputs/nested.json"),
+        ))
+        MacroEnergy.write_json(joinpath(case_root, "inputs", "nested.json"), Dict())
+        touch(joinpath(case_root, "data", "availability.csv"))
+        touch(joinpath(case_root, "notes.md"))
+
+        manifest = Set(keys(MacroEnergy.tdr_case_input_manifest(case_root)))
+        json_files = Set(path for path in manifest if MacroEnergy.isjson(path))
+        @test json_files == Set(abspath.([
+            joinpath(case_root, "system_data.json"),
+            joinpath(case_root, "inputs", "time_data.json"),
+            joinpath(case_root, "assets", "asset.json"),
+            joinpath(case_root, "inputs", "nested.json"),
+        ]))
+
+        @test joinpath(case_root, "data", "availability.csv") in manifest
+        @test joinpath(case_root, "notes.md") in manifest
+        @test all(ispath, manifest)
+    end
+end
+
 @testset "per-System TDR input manifests" begin
     mktempdir() do root
         source = joinpath(root, "source")
@@ -146,5 +228,70 @@ end
         prepared = MacroEnergy.tdr_prepare_inputs(root,
             MacroEnergy.load_tdr_settings_by_system(settings, 2))
         @test length(prepared.systems) == 2
+    end
+end
+
+@testset "subperiod inputs preserve Case settings" begin
+    for representation in (:bare_file, :bare_defaults, :case_file, :case_inline, :case_defaults, :multi)
+        @testset "$representation" begin
+            mktempdir() do root
+                source = joinpath(root, "source")
+                destination = joinpath(root, "subperiod")
+                mkpath(source)
+                system = Dict("time_data" => Dict("path" => "time_data.json"),
+                    "nodes" => Dict("path" => "nodes.json"))
+                MacroEnergy.write_json(joinpath(source, "time_data.json"), Dict(
+                    "HoursPerTimeStep" => Dict("Electricity" => 1),
+                    "HoursPerSubperiod" => Dict("Electricity" => 2),
+                    "NumberOfSubperiods" => 2, "TotalHoursModeled" => 4))
+                MacroEnergy.write_json(joinpath(source, "nodes.json"), Dict(
+                    "demand" => Dict("timeseries" => Dict("path" => "demand.csv", "header" => "demand"))))
+                CSV.write(joinpath(source, "demand.csv"), DataFrame(demand=[1, 2, 3, 4]))
+                custom_settings = Dict("PeriodLengths" => representation == :multi ? [5, 7] : [5],
+                    "DiscountRate" => 0.08, "StartYear" => 2030,
+                    "ParameterScaling" => true, "SolutionAlgorithm" => "Monolithic",
+                    "ExpansionHorizon" => "Myopic")
+                defaults = representation in (:bare_defaults, :case_defaults)
+                case_root = representation in (:bare_file, :bare_defaults) ? system :
+                    Dict{String,Any}("case" => representation == :multi ? [system, deepcopy(system)] : [system])
+                if representation == :case_inline
+                    case_root["settings"] = custom_settings
+                elseif !defaults
+                    relative_path = representation == :bare_file ? joinpath("settings", "case_settings.json") :
+                        joinpath("custom", "case.json")
+                    mkpath(dirname(joinpath(source, relative_path)))
+                    MacroEnergy.write_json(joinpath(source, relative_path), custom_settings)
+                    if representation != :bare_file
+                        case_root["settings"] = Dict("path" => MacroEnergy.tdr_normalize_path(relative_path))
+                        # Explicit Cases must not accidentally pick this conventional file.
+                        mkpath(joinpath(source, "settings"))
+                        MacroEnergy.write_json(joinpath(source, "settings", "case_settings.json"),
+                            Dict("PeriodLengths" => [99], "DiscountRate" => 0.99))
+                    end
+                end
+                MacroEnergy.write_json(joinpath(source, "system_data.json"), case_root)
+                original_source = read(joinpath(source, "system_data.json"), String)
+                settings = MacroEnergy.load_tdr_settings_data(Dict(
+                    "timesteps_per_representative_period" => 2, "representative_periods" => 1,
+                    "method" => Dict("name" => "kmeans"), "scaling" => "standardize",
+                    "output_based_features" => Dict("weight" => 0.5, "features" => [Dict("provider" => "flow")],
+                        "subperiod_runs" => Dict("exclude_policy_constraints" => false))))
+                index = representation == :multi ? 2 : nothing
+                prepared = MacroEnergy.tdr_prepare_inputs(source,
+                    fill(settings, representation == :multi ? 2 : 1))
+                subperiod_inputs = MacroEnergy.tdr_prepare_subperiod_inputs(prepared.systems[something(index, 1)])
+                MacroEnergy.tdr_materialize_subperiod_case!(subperiod_inputs, destination, 2, settings)
+                # Follow the standalone-System loader's actual settings discovery/configuration.
+                discovered = MacroEnergy.single_system_case_settings(joinpath(destination, "system_data.json"))
+                configured = MacroEnergy.configure_case(discovered, destination)
+                @test configured[:PeriodLengths] == (defaults ? [1] : representation == :multi ? [7] : [5])
+                @test configured[:DiscountRate] == (defaults ? 0.0 : 0.08)
+                @test configured[:ParameterScaling] == !defaults
+                @test configured[:ExpansionHorizon] isa MacroEnergy.PerfectForesight
+                @test CSV.read(joinpath(destination, "demand.csv"), DataFrame).demand == [3, 4]
+                @test !haskey(MacroEnergy.read_json(joinpath(destination, "system_data.json")), "case")
+                @test read(joinpath(source, "system_data.json"), String) == original_source
+            end
+        end
     end
 end

@@ -155,7 +155,21 @@ The `features` array modifies the default list. Every entry requires `field` and
 ]
 ```
 
-A matching user feature replaces one unambiguous default feature; otherwise it adds a feature. `exclude` uses the same selector fields and removes a feature when every supplied field matches.
+An entry with an explicit `id` overrides the existing feature with that ID,
+even when its field, file or scope changes. A new ID adds a feature. Without an
+ID, an entry overrides only an exact match of `field`, `file`, `asset` and
+`commodity`, including omitted selector values; a different scope adds a feature.
+An override retains existing selector values and weight when they are omitted
+from the new entry. `field` remains required. Multiple exact matches are
+ambiguous and require an explicit ID.
+
+For example, `{"asset": "ThermalPower", "field": "availability", "weight": 2}`
+adds a scoped feature alongside the generic default. Adding `"id": "availability"`
+instead overrides that default, restricting it to ThermalPower.
+
+During discovery, the most specific matching selector wins; equally specific
+overlapping selectors remain an error. `exclude` uses the same selector fields
+and removes a feature when every supplied field matches.
 
 Every explicit `timeseries` descriptor is materialized in the reduced case. It contributes to clustering only when it matches a default or user-specified feature and is not excluded. This retains all time-dependent inputs while keeping feature selection under user control.
 
@@ -163,7 +177,7 @@ Physical CSV path/header pairs are read once even when several inputs reference 
 
 ### Example: override a default feature
 
-This replaces the built-in `demand` feature with an Electricity-only version and gives it twice the default weight. Matching an existing feature by its `id` and `field` is the clearest way to express an override.
+This overrides the built-in `demand` feature by its ID with an Electricity-only version and gives it twice the default weight.
 
 ```json
 "features": [
