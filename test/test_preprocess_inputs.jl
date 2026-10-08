@@ -244,6 +244,7 @@ end
     end
 end
 
+include("test_csv_headers.jl")
 include("test_tdr_settings.jl")
 include("test_tdr_clustering.jl")
 include("test_tdr_system_inputs.jl")

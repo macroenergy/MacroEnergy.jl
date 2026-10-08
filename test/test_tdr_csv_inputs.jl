@@ -1,5 +1,28 @@
 using CSV, DataFrames, MacroEnergy, Test
 
+@testset "model CSV discovery releases files before rewriting" begin
+    mktempdir() do root
+        for compressed in (false, true)
+            path = joinpath(root, compressed ? "nodes.csv.gz" : "nodes.csv")
+            CSV.write(path, DataFrame("Type" => ["CO2"], "id" => ["co2_node"],
+                "constraints--CO2CapConstraint" => [true]); compress=compressed)
+            tables = Dict{String,DataFrame}()
+            for _ in 1:2
+                data = MacroEnergy.tdr_read_input_data(path, tables)
+                MacroEnergy.tdr_remove_policy_constraints!(data, Set(["CO2CapConstraint"]))
+                MacroEnergy.tdr_write_input_data(path, data, tables)
+                @test CSV.Rows(read(path); buffer_in_memory=true).names == [:Type, :id]
+            end
+            # Keep parsed tables alive while checking that discovery left no
+            # file mapping preventing an immediate rename or removal.
+            moved = path * ".moved"
+            mv(path, moved)
+            rm(moved)
+            @test !ispath(path) && !ispath(moved)
+        end
+    end
+end
+
 @testset "TDR model CSV references" begin
     mktempdir() do root
         source = joinpath(root, "source")

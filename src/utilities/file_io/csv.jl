@@ -47,6 +47,53 @@ function read_csv(file_path::AbstractString, select::Symbol)::DataFrame
     return read_csv(file_path, [select])
 end
 
+function _csv_header_record(io::IO)
+    record = UInt8[]
+    quoted = false
+    while !eof(io)
+        byte = read(io, UInt8)
+        push!(record, byte)
+        byte == UInt8('"') && (quoted = !quoted)
+        if !quoted && byte in (UInt8('\n'), UInt8('\r'))
+            # Match CSV's default handling of leading empty rows.
+            all(value -> value in (UInt8('\n'), UInt8('\r')), record) || break
+            empty!(record)
+        end
+    end
+    return record
+end
+
+"""
+    csv_headers(file_path::AbstractString)::Vector{Symbol}
+
+Return CSV column names, reusing a fresh full-table cache entry when available.
+On a cache miss, read at most ten logical records so CSV.jl can detect the
+delimiter and parse the headers. Quoted newlines and escaped quotes are
+preserved; gzip input is decompressed through a scoped stream. Header requests
+never populate the full-table cache or leave file mappings alive.
+"""
+function csv_headers(file_path::AbstractString)::Vector{Symbol}
+    key = abspath(file_path)
+    current_mtime = mtime(key)
+    cached_headers = lock(_CSV_READ_CACHE_LOCK) do
+        cached = get(_CSV_READ_CACHE, key, nothing)
+        cached !== nothing && cached[1] == current_mtime ? propertynames(cached[2]) : nothing
+    end
+    isnothing(cached_headers) || return cached_headers
+    # GZip streams also read uncompressed files transparently.
+    sample = GZip.open(key, "r") do io
+        bytes = UInt8[]
+        # CSV's automatic delimiter detection samples ten logical rows.
+        for _ in 1:10
+            record = _csv_header_record(io)
+            isempty(record) && break
+            append!(bytes, record)
+        end
+        bytes
+    end
+    return CSV.Rows(sample; buffer_in_memory=true).names
+end
+
 function csv_header(path::AbstractString)
     f = open(path, "r")
     header = readline(f)

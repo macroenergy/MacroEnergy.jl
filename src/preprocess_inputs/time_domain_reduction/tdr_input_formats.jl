@@ -6,7 +6,7 @@ so copied inputs preserve their original format, row order and column order.
 function tdr_read_input_data(path::String, csv_tables::Dict{String,DataFrame}=Dict{String,DataFrame}())
     isjson(path) && return mutable_json_data(read_json(path))
     iscsv(path) || return nothing
-    headers = CSV.Rows(path).names
+    headers = csv_headers(path)
     :Type in headers && :id in headers || return nothing
     table = DataFrame(duckdb_read(path))
     rows = csv_to_json(copy(table))
