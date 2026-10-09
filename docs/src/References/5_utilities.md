@@ -175,6 +175,11 @@ MacroEnergy.json_to_csv
 MacroEnergy.location_ids
 ```
 
+## `loss`
+```@docs
+MacroEnergy.loss
+```
+
 ## `print_struct_info`
 ```@docs
 MacroEnergy.print_struct_info
