@@ -48,7 +48,7 @@ and this project follows Julia package versioning through `Project.toml` release
 - Fixed asset component traversal and Benders planning updates for assets whose optional edges are absent.
 - `StorageChargeLimitConstraint` is now attached to a `Battery`'s charge edge. Before, it was declared as a top-level key in the charge edge's default data instead of inside its `constraints` dictionary, so it was silently dropped.
 - Dual exports now handle unavailable solver duals safely, recording `NaN` instead of failing while preserving `Float64` output arrays.
-- Lossy bidirectional edges now split their flow into a single `vFLOWPOS`/`vFLOWNEG` pair shared by both vertex balances. Before, each vertex balance created its own pair, with its own `pos - neg == flow` and capacity rows, so the flow was not determined by the vertex balances when the solution dissipated energy. Objective values are unchanged unless the edge flow enters another constraint or cost (e.g. KVL on a lossy `DCOPFLine`); each lossy edge has 2 fewer variables and 2 fewer constraints per time step.
+- Lossy bidirectional edges now split their flow into a single `vFLOWPOS`/`vFLOWNEG` pair shared by both vertex balances.
 
 ### Documentation
 
