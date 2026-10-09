@@ -78,6 +78,13 @@ function release_model_references!(e::AbstractEdge)
     return nothing
 end
 
+function release_model_references!(e::BidirectionalEdge)
+    invoke(release_model_references!, Tuple{AbstractEdge}, e)
+    e.flow_pos = Vector{VariableRef}()
+    e.flow_neg = Vector{VariableRef}()
+    return nothing
+end
+
 function release_model_references!(e::EdgeWithUC)
     invoke(release_model_references!, Tuple{AbstractEdge}, e)
     e.ucommit = Vector{VariableRef}()

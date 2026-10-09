@@ -18,7 +18,7 @@ Without TDR (i.e., when all time steps are modeled directly), every time step re
 
 | Column | Type | Description |
 |---|---|---|
-| `time` | Int | Time step index (1-based integer, matches the `time` column in `flows.csv`, `storage_level.csv`, `curtailment.csv`, and `non_served_demand.csv`) |
+| `time` | Int | Time step index (1-based integer, matches the `time` column in `flows.csv`, `storage_level.csv`, `curtailment.csv`, `losses.csv`, and `non_served_demand.csv`) |
 | `subperiod_index` | Int | Index of the representative sub-period this time step belongs to (1-based). All time steps within the same representative sub-period share the same `subperiod_index` and `weight`. |
 | `weight` | Float64 | Number of full-year sub-periods represented by this representative sub-period. All time steps in the same representative sub-period share this weight. |
 
