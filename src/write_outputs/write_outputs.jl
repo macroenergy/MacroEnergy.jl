@@ -174,6 +174,7 @@ function _write_benders_period_outputs(
     nsd_df               = non_served_demand(subproblems_data)
     storage_level_df     = storage_levels(subproblems_data)
     curtailment_df       = curtailment(subproblems_data)
+    losses_df            = losses(subproblems_data)
     operational_costs_df = operational_costs(subproblems_data)
 
     scaling = parameter_scaling_factor(settings)
@@ -194,6 +195,9 @@ function _write_benders_period_outputs(
     
     # Curtailment results
     write_curtailment(joinpath(results_dir, "curtailment.csv"), system, curtailment_df[subop_indices])
+
+    # Loss results
+    write_losses(joinpath(results_dir, "losses.csv"), system, losses_df[subop_indices])
 
     # Sub-period weights (for downstream revenue and weighted-sum calculations)
     write_time_weights(joinpath(results_dir, "time_weights.csv"), system)
@@ -235,6 +239,7 @@ function _write_benders_period_outputs(
             nsd_df[subop_indices],
             storage_level_df[subop_indices],
             curtailment_df[subop_indices],
+            losses_df[subop_indices],
             scaling,
             var_cost_discount)
     end
@@ -279,6 +284,8 @@ function write_period_outputs(
     write_storage_level(joinpath(results_dir, "storage_level.csv"), system, scaling)
     # Curtailment results
     write_curtailment(joinpath(results_dir, "curtailment.csv"), system, scaling)
+    # Loss results
+    write_losses(joinpath(results_dir, "losses.csv"), system, scaling)
 
     # Sub-period weights (for downstream revenue and weighted-sum calculations)
     write_time_weights(joinpath(results_dir, "time_weights.csv"), system)

@@ -41,6 +41,7 @@ function write_full_timeseries(
     write_non_served_demand_full_timeseries(joinpath(fullts_dir, "non_served_demand$(file_ext(:NonServedDemand))"), system, scaling)
     write_storage_level_full_timeseries(joinpath(fullts_dir, "storage_level$(file_ext(:StorageLevel))"), system, scaling)
     write_curtailment_full_timeseries(joinpath(fullts_dir, "curtailment$(file_ext(:Curtailment))"), system, scaling)
+    write_losses_full_timeseries(joinpath(fullts_dir, "losses$(file_ext(:Losses))"), system, scaling)
 
     # Balance duals (only when dual exports are enabled)
     if system.settings.DualExportsEnabled
@@ -340,12 +341,64 @@ function _full_ts_curtailment(obj::AbstractEdge, scaling::Float64, obj_asset_map
     )
 end
 
+# ---------------------------------------------------------------------------
+# Losses
+# ---------------------------------------------------------------------------
+
+function write_losses_full_timeseries(file_path::AbstractString, system::System, scaling::Float64)
+    @info "Writing full time series loss results to $file_path"
+
+    loss_results = get_full_timeseries_losses(system, scaling)
+
+    if isempty(loss_results)
+        @debug "No loss results found (no lossy edges in system)"
+        return nothing
+    end
+
+    layout = get_output_layout(system, :Losses)
+    if layout == "wide"
+        loss_results = reshape_wide(loss_results, :time, :component_id, :value)
+    end
+
+    write_dataframe(file_path, loss_results)
+    return nothing
+end
+
+function get_full_timeseries_losses(system::System, scaling::Float64)
+    edges, edge_asset_map = get_edges(system, return_ids_map=true)
+    edges = filter(lossy_edge, edges)
+    isempty(edges) && return DataFrame()
+    losses_df = reduce(vcat, [_full_ts_losses(obj, scaling, edge_asset_map) for obj in edges])
+    losses_df[!, (!isa).(eachcol(losses_df), Vector{Missing})]
+end
+
+function _full_ts_losses(obj::AbstractEdge, scaling::Float64, obj_asset_map::Dict{Symbol,Base.RefValue{<:AbstractAsset}})
+    vals = Float64[value(loss(obj, t)) for t in time_interval(obj)]
+    full_vals = reconstruct_timeseries(vals, obj.timedata)
+    n = length(full_vals)
+
+    return DataFrame(
+        case_name      = fill(missing, n),
+        commodity      = fill(get_commodity_name(obj), n),
+        node_in        = fill(get_node_in(obj), n),
+        node_out       = fill(get_node_out(obj), n),
+        resource_id    = fill(get_resource_id(obj, obj_asset_map), n),
+        component_id   = fill(get_component_id(obj), n),
+        resource_type  = fill(get_type(obj_asset_map[id(obj)]), n),
+        component_type = fill(get_type(obj), n),
+        variable       = fill(:loss, n),
+        year           = fill(missing, n),
+        time           = 1:n,
+        value          = full_vals * scaling
+    )
+end
+
 # ===========================================================================
 # Benders dispatch — reconstruct from pre-collected subproblem DataFrames
 # ===========================================================================
 
 """
-    write_full_timeseries(results_dir, system, flow_dfs, nsd_dfs, storage_dfs, curtailment_dfs, scaling::Float64, var_cost_discount::Float64)
+    write_full_timeseries(results_dir, system, flow_dfs, nsd_dfs, storage_dfs, curtailment_dfs, loss_dfs, scaling::Float64, var_cost_discount::Float64)
 
 Benders version: write all time-series outputs expanded to `TotalHoursModeled` hours,
 reconstructing from per-representative-period subproblem DataFrames.
@@ -357,6 +410,7 @@ function write_full_timeseries(
     results_dir::AbstractString, system::System,
     flow_dfs::Vector{DataFrame}, nsd_dfs::Vector{DataFrame},
     storage_dfs::Vector{DataFrame}, curtailment_dfs::Vector{DataFrame},
+    loss_dfs::Vector{DataFrame},
     scaling::Float64,
     var_cost_discount::Float64
 )
@@ -372,6 +426,7 @@ function write_full_timeseries(
     write_non_served_demand_full_timeseries(joinpath(fullts_dir, "non_served_demand$(file_ext(:NonServedDemand))"), system, nsd_dfs, scaling)
     write_storage_level_full_timeseries(joinpath(fullts_dir, "storage_level$(file_ext(:StorageLevel))"), system, storage_dfs, scaling)
     write_curtailment_full_timeseries(joinpath(fullts_dir, "curtailment$(file_ext(:Curtailment))"), system, curtailment_dfs, scaling)
+    write_losses_full_timeseries(joinpath(fullts_dir, "losses$(file_ext(:Losses))"), system, loss_dfs, scaling)
 
     # Balance duals (only when dual exports are enabled)
     if system.settings.DualExportsEnabled
@@ -536,6 +591,34 @@ function write_curtailment_full_timeseries(file_path::AbstractString, system::Sy
     end
 
     write_dataframe(file_path, curtailment_results)
+    return nothing
+end
+
+# ---------------------------------------------------------------------------
+# Benders: Losses
+# ---------------------------------------------------------------------------
+
+function write_losses_full_timeseries(file_path::AbstractString, system::System, loss_dfs::Vector{DataFrame}, scaling::Float64)
+    @info "Writing full time series loss results to $file_path"
+
+    edges = get_edges(system)
+    timedata_lookup = Dict(get_component_id(e) => e.timedata for e in edges)
+
+    loss_results = reconstruct_benders_variable(loss_dfs, timedata_lookup, scaling)
+    if isempty(loss_results)
+        @debug "No loss results found (no lossy edges in system)"
+        return nothing
+    end
+
+    # Remove columns that are all missing
+    loss_results = loss_results[!, (!isa).(eachcol(loss_results), Vector{Missing})]
+
+    layout = get_output_layout(system, :Losses)
+    if layout == "wide"
+        loss_results = reshape_wide(loss_results, :time, :component_id, :value)
+    end
+
+    write_dataframe(file_path, loss_results)
     return nothing
 end
 

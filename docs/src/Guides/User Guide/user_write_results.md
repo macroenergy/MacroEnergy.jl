@@ -6,6 +6,7 @@ Currently, Macro supports the following types of outputs:
 - [Costs](@ref): fixed, variable and total system costs.
 - [Curtailment Results](@ref): curtailment of variable renewable energy (VRE) assets over time.
 - [Flow Results](@ref): flow for each commodity through each edge in the system.
+- [Loss Results](@ref): commodity lost on each lossy edge (e.g. transmission lines) over time.
 - [Non-Served Demand Results](@ref): non-served demand for each node with demand.
 - [Storage Level Results](@ref): storage level for each storage unit over time.
 - [Time Weights](@ref time_weights_results): timestep-to-weight mapping for annualization when using time-domain reduction (TDR).
@@ -65,6 +66,19 @@ Curtailment is the difference between available VRE generation (capacity × avai
 
 !!! note "Output Layout"
     Results are written in *long* format by default. To use *wide* format, configure the `OutputLayout: {"Curtailment": "wide"}` setting in your Macro settings JSON file (see [Output Files Layout](@ref) for details).
+
+## Loss Results
+
+Export the commodity lost on every edge with a nonzero `loss_fraction` using the [`write_losses`](@ref) function:
+
+```julia
+write_losses("losses.csv", system, 1.0)
+```
+
+For a lossy bidirectional edge (e.g. a `TransmissionLink`), the loss is `loss_fraction × (flow_pos + flow_neg)`, where `flow_pos` and `flow_neg` are the two directions of the edge's flow. See [Losses Output](@ref "manual-outputs-losses") for details.
+
+!!! note "Output Layout"
+    Results are written in *long* format by default. To use *wide* format, configure the `OutputLayout: {"Losses": "wide"}` setting in your Macro settings JSON file (see [Output Files Layout](@ref) for details).
 
 ## Costs
 
@@ -196,6 +210,7 @@ When enabled, the following time-series outputs are reconstructed and written to
 | `non_served_demand.csv` | Non-served demand for each node |
 | `storage_level.csv` | Storage state for each storage unit |
 | `curtailment.csv` | VRE curtailment |
+| `losses.csv` | Losses on lossy edges |
 | `balance_duals.csv` | Balance constraint duals (only when `DualExportsEnabled` is also `true`) |
 
 Each file contains one row per hour for the full modeled year (e.g., 8760 rows), with the same column structure as the corresponding representative-period output file.
@@ -294,6 +309,7 @@ or
     "Costs": "long",
     "Curtailment": "long",
     "Flow": "long",
+    "Losses": "long",
     "NonServedDemand": "long",
     "StorageLevel": "wide"
   }
@@ -303,7 +319,7 @@ or
 Available options:
 - `"OutputLayout": "long"` (applies to all outputs)
 - `"OutputLayout": "wide"` (applies to all outputs)
-- `"OutputLayout": {"Capacity": "wide", "Costs": "long", "Curtailment": "long", "Flow": "long", "NonServedDemand": "long", "StorageLevel": "wide"}` (individual layout settings)
+- `"OutputLayout": {"Capacity": "wide", "Costs": "long", "Curtailment": "long", "Flow": "long", "Losses": "long", "NonServedDemand": "long", "StorageLevel": "wide"}` (individual layout settings)
 
 ## Output Files Location
 
