@@ -321,10 +321,6 @@ function make(asset_type::Type{BlastFurnaceBasicOxygenFurnace}, data::AbstractDi
         co2_start_node,
         co2_end_node,
     )
-    co2_edge.constraints = get(
-        co2_edge_data,
-        :constraints,
-        Vector{AbstractTypeConstraint}())
 
     # crude steel edge
 
