@@ -27,9 +27,9 @@ edge's compound annual growth (`cagr`) and decline (`cadr`) rates, plus an allow
 \end{aligned}
 ```
 
-The MW settings are divided by `ParameterScalingFactor` when `ParameterScaling` is on.
 The left-hand sides are registered as `eDeploymentGrowth` / `eDeploymentDecline` and the
-constraints as `cDeploymentGrowth` / `cDeploymentDecline`, indexed by `[category, period]`.
+constraints as `cDeploymentGrowth` / `cDeploymentDecline`, indexed by `[category, period]`;
+the storage energy versions add an `Energy` suffix.
 """
 function add_deployment_inertia!(model::Model, systems::Vector{System}, settings::NamedTuple)
     get(settings, :DeploymentInertia, false) || return nothing
@@ -47,16 +47,7 @@ function add_deployment_inertia!(model::Model, systems::Vector{System}, settings
     for system in systems, e in get_edges(system)
         category = inertia_category(e)
         (has_capacity(e) && !isnothing(category) && category in techs) || continue
-        p = period_index(e)
-        add_to_expression!(eDeploymentGrowth[category, p], new_capacity(e))
-        add_to_expression!(eDeploymentDecline[category, p], new_capacity(e))
-        if p > 1
-            # Previous period's new capacity: a model expression when periods are solved
-            # together, a fixed value when they are solved one at a time (myopic)
-            prev = new_capacity_track(e, p - 1)
-            add_to_expression!(eDeploymentGrowth[category, p], -(1 + cagr(e)) * prev)
-            add_to_expression!(eDeploymentDecline[category, p], -(1 - cadr(e)) * prev)
-        end
+        add_inertia_terms!(eDeploymentGrowth, eDeploymentDecline, e, category)
     end
 
     growth_limit(t, p) = p == 1 ?
@@ -69,6 +60,69 @@ function add_deployment_inertia!(model::Model, systems::Vector{System}, settings
     @constraint(model, cDeploymentGrowth[t in techs, p in periods], eDeploymentGrowth[t, p] <= growth_limit(t, p))
     @constraint(model, cDeploymentDecline[t in techs, p in periods], eDeploymentDecline[t, p] >= decline_limit(t, p))
 
+    add_storage_energy_inertia!(model, systems, settings, techs, scaling_factor)
+
+    return nothing
+end
+
+"""
+    add_storage_energy_inertia!(model, systems, settings, techs, scaling_factor)
+
+Deployment inertia on storage energy capacity (MWh); see `add_deployment_inertia!`.
+"""
+function add_storage_energy_inertia!(model::Model, systems::Vector{System}, settings::NamedTuple, techs::Vector{String}, scaling_factor::Float64)
+    storages = [(g, inertia_category(g)) for system in systems for g in get_storages(system)
+                if !isnothing(inertia_category(g)) && inertia_category(g) in techs]
+    isempty(storages) && return nothing
+
+    # All storage of a category must share the duration that converts MW settings to MWh
+    duration = Dict{String,Float64}()
+    for (g, t) in storages
+        d = inertia_initial_duration(g)
+        get!(duration, t, d) == d || error("DeploymentInertia: all storage in category '$t' must have the same InertiaInitialDuration, found $(duration[t]) and $d")
+    end
+
+    periods = period_index.(systems)
+    energy_keys = Set((t, period_index(g)) for (g, t) in storages)
+
+    @expression(model, eDeploymentGrowthEnergy[t in techs, p in periods], AffExpr(0.0))
+    @expression(model, eDeploymentDeclineEnergy[t in techs, p in periods], AffExpr(0.0))
+    for (g, t) in storages
+        add_inertia_terms!(eDeploymentGrowthEnergy, eDeploymentDeclineEnergy, g, t)
+    end
+
+    growth_limit(t, p) = duration[t] * (p == 1 ?
+        settings.InertiaInitMW[Symbol(t)] * (1 + settings.InertiaInitialGrowthRate[Symbol(t)]) :
+        settings.InertiaMinMW[Symbol(t)]) / scaling_factor
+    decline_limit(t, p) = duration[t] * (p == 1 ?
+        settings.InertiaInitMW[Symbol(t)] * (1 - settings.InertiaInitialDeclineRate[Symbol(t)]) :
+        -settings.InertiaMinMW[Symbol(t)]) / scaling_factor
+
+    @constraint(model, cDeploymentGrowthEnergy[t in techs, p in periods; (t, p) in energy_keys],
+        eDeploymentGrowthEnergy[t, p] <= growth_limit(t, p))
+    @constraint(model, cDeploymentDeclineEnergy[t in techs, p in periods; (t, p) in energy_keys],
+        eDeploymentDeclineEnergy[t, p] >= decline_limit(t, p))
+
+    return nothing
+end
+
+"""
+    add_inertia_terms!(growth, decline, y, category)
+
+Add the new capacity of edge or storage `y` to the inertia expressions of `category`, net
+of its previous period's new capacity scaled by `1 + cagr` (growth) or `1 - cadr` (decline).
+"""
+function add_inertia_terms!(growth, decline, y::Union{AbstractEdge,AbstractStorage}, category::String)
+    p = period_index(y)
+    add_to_expression!(growth[category, p], new_capacity(y))
+    add_to_expression!(decline[category, p], new_capacity(y))
+    if p > 1
+        # Previous period's new capacity: a model expression when periods are solved
+        # together, a fixed value when they are solved one at a time (myopic)
+        prev = new_capacity_track(y, p - 1)
+        add_to_expression!(growth[category, p], -(1 + cagr(y)) * prev)
+        add_to_expression!(decline[category, p], -(1 - cadr(y)) * prev)
+    end
     return nothing
 end
 
