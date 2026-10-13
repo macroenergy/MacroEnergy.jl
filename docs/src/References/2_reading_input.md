@@ -54,6 +54,11 @@ MacroEnergy.load_system_data
 MacroEnergy.materialize_user_commodities!
 ```
 
+## `mutable_json_data`
+```@docs
+MacroEnergy.mutable_json_data
+```
+
 ## `prep_system_data`
 ```@docs
 MacroEnergy.prep_system_data

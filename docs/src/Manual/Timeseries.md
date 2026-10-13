@@ -149,3 +149,9 @@ This is useful when:
 | CSV with `timeseries` dict | Large datasets, multiple timeseries, shared across runs | `"demand": {"timeseries": {"path": "system/demand.csv", "header": "Zone1"}}` |
 | Single-value vector in JSON | Constant parameters | `"price": [15.0]` |
 | Vector in JSON | Short timeseries, programmatically generated data | `"demand": [100, 110, 120, ...]` |
+
+## CSV header discovery
+
+```@docs
+MacroEnergy.csv_headers
+```
