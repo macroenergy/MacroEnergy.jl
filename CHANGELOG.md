@@ -44,6 +44,7 @@ and this project follows Julia package versioning through `Project.toml` release
 - Location entries in `locations.json` may now be objects carrying a `constraints` block (bare id strings still work), allowing location-specific constraints to be loaded from input data.
 - Reduced model-generation allocations in edge balance updates by inserting flow variables directly into vertex balance expressions instead of constructing temporary effective-flow expressions.
 - `run_case` now scopes logging to the run, restores the caller’s logger, and closes its own file log stream on success or failure.
+- Storage Charge/Discharge limit constraints now can be applied to `LongDurationStorage`.
 
 ### Removed
 

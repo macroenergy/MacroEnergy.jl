@@ -25,13 +25,14 @@ for each time `t` in `time_interval(e)` for the edge `e`. The function [`timeste
 """
 function add_model_constraint!(ct::StorageDischargeLimitConstraint, e::AbstractEdge, model::Model)
 
-    if isa(start_vertex(e), Storage)
+    if isa(start_vertex(e), AbstractStorage)
         storage_data = balance_data(start_vertex(e), :storage)
+        prev = previous_storage_level(start_vertex(e), model)
         ct.constraint_ref = @constraint(
             model,
             [t in time_interval(e)],
             balance_term_coefficient(storage_data, e, start_vertex(e), t) * flow(e, t) <=
-            storage_level(start_vertex(e), timestepbefore(t, 1, subperiods(e)))
+            prev[t]
         )
     end
 
