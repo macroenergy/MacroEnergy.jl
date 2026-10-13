@@ -24,7 +24,6 @@ function add_linking_variables!(g::Transformation, model::Model)
 end
 
 function planning_model!(g::Transformation, model::Model)
-
     return nothing
 end
 

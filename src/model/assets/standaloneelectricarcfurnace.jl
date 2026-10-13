@@ -1,5 +1,6 @@
 struct ElectricArcFurnace{T <: Commodity} <: AbstractAsset
     id::AssetId
+    tags::AssetTags
     eaf_transform::Transformation
     crudesteel_edge::Edge{CrudeSteel}
     elec_edge::Edge{Electricity}
@@ -308,7 +309,7 @@ function make(asset_type::Type{ElectricArcFurnace}, data::AbstractDict{Symbol,An
         flow(co2_edge) == get(transform_data, :emission_rate, 0.0) * flow(crudesteel_edge)
     )
 
-    return ElectricArcFurnace(id,
+    return ElectricArcFurnace(id, asset_tags(data),
             eaf_transform,
             crudesteel_edge,
             elec_edge,

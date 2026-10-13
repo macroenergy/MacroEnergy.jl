@@ -85,6 +85,7 @@ The following settings in `macro_settings.json` control the behavior of the outp
 | `OutputLayout` | `String` or `JSON Object` | `"long"` | Output layout for tabular files. `"long"` stacks all observations as rows; `"wide"` pivots time steps or variables to columns. Can be set globally with a single string, or per-file as a JSON object (see below). |
 | `OverwriteResults` | `Bool` | `false` | If `true`, overwrite the output directory on each run. If `false`, append `_001`, `_002`, … suffixes to avoid overwriting. |
 | `OutputDir` | `String` | `"results"` | Base name for the results directory. |
+| `OutputAssetTags` | `Bool` | `true` | If `true`, include pipe-separated asset tags in `capacity.csv`, `capacity_summary.csv`, and `capex.csv`. |
 | `DualExportsEnabled` | `Bool` | `true` | If `true`, write [`balance_duals.csv`](@ref "manual-outputs-duals-balance") and [`co2_cap_duals.csv`](@ref "manual-outputs-duals-co2"). |
 
 ### Per-File Layout Control

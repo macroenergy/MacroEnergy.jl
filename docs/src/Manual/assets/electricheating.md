@@ -233,6 +233,7 @@ The `electricheating` asset is defined as follows:
 ```julia
 struct electricheating{T} <: AbstractAsset
     id::AssetId
+    tags::AssetTags
     heating_transform::Transformation
     heat_edge::Union{UnidirectionalEdge{<:Heat},EdgeWithUC{<:Heat}}
     elec_edge::UnidirectionalEdge{<:T}

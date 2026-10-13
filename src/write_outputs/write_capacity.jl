@@ -80,6 +80,7 @@ function write_capacity(
     else
         all_capacity_results = vcat(capacity_results, new_capacity_results, retired_capacity_results, existing_capacity_results)
     end
+    add_asset_tags!(all_capacity_results, system)
 
     # Reshape a copy for the file being written; `all_capacity_results` itself stays pristine
     # (full detail, long format) so it can be returned and reused as-is by callers.

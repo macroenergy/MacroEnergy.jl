@@ -1,5 +1,6 @@
 struct SyntheticNaturalGas <: AbstractAsset
     id::AssetId
+    tags::AssetTags
     synthetic_natural_gas_transform::Transformation
     co2_captured_edge::Edge{<:CO2Captured}
     natgas_edge::Edge{<:NaturalGas}
@@ -254,5 +255,5 @@ function make(asset_type::Type{SyntheticNaturalGas}, data::AbstractDict{Symbol,A
         get(transform_data, :emission_rate, 1.0) * flow(co2_captured_edge) == flow(co2_emission_edge)
     )
 
-    return SyntheticNaturalGas(id, synthetic_natural_gas_transform, co2_captured_edge,natgas_edge,elec_edge,h2_edge,co2_emission_edge)
+    return SyntheticNaturalGas(id, asset_tags(data), synthetic_natural_gas_transform, co2_captured_edge,natgas_edge,elec_edge,h2_edge,co2_emission_edge)
 end

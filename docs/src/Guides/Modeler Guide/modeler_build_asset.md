@@ -89,6 +89,7 @@ Following the diagram of the new asset drawn in the previous step, fill in the f
 ```julia
 struct MyNewAsset <: AbstractAsset
     id::AssetId
+    tags::AssetTags
     transform::Transformation
     edge1::Edge{CommodityType1}
     edge2::Edge{CommodityType2}
@@ -103,6 +104,7 @@ For example, here is the `struct` definition of the `Electrolyzer` asset:
 ```julia
 struct Electrolyzer <: AbstractAsset
     id::AssetId
+    tags::AssetTags
     electrolyzer_transform::Transformation
     h2_edge::Edge{Hydrogen}
     elec_edge::Edge{Electricity}
@@ -323,7 +325,7 @@ The function should return an instance of the asset:
 ```julia
 function make(asset_type::Type{MyNewAsset}, data::AbstractDict{Symbol,Any}, system::System)
     # ... implementation details ...
-    return MyNewAsset(id, transform, edge1, edge2, # ... additional components ...)
+    return MyNewAsset(id, asset_tags(data), transform, edge1, edge2, # ... additional components ...)
 end
 ```
 
@@ -681,7 +683,7 @@ For examples, see the existing files in `test/asset_tests`, such as the `Electro
 This is the final step of the `make` function. It integrates all components to construct and return the final asset. 
 
 ```julia
-return MyNewAsset(id, transform, edge1, edge2, # ... all components ...)
+return MyNewAsset(id, asset_tags(data), transform, edge1, edge2, # ... all components ...)
 ```
 
 !!! warning "Positional arguments"
@@ -690,6 +692,7 @@ return MyNewAsset(id, transform, edge1, edge2, # ... all components ...)
     ```julia
     struct ExampleAsset <: AbstractAsset
         id::AssetId
+        tags::AssetTags
         transform::Transformation
         edge1::Edge
         edge2::Edge
@@ -697,12 +700,12 @@ return MyNewAsset(id, transform, edge1, edge2, # ... all components ...)
     ```
     then the asset must be created as:
     ```julia
-    return ExampleAsset(id, transform, edge1, edge2)
+    return ExampleAsset(id, asset_tags(data), transform, edge1, edge2)
     ```
 
 For example, here is how to create the `Electrolyzer` asset:
 ```julia
-return Electrolyzer(id, electrolyzer_transform, h2_edge, elec_edge)
+return Electrolyzer(id, asset_tags(data), electrolyzer_transform, h2_edge, elec_edge)
 ```
 
 ## Key Components and Concepts
@@ -749,6 +752,7 @@ Here's a simplified example of a complete asset implementation with two edges an
 # mynewasset.jl
 struct MyNewAsset <: AbstractAsset
     id::AssetId
+    tags::AssetTags
     transform::Transformation
     input_edge::Edge{Electricity}
     output_edge::Edge{Hydrogen}
@@ -862,7 +866,7 @@ function make(asset_type::Type{MyNewAsset}, data::AbstractDict{Symbol,Any}, syst
         flow(output_edge) == efficiency * flow(input_edge),
     )
     
-    return MyNewAsset(id, transform, input_edge, output_edge)
+    return MyNewAsset(id, asset_tags(data), transform, input_edge, output_edge)
 end
 ```
 

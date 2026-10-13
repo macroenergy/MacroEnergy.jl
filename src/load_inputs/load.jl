@@ -85,7 +85,12 @@ function merge_global_data(data::AbstractDict{Symbol,Any})
     instances = Vector{Dict{Symbol,Any}}()
     type = data[:type]
     for (instance_idx, instance_data) in enumerate(data[:instance_data])
-        instance_data = recursive_merge(deepcopy(data[:global_data]), instance_data)
+        global_data = deepcopy(data[:global_data])
+        instance_data = deepcopy(instance_data)
+        # Convert scalar tag inputs before the recursive merge, so global and instance tags combine.
+        haskey(global_data, :tags) && (global_data[:tags] = tag_values(global_data[:tags]))
+        haskey(instance_data, :tags) && (instance_data[:tags] = tag_values(instance_data[:tags]))
+        instance_data = recursive_merge(global_data, instance_data)
         # haskey(instance_data, :id) ? instance_id = Symbol(instance_data[:id]) : instance_id = default_asset_name(instance_idx, a_name)
         # instance_data[:id], _ = make_asset_id(instance_id, asset_data)
         # asset_data[instance_data[:id]] = make_asset(a_type, instance_data, time_data, nodes)

@@ -1,5 +1,6 @@
 struct SyntheticAmmonia <: AbstractAsset
     id::AssetId
+    tags::AssetTags
     synthetic_ammonia_transform::Transformation
     h2_edge::Edge{<:Hydrogen} ## MWh
     n2_edge::Edge{<:Nitrogen} ## tonnes
@@ -213,5 +214,5 @@ function make(asset_type::Type{SyntheticAmmonia}, data::AbstractDict{Symbol,Any}
         flow(elec_edge) == get(transform_data, :electricity_consumption, 0.0) * flow(nh3_edge)
     )
 
-    return SyntheticAmmonia(id, synthetic_ammonia_transform, h2_edge, n2_edge, elec_edge, nh3_edge)
+    return SyntheticAmmonia(id, asset_tags(data), synthetic_ammonia_transform, h2_edge, n2_edge, elec_edge, nh3_edge)
 end

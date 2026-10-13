@@ -184,6 +184,7 @@ The `FuelCell` asset is defined as follows:
 ```julia
 struct FuelCell <: AbstractAsset
     id::AssetId
+    tags::AssetTags
     fuelcell_transform::Transformation
     h2_edge::UnidirectionalEdge{<:Hydrogen}
     elec_edge::UnidirectionalEdge{<:Electricity}

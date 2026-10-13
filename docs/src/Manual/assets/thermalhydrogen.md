@@ -270,6 +270,7 @@ The `ThermalHydrogen` and `ThermalHydrogenCCS` assets are defined as follows:
 ```julia
 struct ThermalHydrogen{T} <: AbstractAsset
     id::AssetId
+    tags::AssetTags
     thermalhydrogen_transform::Transformation
     h2_edge::Union{UnidirectionalEdge{<:Hydrogen},EdgeWithUC{<:Hydrogen}}
     elec_edge::UnidirectionalEdge{<:Electricity}
@@ -279,6 +280,7 @@ end
 
 struct ThermalHydrogenCCS{T} <: AbstractAsset
     id::AssetId
+    tags::AssetTags
     thermalhydrogenccs_transform::Transformation
     h2_edge::Union{UnidirectionalEdge{<:Hydrogen},EdgeWithUC{<:Hydrogen}}
     elec_edge::UnidirectionalEdge{<:Electricity}

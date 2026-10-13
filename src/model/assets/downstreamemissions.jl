@@ -1,5 +1,6 @@
 struct DownstreamEmissions{T} <: AbstractAsset
     id::AssetId
+    tags::AssetTags
     fuelsenduse_transform::Transformation
     fuel_edge::Edge{<:T}
     fuel_demand_edge::Edge{<:T}
@@ -9,7 +10,10 @@ end
 const FuelsEndUse = DownstreamEmissions
 
 DownstreamEmissions(id::AssetId, fuelsenduse_transform::Transformation, fuel_edge::Edge{T}, fuel_demand_edge::Edge{T}, co2_edge::Edge{<:CO2}) where T<:Commodity =
-    DownstreamEmissions{T}(id, fuelsenduse_transform, fuel_edge, fuel_demand_edge, co2_edge)
+    DownstreamEmissions{T}(id, nothing, fuelsenduse_transform, fuel_edge, fuel_demand_edge, co2_edge)
+
+DownstreamEmissions(id::AssetId, tags::AssetTags, fuelsenduse_transform::Transformation, fuel_edge::Edge{T}, fuel_demand_edge::Edge{T}, co2_edge::Edge{<:CO2}) where T<:Commodity =
+    DownstreamEmissions{T}(id, tags, fuelsenduse_transform, fuel_edge, fuel_demand_edge, co2_edge)
 
 function default_data(t::Type{DownstreamEmissions}, id=missing, style="full")
     if style == "full"
@@ -193,5 +197,5 @@ function make(asset_type::Type{DownstreamEmissions}, data::AbstractDict{Symbol,A
         get(transform_data, :emission_rate, 0.0) * flow(fuel_edge) == flow(co2_edge)
     )
 
-    return DownstreamEmissions(id, fuelsenduse_transform, fuel_edge, fuel_demand_edge, co2_edge) 
+    return DownstreamEmissions(id, asset_tags(data), fuelsenduse_transform, fuel_edge, fuel_demand_edge, co2_edge)
 end

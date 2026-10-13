@@ -19,7 +19,7 @@ import MacroEnergy:
     flow,
     make
 
-function make_beccshydrogen_case(style::Symbol)
+function make_beccshydrogen_case(style::Symbol; fuel_consumption::Float64 = 0.0)
     system = make_test_system([Biomass, Electricity, CO2, CO2Captured, Hydrogen])
 
     biomass_source = make_supply_node(Biomass, :biomass_source, system.time_data[:Biomass], [4.0, 4.0, 4.0])
@@ -40,6 +40,7 @@ function make_beccshydrogen_case(style::Symbol)
             :existing_capacity => 100.0,
             :hydrogen_production => 0.5,
             :electricity_consumption => 0.2,
+            :fuel_consumption => fuel_consumption,
             :co2_content => 0.1,
             :emission_rate => 0.15,
             :capture_rate => 0.25,
@@ -53,6 +54,7 @@ function make_beccshydrogen_case(style::Symbol)
         system,
     )
     push!(system.assets, asset)
+    @test isnothing(asset.fuel_edge)
 
     transform = asset.beccs_transform
     transform.balance_data = Dict{Symbol,Any}()
@@ -118,6 +120,10 @@ function test_asset_beccshydrogen_balance()
             @test value(flow(add_balance_case.asset.co2_captured_edge, t)) ≈ value(flow(stoich_case.asset.co2_captured_edge, t)) atol = 1e-8
         end
         @test objective_value(add_balance_model) ≈ objective_value(stoich_model) atol = 1e-8
+    end
+
+    @test_logs (:warn, "User provided fuel-related inputs for the beccs_hydrogen_test asset but they will not be used as no fuel commodity has been set") begin
+        make_beccshydrogen_case(:add_balance; fuel_consumption = 1.0)
     end
 
     return nothing

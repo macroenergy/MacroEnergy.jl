@@ -1,5 +1,6 @@
 struct ElectricDAC <: AbstractAsset
     id::AssetId
+    tags::AssetTags
     electricdac_transform::Transformation
     co2_edge::Edge{<:CO2}
     elec_edge::Edge{<:Electricity}
@@ -174,5 +175,5 @@ function make(asset_type::Type{ElectricDAC}, data::AbstractDict{Symbol,Any}, sys
         flow(co2_edge) == flow(co2_captured_edge)
     )
 
-    return ElectricDAC(id, electricdac_transform, co2_edge, elec_edge, co2_captured_edge)
+    return ElectricDAC(id, asset_tags(data), electricdac_transform, co2_edge, elec_edge, co2_captured_edge)
 end

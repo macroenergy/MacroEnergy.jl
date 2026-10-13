@@ -225,6 +225,7 @@ The `HydroRes` asset is defined as follows:
 ```julia
 struct HydroRes <: AbstractAsset
     id::AssetId
+    tags::AssetTags
     hydrostor::AbstractStorage{<:Electricity}
     discharge_edge::UnidirectionalEdge{<:Electricity}
     inflow_edge::UnidirectionalEdge{<:Electricity}

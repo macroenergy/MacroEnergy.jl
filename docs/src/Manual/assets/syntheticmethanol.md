@@ -176,6 +176,7 @@ The Synthetic Methanol asset is defined as follows:
 ```julia
 struct SyntheticMethanol <: AbstractAsset
     id::AssetId
+    tags::AssetTags
     synthetic_methanol_transform::Transformation
     co2_captured_edge::UnidirectionalEdge{<:CO2Captured}
     ch3oh_edge::UnidirectionalEdge{<:Methanol}

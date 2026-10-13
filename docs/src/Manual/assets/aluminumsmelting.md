@@ -184,6 +184,7 @@ The Aluminum Smelting asset is defined as follows:
 ```julia
 struct AluminumSmelting <: AbstractAsset
     id::AssetId
+    tags::AssetTags
     aluminumsmelting_transform::Transformation
     elec_edge::UnidirectionalEdge{<:Electricity}
     alumina_edge::UnidirectionalEdge{<:Alumina}

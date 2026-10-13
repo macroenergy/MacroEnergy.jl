@@ -556,7 +556,7 @@ end
 All the examples above can be executed line by line in an interactive Julia REPL. This is particularly useful for debugging and testing the model. Please check the [Suggested Development Workflow](@ref) and the [Debugging and Testing a Macro Model](@ref) sections for more information.
 
 !!! tip "Interactive Julia REPL"
-    In Julia, when running the same script multiple times, it is recommended to exectute commands or script in an **interactive REPL** (REPL stands for Read-Eval-Print Loop, and it's the command line interface that starts when you type `julia` in the terminal) instead of running the script directly from the terminal. This is because Julia's JIT (Just-In-Time) compiler will compile the code the first time it is run, and subsequent runs will be much faster as the compiled code is cached. Also, the REPL maintains all variables in memory, making it easier to:
+    In Julia, when running the same script multiple times, it is recommended to execute commands or script in an **interactive REPL** (REPL stands for Read-Eval-Print Loop, and it's the command line interface that starts when you type `julia` in the terminal) instead of running the script directly from the terminal. This is because Julia's JIT (Just-In-Time) compiler will compile the code the first time it is run, and subsequent runs will be much faster as the compiled code is cached. Also, the REPL maintains all variables in memory, making it easier to:
     - Inspect variable values;
     - Modify and re-run code without restarting the entire program;
     - Test small code snippets in isolation.

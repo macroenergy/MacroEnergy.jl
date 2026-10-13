@@ -11,8 +11,11 @@ import MacroEnergy:
     @add_balance,
     @add_stoichiometric_balance,
     Electricity,
+    EdgeWithUC,
     Electrolyzer,
     Hydrogen,
+    RampingLimitConstraint,
+    startup_fuel_consumption,
     flow,
     make
 
@@ -86,6 +89,30 @@ function test_asset_electrolyzer_balance()
             @test value(flow(add_balance_case.asset.elec_edge, t)) ≈ value(flow(stoich_case.asset.elec_edge, t)) atol = 1e-8
         end
         @test objective_value(add_balance_model) ≈ objective_value(stoich_model) atol = 1e-8
+    end
+
+    @testset "Electrolyzer unit commitment" begin
+        system = make_test_system([Electricity, Hydrogen])
+        elec_source = make_supply_node(Electricity, :elec_source, system.time_data[:Electricity], [1.0, 1.0, 1.0])
+        h2_sink = make_free_node(Hydrogen, :h2_sink, system.time_data[:Hydrogen])
+        push_locations!(system, elec_source, h2_sink)
+
+        asset = make(
+            Electrolyzer,
+            Dict{Symbol,Any}(
+                :id => :uc_electrolyzer_test,
+                :efficiency_rate => 0.5,
+                :uc => true,
+                :startup_fuel_consumption => 2.0,
+                :elec_start_vertex => :elec_source,
+                :h2_end_vertex => :h2_sink,
+            ),
+            system,
+        )
+
+        @test asset.h2_edge isa EdgeWithUC
+        @test startup_fuel_consumption(asset.h2_edge) == 1.0
+        @test any(isa(c, RampingLimitConstraint) for c in asset.h2_edge.constraints)
     end
 
     return nothing

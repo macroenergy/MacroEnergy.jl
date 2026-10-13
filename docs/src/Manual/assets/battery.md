@@ -295,6 +295,7 @@ The `Battery` asset is defined as follows:
 ```julia
 struct Battery <: AbstractAsset
     id::AssetId
+    tags::AssetTags
     battery_storage::AbstractStorage{<:Electricity}
     discharge_edge::UnidirectionalEdge{<:Electricity}
     charge_edge::UnidirectionalEdge{<:Electricity}
@@ -486,14 +487,16 @@ Below is an example of an input file for a battery asset that sets up three batt
                         "can_retire": false,
                         "constraints": {
                             "CapacityConstraint": true,
-                            "StorageDischargeLimitConstraint": true,
-                            "StorageChargeLimitConstraint": true
+                            "StorageDischargeLimitConstraint": true
                         }
                     },
                     "charge_edge": {
                         "type": "Electricity",
                         "unidirectional": true,
-                        "has_capacity": false
+                        "has_capacity": false,
+                        "constraints": {
+                            "StorageChargeLimitConstraint": true
+                        }
                     }
                 }
             },

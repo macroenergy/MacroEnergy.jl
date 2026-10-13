@@ -49,6 +49,7 @@ The `system_settings` are written as JSON arrays (one entry per period for multi
             "DualExportsEnabled": true,
             "OverwriteResults": false,
             "OutputDir": "results",
+            "OutputAssetTags": true,
             "ConstraintScaling": false,
             "Retrofitting": false,
             "AutoCreateLocations": true,

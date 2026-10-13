@@ -17,6 +17,8 @@ with_logger(test_logger) do
         include("test_user_additions.jl")
         include("test_registry_user_smoke.jl")
         include("test_case_settings.jl")
+        include("test_preprocess_inputs.jl")
+        include("test_file_resources.jl")
 
         Test.@testset "Asset tests" begin
             include("asset_tests/test_assets_transmission_links.jl")
@@ -37,6 +39,7 @@ with_logger(test_logger) do
             include("asset_tests/test_asset_dreaf_balance.jl")
             include("asset_tests/test_asset_dreafccs_balance.jl")
             include("asset_tests/test_asset_co2injection_balance.jl")
+            include("asset_tests/test_asset_constrainedfossilliquidfuels_balance.jl")
             include("asset_tests/test_asset_downstreamemissions_balance.jl")
             include("asset_tests/test_asset_upstreamemissions_balance.jl")
             include("asset_tests/test_asset_electricdac_balance.jl")
@@ -62,6 +65,9 @@ with_logger(test_logger) do
             include("asset_tests/test_asset_mustrun_balance.jl")
             include("asset_tests/test_asset_electricarcfurnace_balance.jl")
             include("asset_tests/test_asset_vre_balance.jl")
+            include("asset_tests/test_max_capacity_system.jl")
+            include("asset_tests/test_min_capacity_system.jl")
+            include("asset_tests/test_max_new_capacity_system.jl")
         end
     end
 
@@ -82,6 +88,11 @@ with_logger(test_logger) do
         include("test_benders_output_utilities.jl")
     end
     
+    Test.@testset verbose = true "Solve Status Checks" begin
+        include("test_solve_status.jl")
+        include("test_run_status.jl")
+    end
+
     Test.@testset verbose = true "Myopic Functionality" begin
         include("test_myopic.jl")
     end

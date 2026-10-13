@@ -1,5 +1,6 @@
 struct ThermalHydrogen{T} <: AbstractAsset
     id::AssetId
+    tags::AssetTags
     thermalhydrogen_transform::Transformation
     h2_edge::Union{Edge{<:Hydrogen},EdgeWithUC{<:Hydrogen}}
     elec_edge::Edge{<:Electricity}
@@ -9,7 +10,11 @@ end
 
 ThermalHydrogen(id::AssetId, thermalhydrogen_transform::Transformation,h2_edge::Union{Edge{<:Hydrogen},EdgeWithUC{<:Hydrogen}}, elec_edge::Edge{<:Electricity},
 fuel_edge::Edge{T},co2_edge::Edge{<:CO2}) where T<:Commodity =
-    ThermalHydrogen{T}(id, thermalhydrogen_transform, h2_edge, elec_edge, fuel_edge, co2_edge)
+    ThermalHydrogen{T}(id, nothing, thermalhydrogen_transform, h2_edge, elec_edge, fuel_edge, co2_edge)
+
+ThermalHydrogen(id::AssetId, tags::AssetTags, thermalhydrogen_transform::Transformation,h2_edge::Union{Edge{<:Hydrogen},EdgeWithUC{<:Hydrogen}}, elec_edge::Edge{<:Electricity},
+fuel_edge::Edge{T},co2_edge::Edge{<:CO2}) where T<:Commodity =
+    ThermalHydrogen{T}(id, tags, thermalhydrogen_transform, h2_edge, elec_edge, fuel_edge, co2_edge)
 
 function default_data(t::Type{ThermalHydrogen}, id=missing, style="full")
     if style == "full"
@@ -307,5 +312,5 @@ function make(asset_type::Type{ThermalHydrogen}, data::AbstractDict{Symbol,Any},
         get(transform_data, :emission_rate, 0.0) * flow(fuel_edge) == flow(co2_edge)
     )
 
-    return ThermalHydrogen(id, thermalhydrogen_transform, h2_edge, elec_edge,fuel_edge, co2_edge)
+    return ThermalHydrogen(id, asset_tags(data), thermalhydrogen_transform, h2_edge, elec_edge,fuel_edge, co2_edge)
 end

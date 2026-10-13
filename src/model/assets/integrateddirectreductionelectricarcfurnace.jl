@@ -1,5 +1,6 @@
 struct DirectReductionElectricArcFurnace{T1 <: Commodity,T2 <: Commodity} <: AbstractAsset
     id::AssetId
+    tags::AssetTags
     dreaf_transform::Transformation
     crudesteel_edge::Edge{CrudeSteel}
     reductant_edge::Edge{T1} # natural gas or hydrogen
@@ -319,7 +320,7 @@ function make(asset_type::Type{DirectReductionElectricArcFurnace}, data::Abstrac
         flow(co2_edge) == get(transform_data, :emission_rate, 0.0) * flow(crudesteel_edge)
     )
 
-    return DirectReductionElectricArcFurnace(id,
+    return DirectReductionElectricArcFurnace(id, asset_tags(data),
             dreaf_transform,
             crudesteel_edge,
             reductant_edge,

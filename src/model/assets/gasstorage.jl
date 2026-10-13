@@ -1,5 +1,6 @@
 struct GasStorage{T} <: AbstractAsset
     id::AssetId
+    tags::AssetTags
     pump_transform::Transformation
     gas_storage::AbstractStorage{<:T}
     charge_edge::Edge{<:T}
@@ -12,7 +13,13 @@ end
 
 GasStorage(id::AssetId, pump_transform::Transformation, gas_storage::AbstractStorage{T}, charge_edge::Edge{T}, discharge_edge::Edge{T},
     external_charge_edge::Edge{T}, external_discharge_edge::Edge{T}, charge_elec_edge::Edge{<:Electricity}, discharge_elec_edge::Edge{<:Electricity}) where {T<:Commodity} =
-    GasStorage{T}(id, pump_transform, gas_storage, charge_edge, discharge_edge, external_charge_edge, external_discharge_edge, charge_elec_edge, discharge_elec_edge)
+    GasStorage{T}(id, nothing, pump_transform, gas_storage, charge_edge, discharge_edge, external_charge_edge, external_discharge_edge, charge_elec_edge, discharge_elec_edge)
+
+
+GasStorage(id::AssetId, tags::AssetTags, pump_transform::Transformation, gas_storage::AbstractStorage{T}, charge_edge::Edge{T}, discharge_edge::Edge{T},
+    external_charge_edge::Edge{T}, external_discharge_edge::Edge{T}, charge_elec_edge::Edge{<:Electricity}, discharge_elec_edge::Edge{<:Electricity}) where {T<:Commodity} =
+    GasStorage{T}(id, tags, pump_transform, gas_storage, charge_edge, discharge_edge, external_charge_edge, external_discharge_edge, charge_elec_edge, discharge_elec_edge)
+
 
 function default_data(t::Type{GasStorage}, id=missing, style="full")
     if style == "full"
@@ -373,6 +380,7 @@ function make(asset_type::Type{GasStorage}, data::AbstractDict{Symbol,Any}, syst
 
     return GasStorage(
         id,
+        asset_tags(data),
         pump_transform,
         gas_storage,
         gas_storage_charge,

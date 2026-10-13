@@ -198,6 +198,7 @@ The `Transformation` is one of the components which make up the `ThermalPower` A
 ```julia
 struct ThermalPower{T} <: AbstractAsset
     id::AssetId
+    tags::AssetTags
     thermal_transform::Transformation
     elec_edge::Union{UnidirectionalEdge{<:Electricity},EdgeWithUC{<:Electricity}}
     fuel_edge::UnidirectionalEdge{<:T}
@@ -313,7 +314,7 @@ function make(asset_type::Type{ThermalPower}, data::AbstractDict{Symbol,Any}, sy
     )
 
     # Finally, we create and return the ThermalPower Asset
-    return ThermalPower(id, thermal_transform, elec_edge, fuel_edge, co2_edge)
+    return ThermalPower(id, asset_tags(data), thermal_transform, elec_edge, fuel_edge, co2_edge)
 end
 ```
 

@@ -224,6 +224,7 @@ The Thermal Ammonia asset (without CCS) is defined as follows:
 ```julia
 struct ThermalAmmonia{T} <: AbstractAsset
     id::AssetId
+    tags::AssetTags
     thermalammonia_transform::Transformation
     nh3_edge::Union{UnidirectionalEdge{<:Ammonia},EdgeWithUC{<:Ammonia}}
     elec_edge::UnidirectionalEdge{<:Electricity}
@@ -237,6 +238,7 @@ The Thermal Ammonia with CCS asset is defined as follows:
 ```julia
 struct ThermalAmmoniaCCS{T} <: AbstractAsset
     id::AssetId
+    tags::AssetTags
     thermalammoniaccs_transform::Transformation
     nh3_edge::Union{UnidirectionalEdge{<:Ammonia},EdgeWithUC{<:Ammonia}}
     elec_edge::UnidirectionalEdge{<:Electricity}

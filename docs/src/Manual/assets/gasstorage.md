@@ -288,6 +288,7 @@ The `GasStorage` asset is defined as follows:
 ```julia
 struct GasStorage{T} <: AbstractAsset
     id::AssetId
+    tags::AssetTags
     pump_transform::Transformation
     gas_storage::AbstractStorage{<:T}
     charge_edge::UnidirectionalEdge{<:T}

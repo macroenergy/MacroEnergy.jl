@@ -257,6 +257,7 @@ The `ThermalSteam` asset is defined as follows:
 ```julia
 struct ThermalSteam{T} <: AbstractAsset
     id::AssetId
+    tags::AssetTags
     steam_transform::Transformation
     steam_edge::Union{UnidirectionalEdge{<:Steam},EdgeWithUC{<:Steam}}
     fuel_edge::UnidirectionalEdge{<:T}

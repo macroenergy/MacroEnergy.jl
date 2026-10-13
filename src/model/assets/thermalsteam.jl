@@ -1,5 +1,6 @@
 struct ThermalSteam{T} <: AbstractAsset
     id::AssetId
+    tags::AssetTags
     steam_transform::Transformation
     steam_edge::Union{Edge{<:Steam},EdgeWithUC{<:Steam}}
     fuel_edge::Edge{<:T}
@@ -8,7 +9,10 @@ struct ThermalSteam{T} <: AbstractAsset
 end
 
 ThermalSteam(id::AssetId, steam_transform::Transformation, steam_edge::Union{Edge{<:Steam},EdgeWithUC{<:Steam}}, fuel_edge::Edge{T}, elec_edge::Edge{<:Electricity}, co2_edge::Edge{<:CO2}) where T<:Commodity =
-    ThermalSteam{T}(id, steam_transform, steam_edge, fuel_edge, elec_edge, co2_edge)
+    ThermalSteam{T}(id, nothing, steam_transform, steam_edge, fuel_edge, elec_edge, co2_edge)
+
+ThermalSteam(id::AssetId, tags::AssetTags, steam_transform::Transformation, steam_edge::Union{Edge{<:Steam},EdgeWithUC{<:Steam}}, fuel_edge::Edge{T}, elec_edge::Edge{<:Electricity}, co2_edge::Edge{<:CO2}) where T<:Commodity =
+    ThermalSteam{T}(id, tags, steam_transform, steam_edge, fuel_edge, elec_edge, co2_edge)
 
 function default_data(t::Type{ThermalSteam}, id=missing, style="full")
     if style == "full"
@@ -265,5 +269,5 @@ function make(asset_type::Type{ThermalSteam}, data::AbstractDict{Symbol,Any}, sy
         get(transform_data, :emission_rate, 0.0) * flow(fuel_edge) == flow(co2_edge)
     )
 
-    return ThermalSteam(id, steam_transform, steam_edge, fuel_edge, elec_edge, co2_edge)
+    return ThermalSteam(id, asset_tags(data), steam_transform, steam_edge, fuel_edge, elec_edge, co2_edge)
 end

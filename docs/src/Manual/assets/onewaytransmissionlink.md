@@ -144,6 +144,7 @@ The `OneWayTransmissionLink` asset is defined as follows:
 ```julia
 struct OneWayTransmissionLink{T} <: AbstractAsset
     id::AssetId
+    tags::AssetTags
     transmission_edge::UnidirectionalEdge{<:T}
 end
 ```

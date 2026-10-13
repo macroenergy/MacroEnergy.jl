@@ -227,6 +227,7 @@ The `BECCSElectricity` asset is defined as follows:
 ```julia
 struct BECCSElectricity <: AbstractAsset
     id::AssetId
+    tags::AssetTags
     beccs_transform::Transformation
     biomass_edge::UnidirectionalEdge{<:Biomass}
     elec_edge::UnidirectionalEdge{<:Electricity}

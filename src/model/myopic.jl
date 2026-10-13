@@ -1,7 +1,10 @@
 struct MyopicResults
     results::Union{Vector, Nothing}
     output_path::String
+    outcomes::Vector{PeriodOutcome} # Termination status of each period
 end
+
+MyopicResults(results, output_path) = MyopicResults(results, output_path, PeriodOutcome[])
 
 function load_previous_capacity_results(path::AbstractString)
     df = load_dataframe(path)

@@ -218,6 +218,7 @@ The `DownstreamEmissions` asset is defined as follows:
 ```julia
 struct DownstreamEmissions{T} <: AbstractAsset
     id::AssetId
+    tags::AssetTags
     fuelsenduse_transform::Transformation
     fuel_edge::Edge{<:T}
     fuel_demand_edge::Edge{<:T}

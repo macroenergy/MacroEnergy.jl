@@ -169,6 +169,7 @@ The Synthetic Ammonia asset is defined as follows:
 ```julia
 struct SyntheticAmmonia <: AbstractAsset
     id::AssetId
+    tags::AssetTags
     synthetic_ammonia_transform::Transformation
     h2_edge::UnidirectionalEdge{<:Hydrogen}
     n2_edge::UnidirectionalEdge{<:Nitrogen}

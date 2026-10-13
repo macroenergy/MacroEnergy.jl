@@ -93,7 +93,9 @@ function prepare_to_json(asset::AbstractAsset)
 
     for f in Base.fieldnames(typeof(asset))
         data = getfield(asset, f)
-        if isa(data, AbstractEdge)
+        if f == :tags
+            isnothing(data) || (asset_data[:instance_data][:tags] = sort!(string.(collect(data))))
+        elseif isa(data, AbstractEdge)
             asset_data[:instance_data][:edges][f] = prepare_to_json(data)
             asset_data[:instance_data][:edges][f][:commodity] = typesymbol(commodity_type(data))
             if isa(data, EdgeWithUC)
@@ -156,8 +158,8 @@ function prepare_to_json(constraints::Vector{AbstractTypeConstraint})
             dict[Symbol(typeof(constraint))] = true
             continue
         end            
-        dual_value = dual.(con_ref)
-        if ismissing(dual_value)
+        dual_value = dual_or_nan.(con_ref)
+        if dual_value isa AbstractArray ? all(isnan, dual_value) : isnan(dual_value)
             dict[Symbol(typeof(constraint))] = true
         else
             dict[Symbol(typeof(constraint))] = prepare_to_json(dual_value)

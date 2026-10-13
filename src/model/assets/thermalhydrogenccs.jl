@@ -1,5 +1,6 @@
 struct ThermalHydrogenCCS{T} <: AbstractAsset
     id::AssetId
+    tags::AssetTags
     thermalhydrogenccs_transform::Transformation
     h2_edge::Union{Edge{<:Hydrogen},EdgeWithUC{<:Hydrogen}}
     elec_edge::Edge{<:Electricity}
@@ -9,7 +10,11 @@ struct ThermalHydrogenCCS{T} <: AbstractAsset
 end
 ThermalHydrogenCCS(id::AssetId, thermalhydrogenccs_transform::Transformation,h2_edge::Union{Edge{<:Hydrogen},EdgeWithUC{<:Hydrogen}}, elec_edge::Edge{<:Electricity},
 fuel_edge::Edge{T},co2_edge::Edge{<:CO2},co2_captured_edge::Edge{<:CO2Captured}) where T<:Commodity =
-    ThermalHydrogenCCS{T}(id, thermalhydrogenccs_transform, h2_edge, elec_edge, fuel_edge, co2_edge,co2_captured_edge)
+    ThermalHydrogenCCS{T}(id, nothing, thermalhydrogenccs_transform, h2_edge, elec_edge, fuel_edge, co2_edge,co2_captured_edge)
+
+ThermalHydrogenCCS(id::AssetId, tags::AssetTags, thermalhydrogenccs_transform::Transformation,h2_edge::Union{Edge{<:Hydrogen},EdgeWithUC{<:Hydrogen}}, elec_edge::Edge{<:Electricity},
+fuel_edge::Edge{T},co2_edge::Edge{<:CO2},co2_captured_edge::Edge{<:CO2Captured}) where T<:Commodity =
+    ThermalHydrogenCCS{T}(id, tags, thermalhydrogenccs_transform, h2_edge, elec_edge, fuel_edge, co2_edge,co2_captured_edge)
 
 function default_data(t::Type{ThermalHydrogenCCS}, id=missing, style="full")
     if style == "full"
@@ -350,5 +355,5 @@ function make(asset_type::Type{ThermalHydrogenCCS}, data::AbstractDict{Symbol,An
         get(transform_data, :capture_rate, 0.0) * flow(fuel_edge) == flow(co2_captured_edge)
     )
 
-    return ThermalHydrogenCCS(id, thermalhydrogenccs_transform, h2_edge, elec_edge,fuel_edge, co2_edge, co2_captured_edge)
+    return ThermalHydrogenCCS(id, asset_tags(data), thermalhydrogenccs_transform, h2_edge, elec_edge,fuel_edge, co2_edge, co2_captured_edge)
 end

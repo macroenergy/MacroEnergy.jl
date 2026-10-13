@@ -58,8 +58,7 @@ get_resource_id(obj::Node) = id(obj)
 get_component_id(obj::T) where {T<:Union{AbstractEdge,Node,AbstractStorage}} = Symbol("$(id(obj))")
 
 # Get the type of an asset
-function get_type(asset::Base.RefValue{<:AbstractAsset})
-    asset = asset[]
+function get_type(asset::AbstractAsset)
     type_name = string(typesymbol(typeof(asset)))
     param_names = string.(typesymbol.(typeof(asset).parameters))
     # If the asset has commodities that are parametric, return the type name with the commodities
@@ -67,10 +66,26 @@ function get_type(asset::Base.RefValue{<:AbstractAsset})
         return "$type_name{$(join(param_names, ","))}"
     else
         return type_name
-    end   
+    end
 end
+get_type(asset::Base.RefValue{<:AbstractAsset}) = get_type(asset[])
 # Get the type of a MacroObject
 get_type(obj::T) where {T<:Union{AbstractEdge,Node,AbstractStorage}} = string(typeof(obj))
+
+# Format asset tags for a single, spreadsheet-friendly output column. Tags are normalized when an
+# asset is constructed, so `|` is an unambiguous delimiter and ordering is stable.
+function format_asset_tags(asset::AbstractAsset)
+    tags = asset_tags(asset)
+    return isnothing(tags) ? "" : join(string.(tags), "|")
+end
+
+function add_asset_tags!(results::DataFrame, system::System)
+    hasproperty(system.settings, :OutputAssetTags) && !system.settings.OutputAssetTags && return results
+    hasproperty(results, :resource_id) || return results
+    tags_by_asset = Dict(id(asset) => format_asset_tags(asset) for asset in system.assets)
+    results[!, :tags] = [get(tags_by_asset, resource_id, "") for resource_id in results.resource_id]
+    return results
+end
 
 # Get the unit of a MacroObject
 get_unit(obj::AbstractEdge, f::Function) = unit(commodity_type(obj.timedata), f)    #TODO: check if this is correct

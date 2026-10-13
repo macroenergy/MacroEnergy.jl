@@ -22,6 +22,7 @@ Pages = [
     "Guides/User Guide/user_add_asset.md",
     "Guides/User Guide/user_policy_constraints.md",
     "Guides/User Guide/user_asset_constraints.md",
+    "Guides/User Guide/user_grouped_capacity_constraints.md",
     "Guides/User Guide/user_settings.md",
     "Guides/User Guide/user_run_model.md",
     "Guides/User Guide/user_write_results.md",

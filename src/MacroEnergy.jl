@@ -2,17 +2,18 @@ module MacroEnergy
 
 using CSV, JSON3, GZip, Parquet2
 using Dates
+using SHA
 using DuckDB
 using DataFrames
 using JSONTables
 using OrderedCollections
 using JuMP
 using HiGHS
-using Revise
 using InteractiveUtils
 using Printf: @printf
 using MacroEnergyScaling
 using MacroEnergySolvers
+using MacroEnergyTimeReduction
 using Pkg
 using DistributedArrays
 using Distributed
@@ -160,6 +161,7 @@ include("utilities/model_templates.jl")
 include("utilities/run_tools.jl")
 include("utilities/user_additions.jl")
 include("utilities/utilities.jl")
+include("preprocess_inputs/preprocess_inputs.jl")
 include_all_in_folder("utilities/model_converters")
 
 include("model/units.jl")
@@ -213,6 +215,7 @@ include("model/assets/hydrores.jl")
 include("model/assets/mustrun.jl")
 include("model/assets/upstreamemissions.jl")
 include("model/assets/downstreamemissions.jl")
+include("model/assets/constrainedfossilliquidfuels.jl")
 include("model/assets/syntheticnaturalgas.jl")
 include("model/assets/syntheticliquidfuels.jl")
 include("model/assets/syntheticammonia.jl")
@@ -239,6 +242,8 @@ include_all_in_folder("load_inputs")
 include_all_in_folder("write_outputs/")
 
 export AbstractAsset,
+    AbstractConstraintConfig,
+    AbstractGroupedConstraintConfig,
     AbstractTypeConstraint,
     AgeBasedRetirementConstraint,
     AggregatedDemandConstraint,
@@ -248,6 +253,7 @@ export AbstractAsset,
     AluminumRefining,
     AluminumSmelting,
     AluminaPlant,
+    assert_solved,
     Bauxite,
     BalanceConstraint,
     Battery,
@@ -285,6 +291,7 @@ export AbstractAsset,
     ElectricHeating,
     ElectricSteam,
     UpstreamEmissions,
+    ConstrainedFossilLiquidFuels,
     FuelCell,
     DownstreamEmissions,
     ThermalHeating,
@@ -301,9 +308,12 @@ export AbstractAsset,
     get_optimal_retired_capacity,
     get_optimal_storage_level,
     Graphite,
+    GroupConfig,
+    GroupSelector,
     Heat,
     HydroRes,
     Hydrogen,
+    InfeasibleModel,
     IronOre,
     LongDurationStorage,
     LongDurationStorageImplicitMinMaxConstraint,
@@ -313,12 +323,15 @@ export AbstractAsset,
     load_subcommodities_from_file,
     location_ids,
     MaxCapacityConstraint,
+    MaxCapacityConstraintConfig,
     MaxNewCapacityConstraint,
+    MaxNewCapacityConstraintConfig,
     MaxNonServedDemandConstraint,
     MaxNonServedDemandPerSegmentConstraint,
     MaxStorageLevelConstraint,
     MaxInitStorageLevelConstraint,
     MinCapacityConstraint,
+    MinCapacityConstraintConfig,
     MinDownTimeConstraint,
     MinFlowConstraint,
     MinStorageOutflowConstraint,
@@ -334,9 +347,12 @@ export AbstractAsset,
     PlanningConstraint,
     PolicyConstraint,
     postprocess!,
+    preprocess_inputs,
     RampingLimitConstraint,
     run_case,
+    time_domain_reduction,
     solve_case,
+    SolveFailed,
     Steam,
     SteelScrap,
     Storage,
@@ -356,6 +372,7 @@ export AbstractAsset,
     TransmissionLink,
     OneWayTransmissionLink,
     Transformation,
+    UnboundedModel,
     Uranium,
     VRE,
     write_capacity,

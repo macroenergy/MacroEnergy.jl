@@ -39,6 +39,7 @@ function write_capex(
 )
     @info "Writing CAPEX results to $file_path"
     capex_results = get_capex(system, scaling, discount_rate)
+    add_asset_tags!(capex_results, system)
     write_dataframe(file_path, capex_results, drop_cols)
     return nothing
 end

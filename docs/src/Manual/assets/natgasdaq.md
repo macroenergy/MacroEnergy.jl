@@ -218,6 +218,7 @@ The `NaturalGasDAC` asset is defined as follows:
 ```julia
 struct NaturalGasDAC <: AbstractAsset
     id::AssetId
+    tags::AssetTags
     natgasdac_transform::Transformation
     co2_edge::UnidirectionalEdge{<:CO2}
     co2_emission_edge::UnidirectionalEdge{<:CO2}

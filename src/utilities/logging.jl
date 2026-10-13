@@ -9,7 +9,7 @@ end
 
 function concise_logger(log_file_path, log_level::LogLevel=Logging.Info)
     return MinLevelLogger(
-        FormatLogger(log_file_path ; append = false) do io, args
+        FormatLogger(log_file_path) do io, args
             println(io, "$(timestamp()) | ", args.message)
         end,
         log_level
@@ -18,7 +18,7 @@ end
 
 function attributed_logger(log_file_path, log_level::LogLevel=Logging.Info)
     return MinLevelLogger(
-        FormatLogger(log_file_path ; append = false) do io, args
+        FormatLogger(log_file_path) do io, args
             # Extract attribution info
             level_str = uppercase(string(args.level))
             module_str = string(args._module)
@@ -55,9 +55,9 @@ function console_logger(log_level::LogLevel=Logging.Info)
     ) |> timestamp_logger
 end
 
-function set_logger(log_to_console::Bool, log_to_file::Bool, log_level::LogLevel, log_file_path::AbstractString, log_file_attribution::Bool=false)
+function create_logger(log_to_console::Bool, log_to_file::Bool, log_level::LogLevel, log_destination, log_file_attribution::Bool=false)
     if !(log_to_console || log_to_file)
-        return nothing
+        return current_logger()
     end
 
     loggers = []
@@ -66,16 +66,30 @@ function set_logger(log_to_console::Bool, log_to_file::Bool, log_level::LogLevel
     end
     if log_to_file
         if log_file_attribution
-            file_logger = attributed_logger(log_file_path, log_level)
+            file_logger = attributed_logger(log_destination, log_level)
         else
-            file_logger = concise_logger(log_file_path, log_level)
+            file_logger = concise_logger(log_destination, log_level)
         end
         push!(loggers, file_logger)
     end
-    if length(loggers) == 1
-        global_logger(loggers[1])
-    else
-        global_logger(TeeLogger(loggers...))
+    return length(loggers) == 1 ? loggers[1] : TeeLogger(loggers...)
+end
+
+function set_logger(log_to_console::Bool, log_to_file::Bool, log_level::LogLevel, log_file_path::AbstractString, log_file_attribution::Bool=false)
+    if log_to_console || log_to_file
+        global_logger(create_logger(log_to_console, log_to_file, log_level, log_file_path, log_file_attribution))
     end
     return nothing
+end
+
+# A case run owns its file stream; task-local logging restores the caller's
+# logger before the scoped stream closes, including when the run throws.
+function with_case_logger(f::Function, log_to_console::Bool, log_to_file::Bool,
+    log_level::LogLevel, log_file_path::AbstractString, log_file_attribution::Bool)
+    if log_to_file
+        return open(log_file_path, "w") do io
+            with_logger(f, create_logger(log_to_console, true, log_level, io, log_file_attribution))
+        end
+    end
+    return with_logger(f, create_logger(log_to_console, false, log_level, nothing, log_file_attribution))
 end

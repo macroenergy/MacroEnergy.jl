@@ -18,7 +18,11 @@ import MacroEnergy:
     flow,
     make
 
-function make_syntheticliquidfuels_case(style::Symbol)
+function make_syntheticliquidfuels_case(
+    style::Symbol;
+    capture_rate::Float64 = 0.0,
+    co2_captured_return_end_vertex::Union{Nothing,Symbol} = nothing,
+)
     system = make_test_system([CO2Captured, Electricity, Hydrogen, LiquidFuels, CO2])
 
     co2_source = make_supply_node(CO2Captured, :co2_source, system.time_data[:CO2Captured], [2.0, 2.0, 2.0])
@@ -28,33 +32,40 @@ function make_syntheticliquidfuels_case(style::Symbol)
     jetfuel_sink = make_free_node(LiquidFuels, :jetfuel_sink, system.time_data[:LiquidFuels])
     diesel_sink = make_free_node(LiquidFuels, :diesel_sink, system.time_data[:LiquidFuels])
     co2_emission_sink = make_free_node(CO2, :co2_emission_sink, system.time_data[:CO2])
-    push_locations!(system, co2_source, elec_source, h2_source, gasoline_sink, jetfuel_sink, diesel_sink, co2_emission_sink)
+    co2_captured_return_sink = make_free_node(CO2Captured, :co2_captured_return_sink, system.time_data[:CO2Captured])
+    push_locations!(system, co2_source, elec_source, h2_source, gasoline_sink, jetfuel_sink, diesel_sink, co2_emission_sink, co2_captured_return_sink)
 
+    data = Dict{Symbol,Any}(
+        :id => :synthetic_liquid_fuels_test,
+        :co2_sink => :co2_emission_sink,
+        :can_expand => false,
+        :can_retire => false,
+        :existing_capacity => 20.0,
+        :gasoline_production => 0.2,
+        :jetfuel_production => 0.1,
+        :diesel_production => 0.15,
+        :electricity_consumption => 0.1,
+        :h2_consumption => 0.2,
+        :emission_rate => 0.05,
+        :capture_rate => capture_rate,
+        :co2_captured_start_vertex => :co2_source,
+        :elec_start_vertex => :elec_source,
+        :h2_start_vertex => :h2_source,
+        :gasoline_end_vertex => :gasoline_sink,
+        :jetfuel_end_vertex => :jetfuel_sink,
+        :diesel_end_vertex => :diesel_sink,
+        :co2_emission_end_vertex => :co2_emission_sink,
+    )
+    if !isnothing(co2_captured_return_end_vertex)
+        data[:co2_captured_return_end_vertex] = co2_captured_return_end_vertex
+    end
     asset = make(
         SyntheticLiquidFuels,
-        Dict{Symbol,Any}(
-            :id => :synthetic_liquid_fuels_test,
-            :co2_sink => :co2_emission_sink,
-            :can_expand => false,
-            :can_retire => false,
-            :existing_capacity => 20.0,
-            :gasoline_production => 0.2,
-            :jetfuel_production => 0.1,
-            :diesel_production => 0.15,
-            :electricity_consumption => 0.1,
-            :h2_consumption => 0.2,
-            :emission_rate => 0.05,
-            :co2_captured_start_vertex => :co2_source,
-            :elec_start_vertex => :elec_source,
-            :h2_start_vertex => :h2_source,
-            :gasoline_end_vertex => :gasoline_sink,
-            :jetfuel_end_vertex => :jetfuel_sink,
-            :diesel_end_vertex => :diesel_sink,
-            :co2_emission_end_vertex => :co2_emission_sink,
-        ),
+        data,
         system,
     )
     push!(system.assets, asset)
+    @test isnothing(asset.co2_captured_return_edge) == isnothing(co2_captured_return_end_vertex)
 
     transform = asset.synthetic_liquid_fuels_transform
     if style == :add_balance
@@ -114,6 +125,32 @@ function test_asset_syntheticliquidfuels_balance()
             @test value(flow(default_case.asset.co2_emission_edge, t)) ≈ value(flow(add_balance_case.asset.co2_emission_edge, t)) atol = 1e-8
         end
         @test objective_value(default_model) ≈ objective_value(add_balance_model) atol = 1e-8
+    end
+
+    @testset "SyntheticLiquidFuels captured CO2 return" begin
+        return_case = make_syntheticliquidfuels_case(
+            :default;
+            capture_rate = 0.1,
+            co2_captured_return_end_vertex = :co2_captured_return_sink,
+        )
+        return_model = build_test_model(return_case.system)
+        @test !isnothing(return_case.asset.co2_captured_return_edge)
+        for t in 1:3
+            @test value(flow(return_case.asset.co2_captured_return_edge, t)) ≈
+                  0.1 * value(flow(return_case.asset.co2_captured_edge, t)) atol = 1e-8
+        end
+    end
+
+    @testset "SyntheticLiquidFuels optional captured CO2 edge" begin
+        no_return_case = make_syntheticliquidfuels_case(:default)
+        @test isnothing(no_return_case.asset.co2_captured_return_edge)
+        component_ids = MacroEnergy.get_component_ids(no_return_case.asset)
+        @test :synthetic_liquid_fuels_test_co2_captured_return_edge ∉ component_ids
+        @test isnothing(MacroEnergy.get_component_by_id(no_return_case.asset, :missing_component))
+    end
+
+    @test_logs (:warn, "User provided captured-CO₂-related inputs for the synthetic_liquid_fuels_test asset but they will not be used as no captured-CO₂ return end vertex or location has been set") begin
+        make_syntheticliquidfuels_case(:add_balance; capture_rate = 1.0)
     end
 
     return nothing

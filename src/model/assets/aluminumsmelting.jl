@@ -1,5 +1,6 @@
 struct AluminumSmelting <: AbstractAsset
     id::AssetId
+    tags::AssetTags
     aluminumsmelting_transform::Transformation
     elec_edge::Edge{<:Electricity}
     alumina_edge::Edge{<:Alumina} # alumina input
@@ -299,5 +300,5 @@ function make(asset_type::Type{AluminumSmelting}, data::AbstractDict{Symbol,Any}
         get(transform_data, :graphite_emissions_rate, 0.0) * flow(graphite_edge) == flow(co2_edge)
     )
 
-    return AluminumSmelting(id, aluminumsmelting_transform, elec_edge, alumina_edge, graphite_edge, aluminum_edge, co2_edge)
+    return AluminumSmelting(id, asset_tags(data), aluminumsmelting_transform, elec_edge, alumina_edge, graphite_edge, aluminum_edge, co2_edge)
 end

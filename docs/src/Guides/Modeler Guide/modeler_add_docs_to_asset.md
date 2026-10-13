@@ -268,6 +268,7 @@ The `MyNewAsset` asset is defined as follows:
 ```julia
 struct MyNewAsset <: AbstractAsset
     id::AssetId
+    tags::AssetTags
     transform::Transformation
     input_edge::Edge{Electricity}
     output_edge::Edge{Hydrogen}

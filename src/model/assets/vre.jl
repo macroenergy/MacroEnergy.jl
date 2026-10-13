@@ -1,8 +1,18 @@
+"""
+    VRE
+
+A variable renewable-energy asset. The optional input `technology` field is retained as a
+compatibility alias for adding a normalized asset tag; it does not affect the Julia type.
+"""
 struct VRE <: AbstractAsset
     id::AssetId
+    tags::AssetTags
     energy_transform::Transformation
     edge::Edge{<:Electricity}
 end
+
+VRE(id::AssetId, energy_transform::Transformation, edge::Edge{<:Electricity}) =
+    VRE(id, nothing, energy_transform, edge)
 
 function default_data(t::Type{VRE}, id=missing, style="full")
     if style == "full"
@@ -52,11 +62,15 @@ function simple_default_data(::Type{VRE}, id=missing)
 end
 
 """
-    make(::Type{<:VRE}, data::AbstractDict{Symbol, Any}, system::System) -> VRE
-    
-    VRE is an alias for Union{SolarPV, WindTurbine}
+    make(::Type{VRE}, data::AbstractDict{Symbol, Any}, system::System) -> VRE
+
+    A variable renewable-energy asset. The optional `technology` field is normalized and added to
+    the asset's tags, so existing `type: "VRE"` inputs with `technology: "Solar"` keep working.
+    Adding a new technology needs no Julia code — just set `technology` in the input or provide it
+    directly in `tags`.
 
     Necessary data fields:
+     - technology: String (optional; added to `tags`)
      - transforms: Dict{Symbol, Any}
         - id: String
         - timedata: String
@@ -70,7 +84,7 @@ end
             - can_expand: Bool
             - constraints: Vector{AbstractTypeConstraint}
 """
-function make(asset_type::Type{<:VRE}, data::AbstractDict{Symbol,Any}, system::System)
+function make(asset_type::Type{VRE}, data::AbstractDict{Symbol,Any}, system::System)
     id = AssetId(data[:id])
     location = as_symbol_or_missing(get(data, :location, missing))
 
@@ -121,5 +135,12 @@ function make(asset_type::Type{<:VRE}, data::AbstractDict{Symbol,Any}, system::S
         elec_end_node,
     )
 
-    return asset_type(id, vre_transform, elec_edge)
+    tags = asset_tags(data)
+    if haskey(data, :technology)
+        tags = something(tags, Symbol[])
+        push!(tags, normalize_tag(data[:technology], "VRE technology"))
+        unique!(tags)
+        sort!(tags)
+    end
+    return VRE(id, tags, vre_transform, elec_edge)
 end

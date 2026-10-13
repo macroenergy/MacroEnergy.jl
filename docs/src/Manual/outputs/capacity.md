@@ -23,6 +23,7 @@ The file uses **long format** by default: every (component, variable) combinatio
 | `resource_id` | String | Unique identifier of the parent asset (e.g., `SE_battery`) |
 | `component_id` | String | Unique identifier of the specific edge or storage component (e.g., `SE_battery_discharge_edge`) |
 | `resource_type` | String | Asset type of the parent asset (e.g., `Battery`, `ThermalPower{NaturalGas}`, `VRE`) |
+| `tags` | String | Pipe-separated normalized tags of the parent asset (for example, `renewable|solar|utility_scale`). Present when `OutputAssetTags = true`. |
 | `component_type` | String | Type of the component (e.g., `UnidirectionalEdge{Electricity}`, `Storage{Electricity}`) |
 | `variable` | String | Which capacity metric is reported (see [Variable Types](@ref "manual-outputs-capacity-variables")) |
 | `year` | Int | The period's calendar year, only present when `StartYear` is set in `case_settings.json` (see [Configuration](@ref "manual-outputs-capacity-configuration")) |
@@ -49,6 +50,7 @@ The `variable` column takes one of five values, all reported for each component 
 |---|---|---|---|
 | `OutputLayout` (or `OutputLayout.Capacity`) | `macro_settings.json` | `"long"` | Set to `"wide"` to pivot the `variable` column into separate columns: `capacity`, `new_capacity`, `retired_capacity`, `existing_capacity` (and `retrofitted_capacity` if applicable). |
 | `Retrofitting` | `macro_settings.json` | `false` | When `true`, a `retrofitted_capacity` row is added for each component. |
+| `OutputAssetTags` | `macro_settings.json` | `true` | When `true`, include a spreadsheet-friendly pipe-separated `tags` column in `capacity.csv`, `capacity_summary.csv`, and `capex.csv`. |
 | `StartYear` | `case_settings.json` | not set | The calendar year of the first period (e.g. `2026`). When set, each period's `year` is `StartYear` plus the sum of `PeriodLengths` of all preceding periods, and this populates the `year` column in `capacity.csv` and the `_<year>` column suffixes in [`capacity_summary.csv`](@ref "manual-outputs-capacity-summary"). When not set, `year` is omitted from `capacity.csv` entirely, and `capacity_summary.csv` falls back to labeling periods by their 1-based index instead. |
 
 ## [Assumptions](@id manual-outputs-capacity-assumptions)

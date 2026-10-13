@@ -1,5 +1,6 @@
 struct NaturalGasDAC <: AbstractAsset
     id::AssetId
+    tags::AssetTags
     natgasdac_transform::Transformation
     co2_edge::Edge{<:CO2}
     co2_emission_edge::Edge{<:CO2}
@@ -252,5 +253,5 @@ function make(asset_type::Type{NaturalGasDAC}, data::AbstractDict{Symbol,Any}, s
         get(transform_data, :capture_rate, 1.0) * flow(natgas_edge) + flow(co2_edge) == flow(co2_captured_edge)
     )
 
-    return NaturalGasDAC(id, natgasdac_transform, co2_edge,co2_emission_edge, natgas_edge, elec_edge, co2_captured_edge) 
+    return NaturalGasDAC(id, asset_tags(data), natgasdac_transform, co2_edge,co2_emission_edge, natgas_edge, elec_edge, co2_captured_edge)
 end
