@@ -7,6 +7,8 @@ and this project follows Julia package versioning through `Project.toml` release
 
 ## [Unreleased]
 
+## [0.3.0 - rc] - 2026-10-14
+
 ### Added
 
 - Added `@add_to_balance` for appending raw terms to an existing named balance.
