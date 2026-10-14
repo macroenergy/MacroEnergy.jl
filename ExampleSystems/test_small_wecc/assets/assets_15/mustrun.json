@@ -1,0 +1,862 @@
+{
+    "MustRun": {
+        "global_data": {
+            "transforms": {
+                "timedata": "Electricity"
+            },
+            "edges": {
+                "elec_edge": {
+                    "unidirectional": true,
+                    "has_capacity": true,
+                    "commodity": "Electricity"
+                }
+            }
+        },
+        "instance_data": [
+            {
+                "id": "AZ_biomass_1",
+                "edges": {
+                    "elec_edge": {
+                        "can_retire": false,
+                        "min_retired_capacity": 0,
+                        "annualized_investment_cost": 0,
+                        "max_capacity": 1000000,
+                        "lifetime": 50,
+                        "can_expand": false,
+                        "constraints": {
+                            "MustRunConstraint": true
+                        },
+                        "min_capacity": 0,
+                        "capacity_reserve_margin_id": "AZ_NM_CO",
+                        "commodity": "Electricity",
+                        "fixed_om_cost": 0,
+                        "capacity_reserve_margin_derate_factor": 0.9,
+                        "end_vertex": "elec_AZ",
+                        "variable_om_cost": 0,
+                        "capacity_size": 1,
+                        "wacc": 0,
+                        "capital_recovery_period": 0,
+                        "availability": [
+                            1
+                        ],
+                        "existing_capacity": 12.7
+                    }
+                }
+            },
+            {
+                "id": "AZ_small_hydroelectric_1",
+                "edges": {
+                    "elec_edge": {
+                        "can_retire": false,
+                        "min_retired_capacity": 0,
+                        "annualized_investment_cost": 0,
+                        "max_capacity": 1000000,
+                        "lifetime": 50,
+                        "can_expand": false,
+                        "constraints": {
+                            "MustRunConstraint": true
+                        },
+                        "min_capacity": 0,
+                        "capacity_reserve_margin_id": "AZ_NM_CO",
+                        "commodity": "Electricity",
+                        "fixed_om_cost": 47048,
+                        "capacity_reserve_margin_derate_factor": 0.8,
+                        "end_vertex": "elec_AZ",
+                        "variable_om_cost": 0,
+                        "capacity_size": 1,
+                        "wacc": 0,
+                        "capital_recovery_period": 0,
+                        "availability": {
+                            "timeseries": {
+                                "header": "AZ_small_hydroelectric_1",
+                                "path": "system/mustrun_availability.csv"
+                            }
+                        },
+                        "existing_capacity": 14.6
+                    }
+                }
+            },
+            {
+                "id": "CA_biomass_1",
+                "edges": {
+                    "elec_edge": {
+                        "can_retire": false,
+                        "min_retired_capacity": 0,
+                        "annualized_investment_cost": 0,
+                        "max_capacity": 1000000,
+                        "lifetime": 50,
+                        "can_expand": false,
+                        "constraints": {
+                            "MustRunConstraint": true
+                        },
+                        "min_capacity": 0,
+                        "capacity_reserve_margin_id": "CA",
+                        "commodity": "Electricity",
+                        "fixed_om_cost": 0,
+                        "capacity_reserve_margin_derate_factor": 0.9,
+                        "end_vertex": "elec_CA",
+                        "variable_om_cost": 0,
+                        "capacity_size": 1,
+                        "wacc": 0,
+                        "capital_recovery_period": 0,
+                        "availability": [
+                            1
+                        ],
+                        "existing_capacity": 231.5
+                    }
+                }
+            },
+            {
+                "id": "CA_geothermal_1",
+                "edges": {
+                    "elec_edge": {
+                        "can_retire": false,
+                        "min_retired_capacity": 0,
+                        "annualized_investment_cost": 0,
+                        "max_capacity": 1000000,
+                        "lifetime": 50,
+                        "can_expand": false,
+                        "constraints": {
+                            "MustRunConstraint": true
+                        },
+                        "min_capacity": 0,
+                        "capacity_reserve_margin_id": "CA",
+                        "commodity": "Electricity",
+                        "fixed_om_cost": 209101,
+                        "capacity_reserve_margin_derate_factor": 0.9,
+                        "end_vertex": "elec_CA",
+                        "variable_om_cost": 0,
+                        "capacity_size": 1,
+                        "wacc": 0,
+                        "capital_recovery_period": 0,
+                        "availability": [
+                            1
+                        ],
+                        "existing_capacity": 1903.5
+                    }
+                }
+            },
+            {
+                "id": "CA_small_hydroelectric_1",
+                "edges": {
+                    "elec_edge": {
+                        "can_retire": false,
+                        "min_retired_capacity": 0,
+                        "annualized_investment_cost": 0,
+                        "max_capacity": 1000000,
+                        "lifetime": 50,
+                        "can_expand": false,
+                        "constraints": {
+                            "MustRunConstraint": true
+                        },
+                        "min_capacity": 0,
+                        "capacity_reserve_margin_id": "CA",
+                        "commodity": "Electricity",
+                        "fixed_om_cost": 47048,
+                        "capacity_reserve_margin_derate_factor": 0.8,
+                        "end_vertex": "elec_CA",
+                        "variable_om_cost": 0,
+                        "capacity_size": 1,
+                        "wacc": 0,
+                        "capital_recovery_period": 0,
+                        "availability": {
+                            "timeseries": {
+                                "header": "CA_small_hydroelectric_1",
+                                "path": "system/mustrun_availability.csv"
+                            }
+                        },
+                        "existing_capacity": 356.4
+                    }
+                }
+            },
+            {
+                "id": "CO_biomass_1",
+                "edges": {
+                    "elec_edge": {
+                        "can_retire": false,
+                        "min_retired_capacity": 0,
+                        "annualized_investment_cost": 0,
+                        "max_capacity": 1000000,
+                        "lifetime": 50,
+                        "can_expand": false,
+                        "constraints": {
+                            "MustRunConstraint": true
+                        },
+                        "min_capacity": 0,
+                        "capacity_reserve_margin_id": "AZ_NM_CO",
+                        "commodity": "Electricity",
+                        "fixed_om_cost": 0,
+                        "capacity_reserve_margin_derate_factor": 0.9,
+                        "end_vertex": "elec_CO",
+                        "variable_om_cost": 0,
+                        "capacity_size": 1,
+                        "wacc": 0,
+                        "capital_recovery_period": 0,
+                        "availability": [
+                            1
+                        ],
+                        "existing_capacity": 9.2
+                    }
+                }
+            },
+            {
+                "id": "CO_small_hydroelectric_1",
+                "edges": {
+                    "elec_edge": {
+                        "can_retire": false,
+                        "min_retired_capacity": 0,
+                        "annualized_investment_cost": 0,
+                        "max_capacity": 1000000,
+                        "lifetime": 50,
+                        "can_expand": false,
+                        "constraints": {
+                            "MustRunConstraint": true
+                        },
+                        "min_capacity": 0,
+                        "capacity_reserve_margin_id": "AZ_NM_CO",
+                        "commodity": "Electricity",
+                        "fixed_om_cost": 47048,
+                        "capacity_reserve_margin_derate_factor": 0.8,
+                        "end_vertex": "elec_CO",
+                        "variable_om_cost": 0,
+                        "capacity_size": 1,
+                        "wacc": 0,
+                        "capital_recovery_period": 0,
+                        "availability": {
+                            "timeseries": {
+                                "header": "CO_small_hydroelectric_1",
+                                "path": "system/mustrun_availability.csv"
+                            }
+                        },
+                        "existing_capacity": 74.7
+                    }
+                }
+            },
+            {
+                "id": "ID_biomass_1",
+                "edges": {
+                    "elec_edge": {
+                        "can_retire": false,
+                        "min_retired_capacity": 0,
+                        "annualized_investment_cost": 0,
+                        "max_capacity": 1000000,
+                        "lifetime": 50,
+                        "can_expand": false,
+                        "constraints": {
+                            "MustRunConstraint": true
+                        },
+                        "min_capacity": 0,
+                        "capacity_reserve_margin_id": "ID_UT_NV_MT_WY",
+                        "commodity": "Electricity",
+                        "fixed_om_cost": 0,
+                        "capacity_reserve_margin_derate_factor": 0.9,
+                        "end_vertex": "elec_ID",
+                        "variable_om_cost": 0,
+                        "capacity_size": 1,
+                        "wacc": 0,
+                        "capital_recovery_period": 0,
+                        "availability": [
+                            1
+                        ],
+                        "existing_capacity": 7.6
+                    }
+                }
+            },
+            {
+                "id": "ID_geothermal_1",
+                "edges": {
+                    "elec_edge": {
+                        "can_retire": false,
+                        "min_retired_capacity": 0,
+                        "annualized_investment_cost": 0,
+                        "max_capacity": 1000000,
+                        "lifetime": 50,
+                        "can_expand": false,
+                        "constraints": {
+                            "MustRunConstraint": true
+                        },
+                        "min_capacity": 0,
+                        "capacity_reserve_margin_id": "ID_UT_NV_MT_WY",
+                        "commodity": "Electricity",
+                        "fixed_om_cost": 209101,
+                        "capacity_reserve_margin_derate_factor": 0.9,
+                        "end_vertex": "elec_ID",
+                        "variable_om_cost": 0,
+                        "capacity_size": 1,
+                        "wacc": 0,
+                        "capital_recovery_period": 0,
+                        "availability": [
+                            1
+                        ],
+                        "existing_capacity": 12.2
+                    }
+                }
+            },
+            {
+                "id": "ID_small_hydroelectric_1",
+                "edges": {
+                    "elec_edge": {
+                        "can_retire": false,
+                        "min_retired_capacity": 0,
+                        "annualized_investment_cost": 0,
+                        "max_capacity": 1000000,
+                        "lifetime": 50,
+                        "can_expand": false,
+                        "constraints": {
+                            "MustRunConstraint": true
+                        },
+                        "min_capacity": 0,
+                        "capacity_reserve_margin_id": "ID_UT_NV_MT_WY",
+                        "commodity": "Electricity",
+                        "fixed_om_cost": 47048,
+                        "capacity_reserve_margin_derate_factor": 0.8,
+                        "end_vertex": "elec_ID",
+                        "variable_om_cost": 0,
+                        "capacity_size": 1,
+                        "wacc": 0,
+                        "capital_recovery_period": 0,
+                        "availability": {
+                            "timeseries": {
+                                "header": "ID_small_hydroelectric_1",
+                                "path": "system/mustrun_availability.csv"
+                            }
+                        },
+                        "existing_capacity": 198.9
+                    }
+                }
+            },
+            {
+                "id": "MT_biomass_1",
+                "edges": {
+                    "elec_edge": {
+                        "can_retire": false,
+                        "min_retired_capacity": 0,
+                        "annualized_investment_cost": 0,
+                        "max_capacity": 1000000,
+                        "lifetime": 50,
+                        "can_expand": false,
+                        "constraints": {
+                            "MustRunConstraint": true
+                        },
+                        "min_capacity": 0,
+                        "capacity_reserve_margin_id": "ID_UT_NV_MT_WY",
+                        "commodity": "Electricity",
+                        "fixed_om_cost": 0,
+                        "capacity_reserve_margin_derate_factor": 0.9,
+                        "end_vertex": "elec_MT",
+                        "variable_om_cost": 0,
+                        "capacity_size": 1,
+                        "wacc": 0,
+                        "capital_recovery_period": 0,
+                        "availability": [
+                            1
+                        ],
+                        "existing_capacity": 2
+                    }
+                }
+            },
+            {
+                "id": "MT_small_hydroelectric_1",
+                "edges": {
+                    "elec_edge": {
+                        "can_retire": false,
+                        "min_retired_capacity": 0,
+                        "annualized_investment_cost": 0,
+                        "max_capacity": 1000000,
+                        "lifetime": 50,
+                        "can_expand": false,
+                        "constraints": {
+                            "MustRunConstraint": true
+                        },
+                        "min_capacity": 0,
+                        "capacity_reserve_margin_id": "ID_UT_NV_MT_WY",
+                        "commodity": "Electricity",
+                        "fixed_om_cost": 47048,
+                        "capacity_reserve_margin_derate_factor": 0.8,
+                        "end_vertex": "elec_MT",
+                        "variable_om_cost": 0,
+                        "capacity_size": 1,
+                        "wacc": 0,
+                        "capital_recovery_period": 0,
+                        "availability": {
+                            "timeseries": {
+                                "header": "MT_small_hydroelectric_1",
+                                "path": "system/mustrun_availability.csv"
+                            }
+                        },
+                        "existing_capacity": 57.5
+                    }
+                }
+            },
+            {
+                "id": "NM_biomass_1",
+                "edges": {
+                    "elec_edge": {
+                        "can_retire": false,
+                        "min_retired_capacity": 0,
+                        "annualized_investment_cost": 0,
+                        "max_capacity": 1000000,
+                        "lifetime": 50,
+                        "can_expand": false,
+                        "constraints": {
+                            "MustRunConstraint": true
+                        },
+                        "min_capacity": 0,
+                        "capacity_reserve_margin_id": "AZ_NM_CO",
+                        "commodity": "Electricity",
+                        "fixed_om_cost": 0,
+                        "capacity_reserve_margin_derate_factor": 0.9,
+                        "end_vertex": "elec_NM",
+                        "variable_om_cost": 0,
+                        "capacity_size": 1,
+                        "wacc": 0,
+                        "capital_recovery_period": 0,
+                        "availability": [
+                            1
+                        ],
+                        "existing_capacity": 3.4
+                    }
+                }
+            },
+            {
+                "id": "NM_geothermal_1",
+                "edges": {
+                    "elec_edge": {
+                        "can_retire": false,
+                        "min_retired_capacity": 0,
+                        "annualized_investment_cost": 0,
+                        "max_capacity": 1000000,
+                        "lifetime": 50,
+                        "can_expand": false,
+                        "constraints": {
+                            "MustRunConstraint": true
+                        },
+                        "min_capacity": 0,
+                        "capacity_reserve_margin_id": "AZ_NM_CO",
+                        "commodity": "Electricity",
+                        "fixed_om_cost": 209101,
+                        "capacity_reserve_margin_derate_factor": 0.9,
+                        "end_vertex": "elec_NM",
+                        "variable_om_cost": 0,
+                        "capacity_size": 1,
+                        "wacc": 0,
+                        "capital_recovery_period": 0,
+                        "availability": [
+                            1
+                        ],
+                        "existing_capacity": 13.8
+                    }
+                }
+            },
+            {
+                "id": "NM_small_hydroelectric_1",
+                "edges": {
+                    "elec_edge": {
+                        "can_retire": false,
+                        "min_retired_capacity": 0,
+                        "annualized_investment_cost": 0,
+                        "max_capacity": 1000000,
+                        "lifetime": 50,
+                        "can_expand": false,
+                        "constraints": {
+                            "MustRunConstraint": true
+                        },
+                        "min_capacity": 0,
+                        "capacity_reserve_margin_id": "AZ_NM_CO",
+                        "commodity": "Electricity",
+                        "fixed_om_cost": 47048,
+                        "capacity_reserve_margin_derate_factor": 0.8,
+                        "end_vertex": "elec_NM",
+                        "variable_om_cost": 0,
+                        "capacity_size": 1,
+                        "wacc": 0,
+                        "capital_recovery_period": 0,
+                        "availability": {
+                            "timeseries": {
+                                "header": "NM_small_hydroelectric_1",
+                                "path": "system/mustrun_availability.csv"
+                            }
+                        },
+                        "existing_capacity": 14.8
+                    }
+                }
+            },
+            {
+                "id": "NV_biomass_1",
+                "edges": {
+                    "elec_edge": {
+                        "can_retire": false,
+                        "min_retired_capacity": 0,
+                        "annualized_investment_cost": 0,
+                        "max_capacity": 1000000,
+                        "lifetime": 50,
+                        "can_expand": false,
+                        "constraints": {
+                            "MustRunConstraint": true
+                        },
+                        "min_capacity": 0,
+                        "capacity_reserve_margin_id": "ID_UT_NV_MT_WY",
+                        "commodity": "Electricity",
+                        "fixed_om_cost": 0,
+                        "capacity_reserve_margin_derate_factor": 0.9,
+                        "end_vertex": "elec_NV",
+                        "variable_om_cost": 0,
+                        "capacity_size": 1,
+                        "wacc": 0,
+                        "capital_recovery_period": 0,
+                        "availability": [
+                            1
+                        ],
+                        "existing_capacity": 6.2
+                    }
+                }
+            },
+            {
+                "id": "NV_geothermal_1",
+                "edges": {
+                    "elec_edge": {
+                        "can_retire": false,
+                        "min_retired_capacity": 0,
+                        "annualized_investment_cost": 0,
+                        "max_capacity": 1000000,
+                        "lifetime": 50,
+                        "can_expand": false,
+                        "constraints": {
+                            "MustRunConstraint": true
+                        },
+                        "min_capacity": 0,
+                        "capacity_reserve_margin_id": "ID_UT_NV_MT_WY",
+                        "commodity": "Electricity",
+                        "fixed_om_cost": 209101,
+                        "capacity_reserve_margin_derate_factor": 0.9,
+                        "end_vertex": "elec_NV",
+                        "variable_om_cost": 0,
+                        "capacity_size": 1,
+                        "wacc": 0,
+                        "capital_recovery_period": 0,
+                        "availability": [
+                            1
+                        ],
+                        "existing_capacity": 668.7
+                    }
+                }
+            },
+            {
+                "id": "NV_small_hydroelectric_1",
+                "edges": {
+                    "elec_edge": {
+                        "can_retire": false,
+                        "min_retired_capacity": 0,
+                        "annualized_investment_cost": 0,
+                        "max_capacity": 1000000,
+                        "lifetime": 50,
+                        "can_expand": false,
+                        "constraints": {
+                            "MustRunConstraint": true
+                        },
+                        "min_capacity": 0,
+                        "capacity_reserve_margin_id": "ID_UT_NV_MT_WY",
+                        "commodity": "Electricity",
+                        "fixed_om_cost": 47048,
+                        "capacity_reserve_margin_derate_factor": 0.8,
+                        "end_vertex": "elec_NV",
+                        "variable_om_cost": 0,
+                        "capacity_size": 1,
+                        "wacc": 0,
+                        "capital_recovery_period": 0,
+                        "availability": {
+                            "timeseries": {
+                                "header": "NV_small_hydroelectric_1",
+                                "path": "system/mustrun_availability.csv"
+                            }
+                        },
+                        "existing_capacity": 6.1
+                    }
+                }
+            },
+            {
+                "id": "OR_biomass_1",
+                "edges": {
+                    "elec_edge": {
+                        "can_retire": false,
+                        "min_retired_capacity": 0,
+                        "annualized_investment_cost": 0,
+                        "max_capacity": 1000000,
+                        "lifetime": 50,
+                        "can_expand": false,
+                        "constraints": {
+                            "MustRunConstraint": true
+                        },
+                        "min_capacity": 0,
+                        "capacity_reserve_margin_id": "OR_WA",
+                        "commodity": "Electricity",
+                        "fixed_om_cost": 0,
+                        "capacity_reserve_margin_derate_factor": 0.9,
+                        "end_vertex": "elec_OR",
+                        "variable_om_cost": 0,
+                        "capacity_size": 1,
+                        "wacc": 0,
+                        "capital_recovery_period": 0,
+                        "availability": [
+                            1
+                        ],
+                        "existing_capacity": 31
+                    }
+                }
+            },
+            {
+                "id": "OR_geothermal_1",
+                "edges": {
+                    "elec_edge": {
+                        "can_retire": false,
+                        "min_retired_capacity": 0,
+                        "annualized_investment_cost": 0,
+                        "max_capacity": 1000000,
+                        "lifetime": 50,
+                        "can_expand": false,
+                        "constraints": {
+                            "MustRunConstraint": true
+                        },
+                        "min_capacity": 0,
+                        "capacity_reserve_margin_id": "OR_WA",
+                        "commodity": "Electricity",
+                        "fixed_om_cost": 209101,
+                        "capacity_reserve_margin_derate_factor": 0.9,
+                        "end_vertex": "elec_OR",
+                        "variable_om_cost": 0,
+                        "capacity_size": 1,
+                        "wacc": 0,
+                        "capital_recovery_period": 0,
+                        "availability": [
+                            1
+                        ],
+                        "existing_capacity": 28.5
+                    }
+                }
+            },
+            {
+                "id": "OR_small_hydroelectric_1",
+                "edges": {
+                    "elec_edge": {
+                        "can_retire": false,
+                        "min_retired_capacity": 0,
+                        "annualized_investment_cost": 0,
+                        "max_capacity": 1000000,
+                        "lifetime": 50,
+                        "can_expand": false,
+                        "constraints": {
+                            "MustRunConstraint": true
+                        },
+                        "min_capacity": 0,
+                        "capacity_reserve_margin_id": "OR_WA",
+                        "commodity": "Electricity",
+                        "fixed_om_cost": 47048,
+                        "capacity_reserve_margin_derate_factor": 0.8,
+                        "end_vertex": "elec_OR",
+                        "variable_om_cost": 0,
+                        "capacity_size": 1,
+                        "wacc": 0,
+                        "capital_recovery_period": 0,
+                        "availability": {
+                            "timeseries": {
+                                "header": "OR_small_hydroelectric_1",
+                                "path": "system/mustrun_availability.csv"
+                            }
+                        },
+                        "existing_capacity": 145.6
+                    }
+                }
+            },
+            {
+                "id": "UT_biomass_1",
+                "edges": {
+                    "elec_edge": {
+                        "can_retire": false,
+                        "min_retired_capacity": 0,
+                        "annualized_investment_cost": 0,
+                        "max_capacity": 1000000,
+                        "lifetime": 50,
+                        "can_expand": false,
+                        "constraints": {
+                            "MustRunConstraint": true
+                        },
+                        "min_capacity": 0,
+                        "capacity_reserve_margin_id": "ID_UT_NV_MT_WY",
+                        "commodity": "Electricity",
+                        "fixed_om_cost": 0,
+                        "capacity_reserve_margin_derate_factor": 0.9,
+                        "end_vertex": "elec_UT",
+                        "variable_om_cost": 0,
+                        "capacity_size": 1,
+                        "wacc": 0,
+                        "capital_recovery_period": 0,
+                        "availability": [
+                            1
+                        ],
+                        "existing_capacity": 8.1
+                    }
+                }
+            },
+            {
+                "id": "UT_geothermal_1",
+                "edges": {
+                    "elec_edge": {
+                        "can_retire": false,
+                        "min_retired_capacity": 0,
+                        "annualized_investment_cost": 0,
+                        "max_capacity": 1000000,
+                        "lifetime": 50,
+                        "can_expand": false,
+                        "constraints": {
+                            "MustRunConstraint": true
+                        },
+                        "min_capacity": 0,
+                        "capacity_reserve_margin_id": "ID_UT_NV_MT_WY",
+                        "commodity": "Electricity",
+                        "fixed_om_cost": 209101,
+                        "capacity_reserve_margin_derate_factor": 0.9,
+                        "end_vertex": "elec_UT",
+                        "variable_om_cost": 0,
+                        "capacity_size": 1,
+                        "wacc": 0,
+                        "capital_recovery_period": 0,
+                        "availability": [
+                            1
+                        ],
+                        "existing_capacity": 72.8
+                    }
+                }
+            },
+            {
+                "id": "UT_small_hydroelectric_1",
+                "edges": {
+                    "elec_edge": {
+                        "can_retire": false,
+                        "min_retired_capacity": 0,
+                        "annualized_investment_cost": 0,
+                        "max_capacity": 1000000,
+                        "lifetime": 50,
+                        "can_expand": false,
+                        "constraints": {
+                            "MustRunConstraint": true
+                        },
+                        "min_capacity": 0,
+                        "capacity_reserve_margin_id": "ID_UT_NV_MT_WY",
+                        "commodity": "Electricity",
+                        "fixed_om_cost": 47048,
+                        "capacity_reserve_margin_derate_factor": 0.8,
+                        "end_vertex": "elec_UT",
+                        "variable_om_cost": 0,
+                        "capacity_size": 1,
+                        "wacc": 0,
+                        "capital_recovery_period": 0,
+                        "availability": {
+                            "timeseries": {
+                                "header": "UT_small_hydroelectric_1",
+                                "path": "system/mustrun_availability.csv"
+                            }
+                        },
+                        "existing_capacity": 38.9
+                    }
+                }
+            },
+            {
+                "id": "WA_biomass_1",
+                "edges": {
+                    "elec_edge": {
+                        "can_retire": false,
+                        "min_retired_capacity": 0,
+                        "annualized_investment_cost": 0,
+                        "max_capacity": 1000000,
+                        "lifetime": 50,
+                        "can_expand": false,
+                        "constraints": {
+                            "MustRunConstraint": true
+                        },
+                        "min_capacity": 0,
+                        "capacity_reserve_margin_id": "OR_WA",
+                        "commodity": "Electricity",
+                        "fixed_om_cost": 0,
+                        "capacity_reserve_margin_derate_factor": 0.9,
+                        "end_vertex": "elec_WA",
+                        "variable_om_cost": 0,
+                        "capacity_size": 1,
+                        "wacc": 0,
+                        "capital_recovery_period": 0,
+                        "availability": [
+                            1
+                        ],
+                        "existing_capacity": 18.1
+                    }
+                }
+            },
+            {
+                "id": "WA_small_hydroelectric_1",
+                "edges": {
+                    "elec_edge": {
+                        "can_retire": false,
+                        "min_retired_capacity": 0,
+                        "annualized_investment_cost": 0,
+                        "max_capacity": 1000000,
+                        "lifetime": 50,
+                        "can_expand": false,
+                        "constraints": {
+                            "MustRunConstraint": true
+                        },
+                        "min_capacity": 0,
+                        "capacity_reserve_margin_id": "OR_WA",
+                        "commodity": "Electricity",
+                        "fixed_om_cost": 47048,
+                        "capacity_reserve_margin_derate_factor": 0.8,
+                        "end_vertex": "elec_WA",
+                        "variable_om_cost": 0,
+                        "capacity_size": 1,
+                        "wacc": 0,
+                        "capital_recovery_period": 0,
+                        "availability": {
+                            "timeseries": {
+                                "header": "WA_small_hydroelectric_1",
+                                "path": "system/mustrun_availability.csv"
+                            }
+                        },
+                        "existing_capacity": 293.6
+                    }
+                }
+            },
+            {
+                "id": "WY_small_hydroelectric_1",
+                "edges": {
+                    "elec_edge": {
+                        "can_retire": false,
+                        "min_retired_capacity": 0,
+                        "annualized_investment_cost": 0,
+                        "max_capacity": 1000000,
+                        "lifetime": 50,
+                        "can_expand": false,
+                        "constraints": {
+                            "MustRunConstraint": true
+                        },
+                        "min_capacity": 0,
+                        "capacity_reserve_margin_id": "ID_UT_NV_MT_WY",
+                        "commodity": "Electricity",
+                        "fixed_om_cost": 47048,
+                        "capacity_reserve_margin_derate_factor": 0.8,
+                        "end_vertex": "elec_WY",
+                        "variable_om_cost": 0,
+                        "capacity_size": 1,
+                        "wacc": 0,
+                        "capital_recovery_period": 0,
+                        "availability": {
+                            "timeseries": {
+                                "header": "WY_small_hydroelectric_1",
+                                "path": "system/mustrun_availability.csv"
+                            }
+                        },
+                        "existing_capacity": 34.3
+                    }
+                }
+            }
+        ],
+        "type": "MustRun"
+    }
+}
