@@ -95,7 +95,7 @@ import MacroEnergy:
     write_curtailment,
     write_losses,
     get_optimal_losses,
-    loss,
+    loss_value,
     flow_pos,
     flow_neg,
     BidirectionalEdge,
