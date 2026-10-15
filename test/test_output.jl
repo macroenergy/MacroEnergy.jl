@@ -848,11 +848,11 @@ function test_writing_output()
         )
         optimize!(model)
 
-        # loss(e, t) is an expression in the edge's flow variables
-        @test loss(lossy_line, 1) isa AffExpr
-        @test [value(loss(lossy_line, t)) for t in 1:3] ≈ [0.5, 0.6, 0.4]
-        @test [value(loss(lossy_unidirectional, t)) for t in 1:3] ≈ [0.5, 1.0, 1.5]
-        @test all(value(loss(lossless_line, t)) == 0.0 for t in 1:3)
+        # loss_value(e, t) is an expression in the edge's flow variables
+        @test loss_value(lossy_line, 1) isa Number
+        @test [loss_value(lossy_line, t) for t in 1:3] ≈ [0.5, 0.6, 0.4]
+        @test [loss_value(lossy_unidirectional, t) for t in 1:3] ≈ [0.5, 1.0, 1.5]
+        @test all(loss_value(lossless_line, t) == 0.0 for t in 1:3)
 
         # get_optimal_losses for single edges
         result = get_optimal_losses(lossy_unidirectional, 2.0)

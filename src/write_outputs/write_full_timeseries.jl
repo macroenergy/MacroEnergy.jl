@@ -375,7 +375,7 @@ function get_full_timeseries_losses(system::System, scaling::Float64)
 end
 
 function _full_ts_losses(obj::AbstractEdge, scaling::Float64, obj_asset_map::Dict{Symbol,Base.RefValue{<:AbstractAsset}})
-    vals = Float64[value(loss(obj, t)) for t in time_interval(obj)]
+    vals = Float64[loss_value(obj, t) for t in time_interval(obj)]
     full_vals = reconstruct_timeseries(vals, obj.timedata)
     n = length(full_vals)
 

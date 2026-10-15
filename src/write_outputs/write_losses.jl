@@ -1,7 +1,7 @@
 """
 Loss outputs - extraction and output of the commodity lost on lossy edges.
 
-The loss of an edge is computed from its flow variables by `loss(e, t)`: `loss_fraction × flow` for
+The loss of an edge is computed from its flow variables: `loss_fraction × flow` for
 a unidirectional edge, and `loss_fraction × (flow_pos + flow_neg)` for a bidirectional one.
 """
 
@@ -112,9 +112,9 @@ end
 
 Get the optimal losses of every edge in a system with a nonzero `loss_fraction`.
 
-The loss at timestep t is `value(loss(e, t))`:
-- unidirectional edge: `loss_fraction(e, t) × flow(e, t)`, lost at the end vertex;
-- bidirectional edge: `loss_fraction(e, t) × (flow_pos(e, t) + flow_neg(e, t))`, each direction's
+The loss at timestep t is `loss_value(e, t))`:
+- unidirectional edge: `loss_fraction(e, t) × value(flow(e, t))`, lost at the end vertex;
+- bidirectional edge: `loss_fraction(e, t) × (value(flow_pos(e, t)) + value(flow_neg(e, t)))`, each direction's
   share lost at the vertex receiving it.
 
 # Arguments
@@ -152,13 +152,20 @@ function get_optimal_losses(
     reduce(vcat, [get_optimal_losses(o, scaling; obj_asset_map) for o in objs])
 end
 
+
+loss_value(e::AbstractEdge, t::Int64) = loss_fraction(e, t) * value(flow(e, t))
+function loss_value(e::BidirectionalEdge, t::Int64)
+    lossy_edge(e) || 0.0
+    return loss_fraction(e, t) * (value(flow_pos(e, t)) + value(flow_neg(e, t)))
+end
+
 function get_optimal_losses(
     obj::AbstractEdge,
     scaling::Float64;
     obj_asset_map::Dict{Symbol,Base.RefValue{<:AbstractAsset}}=Dict{Symbol,Base.RefValue{<:AbstractAsset}}()
 )
     time_axis = time_interval(obj)
-    loss_values = Float64[value(loss(obj, t)) * scaling for t in time_axis]
+    loss_values = Float64[loss_value(obj, t) * scaling for t in time_axis]
 
     if isempty(obj_asset_map)
         return DataFrame(

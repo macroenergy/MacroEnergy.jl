@@ -822,19 +822,6 @@ function lossy_edge(e::AbstractEdge)
     end
 end
 
-"""
-    loss(e::AbstractEdge, t::Int64)
-
-Commodity lost on edge `e` at time `t`, as an expression in the edge's flow variables. A unidirectional
-edge loses `loss_fraction(e, t) * flow(e, t)` at its end vertex. A lossy bidirectional edge loses
-`loss_fraction(e, t)` times each direction's flow, at the vertex receiving it.
-"""
-loss(e::AbstractEdge, t::Int64) = loss_fraction(e, t) * flow(e, t)
-function loss(e::BidirectionalEdge, t::Int64)
-    lossy_edge(e) || return AffExpr(0.0)
-    return loss_fraction(e, t) * (flow_pos(e, t) + flow_neg(e, t))
-end
-
 function update_balances!(e::AbstractEdge, model::Model)
     # This implicitly works for UnidirectionalEdge and EdgeWithUC
     # BidirectionalEdge is handled in separate update_balances!
