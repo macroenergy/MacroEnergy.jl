@@ -24,6 +24,12 @@ and this project follows Julia package versioning through `Project.toml` release
 - Added `ConstrainedFossilLiquidFuels`, a refinery asset with fixed jet-fuel and diesel output ratios and configurable fuel-specific emissions.
 - Added optional auxiliary-fuel inputs to `BECCSHydrogen` and captured-CO₂ return flows to `SyntheticLiquidFuels`.
 - Added unit-commitment support for `Electrolyzer` hydrogen output, including startup electricity consumption, minimum up/down times, and ramping limits.
+- Added time-domain reduction (TDR) to replace full input time series with weighted representative periods. The new `preprocess_inputs` and `time_domain_reduction` workflows generate a separate reduced case that loads and runs through the ordinary MacroEnergy APIs.
+- Added JSON-configured TDR with independent per-System settings, k-means, k-medoids and autoencoder clustering, feature selection and weights, scaling, and forced extreme-period selection.
+- Added TDR input discovery for JSON and model-input CSV references across arbitrary directories, including inline time-series vectors. Per-System copies retain only required files and time-series columns, preserve model-input CSV format, and consolidate identical shared inputs.
+- Added optional model-output clustering features from isolated candidate-period solves, with distributed execution, selective policy-constraint exclusion, retained inputs/results, and fingerprint-validated feature caches under the source case’s `TDR/` directory.
+- Added support for reclustering into shorter representative periods while preserving source-period boundaries and occurrence weights. TDR reports trimmed timesteps, rejects longer requested periods, updates time settings, and validates source/destination separation before overwriting.
+- Added TDR period maps, provenance and feature-use logs, including records of inputs reduced without being used for clustering. Preprocessing logs are saved under `preprocessing_logs/` in the reduced case.
 
 ### Changed
 
@@ -38,6 +44,8 @@ and this project follows Julia package versioning through `Project.toml` release
 - A constraint entry in a `constraints` block may now be an inline configuration object (carrying its settings) instead of only the boolean `true`/`false` toggle, enabling data-driven constraint parameterization.
 - Location entries in `locations.json` may now be objects carrying a `constraints` block (bare id strings still work), allowing location-specific constraints to be loaded from input data.
 - Reduced model-generation allocations in edge balance updates by inserting flow variables directly into vertex balance expressions instead of constructing temporary effective-flow expressions.
+- `run_case` now scopes logging to the run, restores the caller’s logger, and closes its own file log stream on success or failure.
+- Storage Charge/Discharge limit constraints now can be applied to `LongDurationStorage`.
 
 ### Removed
 
@@ -49,6 +57,7 @@ and this project follows Julia package versioning through `Project.toml` release
 - Fixed asset component traversal and Benders planning updates for assets whose optional edges are absent.
 - `StorageChargeLimitConstraint` is now attached to a `Battery`'s charge edge. Before, it was declared as a top-level key in the charge edge's default data instead of inside its `constraints` dictionary, so it was silently dropped.
 - Dual exports now handle unavailable solver duals safely, recording `NaN` instead of failing while preserving `Float64` output arrays.
+- CSV input reading now releases file handles deterministically to allow immediate rewriting and deletion on Windows. JSON reads/writes and CSV header reads also close streams after exceptions.
 - Lossy bidirectional edges now split their flow into a single `vFLOWPOS`/`vFLOWNEG` pair shared by both vertex balances.
 
 ### Documentation
@@ -57,6 +66,7 @@ and this project follows Julia package versioning through `Project.toml` release
 - Updated modeler documentation to include balance APIs in the asset-construction workflow and to recommend a small single-asset regression test for each new asset.
 - Updated debugging guidance around `balance_data`, `get_balance`, and `@inspect_stoichiometric_balance`.
 - Updated asset-specific documentation examples to use the balance macros instead of legacy raw balance dictionaries.
+- Added preprocessing and TDR manuals covering configuration, input discovery, candidate construction, clustering, output-feature caching, generated files, and function workflow trees.
 
 ### Migration guide
 

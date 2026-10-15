@@ -117,6 +117,8 @@ using Logging
   occurs after solving.
 - For Benders with distributed processing enabled, worker processes are automatically 
   created and cleaned up.
+- Logging is scoped to the run: the caller's logger is restored and the run's
+  file log stream is closed on both success and failure.
 """
 function run_case(
     case_path::AbstractString=@__DIR__;
@@ -144,56 +146,56 @@ function run_case(
     # It may be overfill with the try-catch
     atexit(() -> try case_cleanup() catch; end)
 
-    set_logger(log_to_console, log_to_file, log_level, log_file_path, log_file_attribution)
+    return with_case_logger(log_to_console, log_to_file, log_level, log_file_path, log_file_attribution) do
+        start_time = time()
 
-    start_time = time()
+        # Written before the work starts, so that a run killed leaves "RUNNING" behind rather
+        # than the previous run's result
+        write_status && write_run_status(status_file_path, () -> run_status_running(case_path))
 
-    # Written before the work starts, so that a run killed leaves "RUNNING" behind rather 
-    # than the previous run's result
-    write_status && write_run_status(status_file_path, () -> run_status_running(case_path))
+        # Wrapping the work in a try-catch to all for cleanup after errors
+        try
+            @info("Running case at $(case_path)")
 
-    # Wrapping the work in a try-catch to all for cleanup after errors
-    try
-        @info("Running case at $(case_path)")
+            setup_user_additions(case_path)
+            load_user_additions(case_path)
+            refresh_user_type_registries!()
 
-        setup_user_additions(case_path)
-        load_user_additions(case_path)
-        refresh_user_type_registries!()
+            case, solution, output_path = Base.invokelatest(
+                _run_case_impl,
+                case_path,
+                lazy_load,
+                log_to_file,
+                log_file_path,
+                optimizer,
+                optimizer_env,
+                optimizer_attributes,
+                planning_optimizer,
+                subproblem_optimizer,
+                planning_optimizer_attributes,
+                subproblem_optimizer_attributes,
+            )
 
-        case, solution, output_path = Base.invokelatest(
-            _run_case_impl,
-            case_path,
-            lazy_load,
-            log_to_file,
-            log_file_path,
-            optimizer,
-            optimizer_env,
-            optimizer_attributes,
-            planning_optimizer,
-            subproblem_optimizer,
-            planning_optimizer_attributes,
-            subproblem_optimizer_attributes,
-        )
+            if write_status
+                build_status =
+                    () -> run_status_success(case_path, time() - start_time, output_path, solution)
+                write_run_status(status_file_path, build_status)
+                # Keep a per-run copy next to the results
+                write_run_status(joinpath(output_path, basename(status_file_path)), build_status)
+            end
 
-        if write_status
-            build_status =
-                () -> run_status_success(case_path, time() - start_time, output_path, solution)
-            write_run_status(status_file_path, build_status)
-            # Keep a per-run copy next to the results
-            write_run_status(joinpath(output_path, basename(status_file_path)), build_status)
+            return case, solution
+        catch e
+            # Payload construction is deferred into `write_run_status` so that it runs inside
+            # the same guard as the write: nothing here may displace `e`
+            write_status && write_run_status(
+                status_file_path,
+                () -> run_status_failure(case_path, time() - start_time, e),
+            )
+            rethrow(e)
+        finally
+            case_cleanup()  # Ensure all processes are removed
         end
-
-        return case, solution
-    catch e
-        # Payload construction is deferred into `write_run_status` so that it runs inside
-        # the same guard as the write: nothing here may displace `e`
-        write_status && write_run_status(
-            status_file_path,
-            () -> run_status_failure(case_path, time() - start_time, e),
-        )
-        rethrow(e)
-    finally
-        case_cleanup()  # Ensure all processes are removed
     end
 end
 
