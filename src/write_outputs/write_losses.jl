@@ -112,7 +112,7 @@ end
 
 Get the optimal losses of every edge in a system with a nonzero `loss_fraction`.
 
-The loss at timestep t is `loss_value(e, t))`:
+The loss at timestep t is `loss_value(e, t)`:
 - unidirectional edge: `loss_fraction(e, t) × value(flow(e, t))`, lost at the end vertex;
 - bidirectional edge: `loss_fraction(e, t) × (value(flow_pos(e, t)) + value(flow_neg(e, t)))`, each direction's
   share lost at the vertex receiving it.
@@ -155,7 +155,7 @@ end
 
 loss_value(e::AbstractEdge, t::Int64) = loss_fraction(e, t) * value(flow(e, t))
 function loss_value(e::BidirectionalEdge, t::Int64)
-    lossy_edge(e) || 0.0
+    lossy_edge(e) || return 0.0
     return loss_fraction(e, t) * (value(flow_pos(e, t)) + value(flow_neg(e, t)))
 end
 

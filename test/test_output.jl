@@ -848,7 +848,7 @@ function test_writing_output()
         )
         optimize!(model)
 
-        # loss_value(e, t) is an expression in the edge's flow variables
+        # loss_value(e, t) is the loss evaluated from the edge's optimal flow values
         @test loss_value(lossy_line, 1) isa Number
         @test [loss_value(lossy_line, t) for t in 1:3] ≈ [0.5, 0.6, 0.4]
         @test [loss_value(lossy_unidirectional, t) for t in 1:3] ≈ [0.5, 1.0, 1.5]
