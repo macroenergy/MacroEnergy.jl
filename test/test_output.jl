@@ -879,7 +879,7 @@ function test_writing_output()
 
         losses_test_dir = abspath(mktempdir("."))
 
-        test_losses_path = joinpath(losses_test_dir, "losses.csv")
+        test_losses_path = joinpath(losses_test_dir, "edge_losses.csv")
         @test_nowarn write_losses(test_losses_path, system_with_lines, 1.0)
         written = CSV.read(test_losses_path, DataFrame)
         @test size(written, 1) == 3

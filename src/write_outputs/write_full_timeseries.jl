@@ -41,7 +41,9 @@ function write_full_timeseries(
     write_non_served_demand_full_timeseries(joinpath(fullts_dir, "non_served_demand$(file_ext(:NonServedDemand))"), system, scaling)
     write_storage_level_full_timeseries(joinpath(fullts_dir, "storage_level$(file_ext(:StorageLevel))"), system, scaling)
     write_curtailment_full_timeseries(joinpath(fullts_dir, "curtailment$(file_ext(:Curtailment))"), system, scaling)
-    write_losses_full_timeseries(joinpath(fullts_dir, "losses$(file_ext(:Losses))"), system, scaling)
+    if any(lossy_edge, get_edges(system))
+        write_losses_full_timeseries(joinpath(fullts_dir, "losses$(file_ext(:Losses))"), system, scaling)
+    end
 
     # Balance duals (only when dual exports are enabled)
     if system.settings.DualExportsEnabled

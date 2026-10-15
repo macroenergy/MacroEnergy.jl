@@ -141,7 +141,7 @@ The table below lists all output files produced by Macro. Click the file name to
 | [`settings.json`](@ref "manual-outputs-settings-output") | Snapshot of all case and system settings used for the run | Always |
 | [`storage_level.csv`](@ref "manual-outputs-storage-level") | State of charge for every storage component at every representative time step | System has storage assets |
 | [`curtailment.csv`](@ref "manual-outputs-curtailment") | Curtailed generation for VRE assets at every representative time step | System has VRE assets with `has_capacity = true` |
-| [`losses.csv`](@ref "manual-outputs-losses") | Commodity lost on every lossy edge at every representative time step | System has edges with a nonzero `loss_fraction` |
+| [`edge_losses.csv`](@ref "manual-outputs-losses") | Commodity lost on every lossy edge at every representative time step | System has edges with a nonzero `loss_fraction` |
 | [`non_served_demand.csv`](@ref "manual-outputs-nsd") | Non-served demand for every node with NSD variables at every representative time step | System has nodes with NSD variables |
 | [`balance_duals.csv`](@ref "manual-outputs-duals-balance") | Shadow prices of commodity balance constraints (locational marginal prices) | `DualExportsEnabled = true` (default) |
 | [`co2_cap_duals.csv`](@ref "manual-outputs-duals-co2") | Shadow prices of CO₂ cap constraints (carbon prices) | `DualExportsEnabled = true` (default) |
@@ -167,7 +167,7 @@ The following functions write output files. They are called automatically by `ru
 | [`write_flow`](@ref) | `flows.csv` |
 | [`write_storage_level`](@ref) | `storage_level.csv` |
 | [`write_curtailment`](@ref) | `curtailment.csv` |
-| [`write_losses`](@ref) | `losses.csv` |
+| [`write_losses`](@ref) | `edge_losses.csv` |
 | [`write_non_served_demand`](@ref) | `non_served_demand.csv` |
 | [`write_duals`](@ref) | `balance_duals.csv`, `co2_cap_duals.csv` |
 | [`write_full_timeseries`](@ref) | `full_time_series/` |

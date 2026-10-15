@@ -197,7 +197,7 @@ function _write_benders_period_outputs(
     write_curtailment(joinpath(results_dir, "curtailment.csv"), system, curtailment_df[subop_indices])
 
     # Loss results
-    write_losses(joinpath(results_dir, "losses.csv"), system, losses_df[subop_indices])
+    write_losses(joinpath(results_dir, "edge_losses.csv"), system, losses_df[subop_indices])
 
     # Sub-period weights (for downstream revenue and weighted-sum calculations)
     write_time_weights(joinpath(results_dir, "time_weights.csv"), system)
@@ -285,7 +285,7 @@ function write_period_outputs(
     # Curtailment results
     write_curtailment(joinpath(results_dir, "curtailment.csv"), system, scaling)
     # Loss results
-    write_losses(joinpath(results_dir, "losses.csv"), system, scaling)
+    write_losses(joinpath(results_dir, "edge_losses.csv"), system, scaling)
 
     # Sub-period weights (for downstream revenue and weighted-sum calculations)
     write_time_weights(joinpath(results_dir, "time_weights.csv"), system)

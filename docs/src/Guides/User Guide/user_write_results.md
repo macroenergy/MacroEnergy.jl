@@ -72,7 +72,7 @@ Curtailment is the difference between available VRE generation (capacity × avai
 Export the commodity lost on every edge with a nonzero `loss_fraction` using the [`write_losses`](@ref) function:
 
 ```julia
-write_losses("losses.csv", system, 1.0)
+write_losses("edge_losses.csv", system, 1.0)
 ```
 
 For a lossy bidirectional edge (e.g. a `TransmissionLink`), the loss is `loss_fraction × (flow_pos + flow_neg)`, where `flow_pos` and `flow_neg` are the two directions of the edge's flow. See [Losses Output](@ref "manual-outputs-losses") for details.
@@ -210,7 +210,7 @@ When enabled, the following time-series outputs are reconstructed and written to
 | `non_served_demand.csv` | Non-served demand for each node |
 | `storage_level.csv` | Storage state for each storage unit |
 | `curtailment.csv` | VRE curtailment |
-| `losses.csv` | Losses on lossy edges |
+| `edge_losses.csv` | Losses on lossy edges |
 | `balance_duals.csv` | Balance constraint duals (only when `DualExportsEnabled` is also `true`) |
 
 Each file contains one row per hour for the full modeled year (e.g., 8760 rows), with the same column structure as the corresponding representative-period output file.

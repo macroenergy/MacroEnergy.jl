@@ -6,9 +6,9 @@
 
 ## [Overview](@id manual-outputs-losses-overview)
 
-**File:** `losses.csv`
+**File:** `edge_losses.csv`
 
-`losses.csv` records the commodity lost on every edge with a nonzero `loss_fraction` (e.g. a lossy transmission line) at every representative time step.
+`edge_losses.csv` records the commodity lost on every edge with a nonzero `loss_fraction` (e.g. a lossy transmission line) at every representative time step.
 
 !!! note "Losses are a derived quantity"
     Losses are **not** an optimization variable. They are computed after the solve from the optimal values of the edge's flow variables.
@@ -55,12 +55,12 @@ The model does not force one of `flow_pos` and `flow_neg` to be zero. When both 
 | Setting | File | Default | Effect |
 |---|---|---|---|
 | `OutputLayout` (or `OutputLayout.Losses`) | `macro_settings.json` | `"long"` | Set to `"wide"` to pivot time steps into rows and edges (`component_id`) into columns. |
-| `WriteFullTimeseries` | `case_settings.json` | `false` | When `true` and TDR is active, also write full-year losses to `full_time_series/losses.csv`. |
+| `WriteFullTimeseries` | `case_settings.json` | `false` | When `true` and TDR is active, also write full-year losses to `full_time_series/edge_losses.csv`. |
 
 ## [Assumptions](@id manual-outputs-losses-assumptions)
 
 - **Every lossy edge.** All edges with `loss_fraction > 0` in at least one time step are included, whatever asset they belong to. Edges without losses do not produce rows.
-- **File not written if empty.** If no edge in the system has a nonzero `loss_fraction`, `losses.csv` is not written.
+- **File not written if empty.** If no edge in the system has a nonzero `loss_fraction`, `edge_losses.csv` is not written.
 
 ## [Examples](@id manual-outputs-losses-examples)
 
@@ -76,7 +76,7 @@ The model does not force one of `flow_pos` and `flow_neg` to be zero. When both 
 ```julia
 using CSV, DataFrames
 
-losses = CSV.read("results/losses.csv", DataFrame)
+losses = CSV.read("results/edge_losses.csv", DataFrame)
 weights = CSV.read("results/time_weights.csv", DataFrame)
 
 df = leftjoin(losses, weights, on=:time)

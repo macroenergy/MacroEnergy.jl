@@ -31,7 +31,7 @@ In wide format, values are pivoted by time and component\_id.
 
 # Example
 ```julia
-write_losses(joinpath(results_dir, "losses.csv"), system, 1.0)
+write_losses(joinpath(results_dir, "edge_losses.csv"), system, 1.0)
 ```
 """
 function write_losses(
