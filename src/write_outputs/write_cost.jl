@@ -242,6 +242,17 @@ function compute_variable_om_cost(e::AbstractEdge)::Float64
     return vom_cost
 end
 
+# Bidirectional edges are charged on |flow| = flow_pos + flow_neg, as in add_operation_model_varcosts!.
+function compute_variable_om_cost(e::BidirectionalEdge)::Float64
+    variable_om_cost(e) <= 0 && return 0.0
+    vom_cost = 0.0
+    for t in time_interval(e)
+        w = current_subperiod(e, t)
+        vom_cost += subperiod_weight(e, w) * variable_om_cost(e) * (value(flow_pos(e, t)) + value(flow_neg(e, t)))
+    end
+    return vom_cost
+end
+
 @doc raw"""
     compute_fuel_cost(e::AbstractEdge)
 

@@ -17,6 +17,7 @@ and this project follows Julia package versioning through `Project.toml` release
 - Added capacity_summary.csv for multi-period cases, combining per-period capacity outputs into a single long- or wide-format file.
 - Added optional StartYear input in case_settings.json to label periods by calendar year.
 - Added `capex.csv` output file to report per-component asset capital costs.
+- Added `edge_losses.csv` output file to report the commodity lost on every edge with a nonzero `loss_fraction`, for all solution algorithms and in the full time series (`OutputLayout` key `Losses`). Lossy `BidirectionalEdge`s now hold their `flow_pos`/`flow_neg` pair as fields.
 - Added repository-local benchmarking tools to compare case loading, case generation, and model generation between `upstream/main` and the current worktree using reproducible example inputs.
 - Added system-wide and per-location capacity constraints for selected groups of assets: `MaxCapacityConstraint` and `MinCapacityConstraint` bound total capacity, and `MaxNewCapacityConstraint` bounds newly built capacity. Limits are configured via a `constraints` block in `system_data.json` (whole system) or per location in `locations.json`, using asset-type and tag selectors. The limit values are scaled with `ParameterScaling` like other capacity inputs.
 - For `VRE`, the optional `technology` input is normalized into an asset tag (for example, `technology: "Solar"` adds `:solar`) without changing the asset's Julia type.
@@ -45,6 +46,7 @@ and this project follows Julia package versioning through `Project.toml` release
 - Reduced model-generation allocations in edge balance updates by inserting flow variables directly into vertex balance expressions instead of constructing temporary effective-flow expressions.
 - `run_case` now scopes logging to the run, restores the caller’s logger, and closes its own file log stream on success or failure.
 - Storage Charge/Discharge limit constraints now can be applied to `LongDurationStorage`.
+- Variable O&M cost on a `BidirectionalEdge` is now charged on |flow| via its `flow_pos`/`flow_neg` pair, instead of on the net flow; the `VariableOM` cost outputs follow the same rule.
 
 ### Removed
 
@@ -57,6 +59,7 @@ and this project follows Julia package versioning through `Project.toml` release
 - `StorageChargeLimitConstraint` is now attached to a `Battery`'s charge edge. Before, it was declared as a top-level key in the charge edge's default data instead of inside its `constraints` dictionary, so it was silently dropped.
 - Dual exports now handle unavailable solver duals safely, recording `NaN` instead of failing while preserving `Float64` output arrays.
 - CSV input reading now releases file handles deterministically to allow immediate rewriting and deletion on Windows. JSON reads/writes and CSV header reads also close streams after exceptions.
+- Lossy bidirectional edges now split their flow into a single `vFLOWPOS`/`vFLOWNEG` pair shared by both vertex balances.
 
 ### Documentation
 

@@ -119,5 +119,6 @@ annual.annual_MWh = annual.value .* annual.weight
 - [Full Time Series Output](@ref "manual-outputs-full-timeseries") — 8760-hour expanded flows
 - [Storage Level Output](@ref "manual-outputs-storage-level") — storage state of charge (related to charge/discharge flows)
 - [Curtailment Output](@ref "manual-outputs-curtailment") — curtailed VRE generation
+- [Losses Output](@ref "manual-outputs-losses") — commodity lost on lossy edges
 - [Time Data](@ref "Time Data") — representative periods and the time step index
 - [Edges](@ref "manual-edges-overview") — edge types and flow direction conventions

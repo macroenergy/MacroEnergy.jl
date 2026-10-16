@@ -49,6 +49,11 @@ MacroEnergy.build_period_planning!
 MacroEnergy.create_output_path
 ```
 
+## `define_flow_pos_neg!`
+```@docs
+MacroEnergy.define_flow_pos_neg!
+```
+
 ## `set_at_path!`
 ```@docs
 MacroEnergy.set_at_path!
