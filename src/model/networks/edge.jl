@@ -138,8 +138,8 @@ end
     - ramp_up_fraction::Float64: Maximum ramp-up rate as fraction of capacity
     - ret_capacity::Union{JuMPVariable,Float64}: JuMP variable representing capacity to be retired
     - variable_om_cost::Float64: Variable operation and maintenance costs per unit flow
-    - flow_pos::JuMPVariable: Flow from the start to the end vertex at each timestep (lossy edges only)
-    - flow_neg::JuMPVariable: Flow from the end to the start vertex at each timestep (lossy edges only)
+    - flow_pos::JuMPVariable: Flow from the start to the end vertex at each timestep (lossy edges or variable_om_cost > 0 only)
+    - flow_neg::JuMPVariable: Flow from the end to the start vertex at each timestep (lossy edges or variable_om_cost > 0 only)
 
     Edges represent connections between vertices that allow commodities to flow between them. 
     They can model physical infrastructure like pipelines, transmission lines, or logical 
@@ -504,6 +504,7 @@ function compute_fixed_costs!(e::AbstractEdge, model::Model, cost_type::Symbol=:
 end
 
 function add_operation_model_varcosts!(e::EdgeWithoutUC, model::Model)
+    # Used by UnidirectionalEdge; BidirectionalEdge and EdgeWithUC have their own methods.
     vom_cost = variable_om_cost(e)
     if vom_cost > 0
         eVariableCost = model[:eVariableCost]::AffExpr
@@ -515,6 +516,58 @@ function add_operation_model_varcosts!(e::EdgeWithoutUC, model::Model)
                 subperiod_weight(e, w) * vom_cost,
                 flow(e, t),
             )
+        end
+    end
+end
+
+"""
+    define_flow_pos_neg!(e::BidirectionalEdge, model::Model)
+
+Split the flow of `e` into non-negative `flow_pos` (start to end) and `flow_neg` (end to start),
+with `flow_pos - flow_neg == flow`, and return them as `(pos, neg)`.
+"""
+function define_flow_pos_neg!(e::BidirectionalEdge, model::Model)
+    ti = time_interval(e)
+    e.flow_pos = pos = @variable(
+        model,
+        [t in ti],
+        container = array_container(ti),
+        lower_bound = 0.0,
+        base_name = "vFLOWPOS_$(id(e))_period$(period_index(e))"
+    )
+    e.flow_neg = neg = @variable(
+        model,
+        [t in ti],
+        container = array_container(ti),
+        lower_bound = 0.0,
+        base_name = "vFLOWNEG_$(id(e))_period$(period_index(e))"
+    )
+    @constraint(
+        model,
+        [t in ti],
+        pos[t] - neg[t] == flow(e, t)
+    )
+    if has_capacity(e) && any(isa.(e.constraints, CapacityConstraint))
+        @constraint(
+            model,
+            [t in ti],
+            pos[t] + neg[t] <= availability(e, t) * capacity(e)
+        )
+    end
+    return pos, neg
+end
+
+function add_operation_model_varcosts!(e::BidirectionalEdge, model::Model)
+    vom_cost = variable_om_cost(e)
+    if vom_cost > 0
+        # Charge vom on |flow| = flow_pos + flow_neg. Lossy edges already have the split from update_balances!.
+        isempty(flow_pos(e)) && define_flow_pos_neg!(e, model)
+        eVariableCost = model[:eVariableCost]::AffExpr
+        for t in time_interval(e)
+            w = current_subperiod(e, t)
+            weight = subperiod_weight(e, w) * vom_cost
+            add_to_expression!(eVariableCost, weight, flow_pos(e, t))
+            add_to_expression!(eVariableCost, weight, flow_neg(e, t))
         end
     end
 end
@@ -866,33 +919,7 @@ function update_balances!(e::BidirectionalEdge, model::Model)
     end
     # One split of the flow shared by both vertex balances, so the loss is charged to the vertex
     # receiving flow_pos (end) or flow_neg (start). Held on the edge so losses can be read back.
-    ti = time_interval(e)
-    e.flow_pos = pos = @variable(
-        model,
-        [t in ti],
-        container = array_container(ti),
-        lower_bound = 0.0,
-        base_name = "vFLOWPOS_$(id(e))_period$(period_index(e))"
-    )
-    e.flow_neg = neg = @variable(
-        model,
-        [t in ti],
-        container = array_container(ti),
-        lower_bound = 0.0,
-        base_name = "vFLOWNEG_$(id(e))_period$(period_index(e))"
-    )
-    @constraint(
-        model,
-        [t in ti],
-        pos[t] - neg[t] == flow(e, t)
-    )
-    if has_capacity(e) && any(isa.(e.constraints, CapacityConstraint))
-        @constraint(
-            model,
-            [t in ti],
-            pos[t] + neg[t] <= availability(e, t) * capacity(e)
-        )
-    end
+    pos, neg = define_flow_pos_neg!(e, model)
     add_flow_to_vertex_balances!(
         e,
         v_start,

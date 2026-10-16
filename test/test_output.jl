@@ -912,6 +912,37 @@ function test_writing_output()
         @test isempty(flow_neg(lossy_line))
     end
 
+    @testset "Variable O&M cost of a bidirectional edge" begin
+        # A lossless line with vom is charged on |flow|, in the objective and in the cost outputs.
+        model = Model(HiGHS.Optimizer)
+        set_silent(model)
+        model[:eVariableCost] = AffExpr(0.0)
+        vom_timedata = TimeData{Electricity}(;
+            time_interval=1:3,
+            hours_per_timestep=1,
+            subperiods=[1:1, 2:2, 3:3],
+            subperiod_indices=[1, 2, 3],
+            subperiod_weights=Dict(1 => 0.3, 2 => 0.5, 3 => 0.2)
+        )
+        vom_line = BidirectionalEdge{Electricity}(;
+            id=:vom_line,
+            start_vertex=node1,
+            end_vertex=node2,
+            timedata=vom_timedata,
+            variable_om_cost=2.0,
+            flow=fixed_vars(model, [5.0, -3.0, 0.0])
+        )
+        MacroEnergy.add_operation_model_varcosts!(vom_line, model)
+        @test length(flow_pos(vom_line)) == 3
+        @test length(flow_neg(vom_line)) == 3
+        @objective(model, Min, model[:eVariableCost])
+        optimize!(model)
+
+        expected = 2.0 * (0.3 * 5.0 + 0.5 * 3.0 + 0.2 * 0.0)
+        @test value(model[:eVariableCost]) ≈ expected
+        @test MacroEnergy.compute_variable_om_cost(vom_line) ≈ expected
+    end
+
     @testset "write_time_weights" begin
         # Create minimal system with time_data for TDR (3 representative sub-periods)
         test_dir = abspath(mktempdir("."))

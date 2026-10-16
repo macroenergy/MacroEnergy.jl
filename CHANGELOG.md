@@ -46,6 +46,7 @@ and this project follows Julia package versioning through `Project.toml` release
 - Reduced model-generation allocations in edge balance updates by inserting flow variables directly into vertex balance expressions instead of constructing temporary effective-flow expressions.
 - `run_case` now scopes logging to the run, restores the caller’s logger, and closes its own file log stream on success or failure.
 - Storage Charge/Discharge limit constraints now can be applied to `LongDurationStorage`.
+- Variable O&M cost on a `BidirectionalEdge` is now charged on |flow| via its `flow_pos`/`flow_neg` pair, instead of on the net flow; the `VariableOM` cost outputs follow the same rule.
 
 ### Removed
 
