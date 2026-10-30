@@ -138,6 +138,8 @@ end
     - ramp_up_fraction::Float64: Maximum ramp-up rate as fraction of capacity
     - ret_capacity::Union{JuMPVariable,Float64}: JuMP variable representing capacity to be retired
     - variable_om_cost::Float64: Variable operation and maintenance costs per unit flow
+    - flow_pos::JuMPVariable: Flow from the start to the end vertex at each timestep (lossy edges or variable_om_cost > 0 only)
+    - flow_neg::JuMPVariable: Flow from the end to the start vertex at each timestep (lossy edges or variable_om_cost > 0 only)
 
     Edges represent connections between vertices that allow commodities to flow between them. 
     They can model physical infrastructure like pipelines, transmission lines, or logical 
@@ -145,6 +147,8 @@ end
 """
 Base.@kwdef mutable struct BidirectionalEdge{T} <: EdgeWithoutUC{T}
     @AbstractEdgeBaseAttributes()
+    flow_pos::JuMPVariable = Vector{VariableRef}()
+    flow_neg::JuMPVariable = Vector{VariableRef}()
 end
 
 const Edge = UnidirectionalEdge
@@ -311,6 +315,10 @@ existing_capacity(e::AbstractEdge) = e.existing_capacity;
 fixed_om_cost(e::AbstractEdge) = e.fixed_om_cost;
 flow(e::AbstractEdge) = e.flow;
 flow(e::AbstractEdge, t::Int64) = (flow(e)::VarArrayOrDense)[t];
+flow_pos(e::BidirectionalEdge) = e.flow_pos;
+flow_pos(e::BidirectionalEdge, t::Int64) = (flow_pos(e)::VarArrayOrDense)[t];
+flow_neg(e::BidirectionalEdge) = e.flow_neg;
+flow_neg(e::BidirectionalEdge, t::Int64) = (flow_neg(e)::VarArrayOrDense)[t];
 has_capacity(e::AbstractEdge) = e.has_capacity;
 id(e::AbstractEdge) = e.id;
 integer_decisions(e::AbstractEdge) = e.integer_decisions;
@@ -496,6 +504,7 @@ function compute_fixed_costs!(e::AbstractEdge, model::Model, cost_type::Symbol=:
 end
 
 function add_operation_model_varcosts!(e::EdgeWithoutUC, model::Model)
+    # Used by UnidirectionalEdge; BidirectionalEdge and EdgeWithUC have their own methods.
     vom_cost = variable_om_cost(e)
     if vom_cost > 0
         eVariableCost = model[:eVariableCost]::AffExpr
@@ -507,6 +516,58 @@ function add_operation_model_varcosts!(e::EdgeWithoutUC, model::Model)
                 subperiod_weight(e, w) * vom_cost,
                 flow(e, t),
             )
+        end
+    end
+end
+
+"""
+    define_flow_pos_neg!(e::BidirectionalEdge, model::Model)
+
+Split the flow of `e` into non-negative `flow_pos` (start to end) and `flow_neg` (end to start),
+with `flow_pos - flow_neg == flow`, and return them as `(pos, neg)`.
+"""
+function define_flow_pos_neg!(e::BidirectionalEdge, model::Model)
+    ti = time_interval(e)
+    e.flow_pos = pos = @variable(
+        model,
+        [t in ti],
+        container = array_container(ti),
+        lower_bound = 0.0,
+        base_name = "vFLOWPOS_$(id(e))_period$(period_index(e))"
+    )
+    e.flow_neg = neg = @variable(
+        model,
+        [t in ti],
+        container = array_container(ti),
+        lower_bound = 0.0,
+        base_name = "vFLOWNEG_$(id(e))_period$(period_index(e))"
+    )
+    @constraint(
+        model,
+        [t in ti],
+        pos[t] - neg[t] == flow(e, t)
+    )
+    if has_capacity(e) && any(isa.(e.constraints, CapacityConstraint))
+        @constraint(
+            model,
+            [t in ti],
+            pos[t] + neg[t] <= availability(e, t) * capacity(e)
+        )
+    end
+    return pos, neg
+end
+
+function add_operation_model_varcosts!(e::BidirectionalEdge, model::Model)
+    vom_cost = variable_om_cost(e)
+    if vom_cost > 0
+        # Charge vom on |flow| = flow_pos + flow_neg. Lossy edges already have the split from update_balances!.
+        isempty(flow_pos(e)) && define_flow_pos_neg!(e, model)
+        eVariableCost = model[:eVariableCost]::AffExpr
+        for t in time_interval(e)
+            w = current_subperiod(e, t)
+            weight = subperiod_weight(e, w) * vom_cost
+            add_to_expression!(eVariableCost, weight, flow_pos(e, t))
+            add_to_expression!(eVariableCost, weight, flow_neg(e, t))
         end
     end
 end
@@ -815,11 +876,69 @@ function lossy_edge(e::AbstractEdge)
 end
 
 function update_balances!(e::AbstractEdge, model::Model)
+    # This implicitly works for UnidirectionalEdge and EdgeWithUC
+    # BidirectionalEdge is handled in separate update_balances!
 
-    update_balance_start!(e, model)
+    v_start = start_vertex(e)
+    v_end = end_vertex(e)
 
-    update_balance_end!(e, model)
+    add_flow_to_vertex_balances!(
+        e,
+        v_start,
+        (expr, coeff, t) -> add_to_expression!(expr, coeff, flow(e, t)),
+        true
+    )
 
+    add_flow_to_vertex_balances!(
+        e,
+        v_end,
+        (expr, coeff, t) -> add_to_expression!(expr, coeff * (1 - loss_fraction(e, t)), flow(e, t)),
+        false,
+    )
+
+end
+
+function update_balances!(e::BidirectionalEdge, model::Model)
+    v_start = start_vertex(e)
+    v_end = end_vertex(e)
+
+    if !lossy_edge(e)
+        add_flow_to_vertex_balances!(
+            e,
+            v_start,
+            (expr, coeff, t) -> add_to_expression!(expr, coeff, flow(e, t)),
+            true
+        )
+        add_flow_to_vertex_balances!(
+            e,
+            v_end,
+            (expr, coeff, t) -> add_to_expression!(expr, coeff, flow(e, t)),
+            false
+        )
+        return nothing
+    end
+    # One split of the flow shared by both vertex balances, so the loss is charged to the vertex
+    # receiving flow_pos (end) or flow_neg (start). Held on the edge so losses can be read back.
+    pos, neg = define_flow_pos_neg!(e, model)
+    add_flow_to_vertex_balances!(
+        e,
+        v_start,
+        (expr, coeff, t) -> begin
+            add_to_expression!(expr, coeff, pos[t])
+            add_to_expression!(expr, -coeff * (1 - loss_fraction(e, t)), neg[t])
+        end,
+        true,
+    )
+    add_flow_to_vertex_balances!(
+        e,
+        v_end,
+        (expr, coeff, t) -> begin
+            add_to_expression!(expr, coeff * (1 - loss_fraction(e, t)), pos[t])
+            add_to_expression!(expr, -coeff, neg[t])
+        end,
+        false,
+    )
+    return nothing
 end
 
 function update_startup_fuel_balance!(e::EdgeWithUC)
@@ -912,68 +1031,5 @@ function add_flow_to_vertex_balances!(
             end
             add_effective_flow!(balance_expr[t], balance_coeff, t)
         end
-    end
-end
-
-function update_balance_start!(e::AbstractEdge, model::Model)
-    # This implicitly works for UnidirectionalEdge and EdgeWithUC
-    # BidirectionalEdge is handled in a separate method
-    v = start_vertex(e)
-    add_flow_to_vertex_balances!(e, v, (expr, coeff, t) -> add_to_expression!(expr, coeff, flow(e, t)), true)
-end
-
-function update_balance_start!(e::BidirectionalEdge, model::Model)
-    v = start_vertex(e)
-    if lossy_edge(e)
-        flow_pos = @variable(model, [t in time_interval(e)], container = array_container(time_interval(e)), lower_bound = 0.0, base_name = "vFLOWPOS_$(id(e))_period$(period_index(e))")
-        flow_neg = @variable(model, [t in time_interval(e)], container = array_container(time_interval(e)), lower_bound = 0.0, base_name = "vFLOWNEG_$(id(e))_period$(period_index(e))")
-        @constraint(model, [t in time_interval(e)], flow_pos[t] - flow_neg[t] == flow(e, t))
-        if has_capacity(e) && any(isa.(e.constraints, CapacityConstraint))
-            @constraint(model, [t in time_interval(e)], flow_pos[t] + flow_neg[t] <= availability(e, t) * capacity(e))
-        end
-        add_flow_to_vertex_balances!(
-            e,
-            v,
-            (expr, coeff, t) -> begin
-                add_to_expression!(expr, coeff, flow_pos[t])
-                add_to_expression!(expr, -coeff * (1 - loss_fraction(e, t)), flow_neg[t])
-            end,
-            true,
-        )
-    else
-        add_flow_to_vertex_balances!(e, v, (expr, coeff, t) -> add_to_expression!(expr, coeff, flow(e, t)), true)
-    end
-end
-
-function update_balance_end!(e::AbstractEdge, model::Model)
-    v = end_vertex(e)
-    add_flow_to_vertex_balances!(
-        e,
-        v,
-        (expr, coeff, t) -> add_to_expression!(expr, coeff * (1 - loss_fraction(e, t)), flow(e, t)),
-        false,
-    )
-end
-
-function update_balance_end!(e::BidirectionalEdge, model::Model)
-    v = end_vertex(e)
-    if lossy_edge(e)
-        flow_pos = @variable(model, [t in time_interval(e)], container = array_container(time_interval(e)), lower_bound = 0.0, base_name = "vFLOWPOS_$(id(e))_period$(period_index(e))")
-        flow_neg = @variable(model, [t in time_interval(e)], container = array_container(time_interval(e)), lower_bound = 0.0, base_name = "vFLOWNEG_$(id(e))_period$(period_index(e))")
-        @constraint(model, [t in time_interval(e)], flow_pos[t] - flow_neg[t] == flow(e, t))
-        if has_capacity(e) && any(isa.(e.constraints, CapacityConstraint))
-            @constraint(model, [t in time_interval(e)], flow_pos[t] + flow_neg[t] <= availability(e, t) * capacity(e))
-        end        
-        add_flow_to_vertex_balances!(
-            e,
-            v,
-            (expr, coeff, t) -> begin
-                add_to_expression!(expr, coeff * (1 - loss_fraction(e, t)), flow_pos[t])
-                add_to_expression!(expr, -coeff, flow_neg[t])
-            end,
-            false,
-        )
-    else
-        add_flow_to_vertex_balances!(e, v, (expr, coeff, t) -> add_to_expression!(expr, coeff, flow(e, t)), false)
     end
 end

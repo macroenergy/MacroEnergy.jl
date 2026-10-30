@@ -93,6 +93,13 @@ import MacroEnergy:
     UnidirectionalEdge,
     filter_edges_by_commodity!,
     write_curtailment,
+    write_losses,
+    get_optimal_losses,
+    loss_value,
+    flow_pos,
+    flow_neg,
+    BidirectionalEdge,
+    TransmissionLink,
     write_time_weights,
     write_capex,
     get_capex,
@@ -803,6 +810,139 @@ function test_writing_output()
         rm(curtailment_test_dir, recursive=true)
     end
 
+    @testset "Loss Output Functions Tests" begin
+        model = Model(HiGHS.Optimizer)
+        set_silent(model)
+        loss_timedata = TimeData{Electricity}(;
+            time_interval=1:3,
+            hours_per_timestep=1,
+            subperiods=[1:1, 2:2, 3:3],
+            subperiod_indices=[1, 2, 3],
+            subperiod_weights=Dict(1 => 0.3, 2 => 0.5, 3 => 0.2)
+        )
+        # Hour 3 dissipates: flow_pos = flow_neg = 2, so the loss is 0.1 * 4 although the flow is 0.
+        lossy_line = BidirectionalEdge{Electricity}(;
+            id=:lossy_line,
+            start_vertex=node1,
+            end_vertex=node2,
+            timedata=loss_timedata,
+            loss_fraction=[0.1, 0.2, 0.1],
+            flow=fixed_vars(model, [5.0, -3.0, 0.0]),
+            flow_pos=fixed_vars(model, [5.0, 0.0, 2.0]),
+            flow_neg=fixed_vars(model, [0.0, 3.0, 2.0])
+        )
+        lossless_line = BidirectionalEdge{Electricity}(;
+            id=:lossless_line,
+            start_vertex=node1,
+            end_vertex=node2,
+            timedata=loss_timedata,
+            flow=fixed_vars(model, [1.0, -1.0, 1.0])
+        )
+        lossy_unidirectional = UnidirectionalEdge{Electricity}(;
+            id=:lossy_unidirectional,
+            start_vertex=node1,
+            end_vertex=node2,
+            timedata=loss_timedata,
+            loss_fraction=[0.05],
+            flow=fixed_vars(model, [10.0, 20.0, 30.0])
+        )
+        optimize!(model)
+
+        # loss_value(e, t) is the loss evaluated from the edge's optimal flow values
+        @test loss_value(lossy_line, 1) isa Number
+        @test [loss_value(lossy_line, t) for t in 1:3] ≈ [0.5, 0.6, 0.4]
+        @test [loss_value(lossy_unidirectional, t) for t in 1:3] ≈ [0.5, 1.0, 1.5]
+        @test all(loss_value(lossless_line, t) == 0.0 for t in 1:3)
+
+        # get_optimal_losses for single edges
+        result = get_optimal_losses(lossy_unidirectional, 2.0)
+        @test result isa DataFrame
+        @test result[!, :variable] == fill(:loss, 3)
+        @test result[!, :value] ≈ [1.0, 2.0, 3.0]
+        @test result[1, :node_in] == :node1
+        @test result[1, :node_out] == :node2
+
+        # System level: only lossy edges are reported
+        system_with_lines = empty_system("test_system_with_lines")
+        system_with_lines.settings = (OutputLayout="long",)
+        add!(system_with_lines, node1)
+        add!(system_with_lines, node2)
+        add!(system_with_lines, TransmissionLink(:lossy_link, lossy_line))
+        add!(system_with_lines, TransmissionLink(:lossless_link, lossless_line))
+        result_system = get_optimal_losses(system_with_lines, 1.0)
+        @test size(result_system, 1) == 3
+        @test unique(result_system[!, :component_id]) == [:lossy_line]
+        @test result_system[1, :resource_id] == :lossy_link
+        @test result_system[1, :resource_type] == "TransmissionLink{Electricity}"
+        @test result_system[!, :value] ≈ [0.5, 0.6, 0.4]
+        @test isempty(get_optimal_losses(system, 1.0))  # no lossy edges
+
+        losses_test_dir = abspath(mktempdir("."))
+
+        test_losses_path = joinpath(losses_test_dir, "edge_losses.csv")
+        @test_nowarn write_losses(test_losses_path, system_with_lines, 1.0)
+        written = CSV.read(test_losses_path, DataFrame)
+        @test size(written, 1) == 3
+        @test written[!, :value] ≈ [0.5, 0.6, 0.4]
+
+        system_with_lines.settings = (OutputLayout="wide",)
+        test_losses_wide_path = joinpath(losses_test_dir, "losses_wide.csv")
+        @test_nowarn write_losses(test_losses_wide_path, system_with_lines, 1.0)
+        written = CSV.read(test_losses_wide_path, DataFrame)
+        @test size(written, 1) == 3
+        @test written[!, :lossy_line] ≈ [0.5, 0.6, 0.4]
+
+        # Benders path: per-subproblem DataFrames are concatenated
+        system_with_lines.settings = (OutputLayout="long",)
+        test_losses_benders_path = joinpath(losses_test_dir, "losses_benders.csv")
+        parts = [get_optimal_losses(lossy_line, 1.0)[t:t, :] for t in 1:3]
+        @test_nowarn write_losses(test_losses_benders_path, system_with_lines, [parts; DataFrame()])
+        @test CSV.read(test_losses_benders_path, DataFrame)[!, :value] ≈ [0.5, 0.6, 0.4]
+
+        # No lossy edges: no file written
+        test_empty_path = joinpath(losses_test_dir, "losses_empty.csv")
+        @test_nowarn write_losses(test_empty_path, system, 1.0)
+        @test !isfile(test_empty_path)
+
+        rm(losses_test_dir, recursive=true)
+
+        # Releasing the model drops the pair with the flow
+        MacroEnergy.release_model_references!(lossy_line)
+        @test isempty(flow_pos(lossy_line))
+        @test isempty(flow_neg(lossy_line))
+    end
+
+    @testset "Variable O&M cost of a bidirectional edge" begin
+        # A lossless line with vom is charged on |flow|, in the objective and in the cost outputs.
+        model = Model(HiGHS.Optimizer)
+        set_silent(model)
+        model[:eVariableCost] = AffExpr(0.0)
+        vom_timedata = TimeData{Electricity}(;
+            time_interval=1:3,
+            hours_per_timestep=1,
+            subperiods=[1:1, 2:2, 3:3],
+            subperiod_indices=[1, 2, 3],
+            subperiod_weights=Dict(1 => 0.3, 2 => 0.5, 3 => 0.2)
+        )
+        vom_line = BidirectionalEdge{Electricity}(;
+            id=:vom_line,
+            start_vertex=node1,
+            end_vertex=node2,
+            timedata=vom_timedata,
+            variable_om_cost=2.0,
+            flow=fixed_vars(model, [5.0, -3.0, 0.0])
+        )
+        MacroEnergy.add_operation_model_varcosts!(vom_line, model)
+        @test length(flow_pos(vom_line)) == 3
+        @test length(flow_neg(vom_line)) == 3
+        @objective(model, Min, model[:eVariableCost])
+        optimize!(model)
+
+        expected = 2.0 * (0.3 * 5.0 + 0.5 * 3.0 + 0.2 * 0.0)
+        @test value(model[:eVariableCost]) ≈ expected
+        @test MacroEnergy.compute_variable_om_cost(vom_line) ≈ expected
+    end
+
     @testset "write_time_weights" begin
         # Create minimal system with time_data for TDR (3 representative sub-periods)
         test_dir = abspath(mktempdir("."))
@@ -1064,6 +1204,11 @@ function test_writing_output()
             ))
             @test settings.OutputLayout isa NamedTuple
             @test settings.OutputLayout.Curtailment == "wide"
+        end
+
+        @testset "OutputLayout validation accepts Losses" begin
+            settings = MacroEnergy.configure_settings((OutputLayout=(Flow="long", Losses="wide"),))
+            @test settings.OutputLayout.Losses == "wide"
         end
     end
 
