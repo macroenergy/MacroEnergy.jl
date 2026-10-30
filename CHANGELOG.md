@@ -29,9 +29,15 @@ and this project follows Julia package versioning through `Project.toml` release
 - Added optional model-output clustering features from isolated candidate-period solves, with distributed execution, selective policy-constraint exclusion, retained inputs/results, and fingerprint-validated feature caches under the source case’s `TDR/` directory.
 - Added support for reclustering into shorter representative periods while preserving source-period boundaries and occurrence weights. TDR reports trimmed timesteps, rejects longer requested periods, updates time settings, and validates source/destination separation before overwriting.
 - Added TDR period maps, provenance and feature-use logs, including records of inputs reduced without being used for clustering. Preprocessing logs are saved under `preprocessing_logs/` in the reduced case.
+- Added `OutputFormat` setting in `macro_settings.json` to write output tables as `"csv"` (default), `"csv.gz"` or `"parquet"`, globally or per output (e.g., `{"Flow": "parquet"}`). Compressed formats make results folders much smaller; on an 8-period test case, Parquet output was 26× smaller than CSV.
+- Added `WriteOutputs` setting in `macro_settings.json` to skip individual output files (e.g., `{"Curtailment": false, "Duals": false}`). Outputs that are not listed are still written.
+- Added `OutputSignificantDigits` setting in `macro_settings.json` to round time-series outputs (flows, storage levels, curtailment, non-served demand, balance duals) to a number of significant digits before writing. Capacity, cost and CAPEX outputs keep full precision.
 
 ### Changed
 
+- Parquet outputs are now zstd-compressed (about 3× smaller than the previous snappy default), and Symbol columns with missing values are written correctly.
+- Myopic restarts now read `capacity.csv`, `capacity.csv.gz` or `capacity.parquet` from the restart folder, whichever was written. If none exists, the error says which file is missing and suggests the likely cause (`WriteOutputs.Capacity = false`).
+- A Myopic run that stops early (`StopAfterPeriod`) now fails before the first solve if `WriteOutputs.Capacity` is `false` for any period it writes, since a later restart needs those files. A run to the last period only logs a warning.
 - Cached repeated reads of shared CSV inputs within each case or system load, avoiding repeated full-file parsing when assets select different columns from the same file.
 - `@add_balance` is now the recommended API for ordinary algebraic balance equations and inequalities, and follows standard algebraic sign conventions for `flow(...)` terms.
 - `@add_balance` now validates balance expressions more strictly and rejects unsupported non-`flow(...)` variable terms.
@@ -45,6 +51,10 @@ and this project follows Julia package versioning through `Project.toml` release
 - Reduced model-generation allocations in edge balance updates by inserting flow variables directly into vertex balance expressions instead of constructing temporary effective-flow expressions.
 - `run_case` now scopes logging to the run, restores the caller’s logger, and closes its own file log stream on success or failure.
 - Storage Charge/Discharge limit constraints now can be applied to `LongDurationStorage`.
+
+### Deprecated
+
+- `DualExportsEnabled` in `macro_settings.json` is deprecated in favor of `WriteOutputs.Duals`. It still works: it is translated to `WriteOutputs.Duals` with a deprecation warning. Setting both to different values is an error. Code that reads `system.settings.DualExportsEnabled` keeps working: it is still `true` or `false`, mirroring `WriteOutputs.Duals`.
 
 ### Removed
 
@@ -65,6 +75,7 @@ and this project follows Julia package versioning through `Project.toml` release
 - Updated debugging guidance around `balance_data`, `get_balance`, and `@inspect_stoichiometric_balance`.
 - Updated asset-specific documentation examples to use the balance macros instead of legacy raw balance dictionaries.
 - Added preprocessing and TDR manuals covering configuration, input discovery, candidate construction, clustering, output-feature caching, generated files, and function workflow trees.
+- Added output manual sections on output formats and file sizes, selecting outputs, and reading all periods' outputs as one table with DuckDB, polars or pandas.
 
 ### Migration guide
 
@@ -105,6 +116,7 @@ or, when the relationship is best represented as a recipe:
 - Small differences in large-system results do not automatically indicate a balance bug. Algebraically equivalent formulations can change row scaling and solver tie-breaking in large, near-degenerate systems, so localized single-asset regression tests are the primary evidence that migrated balances remain correct.
 - **Results change:** no public API changed, but any case using a `Battery` asset could now produce different results. The charge limit (`charge_flow[t] <= capacity - storage_level[t-1]`, scaled by the charge efficiency) was previously not included by default and is now enforced. To keep the old behavior, disable it explicitly on the charge edge: `"charge_edge": {"constraints": {"StorageChargeLimitConstraint": false}}`.
 - If you set `StorageChargeLimitConstraint` as a top-level key on a charge edge, rather than inside that edge's `constraints` dictionary, it was and still is ignored. Move it inside `constraints` for it to take effect.
+- Replace `"DualExportsEnabled": false` in `macro_settings.json` with `"WriteOutputs": {"Duals": false}`. `"DualExportsEnabled": true` can simply be removed, since duals are written by default.
 - `StorageChargeLimitConstraint` only applies to an edge whose end vertex is the storage, i.e. the charge edge. Setting it on the discharge edge (or via `discharge_constraints` in the simple input format) has no effect.
 
 ## [0.2.4] - 2026-09-10

@@ -50,6 +50,9 @@ The penalty costs for NSD segments are specified in the node's input data under 
 | Setting | File | Default | Effect |
 |---|---|---|---|
 | `OutputLayout` (or `OutputLayout.NonServedDemand`) | `macro_settings.json` | `"long"` | Set to `"wide"` to pivot time steps into columns with compound column names `{component_id}_seg{segment}`. |
+| `OutputFormat` (or `OutputFormat.NonServedDemand`) | `macro_settings.json` | `"csv"` | Set to `"csv.gz"` or `"parquet"` to write a compressed file (`.csv.gz` or `.parquet`). See [Output Format and Size](@ref "manual-outputs-format"). |
+| `WriteOutputs.NonServedDemand` | `macro_settings.json` | `true` | Set to `false` to skip this output. See [Selecting Outputs](@ref "manual-outputs-selecting"). |
+| `OutputSignificantDigits` | `macro_settings.json` | `null` | Set to an integer to round values to that many significant digits before writing. |
 | `WriteFullTimeseries` | `case_settings.json` | `false` | When `true` and TDR is active, also write full-year NSD to `full_time_series/non_served_demand.csv`. |
 
 ## [Assumptions](@id manual-outputs-nsd-assumptions)

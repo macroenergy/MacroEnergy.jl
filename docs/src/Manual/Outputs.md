@@ -2,11 +2,11 @@
 
 ## Contents
 
-[Overview](@ref "manual-outputs-overview") | [Directory Structure](@ref "manual-outputs-directory") | [Settings](@ref "manual-outputs-settings") | [Output Files](@ref "manual-outputs-files") | [MacroEnergy API](@ref "manual-outputs-api") | [See Also](@ref "manual-outputs-see-also")
+[Overview](@ref "manual-outputs-overview") | [Directory Structure](@ref "manual-outputs-directory") | [Settings](@ref "manual-outputs-settings") | [Output Files](@ref "manual-outputs-files") | [Reading All Periods](@ref "manual-outputs-reading-periods") | [MacroEnergy API](@ref "manual-outputs-api") | [See Also](@ref "manual-outputs-see-also")
 
 ## [Overview](@id manual-outputs-overview)
 
-After solving a Macro model, results are automatically written to disk by [`write_outputs`](@ref). The output files are CSV-format tabular data that describe the optimal capacity decisions, operational dispatch, and costs of every asset in the system.
+After solving a Macro model, results are automatically written to disk by [`write_outputs`](@ref). The output files are tabular data that describe the optimal capacity decisions, operational dispatch, and costs of every asset in the system. They are written as CSV by default; gzip-compressed CSV and Parquet are available through the [`OutputFormat`](@ref "manual-outputs-format") setting, which makes results folders much smaller (see the measured example there).
 
 Outputs are organized into one results directory per modeled period. Within each directory, each output type is stored in its own file. The files use a consistent **long format** by default (one row per observation, with metadata columns identifying the asset and time step), which makes them easy to filter and join using standard data tools. A **wide format** is also available via the [`OutputLayout`](@ref "manual-outputs-settings") setting, which allows pivoting of time steps or variables into columns for easier human readability.
 
@@ -83,10 +83,13 @@ The following settings in `macro_settings.json` control the behavior of the outp
 | Setting | Type | Default | Description |
 |---|---|---|---|
 | `OutputLayout` | `String` or `JSON Object` | `"long"` | Output layout for tabular files. `"long"` stacks all observations as rows; `"wide"` pivots time steps or variables to columns. Can be set globally with a single string, or per-file as a JSON object (see below). |
+| `OutputFormat` | `String` or `JSON Object` | `"csv"` | File format for tabular files: `"csv"`, `"csv.gz"` (gzip-compressed CSV) or `"parquet"` (zstd-compressed). Sets the file extension. Can be set globally with a single string, or per output as a JSON object. See [Output Format and Size](@ref "manual-outputs-format"). |
+| `WriteOutputs` | `JSON Object` | `{}` | Output files to skip, e.g. `{"Curtailment": false}`. Outputs that are not listed are written. See [Selecting Outputs](@ref "manual-outputs-selecting"). |
+| `OutputSignificantDigits` | `Integer` or `null` | `null` | If set, round time-series outputs (flows, storage levels, curtailment, non-served demand and balance duals) to this many significant digits before writing. `null` writes full precision. Capacity, cost and CAPEX files are never rounded. |
 | `OverwriteResults` | `Bool` | `false` | If `true`, overwrite the output directory on each run. If `false`, append `_001`, `_002`, … suffixes to avoid overwriting. |
 | `OutputDir` | `String` | `"results"` | Base name for the results directory. |
 | `OutputAssetTags` | `Bool` | `true` | If `true`, include pipe-separated asset tags in `capacity.csv`, `capacity_summary.csv`, and `capex.csv`. |
-| `DualExportsEnabled` | `Bool` | `true` | If `true`, write [`balance_duals.csv`](@ref "manual-outputs-duals-balance") and [`co2_cap_duals.csv`](@ref "manual-outputs-duals-co2"). |
+| `DualExportsEnabled` | `Bool` | — | **Deprecated**: use `"WriteOutputs": {"Duals": false}` to skip [`balance_duals.csv`](@ref "manual-outputs-duals-balance") and [`co2_cap_duals.csv`](@ref "manual-outputs-duals-co2"). Still accepted with a deprecation warning, and translated to `WriteOutputs.Duals`. For scripts that read it, `system.settings.DualExportsEnabled` is still `true` or `false`, mirroring `WriteOutputs.Duals`. |
 
 ### Per-File Layout Control
 
@@ -106,6 +109,64 @@ Instead of a single string, `OutputLayout` can be a JSON object to control layou
 
 Supported keys: `Capacity`, `CapacitySummary`, `Costs`, `Flow`, `StorageLevel`, `Curtailment`, `NonServedDemand`.
 
+### [Output Format and Size](@id manual-outputs-format)
+
+Time-series outputs make up most of a results folder, and `flows.csv` usually dominates. In long layout, each row repeats the same labels (commodity, nodes, asset, component, type), so the files compress very well. `OutputFormat` writes them compressed:
+
+| Format | Extension | Notes |
+|---|---|---|
+| `"csv"` (default) | `.csv` | Plain text; opens in any spreadsheet. |
+| `"csv.gz"` | `.csv.gz` | Gzip-compressed CSV. Read directly by `CSV.read`, pandas, polars and DuckDB. |
+| `"parquet"` | `.parquet` | Columnar and zstd-compressed, with column types stored in the file. The smallest and fastest to load. Read with DuckDB, polars, pandas (with pyarrow) or `Parquet2.jl`. |
+
+For example, here is one multi-period case: 8 periods, 5 zones, 288 time steps per period, long layout. The numbers are the total size of all tables written for the case.
+
+| Setting | Total size | Smaller by |
+|---|---|---|
+| `"OutputFormat": "csv"` | 184.3 MB | — |
+| `"OutputFormat": "csv.gz"` | 12.4 MB | 15× |
+| `"OutputFormat": "parquet"` | 7.0 MB | 26× |
+| `"OutputFormat": "parquet"`, `"OutputSignificantDigits": 6` | 5.4 MB | 34× |
+
+Ratios depend on the case. Rounding with `OutputSignificantDigits` helps because digits beyond the solver's tolerance are noise that does not compress.
+
+Like `OutputLayout`, `OutputFormat` can be a JSON object to set the format per output. For example, you can keep small tables as plain CSV for spreadsheets and compress the time series:
+
+```json
+"OutputFormat": {
+    "Flow":            "parquet",
+    "StorageLevel":    "parquet",
+    "Curtailment":     "parquet",
+    "NonServedDemand": "parquet",
+    "Duals":           "parquet"
+}
+```
+
+Supported keys: `Capacity`, `CapacitySummary`, `Capex`, `Costs`, `Curtailment`, `Duals`, `Flow`, `NonServedDemand`, `StorageLevel`, `TimeWeights`. Outputs that are not listed are written as `"csv"`. The `objective_value.csv`, `benders_convergence.csv` and `settings.json` files are always written as CSV/JSON.
+
+!!! note "Full time series"
+    Full time series files follow `OutputFormat` too, except that long-layout CSV files are always gzip-compressed (`.csv.gz`). See [Full Time Series](@ref "manual-outputs-full-timeseries").
+
+### [Selecting Outputs](@id manual-outputs-selecting)
+
+`WriteOutputs` switches off individual output files. Outputs that are not listed are written:
+
+```json
+"WriteOutputs": {
+    "Curtailment":  false,
+    "StorageLevel": false
+}
+```
+
+Supported keys are the same as for `OutputFormat`. `Duals` covers `balance_duals` and `co2_cap_duals`. Switching it off also skips the extra solve that Macro runs to compute duals when the model has integer variables. Switching off an output also skips its file in `full_time_series/`. `Costs` covers all six cost files (discounted and undiscounted, totals and breakdowns by type and zone).
+
+Each period of a multi-period case loads its own `macro_settings.json` (the `settings` entry of each system in `system_data.json`). To get a time series only for some periods (for example, hourly flows only for the final period), point those periods to a settings file that enables it, and point the other periods to one that switches it off. The cross-period `capacity_summary` uses the first period's settings.
+
+!!! warning "Myopic restarts need capacity outputs"
+    A Myopic restart reads `capacity.csv` (or `capacity.csv.gz`/`capacity.parquet`) from each earlier period of the restart folder. Keep `Capacity` enabled if you may want to restart a run.
+
+    A Myopic run that stops early (`StopAfterPeriod` before the last period) is meant to be continued, so it fails before the first solve if `Capacity` is switched off for any period it writes. A run to the last period only logs a warning.
+
 ### Full Time Series Setting
 
 !!! warn "Full time series output"
@@ -118,6 +179,8 @@ Supported keys: `Capacity`, `CapacitySummary`, `Costs`, `Flow`, `StorageLevel`, 
 ## [Output Files](@id manual-outputs-files)
 
 The table below lists all output files produced by Macro. Click the file name to go to the detailed page for that output.
+
+File names are shown with the default `.csv` extension. With [`OutputFormat`](@ref "manual-outputs-format"), tabular files end in `.csv.gz` or `.parquet` instead, and files switched off in [`WriteOutputs`](@ref "manual-outputs-selecting") are not written.
 
 !!! note "Written when column"
     The **Written when** column indicates whether the file is always produced or only under specific conditions. There are three types of conditions:
@@ -141,12 +204,53 @@ The table below lists all output files produced by Macro. Click the file name to
 | [`storage_level.csv`](@ref "manual-outputs-storage-level") | State of charge for every storage component at every representative time step | System has storage assets |
 | [`curtailment.csv`](@ref "manual-outputs-curtailment") | Curtailed generation for VRE assets at every representative time step | System has VRE assets with `has_capacity = true` |
 | [`non_served_demand.csv`](@ref "manual-outputs-nsd") | Non-served demand for every node with NSD variables at every representative time step | System has nodes with NSD variables |
-| [`balance_duals.csv`](@ref "manual-outputs-duals-balance") | Shadow prices of commodity balance constraints (locational marginal prices) | `DualExportsEnabled = true` (default) |
-| [`co2_cap_duals.csv`](@ref "manual-outputs-duals-co2") | Shadow prices of CO₂ cap constraints (carbon prices) | `DualExportsEnabled = true` (default) |
+| [`balance_duals.csv`](@ref "manual-outputs-duals-balance") | Shadow prices of commodity balance constraints (locational marginal prices) | `WriteOutputs.Duals = true` (default) |
+| [`co2_cap_duals.csv`](@ref "manual-outputs-duals-co2") | Shadow prices of CO₂ cap constraints (carbon prices) | `WriteOutputs.Duals = true` (default) |
 | [`<case_name>.log`](@ref "manual-outputs-log-file") | Plain-text log of all messages emitted during the run | `log_to_file = true` (default) |
 | [`full_time_series/`](@ref "manual-outputs-full-timeseries") | Expanded time-series outputs covering all `TotalHoursModeled` hours | `WriteFullTimeseries = true` and TDR used |
 | [`benders_convergence.csv`](@ref "manual-outputs-benders") | Benders decomposition convergence metrics per iteration | Benders algorithm only |
 
+## [Reading All Periods as One Table](@id manual-outputs-reading-periods)
+
+Each period's results are in their own `results_period_N/` folder. To analyze all periods together, read the per-period files as one table with a glob pattern. The examples below read Parquet flows. They work the same way for `.csv` and `.csv.gz` files (use `read_csv` in DuckDB, `pl.scan_csv` in polars).
+
+With [DuckDB](https://duckdb.org) (SQL, Python, R or Julia). `filename = true` adds a column with each row's source file, from which the period can be extracted:
+
+```sql
+SELECT regexp_extract(filename, 'results_period_(\d+)', 1)::INT AS period, *
+FROM read_parquet('results_001/results_period_*/flows.parquet', filename = true);
+```
+
+The same query from Julia, using the DuckDB.jl package:
+
+```julia
+using DuckDB, DataFrames
+db = DBInterface.connect(DuckDB.DB)
+flows = DataFrame(DBInterface.execute(db, """
+    SELECT regexp_extract(filename, 'results_period_(\\d+)', 1)::INT AS period, *
+    FROM read_parquet('results_001/results_period_*/flows.parquet', filename = true)
+"""))
+```
+
+With polars (Python):
+
+```python
+import polars as pl
+flows = pl.scan_parquet("results_001/results_period_*/flows.parquet", include_file_paths="file").collect()
+```
+
+With pandas (Python, requires pyarrow):
+
+```python
+import glob, re
+import pandas as pd
+flows = pd.concat(
+    pd.read_parquet(f).assign(period=int(re.search(r"results_period_(\d+)", f).group(1)))
+    for f in sorted(glob.glob("results_001/results_period_*/flows.parquet"))
+)
+```
+
+DuckDB and polars only read the columns and rows a query needs, so filtering or aggregating across all periods does not load every file into memory.
 
 ## [MacroEnergy API](@id manual-outputs-api)
 

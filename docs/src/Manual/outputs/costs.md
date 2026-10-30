@@ -150,6 +150,8 @@ Given these definitions, the cost categories are computed as follows:
 | Setting | File | Default | Effect |
 |---|---|---|---|
 | `OutputLayout` (or `OutputLayout.Costs`) | `macro_settings.json` | `"long"` | Set to `"wide"` to pivot all cost files. For `costs.csv`/`undiscounted_costs.csv`, the three rows become a single row with variable names as columns. For the breakdown files, cost categories are pivoted to columns and a `Total` column is added. |
+| `OutputFormat` (or `OutputFormat.Costs`) | `macro_settings.json` | `"csv"` | Set to `"csv.gz"` or `"parquet"` to write a compressed file (`.csv.gz` or `.parquet`). See [Output Format and Size](@ref "manual-outputs-format"). |
+| `WriteOutputs.Costs` | `macro_settings.json` | `true` | Set to `false` to skip this output. See [Selecting Outputs](@ref "manual-outputs-selecting"). |
 
 ## [Assumptions](@id manual-outputs-costs-assumptions)
 
