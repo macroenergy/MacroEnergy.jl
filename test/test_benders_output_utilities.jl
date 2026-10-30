@@ -3,8 +3,10 @@ module TestBendersOutputUtilities
 using Test
 using JuMP
 using HiGHS
+using DataFrames
 using MacroEnergy
 
+import MacroEnergy: SubproblemsData
 import MacroEnergy: densearray_to_dict, dict_to_densearray
 import MacroEnergy: collect_local_slack_vars, collect_local_constraint_duals
 import MacroEnergy: populate_slack_vars_from_subproblems!, populate_constraint_duals_from_subproblems!
@@ -14,6 +16,29 @@ import MacroEnergy: empty_system
 import MacroEnergy: Node, Electricity, TimeData, System
 
 function test_benders_output_utilities()
+
+    @testset "SubproblemsData Iteration" begin
+        subproblem_results(w) = (
+            flows = DataFrame(subproblem = [w]),
+            storage_levels = DataFrame(),
+            nsd = DataFrame(),
+            curtailment = DataFrame(),
+            operational_costs = DataFrame(),
+        )
+
+        data = SubproblemsData(NamedTuple[subproblem_results(w) for w in 1:3])
+        @test length(data) == 3
+
+        # Each subproblem is visited exactly once, in order
+        visited = Int[]
+        for d in data
+            push!(visited, d.flows.subproblem[1])
+        end
+        @test visited == [1, 2, 3]
+        @test length(collect(data)) == length(data)
+
+        @test isempty(collect(SubproblemsData(0)))
+    end
 
     @testset "DenseAxisArray Conversion Functions" begin
         

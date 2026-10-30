@@ -9,6 +9,12 @@ and this project follows Julia package versioning through `Project.toml` release
 
 ## [Unreleased]
 
+### Fixed
+
+- Iterating over `SubproblemsData`, the container for per-subproblem Benders results, no longer yields the first subproblem twice. Written outputs were not affected, since the output writers read its fields directly rather than iterating it.
+
+## [0.3.0 - rc] - 2026-10-14
+
 ### Added
 
 - Added `@add_to_balance` for appending raw terms to an existing named balance.
