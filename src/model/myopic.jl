@@ -6,6 +6,30 @@ end
 
 MyopicResults(results, output_path) = MyopicResults(results, output_path, PeriodOutcome[])
 
+"""
+    check_myopic_capacity_outputs(periods::Vector{System}, myopic_settings)
+
+Check that a Myopic run writes the capacity files that a later restart reads. If the run stops
+early (`StopAfterPeriod` before the last period), it is meant to be continued, so
+`WriteOutputs.Capacity = false` for any period it writes is an error. For a run that goes to
+the last period, it is only a warning.
+"""
+function check_myopic_capacity_outputs(periods::Vector{System}, myopic_settings)
+    restart = myopic_settings[:Restart]
+    first_period = restart[:enabled] ? restart[:from_period] : 1
+    last_period = floor(Int, min(length(periods), myopic_settings[:StopAfterPeriod]))
+    no_capacity = [p for p in first_period:last_period if !output_enabled(periods[p], :Capacity)]
+    isempty(no_capacity) && return nothing
+    if last_period < length(periods)
+        error("WriteOutputs.Capacity is false for period(s) $(join(no_capacity, ", ")), but this Myopic run stops " *
+              "after period $last_period of $(length(periods)) (StopAfterPeriod). Restarting it later needs the " *
+              "capacity file of every period: enable the Capacity output for these periods.")
+    end
+    @warn("WriteOutputs.Capacity is false for period(s) $(join(no_capacity, ", ")): the results of this run " *
+          "cannot be used to restart a later Myopic run.")
+    return nothing
+end
+
 function load_previous_capacity_results(path::AbstractString)
     # Plain CSV keeps the header validation of load_dataframe; DuckDB reads .csv.gz and .parquet
     df = endswith(path, ".csv") ? load_dataframe(path) : duckdb_read(path)

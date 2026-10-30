@@ -212,15 +212,18 @@ Return the number of significant digits that time-series outputs are rounded to 
 get_output_significant_digits(system::System)::Union{Nothing,Int} = get(system.settings, :OutputSignificantDigits, nothing)
 
 """
-    find_output_file(results_dir::AbstractString, basename::AbstractString)
+    find_output_file(results_dir::AbstractString, basename::AbstractString; hint::AbstractString="")
 
 Return the path of the output file `basename` in `results_dir`, whichever supported format it
-was written in (`.csv`, `.csv.gz` or `.parquet`). Throws an error if none exists.
+was written in (`.csv`, `.csv.gz` or `.parquet`). Throws an error if none exists, ending with
+`hint` if one is given.
 """
-function find_output_file(results_dir::AbstractString, basename::AbstractString)
+function find_output_file(results_dir::AbstractString, basename::AbstractString; hint::AbstractString="")
     candidates = [joinpath(results_dir, "$basename.$ext") for ext in OUTPUT_FORMATS]
     idx = findfirst(isfile, candidates)
-    isnothing(idx) && error("No output file found for $basename. Tried: $(join(candidates, ", "))")
+    if isnothing(idx)
+        error("No output file found for $basename. Tried: $(join(candidates, ", "))." * (isempty(hint) ? "" : " $hint"))
+    end
     return candidates[idx]
 end
 
