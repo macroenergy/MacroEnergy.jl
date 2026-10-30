@@ -268,20 +268,25 @@ end
 """
     dual_or_nan(con_ref; result::Int=1, duals_available=nothing)
 
-Return the dual value of `con_ref`, or `NaN` when no usable dual solution
-is available. Pass a precomputed `duals_available` value when extracting many
-duals from the same model to avoid repeated status queries.
+Return the dual value of `con_ref` before MEScaling's row and objective
+transformations, or `NaN` when no usable dual solution is available. Scaling
+metadata is read from `owner_model(con_ref).ext[:macroenergy_scaling]`; without
+that metadata, return the solver dual unchanged. Macro's input scaling,
+discounting, subperiod weights and output sign conventions are handled by callers.
+Pass a precomputed `duals_available` value when extracting many duals from the
+same model to avoid repeated status queries.
 
 Only optimizer result-access errors are converted to `NaN`; all other
 errors are rethrown so that programming errors are not hidden.
 """
 function dual_or_nan(con_ref; result::Int=1, duals_available::Union{Nothing,Bool}=nothing)::Float64
+    model = owner_model(con_ref)
     available = isnothing(duals_available) ?
-        has_usable_duals(owner_model(con_ref); result) : duals_available
+        has_usable_duals(model; result) : duals_available
     available || return NaN
 
-    try
-        return dual(con_ref; result)
+    dual_value = try
+        dual(con_ref; result)
     catch err
         if err isa MOI.ResultIndexBoundsError ||
            err isa MOI.GetAttributeNotAllowed ||
@@ -290,6 +295,12 @@ function dual_or_nan(con_ref; result::Int=1, duals_available::Union{Nothing,Bool
         end
         rethrow()
     end
+    settings = get(model.ext, :macroenergy_scaling, nothing)
+    if !isnothing(settings)
+        row_factor = get(settings.constraint_scaling_factors, con_ref, 1.0)
+        dual_value *= row_factor / settings.objective_scaling_factor
+    end
+    return dual_value
 end
 
 """

@@ -146,9 +146,11 @@ scalable_fields(::AbstractStorage) = _STORAGE_SCALABLE_FIELDS
 
 # MacroEnergyScaling.scale_constraints!
 function scale_constraints!(system::System, model::Model)
+    # Preserve cumulative factors if this model is scaled more than once.
+    scaling_settings = get!(MacroEnergyScaling.ScalingSettings, model.ext, :macroenergy_scaling)
     if system.settings.ConstraintScaling
         @info "Scaling constraints and RHS"
-        scale_constraints!(model)
+        scale_constraints!(model, scaling_settings)
     end
     return nothing
 end
