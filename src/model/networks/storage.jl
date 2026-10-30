@@ -43,6 +43,11 @@ macro AbstractStorageBaseAttributes()
         cf_period_investment_cost::Union{Nothing,Float64} = $storage_defaults[:cf_period_investment_cost]
         cf_period_fixed_om_cost::Union{Nothing,Float64} = $storage_defaults[:cf_period_fixed_om_cost]
         cf_period_variable_om_cost::Union{Nothing,Float64} = $storage_defaults[:cf_period_variable_om_cost]
+        cagr::Float64 = 0.0
+        cadr::Float64 = 0.0
+        Inertia_category::Union{Nothing,String} = nothing
+        # Duration [h] that converts the MW inertia settings of the category into MWh
+        InertiaInitialDuration::Float64 = 4.0
     end)
 end
 
@@ -228,6 +233,10 @@ cf_period_fixed_om_cost(g::AbstractStorage) = g.cf_period_fixed_om_cost;
 variable_om_cost(g::AbstractStorage) = g.variable_om_cost;
 pv_period_variable_om_cost(g::AbstractStorage) = g.pv_period_variable_om_cost;
 cf_period_variable_om_cost(g::AbstractStorage) = g.cf_period_variable_om_cost;
+cagr(g::AbstractStorage) = g.cagr;
+cadr(g::AbstractStorage) = g.cadr;
+inertia_category(g::AbstractStorage) = g.Inertia_category;
+inertia_initial_duration(g::AbstractStorage) = g.InertiaInitialDuration;
 
 function add_linking_variables!(g::Storage, model::Model)
     if has_capacity(g)
