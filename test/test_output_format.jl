@@ -161,7 +161,10 @@ function test_output_format()
             @test_throws ErrorException find_output_file(dir, "capacity")
             touch(joinpath(dir, "capacity.parquet"))
             @test find_output_file(dir, "capacity") == joinpath(dir, "capacity.parquet")
+            # A second format is a leftover from an earlier run: refuse to guess which is current
             touch(joinpath(dir, "capacity.csv"))
+            @test_throws r"more than one output file" find_output_file(dir, "capacity")
+            rm(joinpath(dir, "capacity.parquet"))
             @test find_output_file(dir, "capacity") == joinpath(dir, "capacity.csv")
         end
     end

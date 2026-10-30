@@ -217,14 +217,22 @@ get_output_significant_digits(system::System)::Union{Nothing,Int} = get(system.s
 Return the path of the output file `basename` in `results_dir`, whichever supported format it
 was written in (`.csv`, `.csv.gz` or `.parquet`). Throws an error if none exists, ending with
 `hint` if one is given.
+
+Also throws an error if more than one format exists. A run writes each output in one format
+only, so the others are left over from an earlier run (`OverwriteResults = true` reuses the
+folder without clearing it), and there is no safe way to tell which file is current.
 """
 function find_output_file(results_dir::AbstractString, basename::AbstractString; hint::AbstractString="")
     candidates = [joinpath(results_dir, "$basename.$ext") for ext in OUTPUT_FORMATS]
-    idx = findfirst(isfile, candidates)
-    if isnothing(idx)
+    found = filter(isfile, candidates)
+    if isempty(found)
         error("No output file found for $basename. Tried: $(join(candidates, ", "))." * (isempty(hint) ? "" : " $hint"))
+    elseif length(found) > 1
+        error("Found more than one output file for $basename: $(join(found, ", ")). " *
+              "The extra files are probably left over from an earlier run written to the same folder " *
+              "with OverwriteResults = true. Delete the stale files and keep the one written by the run you want to use.")
     end
-    return candidates[idx]
+    return only(found)
 end
 
 """

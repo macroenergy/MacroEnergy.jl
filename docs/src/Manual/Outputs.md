@@ -165,6 +165,8 @@ Each period of a multi-period case loads its own `macro_settings.json` (the `set
 !!! warning "Myopic restarts need capacity outputs"
     A Myopic restart reads `capacity.csv` (or `capacity.csv.gz`/`capacity.parquet`) from each earlier period of the restart folder. Keep `Capacity` enabled if you may want to restart a run.
 
+    With `OverwriteResults = true`, files from an earlier run stay in the folder. If you change `OutputFormat` between runs into the same folder, a period can end up with two capacity files (e.g., `capacity.csv` and `capacity.parquet`). A restart then stops with an error rather than guess which one is current; delete the stale file.
+
     A Myopic run that stops early (`StopAfterPeriod` before the last period) is meant to be continued, so it fails before the first solve if `Capacity` is switched off for any period it writes. A run to the last period only logs a warning.
 
 ### Full Time Series Setting

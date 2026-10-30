@@ -36,7 +36,7 @@ and this project follows Julia package versioning through `Project.toml` release
 ### Changed
 
 - Parquet outputs are now zstd-compressed (about 3× smaller than the previous snappy default), and Symbol columns with missing values are written correctly.
-- Myopic restarts now read `capacity.csv`, `capacity.csv.gz` or `capacity.parquet` from the restart folder, whichever was written. If none exists, the error says which file is missing and suggests the likely cause (`WriteOutputs.Capacity = false`).
+- Myopic restarts now read `capacity.csv`, `capacity.csv.gz` or `capacity.parquet` from the restart folder, whichever was written. If none exists, the error says which file is missing and suggests the likely cause (`WriteOutputs.Capacity = false`). If more than one exists (left over from an earlier run with `OverwriteResults = true`), the restart stops with an error instead of picking one.
 - A Myopic run that stops early (`StopAfterPeriod`) now fails before the first solve if `WriteOutputs.Capacity` is `false` for any period it writes, since a later restart needs those files. A run to the last period only logs a warning.
 - Cached repeated reads of shared CSV inputs within each case or system load, avoiding repeated full-file parsing when assets select different columns from the same file.
 - `@add_balance` is now the recommended API for ordinary algebraic balance equations and inequalities, and follows standard algebraic sign conventions for `flow(...)` terms.
