@@ -220,7 +220,7 @@ function _write_benders_period_outputs(
     # Write dual values (if enabled)
     # Scaling factor to account for discounting duals in multi-period models
     var_cost_discount = compute_variable_cost_discount_scaling(period_idx, settings)
-    if system.settings.DualExportsEnabled
+    if output_enabled(system, :Duals)
         # Move slack variables from subproblems to planning problem
         if haskey(slack_vars, period_idx)
             populate_slack_vars_from_subproblems!(system, slack_vars[period_idx])
@@ -306,7 +306,7 @@ function write_period_outputs(
     # Write dual values (if enabled)
     # Scaling factor to account for discounting duals in multi-period models
     var_cost_discount = compute_variable_cost_discount_scaling(period_idx, settings)
-    if system.settings.DualExportsEnabled
+    if output_enabled(system, :Duals)
         ensure_duals_available!(model)
         write_duals(results_dir, system, scaling, var_cost_discount)
     end

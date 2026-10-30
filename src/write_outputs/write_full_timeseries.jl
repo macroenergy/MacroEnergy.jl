@@ -16,8 +16,8 @@ Write all time-series outputs expanded to `TotalHoursModeled` hours into a
 Note: file formats follow the `OutputFormat` setting (see [`full_timeseries_file`](@ref)),
 except that long-layout CSV outputs are written in compressed `.csv.gz` format.
 
-When `DualExportsEnabled` is set in the system settings, balance constraint duals
-are also written, scaled by `var_cost_discount`.
+When duals are enabled (`WriteOutputs.Duals`, `true` by default), balance constraint
+duals are also written, scaled by `var_cost_discount`.
 
 Skips with a warning if the system does not use time-domain reduction.
 """
@@ -44,7 +44,7 @@ function write_full_timeseries(
         write_curtailment_full_timeseries(full_timeseries_file(fullts_dir, "curtailment", system, :Curtailment), system, scaling)
 
     # Balance duals (only when dual exports are enabled)
-    if system.settings.DualExportsEnabled
+    if output_enabled(system, :Duals)
         write_balance_duals_full_timeseries(output_file(fullts_dir, "balance_duals", system, :Duals), system, scaling, var_cost_discount)
     end
 
@@ -366,8 +366,8 @@ end
 Benders version: write all time-series outputs expanded to `TotalHoursModeled` hours,
 reconstructing from per-representative-period subproblem DataFrames.
 
-When `DualExportsEnabled` is set in the system settings, balance constraint duals are
-also written, scaled by `scaling` and `var_cost_discount`.
+When duals are enabled (`WriteOutputs.Duals`, `true` by default), balance constraint
+duals are also written, scaled by `scaling` and `var_cost_discount`.
 """
 function write_full_timeseries(
     results_dir::AbstractString, system::System,
@@ -393,7 +393,7 @@ function write_full_timeseries(
         write_curtailment_full_timeseries(full_timeseries_file(fullts_dir, "curtailment", system, :Curtailment), system, curtailment_dfs, scaling)
 
     # Balance duals (only when dual exports are enabled)
-    if system.settings.DualExportsEnabled
+    if output_enabled(system, :Duals)
         write_balance_duals_full_timeseries(output_file(fullts_dir, "balance_duals", system, :Duals), system, scaling, var_cost_discount)
     end
 

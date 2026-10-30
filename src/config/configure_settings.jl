@@ -15,7 +15,7 @@ function default_settings()
         AutoCreateNodes = false,
         AutoCreateLocations = true,
         Retrofitting = false,
-        DualExportsEnabled = true
+        DualExportsEnabled = nothing  # Deprecated: use WriteOutputs.Duals (nothing = not set by the user)
     )
 end
 
@@ -60,13 +60,40 @@ function configure_settings(model_settings::NamedTuple)
     settings = merge(settings, model_settings)
 
     validate_settings(settings)
-    return settings
+    return translate_deprecated_settings(settings)
+end
+
+"""
+    translate_deprecated_settings(settings::NamedTuple)
+
+Translate deprecated settings into their replacements, with a deprecation warning:
+- `DualExportsEnabled` → `WriteOutputs.Duals`. Setting both to different values is an error.
+
+For backward compatibility, the returned `DualExportsEnabled` is always a `Bool` that mirrors
+`WriteOutputs.Duals` (`true` unless duals are switched off), so code that reads
+`settings.DualExportsEnabled` keeps working. `WriteOutputs.Duals` is the setting Macro uses.
+"""
+function translate_deprecated_settings(settings::NamedTuple)
+    dual_exports = settings[:DualExportsEnabled]
+    write_outputs = settings[:WriteOutputs]
+    if !isnothing(dual_exports)
+        if haskey(write_outputs, :Duals) && write_outputs[:Duals] != dual_exports
+            error("Conflicting settings: DualExportsEnabled = $dual_exports but WriteOutputs.Duals = $(write_outputs[:Duals]). " *
+                  "DualExportsEnabled is deprecated; remove it and keep WriteOutputs.Duals.")
+        end
+        @warn("""
+        DualExportsEnabled is deprecated. Use "WriteOutputs": {"Duals": $dual_exports} instead.
+        Translating automatically: WriteOutputs.Duals => $dual_exports.
+        """, maxlog=1)
+        write_outputs = merge(write_outputs, (Duals=dual_exports,))
+    end
+    return merge(settings, (WriteOutputs=write_outputs, DualExportsEnabled=get(write_outputs, :Duals, true)))
 end
 
 function validate_settings(settings::NamedTuple)
     @assert settings[:ConstraintScaling] ∈ (false, true)
     @assert settings[:AllowImplicitTopLevelCommodities] isa Bool
-    @assert settings[:DualExportsEnabled] isa Bool
+    @assert isnothing(settings[:DualExportsEnabled]) || settings[:DualExportsEnabled] isa Bool "DualExportsEnabled (deprecated) must be true or false"
     @assert settings[:OutputAssetTags] isa Bool
     @assert settings[:OutputLayout] isa Union{String, NamedTuple}
     if settings[:OutputLayout] isa String
@@ -84,7 +111,6 @@ function validate_settings(settings::NamedTuple)
         @assert all(values(settings[:OutputFormat]) .∈ Ref(OUTPUT_FORMATS)) "OutputFormat values must be one of $(OUTPUT_FORMATS)"
     end
     @assert settings[:WriteOutputs] isa NamedTuple "WriteOutputs must be an object of output names to true/false"
-    @assert !haskey(settings[:WriteOutputs], :Duals) "WriteOutputs does not control duals; use DualExportsEnabled instead"
     @assert all(keys(settings[:WriteOutputs]) .∈ Ref(OUTPUT_KEYS)) "WriteOutputs keys must be in $(OUTPUT_KEYS)"
     @assert all(v -> v isa Bool, values(settings[:WriteOutputs])) "WriteOutputs values must be true or false"
     sigdigits = settings[:OutputSignificantDigits]
