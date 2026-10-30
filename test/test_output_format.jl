@@ -215,7 +215,8 @@ function test_output_format()
                 new_capacity=[0.5, 0.0], retired_capacity=[0.0, 1.0],
             )
             for ext in ("csv", "csv.gz", "parquet")
-                period_dir = mkpath(joinpath(dir, ext, "results_period_1"))
+                # The apostrophe checks that DuckDB reads paths that need SQL quoting
+                period_dir = mkpath(joinpath(dir, "O'Brien", ext, "results_period_1"))
                 write_dataframe(joinpath(period_dir, "capacity.$ext"), copy(capacity))
                 df = load_previous_capacity_results(find_output_file(period_dir, "capacity"))
                 @test string.(df.component_id) == capacity.component_id
@@ -273,7 +274,8 @@ function test_output_format()
                 "OutputSignificantDigits" => 6,
             )
             myopic = Dict("SolutionAlgorithm" => "Monolithic", "ExpansionHorizon" => "Myopic", "PeriodLengths" => [5, 5])
-            case_dir = copy_small_case(dir; macro_settings, case_settings=myopic, num_periods=2)
+            # A case folder with an apostrophe: the restart reads capacity.parquet through DuckDB SQL
+            case_dir = copy_small_case(joinpath(dir, "O'Brien"); macro_settings, case_settings=myopic, num_periods=2)
             run_small_case(case_dir)
 
             first_run = joinpath(case_dir, "results_001")
