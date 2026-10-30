@@ -15,7 +15,7 @@ When time-domain reduction (TDR) is used, the optimization runs over a small set
 If TDR is not used (i.e., the model already runs over the full year), `WriteFullTimeseries` has no effect and the subdirectory is not created.
 
 !!! tip "File sizes"
-    Full time series files can be very large (up to 8,760 rows × many components). Long-format files are automatically written in **compressed `.csv.gz` format** to manage file sizes. Wide-format files use standard `.csv`.
+    Full time series files can be very large (up to 8,760 rows × many components). With the default `OutputFormat = "csv"`, long-format files are automatically written in **compressed `.csv.gz` format** to manage file sizes, and wide-format files use standard `.csv`. Set [`OutputFormat`](@ref "manual-outputs-format") to `"parquet"` for even smaller files.
 
 ## [Files Produced](@id manual-outputs-full-timeseries-files)
 
@@ -27,11 +27,14 @@ The following files are written inside `full_time_series/`:
 | `non_served_demand.csv` or `non_served_demand.csv.gz` | Wide / Long (`.gz`) | Always (if enabled) | Expanded non-served demand for all NSD-enabled nodes |
 | `storage_level.csv` or `storage_level.csv.gz` | Wide / Long (`.gz`) | Always (if enabled) | Expanded storage state of charge |
 | `curtailment.csv` or `curtailment.csv.gz` | Wide / Long (`.gz`) | Always (if enabled) | Expanded VRE curtailment |
-| `balance_duals.csv` | Wide | `DualExportsEnabled = true` | Expanded locational marginal prices |
+| `balance_duals.csv` | Wide | `WriteOutputs.Duals = true` (default) | Expanded locational marginal prices |
 
-The file format (`.csv` vs `.csv.gz`) is determined automatically based on the `OutputLayout` setting:
-- **Long format** → compressed `.csv.gz`
-- **Wide format** → standard `.csv`
+The file format follows the [`OutputFormat`](@ref "manual-outputs-format") setting for each output, with one exception for the default CSV format:
+- `"csv"` with **long** layout → compressed `.csv.gz`
+- `"csv"` with **wide** layout → standard `.csv`
+- `"csv.gz"` or `"parquet"` → that format, for either layout
+
+`balance_duals` follows the `Duals` format (`.csv` by default). Outputs switched off in [`WriteOutputs`](@ref "manual-outputs-selecting") are not written here either.
 
 The column structure of each file is identical to the corresponding file in the parent results directory (e.g., `flows.csv` in `full_time_series/` has the same columns as `flows.csv` in `results/`), except that the `time` column now runs from `1` to `TotalHoursModeled` instead of only the representative time steps.
 
@@ -57,7 +60,8 @@ The reconstruction proceeds as follows:
 |---|---|---|---|
 | `WriteFullTimeseries` | `case_settings.json` | `false` | Set to `true` to enable writing of the `full_time_series/` subdirectory. Has no effect if TDR is not used. |
 | `OutputLayout` (or per-variable keys) | `macro_settings.json` | `"long"` | Controls whether files are written in long (`.csv.gz`) or wide (`.csv`) format. |
-| `DualExportsEnabled` | `macro_settings.json` | `true` | When `true`, also writes `full_time_series/balance_duals.csv`. |
+| `OutputFormat` (or per-variable keys) | `macro_settings.json` | `"csv"` | Set to `"csv.gz"` or `"parquet"` to write that format regardless of layout. |
+| `WriteOutputs.Duals` | `macro_settings.json` | `true` | When `true`, also writes `full_time_series/balance_duals.csv`. (Replaces the deprecated `DualExportsEnabled`.) |
 
 ## [Assumptions](@id manual-outputs-full-timeseries-assumptions)
 

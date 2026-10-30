@@ -72,7 +72,7 @@ function write_storage_level(
         storage_level_results = reshape_wide(storage_level_results, :time, :component_id, :value)
     end
     
-    write_dataframe(file_path, storage_level_results, drop_cols)
+    write_dataframe(file_path, storage_level_results, drop_cols; sigdigits=get_output_significant_digits(system))
     return nothing
 end
 
@@ -100,7 +100,7 @@ function write_storage_level(
         storage_level_results = reshape_wide(storage_level_results, :time, :component_id, :value)
     end
     
-    write_dataframe(file_path, storage_level_results)
+    write_dataframe(file_path, storage_level_results; sigdigits=get_output_significant_digits(system))
     return nothing
 end
 

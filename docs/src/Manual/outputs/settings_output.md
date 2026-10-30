@@ -46,6 +46,9 @@ The `system_settings` are written as JSON arrays (one entry per period for multi
     "system_settings": [
         {
             "OutputLayout": "long",
+            "OutputFormat": "csv",
+            "WriteOutputs": {},
+            "OutputSignificantDigits": null,
             "DualExportsEnabled": true,
             "OverwriteResults": false,
             "OutputDir": "results",

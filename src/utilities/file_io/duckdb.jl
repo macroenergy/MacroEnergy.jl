@@ -9,7 +9,8 @@ function duckdb_read(file_path::AbstractString)
     try
         # DBInterface.execute leaves an internal pending query alive until GC,
         # retaining CSV handles even after the result and database are closed.
-        result = DuckDB.query(db_connection, "SELECT * FROM '$file_path'")
+        # Double any single quote so paths like `O'Brien/...` stay one SQL string literal
+        result = DuckDB.query(db_connection, "SELECT * FROM '$(replace(file_path, "'" => "''"))'")
         try
             # Materialize owned Julia columns before releasing DuckDB's resources.
             return DataFrame(result)

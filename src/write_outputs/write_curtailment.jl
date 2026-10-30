@@ -57,7 +57,7 @@ function write_curtailment(
         curtailment_results = reshape_wide(curtailment_results, :time, :resource_id, :value)
     end
 
-    write_dataframe(file_path, curtailment_results, drop_cols)
+    write_dataframe(file_path, curtailment_results, drop_cols; sigdigits=get_output_significant_digits(system))
 
     return nothing
 end
@@ -102,7 +102,7 @@ function write_curtailment(
         curtailment_results = reshape_wide(curtailment_results, :time, :resource_id, :value)
     end
 
-    write_dataframe(file_path, curtailment_results)
+    write_dataframe(file_path, curtailment_results; sigdigits=get_output_significant_digits(system))
     return nothing
 end
 
