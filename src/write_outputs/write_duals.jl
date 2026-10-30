@@ -5,11 +5,13 @@
 """
     write_duals(results_dir::AbstractString, system::System, scaling::Float64)
 
-Write dual values for all supported constraint types to separate CSV files.
+Write dual values for all supported constraint types to separate files.
 
 Currently, this function exports dual values for:
 - Balance constraints → `balance_duals.csv`
 - CO2 cap constraints → `co2_cap_duals.csv`
+
+The file extension follows the `OutputFormat` setting for `Duals` (`.csv` by default).
 
 # Arguments
 - `results_dir::AbstractString`: Directory where CSV files will be written
@@ -82,13 +84,12 @@ function write_balance_duals(
 )
     @info "Writing balance constraint dual values to $results_dir"
 
-    filename = "balance_duals.csv"
-    file_path = joinpath(results_dir, filename)
+    file_path = output_file(results_dir, "balance_duals", system, :Duals)
 
     balance_duals, node_ids, _ = _extract_balance_duals(system, scaling, var_cost_discount)
 
     df = DataFrame(balance_duals, node_ids, copycols=false)
-    write_dataframe(file_path, df)
+    write_dataframe(file_path, df; sigdigits=get_output_significant_digits(system))
     @debug "Wrote $(nrow(df)) time steps and $(length(node_ids)) nodes for balance constraints to CSV file: $file_path"
 
     return nothing
@@ -176,8 +177,7 @@ function write_co2_cap_duals(
 )
     @info "Writing CO2 cap constraint dual values to $results_dir"
 
-    filename = "co2_cap_duals.csv"
-    file_path = joinpath(results_dir, filename)
+    file_path = output_file(results_dir, "co2_cap_duals", system, :Duals)
 
     # Constraint type
     ct_type = CO2CapConstraint

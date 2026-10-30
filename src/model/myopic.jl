@@ -7,7 +7,8 @@ end
 MyopicResults(results, output_path) = MyopicResults(results, output_path, PeriodOutcome[])
 
 function load_previous_capacity_results(path::AbstractString)
-    df = load_dataframe(path)
+    # Plain CSV keeps the header validation of load_dataframe; DuckDB reads .csv.gz and .parquet
+    df = endswith(path, ".csv") ? load_dataframe(path) : duckdb_read(path)
     if all(["component_id", "capacity", "new_capacity", "retired_capacity"] .∈ Ref(names(df)))
         #### The dataframe has wide format
         return df

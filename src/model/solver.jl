@@ -178,6 +178,10 @@ function solve_case(case::Case, opt::O, ::Myopic) where O <: Union{Optimizer, Di
     # `nothing` unless `ReturnModels` is set
     period_outcomes = PeriodOutcome[]
 
+    if !all(system -> output_enabled(system, :Capacity), periods)
+        @warn("WriteOutputs.Capacity is false for at least one period: the results of this run cannot be used to restart a later Myopic run.")
+    end
+
     if myopic_settings[:Restart][:enabled]
         if myopic_settings[:Restart][:from_period] == 1
             @warn("Restarting from the first period; no previous period to load, proceeding with normal iteration.")
@@ -188,7 +192,7 @@ function solve_case(case::Case, opt::O, ::Myopic) where O <: Union{Optimizer, Di
             capacity_results = Dict{Int,DataFrame}()
             for period_idx in 1:restart_period_idx-1
                 capacity_results[period_idx] = load_previous_capacity_results(
-                    joinpath(restart_folder, "results_period_$(period_idx)", "capacity.csv")
+                    find_output_file(joinpath(restart_folder, "results_period_$(period_idx)"), "capacity")
                 )
             end
             carry_over_capacities!(periods[restart_period_idx], capacity_results, restart_period_idx-1, parameter_scaling_factor(settings))
@@ -230,7 +234,7 @@ function solve_case(case::Case, opt::O, ::Myopic) where O <: Union{Optimizer, Di
         end
     end
 
-    length(capacity_summaries) > 1 && write_capacity_summary(output_path, capacity_summaries, get_output_layout(periods[1], :CapacitySummary))
+    length(capacity_summaries) > 1 && write_capacity_summary(output_path, capacity_summaries, periods[1])
 
     write_settings(case, joinpath(output_path, "settings.json"))
 

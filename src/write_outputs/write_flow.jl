@@ -73,7 +73,7 @@ function write_flow(
         # df will be of size (time_steps, component_ids)
         flow_results = reshape_wide(flow_results, :time, :component_id, :value)
     end
-    write_dataframe(file_path, flow_results, drop_cols)
+    write_dataframe(file_path, flow_results, drop_cols; sigdigits=get_output_significant_digits(system))
     return nothing
 end
 
@@ -93,7 +93,7 @@ function write_flows(file_path::AbstractString,
     if layout == "wide"
         flow_results = reshape_wide(flow_results, :time, :component_id, :value)
     end
-    write_dataframe(file_path, flow_results)
+    write_dataframe(file_path, flow_results; sigdigits=get_output_significant_digits(system))
 end
 
 ## Flow extraction functions ##

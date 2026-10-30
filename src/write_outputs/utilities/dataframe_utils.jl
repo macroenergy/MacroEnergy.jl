@@ -4,9 +4,10 @@ DataFrame processing utilities for output data.
 
 """
     write_dataframe(
-        file_path::AbstractString, 
-        df::AbstractDataFrame, 
-        drop_cols::Vector{<:AbstractString}=String[]
+        file_path::AbstractString,
+        df::AbstractDataFrame,
+        drop_cols::Vector{<:AbstractString}=String[];
+        sigdigits::Union{Nothing,Int}=nothing
     )
 
 Write a DataFrame to a file in the appropriate format based on file extension.
@@ -16,11 +17,14 @@ Supported formats: .csv, .csv.gz, .parquet
 - `file_path::AbstractString`: Path where to save the file
 - `df::AbstractDataFrame`: DataFrame to write
 - `drop_cols::Vector{<:AbstractString}`: Columns to drop from the DataFrame
+- `sigdigits::Union{Nothing,Int}`: If set, round all floating-point columns to this many
+  significant digits before writing (see [`round_float_columns!`](@ref))
 """
 function write_dataframe(
     file_path::AbstractString,
     df::AbstractDataFrame,
-    drop_cols::Vector{<:AbstractString}=String[]
+    drop_cols::Vector{<:AbstractString}=String[];
+    sigdigits::Union{Nothing,Int}=nothing
 )
     # Extract file extension and check if supported in Macro
     extension = lowercase(splitext(file_path)[2])
@@ -42,10 +46,29 @@ function write_dataframe(
     # Drop the columns specified by the user
     select!(df, Not(Symbol.(drop_cols)))
 
+    isnothing(sigdigits) || round_float_columns!(df, sigdigits)
+
     # Write the DataFrame using the appropriate writer function
     writer(file_path, df)
 
     return nothing
+end
+
+"""
+    round_float_columns!(df::AbstractDataFrame, sigdigits::Int)
+
+Round every floating-point column of `df` (including those with missing values) to `sigdigits`
+significant digits. Columns are replaced rather than modified in place, so vectors shared with
+other DataFrames are left untouched.
+"""
+function round_float_columns!(df::AbstractDataFrame, sigdigits::Int)
+    for col in names(df)
+        T = nonmissingtype(eltype(df[!, col]))
+        if T !== Union{} && T <: AbstractFloat
+            df[!, col] = passmissing(x -> round(x; sigdigits)).(df[!, col])
+        end
+    end
+    return df
 end
 
 # Function to convert a vector of OutputRow objects to a DataFrame for 
