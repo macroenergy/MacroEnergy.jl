@@ -270,7 +270,7 @@ end
 
 Return the dual value of `con_ref` before MEScaling's row and objective
 transformations, or `NaN` when no usable dual solution is available. Scaling
-metadata is read from `owner_model(con_ref).ext[:macroenergy_scaling]`; without
+metadata is read from `scaling_settings(owner_model(con_ref))`; without
 that metadata, return the solver dual unchanged. Macro's input scaling,
 discounting, subperiod weights and output sign conventions are handled by callers.
 Pass a precomputed `duals_available` value when extracting many duals from the
@@ -295,10 +295,10 @@ function dual_or_nan(con_ref; result::Int=1, duals_available::Union{Nothing,Bool
         end
         rethrow()
     end
-    settings = get(model.ext, :macroenergy_scaling, nothing)
-    if !isnothing(settings)
-        row_factor = get(settings.constraint_scaling_factors, con_ref, 1.0)
-        dual_value *= row_factor / settings.objective_scaling_factor
+    model_scaling_settings = scaling_settings(model)
+    if !isnothing(model_scaling_settings)
+        row_factor = get(model_scaling_settings.constraint_scaling_factors, con_ref, 1.0)
+        dual_value *= row_factor / model_scaling_settings.objective_scaling_factor
     end
     return dual_value
 end

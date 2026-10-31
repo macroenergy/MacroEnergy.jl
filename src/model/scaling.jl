@@ -144,13 +144,18 @@ const _STORAGE_SCALABLE_FIELDS = Symbol[
 scalable_fields(::AbstractEdge) = _EDGE_SCALABLE_FIELDS
 scalable_fields(::AbstractStorage) = _STORAGE_SCALABLE_FIELDS
 
+const SCALING_SETTINGS_EXT_KEY = :macroenergy_scaling
+
+scaling_settings(model::Model) = get(model.ext, SCALING_SETTINGS_EXT_KEY, nothing)
+scaling_settings!(model::Model) = get!(MacroEnergyScaling.ScalingSettings, model.ext, SCALING_SETTINGS_EXT_KEY)
+
 # MacroEnergyScaling.scale_constraints!
 function scale_constraints!(system::System, model::Model)
     # Preserve cumulative factors if this model is scaled more than once.
-    scaling_settings = get!(MacroEnergyScaling.ScalingSettings, model.ext, :macroenergy_scaling)
+    model_scaling_settings = scaling_settings!(model)
     if system.settings.ConstraintScaling
         @info "Scaling constraints and RHS"
-        scale_constraints!(model, scaling_settings)
+        scale_constraints!(model, model_scaling_settings)
     end
     return nothing
 end
