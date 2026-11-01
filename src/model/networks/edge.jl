@@ -44,6 +44,7 @@ macro AbstractEdgeBaseAttributes()
         retrofitted_capacity_track::Dict{Int64,AffExpr} = Dict(1 => AffExpr(0.0))
         retrofitted_units::Union{JuMPVariable,Float64} = 0.0
         variable_om_cost::Float64 = $edge_defaults[:variable_om_cost]
+        ptc_rate::Float64 = $edge_defaults[:ptc_rate]
         min_down_time::Int64 = $edge_defaults[:min_down_time]
         min_up_time::Int64 = $edge_defaults[:min_up_time]
         startup_cost::Float64 = $edge_defaults[:startup_cost]
@@ -357,6 +358,7 @@ retrofitted_capacity_track(e::AbstractEdge,s::Int64) = (haskey(retrofitted_capac
 retrofitted_units(e::AbstractEdge) = e.retrofitted_units;
 start_vertex(e::AbstractEdge)::AbstractVertex = e.start_vertex;
 variable_om_cost(e::AbstractEdge) = e.variable_om_cost;
+ptc_rate(e::AbstractEdge) = e.ptc_rate;
 wacc(e::AbstractEdge) = e.wacc;
 annualized_investment_cost(e::AbstractEdge) = e.annualized_investment_cost;
 pv_period_investment_cost(e::AbstractEdge) = e.pv_period_investment_cost;

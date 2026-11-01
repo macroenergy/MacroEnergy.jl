@@ -33,7 +33,7 @@ These files contain exactly three rows — one for fixed costs, one for variable
 | `variable` | Description |
 |---|---|
 | `DiscountedFixedCost` | Present value of all fixed costs (investment annuities + fixed O&M) |
-| `DiscountedVariableCost` | Present value of all variable costs (variable O&M, fuel, startup, NSD penalties) |
+| `DiscountedVariableCost` | Present value of all variable costs (variable O&M, fuel, startup, NSD penalties), less PTC payments |
 | `DiscountedTotalCost` | Sum of `DiscountedFixedCost` + `DiscountedVariableCost` (the objective value) |
 
 #### `variable` values in `undiscounted_costs.csv`
@@ -41,7 +41,7 @@ These files contain exactly three rows — one for fixed costs, one for variable
 | `variable` | Description |
 |---|---|
 | `FixedCost` | Undiscounted total fixed costs |
-| `VariableCost` | Undiscounted total variable costs |
+| `VariableCost` | Undiscounted total variable costs, less PTC payments |
 | `TotalCost` | Sum of `FixedCost` + `VariableCost` |
 
 ## [Breakdown Cost Files](@id manual-outputs-costs-breakdown)
@@ -89,11 +89,14 @@ All follow the same discounting structure. For each category, $C$ is the **categ
 | Category | Description |
 |---|---|
 | `VariableOM` | Cost proportional to energy output, using the variable O&M rate per unit of flow |
+| `PTC` | Negative production tax credit payment, calculated from the positive `ptc_rate` and eligible electricity generation |
 | `Fuel` | Cost of fuel consumed, using the fuel price per unit of fuel flow |
 | `Startup` | Cost of starting thermal generators, using the startup cost per start event |
 | `NonServedDemand` | Penalty for unmet demand, using the non-served demand penalty parameter (not actual expenditure — an optimization penalty to incentivize meeting demand) |
 | `Supply` | Cost of purchasing commodity supply from nodes with an associated supply price |
 | `UnmetPolicyPenalty` | Penalty for violating policy constraints such as renewable portfolio standards or emission caps with slack variables (not actual expenditure — an optimization penalty) |
+
+The `PTC` category uses the negative of the annual payment as its annual cost. System totals already include this credit. The separate [PTC Payments Output](@ref manual-outputs-ptc) reports positive payments by resource; do not subtract them again.
 
 ### Notation and Formulas
 
@@ -133,9 +136,12 @@ Given these definitions, the cost categories are computed as follows:
 
 **Variable cost categories:**
 
+For `PTC`, ``P`` is the nonnegative annual weighted payment.
+
 | Category | Discounted value | Undiscounted value |
 |---|---|---|
 | `VariableOM` | $C \times \text{PVAF}(DR, L_i) \times \text{DF}(DR, N_i)$ | $C \times L_i$ |
+| `PTC` | ``-P \times \mathrm{PVAF}(DR,L_i) \times \mathrm{DF}(DR,N_i)`` | ``-P \times L_i`` |
 | `Fuel` | $C \times \text{PVAF}(DR, L_i) \times \text{DF}(DR, N_i)$ | $C \times L_i$ |
 | `Startup` | $C \times \text{PVAF}(DR, L_i) \times \text{DF}(DR, N_i)$ | $C \times L_i$ |
 | `NonServedDemand` | $C \times \text{PVAF}(DR, L_i) \times \text{DF}(DR, N_i)$ | $C \times L_i$ |

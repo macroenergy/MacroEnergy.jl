@@ -204,6 +204,8 @@ function _write_benders_period_outputs(
     write_undiscounted_costs(joinpath(results_dir, "undiscounted_costs.csv"), system, costs, scaling)
     # Detailed cost breakdown (assets and zones level)
     write_detailed_costs_benders(results_dir, system, costs, operational_costs_df[subop_indices], settings, scaling)
+    write_ptc_payments(joinpath(results_dir, "ptc_payments.csv"),
+        aggregate_ptc_payments(subproblems_data.ptc_payments[subop_indices]), settings)
     # CAPEX results (investment cost × new capacity)
     write_capex(joinpath(results_dir, "capex.csv"), system, scaling, Float64(settings.DiscountRate))
 
@@ -268,6 +270,7 @@ function write_period_outputs(
     write_undiscounted_costs(joinpath(results_dir, "undiscounted_costs.csv"), system, model, scaling)
     # Cost results (detailed breakdown by type and zone, discounted and undiscounted)
     write_detailed_costs(results_dir, system, model, settings, scaling)
+    write_ptc_payments(joinpath(results_dir, "ptc_payments.csv"), system, settings, scaling)
     # CAPEX results (investment cost × new capacity)
     write_capex(joinpath(results_dir, "capex.csv"), system, scaling, Float64(settings.DiscountRate))
 

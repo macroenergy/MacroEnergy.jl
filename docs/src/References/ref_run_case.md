@@ -32,3 +32,9 @@ MacroEnergy.run_status_success
 MacroEnergy.run_status_failure
 MacroEnergy.write_run_status
 ```
+## PTC model accounting
+
+```@docs
+MacroEnergy.add_ptc_payment!
+MacroEnergy.set_operating_cost_lower_bounds!
+```

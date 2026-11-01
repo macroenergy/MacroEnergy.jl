@@ -283,3 +283,11 @@ MacroEnergy.compute_supply_cost
 ```@docs
 MacroEnergy.compute_slack_cost
 ```
+
+## PTC payment helpers
+
+```@docs
+MacroEnergy.compute_ptc_payment
+MacroEnergy.get_ptc_payments
+MacroEnergy.aggregate_ptc_payments
+```

@@ -162,6 +162,9 @@ function add_period_to_model!(
     store_and_unregister_costs!(model, system, fixed_cost, investment_cost, om_fixed_cost)
 
     variable_cost[period_index(system)] = model[:eVariableCost]
+    payments = get!(object_dictionary(model), :eAnnualPTCPaymentByPeriod, Dict{Int,AffExpr}())
+    payments[period_index(system)] = model[:ePTCPayment]
+    unregister(model, :ePTCPayment)
     unregister(model, :eVariableCost)
 end
 
@@ -241,6 +244,10 @@ function finalize_model_objective!(
 
     @expression(model, eVariableCost, sum(eVariableCostByPeriod[s] for s in period_indices))
 
+    annual_ptc = model[:eAnnualPTCPaymentByPeriod]
+    @expression(model, ePTCPaymentByPeriod[s in period_indices], discount_factor[s] * opexmult[s] * annual_ptc[s])
+    @expression(model, ePTCPayment, sum(ePTCPaymentByPeriod[s] for s in period_indices))
+
     @objective(model, Min, model[:eFixedCost] + model[:eVariableCost])
 
     return nothing
@@ -267,6 +274,8 @@ end
 
 function operation_model!(system::System, model::Model)
 
+    model[:ePTCPayment] = AffExpr(0.0)
+
     for location in system.locations
         operation_model!(location, model)
     end
@@ -275,8 +284,29 @@ function operation_model!(system::System, model::Model)
         operation_model!(asset, model)
     end
 
+    # Eligibility is explicit input. Zero-rate edges do not enter the time loop.
+    for edge in get_edges(system)
+        add_ptc_payment!(edge, model)
+    end
+    add_to_expression!(model[:eVariableCost], -1.0, model[:ePTCPayment])
+
     add_constraints_by_type!(system, model, OperationConstraint)
     
+end
+
+"""Add annual, weighted PTC payments without changing VOM or startup costs."""
+function add_ptc_payment!(e::AbstractEdge, model::Model)
+    rate = ptc_rate(e)
+    validate_ptc_rate(rate)
+    iszero(rate) && return nothing
+    if e isa BidirectionalEdge || !(commodity_type(e) <: Electricity) || !has_capacity(e)
+        throw(ArgumentError("Positive ptc_rate requires a unidirectional electricity capacity edge: $(id(e))."))
+    end
+    for t in time_interval(e)
+        w = current_subperiod(e, t)
+        add_to_expression!(model[:ePTCPayment], subperiod_weight(e, w) * rate, flow(e, t))
+    end
+    return nothing
 end
 
 function operation_model!(g, model::Model)

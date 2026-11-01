@@ -32,6 +32,7 @@ function edge_default_data()
         :investment_cost => 0.0,
         :fixed_om_cost => 0.0,
         :variable_om_cost => 0.0,
+        :ptc_rate => 0.0,
         :uc => false,
         :min_down_time => 0.0,
         :min_up_time => 0.0,

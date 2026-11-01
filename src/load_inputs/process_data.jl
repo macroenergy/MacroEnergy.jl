@@ -58,6 +58,15 @@ end
 function validate_data(data::AbstractDict{Symbol,Any})
     # validate_id!(data)
     validate_constraints_data!(data)
+    haskey(data, :ptc_rate) && validate_ptc_rate(data[:ptc_rate])
+    return nothing
+end
+
+"""Validate one scalar PTC rate in currency per unit of eligible generation."""
+function validate_ptc_rate(rate)
+    if !(rate isa Real) || rate isa Bool || !isfinite(rate) || rate < 0
+        throw(ArgumentError("ptc_rate must be a finite, nonnegative scalar number."))
+    end
     return nothing
 end
 
