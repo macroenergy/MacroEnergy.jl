@@ -42,7 +42,7 @@ MacroEnergyGurobiExt = "Gurobi"
 
 [compat]
 BenchmarkTools = "1"
-CSV = "0.10"
+CSV = "0.10, 1"
 DBInterface = "2"
 DataFrames = "1.7"
 Dates = "1"
