@@ -11,6 +11,10 @@ and this project follows Julia package versioning through `Project.toml` release
 
 - Corrected exported duals after MacroEnergyScaling constraint-row and objective scaling. All model builders now retain cumulative scaling metadata per model, and dual reporting restores the original model units before applying input scaling, time weights and discount conversions. Requires MacroEnergyScaling v0.4.1 or later.
 
+### Changed
+
+- Extended DuckDB.jl compatibility to include 2.x (`DuckDB = "1, 2"`). Environments that resolve DuckDB.jl 2.x read CSV inputs with the bundled DuckDB 2.0 engine.
+
 ## [0.3.0 - rc] - 2026-10-14
 
 ### Added
