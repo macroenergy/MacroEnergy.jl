@@ -83,6 +83,7 @@ with_logger(test_logger) do
     
     Test.@testset verbose = true "Dual Value Exports" begin
         include("test_duals.jl")
+        include("test_constraint_dual_scaling.jl")
     end
     
     Test.@testset verbose = true "Benders Output Utilities" begin

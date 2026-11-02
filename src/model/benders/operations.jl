@@ -48,10 +48,7 @@ function initialize_subproblem(system::Any,optimizer::Optimizer,case_settings::N
 
     set_silent(subproblem)
 
-    if system.settings.ConstraintScaling
-        @info "Scaling constraints and RHS"
-        scale_constraints!(subproblem)
-    end
+    scale_constraints!(system, subproblem)
 
     return subproblem,linking_variables_sub
 end
