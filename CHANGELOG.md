@@ -13,6 +13,10 @@ and this project follows Julia package versioning through `Project.toml` release
 - User-supplied Benders operating-cost lower bounds for negative net operating costs. Positive PTC requires these bounds and requires automatic subproblem slacks to be disabled.
 - `ptc_payments.csv` with resource and edge identity, weighted generation, and annual, period, and discounted payments. Cost breakdowns include a negative `PTC` category.
 
+### Changed
+
+- Add PTC directly to edge variable costs and use the existing objective discounting. Calculate separate payment reports from solved flows without retaining extra JuMP payment expressions.
+
 ### Fixed
 
 - Preserve empty cost tables for cases with zero operating costs.

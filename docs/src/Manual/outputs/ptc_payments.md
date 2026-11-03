@@ -32,6 +32,8 @@ All values are restored from parameter scaling. The word *annual* describes the 
 
 ## [Accounting](@id manual-outputs-ptc-accounting)
 
+Macro calculates payments from solved eligible generation, time weights, and the input rate. It applies scaling and financial factors during output processing.
+
 For a resource with rate ``r`` and annual weighted generation ``G``:
 
 ```math

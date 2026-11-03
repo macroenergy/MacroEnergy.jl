@@ -50,7 +50,9 @@ The annual net operating cost is:
 C^{\mathrm{net}}_{\mathrm{op},p} = C^{\mathrm{original}}_{\mathrm{op},p} - P_p.
 ```
 
-The existing financial path then applies the period discount factor and present-value annuity factor. PTC does not add decision variables or constraints. It works with zero VOM and with both UC and non-UC electricity edges. Fuel and startup costs retain their existing calculations.
+PTC is included in net operating cost before the existing financial path applies the period discount factor and present-value annuity factor. PTC does not add decision variables or constraints. It works with zero VOM and with both UC and non-UC electricity edges. Fuel and startup costs retain their existing calculations.
+
+Payment reports calculate the credit separately from solved generation, time weights, and the supplied rates. This separate reporting does not add the payment to the objective again.
 
 Parameter scaling divides both the rate and electricity flow by ``S``, so model payments are divided by ``S^2``. Native output restores the original units once. Do not rescale those output values again.
 

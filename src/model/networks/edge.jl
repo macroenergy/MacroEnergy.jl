@@ -497,7 +497,27 @@ function compute_fixed_costs!(e::AbstractEdge, model::Model, cost_type::Symbol=:
     compute_om_fixed_costs!(e, model, fom_cost_function[cost_type])
 end
 
+"""
+Subtract annual weighted PTC payments directly from `eVariableCost`.
+VOM and startup costs retain their existing calculations. The objective applies
+period discounting; output helpers calculate payments from solved flows.
+"""
+function add_ptc_payment!(e::AbstractEdge, model::Model)
+    rate = ptc_rate(e)
+    validate_ptc_rate(rate)
+    iszero(rate) && return nothing
+    if e isa BidirectionalEdge || !(commodity_type(e) <: Electricity) || !has_capacity(e)
+        throw(ArgumentError("Positive ptc_rate requires a unidirectional electricity capacity edge: $(id(e))."))
+    end
+    for t in time_interval(e)
+        w = current_subperiod(e, t)
+        add_to_expression!(model[:eVariableCost], -subperiod_weight(e, w) * rate, flow(e, t))
+    end
+    return nothing
+end
+
 function add_operation_model_varcosts!(e::EdgeWithoutUC, model::Model)
+    add_ptc_payment!(e, model)
     vom_cost = variable_om_cost(e)
     if vom_cost > 0
         eVariableCost = model[:eVariableCost]::AffExpr
@@ -652,6 +672,7 @@ ustart(e::EdgeWithUC, t::Int64) = (ustart(e)::VarArrayOrDense)[t];
 ##### End of EdgeWithUC interface #####
 
 function add_operation_model_varcosts!(e::EdgeWithUC, model::Model)
+    add_ptc_payment!(e, model)
     vom_cost = variable_om_cost(e)
     startup_c = startup_cost(e)
     if vom_cost > 0 || startup_c > 0

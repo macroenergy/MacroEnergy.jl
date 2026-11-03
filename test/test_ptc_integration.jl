@@ -39,22 +39,18 @@ end
 
 function test_accounting(root)
     @testset "PTC accounting, UC, scaling, and zero VOM" begin
-        for uc in (false, true), scale in (1.0, 1000.0), (vom, rate) in ((3.0, 0.0), (3.0, 40.0), (0.0, 40.0), (0.0, 0.0))
+        for uc in (false, true), scale in (1.0, 1000.0), (vom, rate) in ((3.0, 0.0), (3.0, 40.0), (0.0, 40.0), (0.0, 0.0), (40.0, 40.0), (50.0, 40.0))
             system = make_ptc_system(; uc, vom, rate)
             settings = settings_for(; scale)
             result = solve_ptc_case([system], settings, mktempdir(root))
             edge = electricity_edge(system.assets[1])
             @test objective_value(result.model) * scale^2 ≈ 100 * (vom - rate) atol = 1e-6
-            @test value(result.model[:ePTCPayment]) * scale^2 ≈ 100 * rate atol = 1e-6
-            @test value(result.model[:eAnnualPTCPaymentByPeriod][1]) * scale^2 ≈ 100 * rate atol = 1e-6
+            @test ME.compute_ptc_payment(edge) * scale^2 ≈ 100 * rate atol = 1e-6
             @test ME.compute_variable_om_cost(edge) * scale^2 ≈ 100 * vom atol = 1e-6
             check_payment_file(joinpath(result.folder, "results", "ptc_payments.csv"), 100 * rate, 1, 1; rate)
             detail = ME.get_detailed_costs(system, settings, scale)
             @test sum(detail.discounted.value) ≈ 100 * (vom - rate) atol = 1e-6
             @test sum(detail.discounted[detail.discounted.category .== :PTC, :value]) ≈ -100 * rate atol = 1e-6
-            if rate == 0
-                @test isempty(result.model[:eAnnualPTCPaymentByPeriod][1].terms)
-            end
             ME.unscale!(system, scale)
             @test edge.ptc_rate == rate
         end
@@ -71,7 +67,7 @@ function test_accounting(root)
         optimize!(model)
         @test termination_status(model) == MOI.OPTIMAL
         @test ME.compute_startup_cost(edge) ≈ 200.0
-        @test value(model[:ePTCPayment]) ≈ 4000.0
+        @test ME.compute_ptc_payment(edge) ≈ 4000.0
         @test objective_value(model) ≈ -3500.0
     end
     @testset "No payment without generation" begin

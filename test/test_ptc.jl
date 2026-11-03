@@ -176,17 +176,13 @@ end
 
 function test_ptc_small_model()
     @testset "Single-resource PTC accounting" begin
-        for uc in (false, true), (vom, rate) in ((3.0, 0.0), (3.0, 40.0), (0.0, 40.0), (0.0, 0.0))
+        for uc in (false, true), (vom, rate) in ((3.0, 0.0), (3.0, 40.0), (0.0, 40.0), (0.0, 0.0), (40.0, 40.0), (50.0, 40.0))
             system = make_ptc_system(; uc, vom, rate)
             model = build_test_model(system)
             edge = electricity_edge(system.assets[1])
             @test objective_value(model) ≈ 100 * (vom - rate) atol = 1e-6
-            @test value(model[:ePTCPayment]) ≈ 100 * rate atol = 1e-6
             @test ME.compute_variable_om_cost(edge) ≈ 100 * vom atol = 1e-6
             @test ME.compute_ptc_payment(edge) ≈ 100 * rate atol = 1e-6
-            if rate == 0
-                @test isempty(model[:ePTCPayment].terms)
-            end
         end
     end
 end
