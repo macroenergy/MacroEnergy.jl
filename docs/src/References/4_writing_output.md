@@ -9,6 +9,11 @@ Pages = ["4_writing_output.md"]
 MacroEnergy.get_optimal_capacity
 ```
 
+## `get_capacity_results`
+```@docs
+MacroEnergy.get_capacity_results
+```
+
 ## `get_detailed_costs`
 ```@docs
 MacroEnergy.get_detailed_costs
