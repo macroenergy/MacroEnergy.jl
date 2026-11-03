@@ -2,6 +2,7 @@ module TestCaseSettings
 
 using Test
 import MacroEnergy:
+    InputValidationError,
     default_case_settings,
     configure_case,
     load_time_data,
@@ -33,7 +34,7 @@ function test_configure_case_start_year()
         @test settings2[:StartYear] == 2030
 
         # Provided as a non-Integer: fails validation
-        @test_throws AssertionError configure_case(Dict{Symbol,Any}(:SolutionAlgorithm => "Monolithic", :StartYear => "2030"))
+        @test_throws InputValidationError configure_case(Dict{Symbol,Any}(:SolutionAlgorithm => "Monolithic", :StartYear => "2030"))
     end
 end
 

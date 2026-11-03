@@ -73,3 +73,52 @@ MacroEnergy.load_benders_settings
 ```@docs
 MacroEnergy.try_load_benders_settings
 ```
+
+## Input specs
+
+Declarative specs of input files, used to fill in defaults and validate settings.
+
+## `InputBlock`
+```@docs
+MacroEnergy.InputBlock
+```
+
+## `InputField`
+```@docs
+MacroEnergy.InputField
+```
+
+## `InputMap`
+```@docs
+MacroEnergy.InputMap
+```
+
+## `InputValidationError`
+```@docs
+MacroEnergy.InputValidationError
+```
+
+## `input_defaults`
+```@docs
+MacroEnergy.input_defaults
+```
+
+## `input_keys`
+```@docs
+MacroEnergy.input_keys
+```
+
+## `merge_defaults`
+```@docs
+MacroEnergy.merge_defaults
+```
+
+## `resolve_inputs`
+```@docs
+MacroEnergy.resolve_inputs
+```
+
+## `validate_inputs`
+```@docs
+MacroEnergy.validate_inputs
+```

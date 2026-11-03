@@ -2,42 +2,6 @@
 const STAGE_SETTINGS_FILENAME = "case_settings.json"
 const BENDERS_SETTINGS_FILEPATH = "settings/benders_settings.json"
 
-function default_case_settings()
-    return Dict(
-        :PeriodLengths => [1],
-        :DiscountRate => 0.,
-        :StartYear => missing,
-        :WriteFullTimeseries => false,
-        :ParameterScaling => false,
-        :ParameterScalingFactor => 1e3,
-        :SolutionAlgorithm => "Monolithic",
-        :ExpansionHorizon => "PerfectForesight"
-    )
-end
-
-function default_myopic_settings()
-    return Dict(
-        :ReturnModels => false,
-        :WriteModelLP => false,
-        :Restart => Dict(:enabled=>false, :folder => "results_001", :from_period => 1),
-        :StopAfterPeriod => Inf
-    )
-end
-
-function default_benders_settings()
-    return Dict(
-        :MaxIter=> 50,
-        :MaxCpuTime => 7200,
-        :ConvTol => 1e-3,
-        :StabParam => 0.0,
-        :StabDynamic => false,
-        :IntegerInvestment => false,
-        :Distributed => false,
-        :ExpectFeasibleSubproblems => false,
-        :IncludeSubproblemSlacksAutomatically => false
-    )
-end
-
 """
     try_load_benders_settings(path::AbstractString)::Union{AbstractDict{Symbol,Any}, Nothing}
 
@@ -134,23 +98,15 @@ function configure_case(case_settings::AbstractDict{Symbol,Any})
     settings = default_case_settings()
     settings = merge(settings, case_settings)
     set_period_lengths!(settings)
+    # Legacy values are translated before validation; strings become types after it
+    translate_legacy_solution_algorithm!(settings)
+    translate_legacy_expansion_horizon!(settings)
+    validate_inputs(case_settings_spec(), settings)
     set_solution_algorithm!(settings)
     set_expansion_horizon!(settings)
     isa(settings[:SolutionAlgorithm], Benders) && configure_benders!(settings)
     isa(settings[:ExpansionHorizon], Myopic) && configure_myopic!(settings)
-    validate_case_settings(settings)
     return namedtuple(settings)
-end
-
-function validate_case_settings(case_settings::AbstractDict{Symbol,Any})
-    @assert all(case_settings[:PeriodLengths].>0)
-    @assert case_settings[:DiscountRate] >= 0
-    @assert ismissing(case_settings[:StartYear]) || isa(case_settings[:StartYear], Integer)
-    @assert isa(case_settings[:WriteFullTimeseries], Bool)
-    @assert isa(case_settings[:ParameterScaling], Bool)
-    @assert case_settings[:ParameterScalingFactor] >= 0
-    @assert isa(case_settings[:SolutionAlgorithm], AbstractSolutionAlgorithm)
-    @assert isa(case_settings[:ExpansionHorizon], AbstractExpansionHorizon)
 end
 
 function set_period_lengths!(case_settings::AbstractDict{Symbol,Any})
@@ -158,39 +114,42 @@ function set_period_lengths!(case_settings::AbstractDict{Symbol,Any})
     return nothing
 end
 
-
-function set_solution_algorithm!(case_settings::AbstractDict{Symbol,Any})
+function translate_legacy_solution_algorithm!(case_settings::AbstractDict{Symbol,Any})
     @info(" -- Setting solution algorithm")
-    if case_settings[:SolutionAlgorithm] == "Monolithic"
-        case_settings[:SolutionAlgorithm] = Monolithic()
-    elseif case_settings[:SolutionAlgorithm] == "Benders"
-        case_settings[:SolutionAlgorithm] = Benders()
-    elseif case_settings[:SolutionAlgorithm] == "Myopic"
+    algorithm = case_settings[:SolutionAlgorithm]
+    if algorithm == "Myopic"
         @warn("""
         Setting SolutionAlgorithm to \"Myopic\" is deprecated.
         Use ExpansionHorizon: "Myopic" combined with SolutionAlgorithm: "Monolithic" instead.
         Translating automatically: SolutionAlgorithm => Monolithic, ExpansionHorizon => Myopic.
         """)
-        case_settings[:SolutionAlgorithm] = Monolithic()
+        case_settings[:SolutionAlgorithm] = "Monolithic"
         case_settings[:ExpansionHorizon] = "Myopic"
-    else
+    elseif !(algorithm in ("Monolithic", "Benders"))
         @warn("No solution algorithm specified, defaulting to Monolithic")
-        case_settings[:SolutionAlgorithm] = Monolithic()
+        case_settings[:SolutionAlgorithm] = "Monolithic"
     end
+    return nothing
+end
+
+function translate_legacy_expansion_horizon!(case_settings::AbstractDict{Symbol,Any})
+    @info(" -- Setting expansion horizon")
+    horizon = case_settings[:ExpansionHorizon]
+    if !(horizon in ("PerfectForesight", "Myopic"))
+        @warn("Unknown expansion horizon '$horizon', defaulting to PerfectForesight")
+        case_settings[:ExpansionHorizon] = "PerfectForesight"
+    end
+    return nothing
+end
+
+function set_solution_algorithm!(case_settings::AbstractDict{Symbol,Any})
+    case_settings[:SolutionAlgorithm] = case_settings[:SolutionAlgorithm] == "Benders" ? Benders() : Monolithic()
     @info(" -- Solution algorithm set to $(case_settings[:SolutionAlgorithm])")
     return nothing
 end
 
 function set_expansion_horizon!(case_settings::AbstractDict{Symbol,Any})
-    @info(" -- Setting expansion horizon")
-    if case_settings[:ExpansionHorizon] == "PerfectForesight"
-        case_settings[:ExpansionHorizon] = PerfectForesight()
-    elseif case_settings[:ExpansionHorizon] == "Myopic"
-        case_settings[:ExpansionHorizon] = Myopic()
-    else
-        @warn("Unknown expansion horizon '$(case_settings[:ExpansionHorizon])', defaulting to PerfectForesight")
-        case_settings[:ExpansionHorizon] = PerfectForesight()
-    end
+    case_settings[:ExpansionHorizon] = case_settings[:ExpansionHorizon] == "Myopic" ? Myopic() : PerfectForesight()
     @info(" -- Expansion horizon set to $(case_settings[:ExpansionHorizon])")
     return nothing
 end
@@ -200,10 +159,8 @@ function configure_benders!(case_settings::AbstractDict{Symbol,Any})
     benders_settings = get(case_settings, :BendersSettings, Dict{Symbol,Any}())
     isempty(benders_settings) && @warn("No benders settings specified, using default settings")
     @info("Configuring benders")
-    settings = default_benders_settings()
-    settings = merge(settings, benders_settings)
-    validate_benders_settings(settings)
-    case_settings[:BendersSettings] = settings
+    case_settings[:BendersSettings] = resolve_inputs(benders_settings_spec(), benders_settings;
+        path="case_settings.BendersSettings")
     return nothing
 end
 
@@ -212,34 +169,7 @@ function configure_myopic!(case_settings::AbstractDict{Symbol,Any})
     myopic_settings = get(case_settings, :MyopicSettings, Dict{Symbol,Any}())
     isempty(myopic_settings) && @warn("No myopic settings specified, using default settings")
     @info("Configuring myopic")
-    settings = default_myopic_settings()
-    settings = merge(settings, myopic_settings)
-    validate_myopic_settings(settings)
-    case_settings[:MyopicSettings] = settings
+    case_settings[:MyopicSettings] = resolve_inputs(myopic_settings_spec(), myopic_settings;
+        path="case_settings.MyopicSettings")
     return nothing
-end
-
-function validate_benders_settings(benders_settings::AbstractDict{Symbol,Any})
-    @assert benders_settings[:MaxIter] > 0 && isa(benders_settings[:MaxIter], Int)
-    @assert benders_settings[:MaxCpuTime] > 0 && isa(benders_settings[:MaxCpuTime], Int)
-    @assert benders_settings[:ConvTol] > 0 && isa(benders_settings[:ConvTol], Number)
-    @assert benders_settings[:StabParam] >= 0 && isa(benders_settings[:StabParam], Number)
-    @assert isa(benders_settings[:StabDynamic], Bool)
-    @assert isa(benders_settings[:IntegerInvestment], Bool)
-    @assert isa(benders_settings[:Distributed], Bool)
-    @assert isa(benders_settings[:ExpectFeasibleSubproblems], Bool)
-    @assert isa(benders_settings[:IncludeSubproblemSlacksAutomatically], Bool)
-end
-
-function validate_myopic_settings(myopic_settings::AbstractDict{Symbol,Any})
-    @assert isa(myopic_settings[:ReturnModels], Bool)
-    @assert isa(myopic_settings[:WriteModelLP], Bool)
-    @assert isa(myopic_settings[:Restart][:enabled], Bool)
-    @assert isa(myopic_settings[:Restart][:folder], AbstractString)
-    @assert isa(myopic_settings[:Restart][:from_period], Int)
-    @assert isa(myopic_settings[:StopAfterPeriod], Number)
-    @assert myopic_settings[:StopAfterPeriod] >= 1
-    @assert myopic_settings[:Restart][:from_period] >= 1
-    @assert (!myopic_settings[:Restart][:enabled]) || (myopic_settings[:Restart][:from_period] <= myopic_settings[:StopAfterPeriod])
-
 end

@@ -235,6 +235,7 @@ include("model/assets/electricheating.jl")
 include("model/assets/thermalsteam.jl")
 include("model/assets/electricsteam.jl")
 
+include("config/settings_schema.jl")
 include("config/configure_settings.jl")
 include("config/case_settings.jl")
 include_all_in_folder("load_inputs")

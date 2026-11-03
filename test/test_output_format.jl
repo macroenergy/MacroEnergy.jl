@@ -7,6 +7,7 @@ using CSV, DataFrames, JSON3
 using DuckDB
 import DBInterface
 import MacroEnergy:
+    InputValidationError,
     check_myopic_capacity_outputs,
     configure_settings,
     duckdb_read,
@@ -83,14 +84,14 @@ function test_output_format()
         @test configure_settings((WriteOutputs=(Curtailment=false,),)).WriteOutputs.Curtailment == false
         @test configure_settings((OutputSignificantDigits=6,)).OutputSignificantDigits == 6
 
-        @test_throws AssertionError configure_settings((OutputFormat="xlsx",))
-        @test_throws AssertionError configure_settings((OutputFormat=(Flows="parquet",),))
-        @test_throws AssertionError configure_settings((OutputFormat=(Flow="xlsx",),))
-        @test_throws AssertionError configure_settings((WriteOutputs=(Flow="no",),))
-        @test_throws AssertionError configure_settings((WriteOutputs=(Flows=false,),))
+        @test_throws InputValidationError configure_settings((OutputFormat="xlsx",))
+        @test_throws InputValidationError configure_settings((OutputFormat=(Flows="parquet",),))
+        @test_throws InputValidationError configure_settings((OutputFormat=(Flow="xlsx",),))
+        @test_throws InputValidationError configure_settings((WriteOutputs=(Flow="no",),))
+        @test_throws InputValidationError configure_settings((WriteOutputs=(Flows=false,),))
         @test configure_settings((WriteOutputs=(Duals=false,),)).WriteOutputs.Duals == false
-        @test_throws AssertionError configure_settings((OutputSignificantDigits=0,))
-        @test_throws AssertionError configure_settings((OutputSignificantDigits=2.5,))
+        @test_throws InputValidationError configure_settings((OutputSignificantDigits=0,))
+        @test_throws InputValidationError configure_settings((OutputSignificantDigits=2.5,))
     end
 
     @testset "DualExportsEnabled is deprecated" begin
@@ -113,7 +114,7 @@ function test_output_format()
         settings = @test_logs (:warn,) configure_settings((DualExportsEnabled=true, WriteOutputs=(Duals=true,)))
         @test settings.WriteOutputs.Duals == true
         @test_throws ErrorException configure_settings((DualExportsEnabled=true, WriteOutputs=(Duals=false,)))
-        @test_throws AssertionError configure_settings((DualExportsEnabled="yes",))
+        @test_throws InputValidationError configure_settings((DualExportsEnabled="yes",))
     end
 
     @testset "Myopic runs must write capacity to be continued" begin
