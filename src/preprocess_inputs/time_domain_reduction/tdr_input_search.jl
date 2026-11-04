@@ -176,6 +176,12 @@ function tdr_case_input_manifest(case_root::String; destination_root::String=cas
             end
         end
     end
+    # Bare single-System cases also load this conventional settings file implicitly.
+    root = isnothing(prepared) ? first(tdr_system_entries(case_root)) : prepared.root
+    implicit_settings = joinpath(case_root, "settings", STAGE_SETTINGS_FILENAME)
+    if !haskey(root, "case") && isfile(implicit_settings)
+        tdr_manifest_path!(manifest, case_root, implicit_settings; destination_root)
+    end
     for (directory, subdirectories, files) in walkdir(case_root)
         filter!(name -> !startswith(name, "results") &&
             !(directory == case_root && name == "TDR"), subdirectories)

@@ -152,6 +152,8 @@ end
         rm(previous_output; recursive=true)
 
         @test preprocess_inputs(source_case, output_case; tdr_settings_path=settings_path) === nothing
+        # The implicit settings file of a bare Case reaches the reduced Case
+        @test isfile(joinpath(output_case, "settings", "case_settings.json"))
         @test isfile(joinpath(output_case, "preprocessing_logs", "time_domain_reduction_provenance.json"))
         @test isfile(joinpath(output_case, "preprocessing_logs", "preprocess_log.json"))
         @test !isfile(joinpath(output_case, "preprocess_log.json"))

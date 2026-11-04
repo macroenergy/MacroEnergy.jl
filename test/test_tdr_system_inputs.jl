@@ -295,3 +295,29 @@ end
         end
     end
 end
+
+@testset "bare Cases copy their implicit settings file" begin
+    mktempdir() do root
+        mkpath(joinpath(root, "settings"))
+        write(joinpath(root, "time_data.json"), "{}")
+        write(joinpath(root, "custom_settings.json"), "{}")
+        write(joinpath(root, "settings", "case_settings.json"), """{"DiscountRate": 0.05}""")
+        write(joinpath(root, "settings", "macro_settings.json"), """{"ConstraintScaling": true}""")
+        function manifest_files(data)
+            MacroEnergy.write_json(joinpath(root, "system_data.json"), data)
+            return Set(relpath(path, root) for path in keys(MacroEnergy.tdr_case_input_manifest(root)))
+        end
+        time_data = Dict("path" => "time_data.json")
+        implicit = joinpath("settings", "case_settings.json")
+
+        # `settings` points to macro_settings.json, and case_settings.json is only found by its name
+        files = manifest_files(Dict("time_data" => time_data, "settings" => Dict("path" => "settings/macro_settings.json")))
+        @test implicit in files
+        @test joinpath("settings", "macro_settings.json") in files
+        # Explicit Cases do not load this file, so they do not copy it
+        @test !(implicit in manifest_files(Dict(
+            "case" => Any[Dict("time_data" => time_data)],
+            "settings" => Dict("path" => "custom_settings.json"),
+        )))
+    end
+end
