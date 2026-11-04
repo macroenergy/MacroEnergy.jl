@@ -178,6 +178,9 @@ function solve_case(case::Case, opt::O, ::Myopic) where O <: Union{Optimizer, Di
     # `nothing` unless `ReturnModels` is set
     period_outcomes = PeriodOutcome[]
 
+    # Fail before any solve if this run is meant to be continued but won't write capacities
+    check_myopic_capacity_outputs(periods, myopic_settings)
+
     if myopic_settings[:Restart][:enabled]
         if myopic_settings[:Restart][:from_period] == 1
             @warn("Restarting from the first period; no previous period to load, proceeding with normal iteration.")
@@ -188,7 +191,8 @@ function solve_case(case::Case, opt::O, ::Myopic) where O <: Union{Optimizer, Di
             capacity_results = Dict{Int,DataFrame}()
             for period_idx in 1:restart_period_idx-1
                 capacity_results[period_idx] = load_previous_capacity_results(
-                    joinpath(restart_folder, "results_period_$(period_idx)", "capacity.csv")
+                    find_output_file(joinpath(restart_folder, "results_period_$(period_idx)"), "capacity";
+                        hint="A Myopic restart needs the capacity file of every earlier period; was that run written with WriteOutputs.Capacity = false?")
                 )
             end
             carry_over_capacities!(periods[restart_period_idx], capacity_results, restart_period_idx-1, parameter_scaling_factor(settings))
@@ -230,7 +234,7 @@ function solve_case(case::Case, opt::O, ::Myopic) where O <: Union{Optimizer, Di
         end
     end
 
-    length(capacity_summaries) > 1 && write_capacity_summary(output_path, capacity_summaries, get_output_layout(periods[1], :CapacitySummary))
+    length(capacity_summaries) > 1 && write_capacity_summary(output_path, capacity_summaries, periods[1])
 
     write_settings(case, joinpath(output_path, "settings.json"))
 
@@ -268,20 +272,25 @@ end
 """
     dual_or_nan(con_ref; result::Int=1, duals_available=nothing)
 
-Return the dual value of `con_ref`, or `NaN` when no usable dual solution
-is available. Pass a precomputed `duals_available` value when extracting many
-duals from the same model to avoid repeated status queries.
+Return the dual value of `con_ref` before MEScaling's row and objective
+transformations, or `NaN` when no usable dual solution is available. Scaling
+metadata is read from `scaling_settings(owner_model(con_ref))`; without
+that metadata, return the solver dual unchanged. Macro's input scaling,
+discounting, subperiod weights and output sign conventions are handled by callers.
+Pass a precomputed `duals_available` value when extracting many duals from the
+same model to avoid repeated status queries.
 
 Only optimizer result-access errors are converted to `NaN`; all other
 errors are rethrown so that programming errors are not hidden.
 """
 function dual_or_nan(con_ref; result::Int=1, duals_available::Union{Nothing,Bool}=nothing)::Float64
+    model = owner_model(con_ref)
     available = isnothing(duals_available) ?
-        has_usable_duals(owner_model(con_ref); result) : duals_available
+        has_usable_duals(model; result) : duals_available
     available || return NaN
 
-    try
-        return dual(con_ref; result)
+    dual_value = try
+        dual(con_ref; result)
     catch err
         if err isa MOI.ResultIndexBoundsError ||
            err isa MOI.GetAttributeNotAllowed ||
@@ -290,6 +299,12 @@ function dual_or_nan(con_ref; result::Int=1, duals_available::Union{Nothing,Bool
         end
         rethrow()
     end
+    model_scaling_settings = scaling_settings(model)
+    if !isnothing(model_scaling_settings)
+        row_factor = get(model_scaling_settings.constraint_scaling_factors, con_ref, 1.0)
+        dual_value *= row_factor / model_scaling_settings.objective_scaling_factor
+    end
+    return dual_value
 end
 
 """

@@ -15,7 +15,7 @@ function write_outputs(
         results_dir = mkpath_for_period(case_path, num_periods, period_idx)
         capacity_summaries[period_idx] = write_period_outputs(results_dir, period_idx, period, model, settings)
     end
-    num_periods > 1 && write_capacity_summary(case_path, capacity_summaries, get_output_layout(periods[1], :CapacitySummary))
+    num_periods > 1 && write_capacity_summary(case_path, capacity_summaries, periods[1])
     write_settings(case, joinpath(case_path, "settings.json"))
     return nothing
 end
@@ -82,7 +82,7 @@ function write_outputs(
             subproblems_data, slack_vars, balance_duals, settings
         )
     end
-    num_periods > 1 && write_capacity_summary(case_path, capacity_summaries, get_output_layout(periods[1], :CapacitySummary))
+    num_periods > 1 && write_capacity_summary(case_path, capacity_summaries, periods[1])
 
     write_benders_convergence(case_path, bm.convergence)
     write_settings(case, joinpath(case_path, "settings.json"))
@@ -180,37 +180,47 @@ function _write_benders_period_outputs(
 
     # Note: period/system has been updated with the capacity values in planning_solution
     # at the end of function solve_case
-    # Capacity results
-    capacity_results = write_capacity(joinpath(results_dir, "capacity.csv"), system, scaling)
+    # Capacity results (always collected, since the cross-period capacity summary needs them)
+    capacity_results = output_enabled(system, :Capacity) ?
+        write_capacity(output_file(results_dir, "capacity", system, :Capacity), system, scaling) :
+        get_capacity_results(system, scaling)
 
     # Flow results
-    write_flows(joinpath(results_dir, "flows.csv"), system, flow_df[subop_indices])
+    output_enabled(system, :Flow) &&
+        write_flows(output_file(results_dir, "flows", system, :Flow), system, flow_df[subop_indices])
 
     # Non-served demand results
-    write_non_served_demand(joinpath(results_dir, "non_served_demand.csv"), system, nsd_df[subop_indices])
+    output_enabled(system, :NonServedDemand) &&
+        write_non_served_demand(output_file(results_dir, "non_served_demand", system, :NonServedDemand), system, nsd_df[subop_indices])
 
     # Storage level results
-    write_storage_level(joinpath(results_dir, "storage_level.csv"), system, storage_level_df[subop_indices])
-    
+    output_enabled(system, :StorageLevel) &&
+        write_storage_level(output_file(results_dir, "storage_level", system, :StorageLevel), system, storage_level_df[subop_indices])
+
     # Curtailment results
-    write_curtailment(joinpath(results_dir, "curtailment.csv"), system, curtailment_df[subop_indices])
+    output_enabled(system, :Curtailment) &&
+        write_curtailment(output_file(results_dir, "curtailment", system, :Curtailment), system, curtailment_df[subop_indices])
 
     # Sub-period weights (for downstream revenue and weighted-sum calculations)
-    write_time_weights(joinpath(results_dir, "time_weights.csv"), system)
+    output_enabled(system, :TimeWeights) &&
+        write_time_weights(output_file(results_dir, "time_weights", system, :TimeWeights), system)
 
     # Cost results (system level)
     costs = prepare_costs_benders(system, bm, subop_indices, settings)
-    write_costs(joinpath(results_dir, "costs.csv"), system, costs, scaling)
-    write_undiscounted_costs(joinpath(results_dir, "undiscounted_costs.csv"), system, costs, scaling)
-    # Detailed cost breakdown (assets and zones level)
-    write_detailed_costs_benders(results_dir, system, costs, operational_costs_df[subop_indices], settings, scaling)
+    if output_enabled(system, :Costs)
+        write_costs(output_file(results_dir, "costs", system, :Costs), system, costs, scaling)
+        write_undiscounted_costs(output_file(results_dir, "undiscounted_costs", system, :Costs), system, costs, scaling)
+        # Detailed cost breakdown (assets and zones level)
+        write_detailed_costs_benders(results_dir, system, costs, operational_costs_df[subop_indices], settings, scaling)
+    end
     # CAPEX results (investment cost × new capacity)
-    write_capex(joinpath(results_dir, "capex.csv"), system, scaling, Float64(settings.DiscountRate))
+    output_enabled(system, :Capex) &&
+        write_capex(output_file(results_dir, "capex", system, :Capex), system, scaling, Float64(settings.DiscountRate))
 
     # Write dual values (if enabled)
     # Scaling factor to account for discounting duals in multi-period models
     var_cost_discount = compute_variable_cost_discount_scaling(period_idx, settings)
-    if system.settings.DualExportsEnabled
+    if output_enabled(system, :Duals)
         # Move slack variables from subproblems to planning problem
         if haskey(slack_vars, period_idx)
             populate_slack_vars_from_subproblems!(system, slack_vars[period_idx])
@@ -258,35 +268,45 @@ function write_period_outputs(
 )
     scaling = parameter_scaling_factor(settings)
 
-    # Capacity results
-    capacity_results = write_capacity(joinpath(results_dir, "capacity.csv"), system, scaling)
+    # Capacity results (always collected, since the cross-period capacity summary needs them)
+    capacity_results = output_enabled(system, :Capacity) ?
+        write_capacity(output_file(results_dir, "capacity", system, :Capacity), system, scaling) :
+        get_capacity_results(system, scaling)
 
     # Cost results (system level)
     create_discounted_cost_expressions!(model, system, settings)
     compute_undiscounted_costs!(model, system, settings)
-    write_costs(joinpath(results_dir, "costs.csv"), system, model, scaling)
-    write_undiscounted_costs(joinpath(results_dir, "undiscounted_costs.csv"), system, model, scaling)
-    # Cost results (detailed breakdown by type and zone, discounted and undiscounted)
-    write_detailed_costs(results_dir, system, model, settings, scaling)
+    if output_enabled(system, :Costs)
+        write_costs(output_file(results_dir, "costs", system, :Costs), system, model, scaling)
+        write_undiscounted_costs(output_file(results_dir, "undiscounted_costs", system, :Costs), system, model, scaling)
+        # Cost results (detailed breakdown by type and zone, discounted and undiscounted)
+        write_detailed_costs(results_dir, system, model, settings, scaling)
+    end
     # CAPEX results (investment cost × new capacity)
-    write_capex(joinpath(results_dir, "capex.csv"), system, scaling, Float64(settings.DiscountRate))
+    output_enabled(system, :Capex) &&
+        write_capex(output_file(results_dir, "capex", system, :Capex), system, scaling, Float64(settings.DiscountRate))
 
     # Flow results
-    write_flow(joinpath(results_dir, "flows.csv"), system, scaling)
+    output_enabled(system, :Flow) &&
+        write_flow(output_file(results_dir, "flows", system, :Flow), system, scaling)
     # Non-served demand results
-    write_non_served_demand(joinpath(results_dir, "non_served_demand.csv"), system, scaling)
+    output_enabled(system, :NonServedDemand) &&
+        write_non_served_demand(output_file(results_dir, "non_served_demand", system, :NonServedDemand), system, scaling)
     # Storage level results
-    write_storage_level(joinpath(results_dir, "storage_level.csv"), system, scaling)
+    output_enabled(system, :StorageLevel) &&
+        write_storage_level(output_file(results_dir, "storage_level", system, :StorageLevel), system, scaling)
     # Curtailment results
-    write_curtailment(joinpath(results_dir, "curtailment.csv"), system, scaling)
+    output_enabled(system, :Curtailment) &&
+        write_curtailment(output_file(results_dir, "curtailment", system, :Curtailment), system, scaling)
 
     # Sub-period weights (for downstream revenue and weighted-sum calculations)
-    write_time_weights(joinpath(results_dir, "time_weights.csv"), system)
+    output_enabled(system, :TimeWeights) &&
+        write_time_weights(output_file(results_dir, "time_weights", system, :TimeWeights), system)
 
     # Write dual values (if enabled)
     # Scaling factor to account for discounting duals in multi-period models
     var_cost_discount = compute_variable_cost_discount_scaling(period_idx, settings)
-    if system.settings.DualExportsEnabled
+    if output_enabled(system, :Duals)
         ensure_duals_available!(model)
         write_duals(results_dir, system, scaling, var_cost_discount)
     end

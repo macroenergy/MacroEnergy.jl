@@ -11,14 +11,14 @@ end
 Parquet writing functions for output data.
 """
 
-# Function to write a DataFrame to a Parquet file
+# Function to write a DataFrame to a zstd-compressed Parquet file
 function write_parquet(file_path::AbstractString, data::DataFrame)
     # Parquet2 does not support Symbol columns
-    # Convert Symbol columns to String in place
+    # Convert Symbol columns (including those with missing values) to String in place
     for col in names(data)
-        if eltype(data[!, col]) <: Symbol
-            transform!(data, col => ByRow(string) => col)
+        if nonmissingtype(eltype(data[!, col])) <: Symbol
+            data[!, col] = passmissing(string).(data[!, col])
         end
     end
-    Parquet2.writefile(file_path, data)
+    Parquet2.writefile(file_path, data; compression_codec=:zstd)
 end

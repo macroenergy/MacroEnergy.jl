@@ -49,6 +49,8 @@ The `variable` column takes one of five values, all reported for each component 
 | Setting | File | Default | Effect |
 |---|---|---|---|
 | `OutputLayout` (or `OutputLayout.Capacity`) | `macro_settings.json` | `"long"` | Set to `"wide"` to pivot the `variable` column into separate columns: `capacity`, `new_capacity`, `retired_capacity`, `existing_capacity` (and `retrofitted_capacity` if applicable). |
+| `OutputFormat` (or `OutputFormat.Capacity`) | `macro_settings.json` | `"csv"` | Set to `"csv.gz"` or `"parquet"` to write a compressed file (`.csv.gz` or `.parquet`). See [Output Format and Size](@ref "manual-outputs-format"). |
+| `WriteOutputs.Capacity` | `macro_settings.json` | `true` | Set to `false` to skip this output. See [Selecting Outputs](@ref "manual-outputs-selecting"). |
 | `Retrofitting` | `macro_settings.json` | `false` | When `true`, a `retrofitted_capacity` row is added for each component. |
 | `OutputAssetTags` | `macro_settings.json` | `true` | When `true`, include a spreadsheet-friendly pipe-separated `tags` column in `capacity.csv`, `capacity_summary.csv`, and `capex.csv`. |
 | `StartYear` | `case_settings.json` | not set | The calendar year of the first period (e.g. `2026`). When set, each period's `year` is `StartYear` plus the sum of `PeriodLengths` of all preceding periods, and this populates the `year` column in `capacity.csv` and the `_<year>` column suffixes in [`capacity_summary.csv`](@ref "manual-outputs-capacity-summary"). When not set, `year` is omitted from `capacity.csv` entirely, and `capacity_summary.csv` falls back to labeling periods by their 1-based index instead. |
