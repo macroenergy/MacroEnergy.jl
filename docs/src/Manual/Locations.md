@@ -222,7 +222,7 @@ During the `System` generation process, Macro will add these `Nodes` to the `Loc
 
 ### Automatically Creating Locations and Nodes
 
-Automatic creating of `Locations` and `Nodes` can be enabled by setting the `AutoCreateLocations` and `AutoCreateNodes` flags in the system configuration (`settings/macro_settings` by default).
+Automatic creating of `Locations` and `Nodes` can be enabled by setting the `AutoCreateLocations` and `AutoCreateNodes` flags in `settings/case_settings.json`.
 
 ```json
 {

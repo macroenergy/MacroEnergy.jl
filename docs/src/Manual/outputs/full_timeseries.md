@@ -8,14 +8,14 @@
 
 **Directory:** `full_time_series/` (inside the results directory)
 
-**Condition:** Only written when `WriteFullTimeseries = true` in `case_settings.json` **and** the system uses time-domain reduction (TDR).
+**Condition:** Only written when `OutputSettings.Write.FullTimeseries = true` in `case_settings.json` **and** the system uses time-domain reduction (TDR).
 
 When time-domain reduction (TDR) is used, the optimization runs over a small set of representative periods (e.g., 3 representative weeks) rather than the full year (8,760 hours). The `full_time_series/` subdirectory contains the standard operational outputs **expanded back to all `TotalHoursModeled` hours** using the period map. This makes it easier to compute annual statistics, produce time series plots, or compare model outputs against historical data — without having to manually apply subperiod weights.
 
-If TDR is not used (i.e., the model already runs over the full year), `WriteFullTimeseries` has no effect and the subdirectory is not created.
+If TDR is not used (i.e., the model already runs over the full year), `OutputSettings.Write.FullTimeseries` has no effect and the subdirectory is not created.
 
 !!! tip "File sizes"
-    Full time series files can be very large (up to 8,760 rows × many components). With the default `OutputFormat = "csv"`, long-format files are automatically written in **compressed `.csv.gz` format** to manage file sizes, and wide-format files use standard `.csv`. Set [`OutputFormat`](@ref "manual-outputs-format") to `"parquet"` for even smaller files.
+    Full time series files can be very large (up to 8,760 rows × many components). With the default `OutputSettings.Format = "csv"`, long-format files are automatically written in **compressed `.csv.gz` format** to manage file sizes, and wide-format files use standard `.csv`. Set [`OutputSettings.Format`](@ref "manual-outputs-format") to `"parquet"` for even smaller files.
 
 ## [Files Produced](@id manual-outputs-full-timeseries-files)
 
@@ -27,14 +27,14 @@ The following files are written inside `full_time_series/`:
 | `non_served_demand.csv` or `non_served_demand.csv.gz` | Wide / Long (`.gz`) | Always (if enabled) | Expanded non-served demand for all NSD-enabled nodes |
 | `storage_level.csv` or `storage_level.csv.gz` | Wide / Long (`.gz`) | Always (if enabled) | Expanded storage state of charge |
 | `curtailment.csv` or `curtailment.csv.gz` | Wide / Long (`.gz`) | Always (if enabled) | Expanded VRE curtailment |
-| `balance_duals.csv` | Wide | `WriteOutputs.Duals = true` (default) | Expanded locational marginal prices |
+| `balance_duals.csv` | Wide | `OutputSettings.Write.Duals = true` (default) | Expanded locational marginal prices |
 
-The file format follows the [`OutputFormat`](@ref "manual-outputs-format") setting for each output, with one exception for the default CSV format:
+The file format follows the [`OutputSettings.Format`](@ref "manual-outputs-format") setting for each output, with one exception for the default CSV format:
 - `"csv"` with **long** layout → compressed `.csv.gz`
 - `"csv"` with **wide** layout → standard `.csv`
 - `"csv.gz"` or `"parquet"` → that format, for either layout
 
-`balance_duals` follows the `Duals` format (`.csv` by default). Outputs switched off in [`WriteOutputs`](@ref "manual-outputs-selecting") are not written here either.
+`balance_duals` follows the `Duals` format (`.csv` by default). Outputs switched off in [`OutputSettings.Write`](@ref "manual-outputs-selecting") are not written here either.
 
 The column structure of each file is identical to the corresponding file in the parent results directory (e.g., `flows.csv` in `full_time_series/` has the same columns as `flows.csv` in `results/`), except that the `time` column now runs from `1` to `TotalHoursModeled` instead of only the representative time steps.
 
@@ -58,14 +58,14 @@ The reconstruction proceeds as follows:
 
 | Setting | File | Default | Effect |
 |---|---|---|---|
-| `WriteFullTimeseries` | `case_settings.json` | `false` | Set to `true` to enable writing of the `full_time_series/` subdirectory. Has no effect if TDR is not used. |
-| `OutputLayout` (or per-variable keys) | `macro_settings.json` | `"long"` | Controls whether files are written in long (`.csv.gz`) or wide (`.csv`) format. |
-| `OutputFormat` (or per-variable keys) | `macro_settings.json` | `"csv"` | Set to `"csv.gz"` or `"parquet"` to write that format regardless of layout. |
-| `WriteOutputs.Duals` | `macro_settings.json` | `true` | When `true`, also writes `full_time_series/balance_duals.csv`. (Replaces the deprecated `DualExportsEnabled`.) |
+| `OutputSettings.Write.FullTimeseries` | `case_settings.json` | `false` | Set to `true` to enable writing of the `full_time_series/` subdirectory. Has no effect if TDR is not used. |
+| `OutputSettings.Layout` (or per-variable keys) | `case_settings.json` | `"long"` | Controls whether files are written in long (`.csv.gz`) or wide (`.csv`) format. |
+| `OutputSettings.Format` (or per-variable keys) | `case_settings.json` | `"csv"` | Set to `"csv.gz"` or `"parquet"` to write that format regardless of layout. |
+| `OutputSettings.Write.Duals` | `case_settings.json` | `true` | When `true`, also writes `full_time_series/balance_duals.csv`. (Replaces the deprecated `DualExportsEnabled`.) |
 
 ## [Assumptions](@id manual-outputs-full-timeseries-assumptions)
 
-- **Only for TDR runs.** If the system does not use TDR (i.e., no period map is provided), `WriteFullTimeseries = true` has no effect and a warning is logged. The full year is already represented in the standard outputs.
+- **Only for TDR runs.** If the system does not use TDR (i.e., no period map is provided), `OutputSettings.Write.FullTimeseries = true` has no effect and a warning is logged. The full year is already represented in the standard outputs.
 - **Storage levels.** The cyclic-within-period constraint means the storage level at the end of a representative sub-period equals the level at its start. This is faithfully reproduced in the expanded storage level: the same state-of-charge profile repeats for all full-year sub-periods assigned to the same representative sub-period. 
 - **Large files.** At 8,760 rows × hundreds or thousands of components, long-format files can exceed hundreds of MB. The automatic `.csv.gz` compression typically reduces file sizes by 90%. 
 - **Period map required.** The period map (`SubPeriodMap`) must be specified in `time_data.json`. See [Time Data](@ref "Time Data") for how to configure TDR and the period map.
@@ -79,7 +79,9 @@ In `case_settings.json`:
 ```json
 {
     "SolutionAlgorithm": "Monolithic",
-    "WriteFullTimeseries": true
+    "OutputSettings": {
+        "Write": {"FullTimeseries": true}
+    }
 }
 ```
 

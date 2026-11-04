@@ -51,7 +51,7 @@ write_capacity("capacity.csv", system, commodity="CO2*")
 ```
 
 !!! note "Output Layout"
-    Results are written in *long* format by default. To use *wide* format, configure the `OutputLayout: {"Capacity": "wide"}` setting in your Macro settings JSON file (see [Output Files Layout](@ref) for details).
+    Results are written in *long* format by default. To use *wide* format, configure the `"OutputSettings": {"Layout": {"Capacity": "wide"}}` setting in your `case_settings.json` file (see [Output Files Layout](@ref) for details).
 
 ## Curtailment Results
 
@@ -64,7 +64,7 @@ write_curtailment("curtailment.csv", system)
 Curtailment is the difference between available VRE generation (capacity × availability factor) and actual generation (flow). It represents energy that could have been produced but was not dispatched.
 
 !!! note "Output Layout"
-    Results are written in *long* format by default. To use *wide* format, configure the `OutputLayout: {"Curtailment": "wide"}` setting in your Macro settings JSON file (see [Output Files Layout](@ref) for details).
+    Results are written in *long* format by default. To use *wide* format, configure the `"OutputSettings": {"Layout": {"Curtailment": "wide"}}` setting in your `case_settings.json` file (see [Output Files Layout](@ref) for details).
 
 ## Costs
 
@@ -96,7 +96,7 @@ costs = get_detailed_costs(system, settings)
 ```
 
 !!! note "Output Layout"
-    Results are written in *long* format by default. To use *wide* format, configure the `OutputLayout: {"Costs": "wide"}` setting in your Macro settings JSON file (see [Output Files Layout](@ref) for details).
+    Results are written in *long* format by default. To use *wide* format, configure the `"OutputSettings": {"Layout": {"Costs": "wide"}}` setting in your `case_settings.json` file (see [Output Files Layout](@ref) for details).
 
 ## Flow Results
 
@@ -120,7 +120,7 @@ write_flow("flows.csv", system, asset_type="ThermalPower*")
 ```
 
 !!! note "Output Layout"
-    Results are written in *long* format by default. To use *wide* format, configure the `OutputLayout: {"Flow": "wide"}` setting in your Macro settings JSON file (see [Output Files Layout](@ref) for details).
+    Results are written in *long* format by default. To use *wide* format, configure the `"OutputSettings": {"Layout": {"Flow": "wide"}}` setting in your `case_settings.json` file (see [Output Files Layout](@ref) for details).
 
 ## Non-Served Demand Results
 
@@ -136,7 +136,7 @@ This function exports non-served demand values only for nodes that have non-serv
     Non-served demand can have multiple segments (for piecewise linear cost curves). In *long* format, the `segment` column indicates which segment each value belongs to. In *wide* format, compound column names are used: `{node_id}_seg{segment}` (e.g., `elec_SE_seg1`, `elec_SE_seg2`).
 
 !!! note "Output Layout"
-    Results are written in *long* format by default. To use *wide* format, configure the `OutputLayout: {"NonServedDemand": "wide"}` setting in your Macro settings JSON file (see [Output Files Layout](@ref) for details).
+    Results are written in *long* format by default. To use *wide* format, configure the `"OutputSettings": {"Layout": {"NonServedDemand": "wide"}}` setting in your `case_settings.json` file (see [Output Files Layout](@ref) for details).
 
 ## Storage Level Results
 
@@ -157,7 +157,7 @@ write_storage_level("storage_level.csv", system, asset_type="Battery")
 ```
 
 !!! note "Output Layout"
-    Results are written in *long* format by default. To use *wide* format, configure the `OutputLayout: {"StorageLevel": "wide"}` setting in your Macro settings JSON file (see [Output Files Layout](@ref) for details).
+    Results are written in *long* format by default. To use *wide* format, configure the `"OutputSettings": {"Layout": {"StorageLevel": "wide"}}` setting in your `case_settings.json` file (see [Output Files Layout](@ref) for details).
 
 ## [Time Weights](@id time_weights_results)
 
@@ -180,11 +180,13 @@ When using time-domain reduction (TDR), the optimization model runs on a reduced
 
 ### Enabling Full Time Series Output
 
-Set the `WriteFullTimeseries` option to `true` in your `case_settings.json`:
+Set the `OutputSettings.Write.FullTimeseries` option to `true` in your `case_settings.json`:
 
 ```json
 {
-  "WriteFullTimeseries": true
+  "OutputSettings": {
+    "Write": {"FullTimeseries": true}
+  }
 }
 ```
 
@@ -196,7 +198,7 @@ When enabled, the following time-series outputs are reconstructed and written to
 | `non_served_demand.csv` | Non-served demand for each node |
 | `storage_level.csv` | Storage state for each storage unit |
 | `curtailment.csv` | VRE curtailment |
-| `balance_duals.csv` | Balance constraint duals (only when `WriteOutputs.Duals` is also `true`, the default) |
+| `balance_duals.csv` | Balance constraint duals (only when `OutputSettings.Write.Duals` is also `true`, the default) |
 
 Each file contains one row per hour for the full modeled year (e.g., 8760 rows), with the same column structure as the corresponding representative-period output file.
 
@@ -223,10 +225,10 @@ has_tdr(system)  # returns true if the system uses time-domain reduction
 ```
 
 !!! note "Output Layout and Compression"
-    Full time series files follow the same `OutputLayout` setting as other outputs. In *long* format, files are written as compressed `.csv.gz` to reduce disk usage (a full-year long-format file can be very large). In *wide* format, files are written as plain `.csv`.
+    Full time series files follow the same `OutputSettings.Layout` setting as other outputs. In *long* format, files are written as compressed `.csv.gz` to reduce disk usage (a full-year long-format file can be very large). In *wide* format, files are written as plain `.csv`.
 
 !!! note "Solution Algorithms"
-    Full time series reconstruction is supported for all solution algorithms: Monolithic, Myopic, and Benders decomposition. When `WriteFullTimeseries` is enabled, reconstruction happens automatically as part of `write_outputs`.
+    Full time series reconstruction is supported for all solution algorithms: Monolithic, Myopic, and Benders decomposition. When `OutputSettings.Write.FullTimeseries` is enabled, reconstruction happens automatically as part of `write_outputs`.
 
 ## Writing Case Settings
 
@@ -277,11 +279,13 @@ write_flow("results.parquet", system)
 
 By default, all results are written in *long* format for optimal storage efficiency and performance, particularly for large systems. The *wide* format is also available for easier reading and visualization.
 
-Configure the output layout using the `OutputLayout` setting in your Macro settings JSON file:
+Configure the output layout using the `OutputSettings.Layout` setting in your `case_settings.json` file:
 
 ```json
 {
-  "OutputLayout": "wide"
+  "OutputSettings": {
+    "Layout": "wide"
+  }
 }
 ```
 
@@ -289,34 +293,38 @@ or
 
 ```json
 {
-  "OutputLayout": {
-    "Capacity": "wide",
-    "Costs": "long",
-    "Curtailment": "long",
-    "Flow": "long",
-    "NonServedDemand": "long",
-    "StorageLevel": "wide"
+  "OutputSettings": {
+    "Layout": {
+      "Capacity": "wide",
+      "Costs": "long",
+      "Curtailment": "long",
+      "Flow": "long",
+      "NonServedDemand": "long",
+      "StorageLevel": "wide"
+    }
   }
 }
 ```
 
 Available options:
-- `"OutputLayout": "long"` (applies to all outputs)
-- `"OutputLayout": "wide"` (applies to all outputs)
-- `"OutputLayout": {"Capacity": "wide", "Costs": "long", "Curtailment": "long", "Flow": "long", "NonServedDemand": "long", "StorageLevel": "wide"}` (individual layout settings)
+- `"Layout": "long"` (applies to all outputs)
+- `"Layout": "wide"` (applies to all outputs)
+- `"Layout": {"Capacity": "wide", "Costs": "long", "Curtailment": "long", "Flow": "long", "NonServedDemand": "long", "StorageLevel": "wide"}` (individual layout settings)
 
 ## Output Files Location
 
 Macro provides two settings to control output file locations:
-- `OutputDir`: Specifies the output directory name
-- `OverwriteResults`: Controls whether to overwrite existing files
+- `OutputSettings.Dir`: Specifies the output directory name
+- `OutputSettings.Overwrite`: Controls whether to overwrite existing files
 
 For example:
 
 ```json
 {
-  "OutputDir": "results",
-  "OverwriteResults": true
+  "OutputSettings": {
+    "Dir": "results",
+    "Overwrite": true
+  }
 }
 ```
 
@@ -334,7 +342,7 @@ write_capacity(joinpath(output_path, "capacity.csv"), system)
 
 By default, the `create_output_path` function creates a `results` directory in the same location as your input data (i.e., the directory containing `system_data.json`). For more information about the input folder structure, refer to the [Creating a new System](@ref) guide.
 
-If `OverwriteResults` is `true`, existing files will be overwritten. Otherwise, the function appends a number to the directory name to prevent overwriting.
+If `OutputSettings.Overwrite` is `true`, existing files will be overwritten. Otherwise, the function appends a number to the directory name to prevent overwriting.
 
 Users can specify a custom base path for the output directory:
 
@@ -343,7 +351,7 @@ output_path = create_output_path(system, "path/to/output")
 write_capacity(joinpath(output_path, "capacity.csv"), system) # Creates /path/to/output/results/capacity.csv
 ```
 
-In this case, the function creates a directory named according to the `OutputDir` setting (e.g., `results`) within your specified path (e.g., `path/to/output/results`).
+In this case, the function creates a directory named according to the `OutputSettings.Dir` setting (e.g., `results`) within your specified path (e.g., `path/to/output/results`).
 
 ## Exporting System Data to JSON
 

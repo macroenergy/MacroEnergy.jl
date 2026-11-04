@@ -6,13 +6,13 @@ This feature allows the capacity of one asset to be retrofitted into another, fo
 
 Adding retrofitting constraints to a system requires the following steps:
 
-1. Turning on the retrofitting setting in the `system/macro_settings.json` file
+1. Turning on the retrofitting setting in the `settings/case_settings.json` file
 2. Making a JSON file for your asset that can be retrofitted.
 3. Making a JSON file for the retrofitting asset (only required if your asset can be retrofitted into another type of asset).
 
-## 1. Turning on the retrofitting setting in the `system/macro_settings.json` file
+## 1. Turning on the retrofitting setting in the `settings/case_settings.json` file
 
-In the `system/macro_settings.json` file, make sure to have the line `"Retrofitting": true`.
+In the `settings/case_settings.json` file, make sure to have the line `"Retrofitting": true`.
 
 ```json
 {
@@ -336,7 +336,7 @@ If you want to ensure that this asset is used **only** as a retrofit asset and c
 
 ## Common input mistakes to check for
 
-- Is `"Retrofitting": true` in `settings/macro_settings.json`?
+- Is `"Retrofitting": true` in `settings/case_settings.json`?
 - Is `"can_retrofit": true` and `"is_retrofit": true` set properly?
 - Is `"can_expand": true` for entries in `retrofitting_options`?
 - Are parameters specified in the right structure in `retrofitting_options` to enable the recursive merge to work properly?

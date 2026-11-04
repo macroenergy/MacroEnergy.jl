@@ -11,12 +11,30 @@ and this project follows Julia package versioning through `Project.toml` release
 
 ### Fixed
 
+- Time-domain reduction now copies a single-period case's `settings/case_settings.json` into the reduced case when `system_data.json` does not reference it. The reduced case used to lose those settings silently and fall back to the defaults.
+- A `case_settings.json` file without a `SolutionAlgorithm` key no longer fails with a `KeyError`.
 - Corrected exported duals after MacroEnergyScaling constraint-row and objective scaling. All model builders now retain cumulative scaling metadata per model, and dual reporting restores the original model units before applying input scaling, time weights and discount conversions. Requires MacroEnergyScaling v0.4.1 or later.
 
 ### Changed
 
+- All settings now live in one file, `settings/case_settings.json`, and apply to every period of the case. See "Migration guide" below.
+- `case.settings` and the `settings` of every `System` in the case are now the same object, holding all the settings. `results/settings.json` holds them directly, instead of under `case_settings` and `system_settings`, in the same form as `case_settings.json`, so it can be copied to `settings/case_settings.json` to rerun a case with the same settings.
+- Output settings are now grouped in an `OutputSettings` block of `case_settings.json`: `Dir`, `Overwrite`, `Format`, `Layout`, `Write`, `SignificantDigits` and `AssetTags`. `WriteFullTimeseries` is now `OutputSettings.Write.FullTimeseries`, off by default. Code that reads these settings should use `system.settings.OutputSettings`, or the accessors such as `output_enabled`. `system.settings.DualExportsEnabled` no longer exists.
+- Output settings can no longer vary between periods. Every period of a multi-period case writes the same outputs.
+- Settings are now strict. Unknown keys in `case_settings.json`, `BendersSettings` and `MyopicSettings` are errors, and so are unknown values of `SolutionAlgorithm` and `ExpansionHorizon`, which used to fall back to the default with a warning. Keys starting with `#` are treated as comments and ignored.
 - Extended DuckDB.jl compatibility to include 2.x (`DuckDB = "1, 2"`). Environments that resolve DuckDB.jl 2.x read CSV inputs with the bundled DuckDB 2.0 engine.
-- Settings (`macro_settings.json`, `case_settings.json`, Benders and Myopic settings) are now defined and validated from a single declarative spec per file (`src/config/settings_schema.jl`, built on the new `InputField`/`InputMap`/`InputBlock` types in `src/load_inputs/input_schema/input_spec.jl`). Invalid settings now raise an `InputValidationError` that names the full key path and the expected value (e.g. `case_settings.BendersSettings.MaxIter: expected an integer > 0, got 0`) instead of a bare `AssertionError`. Defaults and accepted values are unchanged, except that settings which previously crashed later in the run are now rejected up front: non-boolean values for boolean settings, `true`/`false` for numeric settings, and a non-list `PeriodLengths`. A partial `MyopicSettings.Restart` block is now completed from its defaults instead of failing with a `KeyError`.
+- Settings are now defined and validated from a single declarative spec per file (`src/config/settings_schema.jl`, built on the new `InputField`/`InputMap`/`InputBlock` types in `src/load_inputs/input_schema/input_spec.jl`). Invalid settings now raise an `InputValidationError` that names the full key path and the expected value (e.g. `case_settings.BendersSettings.MaxIter: expected an integer > 0, got 0`) instead of a bare `AssertionError`. Defaults and accepted values are unchanged, except that settings which previously crashed later in the run are now rejected up front: non-boolean values for boolean settings, `true`/`false` for numeric settings, and a non-list `PeriodLengths`. A partial `MyopicSettings.Restart` block is now completed from its defaults instead of failing with a `KeyError`.
+
+### Deprecated
+
+- `macro_settings.json` and the `settings` entry of each period in `system_data.json`. Cases written this way still load, with a warning. It is an error if the periods have different settings, or if the settings contradict `case_settings.json`.
+- The flat output setting names (`OutputDir`, `OverwriteResults`, `OutputFormat`, `OutputLayout`, `WriteOutputs`, `OutputSignificantDigits`, `OutputAssetTags`), `WriteFullTimeseries` and `DualExportsEnabled`. They are translated to `OutputSettings` with a warning. Setting an old name and its new name to different values is an error.
+
+### Migration guide
+
+- Move the contents of `macro_settings.json` into `settings/case_settings.json` and delete the `settings` entry of each period in `system_data.json`.
+- Rename the output settings: `OutputDir` to `OutputSettings.Dir`, `OverwriteResults` to `OutputSettings.Overwrite`, `OutputFormat` to `OutputSettings.Format`, `OutputLayout` to `OutputSettings.Layout`, `WriteOutputs` to `OutputSettings.Write`, `WriteFullTimeseries` to `OutputSettings.Write.FullTimeseries`, `OutputSignificantDigits` to `OutputSettings.SignificantDigits`, `OutputAssetTags` to `OutputSettings.AssetTags` and `DualExportsEnabled` to `OutputSettings.Write.Duals`.
+- In Julia code, read these settings from `system.settings.OutputSettings` (e.g., `system.settings.OutputSettings.Dir` instead of `system.settings.OutputDir`). Reading an old name now raises an error.
 
 ## [0.3.0 - rc] - 2026-10-14
 

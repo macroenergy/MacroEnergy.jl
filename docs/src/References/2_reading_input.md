@@ -108,9 +108,19 @@ MacroEnergy.input_defaults
 MacroEnergy.input_keys
 ```
 
+## `map_entry`
+```@docs
+MacroEnergy.map_entry
+```
+
 ## `merge_defaults`
 ```@docs
 MacroEnergy.merge_defaults
+```
+
+## `resolve_settings`
+```@docs
+MacroEnergy.resolve_settings
 ```
 
 ## `resolve_inputs`

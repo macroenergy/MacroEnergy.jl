@@ -253,9 +253,6 @@ The `settings` field outside of the `case` array contains the `Case` settings.
             "locations": {
                 "path": "system/locations.json"
             },
-            "settings": {
-                "path": "settings/macro_settings.json"
-            },
             "assets": {
                 "path": "assets"
             },

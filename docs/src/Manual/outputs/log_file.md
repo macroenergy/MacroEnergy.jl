@@ -81,7 +81,7 @@ Example:
 
 ## [Configuration](@id manual-outputs-log-configuration)
 
-All log settings are passed as keyword arguments to [`run_case`](@ref). There are no log-related settings in `macro_settings.json` or `case_settings.json`.
+All log settings are passed as keyword arguments to [`run_case`](@ref). There are no log-related settings in `case_settings.json`.
 
 | Argument | Type | Default | Description |
 |---|---|---|---|
@@ -112,7 +112,7 @@ Log levels follow Julia's standard `Logging` module hierarchy:
 ## [Assumptions](@id manual-outputs-log-assumptions)
 
 - **Written at the case root, not in the results directory.** The log file is written to the case directory during the run. It is only copied into the results directory after the solve completes successfully. If the run errors before completion, the log file will exist at the case root but will **not** be copied to the results directory.
-- **Overwritten on each run.** The log file at the case root is always overwritten (`append = false`) at the start of each run. The copy in the results directory is also overwritten if `OverwriteResults = true`, or a new copy is placed in the new `results_001/`, `results_002/`, etc. directory if `OverwriteResults = false`.
+- **Overwritten on each run.** The log file at the case root is always overwritten (`append = false`) at the start of each run. The copy in the results directory is also overwritten if `OutputSettings.Overwrite = true`, or a new copy is placed in the new `results_001/`, `results_002/`, etc. directory if `OutputSettings.Overwrite = false`.
 - **Both console and file can be active simultaneously.** When both `log_to_console = true` and `log_to_file = true`, Macro uses a `TeeLogger` that writes to both destinations. The formats differ: the file uses the attributed or concise format; the console uses Julia's `ConsoleLogger` (with color if the terminal supports it) with a timestamp prepended in the message text via a `TransformerLogger`.
 - **`log_to_file = false` disables the copy.** If `log_to_file = false`, no log file is created and nothing is copied to the results directory.
 

@@ -22,6 +22,7 @@ import MacroEnergy:
     settings_spec,
     benders_settings_spec,
     myopic_settings_spec,
+    output_settings_spec,
     DEPRECATED_SETTINGS,
     Benders,
     Monolithic,
@@ -283,10 +284,30 @@ function test_deprecated_settings_table()
     end
 end
 
+# The docs tables are written by hand, so a new setting must be added to them too
+function test_docs_list_every_setting()
+    guide(file) = read(joinpath(@__DIR__, "..", "docs", "src", "Guides", "User Guide", file), String)
+    @testset "The docs list every setting" begin
+        # Each key has its own row in the tables of the input data guide
+        input_data = guide("2_input_data.md")
+        keys_in_tables = (input_keys(settings_spec())..., input_keys(output_settings_spec())...)
+        @test isempty([key for key in keys_in_tables if !occursin("| $key |", input_data)])
+        for (file, spec) in (("user_run_model.md", benders_settings_spec()), ("user_solution_modes.md", myopic_settings_spec()))
+            text = guide(file)
+            keys_in_guide = [key for block in nested_blocks(spec) for key in input_keys(block)]
+            @test isempty([key for key in keys_in_guide if !occursin(Regex("\\b$key\\b"), text)])
+        end
+        # Each deprecated name is in the migration table
+        settings_guide = guide("user_settings.md")
+        @test isempty([old for old in keys(DEPRECATED_SETTINGS) if !occursin("| `$old` |", settings_guide)])
+    end
+end
+
 test_input_spec_engine()
 test_settings_defaults()
 test_settings_validation()
 test_every_setting()
 test_deprecated_settings_table()
+test_docs_list_every_setting()
 
 end # module TestSettingsSchema
