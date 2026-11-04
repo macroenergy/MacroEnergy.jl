@@ -37,7 +37,7 @@ function tdr_prepare_subperiod_inputs(inputs)
 end
 
 function tdr_read_case_settings(case_root::String, root)
-    source_settings = haskey(root, "case") ? get(root, "settings", default_case_settings()) :
+    source_settings = haskey(root, "case") ? get(root, "settings", Dict{String,Any}()) :
         single_system_case_settings(joinpath(case_root, "system_data.json"))
     settings = Dict{String,Any}(String(key) => value for (key, value) in source_settings)
     if haskey(settings, "path")
@@ -50,7 +50,7 @@ end
 
 function tdr_single_system_case_settings(source_settings, system_index::Int)
     settings = deepcopy(source_settings)
-    defaults = Dict{String,Any}(String(key) => value for (key, value) in default_case_settings())
+    defaults = Dict{String,Any}(String(key) => value for (key, value) in input_defaults(settings_spec()))
     lengths = get(settings, "PeriodLengths", defaults["PeriodLengths"])
     lengths isa AbstractVector && length(lengths) >= system_index || throw(ArgumentError(
         "Case settings `PeriodLengths` must contain a period length for System $system_index.",

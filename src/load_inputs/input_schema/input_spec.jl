@@ -57,8 +57,8 @@ function InputField(name::Symbol, type::Type, default;
 end
 
 """
-    InputMap(name, keys, type, default; entry_default, allow_scalar=false, description="",
-             eltype=nothing, enum=nothing, minimum=nothing, exclusive_minimum=nothing)
+    InputMap(name, keys, type, default; entry_default, key_defaults=(;), allow_scalar=false,
+             description="", eltype=nothing, enum=nothing, minimum=nothing, exclusive_minimum=nothing)
 
 Spec of an input that is an object keyed by a fixed set of names (`keys`), where every entry
 has the same `type` and rules (`eltype`, `enum`, `minimum`, `exclusive_minimum`, as in
@@ -66,16 +66,18 @@ has the same `type` and rules (`eltype`, `enum`, `minimum`, `exclusive_minimum`,
 
 - `default`: the value of the input when it is absent.
 - `entry_default`: the value of a key that is missing from the user's object.
+- `key_defaults`: per-key exceptions to `entry_default`, e.g. `(FullTimeseries=false,)`.
 
-The user's object is kept as given: missing keys are not filled in.
+The user's object is kept as given: missing keys are not filled in. Use `map_entry` to read
+the value of one key.
 
 # Examples
 ```julia
 # Keys can be Flow or StorageLevel. Accepts either one format for both:
-#     "OutputFormat": "parquet"
+#     "Format": "parquet"
 # or a format per key, where a key that is not listed gets `entry_default`:
-#     "OutputFormat": {"Flow": "parquet"}      (StorageLevel is "csv")
-InputMap(:OutputFormat, (:Flow, :StorageLevel), String, "csv";
+#     "Format": {"Flow": "parquet"}      (StorageLevel is "csv")
+InputMap(:Format, (:Flow, :StorageLevel), String, "csv";
          entry_default="csv", enum=("csv", "csv.gz", "parquet"), allow_scalar=true)
 ```
 """
@@ -83,6 +85,7 @@ struct InputMap <: AbstractInputSpec
     name::Symbol
     keys::Tuple{Vararg{Symbol}}
     entry::InputField
+    key_defaults::NamedTuple
     default::Any
     allow_scalar::Bool
     description::String
@@ -90,12 +93,28 @@ end
 
 function InputMap(name::Symbol, keys::Tuple{Vararg{Symbol}}, type::Type, default;
     entry_default,
+    key_defaults::NamedTuple=(;),
     allow_scalar::Bool=false,
     description::AbstractString="",
     rules...,
 )
+    unknown = setdiff(Base.keys(key_defaults), keys)
+    isempty(unknown) || throw(ArgumentError("key_defaults of $name has unknown key(s) $(join(unknown, ", "))"))
     entry = InputField(name, type, entry_default; rules...)
-    return InputMap(name, keys, entry, default, allow_scalar, String(description))
+    return InputMap(name, keys, entry, key_defaults, default, allow_scalar, String(description))
+end
+
+"""
+    map_entry(map::InputMap, value, key::Symbol)
+
+Return the value of `key` in `value`, an input described by `map`: `value` itself when it is a
+single value (see `allow_scalar`), its entry for `key` when it lists one, and otherwise the
+default for `key` (`key_defaults`, then `entry_default`).
+"""
+function map_entry(map::InputMap, value, key::Symbol)
+    is_object(value) || return value
+    key in object_keys(value) && return value[key]
+    return get(map.key_defaults, key, map.entry.default)
 end
 
 """
@@ -277,5 +296,6 @@ function describe_type(type::Type; plural::Bool=false)::String
     type <: Integer && return plural ? "integers" : "an integer"
     type <: Real && return plural ? "numbers" : "a number"
     type <: AbstractString && return plural ? "strings" : "a string"
+    type <: AbstractDict && return plural ? "objects" : "an object"
     return plural ? "values of type $type" : "a value of type $type"
 end

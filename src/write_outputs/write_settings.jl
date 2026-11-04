@@ -1,11 +1,7 @@
 """
     write_settings(case::Case, filepath::AbstractString)
 
-Write the case and system settings to a JSON file.
-
-This function extracts the settings from a Case object and writes them to a JSON file.
-The settings include both case-level settings and system-level settings for all systems
-in the case.
+Write the settings of a case to a JSON file. The `Case` and every `System` in it share the same settings.
 
 # Arguments
 - `case::Case`: The case object containing the settings to write
@@ -23,15 +19,7 @@ write_settings(case, "output/settings.json")
 write_settings(case, joinpath(case_path, "settings.json"))
 ```
 
-# Output Format
-The JSON file will contain:
-- `case_settings`: The case-level settings
-- `system_settings`: An array of settings for each system in the case
 """
 function write_settings(case::Case, filepath::AbstractString)
-    settings = Dict{Symbol, Any}(
-        :case_settings => case.settings,
-        :system_settings => [system.settings for system in case.systems]
-    )
-    write_json(filepath, settings)
+    write_json(filepath, OrderedDict{Symbol,Any}(pairs(case.settings)))
 end

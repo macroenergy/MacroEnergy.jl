@@ -60,7 +60,7 @@ For each edge $$e$$ that can be retrofitted, the functional form of the retrofit
 Where $$e$$ is the edge that can be retrofitted, $$R$$ is the set of edges that are retrofit options for $$e$$, and $$r$$ is the retrofitting edge.
 
 !!! note "Turning on retrofitting in settings"
-    This constraint is only applied if the ```Retrofitting: true``` setting is set in ```macro_settings.json```.
+    This constraint is only applied if the ```Retrofitting: true``` setting is set in ```case_settings.json```.
 """
 function add_retrofit_constraints!(system::System, model::Model)
     # Add retrofitting constraints

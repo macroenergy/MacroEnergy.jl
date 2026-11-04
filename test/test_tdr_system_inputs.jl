@@ -232,8 +232,10 @@ end
 end
 
 @testset "subperiod inputs preserve Case settings" begin
-    for representation in (:bare_file, :bare_defaults, :case_file, :case_inline, :case_defaults, :multi)
+    for representation in (:bare_file, :bare_entry, :bare_defaults, :case_file, :case_inline, :case_defaults, :multi, :multi_entry)
         @testset "$representation" begin
+            bare = representation in (:bare_file, :bare_entry, :bare_defaults)
+            multi = representation in (:multi, :multi_entry)
             mktempdir() do root
                 source = joinpath(root, "source")
                 destination = joinpath(root, "subperiod")
@@ -247,21 +249,27 @@ end
                 MacroEnergy.write_json(joinpath(source, "nodes.json"), Dict(
                     "demand" => Dict("timeseries" => Dict("path" => "demand.csv", "header" => "demand"))))
                 CSV.write(joinpath(source, "demand.csv"), DataFrame(demand=[1, 2, 3, 4]))
-                custom_settings = Dict("PeriodLengths" => representation == :multi ? [5, 7] : [5],
+                custom_settings = Dict("PeriodLengths" => multi ? [5, 7] : [5],
                     "DiscountRate" => 0.08, "StartYear" => 2030,
                     "ParameterScaling" => true, "SolutionAlgorithm" => "Monolithic",
                     "ExpansionHorizon" => "Myopic")
                 defaults = representation in (:bare_defaults, :case_defaults)
-                case_root = representation in (:bare_file, :bare_defaults) ? system :
-                    Dict{String,Any}("case" => representation == :multi ? [system, deepcopy(system)] : [system])
+                case_root = bare ? system :
+                    Dict{String,Any}("case" => multi ? [system, deepcopy(system)] : [system])
                 if representation == :case_inline
                     case_root["settings"] = custom_settings
                 elseif !defaults
-                    relative_path = representation == :bare_file ? joinpath("settings", "case_settings.json") :
+                    relative_path = bare ? joinpath("settings", "case_settings.json") :
                         joinpath("custom", "case.json")
+                    # The `settings` entry of each period points to the same file as the Case's
+                    if representation in (:bare_entry, :multi_entry)
+                        for period in (bare ? [system] : case_root["case"])
+                            period["settings"] = Dict("path" => MacroEnergy.tdr_normalize_path(relative_path))
+                        end
+                    end
                     mkpath(dirname(joinpath(source, relative_path)))
                     MacroEnergy.write_json(joinpath(source, relative_path), custom_settings)
-                    if representation != :bare_file
+                    if !bare
                         case_root["settings"] = Dict("path" => MacroEnergy.tdr_normalize_path(relative_path))
                         # Explicit Cases must not accidentally pick this conventional file.
                         mkpath(joinpath(source, "settings"))
@@ -276,15 +284,18 @@ end
                     "method" => Dict("name" => "kmeans"), "scaling" => "standardize",
                     "output_based_features" => Dict("weight" => 0.5, "features" => [Dict("provider" => "flow")],
                         "subperiod_runs" => Dict("exclude_policy_constraints" => false))))
-                index = representation == :multi ? 2 : nothing
+                index = multi ? 2 : nothing
                 prepared = MacroEnergy.tdr_prepare_inputs(source,
-                    fill(settings, representation == :multi ? 2 : 1))
+                    fill(settings, multi ? 2 : 1))
                 subperiod_inputs = MacroEnergy.tdr_prepare_subperiod_inputs(prepared.systems[something(index, 1)])
                 MacroEnergy.tdr_materialize_subperiod_case!(subperiod_inputs, destination, 2, settings)
                 # Follow the standalone-System loader's actual settings discovery/configuration.
                 discovered = MacroEnergy.single_system_case_settings(joinpath(destination, "system_data.json"))
-                configured = MacroEnergy.configure_case(discovered, destination)
-                @test configured[:PeriodLengths] == (defaults ? [1] : representation == :multi ? [7] : [5])
+                # Including the `settings` entry of the isolated period, if it has one
+                isolated_period = MacroEnergy.settings_dict(MacroEnergy.read_json(joinpath(destination, "system_data.json")))
+                configured = MacroEnergy.resolve_settings(
+                    Dict{Symbol,Any}(:settings => discovered, :case => Any[isolated_period]), destination)
+                @test configured[:PeriodLengths] == (defaults ? [1] : multi ? [7] : [5])
                 @test configured[:DiscountRate] == (defaults ? 0.0 : 0.08)
                 @test configured[:ParameterScaling] == !defaults
                 @test configured[:ExpansionHorizon] isa MacroEnergy.PerfectForesight
@@ -310,7 +321,9 @@ end
         time_data = Dict("path" => "time_data.json")
         implicit = joinpath("settings", "case_settings.json")
 
-        # `settings` points to macro_settings.json, and case_settings.json is only found by its name
+        # No `settings` entry: the reduced Case would otherwise lose every setting
+        @test implicit in manifest_files(Dict("time_data" => time_data))
+        # Deprecated layout: `settings` points to macro_settings.json, and case_settings.json is implicit
         files = manifest_files(Dict("time_data" => time_data, "settings" => Dict("path" => "settings/macro_settings.json")))
         @test implicit in files
         @test joinpath("settings", "macro_settings.json") in files
@@ -320,4 +333,19 @@ end
             "settings" => Dict("path" => "custom_settings.json"),
         )))
     end
+end
+
+@testset "subperiod Cases keep every setting of case_settings.json" begin
+    source = Dict{String,Any}(
+        "PeriodLengths" => Any[1, 1],
+        "#PeriodLengths" => "a comment is passed along and ignored",
+        "ConstraintScaling" => true,
+        "OutputSettings" => Dict("Format" => "parquet"),
+    )
+    isolated = MacroEnergy.tdr_single_system_case_settings(source, 2)
+    @test isolated["PeriodLengths"] == [1]
+    settings = MacroEnergy.resolve_settings(Dict{Symbol,Any}(:settings => isolated, :case => Any[]), pwd())
+    @test settings.PeriodLengths == [1]
+    @test settings.ConstraintScaling
+    @test settings.OutputSettings.Format == "parquet"
 end

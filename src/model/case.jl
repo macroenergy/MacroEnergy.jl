@@ -15,7 +15,7 @@ function generate_case(
 
     @info("*** Generating case ***")
 
-    settings = configure_case(systems_data[:settings], dirname(path))
+    settings = resolve_settings(systems_data, dirname(path))
 
     case = systems_data[:case]
     num_systems = length(case)
@@ -39,7 +39,7 @@ function generate_case(
             system_data[:time_data][:Year] = settings[:StartYear] + total_years(period_lengths[1:system_idx-1])
         end
         system = empty_system(dirname(path))
-        generate_system!(system, system_data)
+        generate_system!(system, system_data; settings)
         return system
     end
 

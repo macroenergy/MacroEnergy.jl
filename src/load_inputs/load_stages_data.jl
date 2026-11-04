@@ -53,9 +53,9 @@ function load_case(
 end
 
 function single_system_case_settings(file_path::AbstractString)::Dict{Symbol,Any}
-    case_settings_path = joinpath(dirname(file_path), "settings", STAGE_SETTINGS_FILENAME)
+    case_settings_path = joinpath(dirname(file_path), "settings", CASE_SETTINGS_FILENAME)
     if isfile(case_settings_path)
         return Dict{Symbol,Any}(:path => case_settings_path)
     end
-    return default_case_settings()
+    return Dict{Symbol,Any}()
 end

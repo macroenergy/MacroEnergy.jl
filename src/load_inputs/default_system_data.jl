@@ -5,7 +5,7 @@ function default_system_data()
         :nodes => Dict{Symbol,Any}(:path => "system/nodes.json"),
         :commodities => Dict{Symbol,Any}(:path => "system/commodities.json"),
         :time_data => Dict{Symbol,Any}(:path => "system/time_data.json"),
-        :settings => Dict{Symbol,Any}(:path => "settings/macro_settings.json"),
+        :settings => Dict{Symbol,Any}(:path => "settings/case_settings.json"),
     )
 end
 

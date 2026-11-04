@@ -1,5 +1,4 @@
 # Constants for file paths
-const STAGE_SETTINGS_FILENAME = "case_settings.json"
 const BENDERS_SETTINGS_FILEPATH = "settings/benders_settings.json"
 
 """
@@ -47,129 +46,96 @@ function load_benders_settings(settings::AbstractDict{Symbol,Any}, path::Abstrac
     return settings
 end
 
-function configure_case(
-    path::AbstractString,
-    rel_path::AbstractString,
-)
-    path = rel_or_abs_path(path, rel_path)
-    if isdir(path)
-        path = joinpath(path, STAGE_SETTINGS_FILENAME)
+"""
+    resolve_settings(case_data::AbstractDict{Symbol,Any}, case_dir::AbstractString)::NamedTuple
+
+Read the settings of a case and return them as one `NamedTuple`, shared by the `Case` and by
+every `System` in it.
+
+All settings are read from `case_data[:settings]`, usually `settings/case_settings.json`.
+Settings given per period (the `settings` entry of each period, usually
+`settings/macro_settings.json`) are deprecated: they are still read, with a warning, but they
+must be the same for every period and must not contradict `case_settings.json`.
+Deprecated keys are translated (see `translate_deprecated_settings`) and unknown keys are an error.
+"""
+function resolve_settings(case_data::AbstractDict{Symbol,Any}, case_dir::AbstractString)::NamedTuple
+    @info("Configuring settings")
+    raw = merged_settings(case_data, case_dir)
+    if get(raw, :SolutionAlgorithm, nothing) == "Benders"
+        load_benders_settings(raw, case_dir)
     end
-    
-    if !isfile(path)
-        error("Period settings file not found: $path")
-    end
-    
-    # Load case settings
-    case_settings = copy(read_file(path))
-    
-    # Check for BendersSettings path if Benders is the solution algorithm
-    if case_settings[:SolutionAlgorithm] == "Benders"
-        case_settings = load_benders_settings(case_settings, rel_path)
-    end
-    
-    return configure_case(case_settings)
+    settings = configure_settings(raw)
+    @info(" -- Solution algorithm set to $(settings[:SolutionAlgorithm])")
+    @info(" -- Expansion horizon set to $(settings[:ExpansionHorizon])")
+    return settings
 end
 
-function configure_case(
-    case_settings::AbstractDict{Symbol,Any},
-    rel_path::AbstractString,
-)
-    if haskey(case_settings, :path)
-        @info("Configuring case from $(case_settings[:path])")
-        path = rel_or_abs_path(case_settings[:path], rel_path)
-        return configure_case(path, rel_path)
-    else
-        # if Benders is the solution algorithm and BendersSettings is not specified 
-        # in the case_settings, try to load the Benders settings from the default location
-        if case_settings[:SolutionAlgorithm] == "Benders" && 
-            !haskey(case_settings, :BendersSettings)
-            benders_settings = try_load_benders_settings(rel_path)
-            if !isnothing(benders_settings)
-                case_settings[:BendersSettings] = benders_settings
-            end
+# The settings of a System loaded on its own (not as part of a Case): its `settings` entry, or
+# else `settings/case_settings.json` next to it, or else the defaults.
+function standalone_settings(system_data::AbstractDict{Symbol,Any}, data_dir::AbstractString)::NamedTuple
+    source = get(system_data, :settings, nothing)
+    if isnothing(source)
+        implicit = joinpath(data_dir, "settings", CASE_SETTINGS_FILENAME)
+        source = isfile(implicit) ? Dict{Symbol,Any}(:path => implicit) : Dict{Symbol,Any}()
+    end
+    raw, _ = read_settings_source(source, data_dir, LEGACY_SYSTEM_SETTINGS_FILENAME)
+    return resolve_settings(Dict{Symbol,Any}(:settings => raw, :case => Any[]), data_dir)
+end
+
+# Read a settings entry of system_data.json: `{"path": ...}`, pointing to a file or to a
+# directory containing `default_filename`, or the settings themselves. Return the settings and
+# the absolute path of the file they were read from (`nothing` for inline settings).
+function read_settings_source(source, rel_path::AbstractString, default_filename::AbstractString)
+    if source isa AbstractDict && haskey(source, :path)
+        path = normpath(abspath(rel_or_abs_path(String(source[:path]), String(rel_path))))
+        isdir(path) && (path = joinpath(path, default_filename))
+        isfile(path) || error("Settings file not found: $path")
+        return settings_dict(read_file(path)), path
+    end
+    return settings_dict(source), nothing
+end
+
+# The settings of `case_settings.json`, plus any deprecated per-period settings
+function merged_settings(case_data::AbstractDict{Symbol,Any}, case_dir::AbstractString)::OrderedDict{Symbol,Any}
+    source = get(case_data, :settings, nothing)
+    settings, path = isnothing(source) ? (OrderedDict{Symbol,Any}(), nothing) :
+        read_settings_source(source, case_dir, CASE_SETTINGS_FILENAME)
+    legacy = legacy_period_settings(case_data[:case], case_dir, path)
+    isnothing(legacy) && return settings
+    for (key, value) in legacy
+        if haskey(settings, key) && !isequal(settings[key], value)
+            throw(InputValidationError("case_settings.$key",
+                "is $(repr(settings[key])) in case_settings.json but $(repr(value)) in the per-period settings"))
         end
-        return configure_case(case_settings)
+        settings[key] = value
     end
+    return settings
 end
 
-function configure_case(case_settings::AbstractDict{Symbol,Any})
-    @info("Configuring case")
-    settings = default_case_settings()
-    settings = merge(settings, case_settings)
-    set_period_lengths!(settings)
-    # Legacy values are translated before validation; strings become types after it
-    translate_legacy_solution_algorithm!(settings)
-    translate_legacy_expansion_horizon!(settings)
-    validate_inputs(case_settings_spec(), settings)
-    set_solution_algorithm!(settings)
-    set_expansion_horizon!(settings)
-    isa(settings[:SolutionAlgorithm], Benders) && configure_benders!(settings)
-    isa(settings[:ExpansionHorizon], Myopic) && configure_myopic!(settings)
-    return namedtuple(settings)
-end
-
-function set_period_lengths!(case_settings::AbstractDict{Symbol,Any})
-    case_settings[:PeriodLengths] = copy(case_settings[:PeriodLengths])
-    return nothing
-end
-
-function translate_legacy_solution_algorithm!(case_settings::AbstractDict{Symbol,Any})
-    @info(" -- Setting solution algorithm")
-    algorithm = case_settings[:SolutionAlgorithm]
-    if algorithm == "Myopic"
-        @warn("""
-        Setting SolutionAlgorithm to \"Myopic\" is deprecated.
-        Use ExpansionHorizon: "Myopic" combined with SolutionAlgorithm: "Monolithic" instead.
-        Translating automatically: SolutionAlgorithm => Monolithic, ExpansionHorizon => Myopic.
-        """)
-        case_settings[:SolutionAlgorithm] = "Monolithic"
-        case_settings[:ExpansionHorizon] = "Myopic"
-    elseif !(algorithm in ("Monolithic", "Benders"))
-        @warn("No solution algorithm specified, defaulting to Monolithic")
-        case_settings[:SolutionAlgorithm] = "Monolithic"
+# The deprecated per-period settings of a case, or `nothing` if there are none. Every period
+# must have the same settings. A period whose `settings` entry points to `case_settings_path`
+# (as a single-period case may) has none.
+function legacy_period_settings(periods::AbstractVector, case_dir::AbstractString,
+    case_settings_path::Union{Nothing,AbstractString})::Union{Nothing,OrderedDict{Symbol,Any}}
+    found = Tuple{Int,OrderedDict{Symbol,Any}}[]
+    for (index, period) in enumerate(periods)
+        haskey(period, :settings) || continue
+        settings, path = read_settings_source(period[:settings], case_dir, LEGACY_SYSTEM_SETTINGS_FILENAME)
+        !isnothing(path) && path == case_settings_path && continue
+        push!(found, (index, settings))
     end
-    return nothing
-end
-
-function translate_legacy_expansion_horizon!(case_settings::AbstractDict{Symbol,Any})
-    @info(" -- Setting expansion horizon")
-    horizon = case_settings[:ExpansionHorizon]
-    if !(horizon in ("PerfectForesight", "Myopic"))
-        @warn("Unknown expansion horizon '$horizon', defaulting to PerfectForesight")
-        case_settings[:ExpansionHorizon] = "PerfectForesight"
+    isempty(found) && return nothing
+    @warn(string("Settings given per period (the `settings` entry of each period in system_data.json, ",
+        "usually settings/macro_settings.json) are deprecated. Move them into settings/case_settings.json, ",
+        "which holds the settings of the whole case."), maxlog=1)
+    first_index, reference = first(found)
+    for (index, settings) in found[2:end]
+        isequal(settings, reference) && continue
+        differing = sort!([key for key in union(keys(settings), keys(reference))
+            if !isequal(get(settings, key, nothing), get(reference, key, nothing))])
+        throw(InputValidationError("system_data.case[$index].settings",
+            "differs from period $first_index in $(join(differing, ", ")). Every period now uses " *
+            "the same settings: move them into case_settings.json"))
     end
-    return nothing
-end
-
-function set_solution_algorithm!(case_settings::AbstractDict{Symbol,Any})
-    case_settings[:SolutionAlgorithm] = case_settings[:SolutionAlgorithm] == "Benders" ? Benders() : Monolithic()
-    @info(" -- Solution algorithm set to $(case_settings[:SolutionAlgorithm])")
-    return nothing
-end
-
-function set_expansion_horizon!(case_settings::AbstractDict{Symbol,Any})
-    case_settings[:ExpansionHorizon] = case_settings[:ExpansionHorizon] == "Myopic" ? Myopic() : PerfectForesight()
-    @info(" -- Expansion horizon set to $(case_settings[:ExpansionHorizon])")
-    return nothing
-end
-
-function configure_benders!(case_settings::AbstractDict{Symbol,Any})
-    # use default benders settings if BendersSettings is not specified
-    benders_settings = get(case_settings, :BendersSettings, Dict{Symbol,Any}())
-    isempty(benders_settings) && @warn("No benders settings specified, using default settings")
-    @info("Configuring benders")
-    case_settings[:BendersSettings] = resolve_inputs(benders_settings_spec(), benders_settings;
-        path="case_settings.BendersSettings")
-    return nothing
-end
-
-function configure_myopic!(case_settings::AbstractDict{Symbol,Any})
-    # use default myopic settings if MyopicSettings is not specified
-    myopic_settings = get(case_settings, :MyopicSettings, Dict{Symbol,Any}())
-    isempty(myopic_settings) && @warn("No myopic settings specified, using default settings")
-    @info("Configuring myopic")
-    case_settings[:MyopicSettings] = resolve_inputs(myopic_settings_spec(), myopic_settings;
-        path="case_settings.MyopicSettings")
-    return nothing
+    return reference
 end

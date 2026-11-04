@@ -178,7 +178,7 @@ function tdr_case_input_manifest(case_root::String; destination_root::String=cas
     end
     # Bare single-System cases also load this conventional settings file implicitly.
     root = isnothing(prepared) ? first(tdr_system_entries(case_root)) : prepared.root
-    implicit_settings = joinpath(case_root, "settings", STAGE_SETTINGS_FILENAME)
+    implicit_settings = joinpath(case_root, "settings", CASE_SETTINGS_FILENAME)
     if !haskey(root, "case") && isfile(implicit_settings)
         tdr_manifest_path!(manifest, case_root, implicit_settings; destination_root)
     end
@@ -249,9 +249,25 @@ function tdr_system_entries(case_root::String)
     root = mutable_json_data(read_json(root_path))
     if haskey(root, "case")
         root["case"] isa AbstractVector || throw(ArgumentError("`case` in system_data.json must be an array."))
+        tdr_drop_case_level_settings!(root, case_root)
         return root, root["case"]
     end
     return root, Any[root]
+end
+
+# A period whose `settings` entry points to the case-level settings file has no settings of its
+# own. Drop the entry, so that the period does not get a private copy of the case-level file,
+# which would then look like separate per-period settings.
+function tdr_drop_case_level_settings!(root::AbstractDict, case_root::String)
+    settings_path(entry) = entry isa AbstractDict && haskey(entry, "path") ?
+        normpath(abspath(case_root, String(entry["path"]))) : nothing
+    case_settings = settings_path(get(root, "settings", nothing))
+    isnothing(case_settings) && return nothing
+    for system in root["case"]
+        system isa AbstractDict && settings_path(get(system, "settings", nothing)) == case_settings &&
+            delete!(system, "settings")
+    end
+    return nothing
 end
 
 function tdr_system_time_data_path(case_root::String, system_index::Int)

@@ -239,7 +239,7 @@ function _write_benders_period_outputs(
     end
 
     # Full time series reconstruction (if enabled and TDR is used)
-    if settings.WriteFullTimeseries
+    if output_enabled(system, :FullTimeseries)
         write_full_timeseries(results_dir, system,
             flow_df[subop_indices],
             nsd_df[subop_indices],
@@ -312,7 +312,7 @@ function write_period_outputs(
     end
 
     # Full time series reconstruction (if enabled and TDR is used)
-    if settings.WriteFullTimeseries
+    if output_enabled(system, :FullTimeseries)
         write_full_timeseries(results_dir, system, scaling, var_cost_discount)
     end
 

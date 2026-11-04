@@ -283,7 +283,7 @@ end
 
 function test_model_generation_and_optimization()
     case = load_case(test_path)
-    @test case.settings.WriteFullTimeseries
+    @test MacroEnergy.output_enabled(case.systems[1], :FullTimeseries)
     optimizer = create_optimizer(optim)
     alg = solution_algorithm(case)
     model = generate_model(case,optimizer,alg)
@@ -364,7 +364,7 @@ function test_full_timeseries(case)
     # Force wide output layout so both rep-period and full timeseries CSVs
     # share the same column structure (time + component columns)
     saved_settings = system.settings
-    system.settings = merge(saved_settings, (OutputLayout="wide",))
+    system.settings = merge(saved_settings, (OutputSettings=merge(saved_settings.OutputSettings, (Layout="wide",)),))
 
     # Create a temp directory, write rep-period + full timeseries files
     results_dir = abspath(mktempdir("."))
@@ -443,13 +443,13 @@ function test_full_timeseries(case)
     return nothing
 end
 
-# Full time series follow OutputFormat, OutputSignificantDigits and WriteOutputs,
+# Full time series follow OutputSettings.Format, .SignificantDigits and .Write,
 # with one exception: the default "csv" in long layout is written as .csv.gz
 function test_full_timeseries_formats(case)
     system = case.systems[1]
     saved_settings = system.settings
-    output_settings(; kwargs...) = merge(saved_settings,
-        (OutputLayout="long", OutputFormat="csv", WriteOutputs=(;), OutputSignificantDigits=nothing), (; kwargs...))
+    output_settings(; kwargs...) = merge(saved_settings, (OutputSettings=merge(saved_settings.OutputSettings,
+        (Layout="long", Format="csv", Write=(;), SignificantDigits=nothing), (; kwargs...)),))
 
     try
         mktempdir() do results_dir
@@ -459,7 +459,7 @@ function test_full_timeseries_formats(case)
             write_full_timeseries(joinpath(results_dir, "default"), system, 1.0, 1.0)
             default_files = fullts_files("default")
 
-            system.settings = output_settings(OutputFormat="parquet", OutputSignificantDigits=4, WriteOutputs=(Curtailment=false,))
+            system.settings = output_settings(Format="parquet", SignificantDigits=4, Write=(Curtailment=false,))
             write_full_timeseries(joinpath(results_dir, "compact"), system, 1.0, 1.0)
             compact_files = fullts_files("compact")
 
