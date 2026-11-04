@@ -97,7 +97,14 @@ function add!(system::System, asset::AbstractAsset)
 end
 
 function add!(system::System, location::Node)
+    validate_node_id(system, location.id)
     push!(system.locations, location)
+end
+
+function validate_node_id(system::System, node_id::Symbol)
+    any(existing -> existing isa Node && existing.id == node_id, system.locations) &&
+        throw(ArgumentError("Duplicate node ID `$node_id`; node IDs must be unique within a system"))
+    return nothing
 end
 
 function empty_system(data_dirpath::String)
@@ -231,11 +238,11 @@ function find_node(location::Location, id::Symbol, commodity::Union{Missing,Data
             # Otherwise, create a new node of the commodity and return it
             @debug "Making $commodity node called $id"
             new_node = Node{commodity}(;
-                id = id,
+                id = Symbol(id, "_", commodity_symbol),
                 timedata = location.system.time_data[commodity_symbol]
             )
             add_node!(location, new_node)
-            push!(location.system.locations, new_node)
+            add!(location.system, new_node)
             return new_node
         else
             @warn("Node $id not found\nNot creating a new Node as AutoCreateNodes = false")
