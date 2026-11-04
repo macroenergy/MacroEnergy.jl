@@ -17,6 +17,7 @@ function add_node!(loc::Location, node::Node{T}, replace::Bool = false) where {T
     if ((node_commodity in loc.commodities) || (node_commodity in keys(loc.nodes))) && !replace
         error("A $node_commodity node already exists in the $(loc.id) location")
     end
+    node.location = loc.id
     loc.nodes[node_commodity] = node
     push!(loc.commodities, node_commodity)
 end

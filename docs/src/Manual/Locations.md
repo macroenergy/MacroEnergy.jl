@@ -242,6 +242,8 @@ Let's consider a second example where a `ThermalPower{NaturalGas}` Asset has a `
 
 Note that these `Nodes` will not have any exogeneous demand, supply, constraints or other properties defined. They are simply created to allow the `Asset` to connect to the `Location` without errors.
 
+`AutoCreateNodes` only creates commodity nodes within an existing Location. If an asset endpoint names neither an existing Node nor an existing Location, Macro throws an error identifying the unresolved endpoint. Check the endpoint ID for typos or define the intended Node or Location before loading the asset.
+
 ## See Also
 
 - **[Nodes](@ref)**: Individual commodity balance points that Locations contain and manage

@@ -200,18 +200,13 @@ function find_node(system::System, id::Symbol, commodity::Union{Missing,DataType
     candidate = find_node(system.locations, id, commodity)
     if candidate !== nothing
         return candidate
-    elseif system.settings.AutoCreateNodes
-        id = Symbol(rand(Int16))
-        @debug "Creating new $commodity node with id: $id"
-        new_node = Node{commodity}(; 
-            id = id,
-            timedata = system.time_data[Symbol(commodity)]
-        )
-        push!(system.locations, new_node)
-        return new_node
     end
-    error("Node $id not found")
-    return nothing
+    commodity_context = ismissing(commodity) ? "" : " for commodity `$(typesymbol(commodity))`"
+    error(
+        "Could not find `$id`$commodity_context in the list of nodes or locations. " *
+        "The ID must match an existing node or location. " *
+        "AutoCreateNodes only creates commodity nodes within existing locations.",
+    )
 end
 
 function find_node(node::Node, id::Symbol, commodity::Union{Missing,DataType}=missing)
