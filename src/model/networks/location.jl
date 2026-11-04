@@ -8,6 +8,41 @@ Base.@kwdef mutable struct Location <: MacroObject
     # My feeling is that symbols will be lighter and faster
 end
 
+"""
+    LocationInput(; id, constraints=Dict{Symbol,Any}())
+
+Validated inputs consumed when constructing a `Location`. `id` is a required,
+nonempty string; `constraints` contains raw constraint input dictionaries/flags.
+Constraint instances and typed configs are created when building the `Location`.
+Raw input dictionaries remain extensible: additional fields may be consumed by
+builders without becoming fields of this type.
+"""
+Base.@kwdef struct LocationInput
+    id::String
+    constraints::Dict{Symbol,Any} = Dict{Symbol,Any}()
+
+    function LocationInput(id::AbstractString, constraints::AbstractDict)
+        isempty(strip(id)) && throw(ArgumentError("Location `id` must be a nonempty string"))
+        all(key -> key isa Union{Symbol,AbstractString}, keys(constraints)) ||
+            throw(ArgumentError("Location constraint names must be strings or symbols"))
+        constraint_data = Dict{Symbol,Any}(Symbol(key) => value for (key, value) in constraints)
+        return new(String(id), constraint_data)
+    end
+
+    function LocationInput(id, constraints)
+        id isa AbstractString || throw(ArgumentError("Location `id` must be a string"))
+        constraints isa AbstractDict || throw(ArgumentError("Location `constraints` must be a dictionary"))
+        throw(ArgumentError("Unsupported inputs for Location $id"))
+    end
+end
+
+function Location(input::LocationInput, system::AbstractSystem)
+    data = Dict{Symbol,Any}(:constraints => input.constraints)
+    check_and_convert_constraints!(data)
+    validate_required_constraint_configs!(data[:constraints], "location `$(input.id)`")
+    return Location(; id=Symbol(input.id), system=system, constraints=data[:constraints])
+end
+
 id(loc::Location) = loc.id
 all_constraints(loc::Location) = loc.constraints
 
@@ -31,37 +66,28 @@ function load_locations!(system::AbstractSystem, rel_or_abs_path::String, data::
     return load_locations!(system, rel_or_abs_path, [data])
 end
 
-function load_locations!(system::AbstractSystem, rel_or_abs_path::String, data::Vector{<:AbstractString})
-    locations = Location[]
-    for loc_id in data
-        # In the future, we could pre-emptively find the relevant nodes
-        push!(locations, Location(;id=Symbol(loc_id), system=system))
+function parse_location_input(entry, index::Integer=1)
+    context = "Location entry $index"
+    if entry isa AbstractString
+        data = Dict{Symbol,Any}(:id => entry)
+    elseif entry isa AbstractDict
+        all(key -> key isa Union{Symbol,AbstractString}, keys(entry)) ||
+            throw(ArgumentError("$context must use string or symbol keys"))
+        data = Dict{Symbol,Any}(Symbol(key) => value for (key, value) in entry)
+    else
+        throw(ArgumentError("$context must be an object with an `id` field or a location name string"))
     end
-    system.locations = locations
-    return nothing
+    return LocationInput(;
+        id = haskey(data, :id) ? data[:id] : throw(ArgumentError("$context requires an `id` field")),
+        constraints = get(data, :constraints, Dict{Symbol,Any}()),
+    )
 end
 
-# Locations may be given either as bare id strings or as objects carrying a `constraints` block (e.g.
-# a per-location MaxCapacityConstraint). This method handles the mixed/object case.
-function load_locations!(system::AbstractSystem, rel_or_abs_path::String, data::Vector)
+function load_locations!(system::AbstractSystem, rel_or_abs_path::String, data::AbstractVector)
     locations = Location[]
-    for entry in data
-        if isa(entry, AbstractString)
-            push!(locations, Location(; id=Symbol(entry), system=system))
-        elseif isa(entry, AbstractDict)
-            haskey(entry, :constraints) && check_and_convert_constraints!(entry)
-            haskey(entry, :constraints) && validate_required_constraint_configs!(
-                entry[:constraints],
-                "location `$(entry[:id])`",
-            )
-            push!(locations, Location(;
-                id = Symbol(entry[:id]),
-                system = system,
-                constraints = get(entry, :constraints, AbstractTypeConstraint[]),
-            ))
-        else
-            error("Unsupported location entry $(entry); expected an id string or an object with an `id` field")
-        end
+    for (index, entry) in enumerate(data)
+        input = parse_location_input(entry, index)
+        push!(locations, Location(input, system))
     end
     system.locations = locations
     return nothing

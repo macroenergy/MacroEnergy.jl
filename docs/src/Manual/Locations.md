@@ -96,9 +96,20 @@ Direct constructor using keyword arguments for all fields.
 
 ### Factory Constructors
 
+Location loading parses each raw entry into a validated `LocationInput`, then constructs the runtime `Location` with its system reference:
+
+| `LocationInput` field | Type | Default |
+|----------------------|------|---------|
+| `id` | `String` | Required; nonempty |
+| `constraints` | `Dict{Symbol,Any}` | Empty dictionary |
+
+`parse_location_input(entry)` normalizes a location-name string or dictionary and extracts the input fields. `Location(input::LocationInput, system)` converts the constraint dictionary into the existing constraint types and configs and constructs the runtime location. Additional raw input fields remain available to builders for explicit use; they are not automatically stored on `LocationInput` or `Location`.
+
+The parser checks raw entry structure and required keys. The typed `LocationInput` constructor accepts an `AbstractString` ID and an `AbstractDict` of constraints, converts them for storage, and enforces a nonempty ID and valid constraint-name key types. A fallback constructor reports unsupported ID or constraint types, including for programmatically constructed inputs. Required constraint configurations are validated when building the runtime `Location`.
+
 ```julia
 load_locations!(system::AbstractSystem, rel_or_abs_path::String, data::AbstractString)
-load_locations!(system::AbstractSystem, rel_or_abs_path::String, data::Vector{<:AbstractString})
+load_locations!(system::AbstractSystem, rel_or_abs_path::String, data::AbstractVector)
 load_locations!(system::AbstractSystem, rel_or_abs_path::String, data::AbstractDict{Symbol, Any})
 ```
 
@@ -156,13 +167,15 @@ Currently, `Locations` are configured by creating and configuring `Nodes` and th
 
 ### Location File
 
-The `Location` file is a JSON file that contains a list of `Location` IDs. Its default location is `system/locations.json`. The file can be structured as follows:
+The `Location` file is a JSON file containing a list of location objects. Each object requires an `id` containing a nonempty string and may include a `constraints` object using the existing [grouped capacity constraint format](@ref "Grouped Capacity Constraints"). A location name string is shorthand for an object containing only `id`; both forms are normalized and validated the same way. Its default location is `system/locations.json`.
+
+For example, these entries mix shorthand names and location objects:
 
 ```json
 {
   "locations": [
     "boston",
-    "princeton",
+    {"id": "princeton"},
     "new york"
   ]
 }
