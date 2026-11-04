@@ -13,6 +13,9 @@ import MacroEnergy:
     single_system_case_settings,
     standalone_settings,
     template_settings_file,
+    write_settings,
+    Case,
+    System,
     load_time_data,
     load_case_data,
     generate_case,
@@ -325,6 +328,28 @@ function test_benders_settings_sources()
     end
 end
 
+function test_settings_file_reloads()
+    @testset "results/settings.json can be read back as case_settings.json" begin
+        inputs = (
+            NamedTuple(),
+            (ExpansionHorizon="Myopic", PeriodLengths=[5, 5], MyopicSettings=(StopAfterPeriod=1,)),
+            (SolutionAlgorithm="Benders", BendersSettings=(MaxIter=10,)),
+            (StartYear=2030, DiscountRate=0.05, ParameterScaling=true, ConstraintScaling=true,
+                OutputSettings=(Format=(Flow="parquet",), Layout="wide", Write=(Curtailment=false, FullTimeseries=true), SignificantDigits=4)),
+        )
+        for input in inputs
+            settings = with_logger(() -> configure_settings(input), NullLogger())
+            mktempdir() do dir
+                path = joinpath(dir, "settings.json")
+                write_settings(Case(System[], settings), path)
+                data = Dict{Symbol,Any}(:settings => Dict{Symbol,Any}(:path => path), :case => Any[])
+                reloaded = @test_logs min_level=Logging.Warn resolve_settings(data, dir)
+                @test isequal(reloaded, settings)
+            end
+        end
+    end
+end
+
 function test_settings_template()
     @testset "The new-case template is a valid settings file" begin
         mktempdir() do dir
@@ -347,5 +372,6 @@ test_deprecated_period_settings()
 test_single_period_settings()
 test_benders_settings_sources()
 test_settings_template()
+test_settings_file_reloads()
 
 end # module TestCaseSettings
