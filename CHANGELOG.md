@@ -7,13 +7,21 @@ and this project follows Julia package versioning through `Project.toml` release
 
 ## [Unreleased]
 
+### Added
+
+- Added a `commodities` object to location inputs for defining commodity nodes directly in `locations.json`, including demand, supply segments, time series, and node constraints. Empty objects use existing node defaults and generate `<location>_<commodity>` node IDs; explicit IDs override the default. Existing location-name strings and independent `nodes.json` definitions remain supported.
+
 ### Fixed
 
 - Corrected exported duals after MacroEnergyScaling constraint-row and objective scaling. All model builders now retain cumulative scaling metadata per model, and dual reporting restores the original model units before applying input scaling, time weights and discount conversions. Requires MacroEnergyScaling v0.4.1 or later.
+- Fixed location membership for automatically created nodes so location-based outputs and capacity constraints can identify their location correctly.
+- Fixed unresolved endpoint handling: `AutoCreateNodes` now reports an error when an endpoint matches neither an existing node nor a location, rather than attempting to create an anonymous node.
 
 ### Changed
 
 - Extended DuckDB.jl compatibility to include 2.x (`DuckDB = "1, 2"`). Environments that resolve DuckDB.jl 2.x read CSV inputs with the bundled DuckDB 2.0 engine.
+- Automatically created commodity nodes now use `<location>_<commodity>` IDs instead of reusing the location ID.
+- Location loading now creates each location and its declared nodes before loading independent nodes and assets. Input validation rejects duplicate location IDs, duplicate system node IDs, duplicate commodity nodes within a location, and conflicting location assignments as objects are loaded or registered.
 
 ## [0.3.0 - rc] - 2026-10-14
 
