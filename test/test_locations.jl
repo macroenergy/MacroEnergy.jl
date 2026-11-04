@@ -4,10 +4,13 @@ using Test
 using JSON3
 import MacroEnergy as ME
 
+abstract type LocationTestHydrogen <: ME.Hydrogen end
+
 function make_system(; auto_create_nodes = true)
     system = ME.empty_system(@__DIR__)
     system.settings = merge(ME.default_settings(), (; AutoCreateNodes = auto_create_nodes))
     for commodity in (ME.Electricity, ME.Hydrogen)
+        system.commodities[ME.typesymbol(commodity)] = commodity
         system.time_data[ME.typesymbol(commodity)] = ME.TimeData{commodity}(;
             time_interval = 1:1,
             hours_per_timestep = 1,
@@ -28,6 +31,8 @@ end
         system, location = make_system()
         electricity = ME.find_node(system, :Boston, ME.Electricity)
         hydrogen = ME.find_node(system, :Boston, ME.Hydrogen)
+        @test electricity.id == :Boston_Electricity
+        @test hydrogen.id == :Boston_Hydrogen
 
         for (commodity, node) in ((ME.Electricity, electricity), (ME.Hydrogen, hydrogen))
             @test node isa ME.Node{commodity}
@@ -92,6 +97,17 @@ end
                 @test isempty(ME.get_nodes(system))
             end
         end
+    end
+
+    @testset "Node IDs are checked at system registration without locations" begin
+        system, _ = make_system()
+        empty!(system.locations)
+        first_node = ME.make(ME.Electricity, Dict{Symbol,Any}(:id=>"same_id"), system)
+        ME.add!(system, first_node)
+        duplicate = ME.make(ME.Hydrogen, Dict{Symbol,Any}(:id=>"same_id"), system)
+        @test_throws r"Duplicate node ID `same_id`" ME.add!(system, duplicate)
+        @test ME.get_nodes(system) == [first_node]
+        @test ismissing(duplicate.location)
     end
 end
 
@@ -198,7 +214,7 @@ end
         end
     end
 
-    @testset "Invalid entries fail before replacing system locations" begin
+    @testset "Invalid entries stop loading at the failing entry" begin
         invalid_entries = (
             (Dict(), r"requires an `id` field"),
             (Dict(:id => 1), r"`id` must be a string"),
@@ -215,10 +231,171 @@ end
             (Dict(:id => "SE", :constraints => Dict(:MaxCapacityConstraint => true)), r"requires a .*configuration object"),
         )
         for (entry, message) in invalid_entries
-            system, location = make_system()
+            system, _ = make_system()
             @test_throws message ME.load_locations!(system, @__DIR__, Any["valid", entry])
-            @test system.locations == [location]
+            @test ME.location_ids(system) == [:valid]
         end
+    end
+end
+
+@testset "Location commodity definitions" begin
+    @testset "Schema, defaults and malformed commodity entries" begin
+        @test isempty(ME.LocationInput(; id="SE").commodities)
+        @test ME.LocationInput(; id="SE").commodities !== ME.LocationInput(; id="NE").commodities
+        @test ME.LocationInput("SE", Dict()).commodities == Dict()
+        for value in (nothing, ["Electricity"], "Electricity")
+            @test_throws r"`commodities` must be a dictionary" ME.LocationInput(; id="SE", commodities=value)
+        end
+        for value in (nothing, "Electricity", [])
+            @test_throws r"details must be a dictionary" ME.LocationInput(; id="SE", commodities=Dict(:Electricity => value))
+        end
+        @test_throws r"commodity names must be nonempty" ME.LocationInput(; id="SE", commodities=Dict(" " => Dict()))
+        @test_throws r"Duplicate commodity" ME.LocationInput(; id="SE", commodities=Dict{Any,Any}(:Electricity => Dict(), "Electricity" => Dict()))
+    end
+
+    @testset "Default nodes and existing asset endpoint resolution" begin
+        system, _ = make_system(; auto_create_nodes=false)
+        entries = JSON3.read("""[{"id":"SE","commodities":{"Electricity":{},"Hydrogen":{}}},"MIDAT"]""")
+        ME.load_locations!(system, @__DIR__, entries)
+        location = ME.find_locations(system, :SE)
+        @test length(ME.get_nodes(system)) == 2
+        @test location.nodes[:Electricity].id == :SE_Electricity
+        @test location.nodes[:Hydrogen].id == :SE_Hydrogen
+        for commodity in (ME.Electricity, ME.Hydrogen)
+            node = location.nodes[ME.typesymbol(commodity)]
+            @test ME.find_node(system, :SE, commodity) === node
+            @test ME.find_node(system, node.id, commodity) === node
+            @test node.location == :SE
+            @test count(entry -> entry === node, system.locations) == 1
+            @test any(constraint -> constraint isa ME.BalanceConstraint, node.constraints)
+        end
+        asset = ME.make(ME.Electrolyzer, Dict{Symbol,Any}(
+            :id => :electrolyzer, :location => :SE,
+            :can_expand => false, :can_retire => false,
+            :existing_capacity => 20.0, :efficiency_rate => 0.5,
+        ), system)
+        @test asset.elec_edge.start_vertex === location.nodes[:Electricity]
+        @test asset.h2_edge.end_vertex === location.nodes[:Hydrogen]
+        @test length(ME.get_nodes(system)) == 2
+    end
+
+    @testset "Node details, supply and relative time series" begin
+        mktempdir() do directory
+            system, _ = make_system()
+            system.data_dirpath = directory
+            write(joinpath(directory, "demand.csv"), "demand\n12.0\n")
+            entries = copy(JSON3.read("""
+                [{"id":"SE","commodities":{"Electricity":{
+                  "id":"custom_electricity", "location":"SE",
+                  "demand":{"timeseries":{"path":"demand.csv","header":"demand"}},
+                  "supply":{"grid":{"price":[30.0],"min":[0.0],"max":[100.0]}},
+                  "constraints":{"BalanceConstraint":true}
+                }}}]
+                """))
+            original = deepcopy(entries)
+            ME.load_locations!(system, directory, entries)
+            node = ME.find_node(system, :custom_electricity, ME.Electricity)
+            @test node.demand == [12.0]
+            @test node.supply[:grid].price == [30.0]
+            @test node.supply[:grid].max == [100.0]
+            @test node.location == :SE
+            @test entries == original
+            ME.load!(system, Dict{Symbol,Any}(:type => :Hydrogen, :instance_data => Dict{Symbol,Any}(:id => "h2", :location => "SE")))
+            @test ME.find_locations(system, :SE).nodes[:Hydrogen].id == :h2
+            @test length(ME.get_nodes(system)) == 2
+            write(joinpath(directory, "locations.json"), JSON3.write(Dict(:locations => entries)))
+            ME.load_locations!(system, directory, Dict{Symbol,Any}(:path => "locations.json"))
+            @test ME.find_node(system, :custom_electricity, ME.Electricity).demand == [12.0]
+            @test length(ME.get_nodes(system)) == 1
+        end
+    end
+
+    @testset "Declared subcommodities" begin
+        system, _ = make_system()
+        system.commodities[:LocationTestHydrogen] = LocationTestHydrogen
+        ME.COMMODITY_TYPES[:LocationTestHydrogen] = LocationTestHydrogen
+        system.time_data[:LocationTestHydrogen] = ME.TimeData{LocationTestHydrogen}(;
+            time_interval=1:1, hours_per_timestep=1, period_index=1,
+            subperiods=[1:1], subperiod_indices=[1], subperiod_weights=Dict(1=>1.0), subperiod_map=Dict(1=>1),
+        )
+        ME.load_locations!(system, @__DIR__, [Dict(:id=>"SE", :commodities=>Dict(:LocationTestHydrogen=>Dict(), :Hydrogen=>Dict()))])
+        location = ME.find_locations(system, :SE)
+        @test location.nodes[:LocationTestHydrogen] isa ME.Node{LocationTestHydrogen}
+        @test location.nodes[:LocationTestHydrogen].id == :SE_LocationTestHydrogen
+        @test length(location.nodes) == 2
+    end
+
+    @testset "Registration conflicts" begin
+        system, _ = make_system()
+        ME.load_locations!(system, @__DIR__, [Dict(:id => "SE", :commodities => Dict(:Electricity => Dict()))])
+        location = ME.find_locations(system, :SE)
+        independent = Dict{Symbol,Any}(:type => :Electricity, :instance_data => Dict{Symbol,Any}(:id => "another", :location => "SE"))
+        @test_throws r"Electricity node already exists" ME.load!(system, independent)
+        @test length(ME.get_nodes(system)) == 1
+        original = location.nodes[:Electricity]
+        duplicate = Dict{Symbol,Any}(:type => :Hydrogen, :instance_data => Dict{Symbol,Any}(:id => "SE_Electricity", :location => "SE"))
+        @test_throws r"Duplicate node ID" ME.load!(system, duplicate)
+        @test length(ME.get_nodes(system)) == 1
+        other = ME.Location(; id=:NE, system=system)
+        push!(system.locations, other)
+        @test_throws r"already belongs to location" ME.add_node!(other, original)
+        @test isempty(other.nodes)
+        @test original.location == :SE
+        @test_throws r"Duplicate node ID" ME.add!(system, original)
+        @test_throws r"Duplicate location ID `SE`" ME.load_locations!(system, @__DIR__, ["SE", "SE"])
+        @test ME.location_ids(system) == [:SE]
+
+        for details in (Dict(:location => "NE"), Dict(:type => "Hydrogen"), Dict(:id => ""))
+            system, _ = make_system()
+            @test_throws ArgumentError ME.load_locations!(system, @__DIR__, [Dict(:id => "SE", :commodities => Dict(:Electricity => details))])
+        end
+        system, _ = make_system()
+        @test_throws r"not defined in the system" ME.load_locations!(system, @__DIR__, [Dict(:id => "SE", :commodities => Dict(:NaturalGas => Dict()))])
+        system, _ = make_system()
+        delete!(system.time_data, :Electricity)
+        @test_throws r"Time data.*is not defined" ME.load_locations!(system, @__DIR__, [Dict(:id => "SE", :commodities => Dict(:Electricity => Dict()))])
+        system, _ = make_system()
+        @test_throws r"Duplicate node ID" ME.load_locations!(system, @__DIR__, [
+            Dict(:id => "SE", :commodities => Dict(:Electricity => Dict(:id => "shared"))),
+            Dict(:id => "NE", :commodities => Dict(:Hydrogen => Dict(:id => "shared"))),
+        ])
+    end
+
+    @testset "A location's nodes are created before the next entry" begin
+        system, _ = make_system()
+        entries = Any[Dict(:id=>"SE", :commodities=>Dict(:Electricity=>Dict())), Dict()]
+        @test_throws r"Location entry 2 requires an `id` field" ME.load_locations!(system, @__DIR__, entries)
+        location = ME.find_locations(system, :SE)
+        @test location.nodes[:Electricity].id == :SE_Electricity
+        @test ME.get_nodes(system) == [location.nodes[:Electricity]]
+
+        entries = [
+            Dict(:id=>"SE", :commodities=>Dict(:Electricity=>Dict())),
+            Dict(:id=>"SE", :commodities=>Dict(:Hydrogen=>Dict())),
+        ]
+        @test_throws r"Duplicate location ID `SE`" ME.load_locations!(system, @__DIR__, entries)
+        location = ME.find_locations(system, :SE)
+        @test Set(keys(location.nodes)) == Set([:Electricity])
+        @test ME.get_nodes(system) == [location.nodes[:Electricity]]
+    end
+
+    @testset "System generation loads time data before location nodes" begin
+        system = ME.empty_system(@__DIR__)
+        data = Dict{Symbol,Any}(
+            :settings => Dict{Symbol,Any}(:WriteSubcommodities => false),
+            :commodities => ["Electricity", "Hydrogen"],
+            :time_data => Dict{Symbol,Any}(
+                :NumberOfSubperiods => 1, :HoursPerTimeStep => Dict(:Electricity => 1, :Hydrogen => 1),
+                :HoursPerSubperiod => Dict(:Electricity => 1, :Hydrogen => 1), :TotalHoursModeled => 1,
+            ),
+            :locations => [Dict(:id => "SE", :commodities => Dict(:Electricity => Dict(:demand => [3.0])) )],
+            :nodes => [Dict{Symbol,Any}(:type => "Hydrogen", :instance_data => Dict{Symbol,Any}(:id => "h2", :location => "SE"))],
+            :assets => Dict{Symbol,Any}[],
+        )
+        ME.generate_system!(system, data)
+        @test ME.find_node(system, :SE, ME.Electricity).demand == [3.0]
+        @test ME.find_node(system, :SE, ME.Hydrogen).id == :h2
+        @test length(ME.get_nodes(system)) == 2
     end
 end
 

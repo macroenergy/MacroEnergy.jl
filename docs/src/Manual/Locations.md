@@ -57,6 +57,7 @@ The Location concept also supports hierarchical thinking about energy systems, w
 |----------------|-------------------------|---------------------------------------------------|-----------------------|
 | `nodes`        | Dict{Symbol,Node}       | Dictionary mapping commodity symbols to nodes     | Dict{Symbol,Node}()   |
 | `commodities`  | Set{Symbol}             | Set of commodity symbols for nodes in this location | Set{Symbol}()       |
+| `constraints` | Vector{AbstractTypeConstraint} | Parsed location-level constraints | AbstractTypeConstraint[] |
 
 ## [Types](@id manual-locations-types)
 
@@ -82,7 +83,8 @@ The `Location` type represents a geographic or conceptual place in an energy sys
 
 ```julia
 Location(; id::Symbol, system::AbstractSystem, nodes::Dict{Symbol,Node}=Dict{Symbol,Node}(), 
-         commodities::Set{Symbol}=Set{Symbol}())
+         commodities::Set{Symbol}=Set{Symbol}(),
+         constraints::Vector{AbstractTypeConstraint}=AbstractTypeConstraint[])
 ```
 
 Direct constructor using keyword arguments for all fields.
@@ -93,6 +95,7 @@ Direct constructor using keyword arguments for all fields.
 | `system`      | AbstractSystem         | Reference to the containing system               | Yes      |
 | `nodes`       | Dict{Symbol,Node}      | Dictionary mapping commodity symbols to nodes    | No       |
 | `commodities` | Set{Symbol}            | Set of commodity symbols for contained nodes     | No       |
+| `constraints` | Vector{AbstractTypeConstraint} | Parsed location-level constraints | No |
 
 ### Factory Constructors
 
@@ -102,10 +105,15 @@ Location loading parses each raw entry into a validated `LocationInput`, then co
 |----------------------|------|---------|
 | `id` | `String` | Required; nonempty |
 | `constraints` | `Dict{Symbol,Any}` | Empty dictionary |
+| `commodities` | `Dict{Symbol,Dict{Symbol,Any}}` | Empty dictionary |
 
 `parse_location_input(entry)` normalizes a location-name string or dictionary and extracts the input fields. `Location(input::LocationInput, system)` converts the constraint dictionary into the existing constraint types and configs and constructs the runtime location. Additional raw input fields remain available to builders for explicit use; they are not automatically stored on `LocationInput` or `Location`.
 
-The parser checks raw entry structure and required keys. The typed `LocationInput` constructor accepts an `AbstractString` ID and an `AbstractDict` of constraints, converts them for storage, and enforces a nonempty ID and valid constraint-name key types. A fallback constructor reports unsupported ID or constraint types, including for programmatically constructed inputs. Required constraint configurations are validated when building the runtime `Location`.
+The parser checks raw entry structure and required keys. The typed `LocationInput` constructor accepts an `AbstractString` ID and `AbstractDict` constraint and commodity inputs, converts them for storage, and validates their structure. A fallback constructor reports unsupported field types, including for programmatically constructed inputs. Required constraint configurations are validated when building the runtime `Location`.
+
+```@docs
+MacroEnergy.LocationInput
+```
 
 ```julia
 load_locations!(system::AbstractSystem, rel_or_abs_path::String, data::AbstractString)
@@ -147,7 +155,7 @@ Methods for loading locations into systems from input data.
 | Method | Description | Return Type |
 |--------|-------------|-------------|
 | `load_locations!(system, path, data::AbstractString)` | Load single location from a Location ID | `Nothing` |
-| `load_locations!(system, path, data::Vector{<:AbstractString})` | Load multiple locations from vector of IDs | `Nothing` |
+| `load_locations!(system, path, data::AbstractVector)` | Load locations and their commodity nodes from strings or objects | `Nothing` |
 | `load_locations!(system, path, data::AbstractDict{Symbol,Any})` | Load locations from dictionary data | `Nothing` |
 
 ### Model Building Methods (Inherited from MacroObject)
@@ -163,11 +171,11 @@ Methods used internally during model construction.
 
 ## [Examples](@id manual-locations-examples)
 
-Currently, `Locations` are configured by creating and configuring `Nodes` and then adding them to a `Location`. The `load_locations!` function is used to load a list of `Location` IDs from a file. These are then populated with `Nodes` as needed. If the `AutoCreateLocations` setting is set to `true`, Macro can also automatically create `Locations` if a Node has a `location` field which does not match an existing `Location` ID. If the `AutoCreateNodes` setting is set to `true`, Macro can also automatically create `Nodes` for commodity types that do not already exist in the Location.
+Locations can define their commodity nodes directly in `locations.json`, or receive independent nodes through each node's `location` field. Both forms can be used in one system, provided they do not define the same commodity twice at a location. `AutoCreateLocations` can create a missing location while loading an independent node. `AutoCreateNodes` can create a missing commodity node when resolving an asset endpoint at an existing location.
 
 ### Location File
 
-The `Location` file is a JSON file containing a list of location objects. Each object requires an `id` containing a nonempty string and may include a `constraints` object using the existing [grouped capacity constraint format](@ref "Grouped Capacity Constraints"). A location name string is shorthand for an object containing only `id`; both forms are normalized and validated the same way. Its default location is `system/locations.json`.
+The `Location` file is a JSON file containing a list of location objects. Each object requires a unique `id` containing a nonempty string and may include `commodities` and `constraints` objects. Location constraints use the existing [grouped capacity constraint format](@ref "Grouped Capacity Constraints"). A location name string is shorthand for an object containing only `id`; both forms are normalized and validated the same way. Its default location is `system/locations.json`.
 
 For example, these entries mix shorthand names and location objects:
 
@@ -181,7 +189,47 @@ For example, these entries mix shorthand names and location objects:
 }
 ```
 
-This is not a required file, but it is a convenient way to define the `Location` IDs. In the future, we will add more functionality to this file, such as defining the `Nodes` and their commodity types.
+This is not a required file, but it is a convenient way to define locations, their commodity nodes, and location-level constraints.
+
+### Defining Commodity Nodes Within a Location
+
+The optional `commodities` object maps each commodity name to a dictionary of node inputs. An empty dictionary creates a node using the existing node defaults, including `BalanceConstraint`. Commodity names must already be defined in the system, with time data available; subcommodities are supported in the same way as other node inputs.
+
+```json
+{
+  "locations": [
+    {
+      "id": "SE",
+      "commodities": {
+        "Hydrogen": {},
+        "Electricity": {
+          "id": "elec_SE",
+          "demand": [100.0],
+          "supply": {
+            "grid": {"price": [30.0], "min": [0.0], "max": [1000.0]}
+          },
+          "constraints": {"BalanceConstraint": true}
+        }
+      }
+    },
+    "MIDAT"
+  ]
+}
+```
+
+Without an explicit node `id`, Macro generates `<location>_<commodity>`, so the Hydrogen node above is `SE_Hydrogen`. The containing location supplies the node's `location` field. An explicitly supplied `location` must match the parent. Node demand, supply, constraints, time series and additional inputs use the existing node-loading pipeline; relative time-series paths are resolved from the system data directory.
+
+System loading creates commodities and time data first, then each location and its commodity nodes, then independent nodes from `nodes.json`, and finally assets. Assets can connect using either the location ID and commodity or an explicit node ID. Existing location-name strings and `nodes.json` inputs remain supported and can be mixed with this form.
+
+Node IDs must be unique within a system. A node can belong to only one location, and each location can contain only one node of each commodity. Duplicate definitions across `commodities` and `nodes.json` produce errors during creation/registration. Location-level `constraints` remain separate from the constraints of the individual commodity nodes. Asset-defined node construction is outside this feature.
+
+Explicit nodes in `commodities` are created regardless of `AutoCreateNodes`; that setting only controls creation of missing nodes during endpoint lookup.
+
+#### Programmatic Loading
+
+`load_locations!` replaces the system's location/node list, then processes entries in order. Each location is registered and its commodity nodes are created before processing the next entry. Errors stop loading immediately; earlier entries are not rolled back. If loading fails, correct the input and reconstruct the system rather than reuse its partial state.
+
+Node ID uniqueness is checked in `add!(system, node)`, including for nodes without a location. Programmatic builders should register every node through this method. `add_node!` assigns location membership and checks commodity/membership conflicts; it does not register the node in the system or check global node ID uniqueness.
 
 ### Adding a Node to a Location
 
@@ -193,15 +241,13 @@ This is not a required file, but it is a convenient way to define the `Location`
         {
             "type": "Electricity",
             "global_data": {
-                "global_data": {
-                    "time_interval": "Electricity",
-                    "max_nsd": [1.0],
-                    "price_nsd": [5000.0],
-                    "constraints": {
-                        "BalanceConstraint": true,
-                        "MaxNonServedDemandConstraint": true,
-                        "MaxNonServedDemandPerSegmentConstraint": true
-                    }
+                "time_interval": "Electricity",
+                "max_nsd": [1.0],
+                "price_nsd": [5000.0],
+                "constraints": {
+                    "BalanceConstraint": true,
+                    "MaxNonServedDemandConstraint": true,
+                    "MaxNonServedDemandPerSegmentConstraint": true
                 }
             },
             "instance_data": [
@@ -240,8 +286,7 @@ Automatic creating of `Locations` and `Nodes` can be enabled by setting the `Aut
 ```json
 {
   "AutoCreateNodes":false,
-  "AutoCreateLocations":true,
-  // ...
+  "AutoCreateLocations":true
 }
 ```
 
@@ -254,6 +299,8 @@ Using the example input from the previous section, if we did not have a `locatio
 Let's consider a second example where a `ThermalPower{NaturalGas}` Asset has a `location` field set to "boston" and that `Location` exists in the `locations.json` file. Macro will attempt to automatically connect the `UnidirectionalEdge{NaturalGas}` and `UnidirectionalEdge{Electricity}` of the `ThermalPower{NaturalGas}` Asset to the corresponding `Node` instances in the "boston" location. If one or both of these `Node` instances do not exist, and the `AutoCreateNodes` setting is set to `true`, Macro will automatically create the necessary `Node` instances for the missing commodity types.
 
 Note that these `Nodes` will not have any exogeneous demand, supply, constraints or other properties defined. They are simply created to allow the `Asset` to connect to the `Location` without errors.
+
+Automatically created nodes use the ID `<location>_<commodity>`, matching the default IDs of nodes explicitly defined in a location's `commodities` object.
 
 `AutoCreateNodes` only creates commodity nodes within an existing Location. If an asset endpoint names neither an existing Node nor an existing Location, Macro throws an error identifying the unresolved endpoint. Check the endpoint ID for typos or define the intended Node or Location before loading the asset.
 

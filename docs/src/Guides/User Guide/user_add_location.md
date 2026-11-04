@@ -1,13 +1,33 @@
 # Adding a Location to a System
 
-Adding a new Location to a System requires two steps:
+You can define a Location and its commodity Nodes together in `locations.json` using a `commodities` object:
+
+```json
+{
+  "locations": [
+    {
+      "id": "SE",
+      "commodities": {
+        "Hydrogen": {},
+        "Electricity": {"id": "elec_SE", "demand": [100.0]}
+      }
+    }
+  ]
+}
+```
+
+Each commodity must be defined in the system. Empty node details use the existing node defaults, including a balance constraint. Without an explicit node ID, Macro generates `<location>_<commodity>` (here, `SE_Hydrogen`). The parent supplies location membership. Details can contain the same demand, supply, time series and constraints as independent node inputs. See [Defining Commodity Nodes Within a Location](@ref) for details.
+
+These explicit nodes are created even when `AutoCreateNodes` is false. You can combine this format with `nodes.json`, but node IDs must be unique and each location can contain only one node of a given commodity. Repeated location IDs are errors.
+
+Alternatively, keep the Nodes in `nodes.json` and assign them to Locations in two steps:
 
 1. Add the new Location to the list of Locations
 2. Tag any Nodes you wish to assign to the Location
 
 ## Adding the Location to the Location list
 
-The Location list is a JSON file containing an array of Location names. Each name should be unique.
+The Location list is a JSON file containing an array of unique Location names or objects. A name string is shorthand for an object with only an `id` field.
 
 The most straightforward way of adding a new Location is to use the template functions.
 
@@ -38,7 +58,7 @@ With either approach, doing so will leave you with the following Locations file:
 }
 ```
 
-Macro will ignore duplicate Locations. If we next call:
+The template function avoids appending duplicate name strings. This differs from loading a file containing repeated location IDs, which throws an error. If we next call:
 
 ```julia
 julia> template_location(system, ["Boston", "New London", "Princeton"])
@@ -51,7 +71,7 @@ Our locations file will be:
     "locations": [
         "Boston",
         "NYC",
-        "Providence",
+        "Princeton",
         "New London"
     ]
 }
@@ -123,7 +143,7 @@ For example, if you have a three-Location system and each Location requires an E
 
 The Location information must be added to the instance data, not the global data, as you can only have one Node of each Commodity at any given Location.
 
-To include two or more Nodes of the same Commodity at a single Node, you must use sub-Commodities to define additional versions of the Commodity.
+To distinguish multiple versions of a Commodity at one Location, use sub-Commodities, each of which can have its own Node.
 
 [You can learn more about sub-Commodities here.](@ref "Creating a new sub-Commodity")
 
@@ -151,7 +171,7 @@ For example, if you wish to differentiate between high and low emission electric
             "id": "lowemisselec_SE",
             "time_interval": "LowEmissElectricity",
             "location": "SE",
-            "demand": 0
+            "demand": [0.0]
         }
     },
     {
@@ -160,9 +180,9 @@ For example, if you wish to differentiate between high and low emission electric
             "id": "highemisselec_SE",
             "time_interval": "HighEmissElectricity",
             "location": "SE",
-            "demand": 0
+            "demand": [0.0]
         }
-    },
+    }
 ]}
 ```
 
@@ -176,4 +196,4 @@ There are two important settings when using Locations in your System:
 
 - AutoCreateLocations: default = true. When set to true, this feature will automatically create a new Location if Macro comes across a Node which is a assigned to a Location that does not exist. Macro will print an info statement to let the user know that the Location has been created and its name.
 
-- AutoCreateNodes: default = false. When set to true, this feature will automatically create a new Node if Macro is asked to find a Node of a given Commodity at a Location and the Node does not exist. For example, if Macro is asked to find the Electricity Node in "location 1", but that Location only has a Hydrogen Node, then a new Electricity Node will be created with the default parameters.
+- AutoCreateNodes: default = false. When set to true, this feature creates a missing commodity Node during endpoint lookup within an existing Location. Its ID is `<location>_<commodity>`. Unlike explicitly declared commodity nodes, these automatically created Nodes have no demand, supply or constraints. An unknown endpoint ID throws an error; this setting does not create missing Locations.
