@@ -102,6 +102,13 @@ function test_input_spec_engine()
         @test_throws InputValidationError resolve_inputs(block, (rate=-1,))
     end
 
+    @testset "NaN is out of bounds" begin
+        @test_throws InputValidationError resolve_inputs(block, (rate=NaN,))
+        @test_throws InputValidationError resolve_inputs(block, (lengths=[NaN],))
+        # A value with no bounds is not affected
+        @test isnothing(validate_inputs(InputBlock(:b, [InputField(:x, Real, 0.0)]), (x=NaN,)))
+    end
+
     @testset "Bool is not accepted as a number" begin
         @test_throws InputValidationError resolve_inputs(block, (digits=true,))
         @test_throws InputValidationError resolve_inputs(block, (rate=true,))
@@ -192,6 +199,17 @@ function test_settings_validation()
     @testset "Unknown keys and algorithm names" begin
         @test occursin("case_settings.DiscountRate", error_message(() -> configure_settings(Dict{Symbol,Any}(:DiscountRate => -1))))
         @test occursin("case_settings.PeriodLengths", error_message(() -> configure_settings(Dict{Symbol,Any}(:PeriodLengths => [5, 0]))))
+        @test occursin("case_settings.PeriodLengths: expected a list of integers > 0",
+            error_message(() -> configure_settings(Dict{Symbol,Any}(:PeriodLengths => [2.5]))))
+        @test occursin("case_settings.DiscountRate", error_message(() -> configure_settings(Dict{Symbol,Any}(:DiscountRate => NaN))))
+        # The model needs exact numeric types, however the numbers are written in the file
+        settings = configure_settings(Dict{Symbol,Any}(:DiscountRate => 0, :PeriodLengths => Any[5, 5]))
+        @test settings.DiscountRate === 0.0
+        @test settings.PeriodLengths isa Vector{Int}
+        benders = configure_settings(Dict{Symbol,Any}(:SolutionAlgorithm => "Benders",
+            :BendersSettings => Dict{Symbol,Any}(:ConvTol => 1, :StabParam => 0)))
+        @test benders.BendersSettings[:ConvTol] === 1.0
+        @test benders.BendersSettings[:StabParam] === 0.0
         @test occursin("case_settings: unknown key(s) SomethingElse", error_message(() -> configure_settings(Dict{Symbol,Any}(:SomethingElse => 1))))
         # Without an algorithm or horizon, the defaults apply
         settings = configure_settings(Dict{Symbol,Any}())

@@ -78,7 +78,7 @@ The `settings` folder contains `case_settings.json`, which holds all the setting
 
 | **Attribute** | **Values** | **Default** | **Description** |
 |---------------| :-----------------: | :---------: |-----------------|
-| PeriodLengths | List of numbers > 0 | [1] | Length of each period, in years. Its length sets the number of periods. |
+| PeriodLengths | List of integers > 0 | [1] | Length of each period, in whole years. Its length sets the number of periods. |
 | DiscountRate | Number ≥ 0 | 0 | Discount rate used to discount costs across periods. |
 | StartYear | Integer | — | Calendar year of the first period, used to label periods by year. |
 | ParameterScaling | True, False | False | If true, divide extensive inputs (costs, quantities) by `ParameterScalingFactor` before building the model. |

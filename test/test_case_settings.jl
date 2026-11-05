@@ -4,6 +4,13 @@ using Test
 using Logging
 using JSON3
 import MacroEnergy:
+    InputBlock,
+    InputField,
+    InputMap,
+    benders_settings_spec,
+    input_name,
+    myopic_settings_spec,
+    settings_spec,
     Benders,
     InputValidationError,
     Monolithic,
@@ -17,6 +24,7 @@ import MacroEnergy:
     Case,
     System,
     load_time_data,
+    load_case,
     load_case_data,
     generate_case,
     year,
@@ -328,7 +336,65 @@ function test_benders_settings_sources()
     end
 end
 
+# A valid value of `spec` that differs from its default, taken from the spec's own rules. It fails
+# on a kind of setting it does not know, so that a new setting cannot skip the round-trip test.
+sample_value(spec::InputBlock) = (; (input_name(f) => sample_value(f) for f in spec.fields)...)
+sample_value(spec::InputMap) = (; first(spec.keys) => sample_entry(spec.entry))
+sample_value(spec::InputField) = isnothing(spec.eltype) ? sample_entry(spec) : [sample_number(spec, spec.eltype), sample_number(spec, spec.eltype) + 1]
+function sample_entry(field::InputField)
+    isnothing(field.enum) || return last(filter(!=(field.default), collect(field.enum)))
+    type = field.type
+    type isa Union && (type = only(t for t in Base.uniontypes(type) if !(t in (Nothing, Missing))))
+    type === Bool && return !something(field.default, false)
+    type <: AbstractString && return "sample"
+    type <: Real && return sample_number(field, type)
+    type <: AbstractDict && return nothing   # BendersSettings and MyopicSettings have their own specs
+    error("sample_entry does not know how to make a value of type $type for $(field.name)")
+end
+sample_number(field::InputField, type::Type) = (type <: Integer ? 2 : 2.5) + something(field.minimum, field.exclusive_minimum, 0)
+
+# Write `input` through the real writer, read it back through the real loader, and compare both
+# the values and their types: `isequal(0, 0.0)` is true, but the model needs a Float64.
+function test_round_trip(input)
+    settings = with_logger(() -> configure_settings(input), NullLogger())
+    mktempdir() do dir
+        path = joinpath(dir, "settings.json")
+        write_settings(Case(System[], settings), path)
+        data = Dict{Symbol,Any}(:settings => Dict{Symbol,Any}(:path => path), :case => Any[])
+        reloaded = with_logger(() -> resolve_settings(data, dir), NullLogger())
+        @test isequal(reloaded, settings)
+        @test typeof(reloaded) == typeof(settings)
+    end
+end
+
 function test_settings_file_reloads()
+    @testset "Every setting survives the write and reload" begin
+        spec = settings_spec()
+        test_round_trip(NamedTuple())
+        for field in spec.fields
+            key = input_name(field)
+            value = sample_value(field)
+            # Includes every entry of a nested block, one at a time
+            if field isa InputBlock
+                for entry in field.fields
+                    test_round_trip((; key => (; input_name(entry) => sample_value(entry))))
+                end
+            elseif !isnothing(value)
+                test_round_trip((; key => value))
+            end
+        end
+        for (spec, activate) in ((benders_settings_spec(), (SolutionAlgorithm="Benders",)), (myopic_settings_spec(), (ExpansionHorizon="Myopic",)))
+            key = input_name(spec)
+            test_round_trip(activate)
+            for entry in spec.fields
+                entry_input = (; input_name(entry) => sample_value(entry))
+                # Restart.from_period must not be after StopAfterPeriod
+                input_name(entry) == :Restart && (entry_input = (Restart=(enabled=true, folder="sample", from_period=2),))
+                test_round_trip(merge(activate, (; key => entry_input)))
+            end
+        end
+    end
+
     @testset "results/settings.json can be read back as case_settings.json" begin
         inputs = (
             NamedTuple(),
@@ -345,6 +411,34 @@ function test_settings_file_reloads()
                 data = Dict{Symbol,Any}(:settings => Dict{Symbol,Any}(:path => path), :case => Any[])
                 reloaded = @test_logs min_level=Logging.Warn resolve_settings(data, dir)
                 @test isequal(reloaded, settings)
+            end
+        end
+    end
+
+    @testset "A case loads with the settings.json of an earlier run" begin
+        for fixture in ("test_inputs", "test_small_case")
+            mktempdir() do root
+                case_dir = joinpath(root, "case")
+                cp(joinpath(@__DIR__, fixture), case_dir)
+                rm(joinpath(case_dir, "results"); recursive=true, force=true)
+                original = with_logger(() -> load_case(case_dir), NullLogger())
+                # The settings written for a default discount rate include `"DiscountRate": 0`
+                settings_path = joinpath(root, "settings.json")
+                write_settings(original, settings_path)
+                cp(settings_path, joinpath(case_dir, "settings", "case_settings.json"); force=true)
+                reloaded = with_logger(() -> load_case(case_dir), NullLogger())
+                @test isequal(reloaded.settings, original.settings)
+                @test reloaded.settings.DiscountRate isa Float64
+                @test length(reloaded.systems) == length(original.systems)
+            end
+        end
+        # A rate written by hand as a whole number
+        mktempdir() do root
+            case_dir = joinpath(root, "case")
+            cp(joinpath(@__DIR__, "test_inputs"), case_dir)
+            for rate in ("0", "0.0")
+                write(joinpath(case_dir, "settings", "case_settings.json"), """{"DiscountRate": $rate}""")
+                @test with_logger(() -> load_case(case_dir), NullLogger()).settings.DiscountRate === 0.0
             end
         end
     end

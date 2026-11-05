@@ -271,8 +271,9 @@ within_enum(field::InputField, value) = isnothing(field.enum) || any(isequal(val
 
 function within_bounds(field::InputField, value)
     value isa Real || return true
-    !isnothing(field.minimum) && value < field.minimum && return false
-    !isnothing(field.exclusive_minimum) && value <= field.exclusive_minimum && return false
+    # Written so that NaN, which fails every comparison, is out of bounds
+    !isnothing(field.minimum) && !(value >= field.minimum) && return false
+    !isnothing(field.exclusive_minimum) && !(value > field.exclusive_minimum) && return false
     return true
 end
 

@@ -47,8 +47,8 @@ end
 
 function settings_spec()::InputBlock
     return InputBlock(:case_settings, [
-        InputField(:PeriodLengths, AbstractVector, [1]; eltype=Real, exclusive_minimum=0,
-            description="Length of each period, in years. Its length sets the number of periods."),
+        InputField(:PeriodLengths, AbstractVector, [1]; eltype=Integer, exclusive_minimum=0,
+            description="Length of each period, in whole years. Its length sets the number of periods."),
         InputField(:DiscountRate, Real, 0.0; minimum=0,
             description="Discount rate used to discount costs across periods."),
         InputField(:StartYear, Union{Missing,Integer}, missing;

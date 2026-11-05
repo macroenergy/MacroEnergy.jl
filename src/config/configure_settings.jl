@@ -17,7 +17,7 @@ function configure_settings(settings::Union{AbstractDict,NamedTuple})::NamedTupl
     raw = translate_deprecated_settings(settings)
     translate_deprecated_solution_algorithm!(raw)
     resolved = resolve_inputs(settings_spec(), raw)
-    set_period_lengths!(resolved)
+    set_numeric_types!(resolved)
     set_solution_algorithm!(resolved)
     set_expansion_horizon!(resolved)
     isa(resolved[:SolutionAlgorithm], Benders) && configure_benders!(resolved)
@@ -25,8 +25,11 @@ function configure_settings(settings::Union{AbstractDict,NamedTuple})::NamedTupl
     return namedtuple(resolved)
 end
 
-function set_period_lengths!(settings::AbstractDict{Symbol,Any})
-    settings[:PeriodLengths] = copy(settings[:PeriodLengths])
+# JSON does not distinguish 0 from 0.0, but the model needs these exact types (see economics.jl)
+function set_numeric_types!(settings::AbstractDict{Symbol,Any})
+    settings[:PeriodLengths] = Int.(settings[:PeriodLengths])
+    settings[:DiscountRate] = Float64(settings[:DiscountRate])
+    settings[:ParameterScalingFactor] = Float64(settings[:ParameterScalingFactor])
     return nothing
 end
 
@@ -58,8 +61,10 @@ function configure_benders!(settings::AbstractDict{Symbol,Any})
     benders_settings = something(settings[:BendersSettings], Dict{Symbol,Any}())
     isempty(benders_settings) && @warn("No benders settings specified, using default settings")
     @info("Configuring benders")
-    settings[:BendersSettings] = resolve_inputs(benders_settings_spec(), benders_settings;
-        path="case_settings.BendersSettings")
+    resolved = resolve_inputs(benders_settings_spec(), benders_settings; path="case_settings.BendersSettings")
+    resolved[:ConvTol] = Float64(resolved[:ConvTol])
+    resolved[:StabParam] = Float64(resolved[:StabParam])
+    settings[:BendersSettings] = resolved
     return nothing
 end
 
@@ -68,8 +73,9 @@ function configure_myopic!(settings::AbstractDict{Symbol,Any})
     myopic_settings = something(settings[:MyopicSettings], Dict{Symbol,Any}())
     isempty(myopic_settings) && @warn("No myopic settings specified, using default settings")
     @info("Configuring myopic")
-    settings[:MyopicSettings] = resolve_inputs(myopic_settings_spec(), myopic_settings;
-        path="case_settings.MyopicSettings")
+    resolved = resolve_inputs(myopic_settings_spec(), myopic_settings; path="case_settings.MyopicSettings")
+    resolved[:StopAfterPeriod] = Float64(resolved[:StopAfterPeriod])
+    settings[:MyopicSettings] = resolved
     return nothing
 end
 
