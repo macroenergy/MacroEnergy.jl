@@ -19,7 +19,9 @@ end
     load_benders_settings(settings::AbstractDict{Symbol,Any}, path::AbstractString)::AbstractDict{Symbol,Any}
 
 Load Benders settings from a file. First checks if a specific path is provided in the settings,
-otherwise looks for benders_settings.json in the settings directory. Handles both absolute and relative paths.
+otherwise looks for benders_settings.json in the settings directory, which takes priority over
+settings written directly in `BendersSettings`, with a warning. Handles both absolute and relative
+paths. A path to a missing file is an error unless benders_settings.json exists.
 """
 function load_benders_settings(settings::AbstractDict{Symbol,Any}, path::AbstractString)::AbstractDict{Symbol,Any}
     # Try to load from specified path if provided
@@ -35,11 +37,18 @@ function load_benders_settings(settings::AbstractDict{Symbol,Any}, path::Abstrac
         end
         
         @warn("Benders settings file not found at either absolute path '$(settings[:BendersSettings][:path])' or relative path '$benders_path'")
+        isnothing(try_load_benders_settings(path)) && throw(InputValidationError("case_settings.BendersSettings.path",
+            "file not found: $benders_path"))
+        delete!(settings, :BendersSettings)
     end
 
     # Otherwise, try to load from default location defined as BENDERS_SETTINGS_FILEPATH
     benders_settings = try_load_benders_settings(path)
     if !isnothing(benders_settings)
+        written = settings_dict(get(settings, :BendersSettings, Dict{Symbol,Any}()))
+        if !isempty(written) && !isequal(written, settings_dict(benders_settings))
+            @warn("$BENDERS_SETTINGS_FILEPATH takes priority over the BendersSettings in case_settings.json, which are ignored.")
+        end
         settings[:BendersSettings] = benders_settings
     end
 
@@ -109,11 +118,10 @@ function merged_settings(case_data::AbstractDict{Symbol,Any}, case_dir::Abstract
     legacy = legacy_period_settings(case_data[:case], case_dir, settings, path)
     isnothing(legacy) && return settings
     for (key, value) in legacy
-        if haskey(settings, key) && !isequal(settings[key], value)
-            throw(InputValidationError("case_settings.$key",
-                "is $(repr(settings[key])) in case_settings.json but $(repr(value)) in the per-period settings"))
+        combine_setting!(settings, key, value, "case_settings.$key") do conflict, existing, period_value
+            throw(InputValidationError(conflict,
+                "is $(repr(existing)) in case_settings.json but $(repr(period_value)) in the per-period settings"))
         end
-        settings[key] = value
     end
     return settings
 end

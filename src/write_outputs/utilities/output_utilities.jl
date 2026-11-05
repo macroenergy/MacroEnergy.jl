@@ -89,8 +89,15 @@ function find_available_path(path::String, basename::String="results"; max_attem
 end
 
 # The `OutputSettings` of a system. Keys it does not set (e.g. in hand-built test systems) take
-# their default from the spec.
-output_settings(system::System) = get(system.settings, :OutputSettings, (;))
+# their default from the spec. Old names set on `system.settings` from Julia would otherwise be
+# silently ignored, because they are only translated when reading settings files.
+function output_settings(system::System)
+    for old in keys(DEPRECATED_SETTINGS)
+        haskey(system.settings, old) && throw(InputValidationError("system.settings.$old",
+            "is no longer used. Set system.settings.$(join(DEPRECATED_SETTINGS[old], ".")) instead."))
+    end
+    return get(system.settings, :OutputSettings, (;))
+end
 output_setting_spec(key::Symbol) = input_spec(output_settings_spec(), key)
 output_setting(system::System, key::Symbol) = get(output_settings(system), key, output_setting_spec(key).default)
 

@@ -347,6 +347,86 @@ function test_settings_sources()
     end
 end
 
+# What older versions wrote for a new case: every default, with the old names
+const OLDER_TEMPLATE = Dict(
+    "ConstraintScaling" => false, "EnableJuMPDirectModel" => false, "EnableJuMPStringNames" => false,
+    "AllowImplicitTopLevelCommodities" => true, "WriteSubcommodities" => true, "OverwriteResults" => false,
+    "OutputDir" => "results", "OutputLayout" => "long", "OutputFormat" => "csv", "WriteOutputs" => Dict(),
+    "OutputSignificantDigits" => nothing, "OutputAssetTags" => true, "AutoCreateNodes" => false,
+    "AutoCreateLocations" => true, "Retrofitting" => false, "DualExportsEnabled" => nothing,
+)
+
+function test_older_settings_files()
+    defaults = configure_settings(NamedTuple())
+    @testset "The settings template of older versions still loads" begin
+        settings = with_logger(() -> configure_settings(OLDER_TEMPLATE), NullLogger())
+        @test isequal(settings, defaults)
+        @test_nowarn with_logger(() -> configure_settings(Dict("DualExportsEnabled" => nothing)), NullLogger())
+    end
+
+    @testset "Old defaults do not conflict with new per-output maps" begin
+        with_settings_files(case_settings=Dict("OutputSettings" => Dict(
+            "Format" => Dict("Flow" => "parquet"), "Layout" => Dict("Flow" => "wide"), "Write" => Dict("FullTimeseries" => true),
+        )), macro_settings=OLDER_TEMPLATE) do dir
+            settings = with_logger(() -> resolve_settings(case_with(period_with("macro_settings")), dir), NullLogger())
+            @test settings.OutputSettings.Format == (Flow="parquet",)
+            @test settings.OutputSettings.Layout == (Flow="wide",)
+            @test settings.OutputSettings.Write == (FullTimeseries=true,)
+        end
+        # A value that is not the default is a real conflict
+        msg = error_message(() -> with_logger(() -> configure_settings((OutputFormat="parquet", OutputSettings=(Format=(Flow="csv",),))), NullLogger()))
+        @test occursin("case_settings.OutputFormat: conflicts with OutputSettings.Format", msg)
+    end
+
+    @testset "Settings are combined key by key" begin
+        # Different keys of a block, in the two files
+        with_settings_files(case_settings=Dict("OutputSettings" => Dict("Dir" => "out")),
+            macro_settings=Dict("OutputSettings" => Dict("Format" => "parquet"))) do dir
+            settings = with_logger(() -> resolve_settings(case_with(period_with("macro_settings")), dir), NullLogger())
+            @test settings.OutputSettings.Dir == "out"
+            @test settings.OutputSettings.Format == "parquet"
+        end
+        # Different entries of a map, under the old and new names
+        settings = with_logger(() -> configure_settings((WriteOutputs=(Flow=false,), OutputSettings=(Write=(Duals=false,),))), NullLogger())
+        @test settings.OutputSettings.Write.Flow == false
+        @test settings.OutputSettings.Write.Duals == false
+        # The same entry with different values is a conflict, named by its full path
+        msg = error_message(() -> with_logger(() -> configure_settings((WriteOutputs=(Flow=false,), OutputSettings=(Write=(Flow=true,),))), NullLogger()))
+        @test occursin("case_settings.WriteOutputs: conflicts with OutputSettings.Write.Flow = true", msg)
+        with_settings_files(case_settings=Dict("OutputSettings" => Dict("Dir" => "a")),
+            macro_settings=Dict("OutputSettings" => Dict("Dir" => "b"))) do dir
+            msg = error_message(() -> resolve_settings(case_with(period_with("macro_settings")), dir))
+            @test occursin("case_settings.OutputSettings.Dir: is \"a\" in case_settings.json but \"b\" in the per-period settings", msg)
+        end
+    end
+
+    @testset "Benders settings files" begin
+        benders = Dict("SolutionAlgorithm" => "Benders")
+        missing_file = Dict("BendersSettings" => Dict("path" => "settings/missing.json"))
+        # A missing file named in the settings is reported as such
+        with_settings_files(case_settings=merge(benders, missing_file)) do dir
+            msg = error_message(() -> with_logger(() -> resolve_settings(case_with(Dict{Symbol,Any}()), dir), NullLogger()))
+            @test occursin("case_settings.BendersSettings.path: file not found", msg)
+        end
+        # unless the conventional file can be used instead, with a warning
+        with_settings_files(case_settings=merge(benders, missing_file), benders_settings=Dict("MaxIter" => 7)) do dir
+            settings = @test_logs (:warn, r"not found") min_level=Logging.Warn match_mode=:any resolve_settings(case_with(Dict{Symbol,Any}()), dir)
+            @test settings.BendersSettings[:MaxIter] == 7
+        end
+        # The conventional file takes priority over different settings written in case_settings.json, with a warning
+        with_settings_files(case_settings=merge(benders, Dict("BendersSettings" => Dict("MaxIter" => 8))),
+            benders_settings=Dict("MaxIter" => 7)) do dir
+            settings = @test_logs (:warn, r"takes priority") min_level=Logging.Warn resolve_settings(case_with(Dict{Symbol,Any}()), dir)
+            @test settings.BendersSettings[:MaxIter] == 7
+        end
+        # No warning if they agree
+        with_settings_files(case_settings=merge(benders, Dict("BendersSettings" => Dict("MaxIter" => 7))),
+            benders_settings=Dict("MaxIter" => 7)) do dir
+            @test (@test_logs min_level=Logging.Warn resolve_settings(case_with(Dict{Symbol,Any}()), dir)).BendersSettings[:MaxIter] == 7
+        end
+    end
+end
+
 function test_single_period_settings()
     @testset "A single period without a settings entry" begin
         with_settings_files(case_settings=Dict("DiscountRate" => 0.05, "ConstraintScaling" => true)) do dir
@@ -536,6 +616,7 @@ test_generate_case_start_year()
 test_one_settings_file()
 test_comment_keys()
 test_settings_sources()
+test_older_settings_files()
 test_deprecated_period_settings()
 test_single_period_settings()
 test_benders_settings_sources()

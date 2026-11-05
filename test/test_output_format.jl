@@ -14,6 +14,7 @@ import MacroEnergy:
     empty_system,
     find_output_file,
     get_output_format,
+    get_output_layout,
     get_output_significant_digits,
     load_previous_capacity_results,
     output_enabled,
@@ -171,6 +172,12 @@ function test_output_format()
             @test !output_enabled(system, :FullTimeseries)
             @test isnothing(get_output_significant_digits(system))
         end
+
+        # Old names set from Julia are an error, rather than silently ignored
+        system.settings = merge(configure_settings(NamedTuple()), (OutputLayout="wide",))
+        @test_throws r"system.settings.OutputLayout: is no longer used" get_output_layout(system, :Flow)
+        system.settings = merge(configure_settings(NamedTuple()), (OverwriteResults=true,))
+        @test_throws r"Set system.settings.OutputSettings.Overwrite instead" output_enabled(system, :Flow)
 
         mktempdir() do dir
             @test_throws ErrorException find_output_file(dir, "capacity")
