@@ -111,6 +111,8 @@ Location loading parses each raw entry into a validated `LocationInput`, then co
 
 The parser checks raw entry structure and required keys. The typed `LocationInput` constructor accepts an `AbstractString` ID and `AbstractDict` constraint and commodity inputs, converts them for storage, and validates their structure. A fallback constructor reports unsupported field types, including for programmatically constructed inputs. Required constraint configurations are validated when building the runtime `Location`.
 
+Programmatic input dictionaries must use symbol keys for the location entry, constraint names, commodity names, and node fields. This is the format produced by the JSON reader; no JSON3-specific container type is required. For example, use `Dict(:demand => Dict(:timeseries => Dict(:path => "demand.csv", :header => "demand")))`. `LocationInput` checks the dictionaries it directly consumes and rejects string keys rather than partially converting them. Node-field values, including demand, supply and constraint payloads, are passed through to their existing loaders without recursive inspection or conversion here. Those consumers expect their usual parsed-compatible inputs; malformed nested dictionaries may fail later during loading. String values, including IDs and file paths, remain supported, and opaque extension fields or custom constraint payloads retain their own key conventions.
+
 ```@docs
 MacroEnergy.LocationInput
 ```

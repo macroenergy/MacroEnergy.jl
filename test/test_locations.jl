@@ -121,7 +121,7 @@ end
         @test_throws ArgumentError ME.LocationInput(; id=" \t")
         @test_throws ArgumentError ME.LocationInput(; id="SE", constraints=[ME.MaxCapacityConstraint()])
 
-        converted = @inferred ME.LocationInput(SubString(" SE ", 2, 3), Dict("MaxCapacityConstraint" => false))
+        converted = @inferred ME.LocationInput(SubString(" SE ", 2, 3), Dict(:MaxCapacityConstraint => false))
         @test converted.id === "SE"
         @test converted.constraints isa Dict{Symbol,Any}
         @test converted.constraints == Dict(:MaxCapacityConstraint => false)
@@ -133,7 +133,7 @@ end
             @test_throws r"Location `constraints` must be a dictionary" ME.LocationInput("SE", invalid_constraints)
             @test_throws r"Location `constraints` must be a dictionary" ME.LocationInput(; id="SE", constraints=invalid_constraints)
         end
-        @test_throws r"constraint names must be strings or symbols" ME.LocationInput("SE", Dict(1 => false))
+        @test_throws r"Location constraints must use symbol keys" ME.LocationInput("SE", Dict(1 => false))
 
         # Extension fields stay in raw input until a builder deliberately consumes them.
         raw = Dict{Symbol,Any}(:id => "SE", :custom_field => Dict(:value => 42))
@@ -152,7 +152,6 @@ end
     @testset "Strings and objects use the same schema" begin
         for entries in (["SE", "MIDAT"],
                         Any[Dict(:id => "SE"), "MIDAT"],
-                        [Dict("id" => "SE"), Dict("id" => "MIDAT")],
                         JSON3.read("""[{"id":"SE"},"MIDAT"]"""))
             system = ME.empty_system(@__DIR__)
             ME.load_locations!(system, @__DIR__, entries)
@@ -224,7 +223,7 @@ end
             (" \t", r"`id` must be a nonempty string"),
             (42, r"must be an object"),
             (nothing, r"must be an object"),
-            (Dict(1 => "SE"), r"must use string or symbol keys"),
+            (Dict(1 => "SE"), r"must use symbol keys"),
             (Dict(:id => "SE", :constraints => nothing), r"`constraints` must be a dictionary"),
             (Dict(:id => "SE", :constraints => []), r"`constraints` must be a dictionary"),
             (Dict(:id => "SE", :constraints => true), r"`constraints` must be a dictionary"),
@@ -249,8 +248,8 @@ end
         for value in (nothing, "Electricity", [])
             @test_throws r"details must be a dictionary" ME.LocationInput(; id="SE", commodities=Dict(:Electricity => value))
         end
-        @test_throws r"commodity names must be nonempty" ME.LocationInput(; id="SE", commodities=Dict(" " => Dict()))
-        @test_throws r"Duplicate commodity" ME.LocationInput(; id="SE", commodities=Dict{Any,Any}(:Electricity => Dict(), "Electricity" => Dict()))
+        @test_throws r"commodity names must be nonempty" ME.LocationInput(; id="SE", commodities=Dict(Symbol(" ") => Dict()))
+        @test_throws r"commodities must use symbol keys" ME.LocationInput(; id="SE", commodities=Dict{Any,Any}(:Electricity => Dict(), "Electricity" => Dict()))
     end
 
     @testset "Default nodes and existing asset endpoint resolution" begin
@@ -442,6 +441,45 @@ end
         ))
         @test isnothing(ME.find_locations(system, :source))
         @test length(ME.get_nodes(system)) == 1
+    end
+end
+
+@testset "Symbol-keyed location input contract" begin
+    @test_throws r"Location entry 1 must use symbol keys" ME.parse_location_input(Dict("id"=>"SE"))
+    @test_throws r"Location constraints must use symbol keys" ME.LocationInput(; id="SE", constraints=Dict("MaxCapacityConstraint"=>false))
+    @test_throws r"commodities must use symbol keys" ME.LocationInput(; id="SE", commodities=Dict("Electricity"=>Dict()))
+    @test_throws r"details must use symbol keys" ME.LocationInput(; id="SE", commodities=Dict(:Electricity=>Dict("demand"=>[1.0])))
+
+    # Constructor validation does not descend into user-owned extension/config data.
+    opaque = Dict("display label"=>Dict("timeseries"=>"extension-owned value"))
+    raw = Dict{Symbol,Any}(:id=>"SE", :commodities=>Dict(:Electricity=>Dict(:custom_field=>opaque)),
+        :constraints=>Dict(:CustomConstraint=>Dict("payload"=>opaque)))
+    original = deepcopy(raw)
+    input = ME.parse_location_input(raw)
+    @test input.commodities[:Electricity][:custom_field] == opaque
+    @test input.constraints[:CustomConstraint]["payload"] == opaque
+    @test raw == original
+
+    # Normal JSON input supplies symbol keys at all schema levels and still loads.
+    mktempdir() do directory
+        write(joinpath(directory, "demand.csv"), "demand\n4.0\n")
+        entries = JSON3.read("""[{"id":"SE","commodities":{"Electricity":{
+            "demand":{"timeseries":{"path":"demand.csv","header":"demand"}},
+            "supply":{"grid":{"price":[30.0],"max":[100.0]}},
+            "constraints":{"BalanceConstraint":true}
+        }}}]""")
+        system, _ = make_system()
+        system.data_dirpath = directory
+        ME.load_locations!(system, directory, entries)
+        node = ME.find_node(system, :SE_Electricity, ME.Electricity)
+        @test node.demand == [4.0]
+        @test node.supply[:grid].price == [30.0]
+        @test node.location == :SE
+
+        # Ordinary Julia dictionaries use the same symbol-key contract.
+        details = Dict(:demand=>Dict(:timeseries=>Dict(:path=>"demand.csv", :header=>"demand")))
+        ME.load_locations!(system, directory, [Dict(:id=>"SE", :commodities=>Dict(:Electricity=>details))])
+        @test ME.find_node(system, :SE_Electricity, ME.Electricity).demand == [4.0]
     end
 end
 

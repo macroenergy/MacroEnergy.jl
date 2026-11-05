@@ -16,6 +16,8 @@ nonempty string; `constraints` contains raw constraint input dictionaries/flags.
 Constraint instances and typed configs are created when building the `Location`.
 `commodities` maps commodity names to node input dictionaries. Empty dictionaries
 use node defaults and an ID of `<location>_<commodity>`.
+Input dictionaries use symbol keys, as produced by the JSON reader. String values
+such as IDs and paths are unchanged; opaque extension payloads keep their own keys.
 Raw input dictionaries remain extensible: additional fields may be consumed by
 builders without becoming fields of this type.
 """
@@ -26,19 +28,18 @@ Base.@kwdef struct LocationInput
 
     function LocationInput(id::AbstractString, constraints::AbstractDict, commodities::AbstractDict)
         isempty(strip(id)) && throw(ArgumentError("Location `id` must be a nonempty string"))
-        all(key -> key isa Union{Symbol,AbstractString}, keys(constraints)) ||
-            throw(ArgumentError("Location constraint names must be strings or symbols"))
-        constraint_data = Dict{Symbol,Any}(Symbol(key) => value for (key, value) in constraints)
+        validate_location_input_keys(constraints, "Location constraints")
+        constraint_data = Dict{Symbol,Any}(constraints)
+        validate_location_input_keys(commodities, "Location `$id` commodities")
         commodity_data = Dict{Symbol,Dict{Symbol,Any}}()
         for (name, details) in commodities
-            name isa Union{Symbol,AbstractString} && !isempty(strip(string(name))) ||
-                throw(ArgumentError("Location `$id` commodity names must be nonempty strings or symbols"))
-            name = Symbol(name)
+            !isempty(strip(string(name))) ||
+                throw(ArgumentError("Location `$id` commodity names must be nonempty symbols"))
             haskey(commodity_data, name) && throw(ArgumentError("Duplicate commodity `$name` in location `$id`"))
             details isa AbstractDict || throw(ArgumentError("Location `$id` commodity `$name` details must be a dictionary"))
-            all(key -> key isa Union{Symbol,AbstractString}, keys(details)) ||
-                throw(ArgumentError("Location `$id` commodity `$name` details must use string or symbol keys"))
-            commodity_data[name] = Dict{Symbol,Any}(Symbol(key) => value for (key, value) in details)
+            context = "Location `$id` commodity `$name` details"
+            validate_location_input_keys(details, context)
+            commodity_data[name] = Dict{Symbol,Any}(details)
         end
         return new(String(id), constraint_data, commodity_data)
     end
@@ -52,6 +53,13 @@ Base.@kwdef struct LocationInput
 end
 
 LocationInput(id, constraints) = LocationInput(id, constraints, Dict())
+
+function validate_location_input_keys(data::AbstractDict, context::AbstractString)
+    all(key -> key isa Symbol, keys(data)) || throw(ArgumentError(
+        "$context must use symbol keys, as produced by the JSON reader",
+    ))
+    return nothing
+end
 
 function Location(input::LocationInput, system::AbstractSystem)
     data = Dict{Symbol,Any}(:constraints => input.constraints)
@@ -91,9 +99,8 @@ function parse_location_input(entry, index::Integer=1)
     if entry isa AbstractString
         data = Dict{Symbol,Any}(:id => entry)
     elseif entry isa AbstractDict
-        all(key -> key isa Union{Symbol,AbstractString}, keys(entry)) ||
-            throw(ArgumentError("$context must use string or symbol keys"))
-        data = Dict{Symbol,Any}(Symbol(key) => value for (key, value) in entry)
+        validate_location_input_keys(entry, context)
+        data = Dict{Symbol,Any}(entry)
     else
         throw(ArgumentError("$context must be an object with an `id` field or a location name string"))
     end
