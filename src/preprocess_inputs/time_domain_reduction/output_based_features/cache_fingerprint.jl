@@ -1,6 +1,6 @@
-# This is to help keep track of changes to the cache formatting.
-# It should be incremented whenever the structure of the cached data changes.
-const TDR_OUTPUT_CACHE_VERSION = 1
+# Increment when the cache format or output-generation semantics change.
+# Version 2 includes correctly scoped inline inputs in isolated candidate solves.
+const TDR_OUTPUT_CACHE_VERSION = 2
 
 """One source dependency, identified by its portable case-relative path."""
 struct TDROutputCacheFile

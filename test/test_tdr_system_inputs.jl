@@ -129,12 +129,12 @@ end
         @test isfile(joinpath(output, "settings", "case_settings.json"))
         for (index, name) in enumerate(("one", "two"))
             private = joinpath(output, "inputs", "system_$index")
-            @test generated["case"][index]["assets"]["path"] == "inputs/system_$index/custom/$name"
+            @test generated["case"][index]["assets"]["path"] == "inputs/system_$index/assets"
             @test generated["case"][index]["time_data"]["path"] == "inputs/system_$index/time_data.json"
-            @test isfile(joinpath(private, "custom", name, "asset.json"))
-            @test !isdir(joinpath(private, "custom", index == 1 ? "two" : "one"))
-            @test !isdir(joinpath(private, "custom", name, "unused"))
-            asset = MacroEnergy.read_json(joinpath(private, "custom", name, "asset.json"))
+            @test isfile(joinpath(private, "assets", "asset.json"))
+            @test !isdir(joinpath(private, "custom"))
+            @test !isdir(joinpath(private, "assets", "unused"))
+            asset = MacroEnergy.read_json(joinpath(private, "assets", "asset.json"))
             @test asset["input"]["path"] == "inputs/system_$index/shared.json"
             shared = MacroEnergy.read_json(joinpath(private, "shared.json"))
             @test shared["demand"]["timeseries"]["path"] == "inputs/system_$index/data/demand.csv"
@@ -292,6 +292,65 @@ end
                 @test !haskey(MacroEnergy.read_json(joinpath(destination, "system_data.json")), "case")
                 @test read(joinpath(source, "system_data.json"), String) == original_source
             end
+        end
+    end
+end
+
+@testset "Configured asset directory destinations" begin
+    for occupied in (false, true)
+        mktempdir() do temporary
+            source = joinpath(temporary, "source")
+            output = joinpath(temporary, "output")
+            mkpath(source)
+            MacroEnergy.write_json(joinpath(source, "time.json"), Dict(
+                "HoursPerTimeStep" => Dict("Electricity" => 1),
+                "HoursPerSubperiod" => Dict("Electricity" => 2),
+                "NumberOfSubperiods" => 2, "TotalHoursModeled" => 4))
+            systems = map(1:2) do index
+                asset_directory = "assets/assets_$index"
+                mkpath(joinpath(source, asset_directory, "nested"))
+                CSV.write(joinpath(source, asset_directory, "profile.csv"), DataFrame(demand=collect(1.:4.) .+ 100index))
+                MacroEnergy.write_json(joinpath(source, asset_directory, "asset.json"), Dict(
+                    "availability" => collect(1.:4.),
+                    "demand" => Dict("timeseries" => Dict("path" => "$asset_directory/profile.csv", "header" => "demand")),
+                    "nested" => Dict("path" => "$asset_directory/nested/child.json")))
+                MacroEnergy.write_json(joinpath(source, asset_directory, "nested", "child.json"), Dict("price" => collect(11.:14.) .+ 100index))
+                system = Dict("time_data" => Dict("path" => "time.json"), "assets" => Dict("path" => asset_directory))
+                if occupied
+                    CSV.write(joinpath(source, "assets", "shared.csv"), DataFrame(price=collect(21.:24.)))
+                    MacroEnergy.write_json(joinpath(source, "outside.json"), Dict("price" => Dict(
+                        "timeseries" => Dict("path" => "assets/shared.csv", "header" => "price"))))
+                    system["nodes"] = Dict("path" => "outside.json")
+                end
+                system
+            end
+            MacroEnergy.write_json(joinpath(source, "system_data.json"), Dict("case" => systems))
+            settings_path = joinpath(temporary, "tdr.json")
+            MacroEnergy.write_json(settings_path, Dict("timesteps_per_representative_period" => 2,
+                "representative_periods" => 1, "method" => Dict("name" => "kmeans"), "scaling" => "standardize"))
+            preprocess_inputs(source, output; tdr_settings_path=settings_path)
+            generated = MacroEnergy.read_json(joinpath(output, "system_data.json"))
+            for index in 1:2
+                relative = occupied ? "inputs/system_$index/assets/assets_$index" : "inputs/system_$index/assets"
+                @test generated["case"][index]["assets"]["path"] == relative
+                asset = MacroEnergy.read_json(joinpath(output, relative, "asset.json"))
+                @test asset["demand"]["timeseries"]["path"] == "$relative/profile.csv"
+                @test asset["nested"]["path"] == "$relative/nested/child.json"
+                @test length(asset["availability"]) == 2
+                @test length(MacroEnergy.read_json(joinpath(output, relative, "nested", "child.json"))["price"]) == 2
+                @test nrow(CSV.read(joinpath(output, relative, "profile.csv"), DataFrame)) == 2
+                @test MacroEnergy.read_json(joinpath(source, "assets", "assets_$index", "asset.json"))["availability"] == collect(1.:4.)
+                if occupied
+                    @test !isfile(joinpath(output, relative, "shared.csv"))
+                else
+                    @test !isdir(joinpath(output, relative, "assets_$index"))
+                end
+            end
+            settings = MacroEnergy.load_tdr_settings_by_system(settings_path, 2)
+            MacroEnergy.tdr_prepare_system_inputs!(output, MacroEnergy.tdr_prepare_inputs(output, settings))
+            repeated = MacroEnergy.read_json(joinpath(output, "system_data.json"))
+            @test [system["assets"]["path"] for system in repeated["case"]] ==
+                [system["assets"]["path"] for system in generated["case"]]
         end
     end
 end
