@@ -17,15 +17,27 @@ pip install notebook
 
 ### Download Macro
 
-Since Macro is a **public repository**, you can simply clone it using:
+These tutorials are written for the development version of Macro (0.4), which is not registered yet. Until it is, create a Julia project environment and add MacroEnergy.jl from the `main` branch of its repository.
+
+In your terminal, open the Julia REPL:
+
+```bash
+julia
+```
+
+Then, in the Julia REPL (or in a Jupyter Notebook), run the following commands to activate the project environment and add MacroEnergy.jl:
+
+```julia
+using Pkg
+Pkg.activate(".")
+Pkg.add(name="MacroEnergy", rev="main")
+```
+
+If you would like to also download the source code of Macro, you can clone the repository. Since Macro is a **public repository**, you can simply use:
 ```bash
 git clone https://github.com/macroenergy/MacroEnergy.jl.git
 ```
-
-If you want to clone a specific branch, you can use:
-```bash
-git clone -b <branch-name> https://github.com/macroenergy/MacroEnergy.jl.git
-```
+Alternatively, you can set up an SSH key pair and use the SSH URL instead of the HTTPS URL.
 
 ### Installation steps
 - **Navigate to the repository**:
@@ -58,8 +70,11 @@ jupyter notebook
 ```
 
 ## Testing the installation
-To test the installation, you can run the following command:
+To test the installation, you can run the following commands:
 ```julia
 using MacroEnergy
+
+println("MacroEnergy version: ")
+v = Pkg.status("MacroEnergy");
 ```
-in a Jupyter Notebook cell or in a Julia terminal. If everything is set up correctly, you should see no errors and the package should load without any issues.
+in a Jupyter Notebook cell or in a Julia terminal. If everything is set up correctly, you should see no errors, the package should load without any issues, and the installed version of MacroEnergy should be printed.

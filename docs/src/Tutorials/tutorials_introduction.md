@@ -4,9 +4,9 @@ The tutorials in this section are long-form explanations of how to use Macro. Th
 
 We currently have the following tutorials:
 
-1. **Getting Started**: Shows you how to download, install, and test Macro.
-2. **Running Macro**: Describes how to optimize an electricity grid, write the results, and plot them. It will then show you how to add an emission limit to the system.
-3. **Multisector Modelling**: Show you how to add a hydrogen sector model to the electricity grid from the previous tutorial. You will then optimize the multisector system, write and plot the results.
+- [Tutorial 0: Getting Started](0_getting_started.md): Shows you how to download, install, and test Macro.
+- [Tutorial 1: Running Macro](1_running_macro.md): Describes how to optimize an electricity grid, write the results, and plot them. It will then show you how to add an emission limit to the system and how to solve the model with Benders decomposition.
+- [Tutorial 2: Multisector Modelling](2_multisector_modelling.md): Shows you how to add a hydrogen sector model to the electricity grid from the previous tutorial. You will then optimize the multisector system, and plot the results.
 
 ## Contributing a tutorial
 
