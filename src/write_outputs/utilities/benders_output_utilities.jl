@@ -244,7 +244,7 @@ function extract_subproblem_results(system::System, scaling::Float64)
         end
 
         # Store aggregated costs (only non-zero, with scaling)
-        vom_cost > 0 && push!(cost_rows, (zone=zone, type=asset_type, category=:VariableOM, value=vom_cost * scaling^2))
+        vom_cost != 0 && push!(cost_rows, (zone=zone, type=asset_type, category=:VariableOM, value=vom_cost * scaling^2))
         fuel_cost > 0 && push!(cost_rows, (zone=zone, type=asset_type, category=:Fuel, value=fuel_cost * scaling^2))
         startup_cost_val > 0 && push!(cost_rows, (zone=zone, type=asset_type, category=:Startup, value=startup_cost_val * scaling^2))
     end

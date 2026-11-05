@@ -233,7 +233,7 @@ Compute variable O&M cost for an edge: sum over time of `subperiod_weight * vari
 Returns a Float64 value.
 """
 function compute_variable_om_cost(e::AbstractEdge)::Float64
-    variable_om_cost(e) <= 0 && return 0.0
+    variable_om_cost(e) == 0 && return 0.0
     vom_cost = 0.0
     for t in time_interval(e)
         w = current_subperiod(e, t)

@@ -505,8 +505,9 @@ end
 
 function add_operation_model_varcosts!(e::EdgeWithoutUC, model::Model)
     # Used by UnidirectionalEdge; BidirectionalEdge and EdgeWithUC have their own methods.
+    # A negative vom is a credit per unit flow (e.g. a carbon price on an edge leaving a CO2 sink).
     vom_cost = variable_om_cost(e)
-    if vom_cost > 0
+    if vom_cost != 0
         eVariableCost = model[:eVariableCost]::AffExpr
         ti = time_interval(e)
         for t in ti
@@ -559,6 +560,9 @@ end
 
 function add_operation_model_varcosts!(e::BidirectionalEdge, model::Model)
     vom_cost = variable_om_cost(e)
+    # Charged on |flow|, so a negative vom would pay flow in both directions.
+    vom_cost < 0 && error("BidirectionalEdge $(id(e)) has a negative variable_om_cost ($vom_cost); " *
+                          "it is charged on |flow|, so a credit would pay flow in both directions.")
     if vom_cost > 0
         # Charge vom on |flow| = flow_pos + flow_neg. Lossy edges already have the split from update_balances!.
         isempty(flow_pos(e)) && define_flow_pos_neg!(e, model)
@@ -713,14 +717,14 @@ ustart(e::EdgeWithUC, t::Int64) = (ustart(e)::VarArrayOrDense)[t];
 function add_operation_model_varcosts!(e::EdgeWithUC, model::Model)
     vom_cost = variable_om_cost(e)
     startup_c = startup_cost(e)
-    if vom_cost > 0 || startup_c > 0
+    if vom_cost != 0 || startup_c > 0
         eVariableCost = model[:eVariableCost]::AffExpr
         ti = time_interval(e)
         for t in ti
 
             w = current_subperiod(e,t)
             weight = subperiod_weight(e, w)
-            if vom_cost > 0
+            if vom_cost != 0
                 add_to_expression!(
                     eVariableCost,
                     weight * vom_cost,

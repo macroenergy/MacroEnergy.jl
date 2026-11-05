@@ -943,6 +943,57 @@ function test_writing_output()
         @test MacroEnergy.compute_variable_om_cost(vom_line) ≈ expected
     end
 
+    @testset "Negative variable O&M cost is a credit on unidirectional edges" begin
+        # A negative vom (e.g. a carbon price on an uptake edge) enters the objective and the cost outputs.
+        model = Model(HiGHS.Optimizer)
+        set_silent(model)
+        model[:eVariableCost] = AffExpr(0.0)
+        neg_timedata = TimeData{Electricity}(;
+            time_interval=1:3,
+            hours_per_timestep=1,
+            subperiods=[1:1, 2:2, 3:3],
+            subperiod_indices=[1, 2, 3],
+            subperiod_weights=Dict(1 => 0.3, 2 => 0.5, 3 => 0.2)
+        )
+        credit_edge = UnidirectionalEdge{Electricity}(;
+            id=:credit_edge,
+            start_vertex=node1,
+            end_vertex=node2,
+            timedata=neg_timedata,
+            variable_om_cost=-2.0,
+            flow=fixed_vars(model, [5.0, 3.0, 1.0])
+        )
+        credit_uc = MacroEnergy.EdgeWithUC{Electricity}(;
+            id=:credit_uc,
+            start_vertex=node1,
+            end_vertex=node2,
+            timedata=neg_timedata,
+            variable_om_cost=-1.5,
+            flow=fixed_vars(model, [2.0, 0.0, 4.0])
+        )
+        MacroEnergy.add_operation_model_varcosts!(credit_edge, model)
+        MacroEnergy.add_operation_model_varcosts!(credit_uc, model)
+        @objective(model, Min, model[:eVariableCost])
+        optimize!(model)
+
+        expected_edge = -2.0 * (0.3 * 5.0 + 0.5 * 3.0 + 0.2 * 1.0)
+        expected_uc = -1.5 * (0.3 * 2.0 + 0.5 * 0.0 + 0.2 * 4.0)
+        @test value(model[:eVariableCost]) ≈ expected_edge + expected_uc
+        @test MacroEnergy.compute_variable_om_cost(credit_edge) ≈ expected_edge
+        @test MacroEnergy.compute_variable_om_cost(credit_uc) ≈ expected_uc
+
+        # Charged on |flow|, a credit would pay a bidirectional edge both ways: refused.
+        credit_line = BidirectionalEdge{Electricity}(;
+            id=:credit_line,
+            start_vertex=node1,
+            end_vertex=node2,
+            timedata=neg_timedata,
+            variable_om_cost=-2.0,
+            flow=fixed_vars(model, [5.0, -3.0, 0.0])
+        )
+        @test_throws ErrorException MacroEnergy.add_operation_model_varcosts!(credit_line, model)
+    end
+
     @testset "write_time_weights" begin
         # Create minimal system with time_data for TDR (3 representative sub-periods)
         test_dir = abspath(mktempdir("."))
