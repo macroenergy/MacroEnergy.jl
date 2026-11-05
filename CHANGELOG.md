@@ -14,6 +14,7 @@ and this project follows Julia package versioning through `Project.toml` release
 
 ### Fixed
 
+- Iterating over `SubproblemsData`, the container for per-subproblem Benders results, no longer yields the first subproblem twice. Written outputs were not affected, since the output writers read its fields directly rather than iterating it.
 - Fixed TDR weights for shared CSV columns so excluded references and references with no matching feature do not increase clustering influence. Total usage counts are retained for provenance; clustering occurrence summaries count included references only.
 - Corrected exported duals after MacroEnergyScaling constraint-row and objective scaling. All model builders now retain cumulative scaling metadata per model, and dual reporting restores the original model units before applying input scaling, time weights and discount conversions. Requires MacroEnergyScaling v0.4.1 or later.
 - Fixed location membership for automatically created nodes so location-based outputs and capacity constraints can identify their location correctly.
@@ -29,6 +30,11 @@ and this project follows Julia package versioning through `Project.toml` release
 - Location entries are normalized into a validated `LocationInput` with a required nonempty string ID and optional constraint and commodity dictionaries. Programmatic location dictionaries must use symbol keys, matching parsed JSON inputs; location-name strings remain supported.
 - Location loading now creates each location and its declared nodes before loading independent nodes and assets. Node and location IDs share one namespace, with collisions rejected by both registration methods. Input validation also rejects duplicate commodity nodes within a location and conflicting location assignments as objects are loaded or registered.
 - Multi-System TDR copies configured asset directories to `inputs/system_<n>/assets`, avoiding repeated source directory names such as `assets/assets_1` when the destination is free of other dependencies.
+
+### Documentation
+
+- Synced the tutorials with MacroEnergyExamples.jl: added Tutorial 3 (a three-zone multisector showcase) and a Benders decomposition section in Tutorial 1, and updated the code in Tutorials 0-2 to the current API (`scaling` argument of the result functions, `resource_type` output column, sign of storage charge flows).
+- Fixed the Tutorial 2 asset diagrams, which did not load on the deployed site, and a table-of-contents entry pointing to a tutorial page that does not exist.
 
 ## [0.3.0 - rc] - 2026-10-14
 

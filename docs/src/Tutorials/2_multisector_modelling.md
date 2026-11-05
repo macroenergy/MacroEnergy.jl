@@ -1,4 +1,4 @@
-# Multisector modelling with Macro
+# Tutorial 2: Multisector modelling with Macro
 
 !!! note "Interactive Notebook"
     The interactive version of this tutorial can be found [here](https://github.com/macroenergy/MacroEnergyExamples.jl/blob/main/tutorials/tutorial_2_multisector_modelling.ipynb).
@@ -8,7 +8,10 @@ In this tutorial, we extend the electricity-only model considered in Tutorial 1 
 To do this, we incorporate hydrogen and electricity demand from Tutorial 1, and endogenously model hydrogen production and storage in Macro.
 
 ```julia
-using Pkg; Pkg.add(["VegaLite", "Plots"])
+using Pkg
+Pkg.activate(".")
+Pkg.add(name="MacroEnergy", rev="main")
+Pkg.add(["VegaLite", "HiGHS", "CSV", "DataFrames", "JSON3", "Plots"])
 ```
 
 ```julia
@@ -56,6 +59,8 @@ end
     ]
 }
 ```
+
+Also check that `one_zone_multisector/settings/case_settings.json` sets `"SolutionAlgorithm": "Monolithic"`: the Benders section of Tutorial 1 switches it to `"Benders"`.
 
 Add Hydrogen to the list of modeled commodities, modifying file `one_zone_multisector/system/commodities.json`:
 
@@ -135,9 +140,7 @@ The definition of the new Hydrogen node in `one_zone_multisector/system/nodes.js
 
 Next, add an electrolyzer asset represented in Macro as a transformation connecting electricity and hydrogen nodes:
 
-```@raw html
-<a href="electrolyzer.html"><img width="400" src="../images/electrolyzer.png" /></a>
-```
+![electrolyzer](../images/electrolyzer_asset.png)
 
 To include the electrolyzer, create a file `one_zone_multisector/assets/electrolyzer.json` based on the asset definition in `src/model/assets/electrolyzer.jl`:
 
@@ -172,9 +175,7 @@ To include the electrolyzer, create a file `one_zone_multisector/assets/electrol
 
 Include a hydrogen storage resource cluster, represented in Macro as combination of a compressor transformation (consuming electricity to compress the gas) and a storage node:
 
-```@raw html
-<a href="gas_storage.html"><img width="400" src="../images/gas_storage.png" /></a>
-```
+![hydrogen_storage](../images/hydrogen_storage.png)
 
 Add a file `one_zone_multisector/assets/h2_storage.json` based on the asset definition in `src/model/assets/gasstorage.jl` that should look like this:
 
@@ -225,9 +226,20 @@ First, load the inputs:
 case = load_case("one_zone_multisector");
 ```
 
-Then, create the optimizer and solve the model:
+Create the optimizer:
 ```julia
-optimizer = create_optimizer(HiGHS.Optimizer);
+optimizer = HiGHS.Optimizer
+optimizer_env = nothing
+optimizer_attributes = (
+    "solver" => "ipm",
+    "run_crossover" => "on",
+    "ipm_optimality_tolerance" => 1e-4
+)
+optimizer = create_optimizer(optimizer, optimizer_env, optimizer_attributes)
+```
+
+Then, solve the model:
+```julia
 (case, solution) = solve_case(case, optimizer);
 ```
 
@@ -245,21 +257,21 @@ As in the previous tutorial, optimized capacities are retrieved as follows:
 ```julia
 period_index = 1 # only one investment period in this example
 system = case.systems[period_index];
-columns_to_keep = [:commodity, :resource_id, :type, :value];
+columns_to_keep = [:commodity, :resource_id, :resource_type, :value];
 ```
 
 ```julia
-capacity_results = get_optimal_capacity(system);
+capacity_results = get_optimal_capacity(system, 1.0);
 capacity_results[:, columns_to_keep]
 ```
 
 ```julia
-new_capacity_results = get_optimal_new_capacity(system);
+new_capacity_results = get_optimal_new_capacity(system, 1.0);
 new_capacity_results[:, columns_to_keep]
 ```
 
 ```julia
-retired_capacity_results = get_optimal_retired_capacity(system);
+retired_capacity_results = get_optimal_retired_capacity(system, 1.0);
 retired_capacity_results[:, columns_to_keep]
 ```
 
@@ -270,8 +282,8 @@ MacroEnergy.objective_value(solution)
 
 Total $\text{CO}_2$ emissions are:
 ```julia
-co2_node = MacroEnergy.find_node(system.locations, :co2_sink);
-MacroEnergy.value.(sum(MacroEnergy.get_balance(co2_node, :emissions)))
+co2_node = MacroEnergy.find_node(system.locations, :co2_sink)
+MacroEnergy.value(sum(co2_node.operation_expr[:emissions]))
 ```
 
 Note that we have achieved lower costs and emissions when able to co-optimize capacity and operation of electricity and hydrogen sectors. In the following, we further investigate these results.
@@ -282,7 +294,7 @@ plot_time_interval = 3600:3624
 Here is the electricity generation profile:
 ```julia
 # Flows
-flow_results_df = get_optimal_flow(system)
+flow_results_df = get_optimal_flow(system, 1.0)
 flow_results = MacroEnergy.reshape_wide(flow_results_df, :time, :component_id, :value)
 
 natgas_power =  flow_results[plot_time_interval, :NE_natural_gas_fired_combined_cycle_1_elec_edge] / 1e3;
@@ -317,7 +329,7 @@ We verify our assumption by making a stacked area plot of the hydrogen supply (h
 
 ```julia
 electrolyzer_gen = flow_results[plot_time_interval, :NE_Electrolyzer_h2_edge] / 1e3;
-h2stor_charge = flow_results[plot_time_interval, :NE_Above_ground_storage_charge_edge] / 1e3;
+h2stor_charge = -1 * flow_results[plot_time_interval, :NE_Above_ground_storage_charge_edge] / 1e3;
 h2stor_discharge = flow_results[plot_time_interval, :NE_Above_ground_storage_discharge_edge] / 1e3;
 
 h2_gen = DataFrame( hours = plot_time_interval, 

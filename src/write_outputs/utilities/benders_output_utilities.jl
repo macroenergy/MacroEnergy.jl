@@ -147,8 +147,7 @@ function Base.length(subproblems_data::SubproblemsData)
     @assert length(subproblems_data.flows) == length(subproblems_data.storage_levels) == length(subproblems_data.nsd) == length(subproblems_data.operational_costs) == length(subproblems_data.curtailment)
     return length(subproblems_data.flows)
 end
-Base.iterate(s::SubproblemsData) = length(s) == 0 ? nothing : (s[1], 1)
-Base.iterate(s::SubproblemsData, i::Int) = i > length(s) ? nothing : (s[i], i + 1)
+Base.iterate(s::SubproblemsData, i::Int=1) = i > length(s) ? nothing : (s[i], i + 1)
 function Base.getindex(subproblems_data::SubproblemsData, i::Int64)
     return (
         flows=subproblems_data.flows[i],
