@@ -232,9 +232,10 @@ end
 end
 
 @testset "subperiod inputs preserve Case settings" begin
-    for representation in (:bare_file, :bare_entry, :bare_defaults, :case_file, :case_inline, :case_defaults, :multi, :multi_entry)
+    for representation in (:bare_file, :bare_entry, :bare_custom, :bare_two_files, :bare_defaults, :case_file, :case_implicit,
+        :case_inline, :case_defaults, :multi, :multi_entry)
         @testset "$representation" begin
-            bare = representation in (:bare_file, :bare_entry, :bare_defaults)
+            bare = representation in (:bare_file, :bare_entry, :bare_custom, :bare_two_files, :bare_defaults)
             multi = representation in (:multi, :multi_entry)
             mktempdir() do root
                 source = joinpath(root, "source")
@@ -259,17 +260,20 @@ end
                 if representation == :case_inline
                     case_root["settings"] = custom_settings
                 elseif !defaults
-                    relative_path = bare ? joinpath("settings", "case_settings.json") :
-                        joinpath("custom", "case.json")
+                    relative_path = (bare && representation != :bare_custom) || representation == :case_implicit ?
+                        joinpath("settings", "case_settings.json") : joinpath("custom", "case.json")
                     # The `settings` entry of each period points to the same file as the Case's
-                    if representation in (:bare_entry, :multi_entry)
+                    if representation in (:bare_entry, :bare_custom, :multi_entry)
                         for period in (bare ? [system] : case_root["case"])
                             period["settings"] = Dict("path" => MacroEnergy.tdr_normalize_path(relative_path))
                         end
                     end
                     mkpath(dirname(joinpath(source, relative_path)))
                     MacroEnergy.write_json(joinpath(source, relative_path), custom_settings)
-                    if !bare
+                    if representation == :bare_two_files
+                        MacroEnergy.write_json(joinpath(source, "macro_settings.json"), Dict("ConstraintScaling" => true))
+                        system["settings"] = Dict("path" => "macro_settings.json")
+                    elseif !bare && representation != :case_implicit
                         case_root["settings"] = Dict("path" => MacroEnergy.tdr_normalize_path(relative_path))
                         # Explicit Cases must not accidentally pick this conventional file.
                         mkpath(joinpath(source, "settings"))
@@ -296,6 +300,9 @@ end
                 configured = MacroEnergy.resolve_settings(
                     Dict{Symbol,Any}(:settings => discovered, :case => Any[isolated_period]), destination)
                 @test configured[:PeriodLengths] == (defaults ? [1] : multi ? [7] : [5])
+                @test configured[:ConstraintScaling] == (representation == :bare_two_files)
+                # All the settings are in the isolated case_settings.json
+                @test !haskey(isolated_period, :settings)
                 @test configured[:DiscountRate] == (defaults ? 0.0 : 0.08)
                 @test configured[:ParameterScaling] == !defaults
                 @test configured[:ExpansionHorizon] isa MacroEnergy.PerfectForesight
@@ -327,7 +334,9 @@ end
         files = manifest_files(Dict("time_data" => time_data, "settings" => Dict("path" => "settings/macro_settings.json")))
         @test implicit in files
         @test joinpath("settings", "macro_settings.json") in files
-        # Explicit Cases do not load this file, so they do not copy it
+        # Without a case-level `settings` entry, an explicit Case loads this file too
+        @test implicit in manifest_files(Dict("case" => Any[Dict("time_data" => time_data)]))
+        # Explicit Cases with their own entry do not load this file, so they do not copy it
         @test !(implicit in manifest_files(Dict(
             "case" => Any[Dict("time_data" => time_data)],
             "settings" => Dict("path" => "custom_settings.json"),

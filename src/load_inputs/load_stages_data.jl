@@ -16,7 +16,7 @@ function load_case_data(
     if !haskey(data, :case)
         data = Dict(
             :case => [data],
-            :settings => single_system_case_settings(file_path)
+            :settings => single_system_case_settings(file_path, data)
         )
     end
 
@@ -52,10 +52,14 @@ function load_case(
     end
 end
 
-function single_system_case_settings(file_path::AbstractString)::Dict{Symbol,Any}
+# The case-level settings of a case written without a `case` key: the conventional file if there
+# is one, and otherwise the System's own `settings` entry. If the System's entry points elsewhere
+# while the conventional file exists, this is the deprecated two-file layout, and
+# `merged_settings` reads both.
+function single_system_case_settings(file_path::AbstractString, system_data::AbstractDict=Dict{Symbol,Any}())
     case_settings_path = joinpath(dirname(file_path), "settings", CASE_SETTINGS_FILENAME)
     if isfile(case_settings_path)
         return Dict{Symbol,Any}(:path => case_settings_path)
     end
-    return Dict{Symbol,Any}()
+    return get(system_data, :settings, Dict{Symbol,Any}())
 end

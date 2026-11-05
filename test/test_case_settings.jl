@@ -274,6 +274,79 @@ function test_deprecated_period_settings()
     end
 end
 
+function test_settings_sources()
+    @testset "A case without a top-level settings entry uses the conventional file" begin
+        with_settings_files(case_settings=Dict("DiscountRate" => 0.07, "ConstraintScaling" => true)) do dir
+            data = Dict{Symbol,Any}(:case => [Dict{Symbol,Any}()])
+            settings = @test_logs min_level=Logging.Warn resolve_settings(data, dir)
+            @test settings.DiscountRate == 0.07
+            @test settings.ConstraintScaling
+        end
+    end
+
+    @testset "A period without settings next to one with settings is an error" begin
+        with_settings_files(case_settings=Dict("PeriodLengths" => [5, 5]), macro_settings=Dict("AutoCreateNodes" => true)) do dir
+            msg = error_message(() -> resolve_settings(case_with(period_with("macro_settings"), Dict{Symbol,Any}()), dir))
+            @test occursin("system_data.case[2].settings: this period has no settings of its own, but period 1 does", msg)
+            # The same when the period points to the case-level file
+            msg = error_message(() -> resolve_settings(case_with(period_with("macro_settings"), period_with("case_settings")), dir))
+            @test occursin("system_data.case[2].settings: this period has no settings of its own", msg)
+        end
+    end
+
+    @testset "A case's own settings entry is not a per-period file" begin
+        # A custom file name, or the old name, as the only settings file of a single period
+        with_settings_files(custom=Dict("DiscountRate" => 0.07), macro_settings=Dict("ConstraintScaling" => true)) do dir
+            for (name, check) in (("custom", s -> s.DiscountRate == 0.07), ("macro_settings", s -> s.ConstraintScaling))
+                period = period_with(name)
+                data = Dict{Symbol,Any}(:settings => single_system_case_settings(joinpath(dir, "system_data.json"), period), :case => [period])
+                @test check(@test_logs min_level=Logging.Warn resolve_settings(data, dir))
+            end
+        end
+        # Loading eagerly replaces the entry by the content of the file
+        path = joinpath(@__DIR__, "test_inputs", "system_data.json")
+        data = load_case_data(path; lazy_load=false)
+        @test (@test_logs min_level=Logging.Warn resolve_settings(data, dirname(path))).OutputSettings.Write.FullTimeseries
+    end
+
+    @testset "An entry can be a directory" begin
+        with_settings_files(case_settings=Dict("DiscountRate" => 0.07)) do dir
+            period = Dict{Symbol,Any}(:settings => Dict{Symbol,Any}(:path => "settings"))
+            @test (@test_logs min_level=Logging.Warn standalone_settings(period, dir)).DiscountRate == 0.07
+        end
+        # Without case_settings.json in it, the deprecated file
+        with_settings_files(macro_settings=Dict("ConstraintScaling" => true)) do dir
+            period = Dict{Symbol,Any}(:settings => Dict{Symbol,Any}(:path => "settings"))
+            @test standalone_settings(period, dir).ConstraintScaling
+        end
+    end
+
+    @testset "An entry can be a plain path" begin
+        with_settings_files(case_settings=Dict("DiscountRate" => 0.07), macro_settings=Dict("ConstraintScaling" => true)) do dir
+            top_level = Dict{Symbol,Any}(:settings => "settings/case_settings.json", :case => [Dict{Symbol,Any}(:settings => "settings/macro_settings.json")])
+            settings = with_logger(() -> resolve_settings(top_level, dir), NullLogger())
+            @test settings.DiscountRate == 0.07
+            @test settings.ConstraintScaling
+            @test with_logger(() -> standalone_settings(Dict{Symbol,Any}(:settings => "settings/macro_settings.json"), dir), NullLogger()).ConstraintScaling
+        end
+        # Anything else is a clear error
+        msg = error_message(() -> resolve_settings(Dict{Symbol,Any}(:settings => 5, :case => Any[]), pwd()))
+        @test occursin("system_data.settings: expected a path or an object, got 5", msg)
+    end
+
+    @testset "load_system and load_case use the same settings" begin
+        # The deprecated two-file layout, with some settings already moved to case_settings.json
+        with_settings_files(case_settings=Dict("AutoCreateNodes" => true), macro_settings=Dict("ConstraintScaling" => true)) do dir
+            period = period_with("macro_settings")
+            standalone = @test_logs (:warn, r"given per period") min_level=Logging.Warn standalone_settings(period, dir)
+            data = Dict{Symbol,Any}(:settings => single_system_case_settings(joinpath(dir, "system_data.json"), period), :case => [period])
+            @test isequal(standalone, with_logger(() -> resolve_settings(data, dir), NullLogger()))
+            @test standalone.AutoCreateNodes
+            @test standalone.ConstraintScaling
+        end
+    end
+end
+
 function test_single_period_settings()
     @testset "A single period without a settings entry" begin
         with_settings_files(case_settings=Dict("DiscountRate" => 0.05, "ConstraintScaling" => true)) do dir
@@ -462,6 +535,7 @@ test_load_time_data_year_via_path()
 test_generate_case_start_year()
 test_one_settings_file()
 test_comment_keys()
+test_settings_sources()
 test_deprecated_period_settings()
 test_single_period_settings()
 test_benders_settings_sources()

@@ -176,10 +176,10 @@ function tdr_case_input_manifest(case_root::String; destination_root::String=cas
             end
         end
     end
-    # Bare single-System cases also load this conventional settings file implicitly.
+    # Cases without a case-level `settings` entry also load this conventional settings file.
     root = isnothing(prepared) ? first(tdr_system_entries(case_root)) : prepared.root
     implicit_settings = joinpath(case_root, "settings", CASE_SETTINGS_FILENAME)
-    if !haskey(root, "case") && isfile(implicit_settings)
+    if !(haskey(root, "case") && haskey(root, "settings")) && isfile(implicit_settings)
         tdr_manifest_path!(manifest, case_root, implicit_settings; destination_root)
     end
     for (directory, subdirectories, files) in walkdir(case_root)
@@ -216,6 +216,7 @@ function tdr_copy_input_manifest!(source_root::String, output_root::String; copy
         filter!(manifest) do entry
             path = entry.first
             path == joinpath(source_root, "system_data.json") || haskey(case_inputs, path) ||
+                path == joinpath(source_root, "settings", CASE_SETTINGS_FILENAME) ||
                 endswith(path, ".jl") || endswith(path, ".md") ||
                 tdr_path_within_case(additions, path)
         end

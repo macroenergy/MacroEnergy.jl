@@ -36,16 +36,16 @@ function tdr_prepare_subperiod_inputs(inputs)
     return merge(inputs, (; manifest, input_data, csv_tables))
 end
 
+# All the settings the source case loads with, however they are laid out
 function tdr_read_case_settings(case_root::String, root)
-    source_settings = haskey(root, "case") ? get(root, "settings", Dict{String,Any}()) :
-        single_system_case_settings(joinpath(case_root, "system_data.json"))
-    settings = Dict{String,Any}(String(key) => value for (key, value) in source_settings)
-    if haskey(settings, "path")
-        source_path = abspath(joinpath(case_root, String(settings["path"])))
-        isfile(source_path) || throw(ArgumentError("Case settings file does not exist: $source_path"))
-        settings = mutable_json_data(read_json(source_path))
+    periods = Any[settings_dict(period) for period in get(root, "case", Any[root])]
+    data = Dict{Symbol,Any}(:case => periods)
+    if !haskey(root, "case")
+        data[:settings] = single_system_case_settings(joinpath(case_root, "system_data.json"), only(periods))
+    elseif haskey(root, "settings")
+        data[:settings] = settings_dict(root["settings"])
     end
-    return settings
+    return Dict{String,Any}(String(key) => value for (key, value) in merged_settings(data, case_root))
 end
 
 function tdr_single_system_case_settings(source_settings, system_index::Int)
@@ -79,8 +79,10 @@ function tdr_copy_subperiod_case(inputs, destination_case_root::String)
         mkpath(dirname(path))
         tdr_write_input_data(path, data, relocated.csv_tables)
     end
+    # All the settings go in the isolated case_settings.json, with the single period's length
+    delete!(relocated.system, "settings")
     write_json(joinpath(destination_case_root, "system_data.json"), relocated.system)
-    destination_path = joinpath(destination_case_root, "settings", "case_settings.json")
+    destination_path = joinpath(destination_case_root, "settings", CASE_SETTINGS_FILENAME)
     mkpath(dirname(destination_path))
     write_json(destination_path, inputs.case_settings)
     return relocated

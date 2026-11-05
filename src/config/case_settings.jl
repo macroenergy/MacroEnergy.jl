@@ -70,37 +70,43 @@ function resolve_settings(case_data::AbstractDict{Symbol,Any}, case_dir::Abstrac
     return settings
 end
 
-# The settings of a System loaded on its own (not as part of a Case): its `settings` entry, or
-# else `settings/case_settings.json` next to it, or else the defaults.
+# The settings of a System loaded on its own (not as part of a Case): the same ones `load_case`
+# would use for a single-period case in this folder.
 function standalone_settings(system_data::AbstractDict{Symbol,Any}, data_dir::AbstractString)::NamedTuple
-    source = get(system_data, :settings, nothing)
-    if isnothing(source)
-        implicit = joinpath(data_dir, "settings", CASE_SETTINGS_FILENAME)
-        source = isfile(implicit) ? Dict{Symbol,Any}(:path => implicit) : Dict{Symbol,Any}()
-    end
-    raw, _ = read_settings_source(source, data_dir, LEGACY_SYSTEM_SETTINGS_FILENAME)
-    return resolve_settings(Dict{Symbol,Any}(:settings => raw, :case => Any[]), data_dir)
+    return resolve_settings(Dict{Symbol,Any}(
+        :settings => single_system_case_settings(joinpath(data_dir, "system_data.json"), system_data),
+        :case => Any[system_data],
+    ), data_dir)
 end
 
-# Read a settings entry of system_data.json: `{"path": ...}`, pointing to a file or to a
-# directory containing `default_filename`, or the settings themselves. Return the settings and
-# the absolute path of the file they were read from (`nothing` for inline settings).
-function read_settings_source(source, rel_path::AbstractString, default_filename::AbstractString)
-    if source isa AbstractDict && haskey(source, :path)
-        path = normpath(abspath(rel_or_abs_path(String(source[:path]), String(rel_path))))
-        isdir(path) && (path = joinpath(path, default_filename))
-        isfile(path) || error("Settings file not found: $path")
-        return settings_dict(read_file(path)), path
+# Read a settings entry of system_data.json: a path, or `{"path": ...}`, to a file or to a directory
+# containing one of `filenames` (the first that exists), or the settings themselves. Return the
+# settings and the absolute path of the file they were read from (`nothing` for inline settings).
+function read_settings_source(source, rel_path::AbstractString, filenames::Tuple)
+    source isa AbstractString && (source = Dict{Symbol,Any}(:path => source))
+    source isa AbstractDict || throw(InputValidationError("system_data.settings",
+        "expected a path or an object, got $(repr(source))"))
+    haskey(source, :path) || return settings_dict(source), nothing
+    path = normpath(abspath(rel_or_abs_path(String(source[:path]), String(rel_path))))
+    if isdir(path)
+        candidates = [joinpath(path, filename) for filename in filenames]
+        index = findfirst(isfile, candidates)
+        path = isnothing(index) ? first(candidates) : candidates[index]
     end
-    return settings_dict(source), nothing
+    isfile(path) || error("Settings file not found: $path")
+    return settings_dict(read_file(path)), path
 end
 
-# The settings of `case_settings.json`, plus any deprecated per-period settings
+# The settings of `case_settings.json`, plus any deprecated per-period settings. A case without a
+# top-level `settings` entry uses the conventional file, if there is one.
 function merged_settings(case_data::AbstractDict{Symbol,Any}, case_dir::AbstractString)::OrderedDict{Symbol,Any}
     source = get(case_data, :settings, nothing)
-    settings, path = isnothing(source) ? (OrderedDict{Symbol,Any}(), nothing) :
-        read_settings_source(source, case_dir, CASE_SETTINGS_FILENAME)
-    legacy = legacy_period_settings(case_data[:case], case_dir, path)
+    if isnothing(source)
+        implicit = joinpath(case_dir, "settings", CASE_SETTINGS_FILENAME)
+        source = isfile(implicit) ? Dict{Symbol,Any}(:path => implicit) : Dict{Symbol,Any}()
+    end
+    settings, path = read_settings_source(source, case_dir, (CASE_SETTINGS_FILENAME, LEGACY_SYSTEM_SETTINGS_FILENAME))
+    legacy = legacy_period_settings(case_data[:case], case_dir, settings, path)
     isnothing(legacy) && return settings
     for (key, value) in legacy
         if haskey(settings, key) && !isequal(settings[key], value)
@@ -112,23 +118,35 @@ function merged_settings(case_data::AbstractDict{Symbol,Any}, case_dir::Abstract
     return settings
 end
 
-# The deprecated per-period settings of a case, or `nothing` if there are none. Every period
-# must have the same settings. A period whose `settings` entry points to `case_settings_path`
-# (as a single-period case may) has none.
+# The deprecated per-period settings of a case, or `nothing` if there are none. A period whose
+# `settings` entry is the case settings themselves (the same file or, for the inline settings that
+# eager loading produces, the same content) has no settings of its own. Every period must have
+# the same settings, so one period having some and another having none is an error.
 function legacy_period_settings(periods::AbstractVector, case_dir::AbstractString,
-    case_settings_path::Union{Nothing,AbstractString})::Union{Nothing,OrderedDict{Symbol,Any}}
+    case_settings::AbstractDict, case_settings_path::Union{Nothing,AbstractString})::Union{Nothing,OrderedDict{Symbol,Any}}
     found = Tuple{Int,OrderedDict{Symbol,Any}}[]
+    without = Int[]
     for (index, period) in enumerate(periods)
-        haskey(period, :settings) || continue
-        settings, path = read_settings_source(period[:settings], case_dir, LEGACY_SYSTEM_SETTINGS_FILENAME)
-        !isnothing(path) && path == case_settings_path && continue
-        push!(found, (index, settings))
+        if !haskey(period, :settings)
+            push!(without, index)
+            continue
+        end
+        settings, path = read_settings_source(period[:settings], case_dir, (LEGACY_SYSTEM_SETTINGS_FILENAME, CASE_SETTINGS_FILENAME))
+        same_as_case = isnothing(path) ? isequal(settings, case_settings) : path == case_settings_path
+        if same_as_case
+            push!(without, index)
+        else
+            push!(found, (index, settings))
+        end
     end
     isempty(found) && return nothing
     @warn(string("Settings given per period (the `settings` entry of each period in system_data.json, ",
         "usually settings/macro_settings.json) are deprecated. Move them into settings/case_settings.json, ",
         "which holds the settings of the whole case."), maxlog=1)
     first_index, reference = first(found)
+    isempty(without) || throw(InputValidationError("system_data.case[$(first(without))].settings",
+        "this period has no settings of its own, but period $first_index does. Every period now uses " *
+        "the same settings: move them into case_settings.json"))
     for (index, settings) in found[2:end]
         isequal(settings, reference) && continue
         differing = sort!([key for key in union(keys(settings), keys(reference))
