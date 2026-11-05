@@ -106,14 +106,10 @@ end
 
 function load_locations!(system::AbstractSystem, rel_or_abs_path::String, data::AbstractVector)
     system.locations = Union{Node,Location}[]
-    seen_ids = Set{Symbol}()
     for (index, entry) in enumerate(data)
         input = parse_location_input(entry, index)
         location = Location(input, system)
-        location.id in seen_ids &&
-            throw(ArgumentError("Duplicate location ID `$(location.id)`; location IDs must be unique"))
-        push!(seen_ids, location.id)
-        push!(system.locations, location)
+        add!(system, location)
         load_location_nodes!(system, input)
     end
     return nothing

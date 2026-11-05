@@ -22,7 +22,7 @@ function make_system(; auto_create_nodes = true)
         )
     end
     location = ME.Location(; id = :Boston, system = system)
-    push!(system.locations, location)
+    ME.add!(system, location)
     return system, location
 end
 
@@ -105,7 +105,7 @@ end
         first_node = ME.make(ME.Electricity, Dict{Symbol,Any}(:id=>"same_id"), system)
         ME.add!(system, first_node)
         duplicate = ME.make(ME.Hydrogen, Dict{Symbol,Any}(:id=>"same_id"), system)
-        @test_throws r"Duplicate node ID `same_id`" ME.add!(system, duplicate)
+        @test_throws r"Duplicate network ID `same_id`" ME.add!(system, duplicate)
         @test ME.get_nodes(system) == [first_node]
         @test ismissing(duplicate.location)
     end
@@ -334,15 +334,15 @@ end
         @test length(ME.get_nodes(system)) == 1
         original = location.nodes[:Electricity]
         duplicate = Dict{Symbol,Any}(:type => :Hydrogen, :instance_data => Dict{Symbol,Any}(:id => "SE_Electricity", :location => "SE"))
-        @test_throws r"Duplicate node ID" ME.load!(system, duplicate)
+        @test_throws r"Duplicate network ID" ME.load!(system, duplicate)
         @test length(ME.get_nodes(system)) == 1
         other = ME.Location(; id=:NE, system=system)
-        push!(system.locations, other)
+        ME.add!(system, other)
         @test_throws r"already belongs to location" ME.add_node!(other, original)
         @test isempty(other.nodes)
         @test original.location == :SE
-        @test_throws r"Duplicate node ID" ME.add!(system, original)
-        @test_throws r"Duplicate location ID `SE`" ME.load_locations!(system, @__DIR__, ["SE", "SE"])
+        @test_throws r"Duplicate network ID" ME.add!(system, original)
+        @test_throws r"Duplicate network ID `SE`" ME.load_locations!(system, @__DIR__, ["SE", "SE"])
         @test ME.location_ids(system) == [:SE]
 
         for details in (Dict(:location => "NE"), Dict(:type => "Hydrogen"), Dict(:id => ""))
@@ -355,7 +355,7 @@ end
         delete!(system.time_data, :Electricity)
         @test_throws r"Time data.*is not defined" ME.load_locations!(system, @__DIR__, [Dict(:id => "SE", :commodities => Dict(:Electricity => Dict()))])
         system, _ = make_system()
-        @test_throws r"Duplicate node ID" ME.load_locations!(system, @__DIR__, [
+        @test_throws r"Duplicate network ID" ME.load_locations!(system, @__DIR__, [
             Dict(:id => "SE", :commodities => Dict(:Electricity => Dict(:id => "shared"))),
             Dict(:id => "NE", :commodities => Dict(:Hydrogen => Dict(:id => "shared"))),
         ])
@@ -373,7 +373,7 @@ end
             Dict(:id=>"SE", :commodities=>Dict(:Electricity=>Dict())),
             Dict(:id=>"SE", :commodities=>Dict(:Hydrogen=>Dict())),
         ]
-        @test_throws r"Duplicate location ID `SE`" ME.load_locations!(system, @__DIR__, entries)
+        @test_throws r"Duplicate network ID `SE`" ME.load_locations!(system, @__DIR__, entries)
         location = ME.find_locations(system, :SE)
         @test Set(keys(location.nodes)) == Set([:Electricity])
         @test ME.get_nodes(system) == [location.nodes[:Electricity]]
@@ -396,6 +396,52 @@ end
         @test ME.find_node(system, :SE, ME.Electricity).demand == [3.0]
         @test ME.find_node(system, :SE, ME.Hydrogen).id == :h2
         @test length(ME.get_nodes(system)) == 2
+    end
+end
+
+@testset "Shared node and location ID namespace" begin
+    @testset "Registration checks both directions" begin
+        system, location = make_system()
+        node = ME.Node{ME.Electricity}(; id=:Boston, timedata=system.time_data[:Electricity])
+        @test_throws r"Duplicate network ID `Boston`" ME.add!(system, node)
+        @test system.locations == [location]
+        @test_throws r"Duplicate network ID `Boston`" ME.add!(system, ME.Location(; id=:Boston, system=system))
+        @test system.locations == [location]
+
+        node = ME.Node{ME.Electricity}(; id=:future_location, timedata=system.time_data[:Electricity])
+        ME.add!(system, node)
+        @test isnothing(ME.find_locations(system, :future_location))
+        @test_throws r"Duplicate network ID `future_location`" ME.add!(system, ME.Location(; id=:future_location, system=system))
+        @test system.locations == [location, node]
+    end
+
+    @testset "Location-file collisions fail regardless of input order" begin
+        entries = [
+            Dict(:id=>"A", :commodities=>Dict(:Electricity=>Dict(:id=>"B"))),
+            Dict(:id=>"B", :commodities=>Dict(:Hydrogen=>Dict())),
+        ]
+        for locations in (entries, reverse(entries))
+            system, _ = make_system()
+            @test_throws r"Duplicate network ID `B`" ME.load_locations!(system, @__DIR__, locations)
+            @test length(unique(ME.id.(system.locations))) == length(system.locations)
+        end
+        system, _ = make_system()
+        @test_throws r"Duplicate network ID `SE`" ME.load_locations!(system, @__DIR__, [
+            Dict(:id=>"SE", :commodities=>Dict(:Electricity=>Dict(:id=>"SE"))),
+        ])
+    end
+
+    @testset "Automatic locations use system registration" begin
+        system, _ = make_system()
+        ME.load!(system, Dict{Symbol,Any}(:type=>:Electricity, :instance_data=>Dict{Symbol,Any}(:id=>"source", :location=>"new_location")))
+        location = ME.find_locations(system, :new_location)
+        @test location isa ME.Location
+        @test location.nodes[:Electricity] === ME.find_node(system, :source, ME.Electricity)
+        @test_throws r"Duplicate network ID `source`" ME.load!(system, Dict{Symbol,Any}(
+            :type=>:Hydrogen, :instance_data=>Dict{Symbol,Any}(:id=>"another_node", :location=>"source"),
+        ))
+        @test isnothing(ME.find_locations(system, :source))
+        @test length(ME.get_nodes(system)) == 1
     end
 end
 

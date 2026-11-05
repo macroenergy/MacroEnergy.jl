@@ -221,7 +221,7 @@ Without an explicit node `id`, Macro generates `<location>_<commodity>`, so the 
 
 System loading creates commodities and time data first, then each location and its commodity nodes, then independent nodes from `nodes.json`, and finally assets. Assets can connect using either the location ID and commodity or an explicit node ID. Existing location-name strings and `nodes.json` inputs remain supported and can be mixed with this form.
 
-Node IDs must be unique within a system. A node can belong to only one location, and each location can contain only one node of each commodity. Duplicate definitions across `commodities` and `nodes.json` produce errors during creation/registration. Location-level `constraints` remain separate from the constraints of the individual commodity nodes. Asset-defined node construction is outside this feature.
+Node and location IDs share one namespace within a system: a node ID cannot match another node or any location, and a location ID cannot match another location or any node. A node can belong to only one location, and each location can contain only one node of each commodity. Duplicate definitions across `commodities` and `nodes.json` produce errors during creation/registration. Location-level `constraints` remain separate from the constraints of the individual commodity nodes. Asset-defined node construction is outside this feature.
 
 Explicit nodes in `commodities` are created regardless of `AutoCreateNodes`; that setting only controls creation of missing nodes during endpoint lookup.
 
@@ -229,7 +229,7 @@ Explicit nodes in `commodities` are created regardless of `AutoCreateNodes`; tha
 
 `load_locations!` replaces the system's location/node list, then processes entries in order. Each location is registered and its commodity nodes are created before processing the next entry. Errors stop loading immediately; earlier entries are not rolled back. If loading fails, correct the input and reconstruct the system rather than reuse its partial state.
 
-Node ID uniqueness is checked in `add!(system, node)`, including for nodes without a location. Programmatic builders should register every node through this method. `add_node!` assigns location membership and checks commodity/membership conflicts; it does not register the node in the system or check global node ID uniqueness.
+`add!(system, node)` and `add!(system, location)` both call `validate_network_id` before registration. Programmatic builders should register nodes and locations through these methods. `add_node!` assigns location membership and checks commodity/membership conflicts; it does not register the node in the system or check network ID uniqueness. These checks currently cover nodes and locations, rather than asset or component IDs.
 
 ### Adding a Node to a Location
 

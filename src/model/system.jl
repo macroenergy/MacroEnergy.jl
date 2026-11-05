@@ -96,14 +96,19 @@ function add!(system::System, asset::AbstractAsset)
     push!(system.assets, asset)
 end
 
-function add!(system::System, location::Node)
-    validate_node_id(system, location.id)
+function add!(system::System, node::Node)
+    validate_network_id(system, node.id)
+    push!(system.locations, node)
+end
+
+function add!(system::System, location::Location)
+    validate_network_id(system, location.id)
     push!(system.locations, location)
 end
 
-function validate_node_id(system::System, node_id::Symbol)
-    any(existing -> existing isa Node && existing.id == node_id, system.locations) &&
-        throw(ArgumentError("Duplicate node ID `$node_id`; node IDs must be unique within a system"))
+function validate_network_id(system::System, network_id::Symbol)
+    any(existing -> existing.id == network_id, system.locations) &&
+        throw(ArgumentError("Duplicate network ID `$network_id`; node and location IDs must be unique within a system"))
     return nothing
 end
 
@@ -163,7 +168,7 @@ end
 
 function find_locations(system::System, id::Symbol)
     for location in system.locations
-        if location.id == id
+        if location isa Location && location.id == id
             return location
         end
     end

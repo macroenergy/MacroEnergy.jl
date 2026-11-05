@@ -21,7 +21,7 @@ and this project follows Julia package versioning through `Project.toml` release
 
 - Extended DuckDB.jl compatibility to include 2.x (`DuckDB = "1, 2"`). Environments that resolve DuckDB.jl 2.x read CSV inputs with the bundled DuckDB 2.0 engine.
 - Automatically created commodity nodes now use `<location>_<commodity>` IDs instead of reusing the location ID.
-- Location loading now creates each location and its declared nodes before loading independent nodes and assets. Input validation rejects duplicate location IDs, duplicate system node IDs, duplicate commodity nodes within a location, and conflicting location assignments as objects are loaded or registered.
+- Location loading now creates each location and its declared nodes before loading independent nodes and assets. Node and location IDs share one namespace, with collisions rejected by both registration methods. Input validation also rejects duplicate commodity nodes within a location and conflicting location assignments as objects are loaded or registered.
 
 ## [0.3.0 - rc] - 2026-10-14
 

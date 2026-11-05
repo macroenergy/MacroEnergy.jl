@@ -18,7 +18,7 @@ You can define a Location and its commodity Nodes together in `locations.json` u
 
 Each commodity must be defined in the system. Empty node details use the existing node defaults, including a balance constraint. Without an explicit node ID, Macro generates `<location>_<commodity>` (here, `SE_Hydrogen`). The parent supplies location membership. Details can contain the same demand, supply, time series and constraints as independent node inputs. See [Defining Commodity Nodes Within a Location](@ref) for details.
 
-These explicit nodes are created even when `AutoCreateNodes` is false. You can combine this format with `nodes.json`, but node IDs must be unique and each location can contain only one node of a given commodity. Repeated location IDs are errors.
+These explicit nodes are created even when `AutoCreateNodes` is false. You can combine this format with `nodes.json`, but all node and location IDs must be distinct, and each location can contain only one node of a given commodity. A node ID matching a location ID is an error regardless of loading order.
 
 Alternatively, keep the Nodes in `nodes.json` and assign them to Locations in two steps:
 
