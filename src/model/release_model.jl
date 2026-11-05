@@ -118,6 +118,9 @@ end
 
 release_model_references!(g::Transformation) = release_vertex_references!(g)
 
+# Optional asset edges are `nothing` when absent, e.g. `BECCSHydrogen.fuel_edge`
+release_model_references!(::Nothing) = nothing
+
 function release_model_references!(ct::AbstractTypeConstraint)
     hasproperty(ct, :constraint_ref) && (ct.constraint_ref = missing)
     return nothing
