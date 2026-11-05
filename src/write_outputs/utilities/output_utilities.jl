@@ -88,14 +88,21 @@ function find_available_path(path::String, basename::String="results"; max_attem
     error("Could not find available directory after $max_attempts attempts")
 end
 
-# The `OutputSettings` of a system. Keys it does not set (e.g. in hand-built test systems) take
-# their default from the spec. Old names set on `system.settings` from Julia would otherwise be
-# silently ignored, because they are only translated when reading settings files.
-function output_settings(system::System)
+# Old names set on `system.settings` from Julia would otherwise be silently ignored, because they
+# are only translated when reading settings files. Checked before building a model, so that a
+# mistake does not cost a whole solve, and whenever output settings are read.
+function reject_deprecated_settings(system::System)
     for old in keys(DEPRECATED_SETTINGS)
         haskey(system.settings, old) && throw(InputValidationError("system.settings.$old",
             "is no longer used. Set system.settings.$(join(DEPRECATED_SETTINGS[old], ".")) instead."))
     end
+    return nothing
+end
+
+# The `OutputSettings` of a system. Keys it does not set (e.g. in hand-built test systems) take
+# their default from the spec.
+function output_settings(system::System)
+    reject_deprecated_settings(system)
     return get(system.settings, :OutputSettings, (;))
 end
 output_setting_spec(key::Symbol) = input_spec(output_settings_spec(), key)

@@ -3,7 +3,10 @@ module TestCaseSettings
 using Test
 using Logging
 using JSON3
+using HiGHS
 import MacroEnergy:
+    create_optimizer,
+    generate_model,
     InputBlock,
     InputField,
     InputMap,
@@ -27,7 +30,9 @@ import MacroEnergy:
     load_case,
     load_case_data,
     load_system,
+    prep_system_data,
     prepare_to_json,
+    read_json,
     write_json,
     generate_case,
     year,
@@ -430,6 +435,32 @@ function test_older_settings_files()
     end
 end
 
+function test_system_data_survives_loading()
+    @testset "Loading does not destroy a system_data.json it cannot rewrite" begin
+        mktempdir() do dir
+            path = joinpath(dir, "system_data.json")
+            write(path, """{"settings": {"MyopicSettings": {"StopAfterPeriod": Infinity}}}""")
+            prep_system_data(path)
+            @test isinf(read_json(path)[:settings][:MyopicSettings][:StopAfterPeriod])
+        end
+    end
+end
+
+function test_old_names_before_the_model()
+    @testset "Old names set from Julia are reported before building the model" begin
+        case = with_logger(() -> load_case(test_path), NullLogger())
+        system = case.systems[1]
+        system.settings = merge(system.settings, (OverwriteResults=true,))
+        message = "system.settings.OverwriteResults: is no longer used"
+        optimizer = create_optimizer(HiGHS.Optimizer)
+        @test occursin(message, error_message(() -> generate_model(case, optimizer, Monolithic())))
+        @test occursin(message, error_message(() -> generate_model(system, optimizer, case.settings, Monolithic())))
+        benders_optimizer = Dict{Symbol,Dict{Symbol,Any}}()
+        @test occursin(message, error_message(() -> generate_model(case, benders_optimizer, Benders())))
+        @test occursin(message, error_message(() -> generate_model(system, benders_optimizer, case.settings, Benders())))
+    end
+end
+
 function test_single_period_settings()
     @testset "A single period without a settings entry" begin
         with_settings_files(case_settings=Dict("DiscountRate" => 0.05, "ConstraintScaling" => true)) do dir
@@ -636,6 +667,8 @@ test_one_settings_file()
 test_comment_keys()
 test_settings_sources()
 test_older_settings_files()
+test_system_data_survives_loading()
+test_old_names_before_the_model()
 test_deprecated_period_settings()
 test_single_period_settings()
 test_benders_settings_sources()

@@ -45,7 +45,9 @@ function tdr_read_case_settings(case_root::String, root)
     elseif haskey(root, "settings")
         data[:settings] = settings_dict(root["settings"])
     end
-    return Dict{String,Any}(String(key) => value for (key, value) in merged_settings(data, case_root))
+    settings = merged_settings(data, case_root)
+    get(settings, :SolutionAlgorithm, nothing) == "Benders" && load_benders_settings(settings, case_root)
+    return Dict{String,Any}(String(key) => value for (key, value) in settings)
 end
 
 function tdr_single_system_case_settings(source_settings, system_index::Int)

@@ -344,6 +344,43 @@ end
     end
 end
 
+@testset "TDR keeps the Benders settings a Case finds by name or by path" begin
+    mktempdir() do root
+        mkpath(joinpath(root, "settings"))
+        write(joinpath(root, "time_data.json"), "{}")
+        write(joinpath(root, "settings", "benders_settings.json"), """{"MaxIter": 7}""")
+        write(joinpath(root, "settings", "case_settings.json"), """{"SolutionAlgorithm": "Benders"}""")
+        system = Dict("time_data" => Dict("path" => "time_data.json"))
+        function files_and_settings(data)
+            MacroEnergy.write_json(joinpath(root, "system_data.json"), data)
+            files = Set(relpath(path, root) for path in keys(MacroEnergy.tdr_case_input_manifest(root)))
+            definition = first(MacroEnergy.tdr_system_entries(root))
+            return files, MacroEnergy.tdr_read_case_settings(root, definition)
+        end
+
+        # The conventional file, in a single-period and in a multi-period Case
+        conventional = joinpath("settings", "benders_settings.json")
+        files, settings = files_and_settings(system)
+        @test conventional in files
+        @test settings["BendersSettings"][:MaxIter] == 7
+        files, settings = files_and_settings(Dict("case" => Any[system, deepcopy(system)]))
+        @test conventional in files
+        @test settings["BendersSettings"][:MaxIter] == 7
+        output = joinpath(root, "..", basename(root) * "_copy")
+        MacroEnergy.tdr_copy_input_manifest!(root, mkpath(output))
+        @test isfile(joinpath(output, conventional))
+        rm(output; recursive=true)
+
+        # A file named inside the implicit case_settings.json
+        rm(joinpath(root, conventional))
+        write(joinpath(root, "settings", "my_benders.json"), """{"MaxIter": 9}""")
+        write(joinpath(root, "settings", "case_settings.json"), """{"SolutionAlgorithm": "Benders", "BendersSettings": {"path": "settings/my_benders.json"}}""")
+        files, settings = files_and_settings(system)
+        @test joinpath("settings", "my_benders.json") in files
+        @test settings["BendersSettings"][:MaxIter] == 9
+    end
+end
+
 @testset "subperiod Cases keep every setting of case_settings.json" begin
     source = Dict{String,Any}(
         "PeriodLengths" => Any[1, 1],

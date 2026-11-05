@@ -1,4 +1,5 @@
 function generate_model(case::Case, opt::Optimizer, ::Monolithic)
+    foreach(reject_deprecated_settings, case.systems)
     @info("*** Generating monolithic model ***")
 
     if case.systems[1].settings.EnableJuMPDirectModel
@@ -34,6 +35,7 @@ function generate_model(case::Case, opt::Optimizer, ::Monolithic)
 end
 
 function generate_model(system::System, opt::Optimizer, settings::NamedTuple, ::Monolithic)
+    reject_deprecated_settings(system)
     @info("*** Generating monolithic model for period $(period_index(system)) ***")
 
     if system.settings.EnableJuMPDirectModel
@@ -60,6 +62,7 @@ function generate_model(system::System, opt::Optimizer, settings::NamedTuple, ::
 end
 
 function generate_model(case::Case, opt::Dict{Symbol,Dict{Symbol,Any}}, ::Benders)
+    foreach(reject_deprecated_settings, case.systems)
     @info("*** Generating Benders decomposition model ***")
     
     planning_model = Model()
@@ -100,6 +103,7 @@ function generate_model(case::Case, opt::Dict{Symbol,Dict{Symbol,Any}}, ::Bender
 end
 
 function generate_model(system::System, opt::Dict{Symbol,Dict{Symbol,Any}}, settings::NamedTuple, ::Benders)
+    reject_deprecated_settings(system)
     @info("*** Generating Benders decomposition model ***")
     
     model = Model()

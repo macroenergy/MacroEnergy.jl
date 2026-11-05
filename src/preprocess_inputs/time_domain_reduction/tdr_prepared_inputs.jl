@@ -19,8 +19,9 @@ function tdr_prepare_inputs(case_root::String, settings_by_system::Vector{TDRSet
             (settings.output_features.save_features || settings.output_features.reuse_saved_features), settings_by_system)
         tdr_collect_manifest_references!(cache_dependencies, case_root, case_definition, Set{String}();
             recursive_directories=false, read_input)
-        implicit_settings = joinpath(case_root, "settings", CASE_SETTINGS_FILENAME)
-        isfile(implicit_settings) && tdr_collect_manifest_paths!(cache_dependencies, case_root, implicit_settings; read_input)
+        for path in tdr_conventional_settings_files(case_root, root)
+            tdr_collect_manifest_paths!(cache_dependencies, case_root, path; read_input)
+        end
         additions = user_additions_path(case_root)
         isdir(additions) && tdr_collect_manifest_paths!(cache_dependencies, case_root, additions; read_input)
     end

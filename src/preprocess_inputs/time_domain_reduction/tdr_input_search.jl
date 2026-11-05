@@ -176,11 +176,9 @@ function tdr_case_input_manifest(case_root::String; destination_root::String=cas
             end
         end
     end
-    # Cases without a case-level `settings` entry also load this conventional settings file.
     root = isnothing(prepared) ? first(tdr_system_entries(case_root)) : prepared.root
-    implicit_settings = joinpath(case_root, "settings", CASE_SETTINGS_FILENAME)
-    if !(haskey(root, "case") && haskey(root, "settings")) && isfile(implicit_settings)
-        tdr_manifest_path!(manifest, case_root, implicit_settings; destination_root)
+    for path in tdr_conventional_settings_files(case_root, root)
+        tdr_collect_manifest_paths!(manifest, case_root, path; destination_root)
     end
     for (directory, subdirectories, files) in walkdir(case_root)
         filter!(name -> !startswith(name, "results") &&
@@ -212,11 +210,13 @@ function tdr_copy_input_manifest!(source_root::String, output_root::String; copy
     if length(systems) > 1 && isnothing(prepared)
         case_inputs = tdr_system_input_manifest(source_root,
             Dict(key => value for (key, value) in root if key != "case"))
+        for path in tdr_conventional_settings_files(source_root, root)
+            tdr_collect_manifest_paths!(case_inputs, source_root, path)
+        end
         additions = user_additions_path(source_root)
         filter!(manifest) do entry
             path = entry.first
             path == joinpath(source_root, "system_data.json") || haskey(case_inputs, path) ||
-                path == joinpath(source_root, "settings", CASE_SETTINGS_FILENAME) ||
                 endswith(path, ".jl") || endswith(path, ".md") ||
                 tdr_path_within_case(additions, path)
         end
@@ -243,6 +243,16 @@ function tdr_copy_input_manifest!(source_root::String, output_root::String; copy
         cp(input.source_path, input.destination_path; force=true)
     end
     return nothing
+end
+
+# The settings files a case loads by their conventional names, with no reference in system_data.json:
+# settings/benders_settings.json, and settings/case_settings.json unless the Case names another file.
+function tdr_conventional_settings_files(case_root::String, root)
+    files = [joinpath(case_root, BENDERS_SETTINGS_FILEPATH)]
+    if !(haskey(root, "case") && !isnothing(get(root, "settings", nothing)))
+        push!(files, joinpath(case_root, "settings", CASE_SETTINGS_FILENAME))
+    end
+    return filter(isfile, files)
 end
 
 function tdr_system_entries(case_root::String)
