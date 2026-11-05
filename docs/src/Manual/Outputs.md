@@ -135,7 +135,7 @@ The table below lists all output files produced by Macro. Click the file name to
 | [`costs_by_zone.csv`](@ref "manual-outputs-costs-breakdown-zone") | Discounted cost breakdown by zone and cost category | Always |
 | [`undiscounted_costs_by_type.csv`](@ref "manual-outputs-costs-breakdown") | Undiscounted cost breakdown by asset type and cost category | Always |
 | [`undiscounted_costs_by_zone.csv`](@ref "manual-outputs-costs-breakdown-zone") | Undiscounted cost breakdown by zone and cost category | Always |
-| [`ptc_payments.csv`](@ref manual-outputs-ptc) | Nonnegative PTC payments by resource and eligible edge | Always; header only when all rates are zero |
+| [`flow_credits.csv`](@ref manual-outputs-flow_credit) | Nonnegative flow credit payments by resource and eligible edge | Always; header only when all rates are zero |
 | [`flows.csv`](@ref "manual-outputs-flows") | Commodity flow for every edge at every representative time step | Always |
 | [`time_weights.csv`](@ref "manual-outputs-time-weights") | Representative period weights mapping each time step to its full-year equivalent hours | Always |
 | [`settings.json`](@ref "manual-outputs-settings-output") | Snapshot of all case and system settings used for the run | Always |

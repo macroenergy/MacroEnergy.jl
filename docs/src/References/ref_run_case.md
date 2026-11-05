@@ -32,13 +32,13 @@ MacroEnergy.run_status_success
 MacroEnergy.run_status_failure
 MacroEnergy.write_run_status
 ```
-## PTC model accounting
+## Flow credit model accounting
 
-Each edge calls `add_ptc_payment!` while adding its variable costs. The helper subtracts the weighted payment directly from `eVariableCost`, including when VOM is zero. Monolithic and Benders then apply their existing operating-cost discounting.
+Each edge calls `add_flow_credit_payment!` while adding its variable costs. The helper subtracts the weighted payment directly from `eVariableCost`, including when VOM is zero. Monolithic and Benders then apply their existing operating-cost discounting.
 
-During operation-model construction, PTC uses the existing edge traversal and requires no separate JuMP payment expressions. The output helpers calculate separate payments from solved flows. See [PTC Payments Output](@ref manual-outputs-ptc).
+During operation-model construction, the flow credit uses the existing edge traversal and requires no separate JuMP payment expressions. The output helpers calculate separate payments from solved flows. See [Flow Credit Payments Output](@ref manual-outputs-flow_credit).
 
 ```@docs
-MacroEnergy.add_ptc_payment!
+MacroEnergy.add_flow_credit_payment!
 MacroEnergy.set_operating_cost_lower_bounds!
 ```

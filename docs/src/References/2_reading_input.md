@@ -74,8 +74,9 @@ MacroEnergy.load_benders_settings
 MacroEnergy.try_load_benders_settings
 ```
 
-## PTC input validation
+## Flow credit input validation
 
 ```@docs
-MacroEnergy.validate_ptc_rate
+MacroEnergy.normalize_flow_credit_input!
+MacroEnergy.validate_flow_credit_rate
 ```

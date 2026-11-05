@@ -53,10 +53,10 @@ This function applies parameter scaling, period annuity, and case-start discount
 """
 function set_operating_cost_lower_bounds!(model::Model, periods::Vector{System}, settings::NamedTuple)
     bounds = get(settings.BendersSettings, :OperatingCostLowerBounds, nothing)
-    has_ptc(system) = any(e -> !iszero(ptc_rate(e)), get_edges(system))
+    has_flow_credit(system) = any(e -> !iszero(flow_credit_rate(e)), get_edges(system))
     if isnothing(bounds)
-        any(has_ptc, periods) && throw(ArgumentError(
-            "PTC with Benders requires OperatingCostLowerBounds for every modeled period; zero is not an assumed valid bound."))
+        any(has_flow_credit, periods) && throw(ArgumentError(
+            "FlowCredit with Benders requires OperatingCostLowerBounds for every modeled period; zero is not an assumed valid bound."))
         return nothing
     end
     bounds isa Union{AbstractDict,NamedTuple} || throw(ArgumentError("OperatingCostLowerBounds must map period IDs to vectors."))

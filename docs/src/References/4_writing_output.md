@@ -284,10 +284,10 @@ MacroEnergy.compute_supply_cost
 MacroEnergy.compute_slack_cost
 ```
 
-## PTC payment helpers
+## Flow credit payment helpers
 
 ```@docs
-MacroEnergy.compute_ptc_payment
-MacroEnergy.get_ptc_payments
-MacroEnergy.aggregate_ptc_payments
+MacroEnergy.compute_flow_credit_payment
+MacroEnergy.get_flow_credits
+MacroEnergy.aggregate_flow_credits
 ```

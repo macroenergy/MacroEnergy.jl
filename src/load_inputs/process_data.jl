@@ -1,7 +1,34 @@
+
+"""
+Normalize legacy `ptc_rate` input names before defaults and input layers merge.
+Edge-prefixed names are accepted. Two explicit names at the same level are rejected.
+"""
+function normalize_flow_credit_input!(data::AbstractDict)
+    for key in collect(keys(data))
+        if key isa Symbol && (key === :ptc_rate || endswith(string(key), "_ptc_rate"))
+            canonical = Symbol(chop(string(key); tail=length("ptc_rate")), "flow_credit_rate")
+            haskey(data, canonical) && throw(ArgumentError(
+                "Specify only $canonical; do not also specify its legacy alias $key."))
+            data[canonical] = pop!(data, key)
+        end
+    end
+    for value in values(data)
+        if value isa AbstractDict
+            normalize_flow_credit_input!(value)
+        elseif value isa AbstractVector && !(eltype(value) <: Number)
+            for item in value
+                item isa AbstractDict && normalize_flow_credit_input!(item)
+            end
+        end
+    end
+    return data
+end
+
 function process_data(data::AbstractDict{Symbol,Any})
     if isa(data, JSON3.Object)
         data = copy(data) # this makes sure that data is a mutable object
     end
+    normalize_flow_credit_input!(data)
     remove_missing!(data)
     validate_data(data)
     check_and_convert_inf!(data)
@@ -58,14 +85,14 @@ end
 function validate_data(data::AbstractDict{Symbol,Any})
     # validate_id!(data)
     validate_constraints_data!(data)
-    haskey(data, :ptc_rate) && validate_ptc_rate(data[:ptc_rate])
+    haskey(data, :flow_credit_rate) && validate_flow_credit_rate(data[:flow_credit_rate])
     return nothing
 end
 
-"""Validate one scalar PTC rate in currency per unit of eligible generation."""
-function validate_ptc_rate(rate)
+"""Validate one scalar flow credit rate in currency per unit of the selected commodity."""
+function validate_flow_credit_rate(rate)
     if !(rate isa Real) || rate isa Bool || !isfinite(rate) || rate < 0
-        throw(ArgumentError("ptc_rate must be a finite, nonnegative scalar number."))
+        throw(ArgumentError("flow_credit_rate must be a finite, nonnegative scalar number."))
     end
     return nothing
 end

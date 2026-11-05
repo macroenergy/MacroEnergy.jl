@@ -44,7 +44,7 @@ macro AbstractEdgeBaseAttributes()
         retrofitted_capacity_track::Dict{Int64,AffExpr} = Dict(1 => AffExpr(0.0))
         retrofitted_units::Union{JuMPVariable,Float64} = 0.0
         variable_om_cost::Float64 = $edge_defaults[:variable_om_cost]
-        ptc_rate::Float64 = $edge_defaults[:ptc_rate]
+        flow_credit_rate::Float64 = $edge_defaults[:flow_credit_rate]
         min_down_time::Int64 = $edge_defaults[:min_down_time]
         min_up_time::Int64 = $edge_defaults[:min_up_time]
         startup_cost::Float64 = $edge_defaults[:startup_cost]
@@ -358,7 +358,7 @@ retrofitted_capacity_track(e::AbstractEdge,s::Int64) = (haskey(retrofitted_capac
 retrofitted_units(e::AbstractEdge) = e.retrofitted_units;
 start_vertex(e::AbstractEdge)::AbstractVertex = e.start_vertex;
 variable_om_cost(e::AbstractEdge) = e.variable_om_cost;
-ptc_rate(e::AbstractEdge) = e.ptc_rate;
+flow_credit_rate(e::AbstractEdge) = e.flow_credit_rate;
 wacc(e::AbstractEdge) = e.wacc;
 annualized_investment_cost(e::AbstractEdge) = e.annualized_investment_cost;
 pv_period_investment_cost(e::AbstractEdge) = e.pv_period_investment_cost;
@@ -498,16 +498,16 @@ function compute_fixed_costs!(e::AbstractEdge, model::Model, cost_type::Symbol=:
 end
 
 """
-Subtract annual weighted PTC payments directly from `eVariableCost`.
+Subtract annual weighted flow credit payments directly from `eVariableCost`.
 VOM and startup costs retain their existing calculations. The objective applies
 period discounting; output helpers calculate payments from solved flows.
 """
-function add_ptc_payment!(e::AbstractEdge, model::Model)
-    rate = ptc_rate(e)
-    validate_ptc_rate(rate)
+function add_flow_credit_payment!(e::AbstractEdge, model::Model)
+    rate = flow_credit_rate(e)
+    validate_flow_credit_rate(rate)
     iszero(rate) && return nothing
-    if e isa BidirectionalEdge || !(commodity_type(e) <: Electricity) || !has_capacity(e)
-        throw(ArgumentError("Positive ptc_rate requires a unidirectional electricity capacity edge: $(id(e))."))
+    if e isa BidirectionalEdge
+        throw(ArgumentError("Positive flow_credit_rate is not supported on bidirectional edges: $(id(e))."))
     end
     for t in time_interval(e)
         w = current_subperiod(e, t)
@@ -517,7 +517,7 @@ function add_ptc_payment!(e::AbstractEdge, model::Model)
 end
 
 function add_operation_model_varcosts!(e::EdgeWithoutUC, model::Model)
-    add_ptc_payment!(e, model)
+    add_flow_credit_payment!(e, model)
     vom_cost = variable_om_cost(e)
     if vom_cost > 0
         eVariableCost = model[:eVariableCost]::AffExpr
@@ -672,7 +672,7 @@ ustart(e::EdgeWithUC, t::Int64) = (ustart(e)::VarArrayOrDense)[t];
 ##### End of EdgeWithUC interface #####
 
 function add_operation_model_varcosts!(e::EdgeWithUC, model::Model)
-    add_ptc_payment!(e, model)
+    add_flow_credit_payment!(e, model)
     vom_cost = variable_om_cost(e)
     startup_c = startup_cost(e)
     if vom_cost > 0 || startup_c > 0

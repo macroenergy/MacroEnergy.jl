@@ -11,9 +11,13 @@ and this project follows Julia package versioning through `Project.toml` release
 
 ### Added
 
-- Electricity production tax credits through a nonnegative edge `ptc_rate`, with separate cost accounting, period-specific rates, and parameter scaling.
-- User-supplied Benders operating-cost lower bounds for negative net operating costs. Positive PTC requires these bounds and requires automatic subproblem slacks to be disabled.
-- `ptc_payments.csv` with resource and edge identity, weighted generation, and annual, period, and discounted payments. Cost breakdowns include a negative `PTC` category.
+- Commodity-independent flow credits through `flow_credit_rate`, with separate cost accounting, period-specific rates, and parameter scaling. Positive credits require unidirectional edges with `has_capacity=true` in the asset defaults; user capacity overrides do not change eligibility. Legacy `ptc_rate` inputs remain accepted.
+- User-supplied Benders operating-cost lower bounds for negative net operating costs. Positive flow credits require these bounds and require automatic subproblem slacks to be disabled.
+- `flow_credits.csv` with resource and edge identity, weighted flow, commodity identity, and annual, period, and discounted payments. Cost breakdowns include a negative `FlowCredit` category.
+
+### Changed
+
+- Add flow credits directly to edge variable costs and use the existing objective discounting. Calculate separate payment reports from solved flows without retaining extra JuMP payment expressions.
 
 ### Fixed
 

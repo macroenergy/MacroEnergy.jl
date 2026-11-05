@@ -134,11 +134,11 @@ struct SubproblemsData
     nsd::Vector{DataFrame} # one per subproblem
     curtailment::Vector{DataFrame} # one per subproblem
     operational_costs::Vector{DataFrame} # one per subproblem
-    ptc_payments::Vector{DataFrame} # original units, annual weighted payments
+    flow_credits::Vector{DataFrame} # original units, annual weighted payments
 end
 SubproblemsData(flows, storage_levels, nsd, curtailment, operational_costs) =
     SubproblemsData(flows, storage_levels, nsd, curtailment, operational_costs,
-        [empty_ptc_payments() for _ in eachindex(flows)])
+        [empty_flow_credits() for _ in eachindex(flows)])
 SubproblemsData(n::Int64) = SubproblemsData(Vector{DataFrame}(undef, n), Vector{DataFrame}(undef, n), Vector{DataFrame}(undef, n), Vector{DataFrame}(undef, n), Vector{DataFrame}(undef, n))
 function SubproblemsData(results::Vector{NamedTuple})
     subproblems_data = SubproblemsData(length(results))
@@ -160,7 +160,7 @@ function Base.getindex(subproblems_data::SubproblemsData, i::Int64)
         nsd=subproblems_data.nsd[i],
         curtailment=subproblems_data.curtailment[i],
         operational_costs=subproblems_data.operational_costs[i],
-        ptc_payments=subproblems_data.ptc_payments[i],
+        flow_credits=subproblems_data.flow_credits[i],
     )
 end
 function Base.setindex!(subproblems_data::SubproblemsData, results::NamedTuple, i::Int64)
@@ -169,7 +169,7 @@ function Base.setindex!(subproblems_data::SubproblemsData, results::NamedTuple, 
     subproblems_data.nsd[i] = results.nsd
     subproblems_data.curtailment[i] = results.curtailment
     subproblems_data.operational_costs[i] = results.operational_costs
-    subproblems_data.ptc_payments[i] = get(results, :ptc_payments, empty_ptc_payments())
+    subproblems_data.flow_credits[i] = get(results, :flow_credits, empty_flow_credits())
 end
 function Base.push!(subproblems_data::SubproblemsData, results::NamedTuple)
     push!(subproblems_data.flows, results.flows)
@@ -177,7 +177,7 @@ function Base.push!(subproblems_data::SubproblemsData, results::NamedTuple)
     push!(subproblems_data.nsd, results.nsd)
     push!(subproblems_data.curtailment, results.curtailment)
     push!(subproblems_data.operational_costs, results.operational_costs)
-    push!(subproblems_data.ptc_payments, get(results, :ptc_payments, empty_ptc_payments()))
+    push!(subproblems_data.flow_credits, get(results, :flow_credits, empty_flow_credits()))
 end
 function Base.pop!(subproblems_data::SubproblemsData)
     pop!(subproblems_data.flows)
@@ -185,7 +185,7 @@ function Base.pop!(subproblems_data::SubproblemsData)
     pop!(subproblems_data.nsd)
     pop!(subproblems_data.curtailment)
     pop!(subproblems_data.operational_costs)
-    pop!(subproblems_data.ptc_payments)
+    pop!(subproblems_data.flow_credits)
 end
 flows(subproblems_data::SubproblemsData) = subproblems_data.flows
 storage_levels(subproblems_data::SubproblemsData) = subproblems_data.storage_levels
@@ -237,7 +237,7 @@ function extract_subproblem_results(system::System, scaling::Float64)
         vom_cost = compute_variable_om_cost(e)
         fuel_cost = compute_fuel_cost(e)
         startup_cost_val = compute_startup_cost(e)
-        ptc_payment = compute_ptc_payment(e)
+        flow_credit_payment = compute_flow_credit_payment(e)
 
         if fuel_cost > 0 && isa(start_vertex(e), Node)
             source_node = start_vertex(e)
@@ -248,7 +248,7 @@ function extract_subproblem_results(system::System, scaling::Float64)
         vom_cost > 0 && push!(cost_rows, (zone=zone, type=asset_type, category=:VariableOM, value=vom_cost * scaling^2))
         fuel_cost > 0 && push!(cost_rows, (zone=zone, type=asset_type, category=:Fuel, value=fuel_cost * scaling^2))
         startup_cost_val > 0 && push!(cost_rows, (zone=zone, type=asset_type, category=:Startup, value=startup_cost_val * scaling^2))
-        !iszero(ptc_payment) && push!(cost_rows, (zone=zone, type=asset_type, category=:PTC, value=-ptc_payment * scaling^2))
+        !iszero(flow_credit_payment) && push!(cost_rows, (zone=zone, type=asset_type, category=:FlowCredit, value=-flow_credit_payment * scaling^2))
     end
 
     # Combine flow DataFrames
@@ -294,7 +294,7 @@ function extract_subproblem_results(system::System, scaling::Float64)
         nsd=nsd_df,
         curtailment=curtailment_df,
         operational_costs=operational_costs_df,
-        ptc_payments=get_ptc_payments(system, scaling)
+        flow_credits=get_flow_credits(system, scaling)
     )
 end
 
