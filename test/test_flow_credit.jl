@@ -6,8 +6,7 @@ using HiGHS
 using MacroEnergy
 using Distributed
 
-# Existing input macros resolve these helpers in the caller's module. The new
-# alias normalizer must bind internally; custom assets need no new import for it.
+# Existing input macros resolve these helpers in the caller's module.
 using MacroEnergy: recursive_merge, clear_dict, default_data, get_from,
     remove_missing!, recursive_merge!, process_data
 
@@ -299,19 +298,17 @@ function test_general_credit_scope()
         @test objective_value(build_test_model(system)) ≈ 200.0
         @test ME.compute_flow_credit_payment(asset.transmission_edge) ≈ 200.0
     end
-    @testset "Legacy input names and precedence" begin
-        @test ME.process_data(Dict{Symbol,Any}(:ptc_rate => 40))[:flow_credit_rate] == 40
-        @test_throws ArgumentError ME.process_data(Dict{Symbol,Any}(:ptc_rate => 40, :flow_credit_rate => 40))
+    @testset "Input precedence and edge-prefixed rates" begin
         data = Dict{Symbol,Any}(:type => "VRE",
-            :global_data => Dict{Symbol,Any}(:edges => Dict{Symbol,Any}(:edge => Dict{Symbol,Any}(:ptc_rate => 40))),
+            :global_data => Dict{Symbol,Any}(:edges => Dict{Symbol,Any}(:edge => Dict{Symbol,Any}(:flow_credit_rate => 40))),
             :instance_data => [Dict{Symbol,Any}(:id => :a,
                 :edges => Dict{Symbol,Any}(:edge => Dict{Symbol,Any}(:flow_credit_rate => 10)))])
         merged = only(ME.merge_global_data(data))
         @test merged[:instance_data][:edges][:edge][:flow_credit_rate] == 10
         system = make_hydrogen_credit_system()
-        asset = ME.make(ME.Electrolyzer, Dict{Symbol,Any}(:id => :legacy,
+        asset = ME.make(ME.Electrolyzer, Dict{Symbol,Any}(:id => :prefixed,
             :efficiency_rate => 0.5, :elec_start_vertex => :grid,
-            :h2_end_vertex => :hydrogen, :h2_ptc_rate => 12.0), system)
+            :h2_end_vertex => :hydrogen, :h2_flow_credit_rate => 12.0), system)
         @test asset.h2_edge.flow_credit_rate == 12.0
         @test asset.elec_edge.flow_credit_rate == 0.0
     end

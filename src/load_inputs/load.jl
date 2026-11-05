@@ -82,7 +82,6 @@ function load!(system::System, data)::Nothing
 end
 
 function merge_global_data(data::AbstractDict{Symbol,Any})
-    normalize_flow_credit_input!(data)
     instances = Vector{Dict{Symbol,Any}}()
     type = data[:type]
     for (instance_idx, instance_data) in enumerate(data[:instance_data])

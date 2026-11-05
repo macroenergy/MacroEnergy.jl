@@ -77,6 +77,5 @@ MacroEnergy.try_load_benders_settings
 ## Flow credit input validation
 
 ```@docs
-MacroEnergy.normalize_flow_credit_input!
 MacroEnergy.validate_flow_credit_rate
 ```

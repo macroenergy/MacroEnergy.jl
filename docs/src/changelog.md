@@ -11,7 +11,7 @@ and this project follows Julia package versioning through `Project.toml` release
 
 ### Added
 
-- Commodity-independent flow credits through `flow_credit_rate`, with separate cost accounting, period-specific rates, and parameter scaling. Positive credits require unidirectional edges with `has_capacity=true` in the asset defaults; user capacity overrides do not change eligibility. Legacy `ptc_rate` inputs remain accepted.
+- Commodity-independent flow credits through `flow_credit_rate`, with separate cost accounting, period-specific rates, and parameter scaling. Positive credits require unidirectional edges with `has_capacity=true` in the asset defaults; user capacity overrides do not change eligibility.
 - User-supplied Benders operating-cost lower bounds for negative net operating costs. Positive flow credits require these bounds and require automatic subproblem slacks to be disabled.
 - `flow_credits.csv` with resource and edge identity, weighted flow, commodity identity, and annual, period, and discounted payments. Cost breakdowns include a negative `FlowCredit` category.
 

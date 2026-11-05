@@ -46,13 +46,21 @@ A positive rate requires a unidirectional edge whose asset definition sets `has_
 
 The selected edge can represent an input or an output. For example, BECCSHydrogen uses its biomass input as the default capacity edge. A credit on that edge is in currency per tonne of biomass, not per MWh of hydrogen. Users must convert output-based policy rates when the conversion relationship permits it. Macro does not infer the policy basis.
 
-The same interface permits credits on default capacity edges of single-direction transmission and storage assets. Users determine whether these activities should receive a credit. Credits on several connected edges are paid separately. Negative-cost loops can remain possible; structural eligibility is not a policy-validity or boundedness guarantee.
+The same interface permits credits on default capacity edges of single-direction transmission and storage assets. Users determine whether these activities should receive a credit.
 
-### Legacy inputs
+### Credits on storage and cyclic flows
 
-The input name `ptc_rate` is accepted as an alias for `flow_credit_rate`, including edge-prefixed forms such as `h2_ptc_rate`. Input aliases are normalized before global and instance data merge. The existing instance-over-global and edge-specific precedence rules apply. Supplying both names at the same input level produces an error, even if their values match.
+Credits apply to the flow on each selected edge, not to net production or final delivery. Crediting both charging and discharging can therefore reward repeated storage cycles. Similar incentives can occur across connected transport or conversion assets.
 
-The alias applies to input dictionaries and files. Julia fields and helpers use the new names. Output consumers must migrate to `flow_credits.csv` and the `FlowCredit` cost category. Old serialized Julia objects are not covered by the input alias.
+If cycle payments exceed operating and capacity costs, the model can increase cyclic flows to collect credits. Select credited edges and rates carefully. Check whether the policy intends to reward each activity separately, especially when several edges carry the same commodity through a chain.
+
+Default capacity-edge eligibility does not prevent this behavior.
+
+### Input forms
+
+Use `flow_credit_rate`, or its edge-prefixed form such as `h2_flow_credit_rate`. The existing instance-over-global and edge-specific precedence rules apply.
+
+Payment outputs use `flow_credits.csv` and the negative `FlowCredit` cost category.
 
 ### Custom assets
 
