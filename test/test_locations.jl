@@ -58,6 +58,29 @@ end
         @test ME.capped_edge_location(edge) == :Boston
     end
 
+    @testset "Rejected automatic node IDs leave location membership unchanged" begin
+        for collision in (:node, :location)
+            system, location = make_system()
+            existing = if collision === :node
+                ME.Node{ME.Electricity}(;
+                    id = :Boston_Electricity,
+                    timedata = system.time_data[:Electricity],
+                )
+            else
+                ME.Location(; id = :Boston_Electricity, system = system)
+            end
+            ME.add!(system, existing)
+            registered = copy(system.locations)
+
+            for _ in 1:2
+                @test_throws r"Duplicate network ID `Boston_Electricity`" ME.find_node(system, :Boston, ME.Electricity)
+                @test isempty(location.nodes)
+                @test isempty(location.commodities)
+                @test system.locations == registered
+            end
+        end
+    end
+
     @testset "Adding a node synchronizes its location field" begin
         system, location = make_system()
         node = ME.Node{ME.Electricity}(;

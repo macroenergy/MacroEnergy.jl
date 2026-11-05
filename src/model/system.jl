@@ -246,8 +246,8 @@ function find_node(location::Location, id::Symbol, commodity::Union{Missing,Data
                 id = Symbol(id, "_", commodity_symbol),
                 timedata = location.system.time_data[commodity_symbol]
             )
-            add_node!(location, new_node)
             add!(location.system, new_node)
+            add_node!(location, new_node)
             return new_node
         else
             @warn("Node $id not found\nNot creating a new Node as AutoCreateNodes = false")
