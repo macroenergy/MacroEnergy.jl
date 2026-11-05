@@ -6,7 +6,7 @@ These are the steps to configure settings:
 
 1. Create a `case_settings.json` file in a `settings` folder in the case directory.
 2. Customize the JSON file to enable or disable features as needed.
-3. Add the path to the settings JSON file in the `system_data.json` file. The user can use either a relative path (from the `system_data.json` location) or an absolute path.
+3. Add the path to the settings JSON file in the `system_data.json` file. The user can use either a relative path (from the `system_data.json` location) or an absolute path. Without this entry, Macro reads `settings/case_settings.json` if it exists, and otherwise uses the default values.
 
 !!! note "system_data.json"
     For more information about the `system_data.json` file, please see the [Inputs](@ref) section.
@@ -67,7 +67,7 @@ For a complete list of available settings, their default values, and detailed de
 
 Earlier versions of Macro used a second file, `macro_settings.json`, referenced by the `settings` entry of each period in `system_data.json`. Cases written that way still load, with a deprecation warning, as long as:
 
-- every period has the same settings. Output settings can no longer vary between periods.
+- every period has the same settings. Output settings can no longer vary between periods, and one period having settings while another has none is an error.
 - they do not contradict `case_settings.json`.
 
 To update a case, move the contents of `macro_settings.json` into `case_settings.json`, delete the `settings` entry of each period, and rename the output settings:

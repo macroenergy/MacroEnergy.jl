@@ -25,7 +25,7 @@ my_case/
 ├── system/
 │   └── ...
 ├── results_001/              ← outer directory (non-overwrite default)
-│   ├── settings.json         ← case-level settings snapshot
+│   ├── settings.json         ← settings snapshot
 |   ├── my_case.log           ← copied here after the run
 │   └── results/              ← all output files written here
 │       ├── capacity.csv
@@ -55,7 +55,7 @@ my_case/
 ├── case_settings.json
 ├── my_case.log               ← written here during the run
 └── results_001/                  ← outer directory
-    ├── settings.json             ← case-level settings snapshot
+    ├── settings.json             ← settings snapshot
     ├── my_case.log               ← copied here after the run
     ├── capacity_summary.csv      ← cross-period capacity summary
     ├── results_period_1/         ← period 1 outputs
@@ -71,7 +71,7 @@ my_case/
 By default (`OutputSettings.Overwrite = false`), Macro will not overwrite an existing outer results directory. Instead, it appends an incremental numeric suffix: `results_001`, `results_002`, etc. This is controlled by the `OutputSettings.Overwrite` and `OutputSettings.Dir` settings in `case_settings.json`.
 
 !!! note "Settings snapshot"
-    A `settings.json` file is always written inside the outer directory (e.g., `results_001/settings.json`) recording the `case_settings` and `system_settings` used for the run. See [Settings Output](@ref "manual-outputs-settings-output") for details.
+    A `settings.json` file is always written inside the outer directory (e.g., `results_001/settings.json`) recording the settings used for the run. See [Settings Output](@ref "manual-outputs-settings-output") for details.
 
 ## [Output Settings](@id manual-outputs-settings)
 
@@ -213,7 +213,7 @@ File names are shown with the default `.csv` extension. With [`OutputSettings.Fo
 | [`undiscounted_costs_by_zone.csv`](@ref "manual-outputs-costs-breakdown-zone") | Undiscounted cost breakdown by zone and cost category | Always |
 | [`flows.csv`](@ref "manual-outputs-flows") | Commodity flow for every edge at every representative time step | Always |
 | [`time_weights.csv`](@ref "manual-outputs-time-weights") | Representative period weights mapping each time step to its full-year equivalent hours | Always |
-| [`settings.json`](@ref "manual-outputs-settings-output") | Snapshot of all case and system settings used for the run | Always |
+| [`settings.json`](@ref "manual-outputs-settings-output") | Snapshot of all the settings used for the run | Always |
 | [`storage_level.csv`](@ref "manual-outputs-storage-level") | State of charge for every storage component at every representative time step | System has storage assets |
 | [`curtailment.csv`](@ref "manual-outputs-curtailment") | Curtailed generation for VRE assets at every representative time step | System has VRE assets with `has_capacity = true` |
 | [`non_served_demand.csv`](@ref "manual-outputs-nsd") | Non-served demand for every node with NSD variables at every representative time step | System has nodes with NSD variables |

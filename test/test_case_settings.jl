@@ -26,6 +26,9 @@ import MacroEnergy:
     load_time_data,
     load_case,
     load_case_data,
+    load_system,
+    prepare_to_json,
+    write_json,
     generate_case,
     year,
     period_index,
@@ -545,6 +548,22 @@ function test_settings_file_reloads()
                 input_name(entry) == :Restart && (entry_input = (Restart=(enabled=true, folder="sample", from_period=2),))
                 test_round_trip(merge(activate, (; key => entry_input)))
             end
+        end
+    end
+
+    @testset "The settings in written system data can be read back" begin
+        system = with_logger(() -> load_system(test_path), NullLogger())
+        written = prepare_to_json(system)[:settings]
+        @test !haskey(written, :StartYear)
+        @test written[:SolutionAlgorithm] == "Monolithic"
+        @test written[:ExpansionHorizon] == "PerfectForesight"
+        mktempdir() do dir
+            path = joinpath(dir, "settings.json")
+            write_json(path, written)
+            data = Dict{Symbol,Any}(:settings => Dict{Symbol,Any}(:path => path), :case => Any[])
+            reloaded = with_logger(() -> resolve_settings(data, dir), NullLogger())
+            @test isequal(reloaded, system.settings)
+            @test typeof(reloaded) == typeof(system.settings)
         end
     end
 

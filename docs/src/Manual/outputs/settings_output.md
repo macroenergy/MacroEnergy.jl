@@ -10,7 +10,7 @@
 
 **Location:** Inside the outer results directory (e.g., `results_001/settings.json`), alongside the `results/` or `results_period_N/` subdirectories
 
-`settings.json` is a snapshot of all case-level and system-level settings used for the model run. It is written automatically after every solve, regardless of other output settings.
+`settings.json` is a snapshot of all the settings used for the model run. It is written automatically after every solve, regardless of other output settings.
 
 This file serves as a reproducibility record: given the same input data and the `settings.json` file, you can reconstruct the exact settings used for any run. It is also useful for debugging, comparing runs, and sharing results with collaborators.
 

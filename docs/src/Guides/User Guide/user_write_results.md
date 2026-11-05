@@ -232,18 +232,17 @@ has_tdr(system)  # returns true if the system uses time-domain reduction
 
 ## Writing Case Settings
 
-To export case and system settings to a JSON file, use the [`write_settings`](@ref) function:
+To export the settings of a case to a JSON file, use the [`write_settings`](@ref) function:
 
 ```julia
 write_settings(case, "output/settings.json")
 ```
 
-This function automatically writes:
-- Case-level settings
-- System-level settings for all systems in the case
+The file has the same form as `case_settings.json`, with the default values filled in.
 
 The settings file is useful for:
 - Documentation and reproducibility
+- Rerunning a case with the same settings, by copying it to `settings/case_settings.json`
 - Sharing configuration with other users
 - Debugging and troubleshooting
 
@@ -371,7 +370,7 @@ write_to_json(case, "output/case_data.json")
 
 When writing a `Case`, the output contains two top-level keys:
 - `case`: an array of per-period system data objects
-- `settings`: the case-level settings
+- `settings`: the settings of the case
 
 ### Compression
 

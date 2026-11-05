@@ -25,9 +25,14 @@ write_settings(case, joinpath(case_path, "settings.json"))
 
 """
 function write_settings(case::Case, filepath::AbstractString)
-    settings = OrderedDict{Symbol,Any}(key => setting_to_json(value) for (key, value) in pairs(case.settings)
+    write_json(filepath, settings_to_json(case.settings))
+end
+
+# The settings in the form the loader reads back. This is the only place that turns settings into
+# JSON, so that the writers cannot disagree with each other or with `configure_settings`.
+function settings_to_json(settings::NamedTuple)::OrderedDict{Symbol,Any}
+    return OrderedDict{Symbol,Any}(key => setting_to_json(value) for (key, value) in pairs(settings)
         if !ismissing(value) && !isnothing(value))
-    write_json(filepath, settings)
 end
 
 setting_to_json(value) = value
