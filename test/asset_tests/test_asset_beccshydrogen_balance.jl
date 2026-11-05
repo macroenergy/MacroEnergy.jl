@@ -122,6 +122,10 @@ function test_asset_beccshydrogen_balance()
         @test objective_value(add_balance_model) ≈ objective_value(stoich_model) atol = 1e-8
     end
 
+    @testset "BECCSHydrogen optional fuel edge" begin
+        assert_absent_optional_edge(() -> make_beccshydrogen_case(:add_balance).asset, :fuel_edge)
+    end
+
     @test_logs (:warn, "User provided fuel-related inputs for the beccs_hydrogen_test asset but they will not be used as no fuel commodity has been set") begin
         make_beccshydrogen_case(:add_balance; fuel_consumption = 1.0)
     end
