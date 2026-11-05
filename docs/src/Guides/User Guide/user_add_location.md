@@ -58,7 +58,7 @@ With either approach, doing so will leave you with the following Locations file:
 }
 ```
 
-The template function avoids appending duplicate name strings. This differs from loading a file containing repeated location IDs, which throws an error. If we next call:
+The template function checks location IDs, so adding a name that already exists preserves its entry, including any commodity nodes or constraints. If we next call:
 
 ```julia
 julia> template_location(system, ["Boston", "New London", "Princeton"])
@@ -77,7 +77,32 @@ Our locations file will be:
 }
 ```
 
-Alternatively, you can directly add names to the locations.json file. However, in the future, the template functions will take care of additional steps so we recommend using them whenever possible.
+You can also supply a location dictionary, or a vector mixing dictionaries and name strings. Dictionaries use the same symbol-keyed input schema as location loading:
+
+```julia
+template_location(system, Dict(
+    :id => "SE",
+    :commodities => Dict(
+        :Electricity => Dict(:demand => [100.0]),
+        :Hydrogen => Dict(),
+    ),
+))
+```
+
+Location dictionaries may include `:constraints` and extension fields, which are preserved when writing. Repeating an identical definition has no effect. Supplying different details for an existing ID throws an error; edit that entry explicitly to change it. A dictionary containing only `:id` behaves like a name-only request.
+
+The file overload accepts an existing file, a new `.json` or `.json.gz` path, or a directory in which to create `locations.json`. Set `make_file=false` to require an existing file. Batch calls read and write the document once, validating every entry before writing. Templates validate input structure; commodity definitions, time data and runtime constraint configurations are checked when loading the system.
+
+Alternatively, you can edit `locations.json` directly. Files containing duplicate location IDs are rejected by both the template helper and system loading.
+
+### Template API
+
+The `style` and `format` keywords are retained for compatibility. Location
+templates write the supplied entries as JSON without applying a style preset.
+
+```@docs
+MacroEnergy.template_location
+```
 
 ## Adding Nodes to a Location
 

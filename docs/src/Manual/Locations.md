@@ -160,6 +160,26 @@ Methods for loading locations into systems from input data.
 | `load_locations!(system, path, data::AbstractVector)` | Load locations and their commodity nodes from strings or objects | `Nothing` |
 | `load_locations!(system, path, data::AbstractDict{Symbol,Any})` | Load locations from dictionary data | `Nothing` |
 
+### Location Template Internals
+
+The public [`template_location`](@ref) methods use `add_location_template!` to
+insert one entry into an in-memory document. `update_location_templates!` handles
+the file lifecycle, and `write_json(io, document)` handles serialization.
+
+Batch calls build the ID lookup once, use dictionary lookups for duplicate checks,
+and read and write the file once. Validation and copying scale with input size.
+Comparing repeated detailed definitions also serializes and parses their JSON;
+name-only repeats skip that comparison. When using the insertion helper directly
+in a loop, pass the shared ID lookup to avoid rescanning existing entries.
+
+```@docs
+MacroEnergy.location_templates_by_id
+MacroEnergy.location_template_definition
+MacroEnergy.add_location_template!
+MacroEnergy.update_location_templates!
+MacroEnergy.write_json(::IO, ::AbstractDict)
+```
+
 ### Model Building Methods (Inherited from MacroObject)
 
 Methods used internally during model construction.

@@ -13,6 +13,7 @@ with_logger(test_logger) do
         include("test_workflow.jl")
         include("test_balance_data.jl")
         include("test_locations.jl")
+        include("test_template_location.jl")
         include("test_supply_inputs.jl")
         include("test_download_examples.jl")
         include("test_user_additions.jl")
