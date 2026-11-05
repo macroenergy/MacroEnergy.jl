@@ -101,7 +101,7 @@ end
 function tdr_collect_csv_reference!(
     sources::Dict{String,TimeSeriesSource},
     descriptor::AbstractDict,
-    json_file::String,
+    context::TDRContext,
     case_root::String,
     full_length::Int,
     total_hours::Int,
@@ -109,11 +109,9 @@ function tdr_collect_csv_reference!(
     all_features::Vector{TDRFeatureSpec},
     exclusions::Vector{TDRFeatureSpec},
     path::Vector{Any},
-    asset::Union{Nothing,String},
-    commodity::Union{Nothing,String},
 )
     haskey(descriptor, "path") && haskey(descriptor, "header") ||
-        throw(ArgumentError("Timeseries descriptor in $json_file must contain `path` and `header`."))
+        throw(ArgumentError("Timeseries descriptor in $(context.input_file) must contain `path` and `header`."))
     csv_path = abspath(joinpath(case_root, String(descriptor["path"])))
     header = Symbol(descriptor["header"])
     source_key = "csv:" * csv_path * ":" * String(header)
@@ -134,24 +132,13 @@ function tdr_collect_csv_reference!(
         trailing_hours[] = max(trailing_hours[], removed_hours)
     end
 
-    field = tdr_field_name(path)
-    feature = tdr_feature_for_reference(all_features, field, json_file, csv_path, case_root, asset, commodity)
-    selector = TDRFeatureSpec(
-        file=tdr_relative_path(case_root, csv_path),
-        asset=asset,
-        commodity=commodity,
-        field=field,
-    )
-    excluded = isnothing(feature) ?
-        any(exclusion -> tdr_feature_matches_selector(selector, exclusion), exclusions) :
-        any(exclusion -> tdr_feature_matches_selector(feature, exclusion), exclusions)
+    reference_context = tdr_child_context(context; csv_file=csv_path, field=tdr_field_name(path))
+    feature = tdr_feature_for_reference(all_features, reference_context, case_root)
+    excluded = any(exclusion -> tdr_reference_matches_selector(reference_context, exclusion, feature, case_root), exclusions)
     reference = tdr_logical_reference(
-        json_file,
+        reference_context,
         path,
-        field,
         feature,
-        asset,
-        commodity,
         !isnothing(feature) && !excluded;
         explicitly_excluded=excluded,
     )
@@ -162,7 +149,7 @@ end
 function tdr_collect_inline_reference!(
     sources::Dict{String,TimeSeriesSource},
     data::AbstractVector,
-    json_file::String,
+    context::TDRContext,
     case_root::String,
     full_length::Int,
     total_hours::Int,
@@ -170,34 +157,26 @@ function tdr_collect_inline_reference!(
     all_features::Vector{TDRFeatureSpec},
     exclusions::Vector{TDRFeatureSpec},
     path::Vector{Any},
-    asset::Union{Nothing,String},
-    commodity::Union{Nothing,String},
 )
-    field = tdr_field_name(path)
-    feature = tdr_feature_for_reference(all_features, field, json_file, nothing, case_root, asset, commodity)
-    selector = isnothing(feature) ? TDRFeatureSpec(
-        file=tdr_relative_path(case_root, json_file), asset=asset, commodity=commodity, field=field,
-    ) : feature
-    excluded = any(exclusion -> tdr_feature_matches_selector(selector, exclusion), exclusions)
+    reference_context = tdr_child_context(context; field=tdr_field_name(path))
+    feature = tdr_feature_for_reference(all_features, reference_context, case_root)
+    excluded = any(exclusion -> tdr_reference_matches_selector(reference_context, exclusion, feature, case_root), exclusions)
     reference = tdr_logical_reference(
-        json_file,
+        reference_context,
         path,
-        field,
         feature,
-        asset,
-        commodity,
         !isnothing(feature) && !excluded;
         explicitly_excluded=excluded,
     )
-    key = "inline:" * json_file * ":" * join(string.(path), "/")
+    key = "inline:" * context.input_file * ":" * join(string.(path), "/")
     values, removed_hours = tdr_time_series_values(
         data,
-        "inline vector in $json_file",
+        "inline vector in $(context.input_file)",
         full_length,
         total_hours,
     )
     trailing_hours[] = max(trailing_hours[], removed_hours)
-    tdr_add_reference!(sources, key, values; inline_file=json_file, inline_path=path, reference)
+    tdr_add_reference!(sources, key, values; inline_file=context.input_file, inline_path=path, reference)
     return nothing
 end
 
@@ -216,14 +195,32 @@ function tdr_collect_references!(
     asset::Union{Nothing,String}=nothing,
     commodity::Union{Nothing,String}=nothing,
 )
+    context = TDRContext(; input_file=json_file, asset, commodity)
+    return tdr_collect_references!(sources, data, context, case_root, full_length, total_hours,
+        trailing_hours, all_features, exclusions, commodity_names, path)
+end
+
+function tdr_collect_references!(
+    sources::Dict{String,TimeSeriesSource},
+    data,
+    context::TDRContext,
+    case_root::String,
+    full_length::Int,
+    total_hours::Int,
+    trailing_hours::Ref{Int},
+    all_features::Vector{TDRFeatureSpec},
+    exclusions::Vector{TDRFeatureSpec},
+    commodity_names::Set{String},
+    path::Vector{Any},
+)
     if data isa AbstractDict
         if haskey(data, "timeseries")
             descriptor = data["timeseries"]
-            descriptor isa AbstractDict || throw(ArgumentError("Invalid timeseries descriptor in $json_file."))
+            descriptor isa AbstractDict || throw(ArgumentError("Invalid timeseries descriptor in $(context.input_file)."))
             tdr_collect_csv_reference!(
                 sources,
                 descriptor,
-                json_file,
+                context,
                 case_root,
                 full_length,
                 total_hours,
@@ -231,16 +228,14 @@ function tdr_collect_references!(
                 all_features,
                 exclusions,
                 path,
-                asset,
-                commodity,
             )
             return nothing
         end
-        next_asset = asset
-        next_commodity = commodity
+        next_asset = context.asset
+        next_commodity = context.commodity
         if haskey(data, "type") && data["type"] isa AbstractString
             type_name = String(data["type"])
-            if type_name in commodity_names
+            if type_name in commodity_names || type_name == context.commodity
                 next_commodity = type_name
             else
                 next_asset = type_name
@@ -252,9 +247,23 @@ function tdr_collect_references!(
         if isnothing(next_commodity) && haskey(data, "global_data") && data["global_data"] isa AbstractDict
             next_commodity = tdr_commodity_context(data["global_data"], commodity_names)
         end
+        child_context = tdr_child_context(context; asset=next_asset, commodity=next_commodity)
+        location_entry = length(path) >= 2 && path[end-1] == "locations" &&
+            path[end] isa Integer && get(data, "id", nothing) isa AbstractString
         for (key, value) in pairs(data)
             push!(path, key)
-            tdr_collect_references!(sources, value, json_file, case_root, full_length, total_hours, trailing_hours, all_features, exclusions, commodity_names, path; asset=next_asset, commodity=next_commodity)
+            if location_entry && key == "commodities" && value isa AbstractDict
+                # These are ordinary node inputs with an implicit type. Supply
+                # context to the same traversal without changing data or paths.
+                for (node_commodity, node_data) in pairs(value)
+                    push!(path, node_commodity)
+                    node_context = tdr_child_context(child_context; commodity=String(node_commodity))
+                    tdr_collect_references!(sources, node_data, node_context, case_root, full_length, total_hours, trailing_hours, all_features, exclusions, commodity_names, path)
+                    pop!(path)
+                end
+            else
+                tdr_collect_references!(sources, value, child_context, case_root, full_length, total_hours, trailing_hours, all_features, exclusions, commodity_names, path)
+            end
             pop!(path)
         end
     elseif data isa AbstractVector
@@ -262,7 +271,7 @@ function tdr_collect_references!(
             tdr_collect_inline_reference!(
                 sources,
                 data,
-                json_file,
+                context,
                 case_root,
                 full_length,
                 total_hours,
@@ -270,13 +279,11 @@ function tdr_collect_references!(
                 all_features,
                 exclusions,
                 path,
-                asset,
-                commodity,
             )
         else
             for (idx, value) in pairs(data)
                 push!(path, idx)
-                tdr_collect_references!(sources, value, json_file, case_root, full_length, total_hours, trailing_hours, all_features, exclusions, commodity_names, path; asset=asset, commodity=commodity)
+                tdr_collect_references!(sources, value, context, case_root, full_length, total_hours, trailing_hours, all_features, exclusions, commodity_names, path)
                 pop!(path)
             end
         end

@@ -1,4 +1,4 @@
-using MacroEnergy, Test
+using MacroEnergy, Test, CSV, DataFrames
 
 @testset "TDR feature additions and explicit overrides" begin
     spec(data) = MacroEnergy.tdr_feature_spec(data)
@@ -87,5 +87,80 @@ using MacroEnergy, Test
         @test_throws ArgumentError select(ambiguous, "VRE")
         @test_throws ArgumentError merge_specs(
             Dict("id" => "duplicate", "field" => "availability"), Dict("field" => "availability", "weight" => 2))
+    end
+end
+
+@testset "TDR reference context and selector matching" begin
+    ME = MacroEnergy
+    mktempdir() do root
+        input_file = joinpath(root, "assets.json")
+        csv_file = joinpath(root, "profiles.csv")
+        CSV.write(csv_file, DataFrame(profile=[1., 2., 3., 4.]))
+        generic = ME.TDRFeatureSpec(id="availability_default", field="availability")
+        context = ME.TDRContext(; input_file, csv_file, field="availability",
+            asset="VRE", commodity="Electricity")
+        match(selector; feature=generic, reference=context) =
+            ME.tdr_reference_matches_selector(reference, selector, feature, root)
+
+        # Feature ID belongs to the selected definition; the remaining fields
+        # describe the actual reference even when its selected feature is generic.
+        for selector in (
+            ME.TDRFeatureSpec(id="availability_default"),
+            ME.TDRFeatureSpec(field="availability"),
+            ME.TDRFeatureSpec(file="assets.json"),
+            ME.TDRFeatureSpec(file="profiles.csv"),
+            ME.TDRFeatureSpec(asset="VRE"),
+            ME.TDRFeatureSpec(commodity="Electricity"),
+            ME.TDRFeatureSpec(id="availability_default", file="profiles.csv",
+                field="availability", asset="VRE", commodity="Electricity"),
+        )
+            @test match(selector)
+        end
+        for selector in (
+            ME.TDRFeatureSpec(id="other"), ME.TDRFeatureSpec(field="demand"),
+            ME.TDRFeatureSpec(file="other.csv"), ME.TDRFeatureSpec(asset="Hydro"),
+            ME.TDRFeatureSpec(commodity="Hydrogen"),
+            ME.TDRFeatureSpec(asset="VRE", commodity="Hydrogen"),
+        )
+            @test !match(selector)
+        end
+        @test !match(ME.TDRFeatureSpec(id="availability_default"); feature=nothing)
+        @test match(ME.TDRFeatureSpec(file="assets.json", asset="VRE"); feature=nothing)
+        @test !ME.tdr_feature_matches_selector(generic, ME.TDRFeatureSpec(asset="VRE"))
+        @test match(ME.TDRFeatureSpec(asset="VRE"))
+        inline = ME.tdr_child_context(context; csv_file=nothing)
+        @test match(ME.TDRFeatureSpec(file="assets.json"); reference=inline)
+        @test !match(ME.TDRFeatureSpec(file="profiles.csv"); reference=inline)
+
+        # Selection still uses existing specificity and detects ties.
+        asset_feature = ME.TDRFeatureSpec(field="availability", asset="VRE", user_weight=3.0)
+        file_feature = ME.TDRFeatureSpec(field="availability", file="profiles.csv", user_weight=4.0)
+        most_specific = ME.TDRFeatureSpec(field="availability", file="assets.json",
+            asset="VRE", commodity="Electricity", user_weight=7.0)
+        @test ME.tdr_feature_for_reference([generic, asset_feature, most_specific], context, root) === most_specific
+        @test_throws ArgumentError ME.tdr_feature_for_reference([asset_feature, file_feature], context, root)
+
+        # Distinct references to one CSV column keep their own context and exclusions.
+        descriptor = Dict("timeseries"=>Dict("path"=>"profiles.csv", "header"=>"profile"))
+        raw = Dict("assets"=>[
+            Dict("type"=>"VRE", "commodity"=>"Electricity", "availability"=>descriptor),
+            Dict("type"=>"Hydro", "commodity"=>"Hydrogen", "availability"=>descriptor),
+        ])
+        for file in ("assets.json", "profiles.csv")
+            sources = Dict{String,ME.TimeSeriesSource}()
+            ME.tdr_collect_references!(sources, raw, input_file, root, 4, 4, Ref(0),
+                [generic], [ME.TDRFeatureSpec(id="availability_default", asset="VRE", file=file)],
+                Set(["Electricity", "Hydrogen"]))
+            series = only(values(sources))
+            by_asset = Dict(reference.asset => reference for reference in series.references)
+            @test Set(keys(by_asset)) == Set(["VRE", "Hydro"])
+            @test by_asset["VRE"].commodity == "Electricity"
+            @test by_asset["Hydro"].commodity == "Hydrogen"
+            @test !by_asset["VRE"].include_in_clustering
+            @test by_asset["VRE"].clustering_exclusion_reason == "explicitly_excluded"
+            @test by_asset["Hydro"].include_in_clustering
+            @test series.include_in_clustering
+            @test length(series.references) == 2
+        end
     end
 end

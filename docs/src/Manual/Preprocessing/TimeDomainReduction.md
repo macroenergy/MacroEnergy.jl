@@ -169,7 +169,13 @@ instead overrides that default, restricting it to ThermalPower.
 
 During discovery, the most specific matching selector wins; equally specific
 overlapping selectors remain an error. `exclude` uses the same selector fields
-and removes a feature when every supplied field matches.
+and removes a reference from clustering when every supplied field matches. For
+exclusions, `field`, `asset`, and `commodity` describe the actual reference even
+if the selected feature is generic. A `file` selector can match either the
+containing input file or the referenced CSV, and `id` matches the selected
+feature's ID.
+
+Nodes defined in `locations[].commodities` carry the commodity name from their map key during discovery, just as independent nodes carry it through `type`. Commodity-scoped feature weights and exclusions therefore apply to both input forms, including inline series and CSV references. Discovery preserves the original input paths and does not insert `type` fields or synthetic node wrappers into location inputs.
 
 Every explicit `timeseries` descriptor is materialized in the reduced case. It contributes to clustering only when it matches a default or user-specified feature and is not excluded. This retains all time-dependent inputs while keeping feature selection under user control.
 

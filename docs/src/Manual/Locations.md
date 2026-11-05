@@ -223,6 +223,8 @@ Without an explicit node `id`, Macro generates `<location>_<commodity>`, so the 
 
 System loading creates commodities and time data first, then each location and its commodity nodes, then independent nodes from `nodes.json`, and finally assets. Assets can connect using either the location ID and commodity or an explicit node ID. Existing location-name strings and `nodes.json` inputs remain supported and can be mixed with this form.
 
+Time-domain reduction also recognizes each commodity key as node context. Commodity-specific feature weights and exclusions work for these nodes without an explicit `type` field, using the same series-discovery methods as independent nodes. Both inline series and CSV references retain their original paths when reduced.
+
 Node and location IDs share one namespace within a system: a node ID cannot match another node or any location, and a location ID cannot match another location or any node. A node can belong to only one location, and each location can contain only one node of each commodity. Duplicate definitions across `commodities` and `nodes.json` produce errors during creation/registration. Location-level `constraints` remain separate from the constraints of the individual commodity nodes. Asset-defined node construction is outside this feature.
 
 Explicit nodes in `commodities` are created regardless of `AutoCreateNodes`; that setting only controls creation of missing nodes during endpoint lookup.
