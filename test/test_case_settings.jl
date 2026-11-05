@@ -435,6 +435,68 @@ function test_older_settings_files()
     end
 end
 
+function test_settings_entry_forms()
+    @testset "Settings paths are relative to the case, not to the current directory" begin
+        with_settings_files(case_settings=Dict("DiscountRate" => 0.07)) do dir
+            with_settings_files(case_settings=Dict("DiscountRate" => 0.99)) do elsewhere
+                cd(elsewhere) do
+                    data = Dict{Symbol,Any}(:settings => settings_file("case_settings"), :case => [period_with("case_settings")])
+                    settings = @test_logs min_level=Logging.Warn resolve_settings(data, dir)
+                    @test settings.DiscountRate == 0.07
+                end
+            end
+        end
+        # A named Benders file too
+        with_settings_files(case_settings=Dict("SolutionAlgorithm" => "Benders", "BendersSettings" => Dict("path" => "settings/my_benders.json")),
+            my_benders=Dict("MaxIter" => 7)) do dir
+            with_settings_files(my_benders=Dict("MaxIter" => 99)) do elsewhere
+                cd(elsewhere) do
+                    @test resolve_settings(case_with(Dict{Symbol,Any}()), dir).BendersSettings[:MaxIter] == 7
+                end
+            end
+        end
+    end
+
+    @testset "A null settings entry is the same as no entry" begin
+        with_settings_files(case_settings=Dict("DiscountRate" => 0.07)) do dir
+            period = Dict{Symbol,Any}(:settings => nothing)
+            @test (@test_logs min_level=Logging.Warn standalone_settings(period, dir)).DiscountRate == 0.07
+            data = Dict{Symbol,Any}(:settings => nothing, :case => [period])
+            @test (@test_logs min_level=Logging.Warn resolve_settings(data, dir)).DiscountRate == 0.07
+        end
+    end
+
+    @testset "A null BendersSettings is the same as none" begin
+        with_settings_files(case_settings=Dict("SolutionAlgorithm" => "Benders", "BendersSettings" => nothing),
+            benders_settings=Dict("MaxIter" => 7)) do dir
+            settings = @test_logs min_level=Logging.Warn resolve_settings(case_with(Dict{Symbol,Any}()), dir)
+            @test settings.BendersSettings[:MaxIter] == 7
+        end
+    end
+
+    @testset "A null old name in one file does not conflict with a value in the other" begin
+        with_settings_files(case_settings=Dict("OutputSignificantDigits" => 4), macro_settings=Dict("OutputSignificantDigits" => nothing)) do dir
+            settings = with_logger(() -> resolve_settings(case_with(period_with("macro_settings")), dir), NullLogger())
+            @test settings.OutputSettings.SignificantDigits == 4
+        end
+    end
+
+    @testset "No priority warning when the Benders settings agree once defaults are filled in" begin
+        with_settings_files(case_settings=Dict("SolutionAlgorithm" => "Benders"), benders_settings=Dict("MaxIter" => 7)) do dir
+            data = case_with(Dict{Symbol,Any}())
+            settings = @test_logs min_level=Logging.Warn resolve_settings(data, dir)
+            write_settings(Case(System[], settings), joinpath(dir, "settings", "case_settings.json"))
+            reloaded = @test_logs min_level=Logging.Warn resolve_settings(data, dir)
+            @test isequal(reloaded, settings)
+        end
+    end
+
+    @testset "A scaling factor of zero is rejected" begin
+        @test occursin("case_settings.ParameterScalingFactor: expected a number > 0",
+            error_message(() -> configure_settings((ParameterScaling=true, ParameterScalingFactor=0))))
+    end
+end
+
 function test_system_data_survives_loading()
     @testset "Loading does not destroy a system_data.json it cannot rewrite" begin
         mktempdir() do dir
@@ -667,6 +729,7 @@ test_one_settings_file()
 test_comment_keys()
 test_settings_sources()
 test_older_settings_files()
+test_settings_entry_forms()
 test_system_data_survives_loading()
 test_old_names_before_the_model()
 test_deprecated_period_settings()

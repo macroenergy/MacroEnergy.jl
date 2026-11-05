@@ -29,7 +29,7 @@ function load_benders_settings(settings::AbstractDict{Symbol,Any}, path::Abstrac
        isa(settings[:BendersSettings], AbstractDict) && 
        haskey(settings[:BendersSettings], :path)
 
-        benders_path = rel_or_abs_path(settings[:BendersSettings][:path], path)
+        benders_path = settings_file_path(settings[:BendersSettings][:path], path)
         if isfile(benders_path)
             @info("Loading Benders settings from path: $benders_path")
             settings[:BendersSettings] = read_file(benders_path)
@@ -45,8 +45,10 @@ function load_benders_settings(settings::AbstractDict{Symbol,Any}, path::Abstrac
     # Otherwise, try to load from default location defined as BENDERS_SETTINGS_FILEPATH
     benders_settings = try_load_benders_settings(path)
     if !isnothing(benders_settings)
-        written = settings_dict(get(settings, :BendersSettings, Dict{Symbol,Any}()))
-        if !isempty(written) && !isequal(written, settings_dict(benders_settings))
+        written = settings_dict(something(get(settings, :BendersSettings, nothing), Dict{Symbol,Any}()))
+        # Compared with the defaults filled in: results/settings.json writes all of them
+        spec = benders_settings_spec()
+        if !isempty(written) && !isequal(merge_defaults(spec, written), merge_defaults(spec, settings_dict(benders_settings)))
             @warn("$BENDERS_SETTINGS_FILEPATH takes priority over the BendersSettings in case_settings.json, which are ignored.")
         end
         settings[:BendersSettings] = benders_settings
@@ -95,15 +97,21 @@ function read_settings_source(source, rel_path::AbstractString, filenames::Tuple
     source isa AbstractString && (source = Dict{Symbol,Any}(:path => source))
     source isa AbstractDict || throw(InputValidationError("system_data.settings",
         "expected a path or an object, got $(repr(source))"))
-    haskey(source, :path) || return settings_dict(source), nothing
-    path = normpath(abspath(rel_or_abs_path(String(source[:path]), String(rel_path))))
+    haskey(source, :path) || return drop_unset_deprecated_settings!(settings_dict(source)), nothing
+    path = normpath(abspath(settings_file_path(source[:path], rel_path)))
     if isdir(path)
         candidates = [joinpath(path, filename) for filename in filenames]
         index = findfirst(isfile, candidates)
         path = isnothing(index) ? first(candidates) : candidates[index]
     end
     isfile(path) || error("Settings file not found: $path")
-    return settings_dict(read_file(path)), path
+    return drop_unset_deprecated_settings!(settings_dict(read_file(path))), path
+end
+
+# Settings paths are relative to the location of system_data.json, not to the current directory
+function settings_file_path(path::AbstractString, rel_path::AbstractString)::String
+    from_case = joinpath(rel_path, path)
+    return ispath(from_case) ? from_case : String(path)
 end
 
 # The settings of `case_settings.json`, plus any deprecated per-period settings. A case without a
@@ -135,7 +143,7 @@ function legacy_period_settings(periods::AbstractVector, case_dir::AbstractStrin
     found = Tuple{Int,OrderedDict{Symbol,Any}}[]
     without = Int[]
     for (index, period) in enumerate(periods)
-        if !haskey(period, :settings)
+        if isnothing(get(period, :settings, nothing))
             push!(without, index)
             continue
         end

@@ -344,6 +344,23 @@ end
     end
 end
 
+@testset "TDR follows a settings entry written as a plain path" begin
+    mktempdir() do root
+        mkpath(joinpath(root, "custom"))
+        write(joinpath(root, "time_data.json"), "{}")
+        write(joinpath(root, "custom", "case.json"), """{"DiscountRate": 0.07}""")
+        system = Dict{String,Any}("time_data" => Dict("path" => "time_data.json"), "settings" => "custom/case.json")
+        MacroEnergy.write_json(joinpath(root, "system_data.json"), system)
+        @test joinpath(root, "custom", "case.json") in keys(MacroEnergy.tdr_case_input_manifest(root))
+        definition = first(MacroEnergy.tdr_system_entries(root))
+        @test definition["settings"] == Dict("path" => "custom/case.json")
+        @test MacroEnergy.tdr_read_case_settings(root, definition)["DiscountRate"] == 0.07
+        # The same for the top-level entry of a Case
+        MacroEnergy.write_json(joinpath(root, "system_data.json"), Dict("case" => Any[Dict("time_data" => Dict("path" => "time_data.json"))], "settings" => "custom/case.json"))
+        @test joinpath(root, "custom", "case.json") in keys(MacroEnergy.tdr_case_input_manifest(root))
+    end
+end
+
 @testset "TDR keeps the Benders settings a Case finds by name or by path" begin
     mktempdir() do root
         mkpath(joinpath(root, "settings"))

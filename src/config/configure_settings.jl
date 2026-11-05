@@ -90,11 +90,7 @@ to the key path that replaces it, with a deprecation warning. For example, `Outp
 Setting a deprecated key and its replacement to different values is an error.
 """
 function translate_deprecated_settings(settings)::OrderedDict{Symbol,Any}
-    translated = settings_dict(settings)
-    # A deprecated key set to null is not set: older versions wrote that in their settings template
-    for old in keys(DEPRECATED_SETTINGS)
-        haskey(translated, old) && isnothing(translated[old]) && delete!(translated, old)
-    end
+    translated = drop_unset_deprecated_settings!(settings_dict(settings))
     found = [old for old in keys(DEPRECATED_SETTINGS) if haskey(translated, old)]
     isempty(found) && return translated
     for old in found
@@ -105,6 +101,14 @@ function translate_deprecated_settings(settings)::OrderedDict{Symbol,Any}
     These settings are deprecated and were translated automatically: $renames.
     Use the new names in case_settings.json.""", maxlog=1)
     return translated
+end
+
+# A deprecated key set to null is not set: older versions wrote that in their settings template
+function drop_unset_deprecated_settings!(settings::OrderedDict{Symbol,Any})::OrderedDict{Symbol,Any}
+    for old in keys(DEPRECATED_SETTINGS)
+        haskey(settings, old) && isnothing(settings[old]) && delete!(settings, old)
+    end
+    return settings
 end
 
 function move_setting!(settings::OrderedDict{Symbol,Any}, old::Symbol, path::Tuple)

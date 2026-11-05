@@ -162,6 +162,13 @@ function tdr_case_input_manifest(case_root::String; destination_root::String=cas
     manifest = Dict{String,TDRTrackedInput}()
     if isnothing(prepared)
         tdr_collect_manifest_paths!(manifest, case_root, root_file; destination_root)
+        # Following references in the file finds `{"path": ...}` objects, but not plain paths
+        root_entries = first(tdr_system_entries(case_root))
+        for data in (root_entries, get(root_entries, "case", Any[])...)
+            entry = data isa AbstractDict ? get(data, "settings", nothing) : nothing
+            entry isa AbstractDict && haskey(entry, "path") &&
+                tdr_collect_manifest_paths!(manifest, case_root, abspath(case_root, String(entry["path"])); destination_root)
+        end
     else
         tdr_manifest_path!(manifest, case_root, root_file; destination_root)
         case_definition = Dict(key => value for (key, value) in prepared.root if key != "case")
@@ -260,10 +267,19 @@ function tdr_system_entries(case_root::String)
     root = mutable_json_data(read_json(root_path))
     if haskey(root, "case")
         root["case"] isa AbstractVector || throw(ArgumentError("`case` in system_data.json must be an array."))
+        foreach(tdr_settings_entry_as_object!, (root, root["case"]...))
         tdr_drop_case_level_settings!(root, case_root)
         return root, root["case"]
     end
+    tdr_settings_entry_as_object!(root)
     return root, Any[root]
+end
+
+# A `settings` entry can be a plain path, but TDR follows and rewrites `{"path": ...}` objects
+function tdr_settings_entry_as_object!(data)
+    data isa AbstractDict && get(data, "settings", nothing) isa AbstractString &&
+        (data["settings"] = Dict{String,Any}("path" => data["settings"]))
+    return nothing
 end
 
 # A period whose `settings` entry points to the case-level settings file has no settings of its

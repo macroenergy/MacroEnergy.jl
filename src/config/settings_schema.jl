@@ -55,7 +55,7 @@ function settings_spec()::InputBlock
             description="Calendar year of the first period, used to label periods by year."),
         InputField(:ParameterScaling, Bool, false;
             description="Divide extensive inputs (costs, quantities) by `ParameterScalingFactor` before building the model."),
-        InputField(:ParameterScalingFactor, Real, 1e3; minimum=0,
+        InputField(:ParameterScalingFactor, Real, 1e3; exclusive_minimum=0,
             description="Scale factor used when `ParameterScaling` is true."),
         InputField(:SolutionAlgorithm, String, "Monolithic"; enum=("Monolithic", "Benders", "Myopic"),
             description="Solution algorithm. `\"Myopic\"` is deprecated: use `ExpansionHorizon` instead."),

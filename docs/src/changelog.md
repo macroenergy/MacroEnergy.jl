@@ -12,6 +12,9 @@ and this project follows Julia package versioning through `Project.toml` release
 ### Fixed
 
 - A `DiscountRate` written as a whole number (`0` or `0.0`) no longer fails with a `MethodError` when loading a case.
+- Loading a case no longer empties `system_data.json` when the file holds a value that could not be written back, such as `Infinity`.
+- Time-domain reduction now keeps `settings/benders_settings.json` and files named inside `case_settings.json`. The reduced case used to fall back to default Benders settings without saying so.
+- Paths in `settings` entries are now relative to `system_data.json`, as documented. The current directory was checked first, so a matching file there was read instead.
 - Time-domain reduction now copies a single-period case's `settings/case_settings.json` into the reduced case when `system_data.json` does not reference it. The reduced case used to lose those settings silently and fall back to the defaults.
 - A `case_settings.json` file without a `SolutionAlgorithm` key no longer fails with a `KeyError`.
 - Corrected exported duals after MacroEnergyScaling constraint-row and objective scaling. All model builders now retain cumulative scaling metadata per model, and dual reporting restores the original model units before applying input scaling, time weights and discount conversions. Requires MacroEnergyScaling v0.4.1 or later.
@@ -22,7 +25,7 @@ and this project follows Julia package versioning through `Project.toml` release
 - `case.settings` and the `settings` of every `System` in the case are now the same object, holding all the settings. `results/settings.json` holds them directly, instead of under `case_settings` and `system_settings`, in the same form as `case_settings.json`, so it can be copied to `settings/case_settings.json` to rerun a case with the same settings.
 - Output settings are now grouped in an `OutputSettings` block of `case_settings.json`: `Dir`, `Overwrite`, `Format`, `Layout`, `Write`, `SignificantDigits` and `AssetTags`. `WriteFullTimeseries` is now `OutputSettings.Write.FullTimeseries`, off by default. Code that reads these settings should use `system.settings.OutputSettings`, or the accessors such as `output_enabled`. `system.settings.DualExportsEnabled` no longer exists.
 - Output settings can no longer vary between periods. Every period of a multi-period case writes the same outputs.
-- Settings are now strict. Unknown keys in `case_settings.json`, `BendersSettings` and `MyopicSettings` are errors, and so are unknown values of `SolutionAlgorithm` and `ExpansionHorizon`, which used to fall back to the default with a warning. Keys starting with `#` are treated as comments and ignored. `PeriodLengths` must be whole numbers, and `NaN` is rejected wherever a lower bound applies.
+- Settings are now strict. Unknown keys in `case_settings.json`, `BendersSettings` and `MyopicSettings` are errors, and so are unknown values of `SolutionAlgorithm` and `ExpansionHorizon`, which used to fall back to the default with a warning. Keys starting with `#` are treated as comments and ignored. `PeriodLengths` must be whole numbers, `ParameterScalingFactor` must be greater than zero, and `NaN` is rejected wherever a lower bound applies.
 - A case with a `case` key and no top-level `settings` entry now reads `settings/case_settings.json`, as single-period cases do. On its own, `load_system` reads the same settings as `load_case`.
 - A `settings/benders_settings.json` that overrides different settings written in `case_settings.json` now logs a warning. A `BendersSettings.path` pointing to a missing file is now an error, unless `settings/benders_settings.json` exists.
 - Extended DuckDB.jl compatibility to include 2.x (`DuckDB = "1, 2"`). Environments that resolve DuckDB.jl 2.x read CSV inputs with the bundled DuckDB 2.0 engine.
@@ -37,7 +40,7 @@ and this project follows Julia package versioning through `Project.toml` release
 
 - Move the contents of `macro_settings.json` into `settings/case_settings.json` and delete the `settings` entry of each period in `system_data.json`.
 - Rename the output settings: `OutputDir` to `OutputSettings.Dir`, `OverwriteResults` to `OutputSettings.Overwrite`, `OutputFormat` to `OutputSettings.Format`, `OutputLayout` to `OutputSettings.Layout`, `WriteOutputs` to `OutputSettings.Write`, `WriteFullTimeseries` to `OutputSettings.Write.FullTimeseries`, `OutputSignificantDigits` to `OutputSettings.SignificantDigits`, `OutputAssetTags` to `OutputSettings.AssetTags` and `DualExportsEnabled` to `OutputSettings.Write.Duals`.
-- In Julia code, read these settings from `system.settings.OutputSettings` (e.g., `system.settings.OutputSettings.Dir` instead of `system.settings.OutputDir`). Reading an old name raises an error, and so does reading output settings after setting an old name on `system.settings`.
+- In Julia code, read these settings from `system.settings.OutputSettings` (e.g., `system.settings.OutputSettings.Dir` instead of `system.settings.OutputDir`). Reading an old name raises an error, and so does building a model or reading output settings after setting an old name on `system.settings`.
 
 ## [0.3.0 - rc] - 2026-10-14
 

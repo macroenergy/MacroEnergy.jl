@@ -82,7 +82,7 @@ The `settings` folder contains `case_settings.json`, which holds all the setting
 | DiscountRate | Number ≥ 0 | 0 | Discount rate used to discount costs across periods. |
 | StartYear | Integer | — | Calendar year of the first period, used to label periods by year. |
 | ParameterScaling | True, False | False | If true, divide extensive inputs (costs, quantities) by `ParameterScalingFactor` before building the model. |
-| ParameterScalingFactor | Number ≥ 0 | 1000 | Scale factor used when `ParameterScaling` is true. |
+| ParameterScalingFactor | Number > 0 | 1000 | Scale factor used when `ParameterScaling` is true. |
 | SolutionAlgorithm | "Monolithic", "Benders" | "Monolithic" | Solution algorithm. The value "Myopic" is deprecated: use `ExpansionHorizon` instead. |
 | ExpansionHorizon | "PerfectForesight", "Myopic" | "PerfectForesight" | Optimize all periods jointly, or one at a time. |
 | BendersSettings | Object | — | Settings of the Benders algorithm, used when `SolutionAlgorithm` is "Benders". Can also be kept in `settings/benders_settings.json`, which takes priority. |
