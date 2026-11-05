@@ -75,8 +75,8 @@ function tdr_add_reference!(sources::Dict{String,TimeSeriesSource}, key::String,
             source.user_weight = reference.user_weight
         end
         source.include_in_clustering = true
+        source.weight += reference.user_weight
     end
-    source.weight = source.user_weight * source.occurrences
     return nothing
 end
 

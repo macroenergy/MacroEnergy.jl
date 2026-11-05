@@ -161,6 +161,8 @@ end
             @test by_asset["Hydro"].include_in_clustering
             @test series.include_in_clustering
             @test length(series.references) == 2
+            @test series.occurrences == 2
+            @test series.weight == 1.0
         end
     end
 end

@@ -188,7 +188,12 @@ root so candidate solves use the correct period's inputs.
 
 Every explicit `timeseries` descriptor is materialized in the reduced case. It contributes to clustering only when it matches a default or user-specified feature and is not excluded. This retains all time-dependent inputs while keeping feature selection under user control.
 
-Physical CSV path/header pairs are read once even when several inputs reference them. Their clustering weight is the feature weight multiplied by the number of logical occurrences.
+Physical CSV path/header pairs are read once even when several inputs reference
+them. Their clustering weight is the sum of the weights of included logical
+references. Included references to a shared column must agree on feature weight.
+Excluded references and references with no matching feature contribute no weight;
+their inputs are still reduced. Source-level `occurrences` counts all uses for
+provenance, while `clustering_features.occurrences` counts participating references.
 
 ### Example: override a default feature
 
