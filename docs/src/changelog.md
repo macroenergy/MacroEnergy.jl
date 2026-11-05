@@ -19,6 +19,10 @@ and this project follows Julia package versioning through `Project.toml` release
 
 - Add flow credits directly to edge variable costs and use the existing objective discounting. Calculate separate payment reports from solved flows without retaining extra JuMP payment expressions.
 
+### Changed
+
+- Add PTC directly to edge variable costs and use the existing objective discounting. Calculate separate payment reports from solved flows without retaining extra JuMP payment expressions.
+
 ### Fixed
 
 - Preserve empty cost tables for cases with zero operating costs.
