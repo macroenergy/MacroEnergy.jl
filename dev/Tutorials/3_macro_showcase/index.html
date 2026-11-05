@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Macro Showcase · Macro</title><meta name="title" content="Macro Showcase · Macro"/><meta property="og:title" content="Macro Showcase · Macro"/><meta property="twitter:title" content="Macro Showcase · Macro"/><meta name="description" content="Documentation for Macro."/><meta property="og:description" content="Documentation for Macro."/><meta property="twitter:description" content="Documentation for Macro."/><meta property="og:url" content="https://macroenergy.github.io/Macro/stable/Tutorials/3_macro_showcase/"/><meta property="twitter:url" content="https://macroenergy.github.io/Macro/stable/Tutorials/3_macro_showcase/"/><link rel="canonical" href="https://macroenergy.github.io/Macro/stable/Tutorials/3_macro_showcase/"/><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.63.2/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../">Macro</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><input class="collapse-toggle" id="menuitem-1" type="checkbox"/><label class="tocitem" for="menuitem-1"><span class="docs-label">Welcome to Macro</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../">Introduction</a></li><li><a class="tocitem" href="../../table_of_contents/">Table of contents</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-2" type="checkbox"/><label class="tocitem" for="menuitem-2"><span class="docs-label">Getting Started</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Getting Started/1_overview/">Overview</a></li><li><a class="tocitem" href="../../Getting Started/2_installation/">Installation</a></li><li><a class="tocitem" href="../../Getting Started/4_macro_repo_contents/">What&#39;s Included With Macro</a></li><li><a class="tocitem" href="../../Getting Started/3_first_run/">First Run</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-3" type="checkbox" checked/><label class="tocitem" for="menuitem-3"><span class="docs-label">Tutorials</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../tutorials_introduction/">Introduction</a></li><li><a class="tocitem" href="../0_getting_started/">Getting Started</a></li><li><a class="tocitem" href="../1_running_macro/">Running Macro</a></li><li><a class="tocitem" href="../2_multisector_modelling/">Multisector Modelling</a></li><li class="is-active"><a class="tocitem" href>Macro Showcase</a><ul class="internal"><li><a class="tocitem" href="#1.-Inputs"><span>1. Inputs</span></a></li><li><a class="tocitem" href="#2.-Inside-the-model:-the-System-graph"><span>2. Inside the model: the <code>System</code> graph</span></a></li><li><a class="tocitem" href="#3.-Solve"><span>3. Solve</span></a></li><li><a class="tocitem" href="#4.-What-the-model-chose,-with-no-climate-policy"><span>4. What the model chose, with no climate policy</span></a></li><li><a class="tocitem" href="#5.-Scenario:-adding-the-CO-cap"><span>5. Scenario: adding the CO₂ cap</span></a></li><li><a class="tocitem" href="#How-to-read-this-case"><span>How to read this case</span></a></li><li><a class="tocitem" href="#Where-to-go-next"><span>Where to go next</span></a></li></ul></li></ul></li><li><input class="collapse-toggle" id="menuitem-4" type="checkbox"/><label class="tocitem" for="menuitem-4"><span class="docs-label">Guides</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Guides/guides_introduction/">Introduction</a></li><li><input class="collapse-toggle" id="menuitem-4-2" type="checkbox"/><label class="tocitem" for="menuitem-4-2"><span class="docs-label">User Guide</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Guides/User Guide/user_build_system/">Create a System</a></li><li><a class="tocitem" href="../../Guides/User Guide/user_add_commodity/">Adding Commodities</a></li><li><a class="tocitem" href="../../Guides/User Guide/user_add_node/">Adding Nodes</a></li><li><a class="tocitem" href="../../Guides/User Guide/user_add_location/">Adding Locations</a></li><li><a class="tocitem" href="../../Guides/User Guide/user_add_asset/">Adding Assets</a></li><li><a class="tocitem" href="../../Guides/User Guide/user_policy_constraints/">Adding Policy constraints</a></li><li><a class="tocitem" href="../../Guides/User Guide/user_asset_constraints/">Adding Assets constraints</a></li><li><a class="tocitem" href="../../Guides/User Guide/user_grouped_capacity_constraints/">Grouped Capacity Constraints</a></li><li><a class="tocitem" href="../../Guides/User Guide/user_settings/">Configuring Settings</a></li><li><a class="tocitem" href="../../Guides/User Guide/user_run_model/">Running Models</a></li><li><a class="tocitem" href="../../Guides/User Guide/user_solution_modes/">Solution Modes</a></li><li><a class="tocitem" href="../../Guides/User Guide/user_write_results/">Writing Results</a></li><li><a class="tocitem" href="../../Guides/User Guide/user_multiperiod/">Using Multi-Period Models</a></li><li><a class="tocitem" href="../../Guides/User Guide/user_using_asset_libary/">Exploring the Asset library</a></li><li><a class="tocitem" href="../../Guides/User Guide/user_retrofitting_constraints/">Adding Retrofitting Constraints</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-3" type="checkbox"/><label class="tocitem" for="menuitem-4-3"><span class="docs-label">Modeler Guide</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Guides/Modeler Guide/modeler_introduction/">Introduction</a></li><li><a class="tocitem" href="../../Guides/Modeler Guide/modeler_es_graph/">Energy System Graph-Based Representation</a></li><li><a class="tocitem" href="../../Guides/Modeler Guide/modeler_build_sectors/">Creating a New Sector</a></li><li><a class="tocitem" href="../../Guides/Modeler Guide/modeler_build_asset/">Creating a New Asset</a></li><li><a class="tocitem" href="../../Guides/Modeler Guide/modeler_add_docs_to_asset/">Documenting an Asset</a></li><li><a class="tocitem" href="../../Guides/Modeler Guide/modeler_create_example_case/">Creating a New Example Case</a></li><li><a class="tocitem" href="../../Guides/Modeler Guide/modeler_workflow/">Suggested Development Workflow</a></li><li><a class="tocitem" href="../../Guides/Modeler Guide/modeler_debugging_testing/">Debugging and Testing Tips</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-4-4" type="checkbox"/><label class="tocitem" for="menuitem-4-4"><span class="docs-label">Developer Guide</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Guides/Developer Guide/dev_create_constraint/">Creating a Constraint</a></li><li><a class="tocitem" href="../../Guides/Developer Guide/2_type_hierarchy/">Type Hierarchy</a></li><li><a class="tocitem" href="../../Guides/Developer Guide/dev_running_tests/">Running the Test Suite</a></li></ul></li></ul></li><li><a class="tocitem" href="../../Assets/assets_guide/">Assets</a></li><li><input class="collapse-toggle" id="menuitem-6" type="checkbox"/><label class="tocitem" for="menuitem-6"><span class="docs-label">Manual</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Manual/manual_introduction/">Introduction</a></li><li><a class="tocitem" href="../../Manual/Inputs/">Inputs</a></li><li><a class="tocitem" href="../../Manual/TimeData/">Time Data</a></li><li><input class="collapse-toggle" id="menuitem-6-4" type="checkbox"/><label class="tocitem" for="menuitem-6-4"><span class="docs-label">Preprocessing Inputs</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Manual/Preprocessing/">Overview</a></li><li><a class="tocitem" href="../../Manual/Preprocessing/TimeDomainReduction/">Time-Domain Reduction</a></li></ul></li><li><a class="tocitem" href="../../Manual/Timeseries/">Timeseries</a></li><li><input class="collapse-toggle" id="menuitem-6-6" type="checkbox"/><label class="tocitem" for="menuitem-6-6"><span class="docs-label">Outputs</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Manual/Outputs/">Overview</a></li><li><a class="tocitem" href="../../Manual/outputs/capacity/">Capacity</a></li><li><a class="tocitem" href="../../Manual/outputs/costs/">Costs</a></li><li><a class="tocitem" href="../../Manual/outputs/flows/">Flows</a></li><li><a class="tocitem" href="../../Manual/outputs/storage_level/">Storage Level</a></li><li><a class="tocitem" href="../../Manual/outputs/curtailment/">Curtailment</a></li><li><a class="tocitem" href="../../Manual/outputs/non_served_demand/">Non-Served Demand</a></li><li><a class="tocitem" href="../../Manual/outputs/time_weights/">Time Weights</a></li><li><a class="tocitem" href="../../Manual/outputs/duals/">Duals</a></li><li><a class="tocitem" href="../../Manual/outputs/full_timeseries/">Full Time Series</a></li><li><a class="tocitem" href="../../Manual/outputs/benders/">Benders Convergence</a></li><li><a class="tocitem" href="../../Manual/outputs/settings_output/">Settings</a></li><li><a class="tocitem" href="../../Manual/outputs/log_file/">Log File</a></li><li><a class="tocitem" href="../../Manual/outputs/run_status/">Run Status</a></li></ul></li><li><a class="tocitem" href="../../Manual/System/">System</a></li><li><a class="tocitem" href="../../Manual/Model/">Model</a></li><li><a class="tocitem" href="../../Manual/Sectors/">Sectors</a></li><li><a class="tocitem" href="../../Manual/Edges/">Edges</a></li><li><a class="tocitem" href="../../Manual/Nodes/">Nodes</a></li><li><a class="tocitem" href="../../Manual/Storage/">Storage</a></li><li><a class="tocitem" href="../../Manual/Transformations/">Transformations</a></li><li><a class="tocitem" href="../../Manual/Locations/">Locations</a></li><li><a class="tocitem" href="../../Manual/Constraints/">Constraints</a></li><li><a class="tocitem" href="../../Manual/Commodities/">Commodities</a></li><li><a class="tocitem" href="../../Manual/Assets/">Assets</a></li><li><input class="collapse-toggle" id="menuitem-6-18" type="checkbox"/><label class="tocitem" for="menuitem-6-18"><span class="docs-label">Asset Library</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Manual/assets/aluminaplant/">Alumina Plant</a></li><li><a class="tocitem" href="../../Manual/assets/aluminumrefining/">Aluminum Refining</a></li><li><a class="tocitem" href="../../Manual/assets/aluminumsmelting/">Aluminum Smelting</a></li><li><a class="tocitem" href="../../Manual/assets/battery/">Battery</a></li><li><a class="tocitem" href="../../Manual/assets/beccselectricity/">BECCS Electricity</a></li><li><a class="tocitem" href="../../Manual/assets/beccshydrogen/">BECCS Hydrogen</a></li><li><a class="tocitem" href="../../Manual/assets/constrainedfossilliquidfuels/">Constrained Fossil Liquid Fuels</a></li><li><a class="tocitem" href="../../Manual/assets/downstreamemissions/">Downstream Emissions</a></li><li><a class="tocitem" href="../../Manual/assets/electricdac/">Electric DAC</a></li><li><a class="tocitem" href="../../Manual/assets/electricheating/">Electric Heating</a></li><li><a class="tocitem" href="../../Manual/assets/electricsteam/">Electric Steam</a></li><li><a class="tocitem" href="../../Manual/assets/electrolyzer/">Electrolyzer</a></li><li><a class="tocitem" href="../../Manual/assets/fuelcell/">Fuel Cell</a></li><li><a class="tocitem" href="../../Manual/assets/thermalheating/">Thermal Heating</a></li><li><a class="tocitem" href="../../Manual/assets/thermalsteam/">Thermal Steam</a></li><li><a class="tocitem" href="../../Manual/assets/gasstorage/">Gas Storage</a></li><li><a class="tocitem" href="../../Manual/assets/hydropower/">Hydro Reservoir</a></li><li><a class="tocitem" href="../../Manual/assets/integratedblastfurnacebasicoxygenfurnace/">Integrated Blast Furnace Basic Oxygen Furnace (with and without CCS)</a></li><li><a class="tocitem" href="../../Manual/assets/integrateddirectreductionelectricarcfurnace/">Integrated Direct Reduction Electric Arc Furnace (with and without CCS)</a></li><li><a class="tocitem" href="../../Manual/assets/mustrun/">Must Run</a></li><li><a class="tocitem" href="../../Manual/assets/natgasdaq/">Natural Gas DAC</a></li><li><a class="tocitem" href="../../Manual/assets/onewaytransmissionlink/">One-way Transmission Link</a></li><li><a class="tocitem" href="../../Manual/assets/standalonelectricarcfurnace/">Electric Arc Furnace</a></li><li><a class="tocitem" href="../../Manual/assets/syntheticammonia/">Synthetic Ammonia (Electrochemical)</a></li><li><a class="tocitem" href="../../Manual/assets/syntheticmethanol/">Synthetic Methanol (Electrochemical)</a></li><li><a class="tocitem" href="../../Manual/assets/thermalammonia/">Thermal Ammonia (with and without CCS)</a></li><li><a class="tocitem" href="../../Manual/assets/thermalhydrogen/">Thermal Hydrogen Plant (with and without CCS)</a></li><li><a class="tocitem" href="../../Manual/assets/thermalmethanol/">Thermal Methanol (with and without CCS)</a></li><li><a class="tocitem" href="../../Manual/assets/thermalpower/">Thermal Power Plant (with and without CCS)</a></li><li><a class="tocitem" href="../../Manual/assets/transmissionlink/">Transmission Link</a></li><li><a class="tocitem" href="../../Manual/assets/upstreamemissions/">Upstream Emissions</a></li><li><a class="tocitem" href="../../Manual/assets/vre/">Variable Renewable Energy Resources (VRE)</a></li></ul></li><li><a class="tocitem" href="../../Manual/Financial_assumptions/">Financial Assumptions</a></li><li><a class="tocitem" href="../../Manual/Multi_period_accounting/">Multi-Period Accounting</a></li></ul></li><li><a class="tocitem" href="../../how_to_contribute/">How to contribute</a></li><li><a class="tocitem" href="../../changelog/">Changelog</a></li><li><input class="collapse-toggle" id="menuitem-10" type="checkbox"/><label class="tocitem" for="menuitem-10"><span class="docs-label">References</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../References/1_introduction/">Introduction</a></li><li><a class="tocitem" href="../../References/2_reading_input/">Reading input data</a></li><li><a class="tocitem" href="../../References/3_macro_objects/">Macro Objects</a></li><li><a class="tocitem" href="../../References/4_writing_output/">Writing output data</a></li><li><a class="tocitem" href="../../References/5_utilities/">Utilities</a></li><li><a class="tocitem" href="../../References/ref_constraints/">Constraint utilities</a></li><li><a class="tocitem" href="../../References/ref_download_examples/">Downloading examples</a></li><li><a class="tocitem" href="../../References/ref_run_case/">Running a Macro Model</a></li></ul></li><li><input class="collapse-toggle" id="menuitem-11" type="checkbox"/><label class="tocitem" for="menuitem-11"><span class="docs-label">Appendix</span><i class="docs-chevron"></i></label><ul class="collapsed"><li><a class="tocitem" href="../../Appendix/TEA/">TEA</a></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Tutorials</a></li><li class="is-active"><a href>Macro Showcase</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Macro Showcase</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/macroenergy/MacroEnergy.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/macroenergy/MacroEnergy.jl/blob/main/docs/src/Tutorials/3_macro_showcase.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Tutorial-3:-MacroEnergy.jl-showcase"><a class="docs-heading-anchor" href="#Tutorial-3:-MacroEnergy.jl-showcase">Tutorial 3: MacroEnergy.jl showcase</a><a id="Tutorial-3:-MacroEnergy.jl-showcase-1"></a><a class="docs-heading-anchor-permalink" href="#Tutorial-3:-MacroEnergy.jl-showcase" title="Permalink"></a></h1><div class="admonition is-info" id="Interactive-Notebook-c84b7e1c53b1cf74"><header class="admonition-header">Interactive Notebook<a class="admonition-anchor" href="#Interactive-Notebook-c84b7e1c53b1cf74" title="Permalink"></a></header><div class="admonition-body"><p>The interactive version of this tutorial can be found <a href="https://github.com/macroenergy/MacroEnergyExamples.jl/blob/main/tutorials/tutorial_3_macro_showcase.ipynb">here</a>, next to the <a href="https://github.com/macroenergy/MacroEnergyExamples.jl/tree/main/tutorials/multisector_3zone_csv"><code>multisector_3zone_csv</code></a> case it uses.</p></div></div><div class="admonition is-info" id="Workshop-slides-e1bfb62f0779ef6b"><header class="admonition-header">Workshop slides<a class="admonition-anchor" href="#Workshop-slides-e1bfb62f0779ef6b" title="Permalink"></a></header><div class="admonition-body"><p>The slides from the workshop&#39;s introductory talks, on energy-system optimization models and MACRO and on technology parameterization, are in <a href="https://github.com/macroenergy/MacroEnergyExamples.jl/blob/main/tutorials/slides/macro_workshop_intro.pdf">macro_workshop_intro.pdf</a>.</p></div></div><p><strong>A multisector energy system, from CSV inputs to insights</strong></p><p>Three zones of the US Eastern Interconnection (SE, MIDAT, NE), where electricity, hydrogen, natural gas, liquid fuels, biomass and CO₂ are planned and operated <strong>together</strong>: first with no climate policy, then under a CO₂ cap.</p><table><tr><th style="text-align: center"></th><th style="text-align: left">Section</th><th style="text-align: left">What it shows</th></tr><tr><td style="text-align: center"><strong>1</strong></td><td style="text-align: left">Inputs</td><td style="text-align: left">Every asset is one row of a spreadsheet-like file</td></tr><tr><td style="text-align: center"><strong>2</strong></td><td style="text-align: left">Inside the <code>System</code></td><td style="text-align: left">The graph Macro builds, and representative weeks</td></tr><tr><td style="text-align: center"><strong>3</strong></td><td style="text-align: left">Solve</td><td style="text-align: left">One call to <code>run_case</code>, and the run-status file</td></tr><tr><td style="text-align: center"><strong>4</strong></td><td style="text-align: left">Results</td><td style="text-align: left">Capacity, sector coupling, dispatch, prices and costs, with no climate policy</td></tr><tr><td style="text-align: center"><strong>5</strong></td><td style="text-align: left">Scenario</td><td style="text-align: left">Adding the CO₂ cap: what changes, and the carbon balance</td></tr></table><details class="admonition is-details" id="Before-you-run:-requirements-da6ca8abbff32474"><summary class="admonition-header">Before you run: requirements<a class="admonition-anchor" href="#Before-you-run:-requirements-da6ca8abbff32474" title="Permalink"></a></summary><div class="admonition-body"><ul><li><strong>Requirements:</strong> the development version of Macro (0.4), which is not registered yet. The first code cell installs MacroEnergy.jl from the <code>main</code> branch of its repository, together with HiGHS, CSV, DataFrames and Plots.</li><li><strong>Where files go:</strong> the case folder (<code>multisector_3zone_csv/</code>, next to this notebook) is never modified. Each run works on a copy under <code>runs/</code>, and results are written inside that copy.</li></ul></div></details><pre><code class="language-julia hljs"># Install the development version of Macro (0.4) and the packages used below into this folder&#39;s environment, as in the other tutorials.
+using Pkg
+Pkg.activate(&quot;.&quot;)
+Pkg.add(name = &quot;MacroEnergy&quot;, rev = &quot;main&quot;)
+Pkg.add([&quot;HiGHS&quot;, &quot;CSV&quot;, &quot;DataFrames&quot;, &quot;Plots&quot;])
+
+using MacroEnergy, HiGHS
+using CSV, DataFrames, Plots
+const ME = MacroEnergy   # shorthand for MacroEnergy helpers that are not exported
+
+const CASE     = joinpath(@__DIR__, &quot;multisector_3zone_csv&quot;)
+const RUNS_DIR = joinpath(@__DIR__, &quot;runs&quot;)
+isdir(CASE) || error(&quot;Expected the case folder at $CASE&quot;)
+ENV[&quot;DATAFRAMES_ROWS&quot;] = 40
+println(&quot;MacroEnergy &quot;, pkgversion(MacroEnergy), &quot; from &quot;, pkgdir(MacroEnergy))</code></pre><details class="admonition is-details" id="Chart-style-and-plotting-helpers-aef311154782a619"><summary class="admonition-header">Chart style and plotting helpers<a class="admonition-anchor" href="#Chart-style-and-plotting-helpers-aef311154782a619" title="Permalink"></a></summary><div class="admonition-body"><pre><code class="language-julia hljs"># Chart style: light surface, hairline grid, thin marks.
+gr()
+const INK, INK2, HAIRLINE, SURFACE = &quot;#0b0b0b&quot;, &quot;#52514e&quot;, &quot;#e1e0d9&quot;, &quot;#fcfcfb&quot;
+default(size = (900, 420), fontfamily = &quot;sans-serif&quot;, background_color = SURFACE,
+        titlefontsize = 12, titlefontcolor = INK, guidefontsize = 10, guidefontcolor = INK2,
+        tickfontsize = 9, tickfontcolor = INK2, legendfontsize = 9, legendfontcolor = INK2,
+        foreground_color_legend = nothing, background_color_legend = SURFACE,
+        framestyle = :axes, foreground_color_axis = HAIRLINE, foreground_color_border = HAIRLINE,
+        grid = :y, foreground_color_grid = HAIRLINE, gridalpha = 1, gridlinewidth = 0.5,
+        linewidth = 2, margin = 4Plots.mm, legend = :outerright,
+        plot_title = &quot; &quot;, plot_titlevspan = 0.04)   # blank figure title: leaves room above every chart title
+
+# Electricity technology groups. Colors follow the group in every chart, and this order is the
+# stacking order (bottom → top), checked for colorblind-safe contrast between neighbours.
+const TECH_ORDER  = [&quot;Nuclear&quot;, &quot;Hydro&quot;, &quot;Natural gas&quot;, &quot;Wind&quot;, &quot;Other&quot;, &quot;H₂ turbines&quot;, &quot;Solar&quot;, &quot;Battery&quot;]
+const TECH_COLORS = Dict(zip(TECH_ORDER, [&quot;#4a3aa7&quot;, &quot;#2a78d6&quot;, &quot;#eb6834&quot;, &quot;#1baf7a&quot;, &quot;#008300&quot;, &quot;#e87ba4&quot;, &quot;#eda100&quot;, &quot;#e34948&quot;]))
+const ZONES       = [&quot;SE&quot;, &quot;MIDAT&quot;, &quot;NE&quot;]
+const THREE       = [&quot;#2a78d6&quot;, &quot;#eb6834&quot;, &quot;#1baf7a&quot;]   # three-series palette (zones, representative weeks)
+const ZONE_COLORS = Dict(zip(ZONES, THREE))
+const BAR, NEUTRAL, REFERENCE = &quot;#2a78d6&quot;, INK2, &quot;#c3c2b7&quot;   # single-series bars; neutral lines; reference (existing / base) bars
+const EMIT, REMOVE = &quot;#e34948&quot;, &quot;#2a78d6&quot;               # diverging poles for the CO₂ balance
+
+&quot;Format a number with thousands separators, e.g. 1159.04 → \&quot;1,159\&quot;.&quot;
+function fmt(x; digits = 0)
+    r = round(abs(x); digits)
+    whole = floor(Int, r)
+    s = reverse(join(Iterators.partition(reverse(string(whole)), 3), &quot;,&quot;))
+    digits &gt; 0 &amp;&amp; (s *= &quot;.&quot; * lpad(string(round(Int, (r - whole) * 10^digits)), digits, &#39;0&#39;))
+    return (x &lt; 0 ? &quot;−&quot; : &quot;&quot;) * s
+end
+
+&quot;&quot;&quot;
+Horizontal bars, largest at the top, each labelled with its value. There is no x axis, since every bar carries
+its number. `xmax` and `rows` give side-by-side panels one shared scale and row height; `ref` draws a labelled
+vertical reference line.
+&quot;&quot;&quot;
+function hbar(labels, values; colors = fill(BAR, length(values)), title = &quot;&quot;, digits = 0, unit = &quot;&quot;,
+              xmax = nothing, rows = nothing, ref = nothing, ref_label = &quot;&quot;)
+    o = sortperm(values)
+    labels, values, colors = labels[o], values[o], colors[o]
+    n = length(values)
+    rows = something(rows, n)
+    y = (1:n) .+ (rows - n)                                 # bars aligned to the top row
+    lo, hi = min(0, minimum(values)), something(xmax, max(0, maximum(values)))
+    pad = 0.18 * (hi - lo)                                   # room for the value labels
+    p = bar(y, values; orientation = :h, color = colors, linewidth = 0, bar_width = 0.62, legend = false)
+    lo &lt; 0 &amp;&amp; vline!(p, [0]; subplot = 1, color = REFERENCE, linewidth = 1)
+    if !isnothing(ref)
+        vline!(p, [ref]; subplot = 1, color = &quot;#898781&quot;, linewidth = 1)
+        annotate!(p, ref, rows + 0.8, text(ref_label * &quot; &quot;, 8, INK2, :right); subplot = 1)
+    end
+    gap = 0.012 * (hi - lo)
+    for (i, v) in enumerate(values)
+        annotate!(p, v + (v &lt; 0 ? -gap : gap), y[i], text(fmt(v; digits) * unit, 9, INK, v &lt; 0 ? :right : :left); subplot = 1)
+    end
+    # With orientation = :h, Plots needs both axis limits set after the bars are drawn.
+    # `subplot = 1` is the chart itself; the blank figure title (see `default` above) is a second subplot.
+    plot!(p; subplot = 1, xlims = (lo &lt; 0 ? lo - pad : 0, hi + pad), ylims = (0.4, rows + (isnothing(ref) ? 0.6 : 1.2)),
+          yticks = (y, labels), ytickfontsize = 10, ytickfontcolor = INK, xticks = false,
+          framestyle = :grid, grid = false, title, titlelocation = :left, size = (900, 80 + 30 * rows))
+end
+
+&quot;Paired horizontal bars per category (top → bottom in the given order): a grey reference bar and a colored bar, both labelled. Values can be negative.&quot;
+function hbar_pair(labels, ref_values, values; colors, ref_label, label, title = &quot;&quot;, digits = 0, unit = &quot;&quot;)
+    n = length(labels)
+    lo, hi = min(0, minimum(vcat(ref_values, values))), max(0, maximum(vcat(ref_values, values)))
+    pad, gap = 0.16 * (hi - lo), 0.012 * (hi - lo)
+    p = bar((1:n) .- 0.19, ref_values; orientation = :h, bar_width = 0.36, linewidth = 0, color = REFERENCE, label = ref_label)
+    bar!(p, (1:n) .+ 0.19, values; subplot = 1, orientation = :h, bar_width = 0.36, linewidth = 0, color = colors, label = label)
+    lo &lt; 0 &amp;&amp; vline!(p, [0]; subplot = 1, color = REFERENCE, linewidth = 1, label = false)
+    at(v) = v &lt; 0 ? (v - gap, :right) : (v + gap, :left)       # label position and alignment for a bar ending at v
+    for i in 1:n
+        (x, h) = at(ref_values[i]); annotate!(p, x, i - 0.19, text(fmt(ref_values[i]; digits), 8, INK2, h); subplot = 1)
+        (x, h) = at(values[i]);     annotate!(p, x, i + 0.19, text(fmt(values[i]; digits) * unit, 9, INK, h); subplot = 1)
+    end
+    plot!(p; subplot = 1, xlims = (lo &lt; 0 ? lo - pad : 0, hi + pad), ylims = (0.4, n + 0.6), yticks = (1:n, labels), ytickfontsize = 10, ytickfontcolor = INK,
+          yflip = true, xticks = false, framestyle = :grid, grid = false, legend = :outertop, legend_columns = 2,
+          title, titlelocation = :left, size = (900, 130 + 44 * n))
+end</code></pre></div></details><h4 id="Setup-helpers"><a class="docs-heading-anchor" href="#Setup-helpers">Setup helpers</a><a id="Setup-helpers-1"></a><a class="docs-heading-anchor-permalink" href="#Setup-helpers" title="Permalink"></a></h4><p>Every run below works on a fresh copy of the case under <code>runs/</code>, so its inputs can be edited freely.</p><div class="admonition is-success" id="Try-it-dde6df96b502817b"><header class="admonition-header">Try it<a class="admonition-anchor" href="#Try-it-dde6df96b502817b" title="Permalink"></a></header><div class="admonition-body"><p><code>CO2_PENALTY</code> sets the price of the soft CO₂ cap in the capped run (section 5). Lower it (e.g. to 200) and re-run to see a less aggressive system.</p></div></div><details class="admonition is-details" id="Setup-helpers-ec52d1f7a70209b7"><summary class="admonition-header">Setup helpers<a class="admonition-anchor" href="#Setup-helpers-ec52d1f7a70209b7" title="Permalink"></a></summary><div class="admonition-body"><pre><code class="language-julia hljs">CO2_PENALTY = 1000.0   # $/t for net emissions above the cap
+
+&quot;Fresh copy of the case at runs/&lt;name&gt;.&quot;
+function fresh_copy(name)
+    dir = joinpath(RUNS_DIR, name)
+    rm(dir; force = true, recursive = true)
+    mkpath(RUNS_DIR)
+    cp(CASE, dir)
+    for f in readdir(dir)
+        (startswith(f, &quot;results&quot;) || endswith(f, &quot;.log&quot;) || f == &quot;run_status.json&quot;) &amp;&amp; rm(joinpath(dir, f); recursive = true)
+    end
+    return dir
+end
+
+&quot;Edit one asset CSV of a case: `f(df)` mutates the table, which is written back.&quot;
+function edit_csv!(f, dir, file)
+    path = joinpath(dir, &quot;assets&quot;, file)
+    df = CSV.read(path, DataFrame)
+    f(df)
+    CSV.write(path, df)
+    return df
+end
+
+&quot;Edit a JSON input file of a case: `f(data)` mutates the parsed Dict, which is written back.&quot;
+function edit_json!(f, dir, file)
+    path = joinpath(dir, file)
+    data = ME.JSON3.read(read(path, String), Dict{String,Any})
+    f(data)
+    open(io -&gt; ME.JSON3.pretty(io, data), path, &quot;w&quot;)
+    return data
+end
+
+&quot;&quot;&quot;
+A working copy of the case with the notebook&#39;s output settings. With `co2_cap = true` (the case as shipped), the CO₂ cap
+on `co2_sink` stays and its penalty is set to `CO2_PENALTY`; with `co2_cap = false`, the cap is removed.
+&quot;&quot;&quot;
+function prepare_case(name; co2_cap = true)
+    dir = fresh_copy(name)
+    edit_json!(dir, joinpath(&quot;system&quot;, &quot;nodes.json&quot;)) do nodes
+        for block in nodes[&quot;nodes&quot;], node in block[&quot;instance_data&quot;]
+            node[&quot;id&quot;] == &quot;co2_sink&quot; || continue
+            if co2_cap
+                node[&quot;price_unmet_policy&quot;] = Dict(&quot;CO2CapConstraint&quot; =&gt; CO2_PENALTY)
+            else
+                node[&quot;constraints&quot;][&quot;CO2CapConstraint&quot;] = false
+                delete!(node, &quot;rhs_policy&quot;)
+                delete!(node, &quot;price_unmet_policy&quot;)
+            end
+        end
+    end
+    edit_json!(dir, joinpath(&quot;settings&quot;, &quot;macro_settings.json&quot;)) do settings
+        settings[&quot;OverwriteResults&quot;] = true   # results go to &lt;case&gt;/results, without a _001 suffix
+    end
+    return dir
+end</code></pre></div></details><h2 id="1.-Inputs"><a class="docs-heading-anchor" href="#1.-Inputs">1. Inputs</a><a id="1.-Inputs-1"></a><a class="docs-heading-anchor-permalink" href="#1.-Inputs" title="Permalink"></a></h2><div class="admonition is-success" id="Tip-feba00507771727b"><header class="admonition-header">Tip<a class="admonition-anchor" href="#Tip-feba00507771727b" title="Permalink"></a></header><div class="admonition-body"><p>A case is a folder of plain files: every asset is a row in a CSV file, and every commodity network is a set of nodes in JSON.</p></div></div><pre><code class="language-text hljs">multisector_3zone_csv/
+├── system_data.json      ← index: paths to all the rest
+├── assets/               ← 29 CSV files, one row per asset
+├── system/
+│   ├── commodities.json  ← commodities, sub-commodities
+│   ├── locations.json    ← zones
+│   ├── nodes.json        ← supply, demand, policies
+│   ├── time_data.json    ← time steps, representative weeks
+│   └── *.csv             ← demand, availability, fuel prices
+└── settings/
+    └── macro_settings.json</code></pre><details class="admonition is-details" id="system_data.json-in-full-12b5c9a9ae8e1b8b"><summary class="admonition-header">system_data.json in full<a class="admonition-anchor" href="#system_data.json-in-full-12b5c9a9ae8e1b8b" title="Permalink"></a></summary><div class="admonition-body"><pre><code class="language-json hljs">{
+    &quot;commodities&quot;: { &quot;path&quot;: &quot;system/commodities.json&quot; },
+    &quot;locations&quot;:   { &quot;path&quot;: &quot;system/locations.json&quot; },
+    &quot;settings&quot;:    { &quot;path&quot;: &quot;settings/macro_settings.json&quot; },
+    &quot;assets&quot;:      { &quot;path&quot;: &quot;assets&quot; },
+    &quot;time_data&quot;:   { &quot;path&quot;: &quot;system/time_data.json&quot; },
+    &quot;nodes&quot;:       { &quot;path&quot;: &quot;system/nodes.json&quot; }
+}</code></pre></div></details><p><img src="../../images/locations_and_assets.png" alt="Three zones (NE, MIDAT, SE)"/></p><h3 id="Asset-CSVs:-one-row-per-asset"><a class="docs-heading-anchor" href="#Asset-CSVs:-one-row-per-asset">Asset CSVs: one row per asset</a><a id="Asset-CSVs:-one-row-per-asset-1"></a><a class="docs-heading-anchor-permalink" href="#Asset-CSVs:-one-row-per-asset" title="Permalink"></a></h3><p><code>system_data.json</code> points Macro at the <code>assets/</code> <strong>folder</strong>, and Macro loads every <code>.json</code> <em>and</em> <code>.csv</code> file in it. For example, here is the file for natural-gas power plants:</p><pre><code class="language-julia hljs">thermal = CSV.read(joinpath(CASE, &quot;assets/naturalgas_power.csv&quot;), DataFrame)
+select!(thermal, :Type, :id, :location, :existing_capacity, :fuel_consumption, :emission_rate, :can_retire, :can_expand, :annualized_investment_cost, :fixed_om_cost, :variable_om_cost, :min_up_time, :min_down_time, :ramp_down_fraction, :)
+first(thermal, 5)</code></pre><pre><code class="nohighlight hljs">5×28 DataFrame
+ Row │ Type          id                                            location  existing_capacity  fuel_consumption  emission_rate  can_retire  can_expand  annualized_investment_cost  fixed_om_cost  variable_om_cost  min_up_time  min_down_time  ramp_down_fraction
+─────┼────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+   1 │ ThermalPower  MIDAT_natural_gas_fired_combined_cycle_1      MIDAT                4026.4           2.24961       0.181048     missing       false                         0.0       16001.0              4.415            6              6                0.64
+   2 │ ThermalPower  MIDAT_natural_gas_fired_combined_cycle_2      MIDAT               31802.9           2.00255       0.181048     missing       false                         0.0       11965.0              3.452            6              6                0.64
+   3 │ ThermalPower  MIDAT_natural_gas_fired_combined_cycle_3      MIDAT                1697.7           3.59862       0.181048        true       false                         0.0       11069.1              3.505            6              6                0.64
+   4 │ ThermalPower  MIDAT_natural_gas_fired_combined_cycle_4      MIDAT               20288.5           2.10132       0.181048        true       false                         0.0        9496.0              3.504            6              6                0.64
+   5 │ ThermalPower  MIDAT_natural_gas_fired_combustion_turbine_1  MIDAT               14508.8           3.44388       0.181048        true       false                         0.0        9573.46             5.071            1              1                0.64
+14 columns omitted</code></pre><p>In each CSV file:</p><ul><li><strong><code>Type</code> and <code>id</code> are required.</strong> <code>Type</code> is the asset type (<code>ThermalPower</code>, <code>Electrolyzer</code>, <code>VRE</code>, …), <code>id</code> is a unique identifier for the asset.</li><li><strong>Every other column is a property:</strong> where it is (<code>location</code>), what it costs (<code>annualized_investment_cost</code>, <code>fixed_om_cost</code>), how big it is or can get (<code>existing_capacity</code>, <code>max_capacity</code>), how it performs (<code>efficiency_rate</code>, <code>fuel_consumption</code>), and so on.</li><li><strong><code>--</code> expresses nesting.</strong> <code>elec_constraints--CapacityConstraint = true</code> switches on a constraint, and <code>availability--timeseries--path</code> / <code>--header</code> point to a column of a time-series CSV.</li><li><strong>Empty cells fall back to the asset&#39;s defaults</strong>, so rows in one file don&#39;t need identical columns.</li></ul><p>The following is an example for the variable renewable energy resources (note the <code>availability</code> column):</p><pre><code class="language-julia hljs">vre = CSV.read(joinpath(CASE, &quot;assets/vre.csv&quot;), DataFrame)
+select!(vre, :Type, :id, :location, :annualized_investment_cost, :fixed_om_cost, Symbol(&quot;availability--timeseries--path&quot;), Symbol(&quot;availability--timeseries--header&quot;), Not(:existing_capacity, :elec_can_expand, :elec_can_retire))
+first(vre, 5)</code></pre><pre><code class="nohighlight hljs">5×10 DataFrame
+ Row │ Type     id                                             location  annualized_investment_cost  fixed_om_cost  availability--timeseries--path  availability--timeseries--header
+─────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+   1 │ VRE      NE_offshorewind_class10_moderate_floating_1_1  NE                          1.7383e5        57294.4  system/availability.csv         NE_offshorewind_class10_moderate_floating_1_1
+   2 │ VRE      SE_utilitypv_class1_moderate_70_0_2_1          SE                      40649.0             13510.2  system/availability.csv         SE_utilitypv_class1_moderate_70_0_2_1
+   3 │ VRE      SE_utilitypv_class1_moderate_70_0_2_2          SE                      39383.7             13510.2  system/availability.csv         SE_utilitypv_class1_moderate_70_0_2_2
+   4 │ VRE      SE_utilitypv_class1_moderate_70_0_2_3          SE                      40720.2             13510.2  system/availability.csv         SE_utilitypv_class1_moderate_70_0_2_3
+   5 │ VRE      SE_utilitypv_class1_moderate_70_0_2_4          SE                      42820.6             13510.2  system/availability.csv         SE_utilitypv_class1_moderate_70_0_2_4
+3 columns omitted</code></pre><p>Here are all the assets in the system, file by file:</p><pre><code class="language-julia hljs">asset_files = filter(endswith(&quot;.csv&quot;), readdir(joinpath(CASE, &quot;assets&quot;)))
+inventory = DataFrame(file = String[], Type = String[], assets = Int[], columns = Int[])
+for f in asset_files
+    df = CSV.read(joinpath(CASE, &quot;assets&quot;, f), DataFrame)
+    push!(inventory, (f, join(unique(df.Type), &quot;, &quot;), nrow(df), ncol(df)))
+end
+println(length(asset_files), &quot; CSV files describe &quot;, sum(inventory.assets), &quot; assets of &quot;, length(unique(inventory.Type)), &quot; types&quot;)
+inventory</code></pre><pre><code class="nohighlight hljs">29 CSV files describe 215 assets of 23 types
+29×4 DataFrame
+ Row │ file                              Type                  assets  columns
+─────┼─────────────────────────────────────────────────────────────────────────
+   1 │ beccs_electricity.csv             BECCSElectricity           6       17
+   2 │ beccs_gasoline.csv                BECCSGasoline              6       18
+   3 │ beccs_hydrogen.csv                BECCSHydrogen              6       18
+   4 │ beccs_liquid_fuels.csv            BECCSLiquidFuels          12       23
+   5 │ beccs_naturalgas.csv              BECCSNaturalGas           12       17
+   6 │ co2_injection.csv                 CO2Injection              12        7
+   7 │ electricdac.csv                   ElectricDAC                3       13
+   8 │ electricity_stor.csv              Battery                    6       28
+   9 │ electrolyzer.csv                  Electrolyzer               3       14
+  10 │ h2gas_power_ccgt.csv              ThermalPower               3       26
+  11 │ h2gas_power_ocgt.csv              ThermalPower               3       22
+  12 │ h2pipelines.csv                   GasStorage                 4       27
+  13 │ h2storage.csv                     GasStorage                 3       27
+  14 │ hydropower.csv                    HydroRes                   3       28
+  15 │ liquid_fuels_end_use.csv          FuelsEndUse                9        7
+  16 │ liquid_fuels_fossil_upstream.csv  FossilFuelsUpstream        9        7
+  17 │ mustrun.csv                       MustRun                    3       10
+  18 │ natgasdac.csv                     NaturalGasDAC              3       17
+  19 │ naturalgas_end_use.csv            FuelsEndUse                3        9
+  20 │ naturalgas_fossil_upstream.csv    FossilFuelsUpstream        3        8
+  21 │ naturalgas_h2.csv                 ThermalHydrogen            3       26
+  22 │ naturalgas_h2_ccs.csv             ThermalHydrogenCCS         6       27
+  23 │ naturalgas_power.csv              ThermalPower              24       28
+  24 │ naturalgas_power_ccs.csv          ThermalPowerCCS            3       27
+  25 │ nuclear_power.csv                 ThermalPower               9       28
+  26 │ powerlines.csv                    TransmissionLink           2       11
+  27 │ synthetic_liquid_fuels.csv        SyntheticLiquidFuels       3       20
+  28 │ synthetic_naturalgas.csv          SyntheticNaturalGas        3       15
+  29 │ vre.csv                           VRE                       50       13</code></pre><pre><code class="language-julia hljs">println(&quot;Total number of assets: &quot;, sum(inventory.assets))</code></pre><h3 id="Existing-plants-vs.-new-build-candidates"><a class="docs-heading-anchor" href="#Existing-plants-vs.-new-build-candidates">Existing plants vs. new-build candidates</a><a id="Existing-plants-vs.-new-build-candidates-1"></a><a class="docs-heading-anchor-permalink" href="#Existing-plants-vs.-new-build-candidates" title="Permalink"></a></h3><p>In the <code>nuclear_power.csv</code> file, we can notice that we have two <em>types</em> of nuclear plants (the table is transposed, so each plant is a column):</p><ul><li><strong><code>SE_nuclear_1</code></strong> is an existing plant: it can&#39;t expand and has no <code>annualized_investment_cost</code> (an empty cell).</li><li><strong><code>SE_nuclear_mid_0</code></strong> is a new-build candidate: it starts at zero capacity and can expand.</li></ul><pre><code class="language-julia hljs">&quot;Transpose a table so each row becomes a column (easier to read wide asset files).&quot;
+function transposed(df)
+    out = DataFrame(field = names(df))
+    for r in eachrow(df)
+        out[!, string(r.id)] = [ismissing(x) ? &quot;&quot; : string(x) for x in r]
+    end
+    return out
+end
+
+nuclear = CSV.read(joinpath(CASE, &quot;assets&quot;, &quot;nuclear_power.csv&quot;), DataFrame)
+select!(nuclear, :Type, :id, :can_retire, :can_expand, :existing_capacity, :annualized_investment_cost, :)
+transposed(nuclear[in([&quot;SE_nuclear_1&quot;, &quot;SE_nuclear_mid_0&quot;]).(nuclear.id), :])</code></pre><pre><code class="nohighlight hljs">28×3 DataFrame
+ Row │ field                                     SE_nuclear_1    SE_nuclear_mid_0
+─────┼────────────────────────────────────────────────────────────────────────────
+   1 │ Type                                      ThermalPower    ThermalPower
+   2 │ id                                        SE_nuclear_1    SE_nuclear_mid_0
+   3 │ can_retire                                true            true
+   4 │ can_expand                                false           true
+   5 │ existing_capacity                         33632.288       0.0
+   6 │ annualized_investment_cost                                231096.9481
+22 rows omitted</code></pre><p>The <code>can_expand</code> and <code>can_retire</code> parameters allow the model to build new capacity and to retire existing capacity; set them to <code>false</code> to prevent either.</p><h3 id="A-new-asset-from-a-template"><a class="docs-heading-anchor" href="#A-new-asset-from-a-template">A new asset from a template</a><a id="A-new-asset-from-a-template-1"></a><a class="docs-heading-anchor-permalink" href="#A-new-asset-from-a-template" title="Permalink"></a></h3><p>Starting a new asset from scratch is one call. <code>template_asset</code> writes a CSV with every simple-style column for that type, already filled with defaults:</p><pre><code class="language-julia hljs">template_dir = mktempdir()
+template_asset(template_dir, Electrolyzer; style = &quot;simple&quot;, format = &quot;csv&quot;)
+CSV.read(joinpath(template_dir, &quot;Electrolyzer.csv&quot;), DataFrame)</code></pre><pre><code class="nohighlight hljs">1×18 DataFrame
+ Row │ Type          id            location  can_expand  can_retire  existing_capacity  capacity_size  efficiency_rate  investment_cost  fixed_om_cost
+─────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+   1 │ Electrolyzer  Electrolyzer   missing        true        true                0.0            1.0              0.0              0.0            0.0
+8 columns omitted</code></pre><p>Each user can then modify the properties, add new rows, etc. Always remember to have unique ids for each asset.</p><h3 id="What-an-asset-row-doesn&#39;t-say"><a class="docs-heading-anchor" href="#What-an-asset-row-doesn&#39;t-say">What an asset row doesn&#39;t say</a><a id="What-an-asset-row-doesn&#39;t-say-1"></a><a class="docs-heading-anchor-permalink" href="#What-an-asset-row-doesn&#39;t-say" title="Permalink"></a></h3><p>The gas-plant rows say where each plant is, how big it is and how efficient. They don&#39;t say what the plant is <strong>connected to</strong>: there&#39;s no pipeline column and no grid connection for now. </p><p>That&#39;s deliberate: in Macro, assets never connect to each other. Back to the map from the start: between the assets, there&#39;s a layer we haven&#39;t seen yet.</p><p><img src="../../images/locations_and_assets.png" alt="Three zones (NE, MIDAT, SE) with their assets, connected by transmission"/></p><h3 id="Nodes:-where-commodities-meet"><a class="docs-heading-anchor" href="#Nodes:-where-commodities-meet">Nodes: where commodities meet</a><a id="Nodes:-where-commodities-meet-1"></a><a class="docs-heading-anchor-permalink" href="#Nodes:-where-commodities-meet" title="Permalink"></a></h3><p>That layer is <strong>nodes</strong>. Think of a node as a <strong>market for one commodity in one place</strong>: the SE electricity market, the SE gas market. Assets are the traders: a gas plant buys in the gas market and sells in the electricity market.</p><p><img src="../../images/nodes_and_locations.png" alt="Three zones (NE, MIDAT, SE), each with its own power and natural-gas nodes, connected by assets and to the CO₂ sink"/></p><p><em>The same map, now with nodes between the assets (only a few per zone, for simplicity).</em></p><ul><li><strong>Every market clears every hour:</strong> what flows in (production, imports, purchases) equals what flows out (consumption, exports, demand).</li><li><strong>Each commodity has its own nodes in each zone:</strong> <code>elec_SE</code>, <code>h2_SE</code>, <code>natgas_SE</code>, <code>gasoline_SE</code>, <code>co2_captured_SE</code>, and more. Fuels have three per zone: where the fuel is bought, a hub, and where it&#39;s used.</li><li><strong>The atmosphere, <code>co2_sink</code>, is the exception.</strong> It belongs to no zone and has no hourly balance: it adds up what&#39;s emitted and removed, and the CO₂ cap applies to that total.</li></ul><div class="admonition is-success" id="Tip-21323fff61ebe403"><header class="admonition-header">Tip<a class="admonition-anchor" href="#Tip-21323fff61ebe403" title="Permalink"></a></header><div class="admonition-body"><p>From power-system models? A node is a bus, for every commodity.</p></div></div><h3 id="How-assets-find-their-nodes"><a class="docs-heading-anchor" href="#How-assets-find-their-nodes">How assets find their nodes</a><a id="How-assets-find-their-nodes-1"></a><a class="docs-heading-anchor-permalink" href="#How-assets-find-their-nodes" title="Permalink"></a></h3><div class="admonition is-success" id="Tip-3cacaa5b5889a60f"><header class="admonition-header">Tip<a class="admonition-anchor" href="#Tip-3cacaa5b5889a60f" title="Permalink"></a></header><div class="admonition-body"><p>Each edge of an asset is a <strong>plug</strong> for one commodity, and each node is a <strong>socket</strong> for one commodity in one zone. The asset&#39;s <code>location</code> picks the zone; the commodity picks the socket.</p></div></div><p>A gas plant with <code>location = SE</code> plugs its fuel edge into <code>natgas_SE</code> and its electricity edge into <code>elec_SE</code>. Nodes without a location are referenced by <code>id</code> instead, like the <code>co2_sink</code> column in many asset files, or <code>fuel_start_vertex = uranium_source</code> for nuclear plants.</p><h3 id="(Advanced)-Following-one-unit-of-gas"><a class="docs-heading-anchor" href="#(Advanced)-Following-one-unit-of-gas">(Advanced) Following one unit of gas</a><a id="(Advanced)-Following-one-unit-of-gas-1"></a><a class="docs-heading-anchor-permalink" href="#(Advanced)-Following-one-unit-of-gas" title="Permalink"></a></h3><p>Here&#39;s how nodes and assets fit together along one supply chain: natural gas in SE.</p><ol><li><strong>Bought</strong> at the supply node <code>natgas_fossil_SE</code>, at the fuel price.</li><li><strong>Moved</strong> by an upstream asset to the zone hub <code>natgas_SE</code>. Bio-methane and synthetic methane arrive at the same hub, so they compete with fossil gas.</li><li><strong>Used</strong> in one of two ways: an end-use asset delivers it to the demand node <code>natgas_demand_SE</code>, or a plant burns it; a gas power plant, for example, sends its electricity to <code>elec_SE</code>.</li></ol><p><strong>Whichever asset burns the gas is charged its combustion CO₂:</strong> the end-use asset for gas demand, or the plant itself.</p><p><img src="../../images/fuel_nodes.png" alt="How natural gas moves between nodes and assets in the SE zone"/></p><p><em>Natural gas in the SE zone. Rounded boxes are nodes, square boxes are assets; orange arrows carry gas, grey arrows carry CO₂. Gasoline, diesel and jet fuel follow the same pattern: supply node, hub, demand node.</em></p><h3 id="nodes.json:-supply,-demand-and-policies"><a class="docs-heading-anchor" href="#nodes.json:-supply,-demand-and-policies"><code>nodes.json</code>: supply, demand and policies</a><a id="nodes.json:-supply,-demand-and-policies-1"></a><a class="docs-heading-anchor-permalink" href="#nodes.json:-supply,-demand-and-policies" title="Permalink"></a></h3><p>All of those nodes, and the demand, supply and policies they carry, are defined in <code>system/nodes.json</code>, in blocks. Each block has:</p><ul><li><code>type</code>: the commodity (<code>Electricity</code>, <code>Hydrogen</code>, <code>NaturalGas</code>, <code>CO2</code>, …)</li><li><code>global_data</code>: settings shared by every node in the block</li><li><code>instance_data</code>: one entry per node, each with a unique <code>id</code> and its own settings</li></ul><p>A node can carry:</p><table><tr><th style="text-align: left"></th><th style="text-align: left">What it is</th><th style="text-align: left">In this case</th></tr><tr><td style="text-align: left"><strong>demand</strong></td><td style="text-align: left">an hourly time series the system must serve</td><td style="text-align: left"><code>elec_SE</code> reads column <code>Demand_MW_z1</code> of <code>system/demand fuel.csv</code></td></tr><tr><td style="text-align: left"><strong>supply</strong></td><td style="text-align: left">the commodity bought from outside the system at a price, optionally in segments with limits</td><td style="text-align: left">biomass, fossil fuels, uranium</td></tr><tr><td style="text-align: left"><strong>non-served demand</strong></td><td style="text-align: left"><code>max_nsd</code> and <code>price_nsd</code> let demand go unmet at a penalty</td><td style="text-align: left">up to 100% of demand, at USD 5,000/MWh</td></tr><tr><td style="text-align: left"><strong>policies</strong></td><td style="text-align: left">caps and limits</td><td style="text-align: left">the CO₂ cap on <code>co2_sink</code></td></tr><tr><td style="text-align: left"><strong>location</strong></td><td style="text-align: left">the zone it belongs to</td><td style="text-align: left"><code>SE</code>, <code>MIDAT</code>, <code>NE</code></td></tr></table><pre><code class="language-julia hljs">nodes_json = ME.JSON3.read(read(joinpath(CASE, &quot;system&quot;, &quot;nodes.json&quot;), String))
+node_blocks = DataFrame(commodity = String[], nodes = Int[], ids = String[], sets = String[])
+for block in nodes_json.nodes
+    fields = Set{Symbol}()
+    haskey(block, :global_data) &amp;&amp; union!(fields, keys(block.global_data))
+    foreach(n -&gt; union!(fields, keys(n)), block.instance_data)
+    sets = [string(f) for f in (:demand, :supply, :max_nsd, :rhs_policy, :price_unmet_policy) if f in fields]
+    ids = [string(n.id) for n in block.instance_data]
+    push!(node_blocks, (string(block.type), length(ids), length(ids) &gt; 3 ? join(ids[1:2], &quot;, &quot;) * &quot;, …&quot; : join(ids, &quot;, &quot;), join(sets, &quot;, &quot;)))
+end
+node_blocks</code></pre><pre><code class="nohighlight hljs">21×4 DataFrame
+ Row │ commodity          nodes  ids                                                            sets
+─────┼─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+   1 │ Fossil_NaturalGas      3  natgas_fossil_SE, natgas_fossil_MIDAT, natgas_fossil_NE        supply
+   2 │ NaturalGas             3  natgas_SE, natgas_MIDAT, natgas_NE                             supply
+   3 │ NaturalGas             3  natgas_demand_SE, natgas_demand_MIDAT, natgas_demand_NE        demand
+   4 │ Uranium                1  uranium_source                                                 supply
+   5 │ Biomass_Wood           3  biowood_SE, biowood_MIDAT, biowood_NE                          supply
+   6 │ Biomass_Herb           3  bioherb_SE, bioherb_MIDAT, bioherb_NE                          supply
+   7 │ Electricity            3  elec_SE, elec_MIDAT, elec_NE                                   demand, max_nsd
+   8 │ Hydrogen               3  h2_SE, h2_MIDAT, h2_NE                                         demand, max_nsd
+   9 │ CO2                    1  co2_sink                                                       rhs_policy, price_unmet_policy
+  10 │ CO2Captured            3  co2_captured_SE, co2_captured_MIDAT, co2_captured_NE           demand
+  11 │ CO2Captured           12  co2_storage_SE_1, co2_storage_SE_2, …                          rhs_policy
+  12 │ Electricity            1  hydro_source
+  13 │ Fossil_Gasoline        3  gasoline_fossil_SE, gasoline_fossil_MIDAT, gasoline_fossil_NE  supply
+  14 │ Gasoline               3  gasoline_SE, gasoline_MIDAT, gasoline_NE                       demand
+  15 │ Gasoline               3  gasoline_demand_SE, gasoline_demand_MIDAT, gasoline_demand_NE  demand
+  16 │ Fossil_JetFuel         3  jetfuel_fossil_SE, jetfuel_fossil_MIDAT, jetfuel_fossil_NE     supply
+  17 │ JetFuel                3  jetfuel_SE, jetfuel_MIDAT, jetfuel_NE                          demand
+  18 │ JetFuel                3  jetfuel_demand_SE, jetfuel_demand_MIDAT, jetfuel_demand_NE     demand
+  19 │ Fossil_Diesel          3  diesel_fossil_SE, diesel_fossil_MIDAT, diesel_fossil_NE        supply
+  20 │ Diesel                 3  diesel_SE, diesel_MIDAT, diesel_NE                             demand
+  21 │ Diesel                 3  diesel_demand_SE, diesel_demand_MIDAT, diesel_demand_NE        demand</code></pre><h3 id="Policies-live-on-nodes"><a class="docs-heading-anchor" href="#Policies-live-on-nodes">Policies live on nodes</a><a id="Policies-live-on-nodes-1"></a><a class="docs-heading-anchor-permalink" href="#Policies-live-on-nodes" title="Permalink"></a></h3><p>The atmosphere node, <code>co2_sink</code>, carries the CO₂ cap:</p><ul><li><code>rhs_policy</code> sets the cap: <strong>zero</strong> net emissions;</li><li><code>price_unmet_policy</code> makes it soft: emissions above the cap are allowed at <strong>USD 1,000 per tonne</strong>.</li></ul><div class="admonition is-info" id="Note-8d16502ea9a2d1fd"><header class="admonition-header">Note<a class="admonition-anchor" href="#Note-8d16502ea9a2d1fd" title="Permalink"></a></header><div class="admonition-body"><p>The first run switches the cap off, to see the system with no climate policy. Section 5 turns it back on.</p></div></div><pre><code class="language-julia hljs">ME.JSON3.pretty(stdout, only(n for block in nodes_json.nodes for n in block.instance_data if n.id == &quot;co2_sink&quot;))</code></pre><pre><code class="nohighlight hljs">{
+    &quot;constraints&quot;: {
+        &quot;BalanceConstraint&quot;: false,
+        &quot;CO2CapConstraint&quot;: true
+    },
+    &quot;id&quot;: &quot;co2_sink&quot;,
+    &quot;rhs_policy&quot;: {
+        &quot;CO2CapConstraint&quot;: 0
+    },
+    &quot;price_unmet_policy&quot;: {
+        &quot;CO2CapConstraint&quot;: 1000
+    }
+}</code></pre><h2 id="2.-Inside-the-model:-the-System-graph"><a class="docs-heading-anchor" href="#2.-Inside-the-model:-the-System-graph">2. Inside the model: the <code>System</code> graph</a><a id="2.-Inside-the-model:-the-System-graph-1"></a><a class="docs-heading-anchor-permalink" href="#2.-Inside-the-model:-the-System-graph" title="Permalink"></a></h2><p>A multisector energy system is a set of supply chains that trade commodities with each other. Power plants burn natural gas, electrolyzers turn electricity into hydrogen, and capture plants move CO₂ from smokestacks or the atmosphere into pipelines and storage:</p><p><img src="../../images/supply_chains.png" alt="Energy supply chains coupled by electricity, hydrogen and CO₂"/></p><h3 id="One-graph-for-every-sector"><a class="docs-heading-anchor" href="#One-graph-for-every-sector">One graph for every sector</a><a id="One-graph-for-every-sector-1"></a><a class="docs-heading-anchor-permalink" href="#One-graph-for-every-sector" title="Permalink"></a></h3><p>Macro represents all of this as <strong>one graph</strong>. Each supply chain becomes a network of <strong>nodes</strong>, one per commodity and zone (the circles below), and <strong>assets</strong> are the boxes that connect the networks:</p><ul><li>a <strong>gas plant with CCS</strong> takes gas from the natural-gas network and delivers electricity to the grid, captured CO₂ to the CO₂ pipeline network, and its residual emissions to the CO₂ sink (the atmosphere);</li><li>an <strong>electrolyzer</strong> links the grid to the hydrogen network;</li><li><strong>direct air capture</strong> uses electricity to take CO₂ out of the atmosphere and deliver it to the captured-CO₂ network.</li></ul><p><img src="../../images/system_graph.png" alt="Macro&#39;s system graph: commodity networks connected by assets"/></p><h3 id="Building-blocks"><a class="docs-heading-anchor" href="#Building-blocks">Building blocks</a><a id="Building-blocks-1"></a><a class="docs-heading-anchor-permalink" href="#Building-blocks" title="Permalink"></a></h3><p>In this case, those networks are the nodes listed in section 1: <code>elec_SE</code>, <code>elec_MIDAT</code> and <code>elec_NE</code> for the grid, <code>h2_*</code> for hydrogen, <code>natgas_*</code> for gas, <code>co2_captured_*</code> plus the <code>co2_storage_*</code> sites for captured CO₂, and <code>co2_sink</code> for the atmosphere.</p><p>As seen in the <a href="https://github.com/macroenergy/MacroEnergyExamples.jl/blob/main/tutorials/slides/macro_workshop_intro.pdf">introduction</a>, each of these nodes is connected by edges that represent the flow of commodities. Each asset is represented as a &quot;box&quot;, a set of edges, transformations and storage, that connects the nodes together and represents the physical and operational characteristics of a technology. </p><p>Inside each asset, the pieces are always the same few building blocks:</p><table><tr><th style="text-align: left">Block</th><th style="text-align: left">What it does</th></tr><tr><td style="text-align: left"><strong>Edge</strong></td><td style="text-align: left">carries a single commodity</td></tr><tr><td style="text-align: left"><strong>Transformation</strong></td><td style="text-align: left">converts commodities into each other, through balance equations</td></tr><tr><td style="text-align: left"><strong>Storage</strong></td><td style="text-align: left">holds a commodity over time</td></tr></table><p>Let&#39;s, for example, look at two assets present in the system: a gas plant and an autothermal reforming (ATR) plant. The gas plant takes natural gas from the <code>natgas_SE</code> node, burns it to produce electricity for the <code>elec_SE</code> node, and emits CO₂ to the <code>co2_sink</code>. The ATR plant takes natural gas from the <code>natgas_SE</code> node, electricity from the <code>elec_SE</code> node and converts it into hydrogen for the <code>h2_SE</code> node, and also captures some of the CO₂ emissions to send to the <code>co2_captured_SE</code> node, while the rest is emitted to the <code>co2_sink</code>.</p><p><code>load_case</code> reads the input files and builds this graph as a <code>System</code>. Loading also writes a few helper files next to the inputs, so this works on its own copy of the case (<code>runs/inspect</code>); section 3 makes the copy it solves.</p><pre><code class="language-julia hljs">inspect_dir = fresh_copy(&quot;inspect&quot;)   # loading writes helper files next to the inputs, so load a copy
+case = load_case(inspect_dir)
+system = case.systems[1]
+
+println(length(system.assets), &quot; assets, &quot;, count(n -&gt; n isa Node, system.locations), &quot; nodes, &quot;,
+        length(system.commodities), &quot; commodities&quot;)
+sort!(combine(groupby(DataFrame(asset_type = [string(nameof(typeof(a))) for a in system.assets]), :asset_type), nrow =&gt; :count),
+      :count, rev = true)</code></pre><pre><code class="nohighlight hljs">215 assets, 66 nodes, 17 commodities
+23×2 DataFrame
+ Row │ asset_type            count
+─────┼─────────────────────────────
+   1 │ VRE                      50
+   2 │ ThermalPower             39
+   3 │ BECCSLiquidFuels         12
+   4 │ BECCSNaturalGas          12
+   5 │ CO2Injection             12
+   6 │ DownstreamEmissions      12
+   7 │ UpstreamEmissions        12
+   8 │ GasStorage                7
+   9 │ BECCSElectricity          6
+  10 │ BECCSGasoline             6
+  11 │ BECCSHydrogen             6
+  12 │ Battery                   6
+  13 │ ThermalHydrogenCCS        6
+  14 │ ElectricDAC               3
+  15 │ Electrolyzer              3
+  16 │ HydroRes                  3
+  17 │ MustRun                   3
+  18 │ NaturalGasDAC             3
+  19 │ ThermalHydrogen           3
+  20 │ ThermalPowerCCS           3
+  21 │ SyntheticLiquidFuels      3
+  22 │ SyntheticNaturalGas       3
+  23 │ TransmissionLink          2</code></pre><h3 id="Asset-close-up:-a-gas-power-plant"><a class="docs-heading-anchor" href="#Asset-close-up:-a-gas-power-plant">Asset close-up: a gas power plant</a><a id="Asset-close-up:-a-gas-power-plant-1"></a><a class="docs-heading-anchor-permalink" href="#Asset-close-up:-a-gas-power-plant" title="Permalink"></a></h3><p>Starting with the simplest asset: a natural-gas combined-cycle power plant. Every asset type can draw itself: <code>mermaid_diagram</code> returns a Mermaid flowchart of the type, with its transformation (the hexagon) and the edges that connect it to nodes. The fuel appears as a generic <code>Commodity</code> because the type works with any fuel.</p><div class="admonition is-info" id="Note-68e0ab943b91f064"><header class="admonition-header">Note<a class="admonition-anchor" href="#Note-68e0ab943b91f064" title="Permalink"></a></header><div class="admonition-body"><p>In a notebook, the diagram renders inline in JupyterLab ≥ 4.1; elsewhere, paste the text into <a href="https://mermaid.live">mermaid.live</a>.</p></div></div><pre><code class="language-julia hljs">display(&quot;text/markdown&quot;, mermaid_diagram(ThermalPower))</code></pre><div class="mermaid">%%{init: {&#39;theme&#39;: &#39;base&#39;, &#39;themeVariables&#39;: { &#39;background&#39;: &#39;#D1EBDE&#39; }}}%%
+flowchart LR
+subgraph &quot;ThermalPower&quot;
+direction TB
+B{{..}}
+F((Electricity))
+G((Commodity))
+H((CO2))
+B a@--elec_edge--&gt; F
+G b@--fuel_edge--&gt; B
+B c@--co2_edge--&gt; H
+end
+style B fill:black,stroke:black,color:black;
+style F font-size:18,r:55px,fill:#FFD700,stroke:black,color:black,stroke-dasharray: 3,5;
+style G font-size:21,r:55px,fill:#d3b683,stroke:black,color:black,stroke-dasharray: 3,5;
+style H font-size:21,r:55px,fill:#A9A9A9,stroke:black,color:black,stroke-dasharray: 3,5;
+linkStyle 0 stroke:#FFD700,stroke-width: 2px; a@{ animate: true };
+linkStyle 1 stroke:#d3b683,stroke-width: 2px; b@{ animate: true };
+linkStyle 2 stroke:#A9A9A9,stroke-width: 2px; c@{ animate: true };</div><h4 id="From-CSV-row-to-graph"><a class="docs-heading-anchor" href="#From-CSV-row-to-graph">From CSV row to graph</a><a id="From-CSV-row-to-graph-1"></a><a class="docs-heading-anchor-permalink" href="#From-CSV-row-to-graph" title="Permalink"></a></h4><p>The existing combined-cycle fleet in SE, <code>SE_natural_gas_fired_combined_cycle_1</code>, is one instance of this type, burning natural gas. Its CSV row became <strong>one transformation and three edges</strong>: gas in from the SE hub, electricity out to the SE grid, and CO₂ out to the atmosphere.</p><details class="admonition is-details" id="Show-the-code-9fae5780b55b8924"><summary class="admonition-header">Show the code<a class="admonition-anchor" href="#Show-the-code-9fae5780b55b8924" title="Permalink"></a></summary><div class="admonition-body"><pre><code class="language-julia hljs">&quot;The transformation at the core of an asset.&quot;
+core(asset) = only(getfield(asset, f) for f in fieldnames(typeof(asset)) if getfield(asset, f) isa ME.Transformation)
+
+&quot;An asset&#39;s edges: the commodity each one carries and what it connects.&quot;
+function asset_edges(asset)
+    edges = [(f, getfield(asset, f)) for f in fieldnames(typeof(asset)) if getfield(asset, f) isa ME.AbstractEdge]
+    DataFrame(edge = [string(f) for (f, _) in edges],
+              commodity = [string(ME.commodity_type(e)) for (_, e) in edges],
+              from = [string(ME.id(e.start_vertex)) for (_, e) in edges],
+              to = [string(ME.id(e.end_vertex)) for (_, e) in edges],
+              has_capacity = [ME.has_capacity(e) for (_, e) in edges])
+end
+
+ccgt = get_asset_by_id(system, :SE_natural_gas_fired_combined_cycle_1)
+asset_edges(ccgt)</code></pre></div></details><pre><code class="nohighlight hljs">3×5 DataFrame
+ Row │ edge       commodity    from                                              to                                                has_capacity
+─────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+   1 │ elec_edge  Electricity  SE_natural_gas_fired_combined_cycle_1_transforms  elec_SE                                                   true
+   2 │ fuel_edge  NaturalGas   natgas_SE                                         SE_natural_gas_fired_combined_cycle_1_transforms         false
+   3 │ co2_edge   CO2          SE_natural_gas_fired_combined_cycle_1_transforms  co2_sink                                                 false</code></pre><h4 id="Balance-equations"><a class="docs-heading-anchor" href="#Balance-equations">Balance equations</a><a id="Balance-equations-1"></a><a class="docs-heading-anchor-permalink" href="#Balance-equations" title="Permalink"></a></h4><p>Two balance equations tie the edge flows together at every hour:</p><ul><li><strong><code>:energy</code></strong> comes from <code>fuel_consumption</code>, the heat rate (MWh of gas per MWh of electricity);</li><li><strong><code>:emissions</code></strong> comes from <code>emission_rate</code> (t CO₂ per MWh of gas).</li></ul><div class="admonition is-info" id="Note-7c609ecbbd5fd9f9"><header class="admonition-header">Note<a class="admonition-anchor" href="#Note-7c609ecbbd5fd9f9" title="Permalink"></a></header><div class="admonition-body"><p>Because this plant uses unit commitment (<code>uc = true</code>), Macro also adds start-up fuel to <code>:energy</code> when it builds the model (<code>startup_fuel_consumption × capacity_size</code> MWh of gas per start), which the stored equations below don&#39;t show.</p></div></div><details class="admonition is-details" id="Show-the-code-e9623e6c6cda6e5c"><summary class="admonition-header">Show the code<a class="admonition-anchor" href="#Show-the-code-e9623e6c6cda6e5c" title="Permalink"></a></summary><div class="admonition-body"><pre><code class="language-julia hljs">&quot;Print a balance equation of a vertex as the algebra the solver sees, over the flows of its edges.&quot;
+function show_balance(vertex, balance_id; strip_prefix = &quot;&quot;)
+    bd = ME.balance_data(vertex, balance_id)
+    parts = map(enumerate(bd.terms)) do (i, term)
+        # Stored flow coefficients carry the edge&#39;s direction at the vertex (+1 in, −1 out); the model applies
+        # that direction again when it builds the constraint, so multiplying by it recovers the algebraic coefficient.
+        c = term.var == :flow &amp;&amp; term.obj isa ME.AbstractEdge ? ME.balance_term_incidence(vertex, term.obj) .* term.coeff : term.coeff
+        name = &quot;$(term.var)($(replace(string(ME.id(term.obj)), strip_prefix =&gt; &quot;&quot;)))&quot;
+        c isa AbstractVector &amp;&amp; return (i == 1 ? &quot;&quot; : &quot;+ &quot;) * &quot;c(t) × $name&quot;
+        sign = c &lt; 0 ? &quot;− &quot; : (i == 1 ? &quot;&quot; : &quot;+ &quot;)
+        return &quot;$(sign)$(round(abs(c); sigdigits = 4)) × $name&quot;
+    end
+    sense = get(Dict(:eq =&gt; &quot;=&quot;, :le =&gt; &quot;≤&quot;, :ge =&gt; &quot;≥&quot;), bd.sense, string(bd.sense))
+    println(rpad(&quot;:&quot; * string(balance_id), 14), join(parts, &quot;  &quot;), &quot;  $sense  &quot;, bd.constant)
+end
+
+&quot;Print every balance equation of an asset&#39;s core transformation.&quot;
+show_balances(asset) = foreach(b -&gt; show_balance(core(asset), b; strip_prefix = string(asset.id) * &quot;_&quot;), ME.balance_ids(core(asset)))
+
+show_balances(ccgt)</code></pre></div></details><pre><code class="nohighlight hljs">:emissions    0.181 × flow(fuel_edge)  − 1.0 × flow(co2_edge)  =  0.0
+:energy       1.0 × flow(fuel_edge)  − 2.132 × flow(elec_edge)  =  0.0</code></pre><h3 id="Asset-close-up:-hydrogen-from-gas-with-CCS"><a class="docs-heading-anchor" href="#Asset-close-up:-hydrogen-from-gas-with-CCS">Asset close-up: hydrogen from gas with CCS</a><a id="Asset-close-up:-hydrogen-from-gas-with-CCS-1"></a><a class="docs-heading-anchor-permalink" href="#Asset-close-up:-hydrogen-from-gas-with-CCS" title="Permalink"></a></h3><p>A hydrogen plant using autothermal reforming (ATR) with carbon capture follows the same pattern with two more edges: it also <strong>draws electricity</strong>, and it sends most of its CO₂ to the <strong>captured-CO₂ network</strong> instead of the atmosphere.</p><pre><code class="language-julia hljs">display(&quot;text/markdown&quot;, mermaid_diagram(ThermalHydrogenCCS))</code></pre><div class="mermaid">%%{init: {&#39;theme&#39;: &#39;base&#39;, &#39;themeVariables&#39;: { &#39;background&#39;: &#39;#D1EBDE&#39; }}}%%
+flowchart LR
+subgraph &quot;ThermalHydrogenCCS&quot;
+direction TB
+B{{..}}
+H((Electricity))
+I((Hydrogen))
+J((Commodity))
+K((CO2))
+L((CO2Captured))
+B a@--h2_edge--&gt; I
+H b@--elec_edge--&gt; B
+J c@--fuel_edge--&gt; B
+B d@--co2_edge--&gt; K
+B e@--co2_captured_edge--&gt; L
+end
+style B fill:black,stroke:black,color:black;
+style H font-size:18,r:55px,fill:#FFD700,stroke:black,color:black,stroke-dasharray: 3,5;
+style I font-size:21,r:55px,fill:#FF69B4,stroke:black,color:black,stroke-dasharray: 3,5;
+style J font-size:21,r:55px,fill:#d3b683,stroke:black,color:black,stroke-dasharray: 3,5;
+style K font-size:21,r:55px,fill:#A9A9A9,stroke:black,color:black,stroke-dasharray: 3,5;
+style L font-size:18,r:55px,fill:#A9A9A9,stroke:black,color:black,stroke-dasharray: 3,5;
+linkStyle 0 stroke:#FF69B4,stroke-width: 2px; a@{ animate: true };
+linkStyle 1 stroke:#FFD700,stroke-width: 2px; b@{ animate: true };
+linkStyle 2 stroke:#d3b683,stroke-width: 2px; c@{ animate: true };
+linkStyle 3 stroke:#A9A9A9,stroke-width: 2px; d@{ animate: true };
+linkStyle 4 stroke:#A9A9A9,stroke-width: 2px; e@{ animate: true };</div><h4 id="Five-edges,-four-balance-equations"><a class="docs-heading-anchor" href="#Five-edges,-four-balance-equations">Five edges, four balance equations</a><a id="Five-edges,-four-balance-equations-1"></a><a class="docs-heading-anchor-permalink" href="#Five-edges,-four-balance-equations" title="Permalink"></a></h4><p>The plant in the SE zone, <code>SE_ATR_wCCS_94pct</code>, is one instance of this type. Its CSV row became one transformation and five edges, each connected to a node:</p><pre><code class="language-julia hljs">atr = get_asset_by_id(system, :SE_ATR_wCCS_94pct)
+asset_edges(atr)</code></pre><pre><code class="nohighlight hljs">5×5 DataFrame
+ Row │ edge               commodity    from                          to                            has_capacity
+─────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────
+   1 │ h2_edge            Hydrogen     SE_ATR_wCCS_94pct_transforms  h2_SE                                 true
+   2 │ elec_edge          Electricity  elec_SE                       SE_ATR_wCCS_94pct_transforms         false
+   3 │ fuel_edge          NaturalGas   natgas_SE                     SE_ATR_wCCS_94pct_transforms         false
+   4 │ co2_edge           CO2          SE_ATR_wCCS_94pct_transforms  co2_sink                             false
+   5 │ co2_captured_edge  CO2Captured  SE_ATR_wCCS_94pct_transforms  co2_captured_SE                      false</code></pre><p>The flat CSV columns (<code>fuel_consumption</code>, <code>electricity_consumption</code>, <code>emission_rate</code>, <code>capture_rate</code>) became the coefficients of four balance equations that tie the edge flows together at every hour:</p><pre><code class="language-julia hljs">show_balances(atr)</code></pre><pre><code class="nohighlight hljs">:emissions    0.009958 × flow(fuel_edge)  − 1.0 × flow(co2_edge)  =  0.0
+:energy       1.0 × flow(fuel_edge)  − 1.3 × flow(h2_edge)  =  0.0
+:electricity  1.0 × flow(elec_edge)  − 0.1016 × flow(h2_edge)  =  0.0
+:capture      0.1711 × flow(fuel_edge)  − 1.0 × flow(co2_captured_edge)  =  0.0</code></pre><h3 id="Time-domain-reduction"><a class="docs-heading-anchor" href="#Time-domain-reduction">Time-domain reduction</a><a id="Time-domain-reduction-1"></a><a class="docs-heading-anchor-permalink" href="#Time-domain-reduction" title="Permalink"></a></h3><p>Instead of 8,760 hours, the case models <strong>three representative weeks</strong> (504 hours). Each week carries a weight: the number of calendar weeks it stands in for. Weights turn hourly results into annual totals, and every annualized number below uses them.</p><details class="admonition is-details" id="Show-the-code-73fd3ad2bc4eb7d9"><summary class="admonition-header">Show the code<a class="admonition-anchor" href="#Show-the-code-73fd3ad2bc4eb7d9" title="Permalink"></a></summary><div class="admonition-body"><pre><code class="language-julia hljs">td = system.time_data[:Electricity]
+rep_weeks = td.subperiod_indices
+rep_weights = [td.subperiod_weights[w] for w in rep_weeks]
+println(DataFrame(representative_week = rep_weeks, hours = length.(td.subperiods), weeks_represented = round.(rep_weights; digits = 2)))
+
+calendar = sort(collect(td.subperiod_map), by = first)   # calendar week =&gt; representative week
+p = plot(; title = &quot;Which representative week stands in for each calendar week&quot;, xlabel = &quot;Calendar week&quot;,
+         yaxis = false, yticks = false, grid = false, ylims = (0, 1.25), xlims = (0.5, length(calendar) + 0.5),
+         xticks = 1:4:length(calendar), size = (900, 230))
+for (i, r) in enumerate(rep_weeks)
+    weeks = [w for (w, rep) in calendar if rep == r]
+    bar!(p, weeks, ones(length(weeks)); bar_width = 0.85, linewidth = 0, color = THREE[i],
+         label = &quot;Week $r (×$(fmt(rep_weights[i]; digits = 1)))&quot;)
+end
+scatter!(p, rep_weeks, fill(1.12, length(rep_weeks)); marker = :dtriangle, markersize = 6, color = INK,
+         markerstrokewidth = 0, label = &quot;the week itself&quot;)
+p</code></pre></div></details><pre><code class="nohighlight hljs">3×3 DataFrame
+ Row │ representative_week  hours  weeks_represented
+─────┼───────────────────────────────────────────────
+   1 │                   7    168              23.06
+   2 │                  18    168               9.02
+   3 │                  33    168              20.05</code></pre><p><img src="../../images/tutorial_3/representative_weeks.png" alt="Calendar weeks grouped by the representative week that stands in for them"/></p><h3 id="(Advanced)-Sub-commodities"><a class="docs-heading-anchor" href="#(Advanced)-Sub-commodities">(Advanced) Sub-commodities</a><a id="(Advanced)-Sub-commodities-1"></a><a class="docs-heading-anchor-permalink" href="#(Advanced)-Sub-commodities" title="Permalink"></a></h3><p><strong>Sub-commodities</strong> are more specific versions of a commodity. <code>commodities.json</code> declares them with <code>acts_like</code>:</p><pre><code class="language-json hljs">{&quot;name&quot;: &quot;Gasoline&quot;, &quot;acts_like&quot;: &quot;LiquidFuels&quot;}</code></pre><p>means <em>gasoline is a kind of liquid fuel</em>. Any technology that can handle liquid fuels can also handle gasoline, but gasoline gets its own nodes, so it&#39;s tracked separately from diesel or jet fuel.</p><div class="admonition is-success" id="Tip-712c59e7723f196c"><header class="admonition-header">Tip<a class="admonition-anchor" href="#Tip-712c59e7723f196c" title="Permalink"></a></header><div class="admonition-body"><p>This case uses the same idea to keep fossil fuels apart. <code>Fossil_Gasoline</code> is also a liquid fuel, so the model can tell how much gasoline came from oil and how much was made from biomass or synthesis. Likewise, <code>Biomass_Wood</code> and <code>Biomass_Herb</code> are two kinds of biomass with their own prices and supply limits.</p></div></div><pre><code class="language-julia hljs">subs = [(c, T) for (c, T) in system.commodities if supertype(T) != ME.Commodity]
+sort!(DataFrame(commodity = [string(c) for (c, _) in subs], acts_like = [string(nameof(supertype(T))) for (_, T) in subs]), :acts_like)</code></pre><pre><code class="nohighlight hljs">10×2 DataFrame
+ Row │ commodity          acts_like
+─────┼────────────────────────────────
+   1 │ Biomass_Wood       Biomass
+   2 │ Biomass_Herb       Biomass
+   3 │ CO2Captured        CO2
+   4 │ Diesel             LiquidFuels
+   5 │ Gasoline           LiquidFuels
+   6 │ Fossil_JetFuel     LiquidFuels
+   7 │ JetFuel            LiquidFuels
+   8 │ Fossil_Gasoline    LiquidFuels
+   9 │ Fossil_Diesel      LiquidFuels
+  10 │ Fossil_NaturalGas  NaturalGas</code></pre><h2 id="3.-Solve"><a class="docs-heading-anchor" href="#3.-Solve">3. Solve</a><a id="3.-Solve-1"></a><a class="docs-heading-anchor-permalink" href="#3.-Solve" title="Permalink"></a></h2><div class="admonition is-success" id="Tip-a55e3d9656211466"><header class="admonition-header">Tip<a class="admonition-anchor" href="#Tip-a55e3d9656211466" title="Permalink"></a></header><div class="admonition-body"><p><code>run_case</code> does everything in one call: load the case, build the JuMP model, solve, and write CSV results.</p></div></div><ul><li><strong>This run:</strong> the case without its CO₂ cap. Section 5 adds the cap back.</li><li><strong>Solver:</strong> HiGHS, the open-source solver Macro uses by default. Any solver supported by JuMP can be passed as <code>optimizer</code>.</li><li><strong>Options:</strong> <code>optimizer_attributes</code> passes solver settings: the interior-point method followed by crossover, with the log silenced. Each of the two solves in this notebook takes a few minutes.</li></ul><pre><code class="language-julia hljs">const HIGHS_OPTIONS = (&quot;solver&quot; =&gt; &quot;ipm&quot;, &quot;run_crossover&quot; =&gt; &quot;on&quot;, &quot;ipm_optimality_tolerance&quot; =&gt; 1e-3, &quot;log_to_console&quot; =&gt; false)
+
+# Start from a fresh working copy of the case (helpers defined in the setup cells)
+base_dir = prepare_case(&quot;base&quot;; co2_cap = false)   # first run: no CO₂ cap (section 5 adds it)
+
+t0 = time()
+case, model = run_case(base_dir; optimizer = HiGHS.Optimizer, optimizer_attributes = HIGHS_OPTIONS, log_to_file = false)
+println(&quot;run_case took &quot;, round(time() - t0; digits = 1), &quot; s&quot;)
+system = case.systems[1];</code></pre><h3 id="Did-it-solve?"><a class="docs-heading-anchor" href="#Did-it-solve?">Did it solve?</a><a id="Did-it-solve?-1"></a><a class="docs-heading-anchor-permalink" href="#Did-it-solve?" title="Permalink"></a></h3><p>Every run also writes <code>run_status.json</code> next to the case: a machine-readable verdict that&#39;s handy for batch runs on a cluster.</p><pre><code class="language-julia hljs">println(&quot;termination status: &quot;, ME.JuMP.termination_status(model), &quot;   primal status: &quot;, ME.JuMP.primal_status(model))
+println(&quot;objective:          &quot;, round(ME.JuMP.objective_value(model); sigdigits = 5), &quot; \$/yr&quot;)
+print(read(joinpath(base_dir, &quot;run_status.json&quot;), String))</code></pre><pre><code class="nohighlight hljs">termination status: OPTIMAL   primal status: FEASIBLE_POINT
+objective:          2.1293e11 $/yr
+{
+    &quot;status&quot;: &quot;OK&quot;,
+    &quot;case_path&quot;: &quot;/path/to/tutorials/runs/base&quot;,
+    &quot;timestamp&quot;: &quot;2026-11-04T11:11:08.778&quot;,
+    &quot;elapsed_seconds&quot;: 423.334,
+    &quot;output_path&quot;: &quot;/path/to/tutorials/runs/base/results&quot;,
+    &quot;termination_status&quot;: &quot;OPTIMAL&quot;
+}</code></pre><h2 id="4.-What-the-model-chose,-with-no-climate-policy"><a class="docs-heading-anchor" href="#4.-What-the-model-chose,-with-no-climate-policy">4. What the model chose, with no climate policy</a><a id="4.-What-the-model-chose,-with-no-climate-policy-1"></a><a class="docs-heading-anchor-permalink" href="#4.-What-the-model-chose,-with-no-climate-policy" title="Permalink"></a></h2><p>Every run writes the same set of long-format CSV files. <code>load_results</code> reads the ones used below and annualizes flows with the time weights (<code>annual = value × weight</code>, since the time step is 1 hour).</p><details class="admonition is-details" id="Show-the-code-2e7e7949356a7ece"><summary class="admonition-header">Show the code<a class="admonition-anchor" href="#Show-the-code-2e7e7949356a7ece" title="Permalink"></a></summary><div class="admonition-body"><pre><code class="language-julia hljs">&quot;Read the CSV outputs of a solved case and annualize flows with the time weights.&quot;
+function load_results(dir)
+    out = joinpath(dir, &quot;results&quot;, &quot;results&quot;)
+    rd(f) = CSV.read(joinpath(out, f), DataFrame)
+    tw = rd(&quot;time_weights.csv&quot;)
+    @assert tw.time == 1:nrow(tw)
+    flows = rd(&quot;flows.csv&quot;)
+    flows.annual = flows.value .* tw.weight[flows.time]
+    return (; dir = out, weights = tw.weight, flows,
+              capacity = rd(&quot;capacity.csv&quot;),
+              prices = rd(&quot;balance_duals.csv&quot;),   # one column per node, one row per time step
+              co2 = isfile(joinpath(out, &quot;co2_cap_duals.csv&quot;)) ? rd(&quot;co2_cap_duals.csv&quot;) : nothing,   # written only when there is a cap
+              costs = rd(&quot;costs.csv&quot;),
+              costs_by_type = rd(&quot;costs_by_type.csv&quot;))
+end
+
+base = load_results(base_dir)
+filter(endswith(&quot;.csv&quot;), readdir(base.dir))</code></pre></div></details><pre><code class="nohighlight hljs">15-element Vector{String}:
+ &quot;balance_duals.csv&quot;
+ &quot;capacity.csv&quot;
+ &quot;capex.csv&quot;
+ &quot;costs.csv&quot;
+ &quot;costs_by_type.csv&quot;
+ &quot;costs_by_zone.csv&quot;
+ &quot;curtailment.csv&quot;
+ &quot;flows.csv&quot;
+ &quot;non_served_demand.csv&quot;
+ &quot;objective_value.csv&quot;
+ &quot;storage_level.csv&quot;
+ &quot;time_weights.csv&quot;
+ &quot;undiscounted_costs.csv&quot;
+ &quot;undiscounted_costs_by_type.csv&quot;
+ &quot;undiscounted_costs_by_zone.csv&quot;</code></pre><h3 id="Headline-numbers"><a class="docs-heading-anchor" href="#Headline-numbers">Headline numbers</a><a id="Headline-numbers-1"></a><a class="docs-heading-anchor-permalink" href="#Headline-numbers" title="Permalink"></a></h3><details class="admonition is-details" id="Show-the-code-87604ccd73f62500"><summary class="admonition-header">Show the code<a class="admonition-anchor" href="#Show-the-code-87604ccd73f62500" title="Permalink"></a></summary><div class="admonition-body"><pre><code class="language-julia hljs">const ELEC_NODES = [&quot;elec_&quot; * z for z in ZONES]
+const H2_NODES   = [&quot;h2_&quot; * z for z in ZONES]
+
+&quot;Group an electricity-producing component into one of TECH_ORDER.&quot;
+function tech_group(resource_type, resource_id)
+    rt, id = String(resource_type), lowercase(String(resource_id))
+    startswith(rt, &quot;VRE&quot;)                                             &amp;&amp; return occursin(&quot;wind&quot;, id) ? &quot;Wind&quot; : &quot;Solar&quot;
+    rt == &quot;ThermalPower{Uranium}&quot;                                     &amp;&amp; return &quot;Nuclear&quot;
+    rt in (&quot;ThermalPower{NaturalGas}&quot;, &quot;ThermalPowerCCS{NaturalGas}&quot;) &amp;&amp; return &quot;Natural gas&quot;
+    rt == &quot;ThermalPower{Hydrogen}&quot;                                    &amp;&amp; return &quot;H₂ turbines&quot;
+    rt in (&quot;HydroRes&quot;, &quot;MustRun&quot;)                                     &amp;&amp; return &quot;Hydro&quot;   # MustRun here is small hydro
+    rt == &quot;Battery&quot;                                                   &amp;&amp; return &quot;Battery&quot;
+    return &quot;Other&quot;                                                    # power co-produced by bioenergy and DAC plants
+end
+
+&quot;Annual end-use demand (from the input time series) summed over the given nodes.&quot;
+annual_demand(system, weights, node_ids) =
+    sum(sum(ME.demand(n) .* weights) for n in system.locations if n isa Node &amp;&amp; string(ME.id(n)) in node_ids)
+
+&quot;Time-weighted average of the hourly prices (balance duals) over the given nodes.&quot;
+avg_price(res, node_ids) = sum(sum(res.prices[!, n] .* res.weights) for n in node_ids) / (sum(res.weights) * length(node_ids))
+
+&quot;Net flow into the atmosphere (the `co2_sink` node), t/yr: emissions minus removals.&quot;
+net_emissions(res) = sum(res.flows.annual[(res.flows.node_in .== &quot;co2_sink&quot;) .| (res.flows.node_out .== &quot;co2_sink&quot;)])
+
+objective(res) = only(filter(r -&gt; r.variable == &quot;DiscountedTotalCost&quot;, res.costs).value)
+co2_penalty_paid(res) = sum(r.value for r in eachrow(res.costs_by_type) if r.type == &quot;Total&quot; &amp;&amp; r.category == &quot;UnmetPolicyPenalty&quot;; init = 0.0)
+
+&quot;Headline numbers of a solved case.&quot;
+function headline(res)
+    elec = filter(r -&gt; r.commodity == &quot;Electricity&quot; &amp;&amp; startswith(r.component_type, r&quot;(Unidirectional)?Edge&quot;), res.capacity)
+    gw(group, var) = sum(r.value for r in eachrow(elec) if r.variable == var &amp;&amp; tech_group(r.resource_type, r.resource_id) == group; init = 0.0) / 1e3
+    stored = sum(res.flows.annual[(res.flows.resource_type .== &quot;CO2Injection&quot;) .&amp; (res.flows.value .&gt; 0)]; init = 0.0)
+    DataFrame(metric = [&quot;Objective (system cost + CO₂ penalty)&quot;, &quot;System cost (excl. CO₂ penalty)&quot;, &quot;CO₂ penalty paid&quot;,
+                        &quot;CO₂ price (shadow price of the cap)&quot;, &quot;Net CO₂ emissions&quot;, &quot;CO₂ into geologic storage&quot;,
+                        &quot;Avg. electricity price&quot;, &quot;Avg. hydrogen price&quot;,
+                        &quot;New solar + wind&quot;, &quot;New nuclear&quot;, &quot;Retired natural-gas power&quot;],
+              value = [objective(res) / 1e9, (objective(res) - co2_penalty_paid(res)) / 1e9, co2_penalty_paid(res) / 1e9,
+                       (isnothing(res.co2) ? 0.0 : only(res.co2.CO2_Shadow_Price)), net_emissions(res) / 1e6, stored / 1e6,
+                       avg_price(res, ELEC_NODES), avg_price(res, H2_NODES),
+                       gw(&quot;Solar&quot;, &quot;new_capacity&quot;) + gw(&quot;Wind&quot;, &quot;new_capacity&quot;), gw(&quot;Nuclear&quot;, &quot;new_capacity&quot;),
+                       gw(&quot;Natural gas&quot;, &quot;retired_capacity&quot;)],
+              unit = [&quot;\$B/yr&quot;, &quot;\$B/yr&quot;, &quot;\$B/yr&quot;, &quot;\$/t&quot;, &quot;Mt/yr&quot;, &quot;Mt/yr&quot;, &quot;\$/MWh&quot;, &quot;\$/MWh-H₂&quot;, &quot;GW&quot;, &quot;GW&quot;, &quot;GW&quot;])
+end
+
+base_headline = headline(base)
+transform(base_headline, :value =&gt; ByRow(v -&gt; round(v; sigdigits = 4)) =&gt; :value)</code></pre></div></details><pre><code class="nohighlight hljs">11×3 DataFrame
+ Row │ metric                                 value        unit
+─────┼──────────────────────────────────────────────────────────────
+   1 │ Objective (system cost + CO₂ penalty)  212.9        $B/yr
+   2 │ System cost (excl. CO₂ penalty)        212.9        $B/yr
+   3 │ CO₂ penalty paid                         0.0        $B/yr
+   4 │ CO₂ price (shadow price of the cap)      0.0        $/t
+   5 │ Net CO₂ emissions                      684.7        Mt/yr
+   6 │ CO₂ into geologic storage                4.259e-16  Mt/yr
+   7 │ Avg. electricity price                  32.94       $/MWh
+   8 │ Avg. hydrogen price                     25.57       $/MWh-H₂
+   9 │ New solar + wind                       387.6        GW
+  10 │ New nuclear                              0.0        GW
+  11 │ Retired natural-gas power               17.48       GW</code></pre><h3 id="Reading-the-headline"><a class="docs-heading-anchor" href="#Reading-the-headline">Reading the headline</a><a id="Reading-the-headline-1"></a><a class="docs-heading-anchor-permalink" href="#Reading-the-headline" title="Permalink"></a></h3><p><em>No CO₂ cap and no carbon price: the cheapest system on cost alone.</em></p><div class="admonition is-success" id="Tip-6aaf2f6de5c7417c"><header class="admonition-header">Tip<a class="admonition-anchor" href="#Tip-6aaf2f6de5c7417c" title="Permalink"></a></header><div class="admonition-body"><p><strong>Net emissions: 685 Mt/yr.</strong> Nothing is captured, and hydrogen comes from unabated natural gas.</p></div></div><ul><li><strong>Wind and solar still win on cost:</strong> about 390 GW of new wind and solar, with no policy pushing them.</li><li><strong>Gas stays the backbone:</strong> 192 of 210 GW of gas plants are kept.</li><li><strong>Nuclear shrinks:</strong> 41 of 62 GW of existing plants retire, and none is built.</li></ul><h3 id="Electricity-capacity:-what&#39;s-kept,-retired-and-built"><a class="docs-heading-anchor" href="#Electricity-capacity:-what&#39;s-kept,-retired-and-built">Electricity capacity: what&#39;s kept, retired and built</a><a id="Electricity-capacity:-what&#39;s-kept,-retired-and-built-1"></a><a class="docs-heading-anchor-permalink" href="#Electricity-capacity:-what&#39;s-kept,-retired-and-built" title="Permalink"></a></h3><p>Capacity of electricity-producing components by technology group. The <strong>grey</strong> bar is capacity that existed before the optimization, and the <strong>colored</strong> bar is the optimal fleet.</p><div class="admonition is-info" id="Note-ff3571fd18293f27"><header class="admonition-header">Note<a class="admonition-anchor" href="#Note-ff3571fd18293f27" title="Permalink"></a></header><div class="admonition-body"><p>The existing &quot;Battery&quot; capacity is pumped hydro, which Macro models with its <code>Battery</code> asset. For batteries this is discharge power; storage energy (MWh) is sized separately.</p></div></div><details class="admonition is-details" id="Show-the-code-3476a64bba87c21b"><summary class="admonition-header">Show the code<a class="admonition-anchor" href="#Show-the-code-3476a64bba87c21b" title="Permalink"></a></summary><div class="admonition-body"><pre><code class="language-julia hljs">&quot;Existing and optimal capacity (GW) of electricity-producing components, by technology group.&quot;
+function capacity_by_tech(res)
+    c = filter(r -&gt; r.commodity == &quot;Electricity&quot; &amp;&amp; startswith(r.component_type, r&quot;(Unidirectional)?Edge&quot;) &amp;&amp;
+                    !endswith(r.component_id, &quot;_charge_edge&quot;), res.capacity)
+    c.group = tech_group.(c.resource_type, c.resource_id)
+    wide = unstack(combine(groupby(c, [:group, :variable]), :value =&gt; (v -&gt; sum(v) / 1e3) =&gt; :GW), :variable, :GW)
+    return sort!(wide, order(:group, by = g -&gt; findfirst(==(g), TECH_ORDER)))
+end
+
+cap_base = capacity_by_tech(base)
+println(select(cap_base, :group, :existing_capacity, :retired_capacity, :new_capacity, :capacity))
+
+hbar_pair(cap_base.group, cap_base.existing_capacity, cap_base.capacity;
+          colors = [TECH_COLORS[g] for g in cap_base.group], ref_label = &quot;Existing&quot;, label = &quot;Optimal (colored by technology)&quot;,
+          unit = &quot; GW&quot;, title = &quot;Electricity capacity by technology, GW&quot;)</code></pre></div></details><pre><code class="nohighlight hljs">7×5 DataFrame
+ Row │ group        existing_capacity  retired_capacity  new_capacity  capacity
+─────┼──────────────────────────────────────────────────────────────────────────
+   1 │ Nuclear                61.5709           40.8649         0.0     20.706
+   2 │ Hydro                  38.6654            0.0            0.0     38.6654
+   3 │ Natural gas           209.685            17.4826         0.0    192.202
+   4 │ Wind                    6.8861            0.0          271.052  277.938
+   5 │ H₂ turbines             0.0               0.0            0.0      0.0
+   6 │ Solar                  13.1064            0.0          116.576  129.683
+   7 │ Battery                14.7129            0.0            0.0     14.7129</code></pre><p><img src="../../images/tutorial_3/electricity_capacity.png" alt="Existing and optimal electricity capacity by technology, with no CO₂ cap"/></p><h3 id="Sector-coupling:-where-electricity-comes-from-and-where-it-goes"><a class="docs-heading-anchor" href="#Sector-coupling:-where-electricity-comes-from-and-where-it-goes">Sector coupling: where electricity comes from and where it goes</a><a id="Sector-coupling:-where-electricity-comes-from-and-where-it-goes-1"></a><a class="docs-heading-anchor-permalink" href="#Sector-coupling:-where-electricity-comes-from-and-where-it-goes" title="Permalink"></a></h3><p>Annual electricity supply by technology (left) and use (right), all zones combined, on one shared scale.</p><ul><li><strong>End-use demand</strong> is the input demand time series. Any other use is load from other sectors: electrolyzers, direct air capture, fuel synthesis.</li><li><strong>Without a cap there&#39;s almost none:</strong> hydrogen comes from gas, so the other sectors barely draw on the grid. Section 5 shows how that changes.</li><li>Transmission between zones is excluded, and supply exceeds use by storage and transmission losses.</li></ul><details class="admonition is-details" id="Show-the-code-adccd1bb1f67b901"><summary class="admonition-header">Show the code<a class="admonition-anchor" href="#Show-the-code-adccd1bb1f67b901" title="Permalink"></a></summary><div class="admonition-body"><pre><code class="language-julia hljs">&quot;Annual flows (TWh or Mt) into and out of a set of nodes, excluding flows between those nodes.&quot;
+function sources_and_uses(res, nodes, source_label, use_label)
+    f = res.flows
+    into  = in(nodes).(f.node_out) .&amp; .!in(nodes).(f.node_in)
+    outof = in(nodes).(f.node_in) .&amp; .!in(nodes).(f.node_out)
+    src, use = f[into, :], f[outof, :]
+    src.label = source_label.(src.resource_type, src.resource_id)
+    use.label = use_label.(use.resource_type, use.resource_id)
+    src, use = filter(r -&gt; !isnothing(r.label), src), filter(r -&gt; !isnothing(r.label), use)
+    sources = combine(groupby(src, :label), :annual =&gt; (x -&gt; sum(max.(x, 0)) / 1e6) =&gt; :annual)
+    uses    = combine(groupby(use, :label), :annual =&gt; (x -&gt; sum(max.(-x, 0)) / 1e6) =&gt; :annual)
+    return filter(r -&gt; r.annual &gt; 0.5, sources), filter(r -&gt; r.annual &gt; 0.5, uses)   # hide flows below 0.5 TWh (or Mt) per year
+end
+
+function elec_use(rt, id)
+    base = first(split(String(rt), &#39;{&#39;))
+    base == &quot;Electrolyzer&quot;         &amp;&amp; return &quot;Electrolysis&quot;
+    base == &quot;ElectricDAC&quot;          &amp;&amp; return &quot;Direct air capture&quot;
+    base == &quot;SyntheticNaturalGas&quot;  &amp;&amp; return &quot;Synthetic methane&quot;
+    base == &quot;SyntheticLiquidFuels&quot; &amp;&amp; return &quot;Synthetic liquid fuels&quot;
+    base == &quot;ThermalHydrogenCCS&quot;   &amp;&amp; return &quot;H₂ from gas + CCS&quot;
+    base == &quot;Battery&quot;              &amp;&amp; return &quot;Battery charging&quot;
+    base == &quot;GasStorage&quot;           &amp;&amp; return &quot;H₂ storage &amp; pipelines&quot;
+    startswith(base, &quot;BECCS&quot;)      &amp;&amp; return &quot;Bioenergy + CCS&quot;
+    return &quot;Other&quot;
+end
+
+elec_src, elec_uses = sources_and_uses(base, ELEC_NODES, tech_group, elec_use)
+push!(elec_uses, (&quot;End-use demand&quot;, annual_demand(system, base.weights, ELEC_NODES) / 1e6))
+
+xmax, rows = maximum(vcat(elec_src.annual, elec_uses.annual)), max(nrow(elec_src), nrow(elec_uses))
+p1 = hbar(elec_src.label, elec_src.annual; colors = [TECH_COLORS[l] for l in elec_src.label], title = &quot;Supply, TWh/yr&quot;, xmax, rows)
+p2 = hbar(elec_uses.label, elec_uses.annual; title = &quot;Use, TWh/yr&quot;, xmax, rows)
+plot(p1, p2; layout = (1, 2), size = (1100, 80 + 30 * rows))</code></pre></div></details><p><img src="../../images/tutorial_3/electricity_supply_and_use.png" alt="Annual electricity supply by technology and use, with no CO₂ cap"/></p><h3 id="An-hour-by-hour-look"><a class="docs-heading-anchor" href="#An-hour-by-hour-look">An hour-by-hour look</a><a id="An-hour-by-hour-look-1"></a><a class="docs-heading-anchor-permalink" href="#An-hour-by-hour-look" title="Permalink"></a></h3><p>One representative week in one zone. The stack is electricity delivered into the zone&#39;s grid by technology (imports excluded), and the black line is end-use demand. Wind and gas do most of the work, with gas flexing down when the sun is up; supply above the demand line is exported or stored.</p><div class="admonition is-success" id="Try-it-102034fa4f56c7f9"><header class="admonition-header">Try it<a class="admonition-anchor" href="#Try-it-102034fa4f56c7f9" title="Permalink"></a></header><div class="admonition-body"><p>change <code>ZONE</code> and <code>REP</code> in the cell below to explore other zones and weeks.</p></div></div><details class="admonition is-details" id="Show-the-code-ab7a638c46ef6b39"><summary class="admonition-header">Show the code<a class="admonition-anchor" href="#Show-the-code-ab7a638c46ef6b39" title="Permalink"></a></summary><div class="admonition-body"><pre><code class="language-julia hljs">ZONE, REP = &quot;SE&quot;, 1        # REP ∈ 1:3 indexes the representative weeks shown above (3 = the summer week)
+
+function dispatch_plot(res, system; zone = ZONE, rep = REP, hours_per_week = 168)
+    node = &quot;elec_&quot; * zone
+    hours = (rep - 1) * hours_per_week + 1 : rep * hours_per_week
+    f = res.flows
+    sel = (f.node_out .== node) .&amp; .!in(ELEC_NODES).(f.node_in) .&amp; in(hours).(f.time)
+    gen = combine(groupby(transform(f[sel, :], [:resource_type, :resource_id] =&gt; ByRow(tech_group) =&gt; :group), [:group, :time]),
+                  :value =&gt; (v -&gt; sum(max.(v, 0)) / 1e3) =&gt; :GW)
+    M = zeros(length(hours), length(TECH_ORDER))
+    for r in eachrow(gen)
+        M[r.time - first(hours) + 1, findfirst(==(r.group), TECH_ORDER)] += r.GW
+    end
+    x = 0:length(hours) - 1
+    top = cumsum(M; dims = 2)
+
+    # plot_title: the panels get no blank-title band of their own; the combined figure gets one (see the end)
+    p1 = plot(; plot_title = &quot;&quot;, ylabel = &quot;GW&quot;, title = &quot;$zone, representative week $(rep_weeks[rep]): electricity supply&quot;)
+    for j in reverse(eachindex(TECH_ORDER))        # draw the top layer first so the legend reads top → bottom
+        maximum(M[:, j]) &gt; 0.5 || continue            # skip groups that never exceed 0.5 GW this week
+        plot!(p1, x, top[:, j]; fillrange = j == 1 ? 0 : top[:, j - 1], fillalpha = 1, linewidth = 0.5,
+              linecolor = SURFACE, color = TECH_COLORS[TECH_ORDER[j]], label = TECH_ORDER[j])
+    end
+    node_obj = only(n for n in system.locations if n isa Node &amp;&amp; string(ME.id(n)) == node)
+    plot!(p1, x, ME.demand(node_obj)[hours] ./ 1e3; color = INK, linewidth = 2, label = &quot;End-use demand&quot;)
+
+    elz = f[(f.node_in .== node) .&amp; (f.resource_type .== &quot;Electrolyzer&quot;) .&amp; in(hours).(f.time), :]
+    elz_load = combine(groupby(elz, :time), :value =&gt; (v -&gt; -sum(v) / 1e3) =&gt; :GW)
+    p2 = plot(elz_load.time .- first(hours), elz_load.GW; plot_title = &quot;&quot;, fillrange = 0, fillalpha = 0.25, color = NEUTRAL,
+              legend = false, ylabel = &quot;GW&quot;, title = &quot;Electrolyzer load&quot;)
+    p3 = plot(x, res.prices[hours, node]; plot_title = &quot;&quot;, color = NEUTRAL, linewidth = 1.5, legend = false,
+              ylabel = &quot;\$/MWh&quot;, title = &quot;Electricity price (balance dual)&quot;)
+    ticks = (12:24:length(hours), [&quot;Day $d&quot; for d in 1:length(hours) ÷ 24])
+    if isempty(elz_load.GW) || maximum(elz_load.GW) &lt; 0.5          # no electrolyzers running this week: skip their panel
+        return plot(p1, p3; plot_title = &quot; &quot;, layout = grid(2, 1; heights = [0.67, 0.33]), link = :x, xticks = ticks,
+                    size = (950, 570), left_margin = 6Plots.mm)
+    end
+    plot(p1, p2, p3; plot_title = &quot; &quot;, layout = grid(3, 1; heights = [0.5, 0.25, 0.25]), link = :x, xticks = ticks,
+         size = (950, 760), left_margin = 6Plots.mm)
+end
+
+dispatch_plot(base, system)</code></pre></div></details><p><img src="../../images/tutorial_3/dispatch_week.png" alt="Hourly electricity supply and price in the SE zone over one representative week"/></p><h3 id="Prices:-duration-curves"><a class="docs-heading-anchor" href="#Prices:-duration-curves">Prices: duration curves</a><a id="Prices:-duration-curves-1"></a><a class="docs-heading-anchor-permalink" href="#Prices:-duration-curves" title="Permalink"></a></h3><p>Back to the markets: every node clears every hour, and the price it clears at is its balance dual, the marginal cost of one more unit there. For electricity and hydrogen, these are <strong>locational marginal prices</strong>. Sorting each zone&#39;s hourly prices from highest to lowest, and stretching every hour by its time weight, gives a price-duration curve over the 8,760 hours of the year.</p><details class="admonition is-details" id="Show-the-code-214a079cf53620b2"><summary class="admonition-header">Show the code<a class="admonition-anchor" href="#Show-the-code-214a079cf53620b2" title="Permalink"></a></summary><div class="admonition-body"><pre><code class="language-julia hljs">&quot;Price-duration curve: prices sorted high → low against cumulative hours of the year.&quot;
+function duration_curve(prices, weights)
+    o = sortperm(prices; rev = true)
+    return vcat(0, cumsum(weights[o])), vcat(prices[o], prices[o][end])
+end
+
+function price_duration_plot(res, prefix, title, unit; ymax = nothing)
+    p = plot(; title, xlabel = &quot;Hours of the year&quot;, ylabel = unit, xlims = (0, 8760), legend = :topright)
+    for z in ZONES
+        h, pr = duration_curve(res.prices[!, prefix * z], res.weights)
+        plot!(p, h, pr; seriestype = :steppost, color = ZONE_COLORS[z], label = z)
+    end
+    isnothing(ymax) || plot!(p; ylims = (0, ymax))
+    return p
+end
+
+nodes = vcat(ELEC_NODES, H2_NODES)
+price_stats = DataFrame(node = nodes,
+                        mean = [sum(base.prices[!, n] .* base.weights) / sum(base.weights) for n in nodes],
+                        min = [minimum(base.prices[!, n]) for n in nodes],
+                        max = [maximum(base.prices[!, n]) for n in nodes])
+println(transform(price_stats, Not(:node) .=&gt; ByRow(v -&gt; round(v; digits = 1)); renamecols = false))
+
+plot(price_duration_plot(base, &quot;elec_&quot;, &quot;Electricity (y-axis cut at \$300; maxima in the table)&quot;, &quot;\$/MWh&quot;; ymax = 300),
+     price_duration_plot(base, &quot;h2_&quot;, &quot;Hydrogen&quot;, &quot;\$/MWh-H₂&quot;); layout = (1, 2), size = (1050, 400))</code></pre></div></details><pre><code class="nohighlight hljs">6×4 DataFrame
+ Row │ node        mean     min      max
+─────┼───────────────────────────────────────
+   1 │ elec_SE        32.3     -0.0    300.4
+   2 │ elec_MIDAT     31.1     -0.0    285.7
+   3 │ elec_NE        35.5     -0.0    708.8
+   4 │ h2_SE          24.6     21.1     31.2
+   5 │ h2_MIDAT       24.2     18.6     31.1
+   6 │ h2_NE          27.9     21.9     44.1</code></pre><p><img src="../../images/tutorial_3/price_duration_curves.png" alt="Electricity and hydrogen price-duration curves by zone"/></p><h3 id="What-electricity-costs,-and-who-pays-what"><a class="docs-heading-anchor" href="#What-electricity-costs,-and-who-pays-what">What electricity costs, and who pays what</a><a id="What-electricity-costs,-and-who-pays-what-1"></a><a class="docs-heading-anchor-permalink" href="#What-electricity-costs,-and-who-pays-what" title="Permalink"></a></h3><p>Pricing every MWh withdrawn from the grid at its hourly nodal price gives the annual electricity bill:</p><p class="math-container">\[\text{cost} = \sum_{e,\,t} -\,\text{flow}_{e,t} \times \text{dual}_{n(e),t} \times \text{weight}_t\]</p><p>Here <em>e</em> ranges over the edges leaving the zone nodes (their flows are negative), and end-use demand is priced the same way. Dividing each use&#39;s bill by its energy gives the average price it pays.</p><div class="admonition is-success" id="Tip-c63560c4c7e011fe"><header class="admonition-header">Tip<a class="admonition-anchor" href="#Tip-c63560c4c7e011fe" title="Permalink"></a></header><div class="admonition-body"><p>Loads that can pick their hours pay less: battery charging (here, all of it pumped hydro) pays about USD 17/MWh against a USD 33 average. Without a cap there&#39;s little such flexible load; section 5 adds a lot of it.</p></div></div><details class="admonition is-details" id="Show-the-code-4a522c491198473c"><summary class="admonition-header">Show the code<a class="admonition-anchor" href="#Show-the-code-4a522c491198473c" title="Permalink"></a></summary><div class="admonition-body"><pre><code class="language-julia hljs">&quot;Annual cost of electricity withdrawn from the zone nodes at hourly nodal prices, by use (uses below `min_energy` MWh/yr dropped).&quot;
+function electricity_bill(res, system; min_energy = 1e5)
+    f = res.flows
+    rows = f[in(ELEC_NODES).(f.node_in) .&amp; .!in(ELEC_NODES).(f.node_out), :]
+    price = Dict(n =&gt; res.prices[!, n] for n in ELEC_NODES)
+    rows.cost   = -rows.value .* [price[n][t] for (n, t) in zip(rows.node_in, rows.time)] .* res.weights[rows.time]
+    rows.energy = -rows.annual
+    rows.use    = elec_use.(rows.resource_type, rows.resource_id)
+    bill = combine(groupby(rows, :use), :cost =&gt; sum =&gt; :cost, :energy =&gt; sum =&gt; :energy)
+    demand_cost, demand_energy = 0.0, 0.0
+    for n in system.locations
+        (n isa Node &amp;&amp; string(ME.id(n)) in ELEC_NODES) || continue
+        d = ME.demand(n)
+        demand_cost   += sum(d .* price[string(ME.id(n))] .* res.weights)
+        demand_energy += sum(d .* res.weights)
+    end
+    push!(bill, (&quot;End-use demand&quot;, demand_cost, demand_energy))
+    bill = filter(r -&gt; r.energy &gt; min_energy, bill)
+    bill.avg_price = bill.cost ./ bill.energy
+    return sort!(bill, :cost, rev = true)
+end
+
+&quot;Total annual electricity cost, Σ −flow × dual × weight over all withdrawals (\$/yr).&quot;
+electricity_cost(res, system) = sum(electricity_bill(res, system; min_energy = -Inf).cost)
+
+all_uses = electricity_bill(base, system; min_energy = -Inf)
+println(&quot;Total annual electricity cost: &quot;, fmt(electricity_cost(base, system) / 1e9; digits = 1), &quot; \$B/yr for &quot;,
+        fmt(sum(all_uses.energy) / 1e6), &quot; TWh (&quot;, fmt(sum(all_uses.cost) / sum(all_uses.energy); digits = 1), &quot; \$/MWh on average)&quot;)
+bill = electricity_bill(base, system)   # uses below 0.1 TWh/yr dropped from the table and charts
+println(transform(bill, :cost =&gt; ByRow(v -&gt; round(v / 1e9; digits = 2)) =&gt; :cost_B,
+                        :energy =&gt; ByRow(v -&gt; round(v / 1e6; digits = 1)) =&gt; :TWh,
+                        :avg_price =&gt; ByRow(v -&gt; round(v; digits = 1)) =&gt; :avg_price)[:, [:use, :cost_B, :TWh, :avg_price]])
+
+avg_all = avg_price(base, ELEC_NODES)
+p1 = hbar(bill.use, bill.cost ./ 1e9; digits = 1, title = &quot;Annual bill, \$B/yr&quot;)
+p2 = hbar(bill.use, bill.avg_price; digits = 1, title = &quot;Average price paid, \$/MWh&quot;, ref = avg_all,
+          ref_label = &quot;time-weighted average $(fmt(avg_all; digits = 1))&quot;)
+plot(p1, p2; layout = (1, 2), size = (1100, 110 + 30 * nrow(bill)))</code></pre></div></details><pre><code class="nohighlight hljs">Total annual electricity cost: 77.3 $B/yr for 2,399 TWh (32.2 $/MWh on average)
+3×4 DataFrame
+ Row │ use               cost_B   TWh      avg_price
+─────┼───────────────────────────────────────────────
+   1 │ End-use demand      76.62   2361.2       32.4
+   2 │ Battery charging     0.57     34.2       16.8
+   3 │ Other                0.11      3.4       32.2</code></pre><p><img src="../../images/tutorial_3/electricity_bill.png" alt="Annual electricity bill and average price paid, by use"/></p><h3 id="What-each-technology-earns-per-MWh"><a class="docs-heading-anchor" href="#What-each-technology-earns-per-MWh">What each technology earns per MWh</a><a id="What-each-technology-earns-per-MWh-1"></a><a class="docs-heading-anchor-permalink" href="#What-each-technology-earns-per-MWh" title="Permalink"></a></h3><p>The same formula on the supply side gives the average price each technology earns per MWh it delivers, known in power markets as its <em>capture price</em>.</p><div class="admonition is-success" id="Tip-829e5e16546fe0e1"><header class="admonition-header">Tip<a class="admonition-anchor" href="#Tip-829e5e16546fe0e1" title="Permalink"></a></header><div class="admonition-body"><p>Solar earns the least: it sells into the midday hours it floods itself. Batteries earn the most, selling into the few scarce hours.</p></div></div><details class="admonition is-details" id="Show-the-code-23f37295387c6628"><summary class="admonition-header">Show the code<a class="admonition-anchor" href="#Show-the-code-23f37295387c6628" title="Permalink"></a></summary><div class="admonition-body"><pre><code class="language-julia hljs">&quot;Average price earned per MWh delivered to the zone nodes, by technology group.&quot;
+function capture_prices(res)
+    f = res.flows
+    rows = f[in(ELEC_NODES).(f.node_out) .&amp; .!in(ELEC_NODES).(f.node_in) .&amp; (f.value .&gt; 0), :]
+    price = Dict(n =&gt; res.prices[!, n] for n in ELEC_NODES)
+    rows.revenue = rows.value .* [price[n][t] for (n, t) in zip(rows.node_out, rows.time)] .* res.weights[rows.time]
+    rows.group = tech_group.(rows.resource_type, rows.resource_id)
+    cp = combine(groupby(rows, :group), :revenue =&gt; sum =&gt; :revenue, :annual =&gt; sum =&gt; :energy)
+    cp = filter(r -&gt; r.energy &gt; 1e5, cp)                 # drop groups below 0.1 TWh/yr
+    cp.capture_price = cp.revenue ./ cp.energy
+    return cp
+end
+
+cp_base = capture_prices(base)
+hbar(cp_base.group, cp_base.capture_price; colors = [TECH_COLORS[g] for g in cp_base.group], digits = 1, ref = avg_all,
+     ref_label = &quot;time-weighted average $(fmt(avg_all; digits = 1))&quot;,
+     title = &quot;Average price earned per MWh delivered, \$/MWh&quot;)</code></pre></div></details><p><img src="../../images/tutorial_3/capture_prices.png" alt="Average price earned per MWh delivered, by technology"/></p><h3 id="Prices-by-hour-of-day"><a class="docs-heading-anchor" href="#Prices-by-hour-of-day">Prices by hour of day</a><a id="Prices-by-hour-of-day-1"></a><a class="docs-heading-anchor-permalink" href="#Prices-by-hour-of-day" title="Permalink"></a></h3><p>Prices by hour of day across the 21 modeled days. With gas setting the price in most hours, the range is narrow (colors are capped at the 95th percentile, about USD 50/MWh): midday solar pulls prices down in the winter and spring weeks, and summer evenings and nights are the most expensive.</p><details class="admonition is-details" id="Show-the-code-b4027a960a600077"><summary class="admonition-header">Show the code<a class="admonition-anchor" href="#Show-the-code-b4027a960a600077" title="Permalink"></a></summary><div class="admonition-body"><pre><code class="language-julia hljs">&quot;Heatmap of hourly electricity prices: hour of day × modeled day, one zone.&quot;
+function price_heatmap(res; zone = ZONE, clip_quantile = 0.95)
+    p = res.prices[!, &quot;elec_&quot; * zone]
+    ndays = length(p) ÷ 24
+    M = reshape(p[1:24 * ndays], 24, ndays)
+    cap = sort(p)[ceil(Int, clip_quantile * length(p))]
+    ramp = cgrad([&quot;#cde2fb&quot;, &quot;#86b6ef&quot;, &quot;#3987e5&quot;, &quot;#1c5cab&quot;, &quot;#0d366b&quot;])   # one hue, light → dark
+    h = heatmap(1:ndays, 0:23, min.(M, cap); color = ramp, clims = (0, cap), colorbar_title = &quot;\$/MWh&quot;,
+                xlabel = &quot;Modeled day&quot;, ylabel = &quot;Hour of day&quot;, yticks = 0:3:21, yflip = true, grid = false,
+                xticks = (4:7:ndays, [&quot;week $(w)&quot; for w in rep_weeks]),
+                title = &quot;$zone electricity price by hour (colors capped at the $(round(Int, 100 * clip_quantile))th percentile, $(fmt(cap)) \$/MWh)&quot;,
+                size = (950, 380))
+    vline!(h, [7.5, 14.5]; color = SURFACE, linewidth = 3, label = false)   # separate the representative weeks
+    return h
+end
+
+price_heatmap(base)</code></pre></div></details><p><img src="../../images/tutorial_3/price_heatmap.png" alt="SE electricity price by hour of day and modeled day"/></p><h3 id="Storage:-state-of-charge"><a class="docs-heading-anchor" href="#Storage:-state-of-charge">Storage: state of charge</a><a id="Storage:-state-of-charge-1"></a><a class="docs-heading-anchor-permalink" href="#Storage:-state-of-charge" title="Permalink"></a></h3><p>State of charge of each storage type, as a percentage of its own energy capacity, so very different sizes share one 0–100% scale. Levels are shown within each representative week, so each week is drawn separately.</p><div class="admonition is-info" id="Note-6c43e3069dd6486e"><header class="admonition-header">Note<a class="admonition-anchor" href="#Note-6c43e3069dd6486e" title="Permalink"></a></header><div class="admonition-body"><p>H₂ pipelines are modeled as small storage assets and are left out, as is any storage with no energy-capacity limit, or less than 1 GWh of it.</p></div></div><details class="admonition is-details" id="Show-the-code-c58e81c3ff94953c"><summary class="admonition-header">Show the code<a class="admonition-anchor" href="#Show-the-code-c58e81c3ff94953c" title="Permalink"></a></summary><div class="admonition-body"><pre><code class="language-julia hljs">&quot;Aggregate state of charge (% of energy capacity) by storage type over the modeled hours.&quot;
+function storage_soc(res)
+    sl = CSV.read(joinpath(res.dir, &quot;storage_level.csv&quot;), DataFrame)
+    sl = filter(r -&gt; !occursin(&quot;_to_&quot;, r.resource_id), sl)
+    kind(rt) = startswith(rt, &quot;Battery&quot;) ? &quot;Battery&quot; : startswith(rt, &quot;HydroRes&quot;) ? &quot;Hydro reservoirs&quot; :
+               startswith(rt, &quot;GasStorage&quot;) ? &quot;H₂ storage&quot; : rt
+    sl.kind = kind.(sl.resource_type)
+    cap = filter(r -&gt; r.variable == &quot;capacity&quot; &amp;&amp; occursin(&quot;Storage&quot;, r.component_type) &amp;&amp; !occursin(&quot;_to_&quot;, r.resource_id), res.capacity)
+    cap.kind = kind.(cap.resource_type)
+    capk = combine(groupby(cap, :kind), :value =&gt; sum =&gt; :capacity)
+    soc = combine(groupby(sl, [:kind, :time]), :value =&gt; sum =&gt; :level)
+    soc = innerjoin(soc, capk, on = :kind)
+    soc.pct = 100 .* soc.level ./ soc.capacity
+    return soc, capk
+end
+
+soc, storage_caps = storage_soc(base)
+println(transform(storage_caps, :capacity =&gt; ByRow(v -&gt; round(v / 1e3; digits = 1)) =&gt; :GWh)[:, [:kind, :GWh]])
+unlimited = storage_caps.kind[storage_caps.capacity .&lt; 1e3]   # MWh: no energy-capacity limit, or under 1 GWh
+isempty(unlimited) || println(&quot;Left out (no energy-capacity limit, or under 1 GWh): &quot;, join(unlimited, &quot;, &quot;))
+
+p = plot(; ylabel = &quot;% of energy capacity&quot;, ylims = (0, 100), xlabel = &quot;Modeled hour&quot;,
+         xticks = (84:168:504, [&quot;week $(w)&quot; for w in rep_weeks]), size = (950, 360),
+         title = &quot;Storage state of charge (each type relative to its own energy capacity)&quot;)
+for (i, k) in enumerate(setdiff(storage_caps.kind, unlimited))
+    s = sort(filter(r -&gt; r.kind == k, soc), :time)
+    for (j, week) in enumerate(td.subperiods)          # one segment per representative week
+        w = filter(r -&gt; r.time in week, s)
+        plot!(p, w.time, w.pct; color = THREE[i], linewidth = 1.5, label = j == 1 ? k : false)
+    end
+end
+vline!(p, [168.5, 336.5]; color = HAIRLINE, linewidth = 1, label = false)
+p</code></pre></div></details><pre><code class="nohighlight hljs">3×2 DataFrame
+ Row │ kind              GWh
+─────┼───────────────────────────
+   1 │ Battery             228.0
+   2 │ H₂ storage            0.0
+   3 │ Hydro reservoirs      0.0
+Left out (no energy-capacity limit, or under 1 GWh): H₂ storage, Hydro reservoirs</code></pre><p><img src="../../images/tutorial_3/storage_state_of_charge.png" alt="Storage state of charge over the modeled hours"/></p><h3 id="Hydrogen:-production-pathways-and-uses"><a class="docs-heading-anchor" href="#Hydrogen:-production-pathways-and-uses">Hydrogen: production pathways and uses</a><a id="Hydrogen:-production-pathways-and-uses-1"></a><a class="docs-heading-anchor-permalink" href="#Hydrogen:-production-pathways-and-uses" title="Permalink"></a></h3><p>Annual hydrogen production (left) and use (right), all zones combined, on one shared scale.</p><div class="admonition is-success" id="Tip-7514605660c33dfd"><header class="admonition-header">Tip<a class="admonition-anchor" href="#Tip-7514605660c33dfd" title="Permalink"></a></header><div class="admonition-body"><p>Without a cap, all hydrogen comes from unabated gas reforming (SMR), and it only serves direct hydrogen demand.</p></div></div><details class="admonition is-details" id="Show-the-code-d8d6c898268b8aaf"><summary class="admonition-header">Show the code<a class="admonition-anchor" href="#Show-the-code-d8d6c898268b8aaf" title="Permalink"></a></summary><div class="admonition-body"><pre><code class="language-julia hljs">function h2_source(rt, id)
+    base = first(split(String(rt), &#39;{&#39;))
+    base == &quot;Electrolyzer&quot;       &amp;&amp; return &quot;Electrolysis&quot;
+    base == &quot;ThermalHydrogenCCS&quot; &amp;&amp; return occursin(&quot;ATR&quot;, String(id)) ? &quot;Gas ATR + CCS&quot; : &quot;Gas SMR + CCS&quot;
+    base == &quot;ThermalHydrogen&quot;    &amp;&amp; return &quot;Gas SMR (unabated)&quot;
+    base == &quot;BECCSHydrogen&quot;      &amp;&amp; return &quot;Biomass gasification + CCS&quot;
+    base == &quot;GasStorage&quot;         &amp;&amp; return nothing       # storage and pipelines only move H₂
+    return &quot;Other&quot;
+end
+function h2_use(rt, id)
+    base = first(split(String(rt), &#39;{&#39;))
+    base == &quot;SyntheticNaturalGas&quot;  &amp;&amp; return &quot;Synthetic methane&quot;
+    base == &quot;SyntheticLiquidFuels&quot; &amp;&amp; return &quot;Synthetic liquid fuels&quot;
+    base == &quot;ThermalPower&quot;         &amp;&amp; return &quot;H₂ turbines&quot;
+    base == &quot;GasStorage&quot;           &amp;&amp; return nothing
+    return &quot;Other&quot;
+end
+
+h2_src, h2_uses = sources_and_uses(base, H2_NODES, h2_source, h2_use)
+push!(h2_uses, (&quot;End-use demand&quot;, annual_demand(system, base.weights, H2_NODES) / 1e6))
+xmax, rows = maximum(vcat(h2_src.annual, h2_uses.annual)), max(nrow(h2_src), nrow(h2_uses))
+plot(hbar(h2_src.label, h2_src.annual; title = &quot;Production, TWh-H₂/yr&quot;, xmax, rows),
+     hbar(h2_uses.label, h2_uses.annual; title = &quot;Use, TWh-H₂/yr&quot;, xmax, rows);
+     layout = (1, 2), size = (1100, 80 + 30 * rows))</code></pre></div></details><p><img src="../../images/tutorial_3/hydrogen_supply_and_use.png" alt="Annual hydrogen production and use, with no CO₂ cap"/></p><h3 id="tutorial3-costs"><a class="docs-heading-anchor" href="#tutorial3-costs">Costs</a><a id="tutorial3-costs-1"></a><a class="docs-heading-anchor-permalink" href="#tutorial3-costs" title="Permalink"></a></h3><ul><li><code>costs.csv</code> holds the objective, split into fixed and variable costs.</li><li><code>costs_by_type.csv</code> breaks costs down by asset type and category.</li></ul><p>Without a cap, fuel and feedstock purchases (<code>Fuel</code>) are the largest cost.</p><pre><code class="language-julia hljs">breakdown = unstack(filter(r -&gt; r.type == &quot;Total&quot;, base.costs_by_type), :type, :value)
+println(&quot;Objective:              &quot;, round(objective(base) / 1e9; digits = 1), &quot; \$B/yr&quot;)
+select!(transform(breakdown, :Total =&gt; ByRow(v -&gt; round(v / 1e9; digits = 2)) =&gt; &quot;Total \$B/yr&quot;), Not(:Total))</code></pre><pre><code class="nohighlight hljs">Objective:              212.9 $B/yr
+6×2 DataFrame
+ Row │ category    Total $B/yr
+─────┼─────────────────────────
+   1 │ VariableOM         9.06
+   2 │ Fuel             137.69
+   3 │ Investment        39.09
+   4 │ FixedOM           26.33
+   5 │ Startup            0.76
+   6 │ Total            212.93</code></pre><pre><code class="language-julia hljs">capital = filter(r -&gt; r.category in (&quot;Investment&quot;, &quot;FixedOM&quot;) &amp;&amp; r.type != &quot;Total&quot; &amp;&amp; !startswith(r.type, &quot;Node&quot;), base.costs_by_type)
+capital.group = capital.type   # e.g. ThermalPower{Uranium} is nuclear, ThermalPower{Hydrogen} is H₂ turbines
+by_type = sort(combine(groupby(capital, :group), :value =&gt; (v -&gt; sum(v) / 1e9) =&gt; :B), :B, rev = true)
+top = first(by_type, 10)
+nrow(by_type) &gt; 10 &amp;&amp; push!(top, (&quot;Other ($(nrow(by_type) - 10) types)&quot;, sum(by_type.B[11:end])))
+println(&quot;Total capital cost: &quot;, fmt(sum(by_type.B); digits = 1), &quot; \$B/yr&quot;)
+hbar(top.group, top.B; digits = 1, title = &quot;Capital cost (investment + fixed O&amp;M) by asset type, \$B/yr&quot;)</code></pre><pre><code class="nohighlight hljs">Total capital cost: 65.4 $B/yr</code></pre><p><img src="../../images/tutorial_3/capital_cost.png" alt="Capital cost by asset type"/></p><h2 id="5.-Scenario:-adding-the-CO-cap"><a class="docs-heading-anchor" href="#5.-Scenario:-adding-the-CO-cap">5. Scenario: adding the CO₂ cap</a><a id="5.-Scenario:-adding-the-CO-cap-1"></a><a class="docs-heading-anchor-permalink" href="#5.-Scenario:-adding-the-CO-cap" title="Permalink"></a></h2><div class="admonition is-success" id="Tip-6c901278f18f0800"><header class="admonition-header">Tip<a class="admonition-anchor" href="#Tip-6c901278f18f0800" title="Permalink"></a></header><div class="admonition-body"><p>With plain-file inputs, a scenario is a small edit.</p></div></div><p>So far the system had no climate policy. This run uses the case as shipped, with the CO₂ cap on the atmosphere node: zero net emissions, soft at USD 1,000 per tonne. That entry in <code>nodes.json</code> is the only difference from the first run:</p><pre><code class="language-julia hljs">cap_dir = prepare_case(&quot;co2_cap&quot;)      # the case as shipped: CO₂ cap on co2_sink
+co2_sink_entry(dir) = only(n for b in ME.JSON3.read(read(joinpath(dir, &quot;system&quot;, &quot;nodes.json&quot;), String)).nodes
+                             for n in b.instance_data if n.id == &quot;co2_sink&quot;)
+println(&quot;First run (no cap):&quot;); ME.JSON3.pretty(stdout, co2_sink_entry(base_dir))
+println(&quot;\n\nThis run:&quot;);        ME.JSON3.pretty(stdout, co2_sink_entry(cap_dir))</code></pre><pre><code class="nohighlight hljs">First run (no cap):
+{
+    &quot;constraints&quot;: {
+        &quot;BalanceConstraint&quot;: false,
+        &quot;CO2CapConstraint&quot;: false
+    },
+    &quot;id&quot;: &quot;co2_sink&quot;
+}
+
+This run:
+{
+    &quot;constraints&quot;: {
+        &quot;BalanceConstraint&quot;: false,
+        &quot;CO2CapConstraint&quot;: true
+    },
+    &quot;id&quot;: &quot;co2_sink&quot;,
+    &quot;rhs_policy&quot;: {
+        &quot;CO2CapConstraint&quot;: 0
+    },
+    &quot;price_unmet_policy&quot;: {
+        &quot;CO2CapConstraint&quot;: 1000
+    }
+}</code></pre><pre><code class="language-julia hljs">t0 = time()
+case_cap, model_cap = run_case(cap_dir; optimizer = HiGHS.Optimizer, optimizer_attributes = HIGHS_OPTIONS, log_to_file = false)
+println(&quot;run_case took &quot;, round(time() - t0; digits = 1), &quot; s; status &quot;, ME.JuMP.termination_status(model_cap))
+capped = load_results(cap_dir);</code></pre><h3 id="No-cap-vs.-cap"><a class="docs-heading-anchor" href="#No-cap-vs.-cap">No cap vs. cap</a><a id="No-cap-vs.-cap-1"></a><a class="docs-heading-anchor-permalink" href="#No-cap-vs.-cap" title="Permalink"></a></h3><p>The headline numbers for both runs, plus the total electricity bill. The last column is what the cap changes:</p><pre><code class="language-julia hljs">with_bill(h, res, sys) = vcat(h, DataFrame(metric = &quot;Total electricity cost&quot;, value = electricity_cost(res, sys) / 1e9, unit = &quot;\$B/yr&quot;))
+cmp = innerjoin(rename(with_bill(base_headline, base, system), :value =&gt; :no_cap),
+                select(rename(with_bill(headline(capped), capped, case_cap.systems[1]), :value =&gt; :co2_cap), Not(:unit)),
+                on = :metric)
+cmp.change = cmp.co2_cap .- cmp.no_cap
+select!(cmp, :metric, :no_cap, :co2_cap, :change, :unit)
+transform(cmp, [:no_cap, :co2_cap, :change] .=&gt; ByRow(v -&gt; round(v; sigdigits = 4)); renamecols = false)</code></pre><pre><code class="nohighlight hljs">12×5 DataFrame
+ Row │ metric                                 no_cap       co2_cap  change   unit
+─────┼────────────────────────────────────────────────────────────────────────────────
+   1 │ Objective (system cost + CO₂ penalty)  212.9         491.9    279.0   $B/yr
+   2 │ System cost (excl. CO₂ penalty)        212.9         308.0     95.09  $B/yr
+   3 │ CO₂ penalty paid                         0.0         183.9    183.9   $B/yr
+   4 │ CO₂ price (shadow price of the cap)      0.0        1000.0   1000.0   $/t
+   5 │ Net CO₂ emissions                      684.7         183.9   -500.8   Mt/yr
+   6 │ CO₂ into geologic storage                4.259e-16    40.76    40.76  Mt/yr
+   7 │ Avg. electricity price                  32.94         55.55    22.61  $/MWh
+   8 │ Avg. hydrogen price                     25.57         47.58    22.01  $/MWh-H₂
+   9 │ New solar + wind                       387.6        1022.0    633.9   GW
+  10 │ New nuclear                              0.0          70.91    70.91  GW
+  11 │ Retired natural-gas power               17.48        195.7    178.3   GW
+  12 │ Total electricity cost                  77.3         174.8     97.47  $B/yr</code></pre><h3 id="What-the-cap-changes"><a class="docs-heading-anchor" href="#What-the-cap-changes">What the cap changes</a><a id="What-the-cap-changes-1"></a><a class="docs-heading-anchor-permalink" href="#What-the-cap-changes" title="Permalink"></a></h3><div class="admonition is-success" id="Tip-6c294c5716491914"><header class="admonition-header">Tip<a class="admonition-anchor" href="#Tip-6c294c5716491914" title="Permalink"></a></header><div class="admonition-body"><p><strong>Emissions fall by 73%, from 685 to 184 Mt/yr.</strong> Total cost rises from USD 213 to USD 492 billion a year: USD 95 billion more for the system itself, plus the USD 184 billion penalty on the emissions that remain.</p></div></div><ul><li><strong>Power is rebuilt:</strong> about 425 GW more solar, 210 GW more wind and 110 GW more nuclear, while almost 180 GW of gas plants go.</li><li><strong>The existing nuclear fleet stays:</strong> without the cap, 41 of its 62 GW retire.</li><li><strong>Electricity gets expensive:</strong> the average price rises from USD 33 to USD 56/MWh, and the total electricity bill more than doubles, from USD 77 to USD 175 billion a year.</li></ul><pre><code class="language-julia hljs">cap_co2 = capacity_by_tech(capped)
+delta = outerjoin(select(cap_base, :group, :capacity =&gt; :no_cap), select(cap_co2, :group, :capacity =&gt; :co2_cap), on = :group)
+delta.change = coalesce.(delta.co2_cap, 0.0) .- coalesce.(delta.no_cap, 0.0)
+println(select(delta, :group, [:no_cap, :co2_cap, :change] .=&gt; ByRow(v -&gt; ismissing(v) ? v : round(v; digits = 1)); renamecols = false))
+delta = filter(r -&gt; abs(r.change) &gt; 0.05, delta)
+hbar(delta.group, delta.change; colors = [TECH_COLORS[g] for g in delta.group], digits = 1, unit = &quot; GW&quot;,
+     title = &quot;Change in optimal electricity capacity with the CO₂ cap (vs. no cap), GW&quot;)</code></pre><pre><code class="nohighlight hljs">7×4 DataFrame
+ Row │ group        no_cap   co2_cap  change
+─────┼────────────────────────────────────────
+   1 │ Nuclear         20.7    132.5    111.8
+   2 │ Hydro           38.7     38.7      0.0
+   3 │ Natural gas    192.2     14.8   -177.4
+   4 │ Wind           277.9    486.2    208.2
+   5 │ H₂ turbines      0.0     25.8     25.8
+   6 │ Solar          129.7    555.4    425.7
+   7 │ Battery         14.7     36.4     21.7</code></pre><p><img src="../../images/tutorial_3/capacity_change.png" alt="Change in optimal electricity capacity with the CO₂ cap"/></p><h3 id="The-cap-couples-the-sectors"><a class="docs-heading-anchor" href="#The-cap-couples-the-sectors">The cap couples the sectors</a><a id="The-cap-couples-the-sectors-1"></a><a class="docs-heading-anchor-permalink" href="#The-cap-couples-the-sectors" title="Permalink"></a></h3><p>Without a cap, electricity serves almost only ordinary demand. With the cap, electrolyzers appear, and hydrogen moves from gas to electricity:</p><details class="admonition is-details" id="Show-the-code-789340c0bf53b181"><summary class="admonition-header">Show the code<a class="admonition-anchor" href="#Show-the-code-789340c0bf53b181" title="Permalink"></a></summary><div class="admonition-body"><pre><code class="language-julia hljs">&quot;Annual electricity use by label (TWh/yr), end-use demand included.&quot;
+function electricity_uses(res, sys)
+    uses = sources_and_uses(res, ELEC_NODES, tech_group, elec_use)[2]
+    push!(uses, (&quot;End-use demand&quot;, annual_demand(sys, res.weights, ELEC_NODES) / 1e6))
+    return uses
+end
+
+u = outerjoin(rename(electricity_uses(base, system), :annual =&gt; :no_cap),
+              rename(electricity_uses(capped, case_cap.systems[1]), :annual =&gt; :co2_cap), on = :label)
+u.no_cap, u.co2_cap = coalesce.(u.no_cap, 0.0), coalesce.(u.co2_cap, 0.0)
+u = u[sortperm(u.co2_cap; rev = true), :]
+for (name, res) in ((&quot;No cap&quot;, base), (&quot;CO₂ cap&quot;, capped))
+    h2 = sort(sources_and_uses(res, H2_NODES, h2_source, h2_use)[1], :annual, rev = true)
+    println(rpad(name, 9), &quot;hydrogen from: &quot;, join([&quot;$(r.label) $(fmt(r.annual)) TWh&quot; for r in eachrow(h2)], &quot;, &quot;))
+end
+hbar_pair(u.label, u.no_cap, u.co2_cap; colors = fill(BAR, nrow(u)), ref_label = &quot;No cap&quot;, label = &quot;CO₂ cap&quot;, unit = &quot; TWh&quot;,
+          title = &quot;Electricity use, no cap vs. CO₂ cap, TWh/yr&quot;)</code></pre></div></details><pre><code class="nohighlight hljs">No cap   hydrogen from: Gas SMR (unabated) 210 TWh
+CO₂ cap  hydrogen from: Electrolysis 1,153 TWh</code></pre><p><img src="../../images/tutorial_3/electricity_use_comparison.png" alt="Electricity use with no cap and with the CO₂ cap"/></p><h3 id="The-carbon-balance"><a class="docs-heading-anchor" href="#The-carbon-balance">The carbon balance</a><a id="The-carbon-balance-1"></a><a class="docs-heading-anchor-permalink" href="#The-carbon-balance" title="Permalink"></a></h3><p>The case tracks two CO₂ commodities:</p><table><tr><th style="text-align: left">Commodity</th><th style="text-align: left">What it is</th><th style="text-align: left">Goes in</th><th style="text-align: left">Comes out</th></tr><tr><td style="text-align: left"><strong><code>CO2</code></strong></td><td style="text-align: left">the atmosphere (<code>co2_sink</code>), where the cap applies</td><td style="text-align: left">combustion</td><td style="text-align: left">direct air capture (DAC) and bioenergy with CCS (BECCS)</td></tr><tr><td style="text-align: left"><strong><code>CO2Captured</code></strong></td><td style="text-align: left">CO₂ in pipelines, after capture</td><td style="text-align: left">capture plants</td><td style="text-align: left">geologic storage (limited per site by <code>CO2StorageConstraint</code>) or synthetic fuels</td></tr></table><p>Annual CO₂ flows into (+) and out of (−) the atmosphere, without and with the cap:</p><details class="admonition is-details" id="Show-the-code-95e053fe36c63687"><summary class="admonition-header">Show the code<a class="admonition-anchor" href="#Show-the-code-95e053fe36c63687" title="Permalink"></a></summary><div class="admonition-body"><pre><code class="language-julia hljs">const CO2_LABELS = Dict(
+    &quot;DownstreamEmissions{Gasoline}&quot; =&gt; &quot;Gasoline end use&quot;, &quot;DownstreamEmissions{Diesel}&quot; =&gt; &quot;Diesel end use&quot;,
+    &quot;DownstreamEmissions{JetFuel}&quot; =&gt; &quot;Jet fuel end use&quot;, &quot;DownstreamEmissions{NaturalGas}&quot; =&gt; &quot;Natural gas end use&quot;,
+    &quot;SyntheticNaturalGas&quot; =&gt; &quot;Synthetic methane plants&quot;, &quot;SyntheticLiquidFuels&quot; =&gt; &quot;Synthetic liquid fuel plants&quot;,
+    &quot;ThermalPower{NaturalGas}&quot; =&gt; &quot;Gas power&quot;, &quot;ThermalPowerCCS{NaturalGas}&quot; =&gt; &quot;Gas power + CCS&quot;,
+    &quot;ThermalHydrogen{NaturalGas}&quot; =&gt; &quot;H₂ from gas&quot;, &quot;ThermalHydrogenCCS{NaturalGas}&quot; =&gt; &quot;H₂ from gas + CCS&quot;,
+    &quot;BECCSLiquidFuels&quot; =&gt; &quot;BECCS liquid fuels&quot;, &quot;BECCSGasoline&quot; =&gt; &quot;BECCS gasoline&quot;, &quot;BECCSHydrogen&quot; =&gt; &quot;BECCS hydrogen&quot;,
+    &quot;BECCSElectricity&quot; =&gt; &quot;BECCS power&quot;, &quot;BECCSNaturalGas&quot; =&gt; &quot;BECCS methane&quot;,
+    &quot;ElectricDAC&quot; =&gt; &quot;DAC (electric)&quot;, &quot;NaturalGasDAC&quot; =&gt; &quot;DAC (gas-fired)&quot;)
+
+&quot;Net annual flow into the atmosphere by source (Mt/yr): positive = emission, negative = removal.&quot;
+function atmosphere_balance(res; min_mt = 0.5)
+    f = res.flows[(res.flows.node_in .== &quot;co2_sink&quot;) .| (res.flows.node_out .== &quot;co2_sink&quot;), :]
+    f.label = [get(CO2_LABELS, rt, rt) for rt in f.resource_type]
+    by = combine(groupby(f, :label), :annual =&gt; (x -&gt; sum(x) / 1e6) =&gt; :Mt)
+    small = abs.(by.Mt) .&lt; min_mt
+    any(small) &amp;&amp; (by = vcat(by[.!small, :], DataFrame(label = &quot;Other (&lt; $(min_mt) Mt each)&quot;, Mt = sum(by.Mt[small]))))
+    return by
+end
+
+for (name, res) in ((&quot;No cap&quot;, base), (&quot;CO₂ cap&quot;, capped))
+    by = atmosphere_balance(res)
+    println(rpad(name, 9) * &quot;emissions &quot; * fmt(sum(filter(&gt;(0), by.Mt); init = 0.0)) * &quot; Mt, removals &quot; *
+            fmt(-sum(filter(&lt;(0), by.Mt); init = 0.0)) * &quot; Mt, net &quot; * fmt(sum(by.Mt); digits = 1) * &quot; Mt/yr&quot;)
+end
+
+# Both runs on the same rows: sources below 0.5 Mt/yr in both runs are grouped
+both = outerjoin(rename(atmosphere_balance(base; min_mt = 0), :Mt =&gt; :no_cap),
+                 rename(atmosphere_balance(capped; min_mt = 0), :Mt =&gt; :co2_cap), on = :label)
+both.no_cap, both.co2_cap = coalesce.(both.no_cap, 0.0), coalesce.(both.co2_cap, 0.0)
+small = max.(abs.(both.no_cap), abs.(both.co2_cap)) .&lt; 0.5
+any(small) &amp;&amp; (both = vcat(both[.!small, :], DataFrame(label = &quot;Other (&lt; 0.5 Mt each)&quot;, no_cap = sum(both.no_cap[small]), co2_cap = sum(both.co2_cap[small]))))
+both = both[sortperm(both.no_cap .+ both.co2_cap; rev = true), :]
+hbar_pair(both.label, both.no_cap, both.co2_cap; colors = [v &gt; 0 ? EMIT : REMOVE for v in both.co2_cap],
+          ref_label = &quot;No cap&quot;, label = &quot;CO₂ cap (red: emission, blue: removal)&quot;, digits = 1, unit = &quot; Mt&quot;,
+          title = &quot;Annual CO₂ flows into (+) and out of (−) the atmosphere, Mt/yr&quot;)</code></pre></div></details><pre><code class="nohighlight hljs">No cap   emissions 808 Mt, removals 123 Mt, net 684.7 Mt/yr
+CO₂ cap  emissions 478 Mt, removals 294 Mt, net 183.9 Mt/yr</code></pre><p><img src="../../images/tutorial_3/co2_balance.png" alt="Annual CO₂ flows into and out of the atmosphere, with no cap and with the CO₂ cap"/></p><div class="admonition is-success" id="Tip-298a85e25e3c30f0"><header class="admonition-header">Tip<a class="admonition-anchor" href="#Tip-298a85e25e3c30f0" title="Permalink"></a></header><div class="admonition-body"><p>Emissions from burning fuels don&#39;t change: fuel demand is fixed. The cap all but removes the emissions from gas power (287 → 1 Mt) and from hydrogen made from gas (49 → 0 Mt), and pays for removals: BECCS and direct air capture.</p></div></div><div class="admonition is-info" id="Note-a9de3655f544f6a3"><header class="admonition-header">Note<a class="admonition-anchor" href="#Note-a9de3655f544f6a3" title="Permalink"></a></header><div class="admonition-body"><p>Even without the cap, some gasoline is made from biomass: the CO₂ its biomass absorbed shows up as a removal (123 Mt), and it&#39;s emitted again when that gasoline burns.</p></div></div><h4 id="Captured-CO:-where-it-comes-from-and-where-it-goes"><a class="docs-heading-anchor" href="#Captured-CO:-where-it-comes-from-and-where-it-goes">Captured CO₂: where it comes from and where it goes</a><a id="Captured-CO:-where-it-comes-from-and-where-it-goes-1"></a><a class="docs-heading-anchor-permalink" href="#Captured-CO:-where-it-comes-from-and-where-it-goes" title="Permalink"></a></h4><p>Without the cap, nothing is captured. With it, about 170 Mt/yr is, mostly at BECCS fuel plants. Geologic storage is capped at 40.8 Mt/yr, so most captured CO₂ becomes synthetic methane instead, and the captured-CO₂ markets clear at a negative price (their balance dual): whoever brings captured CO₂ pays to get rid of it. It&#39;s a liability, not a resource.</p><details class="admonition is-details" id="Show-the-code-f959b5c1169a9980"><summary class="admonition-header">Show the code<a class="admonition-anchor" href="#Show-the-code-f959b5c1169a9980" title="Permalink"></a></summary><div class="admonition-body"><pre><code class="language-julia hljs">&quot;Where captured CO₂ comes from and where it goes (Mt/yr).&quot;
+function captured_co2(res)
+    f = res.flows[res.flows.commodity .== &quot;CO2Captured&quot;, :]
+    nodes = unique(filter(startswith(&quot;co2_captured_&quot;), vcat(f.node_in, f.node_out)))
+    captured = combine(groupby(f[in(nodes).(f.node_out) .&amp; .!in(nodes).(f.node_in), :], :resource_type), :annual =&gt; (x -&gt; sum(x) / 1e6) =&gt; :Mt)
+    fate = combine(groupby(f[in(nodes).(f.node_in) .&amp; .!in(nodes).(f.node_out), :], :resource_type), :annual =&gt; (x -&gt; -sum(x) / 1e6) =&gt; :Mt)
+    return (captured = sort!(filter(r -&gt; r.Mt &gt; 0.05, captured), :Mt, rev = true),
+            fate = sort!(filter(r -&gt; r.Mt &gt; 0.05, fate), :Mt, rev = true))
+end
+
+cc = captured_co2(capped)
+storage_limit = sum(ME.rhs_policy(n)[CO2StorageConstraint] for n in case_cap.systems[1].locations
+                    if n isa Node &amp;&amp; haskey(ME.rhs_policy(n), CO2StorageConstraint))
+println(&quot;Captured without the cap: &quot;, fmt(sum(captured_co2(base).captured.Mt; init = 0.0); digits = 1), &quot; Mt/yr&quot;)
+println(&quot;Captured with the cap:    &quot;, fmt(sum(cc.captured.Mt); digits = 1), &quot; Mt/yr&quot;)
+println(cc.captured)
+println(&quot;\nDestination (CO2Injection = geologic storage; limit across all sites: &quot;, fmt(storage_limit / 1e6; digits = 1), &quot; Mt/yr)&quot;)
+println(cc.fate)
+println(&quot;\nMarginal value of captured CO₂ with the cap (balance dual), \$/t: &quot;,
+        join([&quot;$z $(fmt(sum(capped.prices[!, &quot;co2_captured_&quot; * z] .* capped.weights) / sum(capped.weights)))&quot; for z in ZONES], &quot;, &quot;))</code></pre></div></details><pre><code class="nohighlight hljs">Captured without the cap: 0.0 Mt/yr
+Captured with the cap:    168.3 Mt/yr
+5×2 DataFrame
+ Row │ resource_type                Mt
+─────┼─────────────────────────────────────────
+   1 │ BECCSLiquidFuels             142.558
+   2 │ NaturalGasDAC                 17.1546
+   3 │ ElectricDAC                    6.37358
+   4 │ BECCSElectricity               2.08959
+   5 │ ThermalPowerCCS{NaturalGas}    0.107343
+
+Destination (CO2Injection = geologic storage; limit across all sites: 40.8 Mt/yr)
+3×2 DataFrame
+ Row │ resource_type         Mt
+─────┼──────────────────────────────────
+   1 │ SyntheticNaturalGas   127.177
+   2 │ CO2Injection           40.7641
+   3 │ SyntheticLiquidFuels    0.342617
+
+Marginal value of captured CO₂ with the cap (balance dual), $/t: SE −718, MIDAT −589, NE −515</code></pre><h3 id="Who-earns-more-with-the-cap"><a class="docs-heading-anchor" href="#Who-earns-more-with-the-cap">Who earns more with the cap</a><a id="Who-earns-more-with-the-cap-1"></a><a class="docs-heading-anchor-permalink" href="#Who-earns-more-with-the-cap" title="Permalink"></a></h3><p>Prices rise in the hours when clean supply is scarce, so the technologies that can run then gain most. The average price nuclear earns per MWh roughly triples and batteries&#39; more than doubles, while solar&#39;s barely moves:</p><pre><code class="language-julia hljs">cp_cmp = outerjoin(select(cp_base, :group, :capture_price =&gt; :no_cap), select(capture_prices(capped), :group, :capture_price =&gt; :co2_cap), on = :group)
+cp_cmp = sort!(dropmissing(cp_cmp), order(:group, by = g -&gt; findfirst(==(g), TECH_ORDER)))
+hbar_pair(cp_cmp.group, cp_cmp.no_cap, cp_cmp.co2_cap; colors = [TECH_COLORS[g] for g in cp_cmp.group],
+          ref_label = &quot;No cap&quot;, label = &quot;CO₂ cap (colored by technology)&quot;, digits = 1,
+          title = &quot;Average price earned per MWh, no cap vs. CO₂ cap, \$/MWh&quot;)</code></pre><p><img src="../../images/tutorial_3/capture_prices_comparison.png" alt="Average price earned per MWh with no cap and with the CO₂ cap, by technology"/></p><h2 id="How-to-read-this-case"><a class="docs-heading-anchor" href="#How-to-read-this-case">How to read this case</a><a id="How-to-read-this-case-1"></a><a class="docs-heading-anchor-permalink" href="#How-to-read-this-case" title="Permalink"></a></h2><p>This is a <strong>stylized end state</strong> for showing what Macro can do, not a forecast.</p><table><tr><th style="text-align: left">Simplification</th><th style="text-align: left">What it means</th><th style="text-align: left">To relax it</th></tr><tr><td style="text-align: left"><strong>One planning step</strong></td><td style="text-align: left">The system is rebuilt in a single period, with no limits on how fast capacity can be built or on land use.</td><td style="text-align: left"><code>&quot;ExpansionHorizon&quot;: &quot;Myopic&quot;</code> with several periods gives a pathway instead.</td></tr><tr><td style="text-align: left"><strong>Fixed end-use demand</strong></td><td style="text-align: left">Electricity (~2,360 TWh/yr) and the demand for gasoline, diesel, jet fuel and gas stay close to today&#39;s levels, with no electrification of transport or heat. All of the decarbonization falls on the supply side and on negative emissions.</td><td style="text-align: left">Edit the demand time series in <code>system/</code>.</td></tr><tr><td style="text-align: left"><strong>Existing pumped hydro only</strong></td><td style="text-align: left">Pumped-hydro plants keep their current power and 15.5 hours of storage (the default PowerGenome uses for existing plants); no new pumped hydro is built.</td><td style="text-align: left">Edit <code>assets/electricity_stor.csv</code>.</td></tr><tr><td style="text-align: left"><strong>Three representative weeks</strong></td><td style="text-align: left">Storage and renewable adequacy are only tested against 504 hours.</td><td style="text-align: left">Swap in full-year time series and a matching <code>system/time_data.json</code>.</td></tr><tr><td style="text-align: left"><strong>A very high carbon price</strong> (section 5)</td><td style="text-align: left">USD 1,000/t is several times common estimates of the social cost of carbon.</td><td style="text-align: left">Lower <code>CO2_PENALTY</code> (e.g. to 200).</td></tr></table><h2 id="Where-to-go-next"><a class="docs-heading-anchor" href="#Where-to-go-next">Where to go next</a><a id="Where-to-go-next-1"></a><a class="docs-heading-anchor-permalink" href="#Where-to-go-next" title="Permalink"></a></h2><p>All of these are keys in <code>settings/case_settings.json</code> (this case doesn&#39;t ship one, so it runs on the defaults), except the last row.</p><table><tr><th style="text-align: left">To…</th><th style="text-align: left">Use</th></tr><tr><td style="text-align: left"><strong>Decompose</strong> planning from operations</td><td style="text-align: left"><code>&quot;SolutionAlgorithm&quot;: &quot;Benders&quot;</code>; subproblems can run in parallel (<code>Distributed</code>)</td></tr><tr><td style="text-align: left"><strong>Plan over several periods</strong></td><td style="text-align: left"><code>&quot;ExpansionHorizon&quot;: &quot;Myopic&quot;</code> solves one period at a time and carries capacity forward; <code>PerfectForesight</code> optimizes all periods jointly</td></tr><tr><td style="text-align: left"><strong>Get full-year outputs</strong></td><td style="text-align: left"><code>&quot;WriteFullTimeseries&quot;: true</code> expands representative-week results to all 8,760 hours</td></tr><tr><td style="text-align: left"><strong>Improve conditioning</strong></td><td style="text-align: left"><code>&quot;ParameterScaling&quot;: true</code> rescales costs and quantities before the solve and undoes it in the outputs</td></tr><tr><td style="text-align: left"><strong>Add your own technologies</strong></td><td style="text-align: left">put asset definitions in <code>user_additions/</code> inside the case folder, and they&#39;re loaded with the case. No package changes needed.</td></tr></table><script type="module">import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11.16.1/dist/mermaid.esm.min.mjs';
+mermaid.initialize({
+    startOnLoad: true,
+    theme: "neutral"
+});
+</script></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../2_multisector_modelling/">« Multisector Modelling</a><a class="docs-footer-nextpage" href="../../Guides/guides_introduction/">Introduction »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.19.0 on <span class="colophon-date" title="Thursday 5 November 2026 21:09">Thursday 5 November 2026</span>. Using Julia version 1.13.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
