@@ -88,7 +88,7 @@ Pages = [
     "Tutorials/0_getting_started.md",
     "Tutorials/1_running_macro.md",
     "Tutorials/2_multisector_modelling.md",
-    "Tutorials/3_advanced_features.md"
+    "Tutorials/3_macro_showcase.md"
 ]
 Depth = 2
 ```
