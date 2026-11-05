@@ -10,6 +10,7 @@ and this project follows Julia package versioning through `Project.toml` release
 ### Added
 
 - Added a `commodities` object to location inputs for defining commodity nodes directly in `locations.json`, including demand, supply segments, time series, and node constraints. Empty objects use existing node defaults and generate `<location>_<commodity>` node IDs; explicit IDs override the default. Existing location-name strings and independent `nodes.json` definitions remain supported.
+- Added `write_json(io::IO, data::AbstractDict)` for writing JSON to a caller-owned stream without closing it.
 
 ### Fixed
 
@@ -25,6 +26,7 @@ and this project follows Julia package versioning through `Project.toml` release
 
 - Extended DuckDB.jl compatibility to include 2.x (`DuckDB = "1, 2"`). Environments that resolve DuckDB.jl 2.x read CSV inputs with the bundled DuckDB 2.0 engine.
 - Automatically created commodity nodes now use `<location>_<commodity>` IDs instead of reusing the location ID.
+- Location entries are normalized into a validated `LocationInput` with a required nonempty string ID and optional constraint and commodity dictionaries. Programmatic location dictionaries must use symbol keys, matching parsed JSON inputs; location-name strings remain supported.
 - Location loading now creates each location and its declared nodes before loading independent nodes and assets. Node and location IDs share one namespace, with collisions rejected by both registration methods. Input validation also rejects duplicate commodity nodes within a location and conflicting location assignments as objects are loaded or registered.
 - Multi-System TDR copies configured asset directories to `inputs/system_<n>/assets`, avoiding repeated source directory names such as `assets/assets_1` when the destination is free of other dependencies.
 
