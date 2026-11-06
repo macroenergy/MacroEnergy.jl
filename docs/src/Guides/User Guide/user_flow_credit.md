@@ -144,12 +144,6 @@ The interface multiplies each input bound by ``\mathrm{DF}_p\mathrm{PVAF}_p/S^2`
 
 Macro validates the bound format and finite values, but does not derive or prove a bound. A Benders model with positive flow credits and no bound mapping produces an error. Models without flow credits retain the existing default when this mapping is omitted.
 
-### Zero-objective convergence in MacroEnergySolvers 0.2.2
-
-The tested MacroEnergySolvers 0.2.2 implementation divides the bound gap by the absolute lower bound. If both bounds are zero, this produces `NaN`. The solver can then reach `MaxIter` despite matching bounds and a feasible solution. Small bounds can also make this relative-gap calculation sensitive to numerical error.
-
-This is a solver convergence limitation, not a payment-accounting rule. A solver-level correction must handle zero bounds and combine absolute and relative tolerances. Until that correction is available in the installed solver package, use Monolithic for cases affected by this limitation. Increasing `MaxIter` does not correct a `NaN` gap.
-
 ## [Multiple Periods](@id flow_credit_periods)
 
 Use a distinct resource ID for each vintage that needs separate accounting. Prepare each period's scalar rate externally. Preserve a rate during the assumed credit period and set it to zero after expiry. Macro does not infer eligibility, commissioning dates, or credit expiry from resource names or tags.

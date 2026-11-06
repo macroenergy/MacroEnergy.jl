@@ -34,7 +34,7 @@ and this project follows Julia package versioning through `Project.toml` release
 
 - Synced the tutorials with MacroEnergyExamples.jl: added Tutorial 3 (a three-zone multisector showcase) and a Benders decomposition section in Tutorial 1, and updated the code in Tutorials 0-2 to the current API (`scaling` argument of the result functions, `resource_type` output column, sign of storage charge flows).
 - Fixed the Tutorial 2 asset diagrams, which did not load on the deployed site, and a table-of-contents entry pointing to a tutorial page that does not exist.
-- Clarified edge-specific flow-credit inputs for assets with multiple edges and documented the zero-objective Benders convergence limitation in MacroEnergySolvers 0.2.2.
+- Clarified edge-specific flow-credit inputs for assets with multiple edges.
 
 ## [0.3.0 - rc] - 2026-10-14
 
