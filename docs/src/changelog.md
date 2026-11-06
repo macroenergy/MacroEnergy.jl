@@ -13,6 +13,8 @@ and this project follows Julia package versioning through `Project.toml` release
 
 - Iterating over `SubproblemsData`, the container for per-subproblem Benders results, no longer yields the first subproblem twice. Written outputs were not affected, since the output writers read its fields directly rather than iterating it.
 - Corrected exported duals after MacroEnergyScaling constraint-row and objective scaling. All model builders now retain cumulative scaling metadata per model, and dual reporting restores the original model units before applying input scaling, time weights and discount conversions. Requires MacroEnergyScaling v0.4.1 or later.
+- Multi-period cases no longer fail with a `MethodError` when carrying over capacities for an asset whose optional edge is absent, such as a `BECCSHydrogen` asset without a `fuel_edge`. Myopic runs with `ReturnModels: false` failed the same way when releasing such an asset.
+- Myopic runs with `ReturnModels: false` now also release the JuMP references held by system-wide and per-location grouped capacity constraints. These kept an emptied model alive for each period, which increased memory use with the number of periods.
 
 ### Changed
 

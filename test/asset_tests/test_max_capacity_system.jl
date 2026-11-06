@@ -21,7 +21,8 @@ import MacroEnergy:
     capacity,
     get_type,
     get_component_by_fieldname,
-    capped_edge_location
+    capped_edge_location,
+    release_model!
 
 # Build a VRE asset of a given technology tag, placed in a given location.
 function make_vre_asset(id, technology, location, system; tags = [technology])
@@ -218,6 +219,23 @@ function test_max_capacity()
             @test nterms(ctB.constraint_ref[:VRE]) == 1
             # Empty location group (:C) builds no constraint for that asset type.
             @test !haskey(ctC.constraint_ref, :VRE)
+        end
+
+        @testset "model release clears system and location references" begin
+            system = build_system()
+            ctsys = MaxCapacityConstraint(; config = vre_cfg(5.0))
+            ctloc = MaxCapacityConstraint(; config = vre_cfg(5.0))
+            push!(system.constraints, ctsys)
+            push!(system.locations, Location(; id = :A, system = system, constraints = [ctloc]))
+
+            model = build_test_model(system)
+            @test nterms(ctsys.constraint_ref[:VRE]) == 2
+            @test nterms(ctloc.constraint_ref[:VRE]) == 1
+
+            release_model!(system, model)
+
+            @test ismissing(ctsys.constraint_ref)
+            @test ismissing(ctloc.constraint_ref)
         end
 
         @testset "parameter scaling of RHS" begin
