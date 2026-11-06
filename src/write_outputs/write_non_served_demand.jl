@@ -60,7 +60,7 @@ function write_non_served_demand(
         nsd_results = reshape_wide(nsd_results, :time, :component_id_seg, :value)
     end
     
-    write_dataframe(file_path, nsd_results, drop_cols)
+    write_dataframe(file_path, nsd_results, drop_cols; sigdigits=get_output_significant_digits(system))
     return nothing
 end
 
@@ -90,7 +90,7 @@ function write_non_served_demand(
         nsd_results = reshape_wide(nsd_results, :time, :component_id_seg, :value)
     end
     
-    write_dataframe(file_path, nsd_results)
+    write_dataframe(file_path, nsd_results; sigdigits=get_output_significant_digits(system))
     return nothing
 end
 

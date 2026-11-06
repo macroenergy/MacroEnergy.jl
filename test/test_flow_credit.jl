@@ -314,6 +314,180 @@ function test_general_credit_scope()
     end
 end
 
+function make_battery_credit_case(inputs)
+    system = make_test_system(DataType[ME.Electricity])
+    td = system.time_data[:Electricity]
+    push_locations!(system,
+        make_supply_node(ME.Electricity, :source, td, [1.0, 10.0, 2.0]),
+        make_demand_node(ME.Electricity, :sink, td, [0.0, 4.0, 0.0]))
+    data = Dict{Symbol,Any}(
+        :id => :credit_battery,
+        :storage_can_expand => false, :storage_can_retire => false,
+        :charge_can_expand => false, :charge_can_retire => false,
+        :discharge_can_expand => false, :discharge_can_retire => false,
+        :storage_existing_capacity => 10.0, :charge_existing_capacity => 10.0,
+        :discharge_existing_capacity => 10.0,
+        :charge_efficiency => 0.8, :discharge_efficiency => 0.5,
+        :charge_start_vertex => :source, :discharge_end_vertex => :sink)
+    asset = ME.make(ME.Battery, merge(data, inputs), system)
+    push!(system.assets, asset)
+    return system, asset
+end
+
+function make_biomass_credit_case(inputs)
+    system = make_test_system(DataType[ME.Biomass, ME.Electricity, ME.CO2, ME.CO2Captured, ME.Hydrogen])
+    td = system.time_data
+    push_locations!(system,
+        make_supply_node(ME.Biomass, :biomass_source, td[:Biomass], fill(4.0, 3)),
+        make_supply_node(ME.Electricity, :elec_source, td[:Electricity], fill(1.0, 3)),
+        make_supply_node(ME.CO2, :co2_source, td[:CO2], fill(1.0, 3)),
+        make_demand_node(ME.Hydrogen, :h2_sink, td[:Hydrogen], [1.0, 2.0, 3.0]),
+        make_free_node(ME.CO2, :emissions, td[:CO2]),
+        make_free_node(ME.CO2Captured, :captured, td[:CO2Captured]))
+    data = Dict{Symbol,Any}(
+        :id => :credit_beccs, :timedata => "Biomass",
+        :can_expand => false, :can_retire => false, :existing_capacity => 100.0,
+        :hydrogen_production => 0.5, :electricity_consumption => 0.2,
+        :fuel_consumption => 0.0, :co2_content => 0.1,
+        :emission_rate => 0.15, :capture_rate => 0.25,
+        :biomass_start_vertex => :biomass_source, :elec_start_vertex => :elec_source,
+        :co2_start_vertex => :co2_source, :h2_end_vertex => :h2_sink,
+        :co2_emission_end_vertex => :emissions, :co2_captured_end_vertex => :captured)
+    asset = ME.make(ME.BECCSHydrogen, merge(data, inputs), system)
+    push!(system.assets, asset)
+    return system, asset
+end
+
+function test_multi_edge_credit_inputs()
+    @testset "Battery credit inputs follow its VOM mapping" begin
+        for inputs in (
+            Dict{Symbol,Any}(:discharge_flow_credit_rate => 40.0),
+            Dict{Symbol,Any}(:edges => Dict(:discharge_edge => Dict(:flow_credit_rate => 40.0))),
+            Dict{Symbol,Any}(:discharge_flow_credit_rate => 12.0,
+                :edges => Dict(:discharge_edge => Dict(:flow_credit_rate => 40.0))),
+        )
+            system, asset = make_battery_credit_case(inputs)
+            @test asset.discharge_edge.flow_credit_rate == 40.0
+            @test asset.charge_edge.flow_credit_rate == 0.0
+            model = build_test_model(system)
+            @test objective_value(model) ≈ -150.0 atol=1e-6
+            @test ME.compute_flow_credit_payment(asset.discharge_edge) ≈ 160.0
+            payments = ME.get_flow_credits(system, 1.0)
+            @test only(payments.edge_id) == string(ME.id(asset.discharge_edge))
+            @test only(payments.annual_payment) ≈ 160.0
+        end
+        # This documents the existing shorthand mapping; the explicit edge form is recommended.
+        system, asset = make_battery_credit_case(Dict{Symbol,Any}(:flow_credit_rate => 40.0))
+        @test asset.discharge_edge.flow_credit_rate == asset.charge_edge.flow_credit_rate == 0.0
+        @test objective_value(build_test_model(system)) ≈ 10.0
+        @test isempty(ME.get_flow_credits(system, 1.0))
+    end
+    @testset "BECCSHydrogen credits the selected biomass input" begin
+        for inputs in (
+            Dict{Symbol,Any}(:biomass_flow_credit_rate => 40.0),
+            Dict{Symbol,Any}(:edges => Dict(:biomass_edge => Dict(:flow_credit_rate => 40.0))),
+            Dict{Symbol,Any}(:biomass_flow_credit_rate => 12.0,
+                :edges => Dict(:biomass_edge => Dict(:flow_credit_rate => 40.0))),
+        )
+            system, asset = make_biomass_credit_case(inputs)
+            @test asset.biomass_edge.flow_credit_rate == 40.0
+            @test all(iszero(ME.flow_credit_rate(edge)) for edge in ME.get_edges(system) if edge !== asset.biomass_edge)
+            model = build_test_model(system)
+            @test objective_value(model) ≈ 51.6 - 480.0 atol=1e-6
+            payments = ME.get_flow_credits(system, 1.0)
+            @test only(payments.edge_id) == string(ME.id(asset.biomass_edge))
+            @test only(payments.commodity) == "Biomass"
+            @test only(payments.flow_unit) == "t"
+            @test only(payments.credited_flow) ≈ 12.0
+            @test only(payments.annual_payment) ≈ 480.0
+        end
+        system, asset = make_biomass_credit_case(Dict{Symbol,Any}(:flow_credit_rate => 40.0))
+        @test asset.biomass_edge.flow_credit_rate == 40.0
+        @test asset.h2_edge.flow_credit_rate == 40.0
+        @test_throws ArgumentError build_test_model(system)
+    end
+end
+
+function test_credit_output_controls()
+    @testset "Monolithic and Benders credit reports respect cost output settings" begin
+        # One-period models keep a Benders solve and payment export in the short suite.
+        for algorithm in ("Monolithic", "Benders")
+            mktempdir() do root
+                rate = 40.012345
+                system = make_flow_credit_system(; rate)
+                system.data_dirpath = root
+                settings = settings_for(; algorithm, bounds=Dict(:1 => [-5000.0]))
+                ME.prepare_case!([system], settings)
+                case, model = ME.solve_case(ME.Case([system], settings), optimizer_for(algorithm))
+                outcome = ME.solution_outcome(model)
+                @test outcome.status == "OK" || outcome.termination_status == "NEGATIVE GAP"
+                if algorithm == "Benders"
+                    @test last(model.convergence.UB_hist) ≈ 100 * (3.0 - rate) atol=1e-6
+                    @test last(model.convergence.LB_hist) ≈ last(model.convergence.UB_hist) atol=1e-6
+                    @test isfinite(last(model.convergence.gap_hist))
+                else
+                    @test objective_value(model) ≈ 100 * (3.0 - rate) atol=1e-6
+                end
+                ME.postprocess!(case, model)
+                for format in ("csv", "csv.gz", "parquet")
+                    system.settings = ME.configure_settings((
+                        OutputFormat=(Costs=format,), WriteOutputs=(Duals=false,),
+                        OutputSignificantDigits=2))
+                    output_dir = mktempdir(root)
+                    ME.write_outputs(output_dir, case, model)
+                    results = joinpath(output_dir, "results")
+                    path = joinpath(results, "flow_credits.$format")
+                    @test isfile(path)
+                    @test count(startswith("flow_credits."), readdir(results)) == 1
+                    payments = ME.duckdb_read(path)
+                    @test only(payments.flow_credit_rate) ≈ rate
+                    @test only(payments.annual_payment) ≈ 100 * rate
+                    @test only(payments.discounted_payment) ≈ 100 * rate
+                    @test only(payments.edge_id) == string(ME.id(electricity_edge(system.assets[1])))
+                end
+                system.settings = ME.configure_settings((OutputFormat="csv.gz", WriteOutputs=(Duals=false,)))
+                output_dir = mktempdir(root)
+                ME.write_outputs(output_dir, case, model)
+                @test isfile(joinpath(output_dir, "results", "flow_credits.csv.gz"))
+
+                system.settings = ME.configure_settings((WriteOutputs=(Costs=false, Duals=false,),))
+                output_dir = mktempdir(root)
+                ME.write_outputs(output_dir, case, model)
+                outputs = readdir(joinpath(output_dir, "results"))
+                @test !any(startswith("flow_credits."), outputs)
+                @test !any(startswith("costs."), outputs)
+            end
+        end
+    end
+end
+
+
+function test_credit_payment_table_formats()
+    @testset "Empty and unknown-unit credit output formats" begin
+        settings = settings_for()
+        mktempdir() do folder
+            for empty in (true, false), format in ("csv", "csv.gz", "parquet")
+                annual = ME.empty_flow_credits()
+                if !empty
+                    push!(annual, (1, "custom", "custom_edge", "zone", "CustomAsset", "", "CustomCommodity",
+                        missing, 40.012345, 100.0, 4001.2345))
+                end
+                path = joinpath(folder, "credits_$(empty).$format")
+                written = ME.write_flow_credits(path, annual, settings)
+                @test eltype(written.period_payment) == Float64
+                @test eltype(written.discounted_payment) == Float64
+                table = ME.duckdb_read(path)
+                @test size(table, 1) == (empty ? 0 : 1)
+                @test names(table) == names(written)
+                if !empty
+                    @test ismissing(only(table.flow_unit))
+                    @test only(table.annual_payment) ≈ 4001.2345
+                end
+            end
+        end
+    end
+end
+
 if run_long_tests()
     include("test_flow_credit_integration.jl")
 end
@@ -323,6 +497,9 @@ end
     test_json_flow_credit_input()
     test_flow_credit_small_model()
     test_general_credit_scope()
+    test_multi_edge_credit_inputs()
+    test_credit_output_controls()
+    test_credit_payment_table_formats()
     if run_long_tests()
         mktempdir() do root
             test_flow_credit_integration(root)

@@ -1,5 +1,7 @@
 # [Flow Credit Payments Output](@id manual-outputs-flow_credit)
 
+The payment file follows the `Costs` output controls. Set `WriteOutputs.Costs=false` to omit it. `OutputFormat.Costs`, or a global `OutputFormat`, selects `.csv`, `.csv.gz`, or `.parquet`. CSV is the default. Payment values retain full precision.
+
 ## Contents
 
 [Overview](@ref manual-outputs-flow_credit-overview) | [Columns](@ref manual-outputs-flow_credit-columns) | [Accounting](@ref manual-outputs-flow_credit-accounting) | [Configuration](@ref manual-outputs-flow_credit-configuration) | [See Also](@ref manual-outputs-flow_credit-see-also)

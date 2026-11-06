@@ -57,6 +57,9 @@ Flow values can be positive or negative. The sign indicates the direction of flo
 | Setting | File | Default | Effect |
 |---|---|---|---|
 | `OutputLayout` (or `OutputLayout.Flow`) | `macro_settings.json` | `"long"` | Set to `"wide"` to pivot time steps into columns (rows become components, columns become time step indices). |
+| `OutputFormat` (or `OutputFormat.Flow`) | `macro_settings.json` | `"csv"` | Set to `"csv.gz"` or `"parquet"` to write a compressed file (`.csv.gz` or `.parquet`). See [Output Format and Size](@ref "manual-outputs-format"). |
+| `WriteOutputs.Flow` | `macro_settings.json` | `true` | Set to `false` to skip this output. See [Selecting Outputs](@ref "manual-outputs-selecting"). |
+| `OutputSignificantDigits` | `macro_settings.json` | `null` | Set to an integer to round values to that many significant digits before writing. |
 | `WriteFullTimeseries` | `case_settings.json` | `false` | When `true` and TDR is active, also write expanded 8760-hour flows to `full_time_series/flows.csv`. |
 
 ## [Assumptions](@id manual-outputs-flows-assumptions)

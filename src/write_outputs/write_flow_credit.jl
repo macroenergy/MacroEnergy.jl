@@ -43,10 +43,11 @@ end
 function write_flow_credits(path::AbstractString, annual::DataFrame, settings::NamedTuple)
     result = copy(annual)
     factors = present_value_factor(settings.DiscountRate, collect(settings.PeriodLengths))
-    result[!, :period_payment] = [r.annual_payment * settings.PeriodLengths[r.period] for r in eachrow(result)]
-    result[!, :discounted_payment] = [r.annual_payment * factors[r.period] *
+    # Preserve numeric column types when no edges receive a credit.
+    result[!, :period_payment] = Float64[r.annual_payment * settings.PeriodLengths[r.period] for r in eachrow(result)]
+    result[!, :discounted_payment] = Float64[r.annual_payment * factors[r.period] *
         present_value_annuity_factor(settings.DiscountRate, settings.PeriodLengths[r.period]) for r in eachrow(result)]
-    CSV.write(path, result)
+    write_dataframe(path, result)
     return result
 end
 

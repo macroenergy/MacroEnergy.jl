@@ -22,6 +22,7 @@ const pages = [
         "Getting Started" => "Tutorials/0_getting_started.md",
         "Running Macro" => "Tutorials/1_running_macro.md",
         "Multisector Modelling" => "Tutorials/2_multisector_modelling.md",
+        "Macro Showcase" => "Tutorials/3_macro_showcase.md",
     ],
     "Guides" => [
         "Introduction" => "Guides/guides_introduction.md",

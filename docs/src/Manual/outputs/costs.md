@@ -156,6 +156,10 @@ For `FlowCredit`, ``P`` is the nonnegative annual weighted payment.
 | Setting | File | Default | Effect |
 |---|---|---|---|
 | `OutputLayout` (or `OutputLayout.Costs`) | `macro_settings.json` | `"long"` | Set to `"wide"` to pivot all cost files. For `costs.csv`/`undiscounted_costs.csv`, the three rows become a single row with variable names as columns. For the breakdown files, cost categories are pivoted to columns and a `Total` column is added. |
+| `OutputFormat` (or `OutputFormat.Costs`) | `macro_settings.json` | `"csv"` | Set to `"csv.gz"` or `"parquet"` to write a compressed file (`.csv.gz` or `.parquet`). See [Output Format and Size](@ref "manual-outputs-format"). |
+| `WriteOutputs.Costs` | `macro_settings.json` | `true` | Set to `false` to skip this output. See [Selecting Outputs](@ref "manual-outputs-selecting"). |
+
+The separate [flow credit payment file](@ref manual-outputs-flow_credit) also follows `WriteOutputs.Costs` and the cost output format. It retains one row per credited resource and edge. `OutputLayout.Costs` does not pivot this payment table, and `OutputSignificantDigits` does not round its values.
 
 ## [Assumptions](@id manual-outputs-costs-assumptions)
 

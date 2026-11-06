@@ -196,7 +196,7 @@ When enabled, the following time-series outputs are reconstructed and written to
 | `non_served_demand.csv` | Non-served demand for each node |
 | `storage_level.csv` | Storage state for each storage unit |
 | `curtailment.csv` | VRE curtailment |
-| `balance_duals.csv` | Balance constraint duals (only when `DualExportsEnabled` is also `true`) |
+| `balance_duals.csv` | Balance constraint duals (only when `WriteOutputs.Duals` is also `true`, the default) |
 
 Each file contains one row per hour for the full modeled year (e.g., 8760 rows), with the same column structure as the corresponding representative-period output file.
 

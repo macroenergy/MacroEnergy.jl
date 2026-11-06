@@ -58,9 +58,23 @@ Default capacity-edge eligibility does not prevent this behavior.
 
 ### Input forms
 
-Use `flow_credit_rate`, or its edge-prefixed form such as `h2_flow_credit_rate`. The existing instance-over-global and edge-specific precedence rules apply.
+Set `flow_credit_rate` inside `edges.<edge_name>` to identify the credited edge explicitly. For example, a Battery discharge credit uses:
 
-Payment outputs use `flow_credits.csv` and the negative `FlowCredit` cost category.
+```json
+{
+    "edges": {
+        "discharge_edge": {
+            "flow_credit_rate": 40.0
+        }
+    }
+}
+```
+
+Asset-level shorthand follows each asset's existing VOM input mapping. Use a supported edge prefix, such as `discharge_flow_credit_rate` for Battery or `biomass_flow_credit_rate` for BECCSHydrogen. Edge-specific values take precedence over the corresponding asset-level shorthand. Instance data still take precedence over global data at the same input path.
+
+An unprefixed asset-level `flow_credit_rate` is not a common interface for all assets. Battery ignores it. BECCSHydrogen passes it to multiple edges, which can cause an eligibility error on an auxiliary edge. Use the explicit edge form when the asset's shorthand mapping is uncertain.
+
+Payment outputs use `flow_credits.csv` by default and the negative `FlowCredit` cost category. The payment file follows `WriteOutputs.Costs` and `OutputFormat.Costs`, including a global `OutputFormat` value. Disabling cost outputs also disables the payment file. Cost and payment outputs retain full numerical precision.
 
 ### Custom assets
 
@@ -129,6 +143,12 @@ The interface multiplies each input bound by ``\mathrm{DF}_p\mathrm{PVAF}_p/S^2`
     Both Monolithic and Benders support positive flow credits. With positive flow credits, Benders requires `IncludeSubproblemSlacksAutomatically=false`. The existing automatic-slack penalty has not been validated for negative operating costs. Ensure that the hard-constraint subproblems are feasible; setting `ExpectFeasibleSubproblems=true` does not itself establish feasibility.
 
 Macro validates the bound format and finite values, but does not derive or prove a bound. A Benders model with positive flow credits and no bound mapping produces an error. Models without flow credits retain the existing default when this mapping is omitted.
+
+### Zero-objective convergence in MacroEnergySolvers 0.2.2
+
+The tested MacroEnergySolvers 0.2.2 implementation divides the bound gap by the absolute lower bound. If both bounds are zero, this produces `NaN`. The solver can then reach `MaxIter` despite matching bounds and a feasible solution. Small bounds can also make this relative-gap calculation sensitive to numerical error.
+
+This is a solver convergence limitation, not a payment-accounting rule. A solver-level correction must handle zero bounds and combine absolute and relative tolerances. Until that correction is available in the installed solver package, use Monolithic for cases affected by this limitation. Increasing `MaxIter` does not correct a `NaN` gap.
 
 ## [Multiple Periods](@id flow_credit_periods)
 
