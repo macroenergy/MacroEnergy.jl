@@ -1,0 +1,72 @@
+{
+    "PeriodLengths": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+    ],
+    "SolutionAlgorithm": "Benders",
+    "DiscountRate": 0.02,
+    "CapacityReserveMargin": {"OR_WA": 0.15, "ID_UT_NV_MT_WY": 0.15, "CA": 0.15, "AZ_NM_CO": 0.15},
+    "CO2Cap": false,
+    "ProjectDevelopment": false,
+    "DeploymentInertia": false,
+    "TechnologyLearning": false,
+    "LearningTechnologies": ["egs"],
+    "TechsWithInertia": ["onshore_wind", "offshore_wind", "solar", "egs", "battery", "ccgt", "ct"],
+    "InertiaInitMW": {
+        "onshore_wind": 1600,
+        "offshore_wind": 0.0,
+        "solar": 7400,
+        "egs": 0.0,
+        "battery": 6500,
+        "ccgt": 0.0,
+        "ct": 600
+    },
+    "InertiaMinMW": {
+        "onshore_wind": 200,
+        "offshore_wind": 200,
+        "solar": 74.6,
+        "egs": 1000,
+        "battery": 60,
+        "ccgt": 727,
+        "ct": 233
+    },
+    "InertiaInitialGrowthRate": {
+        "onshore_wind": 0.162,
+        "offshore_wind": 0.162,
+        "solar": 0.293,
+        "egs": 0.397,
+        "battery": 0.794,
+        "ccgt": 0.397,
+        "ct": 0.397
+    },
+    "InertiaInitialDeclineRate": {
+        "onshore_wind": 0.12,
+        "offshore_wind": 0.12,
+        "solar": 0.039,
+        "egs": 0.11,
+        "battery": 0.794,
+        "ccgt": 0.11,
+        "ct": 0.11
+    },
+    "ParameterScaling": true,
+    "ParameterScalingFactor": 1e3,
+    "WriteFullTimeseries": false
+}

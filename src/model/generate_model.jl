@@ -24,6 +24,8 @@ function generate_model(case::Case, opt::Optimizer, ::Monolithic)
         add_period_to_model!(model, system, next, fixed_cost, investment_cost, om_fixed_cost, variable_cost)
     end
 
+    add_deployment_inertia!(model, periods, settings)
+
     finalize_model_objective!(model, settings, fixed_cost, investment_cost, om_fixed_cost, variable_cost)
 
     scale_constraints!(case.systems[1], model)
@@ -50,6 +52,8 @@ function generate_model(system::System, opt::Optimizer, settings::NamedTuple, ::
     fixed_cost, investment_cost, om_fixed_cost, variable_cost = Dict(), Dict(), Dict(), Dict()
 
     add_period_to_model!(model, system, nothing, fixed_cost, investment_cost, om_fixed_cost, variable_cost)
+
+    add_deployment_inertia!(model, [system], settings)
 
     finalize_model_objective!(model, settings, fixed_cost, investment_cost, om_fixed_cost, variable_cost)
 
@@ -83,6 +87,8 @@ function generate_model(case::Case, opt::Dict{Symbol,Dict{Symbol,Any}}, ::Bender
         next = i < length(periods) ? periods[i+1] : nothing
         add_period_to_planning_model!(planning_model, system, next, fixed_cost, investment_cost, om_fixed_cost)
     end
+
+    add_deployment_inertia!(planning_model, periods, settings)
     
     finalize_planning_model_objective!(planning_model, periods, settings, fixed_cost, investment_cost, om_fixed_cost)
     
@@ -117,6 +123,8 @@ function generate_model(system::System, opt::Dict{Symbol,Dict{Symbol,Any}}, sett
     period_decomp = generate_decomposed_system([system])
     
     add_period_to_planning_model!(model, system, nothing, fixed_cost, investment_cost, om_fixed_cost)
+
+    add_deployment_inertia!(model, [system], settings)
     
     finalize_planning_model_objective!(model, [system], settings, fixed_cost, investment_cost, om_fixed_cost)
     

@@ -58,6 +58,9 @@ macro AbstractEdgeBaseAttributes()
         cf_period_fixed_om_cost::Union{Nothing,Float64} = $edge_defaults[:cf_period_fixed_om_cost]
         pv_period_variable_om_cost::Union{Nothing,Float64} = $edge_defaults[:pv_period_variable_om_cost]
         cf_period_variable_om_cost::Union{Nothing,Float64} = $edge_defaults[:cf_period_variable_om_cost]
+        cagr::Float64 = 0.0
+        cadr::Float64 = 0.0
+        Inertia_category::Union{Nothing,String} = nothing
     end)
 end
 
@@ -358,6 +361,9 @@ retrofitted_units(e::AbstractEdge) = e.retrofitted_units;
 start_vertex(e::AbstractEdge)::AbstractVertex = e.start_vertex;
 variable_om_cost(e::AbstractEdge) = e.variable_om_cost;
 wacc(e::AbstractEdge) = e.wacc;
+cagr(e::AbstractEdge) = e.cagr;
+cadr(e::AbstractEdge) = e.cadr;
+inertia_category(e::AbstractEdge) = e.Inertia_category;
 annualized_investment_cost(e::AbstractEdge) = e.annualized_investment_cost;
 pv_period_investment_cost(e::AbstractEdge) = e.pv_period_investment_cost;
 cf_period_investment_cost(e::AbstractEdge) = e.cf_period_investment_cost;

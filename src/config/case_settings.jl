@@ -11,7 +11,13 @@ function default_case_settings()
         :ParameterScaling => false,
         :ParameterScalingFactor => 1e3,
         :SolutionAlgorithm => "Monolithic",
-        :ExpansionHorizon => "PerfectForesight"
+        :ExpansionHorizon => "PerfectForesight",
+        :DeploymentInertia => false,
+        :TechsWithInertia => String[],
+        :InertiaInitMW => Dict{Symbol,Float64}(),
+        :InertiaInitialGrowthRate => Dict{Symbol,Float64}(),
+        :InertiaInitialDeclineRate => Dict{Symbol,Float64}(),
+        :InertiaMinMW => Dict{Symbol,Float64}(),
     )
 end
 
@@ -148,6 +154,7 @@ function validate_case_settings(case_settings::AbstractDict{Symbol,Any})
     @assert ismissing(case_settings[:StartYear]) || isa(case_settings[:StartYear], Integer)
     @assert isa(case_settings[:WriteFullTimeseries], Bool)
     @assert isa(case_settings[:ParameterScaling], Bool)
+    @assert isa(case_settings[:DeploymentInertia], Bool)
     @assert case_settings[:ParameterScalingFactor] >= 0
     @assert isa(case_settings[:SolutionAlgorithm], AbstractSolutionAlgorithm)
     @assert isa(case_settings[:ExpansionHorizon], AbstractExpansionHorizon)
