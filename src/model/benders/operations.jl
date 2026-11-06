@@ -1,5 +1,9 @@
 function generate_operation_subproblem(system::System,case_settings::NamedTuple,include_subproblem_slacks::Bool)
 
+    if include_subproblem_slacks && any(e -> !iszero(flow_credit_rate(e)), get_edges(system))
+        throw(ArgumentError("Automatic subproblem slacks are not validated for FlowCredit. Set IncludeSubproblemSlacksAutomatically=false and use hard-feasible subproblems."))
+    end
+
     model = Model()
 
     @variable(model, vREF == 1)

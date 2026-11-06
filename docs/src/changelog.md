@@ -9,19 +9,32 @@ and this project follows Julia package versioning through `Project.toml` release
 
 ## [Unreleased]
 
-### Fixed
+### Added
 
-- Iterating over `SubproblemsData`, the container for per-subproblem Benders results, no longer yields the first subproblem twice. Written outputs were not affected, since the output writers read its fields directly rather than iterating it.
-- Corrected exported duals after MacroEnergyScaling constraint-row and objective scaling. All model builders now retain cumulative scaling metadata per model, and dual reporting restores the original model units before applying input scaling, time weights and discount conversions. Requires MacroEnergyScaling v0.4.1 or later.
+- Commodity-independent flow credits through `flow_credit_rate`, with separate cost accounting, period-specific rates, and parameter scaling. Positive credits require unidirectional edges with `has_capacity=true` in the asset defaults; user capacity overrides do not change eligibility.
+- User-supplied Benders operating-cost lower bounds for negative net operating costs. Positive flow credits require these bounds and require automatic subproblem slacks to be disabled.
+- `flow_credits.csv` with resource and edge identity, weighted flow, commodity identity, and annual, period, and discounted payments. Cost breakdowns include a negative `FlowCredit` category.
 
 ### Changed
 
+- Add flow credits directly to edge variable costs and use the existing objective discounting. Calculate separate payment reports from solved flows without retaining extra JuMP payment expressions.
+
 - Extended DuckDB.jl compatibility to include 2.x (`DuckDB = "1, 2"`). Environments that resolve DuckDB.jl 2.x read CSV inputs with the bundled DuckDB 2.0 engine.
+
+### Fixed
+
+- Preserve empty cost tables for cases with zero operating costs.
+- Convert a numeric `DiscountRate` to `Float64`, including an integer zero loaded from JSON.
+
+- Iterating over `SubproblemsData`, the container for per-subproblem Benders results, no longer yields the first subproblem twice. Written outputs were not affected, since the output writers read its fields directly rather than iterating it.
+- Corrected exported duals after MacroEnergyScaling constraint-row and objective scaling. All model builders now retain cumulative scaling metadata per model, and dual reporting restores the original model units before applying input scaling, time weights and discount conversions. Requires MacroEnergyScaling v0.4.1 or later.
+- Flow-credit payment outputs follow the cost-output enable and format settings, including CSV, compressed CSV, and Parquet. Empty payment tables retain numeric column types.
 
 ### Documentation
 
 - Synced the tutorials with MacroEnergyExamples.jl: added Tutorial 3 (a three-zone multisector showcase) and a Benders decomposition section in Tutorial 1, and updated the code in Tutorials 0-2 to the current API (`scaling` argument of the result functions, `resource_type` output column, sign of storage charge flows).
 - Fixed the Tutorial 2 asset diagrams, which did not load on the deployed site, and a table-of-contents entry pointing to a tutorial page that does not exist.
+- Clarified edge-specific flow-credit inputs for assets with multiple edges.
 
 ## [0.3.0 - rc] - 2026-10-14
 

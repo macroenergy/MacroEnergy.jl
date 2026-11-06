@@ -416,13 +416,13 @@ end
 ##############################
 
 # Cost category symbols for output
-const COST_CATEGORIES = [:Investment, :FixedOM, :VariableOM, :Fuel, :Startup, :NonServedDemand, :Supply, :UnmetPolicyPenalty]
+const COST_CATEGORIES = [:Investment, :FixedOM, :VariableOM, :FlowCredit, :Fuel, :Startup, :NonServedDemand, :Supply, :UnmetPolicyPenalty]
 
 # Categories discounted with discount_factor
 const FIXED_COST_CATEGORIES = Set([:Investment,:FixedOM])
 
 # Categories only for variable operating costs (discounted with discount_factor * opexmult)
-const VARIABLE_OPERATING_COST_CATEGORIES = Set([:VariableOM, :Fuel, :Startup, :NonServedDemand, :Supply, :UnmetPolicyPenalty])
+const VARIABLE_OPERATING_COST_CATEGORIES = Set([:VariableOM, :FlowCredit, :Fuel, :Startup, :NonServedDemand, :Supply, :UnmetPolicyPenalty])
 
 @doc raw"""
     write_detailed_costs(
@@ -624,13 +624,14 @@ function get_detailed_costs(system::System, settings::NamedTuple, scaling::Float
         vom = compute_variable_om_cost(e)
         fuel = compute_fuel_cost(e)
         startup = compute_startup_cost(e)
+        flow_credit = compute_flow_credit_payment(e)
 
         if fuel > 0 && isa(start_vertex(e), Node)
             source_node = start_vertex(e)
             attributed_fuel_cost_by_node[id(source_node)] = get(attributed_fuel_cost_by_node, id(source_node), 0.0) + fuel
         end
 
-        (inv_pv == 0 && inv_cf == 0 && fom_pv == 0 && fom_cf == 0 && vom == 0 && fuel == 0 && startup == 0) && continue
+        (inv_pv == 0 && inv_cf == 0 && fom_pv == 0 && fom_cf == 0 && vom == 0 && fuel == 0 && startup == 0 && flow_credit == 0) && continue
 
         zone = get_zone_name(e)
         asset_type = get_type(edge_asset_map[id(e)])
@@ -639,6 +640,7 @@ function get_detailed_costs(system::System, settings::NamedTuple, scaling::Float
             (:Investment, inv_pv, inv_cf),
             (:FixedOM, fom_pv, fom_cf),
             (:VariableOM, vom, vom), # first term is discounted later (vectorized)
+            (:FlowCredit, -flow_credit, -flow_credit),
             (:Fuel, fuel, fuel), # first term is discounted later (vectorized)
             (:Startup, startup, startup), # first term is discounted later (vectorized)
         ]
@@ -953,7 +955,8 @@ function validate_total_cost(
     else
         objective_value = (value(model[:eFixedCost]) + value(model[:eVariableCost])) * scaling^2
     end
-    grand_total = only(df[df.category .== :Total, :value])
+    # A system with zero costs has no detail rows and still has a valid zero total.
+    grand_total = isempty(df) ? 0.0 : only(df[df.category .== :Total, :value])
     validation_diff = abs(grand_total - objective_value)
 
     # Under parameter scaling, the objective is reconstructed by ×S^2 from a model solved

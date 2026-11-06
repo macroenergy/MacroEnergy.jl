@@ -76,6 +76,10 @@ with_logger(test_logger) do
         include("test_annualized_costs.jl")
     end
 
+    Test.@testset verbose = true "Flow Credits" begin
+        include("test_flow_credit.jl")
+    end
+
     Test.@testset verbose = true "Writing Outputs" begin
         include("test_output.jl")
         include("test_full_timeseries.jl")
