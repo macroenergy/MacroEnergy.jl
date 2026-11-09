@@ -157,7 +157,11 @@ include("utilities/default_data.jl")
 include("utilities/download_examples.jl")
 include("utilities/economics.jl")
 include("utilities/logging.jl")
-include("utilities/model_templates.jl")
+include("utilities/model_templates/template_case.jl")
+include("utilities/model_templates/template_asset.jl")
+include("utilities/model_templates/template_location.jl")
+include("utilities/model_templates/template_node.jl")
+include("utilities/model_templates/template_subcommodity.jl")
 include("utilities/run_tools.jl")
 include("utilities/user_additions.jl")
 include("utilities/utilities.jl")
@@ -303,6 +307,7 @@ export AbstractAsset,
     get_optimal_curtailment,
     get_optimal_discounted_costs,
     get_optimal_flow,
+    get_optimal_losses,
     get_optimal_new_capacity,
     get_optimal_non_served_demand,
     get_optimal_retired_capacity,
@@ -389,6 +394,7 @@ export AbstractAsset,
     write_outputs,
     write_storage_level,
     write_curtailment,
+    write_losses,
     write_full_timeseries,
     write_time_weights,
     template_system,

@@ -169,11 +169,31 @@ instead overrides that default, restricting it to ThermalPower.
 
 During discovery, the most specific matching selector wins; equally specific
 overlapping selectors remain an error. `exclude` uses the same selector fields
-and removes a feature when every supplied field matches.
+and removes a reference from clustering when every supplied field matches. For
+exclusions, `field`, `asset`, and `commodity` describe the actual reference even
+if the selected feature is generic. A `file` selector can match either the
+containing input file or the referenced CSV, and `id` matches the selected
+feature's ID.
+
+Nodes defined in `locations[].commodities` carry the commodity name from their map key during discovery, just as independent nodes carry it through `type`. Commodity-scoped feature weights and exclusions therefore apply to both input forms, including inline series and CSV references. Discovery preserves the original input paths and does not insert `type` fields or synthetic node wrappers into location inputs.
+
+Inline inputs in `system_data.json` use the same discovery and reduction workflow
+for a bare System and for each entry in `case`. Each System is processed with its
+own time grid and source scope; profiles from other Systems or Case-level metadata
+are excluded from that traversal. Numeric vectors and CSV references in inline
+node, location and asset definitions are reduced along with file-based inputs.
+Inline values are written back at their original paths, including the `case`
+index. Isolated subperiod cases rebase the selected System's paths to a standalone
+root so candidate solves use the correct period's inputs.
 
 Every explicit `timeseries` descriptor is materialized in the reduced case. It contributes to clustering only when it matches a default or user-specified feature and is not excluded. This retains all time-dependent inputs while keeping feature selection under user control.
 
-Physical CSV path/header pairs are read once even when several inputs reference them. Their clustering weight is the feature weight multiplied by the number of logical occurrences.
+Physical CSV path/header pairs are read once even when several inputs reference
+them. Their clustering weight is the sum of the weights of included logical
+references. Included references to a shared column must agree on feature weight.
+Excluded references and references with no matching feature contribute no weight;
+their inputs are still reduced. Source-level `occurrences` counts all uses for
+provenance, while `clustering_features.occurrences` counts participating references.
 
 ### Example: override a default feature
 
@@ -270,6 +290,9 @@ Temporary cases are removed by default. Set `save_subperiod_inputs` to materiali
 Set `save_features` to write the assembled output profiles to `source/TDR/output_features/output_features.csv.gz` and their metadata to `source/TDR/output_features/output_metadata.json`. In multi-System Cases, each System instead uses `source/TDR/output_features/system_<n>/`. Here, `source` is the original directory passed as `source_case_path`, not the reduced destination. Rows are ordered by `Period_Index` and then `Time_Index`. Set `reuse_saved_features` to reload those validated artifacts and skip every matching System's subperiod solves; MacroEnergy validates a versioned SHA-256 fingerprint of the System definition, referenced input files, Case settings, user additions, input horizon, candidate-period length, policy-constraint inclusion, and output-feature selection before reuse. If no saved feature files exist, MacroEnergy warns and generates the features; set `save_features` as well to retain them for the next run.
 
 Cache lookup and saving both use the original source directory. You can therefore reuse saved features when clustering the same source inputs into a new destination, or when replacing a destination with `overwrite=true`. Source `TDR/` artifacts are excluded from ordinary case copying. Existing caches in reduced destination directories are not automatically migrated. Caches without the current fingerprint must be regenerated; moving them alone does not make them reusable. Stale caches and caches from older formats produce a warning and trigger new subperiod solves. Internally, `TDROutputCacheFingerprint` holds the digest and a typed `TDROutputCacheInputs` payload, with typed file-hash and feature-selection entries. System and Case definitions retain their flexible JSON structure. JSON conversion occurs when hashing or saving metadata; changes to the validity fields or their interpretation require a cache-version review. File hashes are streamed without parsing CSVs, and shared files are hashed once per preprocessing run across all Systems. The first implementation hashes whole referenced files, so changing an unused column or file formatting can conservatively invalidate a cache. Relative paths keep fingerprints independent of the source directory’s location; generated `TDR/` artifacts are excluded.
+
+Caches generated before scoped inline-System processing are invalidated and
+regenerated, because their isolated solves may have used the wrong inline period.
 
 Changing the representative count, clustering method, scaling, extreme-period selection, or feature weights does not invalidate saved output profiles. Current feature weights are applied when loading cached profiles. Solver choice and optimizer attributes also do not invalidate the cache. Cache metadata and subperiod provenance record the optimizer identity and explicitly supplied optimizer attributes where available; these are not a complete set of solver defaults. Reused-feature provenance retains the solver information from the original feature generation.
 
@@ -632,7 +655,11 @@ multi-System case, preparation builds a separate dependency manifest from each
 System entry in `system_data.json`. It follows nested references in JSON and
 model-input CSV files, including ordinary paths and time-series descriptors, and includes the immediate files in referenced input directories.
 Only that System's dependencies are copied into `inputs/system_<n>/`, preserving
-their complete source-relative paths. Internally, a manifest is a dictionary
+their source-relative paths. A System's configured asset directory is rebased to
+`inputs/system_<n>/assets`, preserving paths within that directory. For example,
+`assets/assets_1/vre.json` becomes `inputs/system_1/assets/vre.json`. If an outside
+dependency already occupies that destination subtree, the source layout is
+preserved to keep directory-loaded inputs separate. Internally, a manifest is a dictionary
 keyed by source path, with one `TDRTrackedInput` entry per dependency. Each entry
 keeps its source path, destination path, and required columns together. For example:
 
@@ -641,7 +668,7 @@ Source input                  System 1 copy
 system/time_data.json      -> inputs/system_1/system/time_data.json
 system/nodes.json          -> inputs/system_1/system/nodes.json
 system/demand.csv          -> inputs/system_1/system/demand.csv
-assets/vre.json            -> inputs/system_1/assets/vre.json
+assets/assets_1/vre.json   -> inputs/system_1/assets/vre.json
 data/availability.csv      -> inputs/system_1/data/availability.csv
 nodes.json                 -> inputs/system_1/nodes.json
 ```
@@ -857,7 +884,12 @@ MacroEnergy.tdr_system_input_manifest
 MacroEnergy.tdr_collect_manifest_references!
 MacroEnergy.tdr_system_input_path
 MacroEnergy.tdr_prepare_inputs
+MacroEnergy.TDRInputScope
+MacroEnergy.tdr_system_input_scope
 MacroEnergy.tdr_relocate_inputs
+MacroEnergy.tdr_input_destination
+MacroEnergy.tdr_rebase_input_path
+MacroEnergy.tdr_write_dependency_snapshots!
 MacroEnergy.tdr_sources
 MacroEnergy.tdr_rewrite_input_paths!
 MacroEnergy.tdr_prepare_system_inputs!

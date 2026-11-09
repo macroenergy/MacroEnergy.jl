@@ -39,7 +39,7 @@ end
 
 Allocate the requested share of the clustering distance to output sources and
 the remaining share to input sources. Within each group, raw feature weights
-(`user_weight * occurrences`) retain their relative influence.
+retain their relative influence. Input weights count only included references.
 """
 function tdr_set_clustering_weights!(
     input_sources::Vector{TimeSeriesSource},

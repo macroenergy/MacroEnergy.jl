@@ -85,7 +85,10 @@ The `settings` folder currently contains only one file, `macro_settings.yml`, wh
 | OutputDir | String | "results" | The directory where the results will be saved. |
 | OutputLayout | "long", "wide" | "long" | Switch between "long" and "wide" layouts for CSV output files. |
 | OutputAssetTags | True, False | True | If true, `capacity.csv`, `capacity_summary.csv`, and `capex.csv` include a pipe-separated `tags` column for filtering assets. |
-| DualExportsEnabled | True, False | False | If true, the model will write duals for balance equations in the results folder |
+| OutputFormat | "csv", "csv.gz", "parquet", or an object | "csv" | File format of output tables, for all outputs or per output (e.g., `{"Flow": "parquet"}`). Compressed formats make results folders much smaller. |
+| WriteOutputs | Object | {} | Output files to skip, e.g., `{"Curtailment": false, "Duals": false}`. Outputs that are not listed are written. |
+| OutputSignificantDigits | Integer, null | null | If set, round time-series outputs to this many significant digits before writing. |
+| DualExportsEnabled | True, False | — | Deprecated: use `WriteOutputs` with `"Duals": false` instead. Still accepted with a warning. |
 | EnableJuMPStringNames | True, False | False | If true, the model will attach a string name to each JuMP variables. Ignored when Benders decomposition is used. |
 | EnableJuMPDirectModel | True, False | False | If true, the model will be generate a JuMP direct model. Ignored when Benders decomposition is used. |
 | AutoCreateNodes | True, False | False | If true, the model will automatically create a new Node if Macro is asked to find a Node of a given Commodity at a Location and the Node does not exist. |

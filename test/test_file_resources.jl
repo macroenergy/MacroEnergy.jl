@@ -7,6 +7,9 @@ JSON3.StructTypes.StructType(::Type{FailingJSON}) = JSON3.StructTypes.CustomStru
 JSON3.StructTypes.lower(::FailingJSON) = error("intentional serialization failure")
 
 @testset "JSON streams close after errors" begin
+    buffer = IOBuffer()
+    @test_throws ErrorException MacroEnergy.write_json(buffer, Dict("value" => FailingJSON()))
+    @test isopen(buffer)
     mktempdir() do root
         for compressed in (false, true)
             path = joinpath(root, compressed ? "input.json.gz" : "input.json")

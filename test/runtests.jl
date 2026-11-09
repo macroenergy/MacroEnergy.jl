@@ -12,6 +12,9 @@ with_logger(test_logger) do
     Test.@testset verbose = true "Load Inputs" begin
         include("test_workflow.jl")
         include("test_balance_data.jl")
+        include("test_locations.jl")
+        include("test_template_location.jl")
+        include("test_asset_diagrams.jl")
         include("test_supply_inputs.jl")
         include("test_download_examples.jl")
         include("test_user_additions.jl")
@@ -79,10 +82,12 @@ with_logger(test_logger) do
     Test.@testset verbose = true "Writing Outputs" begin
         include("test_output.jl")
         include("test_full_timeseries.jl")
+        include("test_output_format.jl")
     end
     
     Test.@testset verbose = true "Dual Value Exports" begin
         include("test_duals.jl")
+        include("test_constraint_dual_scaling.jl")
     end
     
     Test.@testset verbose = true "Benders Output Utilities" begin

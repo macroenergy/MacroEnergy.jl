@@ -233,11 +233,22 @@ Compute variable O&M cost for an edge: sum over time of `subperiod_weight * vari
 Returns a Float64 value.
 """
 function compute_variable_om_cost(e::AbstractEdge)::Float64
-    variable_om_cost(e) <= 0 && return 0.0
+    variable_om_cost(e) == 0 && return 0.0
     vom_cost = 0.0
     for t in time_interval(e)
         w = current_subperiod(e, t)
         vom_cost += subperiod_weight(e, w) * variable_om_cost(e) * value(flow(e, t))
+    end
+    return vom_cost
+end
+
+# Bidirectional edges are charged on |flow| = flow_pos + flow_neg, as in add_operation_model_varcosts!.
+function compute_variable_om_cost(e::BidirectionalEdge)::Float64
+    variable_om_cost(e) <= 0 && return 0.0
+    vom_cost = 0.0
+    for t in time_interval(e)
+        w = current_subperiod(e, t)
+        vom_cost += subperiod_weight(e, w) * variable_om_cost(e) * (value(flow_pos(e, t)) + value(flow_neg(e, t)))
     end
     return vom_cost
 end
@@ -456,6 +467,7 @@ function write_detailed_costs(
     @debug "Writing detailed cost breakdown files"
 
     layout = get_output_layout(system, :Costs)
+    format = get_output_format(system, :Costs)
     costs = get_detailed_costs(system, settings, scaling)
 
     # Write discounted costs by type and zone
@@ -464,7 +476,8 @@ function write_detailed_costs(
         prefix="costs",
         validate_model=model,
         discounted=true,
-        scaling
+        scaling,
+        format
     )
     # Write undiscounted costs by type and zone
     write_cost_breakdown_files!(
@@ -472,7 +485,8 @@ function write_detailed_costs(
         prefix="undiscounted_costs",
         validate_model=model,
         discounted=false,
-        scaling
+        scaling,
+        format
     )
 
     return nothing
@@ -513,21 +527,24 @@ function write_detailed_costs_benders(
     period_operational_costs = aggregate_operational_costs(operational_costs_df)
 
     layout = get_output_layout(system, :Costs)
+    format = get_output_format(system, :Costs)
     costs = get_detailed_costs_benders(system, period_operational_costs, settings, scaling)
 
     # Write discounted costs by type and zone
-    write_cost_breakdown_files!(results_dir, costs.discounted, layout; 
+    write_cost_breakdown_files!(results_dir, costs.discounted, layout;
         prefix="costs",
         validate_model=benders_costs,
         discounted=true,
-        scaling)
+        scaling,
+        format)
 
     # Write undiscounted costs by type and zone
-    write_cost_breakdown_files!(results_dir, costs.undiscounted, layout; 
+    write_cost_breakdown_files!(results_dir, costs.undiscounted, layout;
         prefix="undiscounted_costs",
         validate_model=benders_costs,
         discounted=false,
-        scaling)
+        scaling,
+        format)
 
     return nothing
 end
@@ -540,7 +557,8 @@ end
         suffix::String;
         validate_model::Union{Model,NamedTuple,Nothing}=nothing,
         discounted::Bool=false,
-        scaling::Float64
+        scaling::Float64,
+        format::String="csv"
     )
 
 Helper function to write cost breakdown files (by type and by zone).
@@ -554,6 +572,7 @@ Used by both `write_detailed_costs` and `write_detailed_costs_benders`.
 - `validate_model`: Optional model for objective value validation. It should contain four fields: :eDiscountedFixedCost, :eDiscountedVariableCost, :eFixedCost, :eVariableCost.
 - `discounted::Bool`: Whether costs are discounted (for validation)
 - `scaling::Float64`: Scaling factor (for validation)
+- `format::String`: File format and extension ("csv", "csv.gz" or "parquet")
 """
 function write_cost_breakdown_files!(
     results_dir::AbstractString,
@@ -562,23 +581,26 @@ function write_cost_breakdown_files!(
     prefix::String="costs",
     validate_model::Union{Model,NamedTuple,Nothing}=nothing,
     discounted::Bool=false,
-    scaling::Float64
+    scaling::Float64,
+    format::String="csv"
 )
     # Write costs by type
     costs_by_type = aggregate_costs_by_type(detailed_costs)
     add_total_row!(costs_by_type, :type)
     !isnothing(validate_model) && validate_total_cost(costs_by_type, validate_model, discounted, scaling)
     layout == "wide" && (costs_by_type = reshape_costs_wide(costs_by_type, :type))
-    @info "Writing detailed $(discounted ? "discounted" : "undiscounted") costs by type to $(joinpath(results_dir, "$(prefix)_by_type.csv"))"
-    write_dataframe(joinpath(results_dir, "$(prefix)_by_type.csv"), costs_by_type, String[])
-    
+    by_type_path = joinpath(results_dir, "$(prefix)_by_type.$(format)")
+    @info "Writing detailed $(discounted ? "discounted" : "undiscounted") costs by type to $by_type_path"
+    write_dataframe(by_type_path, costs_by_type, String[])
+
     # Write costs by zone
     costs_by_zone = aggregate_costs_by_zone(detailed_costs)
     add_total_row!(costs_by_zone, :zone)
     !isnothing(validate_model) && validate_total_cost(costs_by_zone, validate_model, discounted, scaling)
     layout == "wide" && (costs_by_zone = reshape_costs_wide(costs_by_zone, :zone))
-    @info "Writing detailed $(discounted ? "discounted" : "undiscounted") costs by zone to $(joinpath(results_dir, "$(prefix)_by_zone.csv"))"
-    write_dataframe(joinpath(results_dir, "$(prefix)_by_zone.csv"), costs_by_zone, String[])
+    by_zone_path = joinpath(results_dir, "$(prefix)_by_zone.$(format)")
+    @info "Writing detailed $(discounted ? "discounted" : "undiscounted") costs by zone to $by_zone_path"
+    write_dataframe(by_zone_path, costs_by_zone, String[])
     
     return nothing
 end

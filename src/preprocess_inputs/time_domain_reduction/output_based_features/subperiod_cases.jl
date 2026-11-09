@@ -68,17 +68,14 @@ function tdr_single_system_case_settings(source_settings, system_index::Int)
 end
 
 function tdr_copy_subperiod_case(inputs, destination_case_root::String)
-    relocated = tdr_relocate_inputs(inputs, destination_case_root)
+    relocated = tdr_relocate_inputs(inputs, destination_case_root; system_path=Any[])
     mkpath(destination_case_root)
     for input in sort!(collect(values(inputs.manifest)); by=input -> input.source_path)
         haskey(inputs.input_data, input.source_path) && continue
         destination = joinpath(destination_case_root, relpath(input.source_path, inputs.source_root))
         tdr_copy_system_input!(TDRTrackedInput(input.source_path, destination, input.columns))
     end
-    for (path, data) in relocated.input_data
-        mkpath(dirname(path))
-        tdr_write_input_data(path, data, relocated.csv_tables)
-    end
+    tdr_write_dependency_snapshots!(relocated)
     write_json(joinpath(destination_case_root, "system_data.json"), relocated.system)
     destination_path = joinpath(destination_case_root, "settings", "case_settings.json")
     mkpath(dirname(destination_path))
