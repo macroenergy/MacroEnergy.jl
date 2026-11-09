@@ -55,6 +55,9 @@ The model does not force one of `flow_pos` and `flow_neg` to be zero. When both 
 | Setting | File | Default | Effect |
 |---|---|---|---|
 | `OutputLayout` (or `OutputLayout.Losses`) | `macro_settings.json` | `"long"` | Set to `"wide"` to pivot time steps into rows and edges (`component_id`) into columns. |
+| `OutputFormat` (or `OutputFormat.Losses`) | `macro_settings.json` | `"csv"` | Set to `"csv.gz"` or `"parquet"` to write a compressed file (`.csv.gz` or `.parquet`). See [Output Format and Size](@ref "manual-outputs-format"). |
+| `WriteOutputs.Losses` | `macro_settings.json` | `true` | Set to `false` to skip this output. See [Selecting Outputs](@ref "manual-outputs-selecting"). |
+| `OutputSignificantDigits` | `macro_settings.json` | `null` | Set to an integer to round values to that many significant digits before writing. |
 | `WriteFullTimeseries` | `case_settings.json` | `false` | When `true` and TDR is active, also write full-year losses to `full_time_series/edge_losses.csv`. |
 
 ## [Assumptions](@id manual-outputs-losses-assumptions)

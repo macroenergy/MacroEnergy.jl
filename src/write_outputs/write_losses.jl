@@ -54,7 +54,7 @@ function write_losses(
         loss_results = reshape_wide(loss_results, :time, :component_id, :value)
     end
 
-    write_dataframe(file_path, loss_results, drop_cols)
+    write_dataframe(file_path, loss_results, drop_cols; sigdigits=get_output_significant_digits(system))
     return nothing
 end
 
@@ -98,7 +98,7 @@ function write_losses(
         loss_results = reshape_wide(loss_results, :time, :component_id, :value)
     end
 
-    write_dataframe(file_path, loss_results)
+    write_dataframe(file_path, loss_results; sigdigits=get_output_significant_digits(system))
     return nothing
 end
 

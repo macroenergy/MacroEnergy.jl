@@ -160,6 +160,82 @@ function get_output_layout(system::System, variable::Union{Nothing,Symbol}=nothi
 end
 
 """
+    get_output_format(system::System, variable::Symbol)::String
+
+Get the file format ("csv", "csv.gz" or "parquet") for a specific output from system settings.
+
+The `OutputFormat` setting is either a single string applied to all outputs, or a NamedTuple
+keyed by output (e.g., `(Flow="parquet", StorageLevel="csv.gz")`). Outputs that are not listed,
+and systems without the setting, default to "csv".
+
+# Examples
+```julia
+system = System(settings=(OutputFormat="parquet",))
+get_output_format(system, :Flow)      # Returns "parquet"
+
+system = System(settings=(OutputFormat=(Flow="parquet",),))
+get_output_format(system, :Flow)      # Returns "parquet"
+get_output_format(system, :Capacity)  # Returns "csv"
+```
+"""
+function get_output_format(system::System, variable::Symbol)::String
+    output_format = get(system.settings, :OutputFormat, "csv")
+    output_format isa NamedTuple && return get(output_format, variable, "csv")
+    return output_format
+end
+
+"""
+    output_enabled(system::System, variable::Symbol)::Bool
+
+Return whether the output `variable` should be written, according to the `WriteOutputs` setting.
+Outputs that are not listed in `WriteOutputs` are written.
+"""
+output_enabled(system::System, variable::Symbol)::Bool = get(get(system.settings, :WriteOutputs, (;)), variable, true)
+
+"""
+    output_file(results_dir::AbstractString, basename::AbstractString, system::System, variable::Symbol)
+
+Return the path of the output file `basename` in `results_dir`, with the extension given by the
+`OutputFormat` setting for `variable` (e.g., `output_file(dir, "flows", system, :Flow)` returns
+`dir/flows.parquet` when `OutputFormat` is "parquet").
+"""
+function output_file(results_dir::AbstractString, basename::AbstractString, system::System, variable::Symbol)
+    return joinpath(results_dir, "$basename.$(get_output_format(system, variable))")
+end
+
+"""
+    get_output_significant_digits(system::System)::Union{Nothing,Int}
+
+Return the number of significant digits that time-series outputs are rounded to before writing
+(`OutputSignificantDigits` setting), or `nothing` to write full precision.
+"""
+get_output_significant_digits(system::System)::Union{Nothing,Int} = get(system.settings, :OutputSignificantDigits, nothing)
+
+"""
+    find_output_file(results_dir::AbstractString, basename::AbstractString; hint::AbstractString="")
+
+Return the path of the output file `basename` in `results_dir`, whichever supported format it
+was written in (`.csv`, `.csv.gz` or `.parquet`). Throws an error if none exists, ending with
+`hint` if one is given.
+
+Also throws an error if more than one format exists. A run writes each output in one format
+only, so the others are left over from an earlier run (`OverwriteResults = true` reuses the
+folder without clearing it), and there is no safe way to tell which file is current.
+"""
+function find_output_file(results_dir::AbstractString, basename::AbstractString; hint::AbstractString="")
+    candidates = [joinpath(results_dir, "$basename.$ext") for ext in OUTPUT_FORMATS]
+    found = filter(isfile, candidates)
+    if isempty(found)
+        error("No output file found for $basename. Tried: $(join(candidates, ", "))." * (isempty(hint) ? "" : " $hint"))
+    elseif length(found) > 1
+        error("Found more than one output file for $basename: $(join(found, ", ")). " *
+              "The extra files are probably left over from an earlier run written to the same folder " *
+              "with OverwriteResults = true. Delete the stale files and keep the one written by the run you want to use.")
+    end
+    return only(found)
+end
+
+"""
     filter_edges_by_commodity!(edges::Vector{AbstractEdge}, commodity::Union{Symbol,Vector{Symbol}}, edge_asset_map::Dict{Symbol,Base.RefValue{<:AbstractAsset}}=Dict{Symbol,Base.RefValue{<:AbstractAsset}}())
 
 Filter the edges by commodity and update the edge_asset_map to match the filtered edges (optional).

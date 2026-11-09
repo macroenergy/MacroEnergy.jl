@@ -44,6 +44,11 @@ MacroEnergy.balance_data
 MacroEnergy.build_period_planning!
 ```
 
+## `check_myopic_capacity_outputs`
+```@docs
+MacroEnergy.check_myopic_capacity_outputs
+```
+
 ## `create_output_path`
 ```@docs
 MacroEnergy.create_output_path
@@ -134,6 +139,16 @@ MacroEnergy.get_edges
 MacroEnergy.get_output_layout
 ```
 
+## `get_output_format`
+```@docs
+MacroEnergy.get_output_format
+```
+
+## `get_output_significant_digits`
+```@docs
+MacroEnergy.get_output_significant_digits
+```
+
 ## `get_value`
 ```@docs
 MacroEnergy.get_value
@@ -164,6 +179,16 @@ MacroEnergy.find_available_path
 MacroEnergy.find_node
 ```
 
+## `find_output_file`
+```@docs
+MacroEnergy.find_output_file
+```
+
+## `full_timeseries_file`
+```@docs
+MacroEnergy.full_timeseries_file
+```
+
 ## `has_tdr`
 
 ```@docs
@@ -183,6 +208,16 @@ MacroEnergy.json_to_csv
 ## `location_ids`
 ```@docs
 MacroEnergy.location_ids
+```
+
+## `output_enabled`
+```@docs
+MacroEnergy.output_enabled
+```
+
+## `output_file`
+```@docs
+MacroEnergy.output_file
 ```
 
 ## `print_struct_info`
@@ -220,6 +255,11 @@ MacroEnergy.reshape_wide
 MacroEnergy.reshape_long
 ```
 
+## `round_float_columns!`
+```@docs
+MacroEnergy.round_float_columns!
+```
+
 ## `search_assets`
 ```@docs
 MacroEnergy.search_assets
@@ -253,6 +293,11 @@ MacroEnergy.struct_info
 ## `timestepbefore`
 ```@docs
 MacroEnergy.timestepbefore
+```
+
+## `translate_deprecated_settings`
+```@docs
+MacroEnergy.translate_deprecated_settings
 ```
 
 # Benders Utility Functions

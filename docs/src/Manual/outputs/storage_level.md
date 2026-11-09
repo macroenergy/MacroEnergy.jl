@@ -34,6 +34,9 @@ The storage level represents how much commodity is held inside the storage at a 
 | Setting | File | Default | Effect |
 |---|---|---|---|
 | `OutputLayout` (or `OutputLayout.StorageLevel`) | `macro_settings.json` | `"long"` | Set to `"wide"` to pivot time steps into columns. |
+| `OutputFormat` (or `OutputFormat.StorageLevel`) | `macro_settings.json` | `"csv"` | Set to `"csv.gz"` or `"parquet"` to write a compressed file (`.csv.gz` or `.parquet`). See [Output Format and Size](@ref "manual-outputs-format"). |
+| `WriteOutputs.StorageLevel` | `macro_settings.json` | `true` | Set to `false` to skip this output. See [Selecting Outputs](@ref "manual-outputs-selecting"). |
+| `OutputSignificantDigits` | `macro_settings.json` | `null` | Set to an integer to round values to that many significant digits before writing. |
 | `WriteFullTimeseries` | `case_settings.json` | `false` | When `true` and TDR is active, also write full-year storage levels to `full_time_series/storage_level.csv`. |
 
 ## [Assumptions](@id manual-outputs-storage-level-assumptions)

@@ -70,17 +70,7 @@ function write_capacity(
     asset_type::Union{AbstractString,Vector{<:AbstractString},Nothing}=nothing
 )
     @info "Writing capacity results to $file_path"
-    capacity_results = get_optimal_capacity(system, scaling)
-    new_capacity_results = get_optimal_new_capacity(system, scaling)
-    retired_capacity_results = get_optimal_retired_capacity(system, scaling)
-    existing_capacity_results = get_existing_capacity(system, scaling)
-    if system.settings.Retrofitting
-        retrofitted_capacity_results = get_optimal_retrofitted_capacity(system, scaling)
-        all_capacity_results = vcat(capacity_results, new_capacity_results, retired_capacity_results, retrofitted_capacity_results, existing_capacity_results)
-    else
-        all_capacity_results = vcat(capacity_results, new_capacity_results, retired_capacity_results, existing_capacity_results)
-    end
-    add_asset_tags!(all_capacity_results, system)
+    all_capacity_results = get_capacity_results(system, scaling)
 
     # Reshape a copy for the file being written; `all_capacity_results` itself stays pristine
     # (full detail, long format) so it can be returned and reused as-is by callers.
@@ -136,6 +126,29 @@ function write_capacity(
     end
 
     write_dataframe(file_path, results_to_write, drop_cols)
+    return all_capacity_results
+end
+
+"""
+    get_capacity_results(system::System, scaling::Float64)
+
+Return the full, long-format capacity results for a system (capacity, new/retired/retrofitted
+capacity, existing capacity, and asset tags), as written by [`write_capacity`](@ref). Used
+directly when the capacity file itself is not written (`WriteOutputs.Capacity = false`) but the
+results are still needed, e.g. for the cross-period capacity summary.
+"""
+function get_capacity_results(system::System, scaling::Float64)
+    capacity_results = get_optimal_capacity(system, scaling)
+    new_capacity_results = get_optimal_new_capacity(system, scaling)
+    retired_capacity_results = get_optimal_retired_capacity(system, scaling)
+    existing_capacity_results = get_existing_capacity(system, scaling)
+    if system.settings.Retrofitting
+        retrofitted_capacity_results = get_optimal_retrofitted_capacity(system, scaling)
+        all_capacity_results = vcat(capacity_results, new_capacity_results, retired_capacity_results, retrofitted_capacity_results, existing_capacity_results)
+    else
+        all_capacity_results = vcat(capacity_results, new_capacity_results, retired_capacity_results, existing_capacity_results)
+    end
+    add_asset_tags!(all_capacity_results, system)
     return all_capacity_results
 end
 
@@ -252,9 +265,9 @@ const CAPACITY_SUMMARY_VARIABLE_ORDER = [:existing_capacity, :new_capacity, :ret
 capacity_summary_column_name(variable::Symbol, label::Int) = "$(variable)_$(label)"
 
 """
-    write_capacity_summary(path::AbstractString, period_results::Vector{DataFrame}, layout::String)
+    write_capacity_summary(path::AbstractString, period_results::Vector{DataFrame}, layout::String; format::String="csv")
 
-Write a cross-period capacity summary (`capacity_summary.csv`) to `path`, combining the
+Write a cross-period capacity summary (`capacity_summary.csv`, or `capacity_summary.<format>`) to `path`, combining the
 per-period `DataFrame`s returned by [`write_capacity`](@ref) (Note for developers: `period_results` must be in
 chronological order, earliest period first).
 
@@ -274,10 +287,10 @@ later periods it is always equal to the previous period's final `:capacity` and 
   together on the shared identifying columns (commodity, zone, resource_id, component_id,
   resource_type, component_type).
 """
-function write_capacity_summary(path::AbstractString, period_results::Vector{DataFrame}, layout::String)
+function write_capacity_summary(path::AbstractString, period_results::Vector{DataFrame}, layout::String; format::String="csv")
     all(isempty, period_results) && return nothing
 
-    file_path = joinpath(path, "capacity_summary.csv")
+    file_path = joinpath(path, "capacity_summary.$format")
     @info "Writing cross-period capacity summary to $file_path"
 
     # No StartYear configured: `year` column was dropped. Fall back to a `period` column instead.
@@ -315,6 +328,20 @@ function write_capacity_summary(path::AbstractString, period_results::Vector{Dat
         write_dataframe(file_path, reduce(vcat, period_results))
     end
     return nothing
+end
+
+"""
+    write_capacity_summary(path::AbstractString, period_results::Vector{DataFrame}, system::System)
+
+Write the cross-period capacity summary using the `OutputLayout` and `OutputFormat` settings of
+`system` (the first period's system), unless `WriteOutputs.CapacitySummary` is `false`.
+"""
+function write_capacity_summary(path::AbstractString, period_results::Vector{DataFrame}, system::System)
+    output_enabled(system, :CapacitySummary) || return nothing
+    return write_capacity_summary(
+        path, period_results, get_output_layout(system, :CapacitySummary);
+        format=get_output_format(system, :CapacitySummary)
+    )
 end
 
 # The following functions are used to extract capacity values after the model has been solved
