@@ -103,11 +103,12 @@ Instead of a single string, `OutputLayout` can be a JSON object to control layou
     "Flow":            "long",
     "StorageLevel":    "long",
     "Curtailment":     "long",
+    "Losses":          "long",
     "NonServedDemand": "long"
 }
 ```
 
-Supported keys: `Capacity`, `CapacitySummary`, `Costs`, `Flow`, `StorageLevel`, `Curtailment`, `NonServedDemand`.
+Supported keys: `Capacity`, `CapacitySummary`, `Costs`, `Flow`, `StorageLevel`, `Curtailment`, `Losses`, `NonServedDemand`.
 
 ### [Output Format and Size](@id manual-outputs-format)
 
@@ -142,7 +143,7 @@ Like `OutputLayout`, `OutputFormat` can be a JSON object to set the format per o
 }
 ```
 
-Supported keys: `Capacity`, `CapacitySummary`, `Capex`, `Costs`, `Curtailment`, `Duals`, `Flow`, `NonServedDemand`, `StorageLevel`, `TimeWeights`. Outputs that are not listed are written as `"csv"`. The `objective_value.csv`, `benders_convergence.csv` and `settings.json` files are always written as CSV/JSON.
+Supported keys: `Capacity`, `CapacitySummary`, `Capex`, `Costs`, `Curtailment`, `Duals`, `Flow`, `Losses`, `NonServedDemand`, `StorageLevel`, `TimeWeights`. Outputs that are not listed are written as `"csv"`. The `objective_value.csv`, `benders_convergence.csv` and `settings.json` files are always written as CSV/JSON.
 
 !!! note "Full time series"
     Full time series files follow `OutputFormat` too, except that long-layout CSV files are always gzip-compressed (`.csv.gz`). See [Full Time Series](@ref "manual-outputs-full-timeseries").
@@ -205,6 +206,7 @@ File names are shown with the default `.csv` extension. With [`OutputFormat`](@r
 | [`settings.json`](@ref "manual-outputs-settings-output") | Snapshot of all case and system settings used for the run | Always |
 | [`storage_level.csv`](@ref "manual-outputs-storage-level") | State of charge for every storage component at every representative time step | System has storage assets |
 | [`curtailment.csv`](@ref "manual-outputs-curtailment") | Curtailed generation for VRE assets at every representative time step | System has VRE assets with `has_capacity = true` |
+| [`edge_losses.csv`](@ref "manual-outputs-losses") | Commodity lost on every lossy edge at every representative time step | System has edges with a nonzero `loss_fraction` |
 | [`non_served_demand.csv`](@ref "manual-outputs-nsd") | Non-served demand for every node with NSD variables at every representative time step | System has nodes with NSD variables |
 | [`balance_duals.csv`](@ref "manual-outputs-duals-balance") | Shadow prices of commodity balance constraints (locational marginal prices) | `WriteOutputs.Duals = true` (default) |
 | [`co2_cap_duals.csv`](@ref "manual-outputs-duals-co2") | Shadow prices of CO₂ cap constraints (carbon prices) | `WriteOutputs.Duals = true` (default) |
@@ -271,6 +273,7 @@ The following functions write output files. They are called automatically by `ru
 | [`write_flow`](@ref) | `flows.csv` |
 | [`write_storage_level`](@ref) | `storage_level.csv` |
 | [`write_curtailment`](@ref) | `curtailment.csv` |
+| [`write_losses`](@ref) | `edge_losses.csv` |
 | [`write_non_served_demand`](@ref) | `non_served_demand.csv` |
 | [`write_duals`](@ref) | `balance_duals.csv`, `co2_cap_duals.csv` |
 | [`write_full_timeseries`](@ref) | `full_time_series/` |
@@ -287,6 +290,7 @@ The following functions return output data as Julia `DataFrame` objects without 
 | [`get_optimal_flow`](@ref) | Optimal flow per edge per time step |
 | [`get_optimal_storage_level`](@ref) | Optimal storage state of charge per time step |
 | [`get_optimal_curtailment`](@ref) | Curtailment per VRE edge per time step |
+| [`get_optimal_losses`](@ref) | Losses per lossy edge per time step |
 | [`get_optimal_non_served_demand`](@ref) | Non-served demand per node per time step |
 
 ### Filtering Results

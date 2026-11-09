@@ -27,6 +27,7 @@ The following files are written inside `full_time_series/`:
 | `non_served_demand.csv` or `non_served_demand.csv.gz` | Wide / Long (`.gz`) | Always (if enabled) | Expanded non-served demand for all NSD-enabled nodes |
 | `storage_level.csv` or `storage_level.csv.gz` | Wide / Long (`.gz`) | Always (if enabled) | Expanded storage state of charge |
 | `curtailment.csv` or `curtailment.csv.gz` | Wide / Long (`.gz`) | Always (if enabled) | Expanded VRE curtailment |
+| `edge_losses.csv` or `edge_losses.csv.gz` | Wide / Long (`.gz`) | System has lossy edges | Expanded losses on lossy edges |
 | `balance_duals.csv` | Wide | `WriteOutputs.Duals = true` (default) | Expanded locational marginal prices |
 
 The file format follows the [`OutputFormat`](@ref "manual-outputs-format") setting for each output, with one exception for the default CSV format:
@@ -106,6 +107,7 @@ results/
 ├── flows.csv
 ├── storage_level.csv
 ├── curtailment.csv
+├── edge_losses.csv
 ├── non_served_demand.csv
 ├── balance_duals.csv
 ├── co2_cap_duals.csv
@@ -114,6 +116,7 @@ results/
     ├── flows.csv.gz           ← 8760-hour flows (compressed long format)
     ├── storage_level.csv.gz
     ├── curtailment.csv.gz
+    ├── edge_losses.csv.gz
     ├── non_served_demand.csv.gz
     └── balance_duals.csv      ← wide format, uncompressed
 ```

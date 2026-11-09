@@ -174,6 +174,7 @@ function _write_benders_period_outputs(
     nsd_df               = non_served_demand(subproblems_data)
     storage_level_df     = storage_levels(subproblems_data)
     curtailment_df       = curtailment(subproblems_data)
+    losses_df            = losses(subproblems_data)
     operational_costs_df = operational_costs(subproblems_data)
 
     scaling = parameter_scaling_factor(settings)
@@ -200,6 +201,10 @@ function _write_benders_period_outputs(
     # Curtailment results
     output_enabled(system, :Curtailment) &&
         write_curtailment(output_file(results_dir, "curtailment", system, :Curtailment), system, curtailment_df[subop_indices])
+
+    # Loss results
+    output_enabled(system, :Losses) &&
+        write_losses(output_file(results_dir, "edge_losses", system, :Losses), system, losses_df[subop_indices])
 
     # Sub-period weights (for downstream revenue and weighted-sum calculations)
     output_enabled(system, :TimeWeights) &&
@@ -245,6 +250,7 @@ function _write_benders_period_outputs(
             nsd_df[subop_indices],
             storage_level_df[subop_indices],
             curtailment_df[subop_indices],
+            losses_df[subop_indices],
             scaling,
             var_cost_discount)
     end
@@ -298,6 +304,9 @@ function write_period_outputs(
     # Curtailment results
     output_enabled(system, :Curtailment) &&
         write_curtailment(output_file(results_dir, "curtailment", system, :Curtailment), system, scaling)
+    # Loss results
+    output_enabled(system, :Losses) &&
+        write_losses(output_file(results_dir, "edge_losses", system, :Losses), system, scaling)
 
     # Sub-period weights (for downstream revenue and weighted-sum calculations)
     output_enabled(system, :TimeWeights) &&
