@@ -9,20 +9,24 @@ using MacroEnergy
 const MOI = JuMP.MOI
 
 import MacroEnergy:
+    AbstractEdge,
     BalanceConstraint,
     BalanceData,
     Node,
     SupplySegment,
     TimeData,
     add_linking_variables!,
+    carry_over_capacities!,
     compute_annualized_costs!,
     define_available_capacity!,
     discount_fixed_costs!,
     empty_system,
     operation_model!,
-    planning_model!
+    planning_model!,
+    release_model_references!
 
 export MOI,
+    assert_absent_optional_edge,
     build_test_model,
     make_demand_node,
     make_free_node,
@@ -133,6 +137,48 @@ function build_test_model(system)
     @test primal_status(model) == MOI.FEASIBLE_POINT
 
     return model
+end
+
+function edge_fields(asset)
+    return [
+        field for field in MacroEnergy.fieldnames(typeof(asset))
+        if getfield(asset, field) isa AbstractEdge
+    ]
+end
+
+"""
+    assert_absent_optional_edge(make_asset, absent_field)
+
+Check that an asset can be carried over and released when its optional edge `absent_field` is
+absent, and that the absent edge does not stop its other edges from being processed.
+`make_asset` must return a new instance of the asset each time it is called.
+"""
+function assert_absent_optional_edge(make_asset::Function, absent_field::Symbol)
+    for perfect_foresight in (true, false)
+        asset, asset_prev = make_asset(), make_asset()
+        @test isnothing(getfield(asset, absent_field))
+
+        # A distinct capacity for each edge, so that a skipped edge cannot pass as zero
+        expected = Dict(field => 100.0 * i for (i, field) in enumerate(edge_fields(asset)))
+        for (field, capacity) in expected
+            edge = getfield(asset_prev, field)
+            edge.has_capacity = true
+            edge.capacity = AffExpr(capacity)
+        end
+
+        carry_over_capacities!(asset, asset_prev; perfect_foresight)
+
+        for (field, capacity) in expected
+            @test value(getfield(asset, field).existing_capacity) == capacity
+        end
+    end
+
+    asset = make_asset()
+    edges = [getfield(asset, field) for field in edge_fields(asset)]
+    @test all(edge.capacity isa AffExpr for edge in edges)
+    release_model_references!(asset)
+    @test all(edge.capacity isa Real for edge in edges)
+    return nothing
 end
 
 end # module AssetTestUtilities

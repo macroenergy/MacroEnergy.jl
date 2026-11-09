@@ -147,6 +147,19 @@ function test_asset_syntheticliquidfuels_balance()
         component_ids = MacroEnergy.get_component_ids(no_return_case.asset)
         @test :synthetic_liquid_fuels_test_co2_captured_return_edge ∉ component_ids
         @test isnothing(MacroEnergy.get_component_by_id(no_return_case.asset, :missing_component))
+
+        assert_absent_optional_edge(
+            () -> make_syntheticliquidfuels_case(:default).asset,
+            :co2_captured_return_edge,
+        )
+
+        # An edge in only one of two periods must raise an error, not be silently dropped
+        return_case = make_syntheticliquidfuels_case(
+            :default;
+            co2_captured_return_end_vertex = :co2_captured_return_sink,
+        )
+        @test_throws MethodError MacroEnergy.carry_over_capacities!(no_return_case.asset, return_case.asset)
+        @test_throws MethodError MacroEnergy.carry_over_capacities!(return_case.asset, no_return_case.asset)
     end
 
     @test_logs (:warn, "User provided captured-CO₂-related inputs for the synthetic_liquid_fuels_test asset but they will not be used as no captured-CO₂ return end vertex or location has been set") begin
