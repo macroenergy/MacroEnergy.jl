@@ -202,10 +202,12 @@ end
 
         metadata_path = MacroEnergy.tdr_output_metadata_path(source; system_index=1)
         metadata = MacroEnergy.mutable_json_data(MacroEnergy.read_json(metadata_path))
-        metadata["cache_version"] = 0 # A version incompatible with the current cache schema.
-        MacroEnergy.write_json(metadata_path, metadata)
-        @test_throws MacroEnergy.TDROutputCacheMismatch MacroEnergy.tdr_load_output_features(
-            source, settings, 4; system_index=1)
+        for version in (0, MacroEnergy.TDR_OUTPUT_CACHE_VERSION - 1)
+            metadata["cache_version"] = version
+            MacroEnergy.write_json(metadata_path, metadata)
+            @test_throws MacroEnergy.TDROutputCacheMismatch MacroEnergy.tdr_load_output_features(
+                source, settings, 4; system_index=1)
+        end
         delete!(metadata, "cache_version")
         MacroEnergy.write_json(metadata_path, metadata)
         @test_throws MacroEnergy.TDROutputCacheMismatch MacroEnergy.tdr_load_output_features(
