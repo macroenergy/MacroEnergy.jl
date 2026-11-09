@@ -23,6 +23,7 @@ function test_benders_output_utilities()
             storage_levels = DataFrame(),
             nsd = DataFrame(),
             curtailment = DataFrame(),
+            losses = DataFrame(),
             operational_costs = DataFrame(),
         )
 

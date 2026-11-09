@@ -22,7 +22,7 @@ end
 # File formats supported by `OutputFormat`, used as the output file extension
 const OUTPUT_FORMATS = ("csv", "csv.gz", "parquet")
 # Output types that can be keyed in `OutputFormat` and `WriteOutputs`
-const OUTPUT_KEYS = (:Capacity, :CapacitySummary, :Capex, :Costs, :Curtailment, :Duals, :Flow, :NonServedDemand, :StorageLevel, :TimeWeights)
+const OUTPUT_KEYS = (:Capacity, :CapacitySummary, :Capex, :Costs, :Curtailment, :Duals, :Flow, :Losses, :NonServedDemand, :StorageLevel, :TimeWeights)
 
 namedtuple(x) = x   # default case
 function namedtuple(d::T) where {T<:AbstractDict}
@@ -100,7 +100,7 @@ function validate_settings(settings::NamedTuple)
         @assert settings[:OutputLayout] ∈ ("long", "wide")
     else
         # Note: we currently support these output files
-        @assert all(keys(settings[:OutputLayout]) .∈ Ref((:Capacity, :CapacitySummary, :Costs, :Curtailment, :Flow, :NonServedDemand, :StorageLevel)))
+        @assert all(keys(settings[:OutputLayout]) .∈ Ref((:Capacity, :CapacitySummary, :Costs, :Curtailment, :Flow, :Losses, :NonServedDemand, :StorageLevel)))
         @assert all(values(settings[:OutputLayout]) .∈ Ref(("long", "wide")))
     end
     @assert settings[:OutputFormat] isa Union{String, NamedTuple}
