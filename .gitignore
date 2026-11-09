@@ -51,3 +51,7 @@ output.log
 *.log
 /examples
 /benchmark/results/
+
+# Numbered run-output folders (e.g. ExampleSystems/*/082626_001) produced by
+# run scripts under ExampleSystems; these are local results, not source inputs.
+ExampleSystems/*/[0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9]/
