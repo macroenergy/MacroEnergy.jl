@@ -37,9 +37,48 @@ function finalize_planning_model_objective!(
 
     _, number_of_subperiods = get_period_to_subproblem_mapping(periods)
     @expression(model, eLowerBoundOperatingCost[w in 1:number_of_subperiods], AffExpr(0.0))
+    set_operating_cost_lower_bounds!(model, periods, settings)
 
     @objective(model, Min, model[:eFixedCost])
 
+    return nothing
+end
+
+"""
+Set Benders lower bounds before the solver creates its theta constraints.
+`BendersSettings[:OperatingCostLowerBounds]` maps period IDs to vectors, ordered
+by that period's representative subperiods. Each entry is an annual weighted
+operating-cost lower bound in original currency, valid for all allowed capacities.
+This function applies parameter scaling, period annuity, and case-start discounting.
+"""
+function set_operating_cost_lower_bounds!(model::Model, periods::Vector{System}, settings::NamedTuple)
+    bounds = get(settings.BendersSettings, :OperatingCostLowerBounds, nothing)
+    has_flow_credit(system) = any(e -> !iszero(flow_credit_rate(e)), get_edges(system))
+    if isnothing(bounds)
+        any(has_flow_credit, periods) && throw(ArgumentError(
+            "FlowCredit with Benders requires OperatingCostLowerBounds for every modeled period; zero is not an assumed valid bound."))
+        return nothing
+    end
+    bounds isa Union{AbstractDict,NamedTuple} || throw(ArgumentError("OperatingCostLowerBounds must map period IDs to vectors."))
+    bounds = Dict(string(k) => v for (k, v) in pairs(bounds))
+    mapping, _ = get_period_to_subproblem_mapping(periods)
+    factors = present_value_factor(settings.DiscountRate, collect(settings.PeriodLengths))
+    scaling = parameter_scaling_factor(settings)
+    for system in periods
+        p = period_index(system)
+        entries = get(bounds, string(p), nothing)
+        indices = mapping[p]
+        if !(entries isa AbstractVector) || length(entries) != length(indices)
+            throw(ArgumentError("OperatingCostLowerBounds period $p requires $(length(indices)) entries."))
+        end
+        multiplier = factors[p] * present_value_annuity_factor(settings.DiscountRate, settings.PeriodLengths[p]) / scaling^2
+        for (w, bound) in zip(indices, entries)
+            if !(bound isa Real) || bound isa Bool || !isfinite(bound)
+                throw(ArgumentError("OperatingCostLowerBounds period $p contains a non-finite or nonnumeric bound."))
+            end
+            model[:eLowerBoundOperatingCost][w] = AffExpr(Float64(bound) * multiplier)
+        end
+    end
     return nothing
 end
 
