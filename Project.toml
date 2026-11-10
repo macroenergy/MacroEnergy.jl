@@ -72,7 +72,7 @@ SHA = "0.7, 1"
 SlurmClusterManager = "1"
 Test = "1"
 YAML = "0.4"
-julia = "1.9"
+julia = "1.10"
 
 [extras]
 JLD2 = "033835bb-8acc-5ee8-8aae-3f567f8a3819"
