@@ -114,17 +114,19 @@ end
 
 Struct holding results from all Benders subproblems, with one vector per output type.
 Each vector has one `DataFrame` per subproblem (same ordering). Use `.flows`, `.storage_levels`,
-`.nsd`, and `.operational_costs` for write functions.
+`.nsd`, `.curtailment`, `.losses`, `.operational_costs`, and `.flow_credits` for write functions.
 
 # Fields
 - `flows::Vector{DataFrame}`: Flow time-series, one DataFrame per subproblem
 - `storage_levels::Vector{DataFrame}`: Storage level time-series, one per subproblem
 - `nsd::Vector{DataFrame}`: Non-served demand time-series, one per subproblem
 - `curtailment::Vector{DataFrame}`: VRE curtailment time-series, one per subproblem
+- `losses::Vector{DataFrame}`: Losses of lossy edges time-series, one per subproblem
 - `operational_costs::Vector{DataFrame}`: Operational costs (VariableOM, Fuel, Startup, NSD, Supply, Slack), one per subproblem
+- `flow_credits::Vector{DataFrame}`: Annual weighted credit payments in original units, one per subproblem
 
 # Indexing and iteration
-- `subproblems_data[i]` returns a NamedTuple `(flows=..., storage_levels=..., nsd=..., operational_costs=..., curtailment=...)` for subproblem `i`
+- `subproblems_data[i]` returns a NamedTuple `(flows=..., storage_levels=..., nsd=..., curtailment=..., losses=..., operational_costs=..., flow_credits=...)` for subproblem `i`
 - `for d in subproblems_data` yields that NamedTuple for each subproblem
 - Supports `length`, `firstindex`, `lastindex`, `push!`, `pop!`
 """
@@ -133,13 +135,14 @@ struct SubproblemsData
     storage_levels::Vector{DataFrame} # one per subproblem
     nsd::Vector{DataFrame} # one per subproblem
     curtailment::Vector{DataFrame} # one per subproblem
+    losses::Vector{DataFrame} # one per subproblem
     operational_costs::Vector{DataFrame} # one per subproblem
     flow_credits::Vector{DataFrame} # original units, annual weighted payments
 end
-SubproblemsData(flows, storage_levels, nsd, curtailment, operational_costs) =
-    SubproblemsData(flows, storage_levels, nsd, curtailment, operational_costs,
+SubproblemsData(flows, storage_levels, nsd, curtailment, losses, operational_costs) =
+    SubproblemsData(flows, storage_levels, nsd, curtailment, losses, operational_costs,
         [empty_flow_credits() for _ in eachindex(flows)])
-SubproblemsData(n::Int64) = SubproblemsData(Vector{DataFrame}(undef, n), Vector{DataFrame}(undef, n), Vector{DataFrame}(undef, n), Vector{DataFrame}(undef, n), Vector{DataFrame}(undef, n))
+SubproblemsData(n::Int64) = SubproblemsData(Vector{DataFrame}(undef, n), Vector{DataFrame}(undef, n), Vector{DataFrame}(undef, n), Vector{DataFrame}(undef, n), Vector{DataFrame}(undef, n), Vector{DataFrame}(undef, n))
 function SubproblemsData(results::Vector{NamedTuple})
     subproblems_data = SubproblemsData(length(results))
     for i in eachindex(results)
@@ -148,7 +151,7 @@ function SubproblemsData(results::Vector{NamedTuple})
     return subproblems_data
 end
 function Base.length(subproblems_data::SubproblemsData)
-    @assert length(subproblems_data.flows) == length(subproblems_data.storage_levels) == length(subproblems_data.nsd) == length(subproblems_data.operational_costs) == length(subproblems_data.curtailment)
+    @assert length(subproblems_data.flows) == length(subproblems_data.storage_levels) == length(subproblems_data.nsd) == length(subproblems_data.operational_costs) == length(subproblems_data.curtailment) == length(subproblems_data.losses) == length(subproblems_data.flow_credits)
     return length(subproblems_data.flows)
 end
 Base.iterate(s::SubproblemsData, i::Int=1) = i > length(s) ? nothing : (s[i], i + 1)
@@ -158,6 +161,7 @@ function Base.getindex(subproblems_data::SubproblemsData, i::Int64)
         storage_levels=subproblems_data.storage_levels[i],
         nsd=subproblems_data.nsd[i],
         curtailment=subproblems_data.curtailment[i],
+        losses=subproblems_data.losses[i],
         operational_costs=subproblems_data.operational_costs[i],
         flow_credits=subproblems_data.flow_credits[i],
     )
@@ -167,6 +171,7 @@ function Base.setindex!(subproblems_data::SubproblemsData, results::NamedTuple, 
     subproblems_data.storage_levels[i] = results.storage_levels
     subproblems_data.nsd[i] = results.nsd
     subproblems_data.curtailment[i] = results.curtailment
+    subproblems_data.losses[i] = results.losses
     subproblems_data.operational_costs[i] = results.operational_costs
     subproblems_data.flow_credits[i] = get(results, :flow_credits, empty_flow_credits())
 end
@@ -175,6 +180,7 @@ function Base.push!(subproblems_data::SubproblemsData, results::NamedTuple)
     push!(subproblems_data.storage_levels, results.storage_levels)
     push!(subproblems_data.nsd, results.nsd)
     push!(subproblems_data.curtailment, results.curtailment)
+    push!(subproblems_data.losses, results.losses)
     push!(subproblems_data.operational_costs, results.operational_costs)
     push!(subproblems_data.flow_credits, get(results, :flow_credits, empty_flow_credits()))
 end
@@ -183,6 +189,7 @@ function Base.pop!(subproblems_data::SubproblemsData)
     pop!(subproblems_data.storage_levels)
     pop!(subproblems_data.nsd)
     pop!(subproblems_data.curtailment)
+    pop!(subproblems_data.losses)
     pop!(subproblems_data.operational_costs)
     pop!(subproblems_data.flow_credits)
 end
@@ -190,6 +197,7 @@ flows(subproblems_data::SubproblemsData) = subproblems_data.flows
 storage_levels(subproblems_data::SubproblemsData) = subproblems_data.storage_levels
 non_served_demand(subproblems_data::SubproblemsData) = subproblems_data.nsd
 curtailment(subproblems_data::SubproblemsData) = subproblems_data.curtailment
+losses(subproblems_data::SubproblemsData) = subproblems_data.losses
 operational_costs(subproblems_data::SubproblemsData) = subproblems_data.operational_costs
 
 """
@@ -202,7 +210,9 @@ Returns a NamedTuple containing:
 - storage_levels: DataFrame
 - nsd: DataFrame
 - curtailment: DataFrame
+- losses: DataFrame
 - operational_costs: DataFrame
+- flow_credits: DataFrame
 
 # Arguments
 - `system::System`: The system to extract results from
@@ -244,7 +254,7 @@ function extract_subproblem_results(system::System, scaling::Float64)
         end
 
         # Store aggregated costs (only non-zero, with scaling)
-        vom_cost > 0 && push!(cost_rows, (zone=zone, type=asset_type, category=:VariableOM, value=vom_cost * scaling^2))
+        vom_cost != 0 && push!(cost_rows, (zone=zone, type=asset_type, category=:VariableOM, value=vom_cost * scaling^2))
         fuel_cost > 0 && push!(cost_rows, (zone=zone, type=asset_type, category=:Fuel, value=fuel_cost * scaling^2))
         startup_cost_val > 0 && push!(cost_rows, (zone=zone, type=asset_type, category=:Startup, value=startup_cost_val * scaling^2))
         !iszero(flow_credit_payment) && push!(cost_rows, (zone=zone, type=asset_type, category=:FlowCredit, value=-flow_credit_payment * scaling^2))
@@ -287,11 +297,15 @@ function extract_subproblem_results(system::System, scaling::Float64)
     # Extract curtailment for VRE edges
     curtailment_df = get_optimal_curtailment(system, scaling)
 
+    # Extract losses for lossy edges
+    losses_df = get_optimal_losses(system, scaling)
+
     return (
         flows=flows_df,
         storage_levels=storage_levels_df,
         nsd=nsd_df,
         curtailment=curtailment_df,
+        losses=losses_df,
         operational_costs=operational_costs_df,
         flow_credits=get_flow_credits(system, scaling)
     )

@@ -39,7 +39,7 @@ end
 
 function test_accounting(root)
     @testset "FlowCredit accounting, UC, scaling, and zero VOM" begin
-        for uc in (false, true), scale in (1.0, 1000.0), (vom, rate) in ((3.0, 0.0), (3.0, 40.0), (0.0, 40.0), (0.0, 0.0), (40.0, 40.0), (50.0, 40.0))
+        for uc in (false, true), scale in (1.0, 1000.0), (vom, rate) in ((3.0, 0.0), (3.0, 40.0), (0.0, 40.0), (0.0, 0.0), (40.0, 40.0), (50.0, 40.0), (-3.0, 40.0))
             system = make_flow_credit_system(; uc, vom, rate)
             settings = settings_for(; scale)
             result = solve_flow_credit_case([system], settings, mktempdir(root))
@@ -110,6 +110,22 @@ end
 function test_flow_credit_integration(root)
     test_accounting(root)
     test_non_electric_credit(root)
+    @testset "Loss and flow credit outputs" begin
+        for algorithm in ("Monolithic", "Benders"), scale in (1.0, 1000.0)
+            system = make_flow_credit_system(demand = [90.0])
+            electricity_edge(system.assets[1]).loss_fraction = [0.1]
+            system.settings = ME.configure_settings((OutputLayout=(Losses="long",),))
+            settings = settings_for(; algorithm, scale, bounds = Dict(:1 => [-4000.0]))
+            result = solve_flow_credit_case([system], settings, mktempdir(root))
+            actual = algorithm == "Monolithic" ? objective_value(result.model) : last(result.model.convergence.UB_hist)
+            @test actual * scale^2 ≈ -3700.0 atol = 1e-6
+            results_dir = joinpath(result.folder, "results")
+            check_payment_file(joinpath(results_dir, "flow_credits.csv"), 4000.0, 1, 1)
+            losses = ME.CSV.read(joinpath(results_dir, "edge_losses.csv"), ME.DataFrame)
+            @test only(losses.value) ≈ 10.0 atol = 1e-6
+            @test only(losses.resource_id) == "flow_credit_generator"
+        end
+    end
     @testset "Weighted periods, expiry, and algorithm agreement" begin
         for algorithm in ("Monolithic", "Benders"), scale in (1.0, 1000.0), uc in (false, true)
             systems = [make_flow_credit_system(; uc, period = p, rate = p == 1 ? 40.0 : 0.0,

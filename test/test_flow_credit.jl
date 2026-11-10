@@ -145,6 +145,7 @@ function test_inputs_and_bounds()
             id = :line, timedata = edge.timedata, start_vertex = edge.start_vertex,
             end_vertex = edge.end_vertex, has_capacity = true, flow_credit_rate = 40.0)
         @test_throws ArgumentError ME.add_flow_credit_payment!(bidirectional, Model())
+        @test_throws ArgumentError ME.add_operation_model_varcosts!(bidirectional, Model())
     end
     @testset "Benders lower-bound validation and slack guard" begin
         for bounds in (nothing, Dict(:2 => [-4000.0]), Dict(:1 => [0.0, 0.0]),
@@ -189,7 +190,7 @@ end
 
 function test_flow_credit_small_model()
     @testset "Single-resource FlowCredit accounting" begin
-        for uc in (false, true), (vom, rate) in ((3.0, 0.0), (3.0, 40.0), (0.0, 40.0), (0.0, 0.0), (40.0, 40.0), (50.0, 40.0))
+        for uc in (false, true), (vom, rate) in ((3.0, 0.0), (3.0, 40.0), (0.0, 40.0), (0.0, 0.0), (40.0, 40.0), (50.0, 40.0), (-3.0, 40.0))
             system = make_flow_credit_system(; uc, vom, rate)
             model = build_test_model(system)
             edge = electricity_edge(system.assets[1])

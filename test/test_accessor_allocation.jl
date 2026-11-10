@@ -11,9 +11,12 @@ using .AssetTestUtilities
 import MacroEnergy:
     array_container,
     Battery,
+    BidirectionalEdge,
     Electricity,
     EdgeWithUC,
     flow,
+    flow_neg,
+    flow_pos,
     get_balance,
     make,
     storage_level,
@@ -136,6 +139,37 @@ function test_uc_accessor_allocation()
     return nothing
 end
 
+# A lossy BidirectionalEdge whose flow_pos/flow_neg pair is created by update_balances!, as in a model
+# build. Its vertices have no balances, so only the pair and its rows are added.
+function make_lossy_edge_fixture(; start::Int = 1)
+    model = Model(HiGHS.Optimizer)
+    set_silent(model)
+    timedata = make_test_timedata(Electricity, 24; start = start)
+    e = BidirectionalEdge{Electricity}(;
+        id = :lossy_test_edge,
+        timedata = timedata,
+        start_vertex = MacroEnergy.Node{Electricity}(; id = :lossy_start, timedata = timedata),
+        end_vertex = MacroEnergy.Node{Electricity}(; id = :lossy_end, timedata = timedata),
+        loss_fraction = [0.05],
+    )
+    e.flow = @variable(model, [t in time_interval(e)], container = array_container(time_interval(e)))
+    MacroEnergy.update_balances!(e, model)
+    return e
+end
+
+function test_lossy_pair_accessors(; start::Int)
+    e = make_lossy_edge_fixture(; start = start)
+    t = first(time_interval(e))
+    flow_pos(e, t); flow_neg(e, t)  # warm-up / compile
+    b_pos = @allocated flow_pos(e, t)
+    b_neg = @allocated flow_neg(e, t)
+    @test flow_pos(e, t) isa VariableRef
+    @test flow_neg(e, t) isa VariableRef
+    @test b_pos <= ALLOWED_ACCESSOR_ALLOCATION
+    @test b_neg <= ALLOWED_ACCESSOR_ALLOCATION
+    return nothing
+end
+
 function test_array_container()
     @test array_container(1:24) === Array
     @test array_container(1:2:23) === JuMP.Containers.DenseAxisArray
@@ -167,6 +201,10 @@ end
     end
     @testset "ucommit/ustart/ushut(e,t)" begin
         test_uc_accessor_allocation()
+    end
+    @testset "flow_pos/flow_neg(e,t) of a lossy bidirectional edge" begin
+        test_lossy_pair_accessors(; start = 1)
+        test_lossy_pair_accessors(; start = 169)
     end
     @testset "array_container" begin
         test_array_container()

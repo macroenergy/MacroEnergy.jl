@@ -29,6 +29,11 @@ MacroEnergy.get_detailed_costs_benders
 MacroEnergy.get_optimal_curtailment
 ```
 
+## `get_optimal_losses`
+```@docs
+MacroEnergy.get_optimal_losses
+```
+
 ## `get_optimal_discounted_costs`
 ```@docs
 MacroEnergy.get_optimal_discounted_costs
@@ -112,6 +117,11 @@ MacroEnergy.write_costs
 ## `write_curtailment`
 ```@docs
 MacroEnergy.write_curtailment
+```
+
+## `write_losses`
+```@docs
+MacroEnergy.write_losses
 ```
 
 ## `write_detailed_costs`

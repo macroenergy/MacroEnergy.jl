@@ -28,12 +28,12 @@ function generate_system!(system::System, system_data::AbstractDict{Symbol,Any})
         allow_implicit_top_level_commodities=system.settings.AllowImplicitTopLevelCommodities,
     )
 
-    # Load the locations
-    load_locations!(system, system.data_dirpath, system_data[:locations])
-
     # Load the time data
     system.time_data =
         load_time_data(system_data[:time_data], system.commodities, system.data_dirpath)
+
+    # Load each location and its explicitly defined commodity nodes
+    load_locations!(system, system.data_dirpath, system_data[:locations])
 
     # Load the nodes
     load!(system, system_data[:nodes])

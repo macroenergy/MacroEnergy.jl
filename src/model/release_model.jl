@@ -37,6 +37,9 @@ function release_model_references!(system::System)
     for location in system.locations
         release_model_references!(location)
     end
+    for constraint in system.constraints
+        release_model_references!(constraint)
+    end
     return nothing
 end
 
@@ -50,6 +53,9 @@ end
 function release_model_references!(location::Location)
     for node in values(location.nodes)
         release_model_references!(node)
+    end
+    for constraint in location.constraints
+        release_model_references!(constraint)
     end
     return nothing
 end
@@ -75,6 +81,13 @@ function release_model_references!(e::AbstractEdge)
     for constraint in e.constraints
         release_model_references!(constraint)
     end
+    return nothing
+end
+
+function release_model_references!(e::BidirectionalEdge)
+    invoke(release_model_references!, Tuple{AbstractEdge}, e)
+    e.flow_pos = Vector{VariableRef}()
+    e.flow_neg = Vector{VariableRef}()
     return nothing
 end
 
@@ -117,6 +130,9 @@ function release_model_references!(n::Node)
 end
 
 release_model_references!(g::Transformation) = release_vertex_references!(g)
+
+# Optional asset edges are `nothing` when absent, e.g. `BECCSHydrogen.fuel_edge`
+release_model_references!(::Nothing) = nothing
 
 function release_model_references!(ct::AbstractTypeConstraint)
     hasproperty(ct, :constraint_ref) && (ct.constraint_ref = missing)

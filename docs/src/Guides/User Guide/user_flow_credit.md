@@ -98,7 +98,7 @@ The annual net operating cost is:
 C^{\mathrm{net}}_{\mathrm{op},p} = C^{\mathrm{original}}_{\mathrm{op},p} - P_p.
 ```
 
-The credit is included in net operating cost before the existing financial path applies the period discount factor and present-value annuity factor. The credit does not add decision variables or constraints. It works with zero VOM and with both UC and non-UC edges. Fuel and startup costs retain their existing calculations.
+The credit is included in net operating cost before the existing financial path applies the period discount factor and present-value annuity factor. The credit does not add decision variables or constraints. It works with positive, zero, or negative VOM and with both UC and non-UC edges. Fuel and startup costs retain their existing calculations.
 
 Payment reports calculate the credit separately from solved flows, time weights, and the supplied rates. This separate reporting does not add the payment to the objective again.
 

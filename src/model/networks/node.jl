@@ -317,7 +317,7 @@ function make(commodity::Type{<:Commodity}, input_data::AbstractDict{Symbol,Any}
         if isnothing(location) && system.settings.AutoCreateLocations
             @info(" ++ Creating new location: $(location_id)")
             location = Location(;id=Symbol(location_id), system=system)
-            push!(system.locations, location)
+            add!(system, location)
         end
         if isnothing(location)
             @warn("Location $(location_id) not found and AutoCreateLocations = false.\nNot adding node $(node.id) to any location.")

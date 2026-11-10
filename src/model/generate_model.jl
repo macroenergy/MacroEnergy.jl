@@ -454,6 +454,10 @@ end
 function carry_over_capacities!(n::Node,n_prev::Node; perfect_foresight::Bool = true)
     return nothing
 end
+# Optional asset edges are `nothing` when absent, e.g. `BECCSHydrogen.fuel_edge`
+function carry_over_capacities!(::Nothing,::Nothing; perfect_foresight::Bool = true)
+    return nothing
+end
 
 function compute_annualized_costs!(system::System,settings::NamedTuple)
     for a in system.assets

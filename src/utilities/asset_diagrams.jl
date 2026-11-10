@@ -180,7 +180,7 @@ function mermaid_diagram(asset_type::Type{<:AbstractAsset}; orientation::String=
     s = empty_system("")
     s.settings = (AutoCreateNodes = true, AutoCreateLocations = true)
     for commodity in commodities
-        c_sym = Symbol(commodity)
+        c_sym = commodity isa Type{<:Commodity} ? typesymbol(commodity) : Symbol(commodity)
         c = commodity_types()[c_sym]
         s.time_data[c_sym] = TimeData{c}(; time_interval = 1:1)
     end
@@ -192,14 +192,22 @@ function mermaid_diagram(asset_type::Type{<:AbstractAsset}; orientation::String=
     if UNIONALL_TYPE || !isempty(asset_type.parameters)
         c = UNIONALL_TYPE ? Commodity : asset_type.parameters[1]
         COMMODITY_TYPES[:Commodity] = Commodity
-        s.time_data[Symbol(c)] = TimeData{c}(; time_interval = 1:1)
-        replace_key(data, :commodity, string(c))
+        s.time_data[typesymbol(c)] = TimeData{c}(; time_interval = 1:1)
+        replace_key(data, :commodity, string(typesymbol(c)))
+    end
+    # External endpoints need explicit locations; make creates only the nodes it uses.
+    for (edge_name, edge_data) in data[:edges]
+        for endpoint in (:start_vertex, :end_vertex)
+            location = Location(; id=Symbol("diagram_", edge_name, "_", endpoint), system=s)
+            add!(s, location)
+            edge_data[endpoint] = location.id
+        end
     end
     tmp = (!UNIONALL_TYPE && !isempty(asset_type.parameters)) ? make(asset_type.name.wrapper, data, s) : make(asset_type, data, s)
     for (field_name, details) in components
         details[:id] = getfield(tmp, field_name).id
     end
-    for node in s.locations
+    for node in get_nodes(s)
         commodity = commodity_type(node)
         components[node.id] = Dict{Symbol, Any}(
             :id => node.id,

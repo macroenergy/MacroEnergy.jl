@@ -28,8 +28,9 @@ end
 """One physical series in the discovered-input or clustering-source log.
 
 `source` identifies its location; the selector lists summarize `references`.
-`occurrences` counts logical uses, `user_weight` is the configured feature weight
-and `weight` records the series weight. `include_in_clustering` reports actual
+`occurrences` counts all logical uses, `user_weight` is the configured feature
+weight and `weight` records the series weight from included references (possibly
+normalized for input/output feature shares). `include_in_clustering` reports actual
 clustering membership. `reduced` indicates whether the series is written back
 into model inputs; generated output features are not reduced.
 """
@@ -189,7 +190,8 @@ function tdr_preprocess_log_data(
             ),
             "clustering_features" => Dict(
                 "unique_time_series" => length(clustering_sources),
-                "occurrences" => sum(source.occurrences for source in clustering_sources),
+                "occurrences" => sum(source -> count(reference -> reference.include_in_clustering,
+                    source.references), clustering_sources; init=0),
                 "sources" => clustering_source_data,
             ),
             "discovered_time_series" => Dict(
