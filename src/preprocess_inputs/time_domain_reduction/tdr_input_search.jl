@@ -298,7 +298,7 @@ function tdr_drop_case_level_settings!(root::AbstractDict, case_root::String)
     end
     isnothing(case_settings) && return nothing
     for system in root["case"]
-        system isa AbstractDict && settings_path(get(system, "settings", nothing)) == case_settings &&
+        system isa AbstractDict && same_settings_file(settings_path(get(system, "settings", nothing)), case_settings) &&
             delete!(system, "settings")
     end
     return nothing

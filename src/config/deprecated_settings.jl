@@ -83,7 +83,7 @@ function legacy_period_settings(periods::AbstractVector, case_dir::AbstractStrin
             continue
         end
         settings, path = read_settings_source(period[:settings], case_dir, (LEGACY_SYSTEM_SETTINGS_FILENAME, CASE_SETTINGS_FILENAME))
-        same_as_case = isnothing(path) ? isequal(settings, case_settings) : path == case_settings_path
+        same_as_case = isnothing(path) ? isequal(settings, case_settings) : same_settings_file(path, case_settings_path)
         if same_as_case
             push!(without, index)
         else

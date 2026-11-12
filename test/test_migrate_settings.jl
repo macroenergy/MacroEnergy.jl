@@ -112,6 +112,21 @@ period(name) = """{"time_data": {"path": "$name.json"}, "settings": {"path": "se
         end
     end
 
+    # File names are case-insensitive on Windows and, by default, on macOS: there, a path spelled
+    # with different case is the same file. Elsewhere the file does not exist, and there is no test.
+    @testset "A path spelled with different case is the same file" begin
+        mktempdir() do dir
+            write_case(dir, ["settings/case_settings.json" => """{"ConstraintScaling": true}""",
+                "system_data.json" => """{"settings": {"path": "settings/case_settings.json"},
+                    "case": [{"time_data": {"path": "t.json"}, "settings": {"path": "Settings/Case_Settings.json"}}]}"""])
+            if isfile(joinpath(dir, "Settings", "Case_Settings.json"))
+                # The period has no settings of its own: no warning, and nothing to migrate
+                @test_logs min_level=Logging.Warn loaded_settings(dir)
+                @test_logs (:info, r"already up to date") migrate_settings(dir)
+            end
+        end
+    end
+
     @testset "Settings that cannot be loaded are not migrated" begin
         mktempdir() do dir
             # Periods with different settings

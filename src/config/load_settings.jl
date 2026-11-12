@@ -123,6 +123,10 @@ function read_settings_source(source, rel_path::AbstractString, filenames::Tuple
     return drop_unset_deprecated_settings!(settings_dict(read_file(path))), path
 end
 
+# Whether two settings paths name the same existing file. Comparing the strings is not enough:
+# file names are case-insensitive on Windows and, by default, on macOS.
+same_settings_file(a, b) = !isnothing(a) && !isnothing(b) && samefile(a, b)
+
 # Settings paths are relative to the location of system_data.json, not to the current directory
 function settings_file_path(path::AbstractString, rel_path::AbstractString)::String
     from_case = joinpath(rel_path, path)

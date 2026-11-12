@@ -369,6 +369,11 @@ end
         @test period_settings(Dict("case" => [period(other)])) == [other]
         @test period_settings(Dict("case" => [period(case_file)], "settings" => other)) == [case_file]
         @test period_settings(Dict("case" => [period(case_file)], "settings" => Dict("DiscountRate" => 0.05))) == [case_file]
+        # Where file names are case-insensitive (Windows, and macOS by default), the same file
+        # spelled with different case is the case-level file too
+        if isfile(joinpath(root, "Settings", "Case_Settings.json"))
+            @test period_settings(Dict("case" => [period("Settings/Case_Settings.json")], "settings" => case_file)) == [nothing]
+        end
     end
 end
 

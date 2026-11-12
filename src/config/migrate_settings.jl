@@ -58,10 +58,10 @@ function migrate_settings(path::AbstractString=pwd(); dry_run::Bool=true)::Order
         entry = get(period, "settings", nothing)
         isnothing(entry) && continue
         _, entry_file = read_settings_source(settings_dict(entry), case_dir, (LEGACY_SYSTEM_SETTINGS_FILENAME, CASE_SETTINGS_FILENAME))
-        !isnothing(entry_file) && entry_file == target && continue
+        same_settings_file(entry_file, target) && continue
         delete!(period, "settings")
         push!(removed, has_case ? "case[$index].settings" : "settings")
-        isnothing(entry_file) || entry_file in unused || push!(unused, entry_file)
+        isnothing(entry_file) || any(file -> same_settings_file(file, entry_file), unused) || push!(unused, entry_file)
     end
 
     current = inline ? settings_dict(root["settings"]) :
