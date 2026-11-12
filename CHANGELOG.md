@@ -18,7 +18,7 @@ and this project follows Julia package versioning through `Project.toml` release
 - A `DiscountRate` written as a whole number (`0` or `0.0`) no longer fails with a `MethodError` when loading a case.
 - Loading a case no longer empties `system_data.json` when the file holds a value that could not be written back, such as `Infinity`.
 - Time-domain reduction now keeps `settings/benders_settings.json` and files named inside `case_settings.json`. The reduced case used to fall back to default Benders settings without saying so.
-- Paths in `settings` entries are now relative to `system_data.json`, as documented. The current directory was checked first, so a matching file there was read instead.
+- Paths in `settings` entries and in `BendersSettings.path` are now always relative to `system_data.json`, as documented. The current directory used to be searched too, so a file there could be read in place of the case's own, or of a missing one.
 - Time-domain reduction now copies a single-period case's `settings/case_settings.json` into the reduced case when `system_data.json` does not reference it. The reduced case used to lose those settings silently and fall back to the defaults.
 - A `case_settings.json` file without a `SolutionAlgorithm` key no longer fails with a `KeyError`.
 - Added `edge_losses.csv` output file to report the commodity lost on every edge with a nonzero `loss_fraction`, for all solution algorithms and in the full time series (key `Losses` in `OutputSettings.Layout`, `OutputSettings.Format` and `OutputSettings.Write`). Lossy `BidirectionalEdge`s now hold their `flow_pos`/`flow_neg` pair as fields.

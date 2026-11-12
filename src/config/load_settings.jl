@@ -39,7 +39,7 @@ function load_benders_settings(settings::AbstractDict{Symbol,Any}, path::Abstrac
             return settings
         end
         
-        @warn("Benders settings file not found at either absolute path '$(settings[:BendersSettings][:path])' or relative path '$benders_path'")
+        @warn("Benders settings file not found: $benders_path")
         isnothing(try_load_benders_settings(path)) && throw(InputValidationError("case_settings.BendersSettings.path",
             "file not found: $benders_path"))
         delete!(settings, :BendersSettings)
@@ -127,11 +127,10 @@ end
 # file names are case-insensitive on Windows and, by default, on macOS.
 same_settings_file(a, b) = !isnothing(a) && !isnothing(b) && samefile(a, b)
 
-# Settings paths are relative to the location of system_data.json, not to the current directory
-function settings_file_path(path::AbstractString, rel_path::AbstractString)::String
-    from_case = joinpath(rel_path, path)
-    return ispath(from_case) ? from_case : String(path)
-end
+# Settings paths are relative to the location of system_data.json, never to the current directory:
+# a file missing from the case must not be replaced by another case's file at the same relative
+# path. An absolute path is kept as it is.
+settings_file_path(path::AbstractString, rel_path::AbstractString)::String = joinpath(rel_path, path)
 
 # The settings of `case_settings.json`, plus any deprecated per-period settings. A case without a
 # top-level `settings` entry uses the conventional file, if there is one.

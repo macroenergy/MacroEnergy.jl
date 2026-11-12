@@ -142,6 +142,30 @@ period(name) = """{"time_data": {"path": "$name.json"}, "settings": {"path": "se
         end
     end
 
+    @testset "Files are found next to system_data.json only" begin
+        mktempdir() do root
+            # The case's top-level settings file is missing; another case's is in the current directory
+            other, dir = mkpath(joinpath(root, "other")), mkpath(joinpath(root, "case"))
+            write_case(other, ["settings/case_settings.json" => """{"DiscountRate": 0.99}"""])
+            write_case(dir, ["settings/macro_settings.json" => """{"ConstraintScaling": true}""",
+                "system_data.json" => """{"settings": {"path": "settings/case_settings.json"}, "case": [$(period("a"))]}"""])
+            original = snapshot(other)
+            cd(other) do
+                @test_throws ErrorException quietly(() -> migrate_settings(dir; dry_run=false))
+            end
+            @test snapshot(other) == original
+        end
+        # A file outside the case is reported in full
+        mktempdir() do root
+            shared, dir = mkpath(joinpath(root, "shared")), mkpath(joinpath(root, "case"))
+            write_case(shared, ["case_settings.json" => """{"DiscountRate": 0.05}"""])
+            target = joinpath(shared, "case_settings.json")
+            write_case(dir, ["settings/macro_settings.json" => """{"ConstraintScaling": true}""",
+                "system_data.json" => """{"settings": {"path": $(repr(target))}, "case": [$(period("a"))]}"""])
+            @test_logs (:info, Regex("these settings to \\Q$target\\E:")) migrate_settings(dir)
+        end
+    end
+
     @testset "Settings that cannot be loaded are not migrated" begin
         mktempdir() do dir
             # Periods with different settings

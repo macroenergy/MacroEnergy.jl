@@ -102,7 +102,8 @@ end
 
 # What `migrate_settings` does, or would do with `dry_run=false`, and the files the user can delete
 function migration_report(case_dir, file, target, settings, rewrite, removed, unused, commented, dry_run)::String
-    relative(path) = relpath(path, case_dir)
+    # Files inside the case relative to it, and others in full, so that they stand out
+    relative(path) = (inside = relpath(path, case_dir); first(splitpath(inside)) == ".." ? path : inside)
     action(future, past) = dry_run ? future : past
     lines = [dry_run ? "Dry run: nothing was changed in $case_dir. With dry_run=false, migrate_settings will:" :
         "migrate_settings updated the settings of $case_dir. It:"]

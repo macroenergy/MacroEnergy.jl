@@ -471,6 +471,22 @@ function test_settings_entry_forms()
                 end
             end
         end
+        # A file missing from the case is an error, even if the current directory has one at the same path
+        with_settings_files() do dir
+            with_settings_files(case_settings=Dict("DiscountRate" => 0.99), my_benders=Dict("MaxIter" => 99)) do elsewhere
+                cd(elsewhere) do
+                    data = Dict{Symbol,Any}(:settings => settings_file("case_settings"), :case => [Dict{Symbol,Any}()])
+                    @test occursin("Settings file not found: $(joinpath(dir, "settings", "case_settings.json"))",
+                        error_message(() -> resolve_settings(data, dir)))
+                    # An absolute path is kept as it is
+                    data[:settings] = Dict{Symbol,Any}(:path => joinpath(elsewhere, "settings", "case_settings.json"))
+                    @test with_logger(() -> resolve_settings(data, dir), NullLogger()).DiscountRate == 0.99
+                    data[:settings] = Dict{Symbol,Any}(:SolutionAlgorithm => "Benders",
+                        :BendersSettings => Dict{Symbol,Any}(:path => "settings/my_benders.json"))
+                    @test_throws InputValidationError with_logger(() -> resolve_settings(data, dir), NullLogger())
+                end
+            end
+        end
     end
 
     @testset "A null settings entry is the same as no entry" begin
