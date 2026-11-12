@@ -178,7 +178,7 @@ With the Monolithic algorithm each period's model is solved as a single LP or MI
 }
 ```
 
-`MyopicSettings` is optional — all fields have defaults. The most commonly set fields are:
+`MyopicSettings` is optional — all fields have defaults:
 
 | Field | Default | Description |
 |:--|:--|:--|
@@ -186,6 +186,8 @@ With the Monolithic algorithm each period's model is solved as a single LP or MI
 | `StopAfterPeriod` | `Inf` | Stop the myopic loop after this period index. Useful for staged runs on a cluster. |
 | `WriteModelLP` | `false` | If `true`, write an LP file for each period's model. |
 | `Restart.enabled` | `false` | If `true`, resume a previous run from a specified period (see below). |
+| `Restart.folder` | `"results_001"` | Results folder of the run to resume. The capacities of the periods before `Restart.from_period` are loaded from it. |
+| `Restart.from_period` | `1` | Period to resume from. Earlier periods are not solved again. |
 
 **`run.jl`**
 

@@ -302,6 +302,11 @@ function test_deprecated_settings_table()
     end
 end
 
+# The dotted path of every setting in `block`, e.g. "Restart.folder". A nested block has no path
+# of its own: the paths of its settings cover it.
+setting_paths(block::InputBlock, prefix::String="") = String[path for f in block.fields
+    for path in (f isa InputBlock ? setting_paths(f, "$prefix$(input_name(f)).") : ["$prefix$(input_name(f))"])]
+
 # The docs tables are written by hand, so a new setting must be added to them too
 function test_docs_list_every_setting()
     guide(file) = read(joinpath(@__DIR__, "..", "docs", "src", "Guides", "User Guide", file), String)
@@ -310,10 +315,10 @@ function test_docs_list_every_setting()
         input_data = guide("2_input_data.md")
         keys_in_tables = (input_keys(settings_spec())..., input_keys(output_settings_spec())...)
         @test isempty([key for key in keys_in_tables if !occursin("| $key |", input_data)])
+        # Each Benders and Myopic setting has its own row, nested ones under their dotted path
         for (file, spec) in (("user_run_model.md", benders_settings_spec()), ("user_solution_modes.md", myopic_settings_spec()))
             text = guide(file)
-            keys_in_guide = [key for block in nested_blocks(spec) for key in input_keys(block)]
-            @test isempty([key for key in keys_in_guide if !occursin(Regex("\\b$key\\b"), text)])
+            @test isempty([path for path in setting_paths(spec) if !occursin("| `$path` |", text)])
         end
         # Each deprecated name is in the migration table
         settings_guide = guide("user_settings.md")
