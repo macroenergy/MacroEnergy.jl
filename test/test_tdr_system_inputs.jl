@@ -344,6 +344,34 @@ end
     end
 end
 
+@testset "periods pointing to the case-level settings file have no settings of their own" begin
+    mktempdir() do root
+        mkpath(joinpath(root, "settings"))
+        write(joinpath(root, "time_data.json"), "{}")
+        write(joinpath(root, "settings", "case_settings.json"), """{"DiscountRate": 0.05}""")
+        write(joinpath(root, "settings", "macro_settings.json"), """{"DiscountRate": 0.05}""")
+        period(settings) = Dict{String,Any}("time_data" => Dict("path" => "time_data.json"), "settings" => settings)
+        function period_settings(data)
+            MacroEnergy.write_json(joinpath(root, "system_data.json"), data)
+            _, systems = MacroEnergy.tdr_system_entries(root)
+            return [get(system, "settings", nothing) for system in systems]
+        end
+        case_file = Dict("path" => "settings/case_settings.json")
+        # As a `{"path": ...}` object, and as a plain path written differently
+        same_file = [period(case_file), period("./settings/case_settings.json")]
+
+        @test period_settings(Dict("case" => same_file, "settings" => case_file)) == [nothing, nothing]
+        # Without a top-level entry, the Case loads settings/case_settings.json by its name
+        @test period_settings(Dict("case" => same_file)) == [nothing, nothing]
+        # A period with another file keeps it, and so does one pointing to the conventional file
+        # when the Case's own settings are elsewhere
+        other = Dict("path" => "settings/macro_settings.json")
+        @test period_settings(Dict("case" => [period(other)])) == [other]
+        @test period_settings(Dict("case" => [period(case_file)], "settings" => other)) == [case_file]
+        @test period_settings(Dict("case" => [period(case_file)], "settings" => Dict("DiscountRate" => 0.05))) == [case_file]
+    end
+end
+
 @testset "TDR follows a settings entry written as a plain path" begin
     mktempdir() do root
         mkpath(joinpath(root, "custom"))
