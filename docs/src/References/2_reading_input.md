@@ -118,6 +118,11 @@ MacroEnergy.map_entry
 MacroEnergy.merge_defaults
 ```
 
+## `migrate_settings`
+```@docs
+MacroEnergy.migrate_settings
+```
+
 ## `resolve_settings`
 ```@docs
 MacroEnergy.resolve_settings

@@ -78,6 +78,16 @@ To update a case:
 2. Rename the old names, using the table at the end of this section. The output settings now go in an `OutputSettings` block.
 3. Delete the `settings` entry of each period in `system_data.json`. You can keep the top-level entry, or delete it too: without it, Macro reads `settings/case_settings.json`.
 
+`MacroEnergy.migrate_settings` can do these steps for you. It reads the settings as `load_case` does, and writes only the settings the case sets, under their new names. By default it is a dry run, which only shows the changes:
+
+```julia
+using MacroEnergy
+MacroEnergy.migrate_settings("path/to/case")                  # show the changes
+MacroEnergy.migrate_settings("path/to/case"; dry_run=false)   # make them
+```
+
+It does not delete the old settings files: it lists the ones that are no longer used. Comments (keys starting with `#`) are not carried over, and rewriting `system_data.json` may change its formatting.
+
 ### Example
 
 Here is a multi-period case written for an earlier version.

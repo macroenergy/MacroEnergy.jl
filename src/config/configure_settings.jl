@@ -99,7 +99,7 @@ function translate_deprecated_settings(settings)::OrderedDict{Symbol,Any}
     renames = join(["$old → $(join(DEPRECATED_SETTINGS[old], "."))" for old in found], ", ")
     @warn("""
     These settings are deprecated and were translated automatically: $renames.
-    Use the new names in case_settings.json.""", maxlog=1)
+    Use the new names in case_settings.json. MacroEnergy.migrate_settings("path/to/case") shows how.""", maxlog=1)
     return translated
 end
 

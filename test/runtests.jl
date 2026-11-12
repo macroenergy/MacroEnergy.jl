@@ -18,6 +18,7 @@ with_logger(test_logger) do
         include("test_registry_user_smoke.jl")
         include("test_case_settings.jl")
         include("test_settings_schema.jl")
+        include("test_migrate_settings.jl")
         include("test_preprocess_inputs.jl")
         include("test_file_resources.jl")
 

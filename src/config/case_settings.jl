@@ -159,7 +159,7 @@ function legacy_period_settings(periods::AbstractVector, case_dir::AbstractStrin
     isempty(found) && return nothing
     @warn(string("Settings given per period (the `settings` entry of each period in system_data.json, ",
         "usually settings/macro_settings.json) are deprecated. Move them into settings/case_settings.json, ",
-        "which holds the settings of the whole case."), maxlog=1)
+        "which holds the settings of the whole case. To see how, run MacroEnergy.migrate_settings($(repr(case_dir)))."), maxlog=1)
     first_index, reference = first(found)
     isempty(without) || throw(InputValidationError("system_data.case[$(first(without))].settings",
         "this period has no settings of its own, but period $first_index does. Every period now uses " *
