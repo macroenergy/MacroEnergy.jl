@@ -97,7 +97,7 @@ The `OutputSettings` block of `case_settings.json` controls the behavior of the 
 | `Overwrite` | `Bool` | `false` | If `true`, overwrite the output directory on each run. If `false`, append `_001`, `_002`, … suffixes to avoid overwriting. |
 | `Dir` | `String` | `"results"` | Base name for the results directory. |
 | `AssetTags` | `Bool` | `true` | If `true`, include pipe-separated asset tags in `capacity.csv`, `capacity_summary.csv`, and `capex.csv`. |
-| `DualExportsEnabled` | `Bool` | — | **Deprecated**: use `"Write": {"Duals": false}` to skip [`balance_duals.csv`](@ref "manual-outputs-duals-balance") and [`co2_cap_duals.csv`](@ref "manual-outputs-duals-co2"). Still accepted with a deprecation warning, and translated to `OutputSettings.Write.Duals`. For scripts that read it, `system.settings.DualExportsEnabled` is still `true` or `false`, mirroring `OutputSettings.Write.Duals`. |
+| `DualExportsEnabled` | `Bool` | — | **Deprecated**: use `"Write": {"Duals": false}` to skip [`balance_duals.csv`](@ref "manual-outputs-duals-balance") and [`co2_cap_duals.csv`](@ref "manual-outputs-duals-co2"). Still accepted with a deprecation warning, and translated to `OutputSettings.Write.Duals`. `system.settings.DualExportsEnabled` no longer exists: code that read it should use `output_enabled(system, :Duals)`. |
 
 ### Per-File Layout Control
 

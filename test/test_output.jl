@@ -864,7 +864,7 @@ function test_writing_output()
 
         # System level: only lossy edges are reported
         system_with_lines = empty_system("test_system_with_lines")
-        system_with_lines.settings = (OutputLayout="long",)
+        system_with_lines.settings = (OutputSettings=(Layout="long",),)
         add!(system_with_lines, node1)
         add!(system_with_lines, node2)
         add!(system_with_lines, TransmissionLink(:lossy_link, lossy_line))
@@ -885,7 +885,7 @@ function test_writing_output()
         @test size(written, 1) == 3
         @test written[!, :value] ≈ [0.5, 0.6, 0.4]
 
-        system_with_lines.settings = (OutputLayout="wide",)
+        system_with_lines.settings = (OutputSettings=(Layout="wide",),)
         test_losses_wide_path = joinpath(losses_test_dir, "losses_wide.csv")
         @test_nowarn write_losses(test_losses_wide_path, system_with_lines, 1.0)
         written = CSV.read(test_losses_wide_path, DataFrame)
@@ -893,7 +893,7 @@ function test_writing_output()
         @test written[!, :lossy_line] ≈ [0.5, 0.6, 0.4]
 
         # Benders path: per-subproblem DataFrames are concatenated
-        system_with_lines.settings = (OutputLayout="long",)
+        system_with_lines.settings = (OutputSettings=(Layout="long",),)
         test_losses_benders_path = joinpath(losses_test_dir, "losses_benders.csv")
         parts = [get_optimal_losses(lossy_line, 1.0)[t:t, :] for t in 1:3]
         @test_nowarn write_losses(test_losses_benders_path, system_with_lines, [parts; DataFrame()])
@@ -1257,9 +1257,9 @@ function test_writing_output()
             @test settings.OutputSettings.Layout.Curtailment == "wide"
         end
 
-        @testset "OutputLayout validation accepts Losses" begin
-            settings = MacroEnergy.configure_settings((OutputLayout=(Flow="long", Losses="wide"),))
-            @test settings.OutputLayout.Losses == "wide"
+        @testset "OutputSettings.Layout validation accepts Losses" begin
+            settings = MacroEnergy.configure_settings((OutputSettings=(Layout=(Flow="long", Losses="wide"),),))
+            @test settings.OutputSettings.Layout.Losses == "wide"
         end
     end
 

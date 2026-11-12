@@ -78,7 +78,7 @@ write_losses("edge_losses.csv", system, 1.0)
 For a lossy bidirectional edge (e.g. a `TransmissionLink`), the loss is `loss_fraction × (flow_pos + flow_neg)`, where `flow_pos` and `flow_neg` are the two directions of the edge's flow. See [Losses Output](@ref "manual-outputs-losses") for details.
 
 !!! note "Output Layout"
-    Results are written in *long* format by default. To use *wide* format, configure the `OutputLayout: {"Losses": "wide"}` setting in your Macro settings JSON file (see [Output Files Layout](@ref) for details).
+    Results are written in *long* format by default. To use *wide* format, configure the `"OutputSettings": {"Layout": {"Losses": "wide"}}` setting in your `case_settings.json` file (see [Output Files Layout](@ref) for details).
 
 ## Costs
 
