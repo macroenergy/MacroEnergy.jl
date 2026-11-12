@@ -318,6 +318,9 @@ const OLD_SETTINGS = Dict(
         :AutoCreateLocations, :Retrofitting, :DualExportsEnabled),
 )
 
+# Whether `text` has a table cell holding exactly `cell`, in any column and with any spacing
+has_cell(text::AbstractString, cell::AbstractString) = occursin(Regex("\\|[ \\t]*\\Q$cell\\E[ \\t]*\\|"), text)
+
 # The docs tables are written by hand, so a new setting must be added to them too
 function test_docs_list_every_setting()
     guide(file) = read(joinpath(@__DIR__, "..", "docs", "src", "Guides", "User Guide", file), String)
@@ -325,15 +328,15 @@ function test_docs_list_every_setting()
         # Each key has its own row in the tables of the input data guide
         input_data = guide("2_input_data.md")
         keys_in_tables = (input_keys(settings_spec())..., input_keys(output_settings_spec())...)
-        @test isempty([key for key in keys_in_tables if !occursin("| $key |", input_data)])
+        @test isempty([key for key in keys_in_tables if !has_cell(input_data, String(key))])
         # Each Benders and Myopic setting has its own row, nested ones under their dotted path
         for (file, spec) in (("user_run_model.md", benders_settings_spec()), ("user_solution_modes.md", myopic_settings_spec()))
             text = guide(file)
-            @test isempty([path for path in setting_paths(spec) if !occursin("| `$path` |", text)])
+            @test isempty([path for path in setting_paths(spec) if !has_cell(text, "`$path`")])
         end
         # Each deprecated name is in the migration table
         settings_guide = guide("user_settings.md")
-        @test isempty([old for old in keys(DEPRECATED_SETTINGS) if !occursin("| `$old` |", settings_guide)])
+        @test isempty([old for old in keys(DEPRECATED_SETTINGS) if !has_cell(settings_guide, "`$old`")])
         # The migration table has a row for every setting of the earlier versions, with the file that
         # held it and the setting that replaces it: the same name, unless it was renamed
         # Any spacing in the cells, and Windows line endings (`\s` matches the `\r`)
