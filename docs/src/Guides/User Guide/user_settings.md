@@ -215,4 +215,4 @@ Every setting of the earlier versions now goes in `case_settings.json`. Most kee
 | `OutputAssetTags` | `macro_settings.json` | `OutputSettings.AssetTags` |
 | `DualExportsEnabled` | `macro_settings.json` | `OutputSettings.Write.Duals` |
 
-The old names still work, with a deprecation warning. Setting an old name and its new name to different values is an error.
+The old names still work, with a deprecation warning. Setting an old name and its new name to different values is an error, unless the old name is at its default: older versions wrote every default into new cases, so an old name at its default is ignored next to the new name.

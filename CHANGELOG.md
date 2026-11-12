@@ -56,7 +56,7 @@ and this project follows Julia package versioning through `Project.toml` release
 ### Deprecated
 
 - `macro_settings.json` and the `settings` entry of each period in `system_data.json`. Cases written this way still load, with a warning. It is an error if the periods have different settings, or if the settings contradict `case_settings.json`.
-- The flat output setting names (`OutputDir`, `OverwriteResults`, `OutputFormat`, `OutputLayout`, `WriteOutputs`, `OutputSignificantDigits`, `OutputAssetTags`), `WriteFullTimeseries` and `DualExportsEnabled`. They are translated to `OutputSettings` with a warning. Setting an old name and its new name to different values is an error.
+- The flat output setting names (`OutputDir`, `OverwriteResults`, `OutputFormat`, `OutputLayout`, `WriteOutputs`, `OutputSignificantDigits`, `OutputAssetTags`), `WriteFullTimeseries` and `DualExportsEnabled`. They are translated to `OutputSettings` with a warning. Setting an old name and its new name to different values is an error, unless the old name is at its default, as older versions wrote in every new case.
 
 ### Migration guide
 

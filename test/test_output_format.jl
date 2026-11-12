@@ -118,10 +118,13 @@ function test_output_format()
         @test !output_enabled(system, :Duals)
         @test output_enabled(system, :FullTimeseries)
 
-        # Old and new name both set: fine if they agree, an error if they don't
+        # Old and new name both set: fine if they agree, or if the old name is at its default (older
+        # templates wrote every default, so it says nothing), an error otherwise
         settings = @test_logs (:warn,) configure_settings((DualExportsEnabled=true, OutputSettings=(Write=(Duals=true,),)))
         @test settings.OutputSettings.Write.Duals == true
-        @test_throws InputValidationError configure_settings((DualExportsEnabled=true, OutputSettings=(Write=(Duals=false,),)))
+        settings = @test_logs (:warn,) configure_settings((DualExportsEnabled=true, OutputSettings=(Write=(Duals=false,),)))
+        @test settings.OutputSettings.Write.Duals == false
+        @test_throws InputValidationError configure_settings((DualExportsEnabled=false, OutputSettings=(Write=(Duals=true,),)))
         @test_throws InputValidationError configure_settings((OutputDir="a", OutputSettings=(Dir="b",)))
         # Translated values are validated like any other
         @test_throws InputValidationError configure_settings((DualExportsEnabled="yes",))

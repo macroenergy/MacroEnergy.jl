@@ -127,6 +127,21 @@ period(name) = """{"time_data": {"path": "$name.json"}, "settings": {"path": "se
         end
     end
 
+    @testset "Old defaults next to new names" begin
+        # What older versions wrote for every new case, next to a new setting added by hand
+        mktempdir() do dir
+            write_case(dir, ["settings/macro_settings.json" => """{"OverwriteResults": false, "OutputDir": "results",
+                    "OutputFormat": "csv", "OutputLayout": "long", "WriteOutputs": {}, "OutputAssetTags": true}""",
+                "settings/case_settings.json" => """{"OutputSettings": {"Overwrite": true}}""",
+                "system_data.json" => """{"case": [$(period("a"))]}"""])
+            original = quietly(() -> loaded_settings(dir))
+            @test original.OutputSettings.Overwrite
+            settings = migrate_settings(dir; dry_run=false)
+            @test settings[:OutputSettings][:Overwrite] == true
+            @test same_settings((@test_logs min_level=Logging.Warn loaded_settings(dir)), original)
+        end
+    end
+
     @testset "Settings that cannot be loaded are not migrated" begin
         mktempdir() do dir
             # Periods with different settings

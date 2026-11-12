@@ -12,7 +12,8 @@ to the key path that replaces it, with a deprecation warning. For example, `Outp
 `OutputSettings.Dir`, `WriteFullTimeseries` becomes `OutputSettings.Write.FullTimeseries` and
 `DualExportsEnabled` becomes `OutputSettings.Write.Duals` (see `DEPRECATED_SETTINGS`).
 
-Setting a deprecated key and its replacement to different values is an error.
+Setting a deprecated key and its replacement to different values is an error, unless the
+deprecated key is at its default: older templates wrote every default, so such a key is ignored.
 """
 function translate_deprecated_settings(settings)::OrderedDict{Symbol,Any}
     translated = drop_unset_deprecated_settings!(settings_dict(settings))
@@ -45,14 +46,24 @@ function move_setting!(settings::OrderedDict{Symbol,Any}, old::Symbol, path::Tup
             "expected an object, got $(repr(parent))"))
     end
     leaf = last(path)
-    # An old default next to a new per-output map says nothing: older templates wrote every default
-    spec = length(path) == 2 ? input_spec(output_settings_spec(), leaf) : nothing
-    get(parent, leaf, nothing) isa AbstractDict && spec isa InputMap && isequal(value, spec.default) && return nothing
+    # An old name at its default says nothing next to the new name: older templates wrote every default
+    haskey(parent, leaf) && isequal(settings_dict(value), settings_dict(setting_default(path))) && return nothing
     combine_setting!(parent, leaf, value, join(path, ".")) do conflict, existing, _
         throw(InputValidationError("case_settings.$old",
             "conflicts with $conflict = $(repr(existing)). $old is deprecated: remove it and keep $(join(path, "."))"))
     end
     return nothing
+end
+
+# The default of the setting at `path` in `settings_spec()`, including an entry of a per-output map
+# (e.g., `(:OutputSettings, :Write, :FullTimeseries)` is `false`)
+function setting_default(path::Tuple)
+    spec = settings_spec()
+    for key in path
+        spec isa InputMap && return map_entry(spec, NamedTuple(), key)
+        spec = input_spec(spec, key)
+    end
+    return default_value(spec)
 end
 
 function translate_deprecated_solution_algorithm!(settings::AbstractDict{Symbol,Any})

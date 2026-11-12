@@ -372,7 +372,8 @@ function test_older_settings_files()
         @test_nowarn with_logger(() -> configure_settings(Dict("DualExportsEnabled" => nothing)), NullLogger())
     end
 
-    @testset "Old defaults do not conflict with new per-output maps" begin
+    @testset "Old defaults do not conflict with new names" begin
+        # Per-output maps
         with_settings_files(case_settings=Dict("OutputSettings" => Dict(
             "Format" => Dict("Flow" => "parquet"), "Layout" => Dict("Flow" => "wide"), "Write" => Dict("FullTimeseries" => true),
         )), macro_settings=OLDER_TEMPLATE) do dir
@@ -381,9 +382,24 @@ function test_older_settings_files()
             @test settings.OutputSettings.Layout == (Flow="wide",)
             @test settings.OutputSettings.Write == (FullTimeseries=true,)
         end
+        # Single values
+        with_settings_files(case_settings=Dict("OutputSettings" => Dict("Dir" => "out", "Overwrite" => true, "Format" => "parquet")),
+            macro_settings=OLDER_TEMPLATE) do dir
+            settings = with_logger(() -> resolve_settings(case_with(period_with("macro_settings")), dir), NullLogger())
+            @test settings.OutputSettings.Dir == "out"
+            @test settings.OutputSettings.Overwrite
+            @test settings.OutputSettings.Format == "parquet"
+        end
+        # An entry of a per-output map
+        settings = with_logger(() -> configure_settings((WriteFullTimeseries=false, OutputSettings=(Write=(FullTimeseries=true,),))), NullLogger())
+        @test settings.OutputSettings.Write.FullTimeseries
         # A value that is not the default is a real conflict
         msg = error_message(() -> with_logger(() -> configure_settings((OutputFormat="parquet", OutputSettings=(Format=(Flow="csv",),))), NullLogger()))
         @test occursin("case_settings.OutputFormat: conflicts with OutputSettings.Format", msg)
+        msg = error_message(() -> with_logger(() -> configure_settings((OverwriteResults=true, OutputSettings=(Overwrite=false,))), NullLogger()))
+        @test occursin("case_settings.OverwriteResults: conflicts with OutputSettings.Overwrite", msg)
+        msg = error_message(() -> with_logger(() -> configure_settings((WriteFullTimeseries=true, OutputSettings=(Write=(FullTimeseries=false,),))), NullLogger()))
+        @test occursin("case_settings.WriteFullTimeseries: conflicts with OutputSettings.Write.FullTimeseries", msg)
     end
 
     @testset "Settings are combined key by key" begin
