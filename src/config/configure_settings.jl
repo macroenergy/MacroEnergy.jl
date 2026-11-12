@@ -16,6 +16,9 @@ end
 settings_dict(x) = x
 settings_dict(x::Union{AbstractDict,NamedTuple}) =
     OrderedDict{Symbol,Any}(Symbol(k) => settings_dict(v) for (k, v) in pairs(x) if !startswith(String(k), "#"))
+# Configured settings hold the solution algorithm and expansion horizon as objects. Back to their
+# names, so that configured settings can be configured again (e.g., after a `merge` in Julia).
+settings_dict(x::Union{AbstractSolutionAlgorithm,AbstractExpansionHorizon}) = setting_to_json(x)
 
 # Validate the settings of `case_settings.json`, fill in their defaults and return them.
 # Deprecated keys and values are translated first; the algorithm names become types last.

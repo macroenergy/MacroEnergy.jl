@@ -646,6 +646,10 @@ function test_round_trip(input)
         @test isequal(reloaded, settings)
         @test typeof(reloaded) == typeof(settings)
     end
+    # Configured settings can be configured again, and nothing changes
+    reconfigured = with_logger(() -> configure_settings(settings), NullLogger())
+    @test isequal(reconfigured, settings)
+    @test typeof(reconfigured) == typeof(settings)
 end
 
 function test_settings_file_reloads()
@@ -674,6 +678,15 @@ function test_settings_file_reloads()
                 test_round_trip(merge(activate, (; key => entry_input)))
             end
         end
+    end
+
+    @testset "Configured settings can be changed in Julia and configured again" begin
+        settings = with_logger(() -> configure_settings((SolutionAlgorithm="Benders", PeriodLengths=[5, 5])), NullLogger())
+        changed = with_logger(() -> configure_settings(merge(settings, (ConstraintScaling=true,))), NullLogger())
+        @test changed.ConstraintScaling
+        @test changed.SolutionAlgorithm isa Benders
+        @test isequal(changed.BendersSettings, settings.BendersSettings)
+        @test changed.PeriodLengths == [5, 5]
     end
 
     @testset "The settings in written system data can be read back" begin
