@@ -17,7 +17,8 @@ end
 # `settings` are the settings of the case the System belongs to, shared with the other periods.
 # Without them, the System is loaded on its own and reads its settings from `system_data`.
 function generate_system!(system::System, system_data::AbstractDict{Symbol,Any};
-    settings::Union{Nothing,NamedTuple}=nothing)::Nothing
+    settings::Union{Nothing,NamedTuple}=nothing
+)::Nothing
     @info("Generating system")
     start_time = time();
     # Configure the settings

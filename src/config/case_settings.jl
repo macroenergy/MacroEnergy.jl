@@ -139,7 +139,8 @@ end
 # eager loading produces, the same content) has no settings of its own. Every period must have
 # the same settings, so one period having some and another having none is an error.
 function legacy_period_settings(periods::AbstractVector, case_dir::AbstractString,
-    case_settings::AbstractDict, case_settings_path::Union{Nothing,AbstractString})::Union{Nothing,OrderedDict{Symbol,Any}}
+    case_settings::AbstractDict, case_settings_path::Union{Nothing,AbstractString}
+)::Union{Nothing,OrderedDict{Symbol,Any}}
     found = Tuple{Int,OrderedDict{Symbol,Any}}[]
     without = Int[]
     for (index, period) in enumerate(periods)
