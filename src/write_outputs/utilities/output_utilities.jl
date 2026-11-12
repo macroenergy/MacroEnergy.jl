@@ -169,9 +169,8 @@ function get_output_layout(system::System, variable::Union{Nothing,Symbol}=nothi
 
     # Handle NamedTuple case (per-file settings)
     if isa(output_layout, NamedTuple)
-        if !haskey(output_layout, variable)
-            @warn "OutputSettings.Layout does not have a $variable key. Using '$default' as default."
-        end
+        # An output that a per-output map leaves out uses the default, as for `Format` and `Write`
+        haskey(output_layout, variable) || @debug "OutputSettings.Layout does not have a $variable key. Using '$default' as default."
         layout = map_entry(spec, output_layout, variable)
         @debug "Using output layout $layout for variable $variable"
         return layout

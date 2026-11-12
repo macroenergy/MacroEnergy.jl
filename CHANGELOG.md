@@ -52,6 +52,7 @@ and this project follows Julia package versioning through `Project.toml` release
 - A `settings/benders_settings.json` that overrides different settings written in `case_settings.json` now logs a warning. A `BendersSettings.path` pointing to a missing file is now an error, unless `settings/benders_settings.json` exists.
 - Extended DuckDB.jl compatibility to include 2.x (`DuckDB = "1, 2"`). Environments that resolve DuckDB.jl 2.x read CSV inputs with the bundled DuckDB 2.0 engine.
 - Settings are now defined and validated from a single declarative spec per file (`src/config/settings_schema.jl`, built on the new `InputField`/`InputMap`/`InputBlock` types in `src/load_inputs/input_schema/input_spec.jl`). Invalid settings now raise an `InputValidationError` that names the full key path and the expected value (e.g. `case_settings.BendersSettings.MaxIter: expected an integer > 0, got 0`) instead of a bare `AssertionError`. Defaults and accepted values are unchanged, except that settings which previously crashed later in the run are now rejected up front: non-boolean values for boolean settings, `true`/`false` for numeric settings, and a non-list `PeriodLengths`. A partial `MyopicSettings.Restart` block is now completed from its defaults instead of failing with a `KeyError`.
+- A per-output `OutputSettings.Layout` that leaves out an output no longer logs a warning for it in every period. That output uses the default layout, as with `OutputSettings.Format` and `OutputSettings.Write`.
 
 ### Deprecated
 

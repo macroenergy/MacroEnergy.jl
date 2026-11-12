@@ -1,6 +1,7 @@
 module TestOutput
 
 using Test
+using Logging
 using Random
 using MacroEnergy
 using CSV
@@ -1233,8 +1234,8 @@ function test_writing_output()
             @test get_output_layout(system3, :Curtailment) == "wide"
             @test get_output_layout(system3, :StorageLevel) == "long"
     
-            # Test missing key falls back to "long" with warning
-            @test_logs (:warn, "OutputSettings.Layout does not have a missing_var key. Using 'long' as default.") begin
+            # A key the map leaves out falls back to "long", without a warning
+            @test_logs min_level=Logging.Warn begin
                 @test get_output_layout(system3, :missing_var) == "long"
             end
         end
