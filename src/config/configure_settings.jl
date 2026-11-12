@@ -1,3 +1,9 @@
+###### ###### ###### ###### ###### ###### ###### ###### ###### ###### ###### ###### ######
+# From the settings read from files (load_settings.jl) to the settings of a case: old names are
+# translated, the settings are validated against their spec (settings_schema.jl) and the
+# defaults filled in, and the result becomes the `NamedTuple` shared by the Case and its Systems.
+###### ###### ###### ###### ###### ###### ###### ###### ###### ###### ###### ###### ######
+
 namedtuple(x) = x   # default case
 function namedtuple(d::T) where {T<:AbstractDict}
     return (; (Symbol(k) => (v isa AbstractDict ? namedtuple(v) : v) for (k, v) in d)...)

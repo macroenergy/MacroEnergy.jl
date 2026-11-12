@@ -22,6 +22,8 @@ const OUTPUT_LAYOUTS = ("long", "wide")
 const CASE_SETTINGS_FILENAME = "case_settings.json"
 # Before all settings moved to `case_settings.json`, each period pointed to its own file
 const LEGACY_SYSTEM_SETTINGS_FILENAME = "macro_settings.json"
+# The Benders settings can also be kept in this file, which takes priority over `BendersSettings`
+const BENDERS_SETTINGS_FILEPATH = "settings/benders_settings.json"
 
 function output_settings_spec()::InputBlock
     return InputBlock(:OutputSettings, [

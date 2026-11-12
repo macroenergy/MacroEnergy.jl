@@ -1,5 +1,8 @@
-# Constants for file paths
-const BENDERS_SETTINGS_FILEPATH = "settings/benders_settings.json"
+###### ###### ###### ###### ###### ###### ###### ###### ###### ###### ###### ###### ######
+# Where the settings of a case come from: the `settings` entries of `system_data.json`, the
+# files they name, and the files found by their conventional names. `configure_settings`
+# (configure_settings.jl) turns the settings read here into the settings of the case.
+###### ###### ###### ###### ###### ###### ###### ###### ###### ###### ###### ###### ######
 
 """
     try_load_benders_settings(path::AbstractString)::Union{AbstractDict{Symbol,Any}, Nothing}
@@ -88,6 +91,18 @@ function standalone_settings(system_data::AbstractDict{Symbol,Any}, data_dir::Ab
         :settings => single_system_case_settings(joinpath(data_dir, "system_data.json"), system_data),
         :case => Any[system_data],
     ), data_dir)
+end
+
+# The case-level settings of a case written without a `case` key: the conventional file if there
+# is one, and otherwise the System's own `settings` entry. If the System's entry points elsewhere
+# while the conventional file exists, this is the deprecated two-file layout, and
+# `merged_settings` reads both.
+function single_system_case_settings(file_path::AbstractString, system_data::AbstractDict=Dict{Symbol,Any}())
+    case_settings_path = joinpath(dirname(file_path), "settings", CASE_SETTINGS_FILENAME)
+    if isfile(case_settings_path)
+        return Dict{Symbol,Any}(:path => case_settings_path)
+    end
+    return get(system_data, :settings, Dict{Symbol,Any}())
 end
 
 # Read a settings entry of system_data.json: a path, or `{"path": ...}`, to a file or to a directory

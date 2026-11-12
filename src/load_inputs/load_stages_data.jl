@@ -51,15 +51,3 @@ function load_case(
         throw(ArgumentError(msg))
     end
 end
-
-# The case-level settings of a case written without a `case` key: the conventional file if there
-# is one, and otherwise the System's own `settings` entry. If the System's entry points elsewhere
-# while the conventional file exists, this is the deprecated two-file layout, and
-# `merged_settings` reads both.
-function single_system_case_settings(file_path::AbstractString, system_data::AbstractDict=Dict{Symbol,Any}())
-    case_settings_path = joinpath(dirname(file_path), "settings", CASE_SETTINGS_FILENAME)
-    if isfile(case_settings_path)
-        return Dict{Symbol,Any}(:path => case_settings_path)
-    end
-    return get(system_data, :settings, Dict{Symbol,Any}())
-end
