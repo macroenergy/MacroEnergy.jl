@@ -38,7 +38,7 @@ and this project follows Julia package versioning through `Project.toml` release
 
 ### Migration guide
 
-- Move the contents of `macro_settings.json` into `settings/case_settings.json` and delete the `settings` entry of each period in `system_data.json`.
+- The "Updating older cases" section of the settings guide (Configuring Settings) walks through a full example, before and after, and lists where each setting goes.- Move the contents of `macro_settings.json` into `settings/case_settings.json` and delete the `settings` entry of each period in `system_data.json`.
 - Rename the output settings: `OutputDir` to `OutputSettings.Dir`, `OverwriteResults` to `OutputSettings.Overwrite`, `OutputFormat` to `OutputSettings.Format`, `OutputLayout` to `OutputSettings.Layout`, `WriteOutputs` to `OutputSettings.Write`, `WriteFullTimeseries` to `OutputSettings.Write.FullTimeseries`, `OutputSignificantDigits` to `OutputSettings.SignificantDigits`, `OutputAssetTags` to `OutputSettings.AssetTags` and `DualExportsEnabled` to `OutputSettings.Write.Duals`.
 - In Julia code, read these settings from `system.settings.OutputSettings` (e.g., `system.settings.OutputSettings.Dir` instead of `system.settings.OutputDir`). Reading an old name raises an error, and so does building a model or reading output settings after setting an old name on `system.settings`.
 

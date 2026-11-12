@@ -307,6 +307,17 @@ end
 setting_paths(block::InputBlock, prefix::String="") = String[path for f in block.fields
     for path in (f isa InputBlock ? setting_paths(f, "$prefix$(input_name(f)).") : ["$prefix$(input_name(f))"])]
 
+# The settings of the earlier versions, by the file that held them, before they were all moved
+# into case_settings.json
+const OLD_SETTINGS = Dict(
+    "case_settings.json" => (:PeriodLengths, :DiscountRate, :StartYear, :WriteFullTimeseries, :ParameterScaling,
+        :ParameterScalingFactor, :SolutionAlgorithm, :ExpansionHorizon, :BendersSettings, :MyopicSettings),
+    "macro_settings.json" => (:ConstraintScaling, :EnableJuMPDirectModel, :EnableJuMPStringNames,
+        :AllowImplicitTopLevelCommodities, :WriteSubcommodities, :OverwriteResults, :OutputDir, :OutputLayout,
+        :OutputFormat, :WriteOutputs, :OutputSignificantDigits, :OutputAssetTags, :AutoCreateNodes,
+        :AutoCreateLocations, :Retrofitting, :DualExportsEnabled),
+)
+
 # The docs tables are written by hand, so a new setting must be added to them too
 function test_docs_list_every_setting()
     guide(file) = read(joinpath(@__DIR__, "..", "docs", "src", "Guides", "User Guide", file), String)
@@ -323,6 +334,18 @@ function test_docs_list_every_setting()
         # Each deprecated name is in the migration table
         settings_guide = guide("user_settings.md")
         @test isempty([old for old in keys(DEPRECATED_SETTINGS) if !occursin("| `$old` |", settings_guide)])
+        # The migration table has a row for every setting of the earlier versions, with the file that
+        # held it and the setting that replaces it: the same name, unless it was renamed
+        # Any spacing in the cells, and Windows line endings (`\s` matches the `\r`)
+        rows = [(Symbol(row[1]), String(row[2]), Tuple(Symbol.(split(row[3], "."))))
+            for row in eachmatch(r"^\|\s*`(\w+)`\s*\|\s*`(\w+\.json)`\s*\|\s*`([\w.]+)`\s*\|\s*$"m, settings_guide)]
+        @test allunique(first.(rows))
+        @test Set(first.(rows)) == Set(old for names in values(OLD_SETTINGS) for old in names)
+        for (old, file, new) in rows
+            @test old in OLD_SETTINGS[file]
+            @test declares(settings_spec(), new)
+            @test new == get(DEPRECATED_SETTINGS, old, (old,))
+        end
     end
 end
 
