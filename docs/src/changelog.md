@@ -14,6 +14,7 @@ and this project follows Julia package versioning through `Project.toml` release
 - `MacroEnergy.migrate_settings(path; dry_run=true)` updates the settings of a case written for an earlier version: it moves the settings of `macro_settings.json` into `case_settings.json` under their current names, and removes the `settings` entries of the periods from `system_data.json`. By default it only reports the changes.
 - Added a `commodities` object to location inputs for defining commodity nodes directly in `locations.json`, including demand, supply segments, time series, and node constraints. Empty objects use existing node defaults and generate `<location>_<commodity>` node IDs; explicit IDs override the default. Existing location-name strings and independent `nodes.json` definitions remain supported.
 - Added `write_json(io::IO, data::AbstractDict)` for writing JSON to a caller-owned stream without closing it.
+- Added `edge_losses.csv` output file to report the commodity lost on every edge with a nonzero `loss_fraction`, for all solution algorithms and in the full time series (key `Losses` in `OutputSettings.Layout`, `OutputSettings.Format` and `OutputSettings.Write`). Lossy `BidirectionalEdge`s now hold their `flow_pos`/`flow_neg` pair as fields.
 
 ### Fixed
 
@@ -23,7 +24,6 @@ and this project follows Julia package versioning through `Project.toml` release
 - Paths in `settings` entries and in `BendersSettings.path` are now always relative to `system_data.json`, as documented. The current directory used to be searched too, so a file there could be read in place of the case's own, or of a missing one.
 - Time-domain reduction now copies a single-period case's `settings/case_settings.json` into the reduced case when `system_data.json` does not reference it. The reduced case used to lose those settings silently and fall back to the defaults.
 - A `case_settings.json` file without a `SolutionAlgorithm` key no longer fails with a `KeyError`.
-- Added `edge_losses.csv` output file to report the commodity lost on every edge with a nonzero `loss_fraction`, for all solution algorithms and in the full time series (key `Losses` in `OutputSettings.Layout`, `OutputSettings.Format` and `OutputSettings.Write`). Lossy `BidirectionalEdge`s now hold their `flow_pos`/`flow_neg` pair as fields.
 - Fixed `mermaid_diagram` to create explicit placeholder endpoints in its temporary system, preserving asset diagrams with stricter `AutoCreateNodes` endpoint validation. Commodity names also resolve consistently when called from another Julia module.
 - Lossy bidirectional edges now split their flow into a single `vFLOWPOS`/`vFLOWNEG` pair shared by both vertex balances.
 - Iterating over `SubproblemsData`, the container for per-subproblem Benders results, no longer yields the first subproblem twice. Written outputs were not affected, since the output writers read its fields directly rather than iterating it.
