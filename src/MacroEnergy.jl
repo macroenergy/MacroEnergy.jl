@@ -238,6 +238,7 @@ include("model/assets/electricsteam.jl")
 include("config/settings_schema.jl")
 include("config/configure_settings.jl")
 include("config/load_settings.jl")
+include("config/deprecated_settings.jl")
 include("config/migrate_settings.jl")
 include_all_in_folder("load_inputs")
 

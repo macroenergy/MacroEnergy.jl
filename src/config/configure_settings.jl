@@ -39,19 +39,6 @@ function set_numeric_types!(settings::AbstractDict{Symbol,Any})
     return nothing
 end
 
-function translate_deprecated_solution_algorithm!(settings::AbstractDict{Symbol,Any})
-    if get(settings, :SolutionAlgorithm, nothing) == "Myopic"
-        @warn("""
-        Setting SolutionAlgorithm to \"Myopic\" is deprecated.
-        Use ExpansionHorizon: "Myopic" combined with SolutionAlgorithm: "Monolithic" instead.
-        Translating automatically: SolutionAlgorithm => Monolithic, ExpansionHorizon => Myopic.
-        """)
-        settings[:SolutionAlgorithm] = "Monolithic"
-        settings[:ExpansionHorizon] = "Myopic"
-    end
-    return nothing
-end
-
 function set_solution_algorithm!(settings::AbstractDict{Symbol,Any})
     settings[:SolutionAlgorithm] = settings[:SolutionAlgorithm] == "Benders" ? Benders() : Monolithic()
     return nothing
@@ -82,57 +69,6 @@ function configure_myopic!(settings::AbstractDict{Symbol,Any})
     resolved = resolve_inputs(myopic_settings_spec(), myopic_settings; path="case_settings.MyopicSettings")
     resolved[:StopAfterPeriod] = Float64(resolved[:StopAfterPeriod])
     settings[:MyopicSettings] = resolved
-    return nothing
-end
-
-"""
-    translate_deprecated_settings(settings)::OrderedDict{Symbol,Any}
-
-Return a copy of `settings` (a dictionary or `NamedTuple`) in which each renamed key is moved
-to the key path that replaces it, with a deprecation warning. For example, `OutputDir` becomes
-`OutputSettings.Dir`, `WriteFullTimeseries` becomes `OutputSettings.Write.FullTimeseries` and
-`DualExportsEnabled` becomes `OutputSettings.Write.Duals` (see `DEPRECATED_SETTINGS`).
-
-Setting a deprecated key and its replacement to different values is an error.
-"""
-function translate_deprecated_settings(settings)::OrderedDict{Symbol,Any}
-    translated = drop_unset_deprecated_settings!(settings_dict(settings))
-    found = [old for old in keys(DEPRECATED_SETTINGS) if haskey(translated, old)]
-    isempty(found) && return translated
-    for old in found
-        move_setting!(translated, old, DEPRECATED_SETTINGS[old])
-    end
-    renames = join(["$old → $(join(DEPRECATED_SETTINGS[old], "."))" for old in found], ", ")
-    @warn("""
-    These settings are deprecated and were translated automatically: $renames.
-    Use the new names in case_settings.json. MacroEnergy.migrate_settings("path/to/case") shows how.""", maxlog=1)
-    return translated
-end
-
-# A deprecated key set to null is not set: older versions wrote that in their settings template
-function drop_unset_deprecated_settings!(settings::OrderedDict{Symbol,Any})::OrderedDict{Symbol,Any}
-    for old in keys(DEPRECATED_SETTINGS)
-        haskey(settings, old) && isnothing(settings[old]) && delete!(settings, old)
-    end
-    return settings
-end
-
-function move_setting!(settings::OrderedDict{Symbol,Any}, old::Symbol, path::Tuple)
-    value = pop!(settings, old)
-    parent = settings
-    for (depth, key) in enumerate(path[1:end-1])
-        parent = get!(() -> OrderedDict{Symbol,Any}(), parent, key)
-        parent isa AbstractDict || throw(InputValidationError("case_settings.$(join(path[1:depth], "."))",
-            "expected an object, got $(repr(parent))"))
-    end
-    leaf = last(path)
-    # An old default next to a new per-output map says nothing: older templates wrote every default
-    spec = length(path) == 2 ? input_spec(output_settings_spec(), leaf) : nothing
-    get(parent, leaf, nothing) isa AbstractDict && spec isa InputMap && isequal(value, spec.default) && return nothing
-    combine_setting!(parent, leaf, value, join(path, ".")) do conflict, existing, _
-        throw(InputValidationError("case_settings.$old",
-            "conflicts with $conflict = $(repr(existing)). $old is deprecated: remove it and keep $(join(path, "."))"))
-    end
     return nothing
 end
 
