@@ -112,9 +112,8 @@ single value (see `allow_scalar`), its entry for `key` when it lists one, and ot
 default for `key` (`key_defaults`, then `entry_default`).
 """
 function map_entry(map::InputMap, value, key::Symbol)
-    is_object(value) || return value
-    key in object_keys(value) && return value[key]
-    return get(map.key_defaults, key, map.entry.default)
+    is_keyed(value) || return value
+    return get(value, key, get(map.key_defaults, key, map.entry.default))
 end
 
 """
@@ -169,24 +168,23 @@ end
 default_value(spec::Union{InputField,InputMap}) = deepcopy(spec.default)
 default_value(block::InputBlock) = input_defaults(block)
 
-is_object(x) = x isa AbstractDict || x isa NamedTuple
-object_keys(x::AbstractDict) = Symbol[Symbol(k) for k in keys(x)]
-object_keys(x::NamedTuple) = collect(Symbol, keys(x))
-object_pairs(x::AbstractDict) = (Symbol(k) => v for (k, v) in x)
-object_pairs(x::NamedTuple) = pairs(x)
+# Whether `x` is a JSON-style object: named keys mapped to values. Inputs are validated as
+# `Symbol`-keyed dictionaries (see `settings_dict`) and read back as `NamedTuple`s, and both
+# support `keys`, `pairs` and `get`. Vectors are JSON arrays, not objects.
+is_keyed(x) = x isa AbstractDict || x isa NamedTuple
 
 """
     merge_defaults(block::InputBlock, values)::OrderedDict{Symbol,Any}
 
-Return `values` (a dictionary or `NamedTuple`) on top of the defaults of `block`.
+Return `values` (a `Symbol`-keyed dictionary or a `NamedTuple`) on top of the defaults of `block`.
 Nested blocks are merged recursively. Maps and plain values given by the user replace
 their defaults entirely. Undeclared keys are kept, so that `validate_inputs` can report them.
 """
 function merge_defaults(block::InputBlock, values)::OrderedDict{Symbol,Any}
     merged = input_defaults(block)
-    for (key, value) in object_pairs(values)
+    for (key, value) in pairs(values)
         spec = input_spec(block, key)
-        merged[key] = spec isa InputBlock && is_object(value) ? merge_defaults(spec, value) : value
+        merged[key] = spec isa InputBlock && is_keyed(value) ? merge_defaults(spec, value) : value
     end
     return merged
 end
@@ -194,18 +192,18 @@ end
 """
     validate_inputs(block::InputBlock, values; path=String(block.name))::Nothing
 
-Check `values` (a dictionary or `NamedTuple`) against `block`, and throw an
+Check `values` (a `Symbol`-keyed dictionary or a `NamedTuple`) against `block`, and throw an
 `InputValidationError` naming the full key path of the first problem found.
 Keys declared in `block` but absent from `values` are not checked.
 """
 function validate_inputs(block::InputBlock, values; path::AbstractString=String(block.name))::Nothing
-    is_object(values) || throw(InputValidationError(path, "expected an object, got $(repr(values))"))
+    is_keyed(values) || throw(InputValidationError(path, "expected an object, got $(repr(values))"))
     if !block.additional_properties
-        unknown = setdiff(object_keys(values), input_keys(block))
+        unknown = [key for key in keys(values) if key ∉ input_keys(block)]
         isempty(unknown) || throw(InputValidationError(path,
             "unknown key(s) $(join(unknown, ", ")). Valid keys are: $(join(input_keys(block), ", "))"))
     end
-    for (key, value) in object_pairs(values)
+    for (key, value) in pairs(values)
         spec = input_spec(block, key)
         isnothing(spec) || validate_value(spec, value, "$path.$key")
     end
@@ -231,11 +229,11 @@ end
 validate_value(block::InputBlock, value, path::AbstractString) = validate_inputs(block, value; path)
 
 function validate_value(map::InputMap, value, path::AbstractString)::Nothing
-    if is_object(value)
-        unknown = setdiff(object_keys(value), map.keys)
+    if is_keyed(value)
+        unknown = [key for key in keys(value) if key ∉ map.keys]
         isempty(unknown) || throw(InputValidationError(path,
             "unknown key(s) $(join(unknown, ", ")). Valid keys are: $(join(map.keys, ", "))"))
-        for (key, item) in object_pairs(value)
+        for (key, item) in pairs(value)
             validate_value(map.entry, item, "$path.$key")
         end
     elseif map.allow_scalar
