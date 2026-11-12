@@ -11,11 +11,11 @@
 # File formats supported by `OutputSettings.Format`, used as the output file extension
 const OUTPUT_FORMATS = ("csv", "csv.gz", "parquet")
 # Output types that can be keyed in `OutputSettings.Format`
-const OUTPUT_KEYS = (:Capacity, :CapacitySummary, :Capex, :Costs, :Curtailment, :Duals, :Flow, :NonServedDemand, :StorageLevel, :TimeWeights)
+const OUTPUT_KEYS = (:Capacity, :CapacitySummary, :Capex, :Costs, :Curtailment, :Duals, :Flow, :Losses, :NonServedDemand, :StorageLevel, :TimeWeights)
 # Outputs that can be switched on or off in `OutputSettings.Write`
 const OUTPUT_WRITE_KEYS = (OUTPUT_KEYS..., :FullTimeseries)
 # Output types that can be keyed in `OutputSettings.Layout`
-const OUTPUT_LAYOUT_KEYS = (:Capacity, :CapacitySummary, :Costs, :Curtailment, :Flow, :NonServedDemand, :StorageLevel)
+const OUTPUT_LAYOUT_KEYS = (:Capacity, :CapacitySummary, :Costs, :Curtailment, :Flow, :Losses, :NonServedDemand, :StorageLevel)
 const OUTPUT_LAYOUTS = ("long", "wide")
 
 # `case_settings.json` holds all the settings of a case, which apply to every period

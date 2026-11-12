@@ -22,6 +22,7 @@ const pages = [
         "Getting Started" => "Tutorials/0_getting_started.md",
         "Running Macro" => "Tutorials/1_running_macro.md",
         "Multisector Modelling" => "Tutorials/2_multisector_modelling.md",
+        "Macro Showcase" => "Tutorials/3_macro_showcase.md",
     ],
     "Guides" => [
         "Introduction" => "Guides/guides_introduction.md",
@@ -75,6 +76,7 @@ const pages = [
             "Flows" => "Manual/outputs/flows.md",
             "Storage Level" => "Manual/outputs/storage_level.md",
             "Curtailment" => "Manual/outputs/curtailment.md",
+            "Losses" => "Manual/outputs/losses.md",
             "Non-Served Demand" => "Manual/outputs/non_served_demand.md",
             "Time Weights" => "Manual/outputs/time_weights.md",
             "Duals" => "Manual/outputs/duals.md",

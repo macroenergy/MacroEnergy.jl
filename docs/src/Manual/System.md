@@ -175,7 +175,7 @@ Methods for accessing system data, components, and properties.
 | `location_ids(system)` | Get IDs of all locations in the system | `Vector{Symbol}` |
 | `get_asset_types(system)` | Get types of all assets in the system | `Vector{DataType}` |
 | `get_asset_by_id(system, id)` | Find asset by its ID | `Union{AbstractAsset,Nothing}` |
-| `find_locations(system, id)` | Find location by its ID | `Union{Node,Location,Nothing}` |
+| `find_locations(system, id)` | Find a Location by its ID; nodes are excluded | `Union{Location,Nothing}` |
 | `get_assets_sametype(system, asset_type)` | Get all assets of specific type | `Vector{<:AbstractAsset}` |
 | `get_nodes(system)` | Get all nodes and locations | `Vector{Union{Node,Location}}` |
 | `get_edges(system; return_ids_map=false)` | Get all edges from assets | `Vector{AbstractEdge}` or `Tuple` |
@@ -192,7 +192,8 @@ Methods for modifying system contents.
 |--------|-------------|-------------|
 | `set_data_dirpath!(system, data_dirpath)` | Set the data directory path | `Nothing` |
 | `add!(system, asset)` | Add an asset to the system | `Nothing` |
-| `add!(system, location)` | Add a location/node to the system | `Nothing` |
+| `add!(system, node)` | Add a node after checking its ID against existing nodes and locations | `Vector{Union{Node,Location}}` |
+| `add!(system, location)` | Add a location after checking its ID against existing nodes and locations | `Vector{Union{Node,Location}}` |
 
 ### Factory Methods
 

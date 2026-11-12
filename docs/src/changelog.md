@@ -12,6 +12,8 @@ and this project follows Julia package versioning through `Project.toml` release
 ### Added
 
 - `MacroEnergy.migrate_settings(path; dry_run=true)` updates the settings of a case written for an earlier version: it moves the settings of `macro_settings.json` into `case_settings.json` under their current names, and removes the `settings` entries of the periods from `system_data.json`. By default it only reports the changes.
+- Added a `commodities` object to location inputs for defining commodity nodes directly in `locations.json`, including demand, supply segments, time series, and node constraints. Empty objects use existing node defaults and generate `<location>_<commodity>` node IDs; explicit IDs override the default. Existing location-name strings and independent `nodes.json` definitions remain supported.
+- Added `write_json(io::IO, data::AbstractDict)` for writing JSON to a caller-owned stream without closing it.
 
 ### Fixed
 
@@ -21,10 +23,28 @@ and this project follows Julia package versioning through `Project.toml` release
 - Paths in `settings` entries are now relative to `system_data.json`, as documented. The current directory was checked first, so a matching file there was read instead.
 - Time-domain reduction now copies a single-period case's `settings/case_settings.json` into the reduced case when `system_data.json` does not reference it. The reduced case used to lose those settings silently and fall back to the defaults.
 - A `case_settings.json` file without a `SolutionAlgorithm` key no longer fails with a `KeyError`.
+- Added `edge_losses.csv` output file to report the commodity lost on every edge with a nonzero `loss_fraction`, for all solution algorithms and in the full time series (key `Losses` in `OutputLayout`, `OutputFormat` and `WriteOutputs`). Lossy `BidirectionalEdge`s now hold their `flow_pos`/`flow_neg` pair as fields.
+- Fixed `mermaid_diagram` to create explicit placeholder endpoints in its temporary system, preserving asset diagrams with stricter `AutoCreateNodes` endpoint validation. Commodity names also resolve consistently when called from another Julia module.
+- Lossy bidirectional edges now split their flow into a single `vFLOWPOS`/`vFLOWNEG` pair shared by both vertex balances.
+- Iterating over `SubproblemsData`, the container for per-subproblem Benders results, no longer yields the first subproblem twice. Written outputs were not affected, since the output writers read its fields directly rather than iterating it.
+- Fixed TDR weights for shared CSV columns so excluded references and references with no matching feature do not increase clustering influence. Total usage counts are retained for provenance; clustering occurrence summaries count included references only.
 - Corrected exported duals after MacroEnergyScaling constraint-row and objective scaling. All model builders now retain cumulative scaling metadata per model, and dual reporting restores the original model units before applying input scaling, time weights and discount conversions. Requires MacroEnergyScaling v0.4.1 or later.
+- Multi-period cases no longer fail with a `MethodError` when carrying over capacities for an asset whose optional edge is absent, such as a `BECCSHydrogen` asset without a `fuel_edge`. Myopic runs with `ReturnModels: false` failed the same way when releasing such an asset.
+- Myopic runs with `ReturnModels: false` now also release the JuMP references held by system-wide and per-location grouped capacity constraints. These kept an emptied model alive for each period, which increased memory use with the number of periods.
+- Fixed location membership for automatically created nodes so location-based outputs and capacity constraints can identify their location correctly. Automatic nodes are registered before attachment, so rejected duplicate IDs leave membership unchanged and repeated lookups still fail.
+- Fixed unresolved endpoint handling: `AutoCreateNodes` now reports an error when an endpoint matches neither an existing node nor a location, rather than attempting to create an anonymous node.
+- Fixed time-domain reduction commodity context for nodes defined within locations, so commodity-scoped feature weights and exclusions apply to inline series and CSV references. Reference exclusions now match actual input context, including file, field, asset, and commodity, even when a generic feature is selected.
+- Fixed `template_location` to support location dictionaries and mixed batches, preserve existing commodity and constraint definitions, and check duplicates by location ID. Conflicting definitions are rejected before writing; new JSON files and directories can be created directly.
+- Fixed time-domain reduction of inputs defined inline within `case` entries in `system_data.json`. Bare and case-wrapped Systems now share scoped discovery and rewriting, so reduced and isolated subperiod cases use the selected periods' values without mixing Systems' profiles. Older output-feature caches are invalidated and regenerated.
 
 ### Changed
 
+- Variable O&M cost on a `BidirectionalEdge` is now charged on |flow| via its `flow_pos`/`flow_neg` pair, instead of on the net flow; the `VariableOM` cost outputs follow the same rule.
+- A negative `variable_om_cost` on a unidirectional edge (including edges with unit commitment) is now a credit per unit of flow in the objective and the `VariableOM` cost outputs, instead of being ignored. A negative `variable_om_cost` on a `BidirectionalEdge` is an error, since it is charged on |flow|.
+- Automatically created commodity nodes now use `<location>_<commodity>` IDs instead of reusing the location ID.
+- Location entries are normalized into a validated `LocationInput` with a required nonempty string ID and optional constraint and commodity dictionaries. Programmatic location dictionaries must use symbol keys, matching parsed JSON inputs; location-name strings remain supported.
+- Location loading now creates each location and its declared nodes before loading independent nodes and assets. Node and location IDs share one namespace, with collisions rejected by both registration methods. Input validation also rejects duplicate commodity nodes within a location and conflicting location assignments as objects are loaded or registered.
+- Multi-System TDR copies configured asset directories to `inputs/system_<n>/assets`, avoiding repeated source directory names such as `assets/assets_1` when the destination is free of other dependencies.
 - All settings now live in one file, `settings/case_settings.json`, and apply to every period of the case. See "Migration guide" below.
 - `case.settings` and the `settings` of every `System` in the case are now the same object, holding all the settings. `results/settings.json` holds them directly, instead of under `case_settings` and `system_settings`, in the same form as `case_settings.json`, so it can be copied to `settings/case_settings.json` to rerun a case with the same settings.
 - Output settings are now grouped in an `OutputSettings` block of `case_settings.json`: `Dir`, `Overwrite`, `Format`, `Layout`, `Write`, `SignificantDigits` and `AssetTags`. `WriteFullTimeseries` is now `OutputSettings.Write.FullTimeseries`, off by default. Code that reads these settings should use `system.settings.OutputSettings`, or the accessors such as `output_enabled`. `system.settings.DualExportsEnabled` no longer exists.
@@ -47,6 +67,11 @@ and this project follows Julia package versioning through `Project.toml` release
 - Move the contents of `macro_settings.json` into `settings/case_settings.json` and delete the `settings` entry of each period in `system_data.json`.
 - Rename the output settings: `OutputDir` to `OutputSettings.Dir`, `OverwriteResults` to `OutputSettings.Overwrite`, `OutputFormat` to `OutputSettings.Format`, `OutputLayout` to `OutputSettings.Layout`, `WriteOutputs` to `OutputSettings.Write`, `WriteFullTimeseries` to `OutputSettings.Write.FullTimeseries`, `OutputSignificantDigits` to `OutputSettings.SignificantDigits`, `OutputAssetTags` to `OutputSettings.AssetTags` and `DualExportsEnabled` to `OutputSettings.Write.Duals`.
 - In Julia code, read these settings from `system.settings.OutputSettings` (e.g., `system.settings.OutputSettings.Dir` instead of `system.settings.OutputDir`). Reading an old name raises an error, and so does building a model or reading output settings after setting an old name on `system.settings`.
+
+### Documentation
+
+- Synced the tutorials with MacroEnergyExamples.jl: added Tutorial 3 (a three-zone multisector showcase) and a Benders decomposition section in Tutorial 1, and updated the code in Tutorials 0-2 to the current API (`scaling` argument of the result functions, `resource_type` output column, sign of storage charge flows).
+- Fixed the Tutorial 2 asset diagrams, which did not load on the deployed site, and a table-of-contents entry pointing to a tutorial page that does not exist.
 
 ## [0.3.0 - rc] - 2026-10-14
 

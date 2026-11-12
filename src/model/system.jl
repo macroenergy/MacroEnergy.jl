@@ -96,8 +96,20 @@ function add!(system::System, asset::AbstractAsset)
     push!(system.assets, asset)
 end
 
-function add!(system::System, location::Node)
+function add!(system::System, node::Node)
+    validate_network_id(system, node.id)
+    push!(system.locations, node)
+end
+
+function add!(system::System, location::Location)
+    validate_network_id(system, location.id)
     push!(system.locations, location)
+end
+
+function validate_network_id(system::System, network_id::Symbol)
+    any(existing -> existing.id == network_id, system.locations) &&
+        throw(ArgumentError("Duplicate network ID `$network_id`; node and location IDs must be unique within a system"))
+    return nothing
 end
 
 function empty_system(data_dirpath::String)
@@ -156,7 +168,7 @@ end
 
 function find_locations(system::System, id::Symbol)
     for location in system.locations
-        if location.id == id
+        if location isa Location && location.id == id
             return location
         end
     end
@@ -200,18 +212,13 @@ function find_node(system::System, id::Symbol, commodity::Union{Missing,DataType
     candidate = find_node(system.locations, id, commodity)
     if candidate !== nothing
         return candidate
-    elseif system.settings.AutoCreateNodes
-        id = Symbol(rand(Int16))
-        @debug "Creating new $commodity node with id: $id"
-        new_node = Node{commodity}(; 
-            id = id,
-            timedata = system.time_data[Symbol(commodity)]
-        )
-        push!(system.locations, new_node)
-        return new_node
     end
-    error("Node $id not found")
-    return nothing
+    commodity_context = ismissing(commodity) ? "" : " for commodity `$(typesymbol(commodity))`"
+    error(
+        "Could not find `$id`$commodity_context in the list of nodes or locations. " *
+        "The ID must match an existing node or location. " *
+        "AutoCreateNodes only creates commodity nodes within existing locations.",
+    )
 end
 
 function find_node(node::Node, id::Symbol, commodity::Union{Missing,DataType}=missing)
@@ -236,11 +243,11 @@ function find_node(location::Location, id::Symbol, commodity::Union{Missing,Data
             # Otherwise, create a new node of the commodity and return it
             @debug "Making $commodity node called $id"
             new_node = Node{commodity}(;
-                id = id,
+                id = Symbol(id, "_", commodity_symbol),
                 timedata = location.system.time_data[commodity_symbol]
             )
+            add!(location.system, new_node)
             add_node!(location, new_node)
-            push!(location.system.locations, new_node)
             return new_node
         else
             @warn("Node $id not found\nNot creating a new Node as AutoCreateNodes = false")

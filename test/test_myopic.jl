@@ -28,9 +28,36 @@ import MacroEnergy:
 const MYOPIC_TEST_INPUTS = joinpath(@__DIR__, "test_inputs")
 include("utilities.jl")
 
+# Adds non-binding grouped capacity constraints, so that the test covers the constraint
+# references held by the System and its Locations.
+function add_grouped_capacity_constraints!(case_path::AbstractString, system_data::AbstractDict)
+    grouped_constraints = Dict("MaxCapacityConstraint" => Dict("all_vre" => Dict(
+        "select" => Dict("asset_type" => "VRE"),
+        "edge" => "edge",
+        "value" => 1.0e6,
+    )))
+    system_data["constraints"] = grouped_constraints
+    write(
+        joinpath(case_path, "system", "locations.json"),
+        JSON3.write(Dict("locations" => [
+            Dict("id" => id, "constraints" => grouped_constraints) for id in ("MA", "CT", "ME")
+        ])),
+    )
+
+    # Per-location groups only select assets that have a location
+    vre_path = joinpath(case_path, "assets", "vre.json")
+    vre_data = JSON3.read(read(vre_path, String), Dict{String,Any})
+    for blocks in values(vre_data), block in blocks, instance in block["instance_data"]
+        instance["location"] = last(split(instance["id"], "_"))
+    end
+    write(vre_path, JSON3.write(vre_data))
+    return nothing
+end
+
 function write_two_period_myopic_case!(case_path::AbstractString)
     system_data_path = joinpath(case_path, "system_data.json")
     system_data = JSON3.read(read(system_data_path, String), Dict{String,Any})
+    add_grouped_capacity_constraints!(case_path, system_data)
     case_data = Dict(
         "case" => [system_data, deepcopy(system_data)],
         "settings" => Dict("path" => "settings/case_settings.json"),
@@ -63,6 +90,8 @@ function assert_constraint_references_released(constraints)
 end
 
 function assert_model_references_released!(system::System)
+    assert_constraint_references_released(system.constraints)
+
     for asset in system.assets
         for field in fieldnames(typeof(asset))
             component = getfield(asset, field)
@@ -120,6 +149,7 @@ function assert_model_references_released!(system::System)
             @test isempty(location.operation_expr)
             assert_constraint_references_released(location.constraints)
         elseif location isa Location
+            assert_constraint_references_released(location.constraints)
             for node in values(location.nodes)
                 @test isempty(node.non_served_demand)
                 @test isempty(node.supply_flow)
@@ -328,6 +358,16 @@ function test_myopic_model_release()
             write_two_period_myopic_case!(case_path)
 
             case = load_case(case_path)
+
+            # The release assertions below only cover these if they are loaded
+            for system in case.systems
+                @test !isempty(system.constraints)
+                @test any(
+                    location isa Location && !isempty(location.constraints)
+                    for location in system.locations
+                )
+            end
+
             _, results = solve_case(
                 case,
                 create_optimizer(

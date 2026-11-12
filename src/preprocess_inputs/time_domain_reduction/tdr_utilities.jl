@@ -4,6 +4,32 @@ function tdr_normalize_path(path::AbstractString)
     return replace(normpath(portable), '\\' => '/')
 end
 
+"""The file and path locating one System's inline input tree.
+
+The path is empty for a standalone System and `["case", index]` in a Case.
+Relocation preserves or rebases this scope when writing copied inputs.
+"""
+struct TDRInputScope
+    file::String
+    path::Vector{Any}
+end
+
+# Actual input context travels separately from configurable feature selectors.
+# The traversal path remains separate because it is updated while recursing.
+Base.@kwdef struct TDRContext
+    input_file::String
+    csv_file::Union{Nothing,String} = nothing
+    field::String = ""
+    asset::Union{Nothing,String} = nothing
+    commodity::Union{Nothing,String} = nothing
+end
+
+function tdr_child_context(context::TDRContext;
+    csv_file=context.csv_file, field=context.field,
+    asset=context.asset, commodity=context.commodity)
+    return TDRContext(; input_file=context.input_file, csv_file, field, asset, commodity)
+end
+
 struct TDRFeatureSpec
     id::Union{Nothing,String}
     file::Union{Nothing,String}

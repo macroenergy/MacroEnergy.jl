@@ -12,6 +12,17 @@ function read_json(file_path::AbstractString)
     end
 end
 
+"""
+    write_json(io::IO, data::AbstractDict)
+
+Write formatted JSON to a caller-owned stream, allowing infinite numeric values.
+Leave the stream open and return `nothing`.
+"""
+function write_json(io::IO, data::AbstractDict)::Nothing
+    JSON3.pretty(io, data; allow_inf=true)
+    return nothing
+end
+
 function write_json(file_path::AbstractString, data::AbstractDict, compress::Bool=false)::Nothing
     if compress || endswith(file_path, ".gz")
         if !endswith(file_path, ".gz")
@@ -22,7 +33,7 @@ function write_json(file_path::AbstractString, data::AbstractDict, compress::Boo
         io = open(file_path, "w")
     end
     try
-        JSON3.pretty(io, data; allow_inf=true)
+        write_json(io, data)
     finally
         close(io)
     end

@@ -304,6 +304,12 @@ function tdr_drop_case_level_settings!(root::AbstractDict, case_root::String)
     return nothing
 end
 
+"""Locate a normalized System in its original bare-System or Case document."""
+function tdr_system_input_scope(case_root::String, root, index::Int)
+    path = haskey(root, "case") ? Any["case", index] : Any[]
+    return TDRInputScope(joinpath(case_root, "system_data.json"), path)
+end
+
 function tdr_system_time_data_path(case_root::String, system_index::Int)
     _, systems = tdr_system_entries(case_root)
     return tdr_system_time_data_path(case_root, systems[system_index]; system_index)
@@ -320,15 +326,21 @@ function tdr_system_time_data_path(case_root::String, system::AbstractDict; syst
 end
 
 """Return the ordinary generated-case path for one System-specific input file."""
-function tdr_system_input_path(case_root::String, system_index::Int, source_path::String)
+function tdr_system_input_path(case_root::String, system_index::Int, source_path::String;
+    asset_root::Union{Nothing,String}=nothing)
     relative_path = relpath(source_path, case_root)
     tdr_path_within_case(case_root, source_path) || throw(ArgumentError(
         "TDR does not support input paths outside the case directory: $source_path",
     ))
-    parts = splitpath(relative_path)
-    # Re-preparing an already private input must not add another copy layer.
-    if length(parts) >= 3 && parts[1] == "inputs" && occursin(r"^system_\d+$", parts[2])
-        relative_path = joinpath(parts[3:end]...)
+    if !isnothing(asset_root) && tdr_path_within_case(asset_root, source_path)
+        suffix = relpath(source_path, asset_root)
+        relative_path = suffix == "." ? "assets" : joinpath("assets", suffix)
+    else
+        parts = splitpath(relative_path)
+        # Re-preparing an already private input must not add another copy layer.
+        if length(parts) >= 3 && parts[1] == "inputs" && occursin(r"^system_\d+$", parts[2])
+            relative_path = joinpath(parts[3:end]...)
+        end
     end
     return joinpath(case_root, "inputs", "system_$system_index", relative_path)
 end
@@ -359,17 +371,13 @@ function tdr_prepare_system_inputs!(case_root::String, prepared)
         relocated = tdr_relocate_inputs(inputs, case_root;
             private_index=number_of_systems > 1 ? inputs.system_index : nothing)
         if number_of_systems > 1
+            destination = tdr_input_destination(inputs, case_root, inputs.system_index)
             for (path, input) in inputs.manifest
-                destination = tdr_system_input_path(case_root, inputs.system_index,
-                    joinpath(case_root, relpath(path, inputs.source_root)))
                 haskey(inputs.input_data, path) && continue
-                tdr_copy_system_input!(TDRTrackedInput(path, destination, input.columns))
+                tdr_copy_system_input!(TDRTrackedInput(path, destination(path), input.columns))
             end
         end
-        for (path, data) in relocated.input_data
-            mkpath(dirname(path))
-            tdr_write_input_data(path, data, relocated.csv_tables)
-        end
+        tdr_write_dependency_snapshots!(relocated)
         relocated
     end
     root = deepcopy(prepared.root)
