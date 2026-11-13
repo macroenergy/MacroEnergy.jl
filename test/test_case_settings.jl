@@ -489,6 +489,34 @@ function test_settings_entry_forms()
         end
     end
 
+    # A file found by its conventional name already includes the case folder: with a relative
+    # case path, joining the case folder again looked for <case>/<case>/settings/case_settings.json
+    @testset "Cases load from a relative path" begin
+        mktempdir() do root
+            system = read_json(test_path_data)
+            without_entry = Dict(key => value for (key, value) in pairs(system) if key != :settings)
+            layouts = (
+                "bare" => system,
+                "bare_without_entry" => without_entry,
+                "case_with_entry" => Dict(:case => [without_entry], :settings => Dict(:path => "settings/case_settings.json")),
+                "case_without_entry" => Dict(:case => [without_entry]),
+            )
+            for (name, data) in layouts
+                cp(test_path, joinpath(root, name))
+                write_json(joinpath(root, name, "system_data.json"), data)
+            end
+            expected = with_logger(() -> load_case(test_path), NullLogger()).settings
+            cd(root) do
+                for (name, _) in layouts
+                    @test isequal(with_logger(() -> load_case(name), NullLogger()).settings, expected)
+                end
+                for name in ("bare", "bare_without_entry")
+                    @test isequal(with_logger(() -> load_system(name), NullLogger()).settings, expected)
+                end
+            end
+        end
+    end
+
     @testset "A null settings entry is the same as no entry" begin
         with_settings_files(case_settings=Dict("DiscountRate" => 0.07)) do dir
             period = Dict{Symbol,Any}(:settings => nothing)

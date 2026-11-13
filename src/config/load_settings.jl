@@ -98,7 +98,8 @@ end
 # while the conventional file exists, this is the deprecated two-file layout, and
 # `merged_settings` reads both.
 function single_system_case_settings(file_path::AbstractString, system_data::AbstractDict=Dict{Symbol,Any}())
-    case_settings_path = joinpath(dirname(file_path), "settings", CASE_SETTINGS_FILENAME)
+    # Absolute: the path already includes the case folder, which must not be joined to it again
+    case_settings_path = abspath(dirname(file_path), "settings", CASE_SETTINGS_FILENAME)
     if isfile(case_settings_path)
         return Dict{Symbol,Any}(:path => case_settings_path)
     end
@@ -129,7 +130,8 @@ same_settings_file(a, b) = !isnothing(a) && !isnothing(b) && samefile(a, b)
 
 # Settings paths are relative to the location of system_data.json, never to the current directory:
 # a file missing from the case must not be replaced by another case's file at the same relative
-# path. An absolute path is kept as it is.
+# path. An absolute path is kept as it is. A path found by its conventional name already includes
+# the case folder, so it is made absolute where it is found.
 settings_file_path(path::AbstractString, rel_path::AbstractString)::String = joinpath(rel_path, path)
 
 # The settings of `case_settings.json`, plus any deprecated per-period settings. A case without a
@@ -137,7 +139,8 @@ settings_file_path(path::AbstractString, rel_path::AbstractString)::String = joi
 function merged_settings(case_data::AbstractDict{Symbol,Any}, case_dir::AbstractString)::OrderedDict{Symbol,Any}
     source = get(case_data, :settings, nothing)
     if isnothing(source)
-        implicit = joinpath(case_dir, "settings", CASE_SETTINGS_FILENAME)
+        # Absolute: the path already includes the case folder, which must not be joined to it again
+        implicit = abspath(case_dir, "settings", CASE_SETTINGS_FILENAME)
         source = isfile(implicit) ? Dict{Symbol,Any}(:path => implicit) : Dict{Symbol,Any}()
     end
     settings, path = read_settings_source(source, case_dir, (CASE_SETTINGS_FILENAME, LEGACY_SYSTEM_SETTINGS_FILENAME))
