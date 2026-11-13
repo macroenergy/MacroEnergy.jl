@@ -134,7 +134,7 @@ end
 
 Return the full, long-format capacity results for a system (capacity, new/retired/retrofitted
 capacity, existing capacity, and asset tags), as written by [`write_capacity`](@ref). Used
-directly when the capacity file itself is not written (`WriteOutputs.Capacity = false`) but the
+directly when the capacity file itself is not written (`OutputSettings.Write.Capacity = false`) but the
 results are still needed, e.g. for the cross-period capacity summary.
 """
 function get_capacity_results(system::System, scaling::Float64)
@@ -333,8 +333,8 @@ end
 """
     write_capacity_summary(path::AbstractString, period_results::Vector{DataFrame}, system::System)
 
-Write the cross-period capacity summary using the `OutputLayout` and `OutputFormat` settings of
-`system` (the first period's system), unless `WriteOutputs.CapacitySummary` is `false`.
+Write the cross-period capacity summary using the `OutputSettings.Layout` and `OutputSettings.Format` settings of
+`system` (the first period's system), unless `OutputSettings.Write.CapacitySummary` is `false`.
 """
 function write_capacity_summary(path::AbstractString, period_results::Vector{DataFrame}, system::System)
     output_enabled(system, :CapacitySummary) || return nothing

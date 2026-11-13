@@ -16,7 +16,7 @@ As a result, the folder structure for a Macro case should be as follows:
 MacroCase
 │ 
 ├── 📁 settings
-│   └── macro_settings.yml      
+│   └── case_settings.json      
 │ 
 ├── 📁 system
 │   ├── commodities.json 
@@ -70,30 +70,46 @@ In the following section, we will go through each folder and file in detail.
 
 ## Settings folder
 
-The `settings` folder currently contains only one file, `macro_settings.yml`, which contains the settings for the run.
+The `settings` folder contains `case_settings.json`, which holds all the settings of the run. These settings apply to every period of a multi-period case.
 
-### macro_settings.json
+### case_settings.json
 
 **Format**: JSON
 
 | **Attribute** | **Values** | **Default** | **Description** |
 |---------------| :-----------------: | :---------: |-----------------|
+| PeriodLengths | List of integers > 0 | [1] | Length of each period, in whole years. Its length sets the number of periods. |
+| DiscountRate | Number ≥ 0 | 0 | Discount rate used to discount costs across periods. |
+| StartYear | Integer | — | Calendar year of the first period, used to label periods by year. |
+| ParameterScaling | True, False | False | If true, divide extensive inputs (costs, quantities) by `ParameterScalingFactor` before building the model. |
+| ParameterScalingFactor | Number > 0 | 1000 | Scale factor used when `ParameterScaling` is true. |
+| SolutionAlgorithm | "Monolithic", "Benders" | "Monolithic" | Solution algorithm. The value "Myopic" is deprecated: use `ExpansionHorizon` instead. |
+| ExpansionHorizon | "PerfectForesight", "Myopic" | "PerfectForesight" | Optimize all periods jointly, or one at a time. |
+| BendersSettings | Object | — | Settings of the Benders algorithm, used when `SolutionAlgorithm` is "Benders". Can also be kept in `settings/benders_settings.json`, which takes priority. |
+| MyopicSettings | Object | — | Settings of the myopic iterations, used when `ExpansionHorizon` is "Myopic". |
 | ConstraintScaling | True, False | False | If true, the model will scale the optimization model constraints to make it more numerically stable. |
 | AllowImplicitTopLevelCommodities | True, False | True | If true, unknown plain commodity names in `commodities.json` are treated as new top-level commodities inheriting from `Commodity`; if false, unknown names raise an error. |
 | WriteSubcommodities | True, False | True | If true, the model will write the subcommodities created by the user to file. |
-| OverwriteResults | True, False | False | If true, the model will overwrite the results file if it already exists. |
-| OutputDir | String | "results" | The directory where the results will be saved. |
-| OutputLayout | "long", "wide" | "long" | Switch between "long" and "wide" layouts for CSV output files. |
-| OutputAssetTags | True, False | True | If true, `capacity.csv`, `capacity_summary.csv`, and `capex.csv` include a pipe-separated `tags` column for filtering assets. |
-| OutputFormat | "csv", "csv.gz", "parquet", or an object | "csv" | File format of output tables, for all outputs or per output (e.g., `{"Flow": "parquet"}`). Compressed formats make results folders much smaller. |
-| WriteOutputs | Object | {} | Output files to skip, e.g., `{"Curtailment": false, "Duals": false}`. Outputs that are not listed are written. |
-| OutputSignificantDigits | Integer, null | null | If set, round time-series outputs to this many significant digits before writing. |
-| DualExportsEnabled | True, False | — | Deprecated: use `WriteOutputs` with `"Duals": false` instead. Still accepted with a warning. |
 | EnableJuMPStringNames | True, False | False | If true, the model will attach a string name to each JuMP variables. Ignored when Benders decomposition is used. |
 | EnableJuMPDirectModel | True, False | False | If true, the model will be generate a JuMP direct model. Ignored when Benders decomposition is used. |
 | AutoCreateNodes | True, False | False | If true, the model will automatically create a new Node if Macro is asked to find a Node of a given Commodity at a Location and the Node does not exist. |
 | AutoCreateLocations | True, False | True |  If true, the model will automatically create a new Location if Macro comes across a Node which is a assigned to a Location that does not exist. |
-| Retrofitting | True, False | False | If true, the model will consider retrofi investments |
+| Retrofitting | True, False | False | If true, the model will consider retrofit investments. |
+| OutputSettings | Object | — | Which results to write, where, and in which format (see below). |
+
+### OutputSettings
+
+| **Attribute** | **Values** | **Default** | **Description** |
+|---------------| :-----------------: | :---------: |-----------------|
+| Dir | String | "results" | The directory where the results will be saved. |
+| Overwrite | True, False | False | If true, the model will overwrite the results file if it already exists. |
+| Layout | "long", "wide", or an object | "long" | Switch between "long" and "wide" layouts for output files, for all outputs or per output. |
+| Format | "csv", "csv.gz", "parquet", or an object | "csv" | File format of output tables, for all outputs or per output (e.g., `{"Flow": "parquet"}`). Compressed formats make results folders much smaller. |
+| Write | Object | {} | Outputs to skip or add, e.g., `{"Curtailment": false, "FullTimeseries": true}`. Outputs that are not listed are written, except `FullTimeseries`, which is off by default. |
+| SignificantDigits | Integer, null | null | If set, round time-series outputs to this many significant digits before writing. |
+| AssetTags | True, False | True | If true, `capacity.csv`, `capacity_summary.csv`, and `capex.csv` include a pipe-separated `tags` column for filtering assets. |
+
+Unknown settings are an error. Keys starting with `#` are comments and are ignored. Older names and the per-period `macro_settings.json` file are deprecated; see [Configuring Settings](@ref) for how to update them.
 
 ## System folder
 
@@ -470,7 +486,7 @@ This file contains the paths to the input folders and files, and is structured a
         "path": "locations"
     },
     "settings": {
-        "path": "settings/macro_settings.json"
+        "path": "settings/case_settings.json"
     },
     "assets": {
         "path": "assets"

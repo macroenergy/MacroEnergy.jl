@@ -97,7 +97,7 @@ And of an infeasible one:
 
 ## [Configuration](@id manual-outputs-run-status-configuration)
 
-Both settings are keyword arguments to [`run_case`](@ref). There are no run status settings in `macro_settings.json` or `case_settings.json`.
+Both settings are keyword arguments to [`run_case`](@ref). There are no run status settings in `case_settings.json`.
 
 | Argument | Type | Default | Description |
 |---|---|---|---|
@@ -107,7 +107,7 @@ Both settings are keyword arguments to [`run_case`](@ref). There are no run stat
 ## [Assumptions](@id manual-outputs-run-status-assumptions)
 
 - **`RUNNING` is written before the work starts.** A run killed by the operating system — a scheduler walltime, an out-of-memory kill — never reaches either the success or the failure path. The marker means such a run leaves `RUNNING` behind rather than the previous run's `OK`, which a watcher would otherwise read as success. A `RUNNING` status on a job that is no longer alive means it was killed.
-- **Overwritten on each run.** The case-level file always reflects the most recent run. The copy in the results directory is what preserves the record of earlier runs, since each gets its own `results_00N/` directory when `OverwriteResults = false`.
+- **Overwritten on each run.** The case-level file always reflects the most recent run. The copy in the results directory is what preserves the record of earlier runs, since each gets its own `results_00N/` directory when `OutputSettings.Overwrite = false`.
 - **Failures never reach the results directory.** The copy is only written on success, so a results directory with no `run_status.json` is one whose run did not finish. A Myopic run can leave such a directory behind, holding the periods that completed before the failure.
 - **Never half-written.** The file is written to a temporary file in the same directory and renamed over the target, so a poller reads either the previous contents or the new ones, never a partial document.
 - **The directory must already exist.** A `status_file_path` pointing into a directory that has not been created produces a warning, not a new directory: creating one would silently produce a case directory for a mistyped path.

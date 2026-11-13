@@ -39,7 +39,7 @@ ExampleSystems/template_example
 ├─ run.jl
 ├─ assets
 ├─ settings
-|  └─ macro_settings.json
+|  └─ case_settings.json
 └─ system
    ├─ commodities.json
    ├─ locations.json

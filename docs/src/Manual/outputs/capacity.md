@@ -23,7 +23,7 @@ The file uses **long format** by default: every (component, variable) combinatio
 | `resource_id` | String | Unique identifier of the parent asset (e.g., `SE_battery`) |
 | `component_id` | String | Unique identifier of the specific edge or storage component (e.g., `SE_battery_discharge_edge`) |
 | `resource_type` | String | Asset type of the parent asset (e.g., `Battery`, `ThermalPower{NaturalGas}`, `VRE`) |
-| `tags` | String | Pipe-separated normalized tags of the parent asset (for example, `renewable|solar|utility_scale`). Present when `OutputAssetTags = true`. |
+| `tags` | String | Pipe-separated normalized tags of the parent asset (for example, `renewable|solar|utility_scale`). Present when `OutputSettings.AssetTags = true`. |
 | `component_type` | String | Type of the component (e.g., `UnidirectionalEdge{Electricity}`, `Storage{Electricity}`) |
 | `variable` | String | Which capacity metric is reported (see [Variable Types](@ref "manual-outputs-capacity-variables")) |
 | `year` | Int | The period's calendar year, only present when `StartYear` is set in `case_settings.json` (see [Configuration](@ref "manual-outputs-capacity-configuration")) |
@@ -42,17 +42,17 @@ The `variable` column takes one of five values, all reported for each component 
 | `retrofitted_capacity` | Capacity converted to a different technology via retrofitting (only non-zero when `Retrofitting = true`) |
 
 !!! note "Retrofitting"
-    `retrofitted_capacity` rows only appear when `Retrofitting = true` in `macro_settings.json`. In all other runs the row is omitted.
+    `retrofitted_capacity` rows only appear when `Retrofitting = true` in `case_settings.json`. In all other runs the row is omitted.
 
 ## [Configuration](@id manual-outputs-capacity-configuration)
 
 | Setting | File | Default | Effect |
 |---|---|---|---|
-| `OutputLayout` (or `OutputLayout.Capacity`) | `macro_settings.json` | `"long"` | Set to `"wide"` to pivot the `variable` column into separate columns: `capacity`, `new_capacity`, `retired_capacity`, `existing_capacity` (and `retrofitted_capacity` if applicable). |
-| `OutputFormat` (or `OutputFormat.Capacity`) | `macro_settings.json` | `"csv"` | Set to `"csv.gz"` or `"parquet"` to write a compressed file (`.csv.gz` or `.parquet`). See [Output Format and Size](@ref "manual-outputs-format"). |
-| `WriteOutputs.Capacity` | `macro_settings.json` | `true` | Set to `false` to skip this output. See [Selecting Outputs](@ref "manual-outputs-selecting"). |
-| `Retrofitting` | `macro_settings.json` | `false` | When `true`, a `retrofitted_capacity` row is added for each component. |
-| `OutputAssetTags` | `macro_settings.json` | `true` | When `true`, include a spreadsheet-friendly pipe-separated `tags` column in `capacity.csv`, `capacity_summary.csv`, and `capex.csv`. |
+| `OutputSettings.Layout` (or `OutputSettings.Layout.Capacity`) | `case_settings.json` | `"long"` | Set to `"wide"` to pivot the `variable` column into separate columns: `capacity`, `new_capacity`, `retired_capacity`, `existing_capacity` (and `retrofitted_capacity` if applicable). |
+| `OutputSettings.Format` (or `OutputSettings.Format.Capacity`) | `case_settings.json` | `"csv"` | Set to `"csv.gz"` or `"parquet"` to write a compressed file (`.csv.gz` or `.parquet`). See [Output Format and Size](@ref "manual-outputs-format"). |
+| `OutputSettings.Write.Capacity` | `case_settings.json` | `true` | Set to `false` to skip this output. See [Selecting Outputs](@ref "manual-outputs-selecting"). |
+| `Retrofitting` | `case_settings.json` | `false` | When `true`, a `retrofitted_capacity` row is added for each component. |
+| `OutputSettings.AssetTags` | `case_settings.json` | `true` | When `true`, include a spreadsheet-friendly pipe-separated `tags` column in `capacity.csv`, `capacity_summary.csv`, and `capex.csv`. |
 | `StartYear` | `case_settings.json` | not set | The calendar year of the first period (e.g. `2026`). When set, each period's `year` is `StartYear` plus the sum of `PeriodLengths` of all preceding periods, and this populates the `year` column in `capacity.csv` and the `_<year>` column suffixes in [`capacity_summary.csv`](@ref "manual-outputs-capacity-summary"). When not set, `year` is omitted from `capacity.csv` entirely, and `capacity_summary.csv` falls back to labeling periods by their 1-based index instead. |
 
 ## [Assumptions](@id manual-outputs-capacity-assumptions)
@@ -74,7 +74,7 @@ The `variable` column takes one of five values, all reported for each component 
 | Electricity | SE | battery\_SE | battery\_SE\_storage | Battery | Storage{Electricity} | retired\_capacity | 0.0 |
 | Electricity | SE | battery\_SE | battery\_SE\_storage | Battery | Storage{Electricity} | existing\_capacity | 0.0 |
 
-### Wide Format (`OutputLayout.Capacity = "wide"`)
+### Wide Format (`OutputSettings.Layout.Capacity = "wide"`)
 
 | commodity | zone | resource\_id | component\_id | resource\_type | component\_type | capacity | new\_capacity | retired\_capacity | existing\_capacity |
 |---|---|---|---|---|---|---|---|---|---|
@@ -111,7 +111,7 @@ For multi-period cases, [`write_capacity_summary`](@ref) combines every period's
 
 Each period is labeled either by its calendar `year` (if `StartYear` is set in `case_settings.json`) or by its 1-based period index (if not) — see the `StartYear` row in [Configuration](@ref "manual-outputs-capacity-configuration"). `:existing_capacity` is only included for the first (earliest) period, since for every later period it is always equal to the previous period's final `capacity` and so is redundant.
 
-Like `capacity.csv`, the summary supports both long and wide layouts, controlled independently via `OutputLayout.CapacitySummary`.
+Like `capacity.csv`, the summary supports both long and wide layouts, controlled independently via `OutputSettings.Layout.CapacitySummary`.
 
 ### Long Format (default)
 
@@ -123,7 +123,7 @@ Identical schema to `capacity.csv`, stacked across every period, with the period
 | Electricity | SE | battery\_SE | battery\_SE\_storage | Battery | Storage{Electricity} | capacity | 2026 | 200.0 |
 | Electricity | SE | battery\_SE | battery\_SE\_storage | Battery | Storage{Electricity} | capacity | 2036 | 250.0 |
 
-### Wide Format (`OutputLayout.CapacitySummary = "wide"`)
+### Wide Format (`OutputSettings.Layout.CapacitySummary = "wide"`)
 
 One row per component; columns are `<variable>_<year>` (or `<variable>_<period>`) for every variable/period combination actually present, in chronological order:
 

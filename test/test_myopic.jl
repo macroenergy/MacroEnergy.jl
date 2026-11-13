@@ -69,7 +69,6 @@ function write_two_period_myopic_case!(case_path::AbstractString)
         "ExpansionHorizon" => "Myopic",
         "PeriodLengths" => [1, 1],
         "ParameterScaling" => true,
-        "WriteFullTimeseries" => false,
         "MyopicSettings" => Dict(
             "ReturnModels" => false,
             "WriteModelLP" => false,

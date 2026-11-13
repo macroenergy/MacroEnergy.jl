@@ -170,7 +170,11 @@ function materialize_user_commodities!(
     case_data::AbstractDict{Symbol,Any},
 )
     setup_user_additions(case_path)
-    return materialize_user_commodities!(case_path, case_data[:case])
+    settings = resolve_settings(case_data, case_path)
+    for system_data in case_data[:case]
+        materialize_system_commodities!(case_path, system_data, settings)
+    end
+    return nothing
 end
 
 function materialize_user_commodities!(
@@ -178,14 +182,18 @@ function materialize_user_commodities!(
     systems_data::AbstractVector{<:AbstractDict{Symbol,Any}},
 )
     for system_data in systems_data
-        settings = configure_settings(system_data[:settings], case_path)
-        load_commodities(
-            system_data[:commodities],
-            case_path;
-            write_subcommodities=settings.WriteSubcommodities,
-            allow_implicit_top_level_commodities=settings.AllowImplicitTopLevelCommodities,
-        )
+        materialize_system_commodities!(case_path, system_data, standalone_settings(system_data, case_path))
     end
+    return nothing
+end
+
+function materialize_system_commodities!(case_path::AbstractString, system_data::AbstractDict{Symbol,Any}, settings::NamedTuple)
+    load_commodities(
+        system_data[:commodities],
+        case_path;
+        write_subcommodities=settings.WriteSubcommodities,
+        allow_implicit_top_level_commodities=settings.AllowImplicitTopLevelCommodities,
+    )
     return nothing
 end
 

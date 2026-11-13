@@ -149,9 +149,9 @@ Given these definitions, the cost categories are computed as follows:
 
 | Setting | File | Default | Effect |
 |---|---|---|---|
-| `OutputLayout` (or `OutputLayout.Costs`) | `macro_settings.json` | `"long"` | Set to `"wide"` to pivot all cost files. For `costs.csv`/`undiscounted_costs.csv`, the three rows become a single row with variable names as columns. For the breakdown files, cost categories are pivoted to columns and a `Total` column is added. |
-| `OutputFormat` (or `OutputFormat.Costs`) | `macro_settings.json` | `"csv"` | Set to `"csv.gz"` or `"parquet"` to write a compressed file (`.csv.gz` or `.parquet`). See [Output Format and Size](@ref "manual-outputs-format"). |
-| `WriteOutputs.Costs` | `macro_settings.json` | `true` | Set to `false` to skip this output. See [Selecting Outputs](@ref "manual-outputs-selecting"). |
+| `OutputSettings.Layout` (or `OutputSettings.Layout.Costs`) | `case_settings.json` | `"long"` | Set to `"wide"` to pivot all cost files. For `costs.csv`/`undiscounted_costs.csv`, the three rows become a single row with variable names as columns. For the breakdown files, cost categories are pivoted to columns and a `Total` column is added. |
+| `OutputSettings.Format` (or `OutputSettings.Format.Costs`) | `case_settings.json` | `"csv"` | Set to `"csv.gz"` or `"parquet"` to write a compressed file (`.csv.gz` or `.parquet`). See [Output Format and Size](@ref "manual-outputs-format"). |
+| `OutputSettings.Write.Costs` | `case_settings.json` | `true` | Set to `false` to skip this output. See [Selecting Outputs](@ref "manual-outputs-selecting"). |
 
 ## [Assumptions](@id manual-outputs-costs-assumptions)
 
@@ -166,7 +166,7 @@ Given these definitions, the cost categories are computed as follows:
 
 ### `costs.csv` (wide format, typical single-period model)
 
-With `OutputLayout.Costs = "wide"`, the three rows are pivoted into a single row with one column per cost variable:
+With `OutputSettings.Layout.Costs = "wide"`, the three rows are pivoted into a single row with one column per cost variable:
 
 | DiscountedFixedCost | DiscountedVariableCost | DiscountedTotalCost |
 |---|---|---|
@@ -196,7 +196,7 @@ The metadata columns (`case_name`, `commodity`, `zone`, `resource_id`, `componen
 
 ### `costs_by_type.csv` (wide format)
 
-With `OutputLayout.Costs = "wide"`, cost categories are pivoted to columns and a `Total` column is added:
+With `OutputSettings.Layout.Costs = "wide"`, cost categories are pivoted to columns and a `Total` column is added:
 
 | type | Investment | FixedOM | VariableOM | Fuel | Startup | NonServedDemand | Supply | UnmetPolicyPenalty | Total |
 |---|---|---|---|---|---|---|---|---|---|

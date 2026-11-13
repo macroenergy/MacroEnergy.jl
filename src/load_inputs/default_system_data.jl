@@ -5,7 +5,7 @@ function default_system_data()
         :nodes => Dict{Symbol,Any}(:path => "system/nodes.json"),
         :commodities => Dict{Symbol,Any}(:path => "system/commodities.json"),
         :time_data => Dict{Symbol,Any}(:path => "system/time_data.json"),
-        :settings => Dict{Symbol,Any}(:path => "settings/macro_settings.json"),
+        :settings => Dict{Symbol,Any}(:path => "settings/case_settings.json"),
     )
 end
 
@@ -49,8 +49,8 @@ function prep_system_data(file_path::AbstractString)::Nothing
     # FIXME currently overwriting and then re-reading the system_data
     # This is a little janky, but lets us quickly use the JSON parsing functions
     @debug("Writing updated system data to $file_path")
-    open(file_path, "w") do io
-        JSON3.pretty(io, system_data)
-    end
+    # Serialize first: opening the file for writing empties it, so a failure must happen before that
+    contents = sprint(io -> JSON3.pretty(io, system_data; allow_inf=true))
+    write(file_path, contents)
     return nothing
 end

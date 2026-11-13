@@ -7,12 +7,14 @@ using CSV, DataFrames, JSON3
 using DuckDB
 import DBInterface
 import MacroEnergy:
+    InputValidationError,
     check_myopic_capacity_outputs,
     configure_settings,
     duckdb_read,
     empty_system,
     find_output_file,
     get_output_format,
+    get_output_layout,
     get_output_significant_digits,
     load_previous_capacity_results,
     output_enabled,
@@ -45,20 +47,19 @@ function parquet_codecs(path::AbstractString)
     end
 end
 
-# Copy the small test case into `dir`, without its reference results, and apply the given settings
-function copy_small_case(dir::AbstractString; macro_settings::AbstractDict, case_settings=nothing, num_periods::Int=1)
+# Copy the small test case into `dir`, without its reference results, with `settings` as its
+# case_settings.json. The small case itself keeps the deprecated per-period macro_settings.json.
+function copy_small_case(dir::AbstractString; settings::AbstractDict, num_periods::Int=1)
     case_dir = joinpath(mkpath(dir), "case")
     cp(test_path, case_dir)
     rm(joinpath(case_dir, "results"); recursive=true, force=true)
-    write(joinpath(case_dir, "settings", "macro_settings.json"), JSON3.write(macro_settings))
-    if !isnothing(case_settings)
-        write(joinpath(case_dir, "settings", "case_settings.json"), JSON3.write(case_settings))
-    end
-    if num_periods > 1
-        system_data = JSON3.read(read(joinpath(case_dir, "system_data.json"), String), Dict{String,Any})
-        system_data["case"] = fill(only(system_data["case"]), num_periods)
-        write(joinpath(case_dir, "system_data.json"), JSON3.write(system_data))
-    end
+    rm(joinpath(case_dir, "settings", "macro_settings.json"))
+    write(joinpath(case_dir, "settings", "case_settings.json"), JSON3.write(settings))
+    system_data = JSON3.read(read(joinpath(case_dir, "system_data.json"), String), Dict{String,Any})
+    period = only(system_data["case"])
+    delete!(period, "settings")
+    system_data["case"] = fill(period, num_periods)
+    write(joinpath(case_dir, "system_data.json"), JSON3.write(system_data))
     return case_dir
 end
 
@@ -72,54 +73,67 @@ end
 output_basenames(dir) = sort([first(split(f, '.')) for f in readdir(dir) if isfile(joinpath(dir, f))])
 
 function test_output_format()
-    @testset "Output format settings" begin
-        settings = configure_settings(NamedTuple())
-        @test settings.OutputFormat == "csv"
-        @test settings.WriteOutputs == NamedTuple()
-        @test isnothing(settings.OutputSignificantDigits)
+    @testset "Output settings" begin
+        settings = configure_settings(NamedTuple()).OutputSettings
+        @test settings.Format == "csv"
+        @test settings.Write == NamedTuple()
+        @test isnothing(settings.SignificantDigits)
 
-        @test configure_settings((OutputFormat="parquet",)).OutputFormat == "parquet"
-        @test configure_settings((OutputFormat=(Flow="parquet", Capacity="csv.gz"),)).OutputFormat.Capacity == "csv.gz"
-        @test configure_settings((WriteOutputs=(Curtailment=false,),)).WriteOutputs.Curtailment == false
-        @test configure_settings((OutputSignificantDigits=6,)).OutputSignificantDigits == 6
+        output_settings(; kwargs...) = configure_settings((OutputSettings=(; kwargs...),)).OutputSettings
+        @test output_settings(Format="parquet").Format == "parquet"
+        @test output_settings(Format=(Flow="parquet", Capacity="csv.gz")).Format.Capacity == "csv.gz"
+        @test output_settings(Write=(Curtailment=false,)).Write.Curtailment == false
+        @test output_settings(Write=(Duals=false,)).Write.Duals == false
+        @test output_settings(Write=(FullTimeseries=true,)).Write.FullTimeseries == true
+        @test output_settings(SignificantDigits=6).SignificantDigits == 6
+        # Keys that are not given keep their defaults
+        @test output_settings(Dir="out").Format == "csv"
 
-        @test_throws AssertionError configure_settings((OutputFormat="xlsx",))
-        @test_throws AssertionError configure_settings((OutputFormat=(Flows="parquet",),))
-        @test_throws AssertionError configure_settings((OutputFormat=(Flow="xlsx",),))
-        @test_throws AssertionError configure_settings((WriteOutputs=(Flow="no",),))
-        @test_throws AssertionError configure_settings((WriteOutputs=(Flows=false,),))
-        @test configure_settings((WriteOutputs=(Duals=false,),)).WriteOutputs.Duals == false
-        @test_throws AssertionError configure_settings((OutputSignificantDigits=0,))
-        @test_throws AssertionError configure_settings((OutputSignificantDigits=2.5,))
+        @test_throws InputValidationError output_settings(Format="xlsx")
+        @test_throws InputValidationError output_settings(Format=(Flows="parquet",))
+        @test_throws InputValidationError output_settings(Format=(Flow="xlsx",))
+        @test_throws InputValidationError output_settings(Write=(Flow="no",))
+        @test_throws InputValidationError output_settings(Write=(Flows=false,))
+        @test_throws InputValidationError output_settings(SignificantDigits=0)
+        @test_throws InputValidationError output_settings(SignificantDigits=2.5)
+        @test_throws InputValidationError output_settings(Dirr="out")
     end
 
-    @testset "DualExportsEnabled is deprecated" begin
-        # Not set: no warning, and duals are written. DualExportsEnabled still reads as a Bool
-        # mirroring WriteOutputs.Duals, for code that reads it
-        settings = @test_logs configure_settings(NamedTuple())
-        @test settings.DualExportsEnabled === true
-        settings = @test_logs configure_settings((WriteOutputs=(Duals=false,),))
-        @test settings.DualExportsEnabled === false
+    @testset "Deprecated output settings" begin
+        # No deprecated keys: no warning
+        @test_logs configure_settings(NamedTuple())
+        @test_logs configure_settings((OutputSettings=(Write=(Duals=false,),),))
 
-        # Translated into WriteOutputs.Duals, with a deprecation warning
-        settings = @test_logs (:warn, r"DualExportsEnabled is deprecated") configure_settings((DualExportsEnabled=false,))
-        @test settings.WriteOutputs.Duals == false
-        @test settings.DualExportsEnabled === false
+        # Every old name is translated, with a deprecation warning
+        settings = @test_logs (:warn, r"deprecated") configure_settings((
+            OutputDir="out", OverwriteResults=true, OutputFormat="parquet", OutputLayout="wide",
+            WriteOutputs=(Curtailment=false,), OutputSignificantDigits=4, OutputAssetTags=false,
+            WriteFullTimeseries=true, DualExportsEnabled=false,
+        ))
+        @test settings.OutputSettings == (Dir="out", Overwrite=true, Format="parquet", Layout="wide",
+            Write=(Curtailment=false, FullTimeseries=true, Duals=false), SignificantDigits=4, AssetTags=false)
+        @test !haskey(settings, :OutputDir)
         system = empty_system(test_path)
         system.settings = settings
         @test !output_enabled(system, :Duals)
+        @test output_enabled(system, :FullTimeseries)
 
-        # Both set: fine if they agree, an error if they don't
-        settings = @test_logs (:warn,) configure_settings((DualExportsEnabled=true, WriteOutputs=(Duals=true,)))
-        @test settings.WriteOutputs.Duals == true
-        @test_throws ErrorException configure_settings((DualExportsEnabled=true, WriteOutputs=(Duals=false,)))
-        @test_throws AssertionError configure_settings((DualExportsEnabled="yes",))
+        # Old and new name both set: fine if they agree, or if the old name is at its default (older
+        # templates wrote every default, so it says nothing), an error otherwise
+        settings = @test_logs (:warn,) configure_settings((DualExportsEnabled=true, OutputSettings=(Write=(Duals=true,),)))
+        @test settings.OutputSettings.Write.Duals == true
+        settings = @test_logs (:warn,) configure_settings((DualExportsEnabled=true, OutputSettings=(Write=(Duals=false,),)))
+        @test settings.OutputSettings.Write.Duals == false
+        @test_throws InputValidationError configure_settings((DualExportsEnabled=false, OutputSettings=(Write=(Duals=true,),)))
+        @test_throws InputValidationError configure_settings((OutputDir="a", OutputSettings=(Dir="b",)))
+        # Translated values are validated like any other
+        @test_throws InputValidationError configure_settings((DualExportsEnabled="yes",))
     end
 
     @testset "Myopic runs must write capacity to be continued" begin
         system_with(settings) = (system = empty_system(test_path); system.settings = configure_settings(settings); system)
         on = system_with(NamedTuple())
-        off = system_with((WriteOutputs=(Capacity=false,),))
+        off = system_with((OutputSettings=(Write=(Capacity=false,),),))
         myopic(; stop=Inf, restart=false, from=1) =
             (StopAfterPeriod=stop, Restart=(enabled=restart, folder="results_001", from_period=from))
 
@@ -136,26 +150,37 @@ function test_output_format()
     @testset "Output format helpers" begin
         system = empty_system(test_path)
 
-        system.settings = configure_settings((OutputFormat="parquet",))
+        system.settings = configure_settings((OutputSettings=(Format="parquet",),))
         @test get_output_format(system, :Flow) == "parquet"
         @test output_file("dir", "flows", system, :Flow) == joinpath("dir", "flows.parquet")
 
-        system.settings = configure_settings((
-            OutputFormat=(Flow="csv.gz",),
-            WriteOutputs=(Curtailment=false,),
-            OutputSignificantDigits=4,
-        ))
+        system.settings = configure_settings((OutputSettings=(
+            Format=(Flow="csv.gz",),
+            Write=(Curtailment=false,),
+            SignificantDigits=4,
+        ),))
         @test get_output_format(system, :Flow) == "csv.gz"
         @test get_output_format(system, :Capacity) == "csv"
         @test !output_enabled(system, :Curtailment)
         @test output_enabled(system, :Flow)
         @test get_output_significant_digits(system) == 4
+        # The one output that is off unless switched on
+        @test !output_enabled(system, :FullTimeseries)
 
         # Settings built by hand without the output keys fall back to the defaults
-        system.settings = (OutputLayout="long",)
-        @test get_output_format(system, :Flow) == "csv"
-        @test output_enabled(system, :Flow)
-        @test isnothing(get_output_significant_digits(system))
+        for settings in ((OutputSettings=(Layout="long",),), (ConstraintScaling=false,))
+            system.settings = settings
+            @test get_output_format(system, :Flow) == "csv"
+            @test output_enabled(system, :Flow)
+            @test !output_enabled(system, :FullTimeseries)
+            @test isnothing(get_output_significant_digits(system))
+        end
+
+        # Old names set from Julia are an error, rather than silently ignored
+        system.settings = merge(configure_settings(NamedTuple()), (OutputLayout="wide",))
+        @test_throws r"system.settings.OutputLayout: is no longer used" get_output_layout(system, :Flow)
+        system.settings = merge(configure_settings(NamedTuple()), (OverwriteResults=true,))
+        @test_throws r"Set system.settings.OutputSettings.Overwrite instead" output_enabled(system, :Flow)
 
         mktempdir() do dir
             @test_throws ErrorException find_output_file(dir, "capacity")
@@ -230,13 +255,15 @@ function test_output_format()
     @testset "run_case with per-output formats and switches" begin
         mktempdir() do dir
             default_dir = copy_small_case(joinpath(dir, "default");
-                macro_settings=Dict("ConstraintScaling" => true, "OutputLayout" => "long"))
+                settings=Dict("ConstraintScaling" => true, "OutputSettings" => Dict("Layout" => "long")))
             compact_dir = copy_small_case(joinpath(dir, "compact");
-                macro_settings=Dict(
+                settings=Dict(
                     "ConstraintScaling" => true,
-                    "OutputLayout" => "long",
-                    "OutputFormat" => Dict("Flow" => "parquet", "StorageLevel" => "csv.gz"),
-                    "WriteOutputs" => Dict("Curtailment" => false),
+                    "OutputSettings" => Dict(
+                        "Layout" => "long",
+                        "Format" => Dict("Flow" => "parquet", "StorageLevel" => "csv.gz"),
+                        "Write" => Dict("Curtailment" => false),
+                    ),
                 ))
             run_small_case(default_dir)
             run_small_case(compact_dir)
@@ -267,15 +294,13 @@ function test_output_format()
 
     @testset "Myopic run and restart with parquet outputs" begin
         mktempdir() do dir
-            macro_settings = Dict(
+            settings = Dict(
+                "SolutionAlgorithm" => "Monolithic", "ExpansionHorizon" => "Myopic", "PeriodLengths" => [5, 5],
                 "ConstraintScaling" => true,
-                "OutputLayout" => "wide",
-                "OutputFormat" => "parquet",
-                "OutputSignificantDigits" => 6,
+                "OutputSettings" => Dict("Layout" => "wide", "Format" => "parquet", "SignificantDigits" => 6),
             )
-            myopic = Dict("SolutionAlgorithm" => "Monolithic", "ExpansionHorizon" => "Myopic", "PeriodLengths" => [5, 5])
             # A case folder with an apostrophe: the restart reads capacity.parquet through DuckDB SQL
-            case_dir = copy_small_case(joinpath(dir, "O'Brien"); macro_settings, case_settings=myopic, num_periods=2)
+            case_dir = copy_small_case(joinpath(dir, "O'Brien"); settings, num_periods=2)
             run_small_case(case_dir)
 
             first_run = joinpath(case_dir, "results_001")
@@ -288,7 +313,7 @@ function test_output_format()
             end
 
             # Restart from period 2, reading period 1's capacity.parquet
-            restart = merge(myopic, Dict("MyopicSettings" => Dict(
+            restart = merge(settings, Dict("MyopicSettings" => Dict(
                 "Restart" => Dict("enabled" => true, "folder" => "results_001", "from_period" => 2),
             )))
             write(joinpath(case_dir, "settings", "case_settings.json"), JSON3.write(restart))
@@ -308,12 +333,35 @@ function test_output_format()
         mktempdir() do dir
             restart = Dict(
                 "SolutionAlgorithm" => "Monolithic", "ExpansionHorizon" => "Myopic", "PeriodLengths" => [5, 5],
+                "ConstraintScaling" => true,
                 "MyopicSettings" => Dict("Restart" => Dict("enabled" => true, "folder" => "results_001", "from_period" => 2)),
             )
-            case_dir = copy_small_case(dir; macro_settings=Dict("ConstraintScaling" => true), case_settings=restart, num_periods=2)
+            case_dir = copy_small_case(dir; settings=restart, num_periods=2)
             mkpath(joinpath(case_dir, "results_001", "results_period_1"))
             # Fails while loading the restart capacities, before any solve
-            @test_throws r"WriteOutputs.Capacity = false" run_small_case(case_dir)
+            @test_throws r"OutputSettings.Write.Capacity = false" run_small_case(case_dir)
+        end
+    end
+
+    @testset "One settings file and deprecated per-period files give the same results" begin
+        mktempdir() do dir
+            # The small case as it is, with the settings of its macro_settings.json
+            legacy_dir = joinpath(mkpath(joinpath(dir, "legacy")), "case")
+            cp(test_path, legacy_dir)
+            rm(joinpath(legacy_dir, "results"); recursive=true, force=true)
+            unified_dir = copy_small_case(joinpath(dir, "unified"); settings=Dict(
+                "SolutionAlgorithm" => "Monolithic",
+                "ConstraintScaling" => true,
+                "OutputSettings" => Dict("Layout" => "wide"),
+            ))
+            run_small_case(legacy_dir)
+            run_small_case(unified_dir)
+
+            legacy_results = joinpath(legacy_dir, "results_001", "results")
+            unified_results = joinpath(unified_dir, "results_001", "results")
+            @test sort(readdir(unified_results)) == sort(readdir(legacy_results))
+            objective(results) = CSV.read(joinpath(results, "objective_value.csv"), DataFrame).objective_value
+            @test objective(unified_results) ≈ objective(legacy_results)
         end
     end
 end

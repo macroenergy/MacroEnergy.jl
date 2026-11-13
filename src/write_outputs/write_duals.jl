@@ -11,7 +11,7 @@ Currently, this function exports dual values for:
 - Balance constraints → `balance_duals.csv`
 - CO2 cap constraints → `co2_cap_duals.csv`
 
-The file extension follows the `OutputFormat` setting for `Duals` (`.csv` by default).
+The file extension follows the `OutputSettings.Format` setting for `Duals` (`.csv` by default).
 
 # Arguments
 - `results_dir::AbstractString`: Directory where CSV files will be written

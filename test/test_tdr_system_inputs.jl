@@ -232,8 +232,11 @@ end
 end
 
 @testset "subperiod inputs preserve Case settings" begin
-    for representation in (:bare_file, :bare_defaults, :case_file, :case_inline, :case_defaults, :multi)
+    for representation in (:bare_file, :bare_entry, :bare_custom, :bare_two_files, :bare_defaults, :case_file, :case_implicit,
+        :case_inline, :case_defaults, :multi, :multi_entry)
         @testset "$representation" begin
+            bare = representation in (:bare_file, :bare_entry, :bare_custom, :bare_two_files, :bare_defaults)
+            multi = representation in (:multi, :multi_entry)
             mktempdir() do root
                 source = joinpath(root, "source")
                 destination = joinpath(root, "subperiod")
@@ -247,21 +250,30 @@ end
                 MacroEnergy.write_json(joinpath(source, "nodes.json"), Dict(
                     "demand" => Dict("timeseries" => Dict("path" => "demand.csv", "header" => "demand"))))
                 CSV.write(joinpath(source, "demand.csv"), DataFrame(demand=[1, 2, 3, 4]))
-                custom_settings = Dict("PeriodLengths" => representation == :multi ? [5, 7] : [5],
+                custom_settings = Dict("PeriodLengths" => multi ? [5, 7] : [5],
                     "DiscountRate" => 0.08, "StartYear" => 2030,
                     "ParameterScaling" => true, "SolutionAlgorithm" => "Monolithic",
                     "ExpansionHorizon" => "Myopic")
                 defaults = representation in (:bare_defaults, :case_defaults)
-                case_root = representation in (:bare_file, :bare_defaults) ? system :
-                    Dict{String,Any}("case" => representation == :multi ? [system, deepcopy(system)] : [system])
+                case_root = bare ? system :
+                    Dict{String,Any}("case" => multi ? [system, deepcopy(system)] : [system])
                 if representation == :case_inline
                     case_root["settings"] = custom_settings
                 elseif !defaults
-                    relative_path = representation == :bare_file ? joinpath("settings", "case_settings.json") :
-                        joinpath("custom", "case.json")
+                    relative_path = (bare && representation != :bare_custom) || representation == :case_implicit ?
+                        joinpath("settings", "case_settings.json") : joinpath("custom", "case.json")
+                    # The `settings` entry of each period points to the same file as the Case's
+                    if representation in (:bare_entry, :bare_custom, :multi_entry)
+                        for period in (bare ? [system] : case_root["case"])
+                            period["settings"] = Dict("path" => MacroEnergy.tdr_normalize_path(relative_path))
+                        end
+                    end
                     mkpath(dirname(joinpath(source, relative_path)))
                     MacroEnergy.write_json(joinpath(source, relative_path), custom_settings)
-                    if representation != :bare_file
+                    if representation == :bare_two_files
+                        MacroEnergy.write_json(joinpath(source, "macro_settings.json"), Dict("ConstraintScaling" => true))
+                        system["settings"] = Dict("path" => "macro_settings.json")
+                    elseif !bare && representation != :case_implicit
                         case_root["settings"] = Dict("path" => MacroEnergy.tdr_normalize_path(relative_path))
                         # Explicit Cases must not accidentally pick this conventional file.
                         mkpath(joinpath(source, "settings"))
@@ -276,15 +288,21 @@ end
                     "method" => Dict("name" => "kmeans"), "scaling" => "standardize",
                     "output_based_features" => Dict("weight" => 0.5, "features" => [Dict("provider" => "flow")],
                         "subperiod_runs" => Dict("exclude_policy_constraints" => false))))
-                index = representation == :multi ? 2 : nothing
+                index = multi ? 2 : nothing
                 prepared = MacroEnergy.tdr_prepare_inputs(source,
-                    fill(settings, representation == :multi ? 2 : 1))
+                    fill(settings, multi ? 2 : 1))
                 subperiod_inputs = MacroEnergy.tdr_prepare_subperiod_inputs(prepared.systems[something(index, 1)])
                 MacroEnergy.tdr_materialize_subperiod_case!(subperiod_inputs, destination, 2, settings)
                 # Follow the standalone-System loader's actual settings discovery/configuration.
                 discovered = MacroEnergy.single_system_case_settings(joinpath(destination, "system_data.json"))
-                configured = MacroEnergy.configure_case(discovered, destination)
-                @test configured[:PeriodLengths] == (defaults ? [1] : representation == :multi ? [7] : [5])
+                # Including the `settings` entry of the isolated period, if it has one
+                isolated_period = MacroEnergy.settings_dict(MacroEnergy.read_json(joinpath(destination, "system_data.json")))
+                configured = MacroEnergy.resolve_settings(
+                    Dict{Symbol,Any}(:settings => discovered, :case => Any[isolated_period]), destination)
+                @test configured[:PeriodLengths] == (defaults ? [1] : multi ? [7] : [5])
+                @test configured[:ConstraintScaling] == (representation == :bare_two_files)
+                # All the settings are in the isolated case_settings.json
+                @test !haskey(isolated_period, :settings)
                 @test configured[:DiscountRate] == (defaults ? 0.0 : 0.08)
                 @test configured[:ParameterScaling] == !defaults
                 @test configured[:ExpansionHorizon] isa MacroEnergy.PerfectForesight
@@ -294,6 +312,138 @@ end
             end
         end
     end
+end
+
+@testset "bare Cases copy their implicit settings file" begin
+    mktempdir() do root
+        mkpath(joinpath(root, "settings"))
+        write(joinpath(root, "time_data.json"), "{}")
+        write(joinpath(root, "custom_settings.json"), "{}")
+        write(joinpath(root, "settings", "case_settings.json"), """{"DiscountRate": 0.05}""")
+        write(joinpath(root, "settings", "macro_settings.json"), """{"ConstraintScaling": true}""")
+        function manifest_files(data)
+            MacroEnergy.write_json(joinpath(root, "system_data.json"), data)
+            return Set(relpath(path, root) for path in keys(MacroEnergy.tdr_case_input_manifest(root)))
+        end
+        time_data = Dict("path" => "time_data.json")
+        implicit = joinpath("settings", "case_settings.json")
+
+        # No `settings` entry: the reduced Case would otherwise lose every setting
+        @test implicit in manifest_files(Dict("time_data" => time_data))
+        # Deprecated layout: `settings` points to macro_settings.json, and case_settings.json is implicit
+        files = manifest_files(Dict("time_data" => time_data, "settings" => Dict("path" => "settings/macro_settings.json")))
+        @test implicit in files
+        @test joinpath("settings", "macro_settings.json") in files
+        # Without a case-level `settings` entry, an explicit Case loads this file too
+        @test implicit in manifest_files(Dict("case" => Any[Dict("time_data" => time_data)]))
+        # Explicit Cases with their own entry do not load this file, so they do not copy it
+        @test !(implicit in manifest_files(Dict(
+            "case" => Any[Dict("time_data" => time_data)],
+            "settings" => Dict("path" => "custom_settings.json"),
+        )))
+    end
+end
+
+@testset "periods pointing to the case-level settings file have no settings of their own" begin
+    mktempdir() do root
+        mkpath(joinpath(root, "settings"))
+        write(joinpath(root, "time_data.json"), "{}")
+        write(joinpath(root, "settings", "case_settings.json"), """{"DiscountRate": 0.05}""")
+        write(joinpath(root, "settings", "macro_settings.json"), """{"DiscountRate": 0.05}""")
+        period(settings) = Dict{String,Any}("time_data" => Dict("path" => "time_data.json"), "settings" => settings)
+        function period_settings(data)
+            MacroEnergy.write_json(joinpath(root, "system_data.json"), data)
+            _, systems = MacroEnergy.tdr_system_entries(root)
+            return [get(system, "settings", nothing) for system in systems]
+        end
+        case_file = Dict("path" => "settings/case_settings.json")
+        # As a `{"path": ...}` object, and as a plain path written differently
+        same_file = [period(case_file), period("./settings/case_settings.json")]
+
+        @test period_settings(Dict("case" => same_file, "settings" => case_file)) == [nothing, nothing]
+        # Without a top-level entry, the Case loads settings/case_settings.json by its name
+        @test period_settings(Dict("case" => same_file)) == [nothing, nothing]
+        # A period with another file keeps it, and so does one pointing to the conventional file
+        # when the Case's own settings are elsewhere
+        other = Dict("path" => "settings/macro_settings.json")
+        @test period_settings(Dict("case" => [period(other)])) == [other]
+        @test period_settings(Dict("case" => [period(case_file)], "settings" => other)) == [case_file]
+        @test period_settings(Dict("case" => [period(case_file)], "settings" => Dict("DiscountRate" => 0.05))) == [case_file]
+        # Where file names are case-insensitive (Windows, and macOS by default), the same file
+        # spelled with different case is the case-level file too
+        if isfile(joinpath(root, "Settings", "Case_Settings.json"))
+            @test period_settings(Dict("case" => [period("Settings/Case_Settings.json")], "settings" => case_file)) == [nothing]
+        end
+    end
+end
+
+@testset "TDR follows a settings entry written as a plain path" begin
+    mktempdir() do root
+        mkpath(joinpath(root, "custom"))
+        write(joinpath(root, "time_data.json"), "{}")
+        write(joinpath(root, "custom", "case.json"), """{"DiscountRate": 0.07}""")
+        system = Dict{String,Any}("time_data" => Dict("path" => "time_data.json"), "settings" => "custom/case.json")
+        MacroEnergy.write_json(joinpath(root, "system_data.json"), system)
+        @test joinpath(root, "custom", "case.json") in keys(MacroEnergy.tdr_case_input_manifest(root))
+        definition = first(MacroEnergy.tdr_system_entries(root))
+        @test definition["settings"] == Dict("path" => "custom/case.json")
+        @test MacroEnergy.tdr_read_case_settings(root, definition)["DiscountRate"] == 0.07
+        # The same for the top-level entry of a Case
+        MacroEnergy.write_json(joinpath(root, "system_data.json"), Dict("case" => Any[Dict("time_data" => Dict("path" => "time_data.json"))], "settings" => "custom/case.json"))
+        @test joinpath(root, "custom", "case.json") in keys(MacroEnergy.tdr_case_input_manifest(root))
+    end
+end
+
+@testset "TDR keeps the Benders settings a Case finds by name or by path" begin
+    mktempdir() do root
+        mkpath(joinpath(root, "settings"))
+        write(joinpath(root, "time_data.json"), "{}")
+        write(joinpath(root, "settings", "benders_settings.json"), """{"MaxIter": 7}""")
+        write(joinpath(root, "settings", "case_settings.json"), """{"SolutionAlgorithm": "Benders"}""")
+        system = Dict("time_data" => Dict("path" => "time_data.json"))
+        function files_and_settings(data)
+            MacroEnergy.write_json(joinpath(root, "system_data.json"), data)
+            files = Set(relpath(path, root) for path in keys(MacroEnergy.tdr_case_input_manifest(root)))
+            definition = first(MacroEnergy.tdr_system_entries(root))
+            return files, MacroEnergy.tdr_read_case_settings(root, definition)
+        end
+
+        # The conventional file, in a single-period and in a multi-period Case
+        conventional = joinpath("settings", "benders_settings.json")
+        files, settings = files_and_settings(system)
+        @test conventional in files
+        @test settings["BendersSettings"][:MaxIter] == 7
+        files, settings = files_and_settings(Dict("case" => Any[system, deepcopy(system)]))
+        @test conventional in files
+        @test settings["BendersSettings"][:MaxIter] == 7
+        output = joinpath(root, "..", basename(root) * "_copy")
+        MacroEnergy.tdr_copy_input_manifest!(root, mkpath(output))
+        @test isfile(joinpath(output, conventional))
+        rm(output; recursive=true)
+
+        # A file named inside the implicit case_settings.json
+        rm(joinpath(root, conventional))
+        write(joinpath(root, "settings", "my_benders.json"), """{"MaxIter": 9}""")
+        write(joinpath(root, "settings", "case_settings.json"), """{"SolutionAlgorithm": "Benders", "BendersSettings": {"path": "settings/my_benders.json"}}""")
+        files, settings = files_and_settings(system)
+        @test joinpath("settings", "my_benders.json") in files
+        @test settings["BendersSettings"][:MaxIter] == 9
+    end
+end
+
+@testset "subperiod Cases keep every setting of case_settings.json" begin
+    source = Dict{String,Any}(
+        "PeriodLengths" => Any[1, 1],
+        "#PeriodLengths" => "a comment is passed along and ignored",
+        "ConstraintScaling" => true,
+        "OutputSettings" => Dict("Format" => "parquet"),
+    )
+    isolated = MacroEnergy.tdr_single_system_case_settings(source, 2)
+    @test isolated["PeriodLengths"] == [1]
+    settings = MacroEnergy.resolve_settings(Dict{Symbol,Any}(:settings => isolated, :case => Any[]), pwd())
+    @test settings.PeriodLengths == [1]
+    @test settings.ConstraintScaling
+    @test settings.OutputSettings.Format == "parquet"
 end
 
 @testset "Configured asset directory destinations" begin

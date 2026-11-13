@@ -6,7 +6,7 @@
         "path": "system/locations.json"
     },
     "settings": {
-        "path": "settings/macro_settings.json"
+        "path": "settings/case_settings.json"
     },
     "assets": {
         "path": "assets"

@@ -22,14 +22,14 @@ Create and return the path to the output directory for storing results based on 
 # Returns
 - `String`: Path to the created output directory
 
-The function creates an output directory based on system settings. If `OverwriteResults` 
-is false, it will avoid overwriting existing directories by appending incremental numbers 
+The function creates an output directory based on the `OutputSettings.Dir` and
+`OutputSettings.Overwrite` settings. If `Overwrite` is false, it will avoid overwriting existing directories by appending incremental numbers 
 (e.g., "_001", "_002") to the directory name. The directory is created if it doesn't exist.
 
 # Example
 ```julia
-julia> system.settings
-(..., OverwriteResults = true, OutputDir = "result_dir")
+julia> system.settings.OutputSettings
+(Dir = "result_dir", Overwrite = true, ...)
 julia> output_path = create_output_path(system)
 # Returns "path/to/system.data_dirpath/result_dir" or "path/to/system.data_dirpath/result_dir_001" if original exists
 julia> output_path = create_output_path(system, "path/to/output")
@@ -37,11 +37,11 @@ julia> output_path = create_output_path(system, "path/to/output")
 ```
 """
 function create_output_path(system::System, path::String=system.data_dirpath)
-    if system.settings.OverwriteResults
-        path = joinpath(path, system.settings.OutputDir)
+    if output_setting(system, :Overwrite)
+        path = joinpath(path, output_setting(system, :Dir))
     else
         # Find closest unused ouput directory name and create it
-        path = find_available_path(path, system.settings.OutputDir)
+        path = find_available_path(path, output_setting(system, :Dir))
     end
     @debug "Writing results to $path"
     mkpath(path)
@@ -88,116 +88,137 @@ function find_available_path(path::String, basename::String="results"; max_attem
     error("Could not find available directory after $max_attempts attempts")
 end
 
+# Old names set on `system.settings` from Julia would otherwise be silently ignored, because they
+# are only translated when reading settings files. Checked before building a model, so that a
+# mistake does not cost a whole solve, and whenever output settings are read.
+function reject_deprecated_settings(system::System)
+    for old in keys(DEPRECATED_SETTINGS)
+        haskey(system.settings, old) && throw(InputValidationError("system.settings.$old",
+            "is no longer used. Set system.settings.$(join(DEPRECATED_SETTINGS[old], ".")) instead."))
+    end
+    return nothing
+end
+
+# The `OutputSettings` of a system. Keys it does not set (e.g. in hand-built test systems) take
+# their default from the spec.
+function output_settings(system::System)
+    reject_deprecated_settings(system)
+    return get(system.settings, :OutputSettings, (;))
+end
+output_setting_spec(key::Symbol) = input_spec(output_settings_spec(), key)
+output_setting(system::System, key::Symbol) = get(output_settings(system), key, output_setting_spec(key).default)
+
 """
     get_output_layout(system::System, variable::Union{Nothing,Symbol}=nothing)::String
 
-Get the output layout ("wide" or "long") for a specific variable from system settings.
+Get the output layout ("wide" or "long") for a specific variable from the
+`OutputSettings.Layout` setting.
 
 # Arguments
 - `system::System`: System containing output layout settings
-- `variable::Union{Nothing,Symbol}=nothing`: Variable to get layout for (e.g., :Cost, :Flow)
+- `variable::Union{Nothing,Symbol}=nothing`: Variable to get layout for (e.g., :Costs, :Flow)
 
 # Returns
 String indicating layout format: "wide" or "long"
 
 # Settings Format
-The `OutputLayout` setting can be specified in three ways:
+The `Layout` setting can be specified in three ways:
 
 1. Global string setting:
    ```julia
-   settings = (OutputLayout="wide",)  # Same layout for all variables
+   settings = (OutputSettings=(Layout="wide",),)  # Same layout for all variables
    ```
 
 2. Per-variable settings using NamedTuple:
    ```julia
-   settings = (OutputLayout=(Cost="wide", Flow="long"),)
+   settings = (OutputSettings=(Layout=(Costs="wide", Flow="long"),),)
    ```
 
 3. Default behavior:
-   - Returns "long" if setting is missing or invalid
+   - Returns "long" if the setting is missing or invalid
    - Logs warning for unsupported types or missing variables
 
 # Examples
 ```julia
 # Global layout
-system = System(settings=(OutputLayout="wide",))
-get_output_layout(system, :Cost)  # Returns "wide"
+system = System(settings=(OutputSettings=(Layout="wide",),))
+get_output_layout(system, :Costs)  # Returns "wide"
 
 # Per-variable layout
-system = System(settings=(OutputLayout=(Cost="wide", Flow="long"),))
-get_output_layout(system, :Cost)  # Returns "wide"
-get_output_layout(system, :Flow)  # Returns "long"
-get_output_layout(system, :Other) # Returns "long" with warning
+system = System(settings=(OutputSettings=(Layout=(Costs="wide", Flow="long"),),))
+get_output_layout(system, :Costs)  # Returns "wide"
+get_output_layout(system, :Flow)   # Returns "long"
+get_output_layout(system, :Other)  # Returns "long" with warning
 ```
 """
 function get_output_layout(system::System, variable::Union{Nothing,Symbol}=nothing)::String
-    output_layout = system.settings.OutputLayout
+    spec = output_setting_spec(:Layout)
+    output_layout = output_setting(system, :Layout)
 
     # String layouts supported are "wide" and "long"
-    if isa(output_layout, String)
+    if isa(output_layout, AbstractString)
         @debug "Using output layout $output_layout"
         return output_layout
     end
 
+    default = spec.entry.default
     if isnothing(variable)
-        @warn "OutputLayout in settings does not have a variable key. Using 'long' as default."
-        return "long"
+        @warn "OutputSettings.Layout does not have a variable key. Using '$default' as default."
+        return default
     end
 
     # Handle NamedTuple case (per-file settings)
     if isa(output_layout, NamedTuple)
-        if !haskey(output_layout, variable)
-            @warn "OutputLayout in settings does not have a $variable key. Using 'long' as default."
-        end
-        layout = get(output_layout, variable, "long")
+        # An output that a per-output map leaves out uses the default, as for `Format` and `Write`
+        haskey(output_layout, variable) || @debug "OutputSettings.Layout does not have a $variable key. Using '$default' as default."
+        layout = map_entry(spec, output_layout, variable)
         @debug "Using output layout $layout for variable $variable"
         return layout
     end
 
     # Handle unknown types
-    @warn "OutputLayout type $(typeof(output_layout)) not supported. Using 'long' as default."
-    return "long"
+    @warn "OutputSettings.Layout type $(typeof(output_layout)) not supported. Using '$default' as default."
+    return default
 end
 
 """
     get_output_format(system::System, variable::Symbol)::String
 
-Get the file format ("csv", "csv.gz" or "parquet") for a specific output from system settings.
+Get the file format ("csv", "csv.gz" or "parquet") for a specific output from the
+`OutputSettings.Format` setting.
 
-The `OutputFormat` setting is either a single string applied to all outputs, or a NamedTuple
+The `Format` setting is either a single string applied to all outputs, or a NamedTuple
 keyed by output (e.g., `(Flow="parquet", StorageLevel="csv.gz")`). Outputs that are not listed,
 and systems without the setting, default to "csv".
 
 # Examples
 ```julia
-system = System(settings=(OutputFormat="parquet",))
+system = System(settings=(OutputSettings=(Format="parquet",),))
 get_output_format(system, :Flow)      # Returns "parquet"
 
-system = System(settings=(OutputFormat=(Flow="parquet",),))
+system = System(settings=(OutputSettings=(Format=(Flow="parquet",),),))
 get_output_format(system, :Flow)      # Returns "parquet"
 get_output_format(system, :Capacity)  # Returns "csv"
 ```
 """
-function get_output_format(system::System, variable::Symbol)::String
-    output_format = get(system.settings, :OutputFormat, "csv")
-    output_format isa NamedTuple && return get(output_format, variable, "csv")
-    return output_format
-end
+get_output_format(system::System, variable::Symbol)::String =
+    map_entry(output_setting_spec(:Format), output_setting(system, :Format), variable)
 
 """
     output_enabled(system::System, variable::Symbol)::Bool
 
-Return whether the output `variable` should be written, according to the `WriteOutputs` setting.
-Outputs that are not listed in `WriteOutputs` are written.
+Return whether the output `variable` should be written, according to the `OutputSettings.Write`
+setting. Outputs that are not listed are written, except `FullTimeseries`, which is off by default.
 """
-output_enabled(system::System, variable::Symbol)::Bool = get(get(system.settings, :WriteOutputs, (;)), variable, true)
+output_enabled(system::System, variable::Symbol)::Bool =
+    map_entry(output_setting_spec(:Write), output_setting(system, :Write), variable)
 
 """
     output_file(results_dir::AbstractString, basename::AbstractString, system::System, variable::Symbol)
 
 Return the path of the output file `basename` in `results_dir`, with the extension given by the
-`OutputFormat` setting for `variable` (e.g., `output_file(dir, "flows", system, :Flow)` returns
-`dir/flows.parquet` when `OutputFormat` is "parquet").
+`OutputSettings.Format` setting for `variable` (e.g., `output_file(dir, "flows", system, :Flow)`
+returns `dir/flows.parquet` when `Format` is "parquet").
 """
 function output_file(results_dir::AbstractString, basename::AbstractString, system::System, variable::Symbol)
     return joinpath(results_dir, "$basename.$(get_output_format(system, variable))")
@@ -207,9 +228,9 @@ end
     get_output_significant_digits(system::System)::Union{Nothing,Int}
 
 Return the number of significant digits that time-series outputs are rounded to before writing
-(`OutputSignificantDigits` setting), or `nothing` to write full precision.
+(`OutputSettings.SignificantDigits` setting), or `nothing` to write full precision.
 """
-get_output_significant_digits(system::System)::Union{Nothing,Int} = get(system.settings, :OutputSignificantDigits, nothing)
+get_output_significant_digits(system::System)::Union{Nothing,Int} = output_setting(system, :SignificantDigits)
 
 """
     find_output_file(results_dir::AbstractString, basename::AbstractString; hint::AbstractString="")
@@ -219,7 +240,7 @@ was written in (`.csv`, `.csv.gz` or `.parquet`). Throws an error if none exists
 `hint` if one is given.
 
 Also throws an error if more than one format exists. A run writes each output in one format
-only, so the others are left over from an earlier run (`OverwriteResults = true` reuses the
+only, so the others are left over from an earlier run (`OutputSettings.Overwrite = true` reuses the
 folder without clearing it), and there is no safe way to tell which file is current.
 """
 function find_output_file(results_dir::AbstractString, basename::AbstractString; hint::AbstractString="")
@@ -230,7 +251,7 @@ function find_output_file(results_dir::AbstractString, basename::AbstractString;
     elseif length(found) > 1
         error("Found more than one output file for $basename: $(join(found, ", ")). " *
               "The extra files are probably left over from an earlier run written to the same folder " *
-              "with OverwriteResults = true. Delete the stale files and keep the one written by the run you want to use.")
+              "with OutputSettings.Overwrite = true. Delete the stale files and keep the one written by the run you want to use.")
     end
     return only(found)
 end

@@ -11,21 +11,63 @@ and this project follows Julia package versioning through `Project.toml` release
 
 ### Added
 
-- Added `edge_losses.csv` output file to report the commodity lost on every edge with a nonzero `loss_fraction`, for all solution algorithms and in the full time series (key `Losses` in `OutputLayout`, `OutputFormat` and `WriteOutputs`). Lossy `BidirectionalEdge`s now hold their `flow_pos`/`flow_neg` pair as fields.
+- `MacroEnergy.migrate_settings(path; dry_run=true)` updates the settings of a case written for an earlier version: it moves the settings of `macro_settings.json` into `case_settings.json` under their current names, and removes the `settings` entries of the periods from `system_data.json`. By default it only reports the changes.
+- Added a `commodities` object to location inputs for defining commodity nodes directly in `locations.json`, including demand, supply segments, time series, and node constraints. Empty objects use existing node defaults and generate `<location>_<commodity>` node IDs; explicit IDs override the default. Existing location-name strings and independent `nodes.json` definitions remain supported.
+- Added `write_json(io::IO, data::AbstractDict)` for writing JSON to a caller-owned stream without closing it.
+- Added `edge_losses.csv` output file to report the commodity lost on every edge with a nonzero `loss_fraction`, for all solution algorithms and in the full time series (key `Losses` in `OutputSettings.Layout`, `OutputSettings.Format` and `OutputSettings.Write`). Lossy `BidirectionalEdge`s now hold their `flow_pos`/`flow_neg` pair as fields.
 
 ### Fixed
 
+- A `DiscountRate` written as a whole number (`0` or `0.0`) no longer fails with a `MethodError` when loading a case.
+- Loading a case no longer empties `system_data.json` when the file holds a value that could not be written back, such as `Infinity`.
+- Time-domain reduction now keeps `settings/benders_settings.json` and files named inside `case_settings.json`. The reduced case used to fall back to default Benders settings without saying so.
+- Paths in `settings` entries and in `BendersSettings.path` are now always relative to `system_data.json`, as documented. The current directory used to be searched too, so a file there could be read in place of the case's own, or of a missing one.
+- Time-domain reduction now copies a single-period case's `settings/case_settings.json` into the reduced case when `system_data.json` does not reference it. The reduced case used to lose those settings silently and fall back to the defaults.
+- A `case_settings.json` file without a `SolutionAlgorithm` key no longer fails with a `KeyError`.
+- Fixed `mermaid_diagram` to create explicit placeholder endpoints in its temporary system, preserving asset diagrams with stricter `AutoCreateNodes` endpoint validation. Commodity names also resolve consistently when called from another Julia module.
 - Lossy bidirectional edges now split their flow into a single `vFLOWPOS`/`vFLOWNEG` pair shared by both vertex balances.
 - Iterating over `SubproblemsData`, the container for per-subproblem Benders results, no longer yields the first subproblem twice. Written outputs were not affected, since the output writers read its fields directly rather than iterating it.
+- Fixed TDR weights for shared CSV columns so excluded references and references with no matching feature do not increase clustering influence. Total usage counts are retained for provenance; clustering occurrence summaries count included references only.
 - Corrected exported duals after MacroEnergyScaling constraint-row and objective scaling. All model builders now retain cumulative scaling metadata per model, and dual reporting restores the original model units before applying input scaling, time weights and discount conversions. Requires MacroEnergyScaling v0.4.1 or later.
 - Multi-period cases no longer fail with a `MethodError` when carrying over capacities for an asset whose optional edge is absent, such as a `BECCSHydrogen` asset without a `fuel_edge`. Myopic runs with `ReturnModels: false` failed the same way when releasing such an asset.
 - Myopic runs with `ReturnModels: false` now also release the JuMP references held by system-wide and per-location grouped capacity constraints. These kept an emptied model alive for each period, which increased memory use with the number of periods.
+- Fixed location membership for automatically created nodes so location-based outputs and capacity constraints can identify their location correctly. Automatic nodes are registered before attachment, so rejected duplicate IDs leave membership unchanged and repeated lookups still fail.
+- Fixed unresolved endpoint handling: `AutoCreateNodes` now reports an error when an endpoint matches neither an existing node nor a location, rather than attempting to create an anonymous node.
+- Fixed time-domain reduction commodity context for nodes defined within locations, so commodity-scoped feature weights and exclusions apply to inline series and CSV references. Reference exclusions now match actual input context, including file, field, asset, and commodity, even when a generic feature is selected.
+- Fixed `template_location` to support location dictionaries and mixed batches, preserve existing commodity and constraint definitions, and check duplicates by location ID. Conflicting definitions are rejected before writing; new JSON files and directories can be created directly.
+- Fixed time-domain reduction of inputs defined inline within `case` entries in `system_data.json`. Bare and case-wrapped Systems now share scoped discovery and rewriting, so reduced and isolated subperiod cases use the selected periods' values without mixing Systems' profiles. Older output-feature caches are invalidated and regenerated.
 
 ### Changed
 
 - Variable O&M cost on a `BidirectionalEdge` is now charged on |flow| via its `flow_pos`/`flow_neg` pair, instead of on the net flow; the `VariableOM` cost outputs follow the same rule.
 - A negative `variable_om_cost` on a unidirectional edge (including edges with unit commitment) is now a credit per unit of flow in the objective and the `VariableOM` cost outputs, instead of being ignored. A negative `variable_om_cost` on a `BidirectionalEdge` is an error, since it is charged on |flow|.
+- Automatically created commodity nodes now use `<location>_<commodity>` IDs instead of reusing the location ID.
+- Location entries are normalized into a validated `LocationInput` with a required nonempty string ID and optional constraint and commodity dictionaries. Programmatic location dictionaries must use symbol keys, matching parsed JSON inputs; location-name strings remain supported.
+- Location loading now creates each location and its declared nodes before loading independent nodes and assets. Node and location IDs share one namespace, with collisions rejected by both registration methods. Input validation also rejects duplicate commodity nodes within a location and conflicting location assignments as objects are loaded or registered.
+- Multi-System TDR copies configured asset directories to `inputs/system_<n>/assets`, avoiding repeated source directory names such as `assets/assets_1` when the destination is free of other dependencies.
+- All settings now live in one file, `settings/case_settings.json`, and apply to every period of the case. See "Migration guide" below.
+- `case.settings` and the `settings` of every `System` in the case are now the same object, holding all the settings. `results/settings.json` holds them directly, instead of under `case_settings` and `system_settings`, in the same form as `case_settings.json`, so it can be copied to `settings/case_settings.json` to rerun a case with the same settings.
+- Output settings are now grouped in an `OutputSettings` block of `case_settings.json`: `Dir`, `Overwrite`, `Format`, `Layout`, `Write`, `SignificantDigits` and `AssetTags`. `WriteFullTimeseries` is now `OutputSettings.Write.FullTimeseries`, off by default. Code that reads these settings should use `system.settings.OutputSettings`, or the accessors such as `output_enabled`. `system.settings.DualExportsEnabled` no longer exists.
+- Output settings can no longer vary between periods. Every period of a multi-period case writes the same outputs.
+- Settings are now strict. Unknown keys in `case_settings.json`, `BendersSettings` and `MyopicSettings` are errors, and so are unknown values of `SolutionAlgorithm` and `ExpansionHorizon`, which used to fall back to the default with a warning. Keys starting with `#` are treated as comments and ignored. `PeriodLengths` must be whole numbers, `ParameterScalingFactor` must be greater than zero, and `NaN` is rejected wherever a lower bound applies.
+- A case with a `case` key and no top-level `settings` entry now reads `settings/case_settings.json`, as single-period cases do. On its own, `load_system` reads the same settings as `load_case`.
+- A `settings/benders_settings.json` that overrides different settings written in `case_settings.json` now logs a warning. A `BendersSettings.path` pointing to a missing file is now an error, unless `settings/benders_settings.json` exists.
 - Extended DuckDB.jl compatibility to include 2.x (`DuckDB = "1, 2"`). Environments that resolve DuckDB.jl 2.x read CSV inputs with the bundled DuckDB 2.0 engine.
+- Settings are now defined and validated from a single declarative spec per file (`src/config/settings_schema.jl`, built on the new `InputField`/`InputMap`/`InputBlock` types in `src/load_inputs/input_schema/input_spec.jl`). Invalid settings now raise an `InputValidationError` that names the full key path and the expected value (e.g. `case_settings.BendersSettings.MaxIter: expected an integer > 0, got 0`) instead of a bare `AssertionError`. Defaults and accepted values are unchanged, except that settings which previously crashed later in the run are now rejected up front: non-boolean values for boolean settings, `true`/`false` for numeric settings, and a non-list `PeriodLengths`. A partial `MyopicSettings.Restart` block is now completed from its defaults instead of failing with a `KeyError`.
+- A per-output `OutputSettings.Layout` that leaves out an output no longer logs a warning for it in every period. That output uses the default layout, as with `OutputSettings.Format` and `OutputSettings.Write`.
+
+### Deprecated
+
+- `macro_settings.json` and the `settings` entry of each period in `system_data.json`. Cases written this way still load, with a warning. It is an error if the periods have different settings, or if the settings contradict `case_settings.json`.
+- The flat output setting names (`OutputDir`, `OverwriteResults`, `OutputFormat`, `OutputLayout`, `WriteOutputs`, `OutputSignificantDigits`, `OutputAssetTags`), `WriteFullTimeseries` and `DualExportsEnabled`. They are translated to `OutputSettings` with a warning. Setting an old name and its new name to different values is an error, unless the old name is at its default, as older versions wrote in every new case.
+
+### Migration guide
+
+- The "Updating older cases" section of the settings guide (Configuring Settings) walks through a full example, before and after, and lists where each setting goes.
+- `MacroEnergy.migrate_settings("path/to/case")` shows the changes for a case, and `MacroEnergy.migrate_settings("path/to/case"; dry_run=false)` makes them.
+- Move the contents of `macro_settings.json` into `settings/case_settings.json` and delete the `settings` entry of each period in `system_data.json`.
+- Rename the output settings: `OutputDir` to `OutputSettings.Dir`, `OverwriteResults` to `OutputSettings.Overwrite`, `OutputFormat` to `OutputSettings.Format`, `OutputLayout` to `OutputSettings.Layout`, `WriteOutputs` to `OutputSettings.Write`, `WriteFullTimeseries` to `OutputSettings.Write.FullTimeseries`, `OutputSignificantDigits` to `OutputSettings.SignificantDigits`, `OutputAssetTags` to `OutputSettings.AssetTags` and `DualExportsEnabled` to `OutputSettings.Write.Duals`.
+- In Julia code, read these settings from `system.settings.OutputSettings` (e.g., `system.settings.OutputSettings.Dir` instead of `system.settings.OutputDir`). Reading an old name raises an error, and so does building a model or reading output settings after setting an old name on `system.settings`.
 
 ### Documentation
 

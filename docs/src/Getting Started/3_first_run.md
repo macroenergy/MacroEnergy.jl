@@ -120,7 +120,7 @@ For instance, one case could have the following structure:
 MyCase
 │ 
 ├── settings
-│   └── macro_settings.yml           # Macro settings
+│   └── case_settings.json           # Macro settings
 │ 
 ├── system
 │   ├── Period_map.csv

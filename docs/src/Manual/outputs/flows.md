@@ -13,7 +13,7 @@
 The file uses **long format** by default: each row is a single (component, time step) observation. An optional **wide format** pivots time steps into columns.
 
 !!! note "Representative time steps vs. full year"
-    `flows.csv` contains only the time steps used in the optimization (the representative periods). If time-domain reduction (TDR) is active, this is a subset of the full year. To obtain full-year (8760-hour) flows, enable `WriteFullTimeseries = true` in `case_settings.json`. See [Full Time Series Output](@ref "manual-outputs-full-timeseries") for details.
+    `flows.csv` contains only the time steps used in the optimization (the representative periods). If time-domain reduction (TDR) is active, this is a subset of the full year. To obtain full-year (8760-hour) flows, enable `OutputSettings.Write.FullTimeseries = true` in `case_settings.json`. See [Full Time Series Output](@ref "manual-outputs-full-timeseries") for details.
 
 ## [Columns](@id manual-outputs-flows-columns)
 
@@ -56,11 +56,11 @@ Flow values can be positive or negative. The sign indicates the direction of flo
 
 | Setting | File | Default | Effect |
 |---|---|---|---|
-| `OutputLayout` (or `OutputLayout.Flow`) | `macro_settings.json` | `"long"` | Set to `"wide"` to pivot time steps into columns (rows become components, columns become time step indices). |
-| `OutputFormat` (or `OutputFormat.Flow`) | `macro_settings.json` | `"csv"` | Set to `"csv.gz"` or `"parquet"` to write a compressed file (`.csv.gz` or `.parquet`). See [Output Format and Size](@ref "manual-outputs-format"). |
-| `WriteOutputs.Flow` | `macro_settings.json` | `true` | Set to `false` to skip this output. See [Selecting Outputs](@ref "manual-outputs-selecting"). |
-| `OutputSignificantDigits` | `macro_settings.json` | `null` | Set to an integer to round values to that many significant digits before writing. |
-| `WriteFullTimeseries` | `case_settings.json` | `false` | When `true` and TDR is active, also write expanded 8760-hour flows to `full_time_series/flows.csv`. |
+| `OutputSettings.Layout` (or `OutputSettings.Layout.Flow`) | `case_settings.json` | `"long"` | Set to `"wide"` to pivot time steps into columns (rows become components, columns become time step indices). |
+| `OutputSettings.Format` (or `OutputSettings.Format.Flow`) | `case_settings.json` | `"csv"` | Set to `"csv.gz"` or `"parquet"` to write a compressed file (`.csv.gz` or `.parquet`). See [Output Format and Size](@ref "manual-outputs-format"). |
+| `OutputSettings.Write.Flow` | `case_settings.json` | `true` | Set to `false` to skip this output. See [Selecting Outputs](@ref "manual-outputs-selecting"). |
+| `OutputSettings.SignificantDigits` | `case_settings.json` | `null` | Set to an integer to round values to that many significant digits before writing. |
+| `OutputSettings.Write.FullTimeseries` | `case_settings.json` | `false` | When `true` and TDR is active, also write expanded 8760-hour flows to `full_time_series/flows.csv`. |
 
 ## [Assumptions](@id manual-outputs-flows-assumptions)
 
@@ -81,7 +81,7 @@ Flow values can be positive or negative. The sign indicates the direction of flo
 | Electricity | elec\_SE | SE\_thermalpower\_transforms | SE\_thermalpower | SE\_thermalpower\_elec\_edge | ThermalPower{NaturalGas} | UnidirectionalEdge{Electricity} | flow | 1 | 450.5 |
 | Electricity | elec\_SE | SE\_thermalpower\_transforms | SE\_thermalpower | SE\_thermalpower\_elec\_edge | ThermalPower{NaturalGas} | UnidirectionalEdge{Electricity} | flow | 2 | 380.2 |
 
-### Wide Format (`OutputLayout.Flow = "wide"`)
+### Wide Format (`OutputSettings.Layout.Flow = "wide"`)
 
 | commodity | node\_in | node\_out | resource\_id | component\_id | resource\_type | component\_type | variable | 1 | 2 | 3 | … |
 |---|---|---|---|---|---|---|---|---|---|---|---|

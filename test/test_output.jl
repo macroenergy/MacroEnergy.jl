@@ -1,6 +1,7 @@
 module TestOutput
 
 using Test
+using Logging
 using Random
 using MacroEnergy
 using CSV
@@ -457,7 +458,7 @@ function test_writing_output()
         written_df = MacroEnergy.load_dataframe(filtered_path)
         @test nrow(written_df) <= nrow(returned)
 
-        system.settings = MacroEnergy.configure_settings((OutputAssetTags=false,))
+        system.settings = MacroEnergy.configure_settings((OutputSettings=(AssetTags=false,),))
         without_tags = write_capacity(joinpath(test_dir, "capacity_without_tags.csv"), system, scaling)
         @test !hasproperty(without_tags, :tags)
         @test !hasproperty(MacroEnergy.load_dataframe(joinpath(test_dir, "capacity_without_tags.csv")), :tags)
@@ -736,7 +737,7 @@ function test_writing_output()
 
         # System with VRE for curtailment tests
         system_with_vre = empty_system("test_system_with_vre")
-        system_with_vre.settings = (OutputLayout="long",)  # Required for write_curtailment
+        system_with_vre.settings = (OutputSettings=(Layout="long",),)  # Required for write_curtailment
         add!(system_with_vre, node1)
         add!(system_with_vre, vre_asset)
 
@@ -791,7 +792,7 @@ function test_writing_output()
         @test "value" in names(written)
 
         # Test write_curtailment with wide layout
-        system_with_vre.settings = (OutputLayout="wide",)
+        system_with_vre.settings = (OutputSettings=(Layout="wide",),)
         test_curtailment_wide_path = joinpath(curtailment_test_dir, "curtailment_wide.csv")
         @test_nowarn write_curtailment(test_curtailment_wide_path, system_with_vre, 1.0)
         @test isfile(test_curtailment_wide_path)
@@ -864,7 +865,7 @@ function test_writing_output()
 
         # System level: only lossy edges are reported
         system_with_lines = empty_system("test_system_with_lines")
-        system_with_lines.settings = (OutputLayout="long",)
+        system_with_lines.settings = (OutputSettings=(Layout="long",),)
         add!(system_with_lines, node1)
         add!(system_with_lines, node2)
         add!(system_with_lines, TransmissionLink(:lossy_link, lossy_line))
@@ -885,7 +886,7 @@ function test_writing_output()
         @test size(written, 1) == 3
         @test written[!, :value] ≈ [0.5, 0.6, 0.4]
 
-        system_with_lines.settings = (OutputLayout="wide",)
+        system_with_lines.settings = (OutputSettings=(Layout="wide",),)
         test_losses_wide_path = joinpath(losses_test_dir, "losses_wide.csv")
         @test_nowarn write_losses(test_losses_wide_path, system_with_lines, 1.0)
         written = CSV.read(test_losses_wide_path, DataFrame)
@@ -893,7 +894,7 @@ function test_writing_output()
         @test written[!, :lossy_line] ≈ [0.5, 0.6, 0.4]
 
         # Benders path: per-subproblem DataFrames are concatenated
-        system_with_lines.settings = (OutputLayout="long",)
+        system_with_lines.settings = (OutputSettings=(Layout="long",),)
         test_losses_benders_path = joinpath(losses_test_dir, "losses_benders.csv")
         parts = [get_optimal_losses(lossy_line, 1.0)[t:t, :] for t in 1:3]
         @test_nowarn write_losses(test_losses_benders_path, system_with_lines, [parts; DataFrame()])
@@ -1131,7 +1132,7 @@ function test_writing_output()
         
         # Create a mock system with different settings
         system1 = empty_system(test_dir)
-        system1.settings = (OutputDir = "results", OverwriteResults = true)
+        system1.settings = (OutputSettings=(Dir = "results", Overwrite = true),)
         
         # Test overwriting existing directory
         output_path1 = create_output_path(system1)
@@ -1142,9 +1143,9 @@ function test_writing_output()
         output_path2 = create_output_path(system1)
         @test output_path2 == output_path1
         
-        # Test with OverwriteResults = 0 (no overwrite)
+        # Test with Overwrite = false (no overwrite)
         system2 = empty_system(test_dir)
-        system2.settings = (OutputDir = "results", OverwriteResults = false)
+        system2.settings = (OutputSettings=(Dir = "results", Overwrite = false),)
         
         # This is the second call, so it should create "results_001"
         output_path3 = create_output_path(system2)
@@ -1209,7 +1210,7 @@ function test_writing_output()
         # Helper to create a minimal System struct with settings
         function make_test_system(layout)
             sys = empty_system("random_path_$(randstring(8))")
-            sys.settings = (OutputLayout=layout,)
+            sys.settings = (OutputSettings=(Layout=layout,),)
             return sys
         end
     
@@ -1224,7 +1225,7 @@ function test_writing_output()
             layout_settings = (Capacity="wide", Curtailment="wide", StorageLevel="long")
             system3 = make_test_system(layout_settings)
             # no variable
-            @test_logs (:warn, "OutputLayout in settings does not have a variable key. Using 'long' as default.") begin
+            @test_logs (:warn, "OutputSettings.Layout does not have a variable key. Using 'long' as default.") begin
                 @test get_output_layout(system3) == "long"
             end
 
@@ -1233,8 +1234,8 @@ function test_writing_output()
             @test get_output_layout(system3, :Curtailment) == "wide"
             @test get_output_layout(system3, :StorageLevel) == "long"
     
-            # Test missing key falls back to "long" with warning
-            @test_logs (:warn, "OutputLayout in settings does not have a missing_var key. Using 'long' as default.") begin
+            # A key the map leaves out falls back to "long", without a warning
+            @test_logs min_level=Logging.Warn begin
                 @test get_output_layout(system3, :missing_var) == "long"
             end
         end
@@ -1242,24 +1243,24 @@ function test_writing_output()
         @testset "Invalid layout types" begin
             # Test unexpected type with warning
             invalid_system = make_test_system(42)  # Integer is not a valid layout type
-            @test_logs (:warn, "OutputLayout type Int64 not supported. Using 'long' as default.") begin
+            @test_logs (:warn, "OutputSettings.Layout type Int64 not supported. Using 'long' as default.") begin
                 @test get_output_layout(invalid_system, :any_variable) == "long"
             end
         end
 
-        @testset "OutputLayout validation accepts Curtailment" begin
-            # Verify configure_settings accepts :Curtailment in OutputLayout
-            settings = MacroEnergy.configure_settings((
-                OutputLayout=(Capacity="long", Costs="long", Curtailment="wide", Flow="long",
-                             NonServedDemand="long", StorageLevel="long"),
-            ))
-            @test settings.OutputLayout isa NamedTuple
-            @test settings.OutputLayout.Curtailment == "wide"
+        @testset "Layout validation accepts Curtailment" begin
+            # Verify configure_settings accepts :Curtailment in OutputSettings.Layout
+            settings = MacroEnergy.configure_settings((OutputSettings=(
+                Layout=(Capacity="long", Costs="long", Curtailment="wide", Flow="long",
+                        NonServedDemand="long", StorageLevel="long"),
+            ),))
+            @test settings.OutputSettings.Layout isa NamedTuple
+            @test settings.OutputSettings.Layout.Curtailment == "wide"
         end
 
-        @testset "OutputLayout validation accepts Losses" begin
-            settings = MacroEnergy.configure_settings((OutputLayout=(Flow="long", Losses="wide"),))
-            @test settings.OutputLayout.Losses == "wide"
+        @testset "OutputSettings.Layout validation accepts Losses" begin
+            settings = MacroEnergy.configure_settings((OutputSettings=(Layout=(Flow="long", Losses="wide"),),))
+            @test settings.OutputSettings.Layout.Losses == "wide"
         end
     end
 

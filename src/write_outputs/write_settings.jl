@@ -1,11 +1,11 @@
 """
     write_settings(case::Case, filepath::AbstractString)
 
-Write the case and system settings to a JSON file.
+Write the settings of a case to a JSON file. The `Case` and every `System` in it share the same settings.
 
-This function extracts the settings from a Case object and writes them to a JSON file.
-The settings include both case-level settings and system-level settings for all systems
-in the case.
+The file has the same form as `case_settings.json`, so it can be read back to rerun a case with
+the same settings: optional settings that were not set are left out, and the solution algorithm
+and expansion horizon are written by name.
 
 # Arguments
 - `case::Case`: The case object containing the settings to write
@@ -23,15 +23,17 @@ write_settings(case, "output/settings.json")
 write_settings(case, joinpath(case_path, "settings.json"))
 ```
 
-# Output Format
-The JSON file will contain:
-- `case_settings`: The case-level settings
-- `system_settings`: An array of settings for each system in the case
 """
 function write_settings(case::Case, filepath::AbstractString)
-    settings = Dict{Symbol, Any}(
-        :case_settings => case.settings,
-        :system_settings => [system.settings for system in case.systems]
-    )
-    write_json(filepath, settings)
+    write_json(filepath, settings_to_json(case.settings))
 end
+
+# The settings in the form the loader reads back. This is the only place that turns settings into
+# JSON, so that the writers cannot disagree with each other or with `configure_settings`.
+function settings_to_json(settings::NamedTuple)::OrderedDict{Symbol,Any}
+    return OrderedDict{Symbol,Any}(key => setting_to_json(value) for (key, value) in pairs(settings)
+        if !ismissing(value) && !isnothing(value))
+end
+
+setting_to_json(value) = value
+setting_to_json(value::Union{AbstractSolutionAlgorithm,AbstractExpansionHorizon}) = String(nameof(typeof(value)))

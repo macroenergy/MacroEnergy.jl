@@ -8,7 +8,7 @@ As described in [Running Macro](@ref), an example case is a directory containing
 MyCase
 │ 
 ├── 📁 settings
-│   └── macro_settings.yml
+│   └── case_settings.json
 │ 
 ├── 📁 system
 │   ├── commodities.json 

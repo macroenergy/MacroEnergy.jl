@@ -1,4 +1,9 @@
 {
     "SolutionAlgorithm": "Monolithic",
-    "WriteFullTimeseries": true
+    "ConstraintScaling": false,
+    "OutputSettings": {
+        "Write": {
+            "FullTimeseries": true
+        }
+    }
 }

@@ -16,7 +16,7 @@ function load_case_data(
     if !haskey(data, :case)
         data = Dict(
             :case => [data],
-            :settings => single_system_case_settings(file_path)
+            :settings => single_system_case_settings(file_path, data)
         )
     end
 
@@ -50,12 +50,4 @@ function load_case(
         msg = "No case data found in $path. Either provide a path to a .JSON file or a directory containing a system_data.json file"
         throw(ArgumentError(msg))
     end
-end
-
-function single_system_case_settings(file_path::AbstractString)::Dict{Symbol,Any}
-    case_settings_path = joinpath(dirname(file_path), "settings", STAGE_SETTINGS_FILENAME)
-    if isfile(case_settings_path)
-        return Dict{Symbol,Any}(:path => case_settings_path)
-    end
-    return default_case_settings()
 end
