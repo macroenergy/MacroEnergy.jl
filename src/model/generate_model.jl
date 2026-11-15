@@ -273,7 +273,11 @@ end
 
 function planning_model!(a::AbstractAsset, model::Model)
     for t in fieldnames(typeof(a))
-        planning_model!(getfield(a, t), model)
+        component = getfield(a, t)
+        if component isa Union{AbstractEdge,AbstractStorage} && !iszero(investment_credit_rate(component)) && !has_capacity(component)
+            throw(ArgumentError("Positive investment_credit_rate requires a component with has_capacity=true: $(id(a)).$t."))
+        end
+        planning_model!(component, model)
     end
     return nothing
 end

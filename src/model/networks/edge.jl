@@ -21,6 +21,7 @@ macro AbstractEdgeBaseAttributes()
         has_capacity::Bool = $edge_defaults[:has_capacity]
         integer_decisions::Bool = $edge_defaults[:integer_decisions]
         investment_cost::Float64 = $edge_defaults[:investment_cost]
+        investment_credit_rate::Float64 = $edge_defaults[:investment_credit_rate]
         is_retrofit::Bool = $edge_defaults[:is_retrofit]
         lifetime::Int64 = $edge_defaults[:lifetime]
         loss_fraction::Vector{Float64} = $edge_defaults[:loss_fraction]
@@ -86,6 +87,7 @@ abstract type EdgeWithoutUC{T} <: AbstractEdge{T} end
     - has_capacity::Bool: Whether the edge has capacity variables
     - integer_decisions::Bool: Whether capacity decisions must be integer
     - investment_cost::Float64: CAPEX per unit of new capacity
+    - investment_credit_rate::Float64: Share of the investment cost of new capacity returned as a credit, in [0, 1]
     - loss_fraction::Vector{Float64}: Fraction of flow lost during transmission, it can be time-dependent.
     - max_capacity::Float64: Maximum allowed capacity
     - min_capacity::Float64: Minimum required capacity
@@ -128,6 +130,7 @@ end
     - has_capacity::Bool: Whether the edge has capacity variables
     - integer_decisions::Bool: Whether capacity decisions must be integer
     - investment_cost::Float64: CAPEX per unit of new capacity
+    - investment_credit_rate::Float64: Share of the investment cost of new capacity returned as a credit, in [0, 1]
     - loss_fraction::Vector{Float64}: Fraction of flow lost during transmission, it can be time-dependent.
     - max_capacity::Float64: Maximum allowed capacity
     - min_capacity::Float64: Minimum required capacity
@@ -323,6 +326,7 @@ has_capacity(e::AbstractEdge) = e.has_capacity;
 id(e::AbstractEdge) = e.id;
 integer_decisions(e::AbstractEdge) = e.integer_decisions;
 investment_cost(e::AbstractEdge) = e.investment_cost;
+investment_credit_rate(e::AbstractEdge) = e.investment_credit_rate;
 is_retrofit(e::AbstractEdge) = e.is_retrofit;
 lifetime(e::AbstractEdge) = e.lifetime;
 loss_fraction(e::AbstractEdge) = e.loss_fraction;
@@ -470,8 +474,26 @@ function compute_investment_costs!(e::AbstractEdge, model::Model, cost_type::Fun
                 cost_type(e),
                 new_capacity(e),
             )
+            add_investment_credit_payment!(e, model, cost_type)
         end
     end
+end
+
+"""
+Subtract the investment credit of new capacity directly from `eInvestmentFixedCost`, with the
+same cost attribute (`pv_period_investment_cost` or `cf_period_investment_cost`) as the
+investment cost. Output helpers calculate the credit from solved new capacity.
+"""
+function add_investment_credit_payment!(
+    o::Union{AbstractEdge,AbstractStorage},
+    model::Model,
+    cost_type::Function=pv_period_investment_cost,
+)
+    rate = investment_credit_rate(o)
+    validate_investment_credit_rate(rate)
+    iszero(rate) && return nothing
+    add_to_expression!(model[:eInvestmentFixedCost], -rate * cost_type(o), new_capacity(o))
+    return nothing
 end
 
 function compute_om_fixed_costs!(e::AbstractEdge, model::Model, cost_type::Function=pv_period_fixed_om_cost)
