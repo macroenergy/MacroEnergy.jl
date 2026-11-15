@@ -217,6 +217,7 @@ function _write_benders_period_outputs(
         write_undiscounted_costs(output_file(results_dir, "undiscounted_costs", system, :Costs), system, costs, scaling)
         # Detailed cost breakdown (assets and zones level)
         write_detailed_costs_benders(results_dir, system, costs, operational_costs_df[subop_indices], settings, scaling)
+        write_investment_credits(output_file(results_dir, "investment_credits", system, :Costs), system, settings, scaling)
     end
     # CAPEX results (investment cost × new capacity)
     output_enabled(system, :Capex) &&
@@ -287,6 +288,7 @@ function write_period_outputs(
         write_undiscounted_costs(output_file(results_dir, "undiscounted_costs", system, :Costs), system, model, scaling)
         # Cost results (detailed breakdown by type and zone, discounted and undiscounted)
         write_detailed_costs(results_dir, system, model, settings, scaling)
+        write_investment_credits(output_file(results_dir, "investment_credits", system, :Costs), system, settings, scaling)
     end
     # CAPEX results (investment cost × new capacity)
     output_enabled(system, :Capex) &&

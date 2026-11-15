@@ -427,10 +427,10 @@ end
 ##############################
 
 # Cost category symbols for output
-const COST_CATEGORIES = [:Investment, :FixedOM, :VariableOM, :Fuel, :Startup, :NonServedDemand, :Supply, :UnmetPolicyPenalty]
+const COST_CATEGORIES = [:Investment, :InvestmentCredit, :FixedOM, :VariableOM, :Fuel, :Startup, :NonServedDemand, :Supply, :UnmetPolicyPenalty]
 
 # Categories discounted with discount_factor
-const FIXED_COST_CATEGORIES = Set([:Investment,:FixedOM])
+const FIXED_COST_CATEGORIES = Set([:Investment,:InvestmentCredit,:FixedOM])
 
 # Categories only for variable operating costs (discounted with discount_factor * opexmult)
 const VARIABLE_OPERATING_COST_CATEGORIES = Set([:VariableOM, :Fuel, :Startup, :NonServedDemand, :Supply, :UnmetPolicyPenalty])
@@ -631,6 +631,7 @@ function get_detailed_costs(system::System, settings::NamedTuple, scaling::Float
     # Collect edge costs (Investment/FixedOM are both discounted and undiscounted at period start; VariableOM/Fuel/Startup will be discounted later)
     for e in edges
         inv_pv, inv_cf = compute_investment_cost(e)
+        credit_pv, credit_cf = compute_investment_credit(e)
         fom_pv, fom_cf = compute_fixed_om_cost(e)
         vom = compute_variable_om_cost(e)
         fuel = compute_fuel_cost(e)
@@ -648,6 +649,7 @@ function get_detailed_costs(system::System, settings::NamedTuple, scaling::Float
 
         for (category, cost_pv, cost_cf) in [
             (:Investment, inv_pv, inv_cf),
+            (:InvestmentCredit, -credit_pv, -credit_cf),
             (:FixedOM, fom_pv, fom_cf),
             (:VariableOM, vom, vom), # first term is discounted later (vectorized)
             (:Fuel, fuel, fuel), # first term is discounted later (vectorized)
@@ -665,6 +667,7 @@ function get_detailed_costs(system::System, settings::NamedTuple, scaling::Float
     # Collect storage costs (Investment/FixedOM are both discounted and undiscounted at period start)
     for g in storages
         inv_pv, inv_cf = compute_investment_cost(g)
+        credit_pv, credit_cf = compute_investment_credit(g)
         fom_pv, fom_cf = compute_fixed_om_cost(g)
 
         (inv_pv == 0 && inv_cf == 0 && fom_pv == 0 && fom_cf == 0) && continue
@@ -674,6 +677,7 @@ function get_detailed_costs(system::System, settings::NamedTuple, scaling::Float
 
         for (category, cost_pv, cost_cf) in [
             (:Investment, inv_pv, inv_cf),
+            (:InvestmentCredit, -credit_pv, -credit_cf),
             (:FixedOM, fom_pv, fom_cf),
         ]
             (cost_pv == 0 && cost_cf == 0) && continue
@@ -824,6 +828,7 @@ function get_fixed_costs_benders(system::System, settings::NamedTuple, scaling::
     # Collect fixed costs from edges (Investment/FixedOM are both discounted and undiscounted at period start)
     for e in edges
         inv_pv, inv_cf = compute_investment_cost(e)
+        credit_pv, credit_cf = compute_investment_credit(e)
         fom_pv, fom_cf = compute_fixed_om_cost(e)
 
         (inv_pv == 0 && inv_cf == 0 && fom_pv == 0 && fom_cf == 0) && continue
@@ -831,7 +836,7 @@ function get_fixed_costs_benders(system::System, settings::NamedTuple, scaling::
         zone = get_zone_name(e)
         asset_type = get_type(edge_asset_map[id(e)])
 
-        for (category, cost_pv, cost_cf) in [(:Investment, inv_pv, inv_cf), (:FixedOM, fom_pv, fom_cf)]
+        for (category, cost_pv, cost_cf) in [(:Investment, inv_pv, inv_cf), (:InvestmentCredit, -credit_pv, -credit_cf), (:FixedOM, fom_pv, fom_cf)]
             (cost_pv == 0 && cost_cf == 0) && continue
             push!(zones, zone)
             push!(types, asset_type)
@@ -844,6 +849,7 @@ function get_fixed_costs_benders(system::System, settings::NamedTuple, scaling::
     # Collect fixed costs from storages (Investment/FixedOM are both discounted and undiscounted at period start)
     for g in storages
         inv_pv, inv_cf = compute_investment_cost(g)
+        credit_pv, credit_cf = compute_investment_credit(g)
         fom_pv, fom_cf = compute_fixed_om_cost(g)
 
         (inv_pv == 0 && inv_cf == 0 && fom_pv == 0 && fom_cf == 0) && continue
@@ -851,7 +857,7 @@ function get_fixed_costs_benders(system::System, settings::NamedTuple, scaling::
         zone = get_zone_name(g)
         asset_type = get_type(storage_asset_map[id(g)])
 
-        for (category, cost_pv, cost_cf) in [(:Investment, inv_pv, inv_cf), (:FixedOM, fom_pv, fom_cf)]
+        for (category, cost_pv, cost_cf) in [(:Investment, inv_pv, inv_cf), (:InvestmentCredit, -credit_pv, -credit_cf), (:FixedOM, fom_pv, fom_cf)]
             (cost_pv == 0 && cost_cf == 0) && continue
             push!(zones, zone)
             push!(types, asset_type)
