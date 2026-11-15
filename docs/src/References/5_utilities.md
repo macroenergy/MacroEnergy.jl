@@ -24,6 +24,11 @@ MacroEnergy.array_container
 MacroEnergy.add_flow_to_vertex_balances!
 ```
 
+## `add_investment_credit_payment!`
+```@docs
+MacroEnergy.add_investment_credit_payment!
+```
+
 ## `asset_ids`
 ```@docs
 MacroEnergy.asset_ids
