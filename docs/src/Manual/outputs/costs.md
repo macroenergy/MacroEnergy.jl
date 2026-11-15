@@ -32,7 +32,7 @@ These files contain exactly three rows — one for fixed costs, one for variable
 
 | `variable` | Description |
 |---|---|
-| `DiscountedFixedCost` | Present value of all fixed costs (investment annuities + fixed O&M) |
+| `DiscountedFixedCost` | Present value of all fixed costs (investment annuities + fixed O&M), less investment credits |
 | `DiscountedVariableCost` | Present value of all variable costs (variable O&M, fuel, startup, NSD penalties) |
 | `DiscountedTotalCost` | Sum of `DiscountedFixedCost` + `DiscountedVariableCost` (the objective value) |
 
@@ -40,7 +40,7 @@ These files contain exactly three rows — one for fixed costs, one for variable
 
 | `variable` | Description |
 |---|---|
-| `FixedCost` | Undiscounted total fixed costs |
+| `FixedCost` | Undiscounted total fixed costs, less investment credits |
 | `VariableCost` | Undiscounted total variable costs |
 | `TotalCost` | Sum of `FixedCost` + `VariableCost` |
 
@@ -80,7 +80,10 @@ Internally, Macro splits categories into two groups that use different discounti
 | Category | Discounted | Undiscounted |
 |---|---|---|
 | `Investment` | Annualized capital expenditure (CAPEX), amortized over the capital recovery period via CRF and then present-valued over the years the asset operates within the modeling horizon | Lump-sum CAPEX multiplied by the capital recovery factor (CRF) to annualize it, then multiplied by the number of years the asset operates within the modeling horizon (up to the CRP) |
+| `InvestmentCredit` | Negative investment credit: `investment_credit_rate` times the discounted `Investment` cost of the component | Negative investment credit: `investment_credit_rate` times the undiscounted `Investment` cost of the component |
 | `FixedOM` | Annual fixed operations and maintenance cost, present-valued over the period length | Annual fixed operations and maintenance cost multiplied by the period length |
+
+System totals already include the `InvestmentCredit` category. The separate [Investment Credits Output](@ref manual-outputs-investment_credit) reports positive credits by resource; do not subtract them again.
 
 **Variable operating cost categories** 
 
@@ -126,6 +129,7 @@ Given these definitions, the cost categories are computed as follows:
 | Category | Discounted value | Undiscounted value |
 |---|---|---|
 | `Investment` | $\text{CAPEX} \times \text{CRF}(DR, \text{CRP}) \times \text{PVAF}(DR,\, \min(\text{CRP},\, M_i)) \times \text{DF}(DR, N_i)$ | $\text{CAPEX} \times \text{CRF}(DR, \text{CRP}) \times \min(\text{CRP},\, M_i)$ |
+| `InvestmentCredit` | $-r \times$ the discounted `Investment` value | $-r \times$ the undiscounted `Investment` value |
 | `FixedOM` | annual fixed O&M $\times\, \text{PVAF}(DR, L_i) \times \text{DF}(DR, N_i)$ | annual fixed O&M $\times\, L_i$ |
 
 !!! note "Myopic investment cost reporting"

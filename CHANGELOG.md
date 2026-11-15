@@ -9,6 +9,7 @@ and this project follows Julia package versioning through `Project.toml` release
 
 ### Added
 
+- Added `investment_credit_rate` to edges and storages: the share of the investment cost of new capacity returned as a credit, between 0 and 1, e.g. an investment tax credit. The credit is subtracted once from the investment cost in the objective, reported as the negative `InvestmentCredit` cost category and written to `investment_credits.csv` (follows `WriteOutputs.Costs`). It adds no variables or constraints, and Benders needs no additional settings.
 - Added a `commodities` object to location inputs for defining commodity nodes directly in `locations.json`, including demand, supply segments, time series, and node constraints. Empty objects use existing node defaults and generate `<location>_<commodity>` node IDs; explicit IDs override the default. Existing location-name strings and independent `nodes.json` definitions remain supported.
 - Added `write_json(io::IO, data::AbstractDict)` for writing JSON to a caller-owned stream without closing it.
 

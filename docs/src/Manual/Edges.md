@@ -78,6 +78,7 @@ It is not currently possible to define `Edges` outside of Assets using the stand
 |--------------------------|---------------------------|---------------------------------------|----------|------------|
 | `investment_cost`        | Float64                   | CAPEX per unit capacity               | \$/MW     | 0.0        |
 | `annualized_investment_cost` | Float64               | Annualized CAPEX                      | \$/MW/yr  | calculated |
+| `investment_credit_rate` | Float64                   | Share of the investment cost of new capacity credited ([investment credit](@ref user_investment_credit)) | fraction | 0.0 |
 | `fixed_om_cost`          | Float64                   | Fixed O&M costs                       | \$/MW/yr  | 0.0        |
 | `variable_om_cost`       | Float64                   | Variable O&M costs                    | \$/MWh    | 0.0        |
 | `wacc`                   | Float64                   | Weighted average cost of capital      | fraction | 0.0        |

@@ -103,6 +103,10 @@ with_logger(test_logger) do
         include("test_myopic.jl")
     end
 
+    Test.@testset verbose = true "Investment Credits" begin
+        include("test_investment_credit.jl")
+    end
+
     Test.@testset verbose = true "Container Types and Accessors" begin
         include("test_container_types.jl")
         include("test_accessor_allocation.jl")

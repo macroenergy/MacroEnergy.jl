@@ -298,3 +298,10 @@ MacroEnergy.compute_supply_cost
 ```@docs
 MacroEnergy.compute_slack_cost
 ```
+
+## Investment credit helpers
+
+```@docs
+MacroEnergy.compute_investment_credit
+MacroEnergy.get_investment_credits
+```
