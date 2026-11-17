@@ -215,6 +215,7 @@ retired_capacity_track(g::AbstractStorage) = g.retired_capacity_track;
 retired_capacity_track(g::AbstractStorage,s::Int64) =  (haskey(retired_capacity_track(g),s) == false) ? 0.0 : g.retired_capacity_track[s];
 retired_units(g::AbstractStorage) = g.retired_units;
 retirement_period(g::AbstractStorage) = g.retirement_period;
+retrofitted_capacity(g::AbstractStorage) = 0.0; ### Note that retrofits are not implemented for storage yet
 retrofitted_capacity_track(g::AbstractStorage,s::Int64) = 0.0; ### Note that retrofits are not implemented for storage yet
 spillage_edge(g::AbstractStorage) = g.spillage_edge;
 storage_level(g::AbstractStorage) = g.storage_level;
