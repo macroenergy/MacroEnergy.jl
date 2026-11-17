@@ -16,6 +16,7 @@ and this project follows Julia package versioning through `Project.toml` release
 
 - Added `edge_losses.csv` output file to report the commodity lost on every edge with a nonzero `loss_fraction`, for all solution algorithms and in the full time series (key `Losses` in `OutputLayout`, `OutputFormat` and `WriteOutputs`). Lossy `BidirectionalEdge`s now hold their `flow_pos`/`flow_neg` pair as fields.
 - Fixed `mermaid_diagram` to create explicit placeholder endpoints in its temporary system, preserving asset diagrams with stricter `AutoCreateNodes` endpoint validation. Commodity names also resolve consistently when called from another Julia module.
+- Fixed writing capacity outputs for storage when `Retrofitting` is enabled.
 
 ### Fixed
 
