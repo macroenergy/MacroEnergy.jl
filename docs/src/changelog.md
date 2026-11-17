@@ -9,6 +9,12 @@ and this project follows Julia package versioning through `Project.toml` release
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-11-17
+
+### Fixed
+
+- Fixed writing capacity outputs for storage when `Retrofitting` is enabled (#325)
+
 ## [0.3.0] - 2026-11-10
 
 ### Added

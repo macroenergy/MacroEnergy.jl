@@ -425,6 +425,19 @@ function test_writing_output()
         @test result_fast isa DataFrame
         @test size(result_fast, 1) == 6
         @test result_fast[1, :value] == 100.0  # No scaling applied
+
+        # Retrofits are not implemented for storage, so retrofitted capacity is reported as zero
+        storage_td = TimeData{Electricity}(; time_interval=1:4)
+        for S in (Storage, MacroEnergy.LongDurationStorage)
+            retrofit_result = get_optimal_capacity_by_field(
+                [S{Electricity}(; id=:storage_retrofit, timedata=storage_td)],
+                MacroEnergy.retrofitted_capacity,
+                1.0,
+            )
+            @test nrow(retrofit_result) == 1
+            @test retrofit_result[1, :variable] == :retrofitted_capacity
+            @test retrofit_result[1, :value] == 0.0
+        end
     end
 
     @testset "write_capacity returns pristine full results, reused for the cross-period summary" begin
@@ -461,6 +474,14 @@ function test_writing_output()
         without_tags = write_capacity(joinpath(test_dir, "capacity_without_tags.csv"), system, scaling)
         @test !hasproperty(without_tags, :tags)
         @test !hasproperty(MacroEnergy.load_dataframe(joinpath(test_dir, "capacity_without_tags.csv")), :tags)
+
+        # With retrofitting on, the system's storage gets a zero retrofitted_capacity row
+        system.settings = MacroEnergy.configure_settings((Retrofitting=true,))
+        with_retrofits = write_capacity(joinpath(test_dir, "capacity_with_retrofits.csv"), system, scaling)
+        storage_retrofit_rows = with_retrofits[
+            (with_retrofits.component_id .== :storage1) .& (with_retrofits.variable .== :retrofitted_capacity), :]
+        @test nrow(storage_retrofit_rows) == 1
+        @test storage_retrofit_rows[1, :value] == 0.0
         system.settings = MacroEnergy.configure_settings(NamedTuple())
 
         rm(test_dir, recursive=true)
