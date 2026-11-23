@@ -285,20 +285,22 @@ end
 # A period whose `settings` entry points to the case-level settings file has no settings of its
 # own. Drop the entry, so that the period does not get a private copy of the case-level file,
 # which would then look like separate per-period settings. As in `merged_settings`, a Case with no
-# top-level `settings` entry uses settings/case_settings.json, if there is one.
+# top-level `settings` entry uses settings/case_settings.json, if there is one. Entries are
+# compared by the file the loader reads: a directory names case_settings.json for the Case but
+# macro_settings.json for a period, so the same directory in both can name two different files.
 function tdr_drop_case_level_settings!(root::AbstractDict, case_root::String)
-    settings_path(entry) = entry isa AbstractDict && haskey(entry, "path") ?
-        normpath(abspath(case_root, String(entry["path"]))) : nothing
     case_entry = get(root, "settings", nothing)
     case_settings = if isnothing(case_entry)
         implicit = normpath(abspath(case_root, "settings", CASE_SETTINGS_FILENAME))
         isfile(implicit) ? implicit : nothing
     else
-        settings_path(case_entry)
+        settings_source_file(settings_dict(case_entry), case_root, CASE_ENTRY_FILENAMES)
     end
     isnothing(case_settings) && return nothing
     for system in root["case"]
-        system isa AbstractDict && same_settings_file(settings_path(get(system, "settings", nothing)), case_settings) &&
+        entry = system isa AbstractDict ? get(system, "settings", nothing) : nothing
+        isnothing(entry) && continue
+        same_settings_file(settings_source_file(settings_dict(entry), case_root, PERIOD_ENTRY_FILENAMES), case_settings) &&
             delete!(system, "settings")
     end
     return nothing

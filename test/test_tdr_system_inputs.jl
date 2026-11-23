@@ -374,6 +374,29 @@ end
         if isfile(joinpath(root, "Settings", "Case_Settings.json"))
             @test period_settings(Dict("case" => [period("Settings/Case_Settings.json")], "settings" => case_file)) == [nothing]
         end
+        # The same directory names case_settings.json for the Case but macro_settings.json for a
+        # period: the periods keep their entries
+        directory = Dict("path" => "settings")
+        @test period_settings(Dict("case" => [period(directory), period(directory)], "settings" => directory)) == [directory, directory]
+        # With only case_settings.json in it, the directory names that file for both
+        rm(joinpath(root, "settings", "macro_settings.json"))
+        @test period_settings(Dict("case" => [period(directory)], "settings" => directory)) == [nothing]
+    end
+end
+
+@testset "TDR keeps the settings of a Case whose entries name one directory" begin
+    mktempdir() do root
+        mkpath(joinpath(root, "settings"))
+        write(joinpath(root, "time_data.json"), "{}")
+        write(joinpath(root, "settings", "case_settings.json"), """{"PeriodLengths": [1, 1]}""")
+        write(joinpath(root, "settings", "macro_settings.json"), """{"ConstraintScaling": true, "OutputLayout": "wide"}""")
+        directory = Dict("path" => "settings")
+        period = Dict{String,Any}("time_data" => Dict("path" => "time_data.json"), "settings" => directory)
+        MacroEnergy.write_json(joinpath(root, "system_data.json"), Dict("case" => [period, deepcopy(period)], "settings" => directory))
+        settings = MacroEnergy.tdr_read_case_settings(root, first(MacroEnergy.tdr_system_entries(root)))
+        @test settings["PeriodLengths"] == [1, 1]
+        @test settings["ConstraintScaling"] == true
+        @test settings["OutputLayout"] == "wide"
     end
 end
 
