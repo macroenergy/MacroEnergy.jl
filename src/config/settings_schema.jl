@@ -22,6 +22,10 @@ const OUTPUT_LAYOUTS = ("long", "wide")
 const CASE_SETTINGS_FILENAME = "case_settings.json"
 # Before all settings moved to `case_settings.json`, each period pointed to its own file
 const LEGACY_SYSTEM_SETTINGS_FILENAME = "macro_settings.json"
+# The file a `settings` entry naming a directory is read from, the first that exists: the
+# top-level entry reads case_settings.json first, and a period's entry macro_settings.json first
+const CASE_ENTRY_FILENAMES = (CASE_SETTINGS_FILENAME, LEGACY_SYSTEM_SETTINGS_FILENAME)
+const PERIOD_ENTRY_FILENAMES = (LEGACY_SYSTEM_SETTINGS_FILENAME, CASE_SETTINGS_FILENAME)
 # The Benders settings can also be kept in this file, which takes priority over `BendersSettings`
 const BENDERS_SETTINGS_FILEPATH = "settings/benders_settings.json"
 

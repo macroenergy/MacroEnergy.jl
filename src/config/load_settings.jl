@@ -106,20 +106,28 @@ function single_system_case_settings(file_path::AbstractString, system_data::Abs
     return get(system_data, :settings, Dict{Symbol,Any}())
 end
 
-# Read a settings entry of system_data.json: a path, or `{"path": ...}`, to a file or to a directory
-# containing one of `filenames` (the first that exists), or the settings themselves. Return the
-# settings and the absolute path of the file they were read from (`nothing` for inline settings).
-function read_settings_source(source, rel_path::AbstractString, filenames::Tuple)
+# The file a settings entry of system_data.json names, as an absolute path: the entry is a path, or
+# `{"path": ...}`, to a file or to a directory containing one of `filenames` (the first that
+# exists). `nothing` if the entry holds the settings themselves. Everything that compares settings
+# files (the loader, `migrate_settings`, TDR) finds them here, so that they agree on which file
+# a directory entry names.
+function settings_source_file(source, rel_path::AbstractString, filenames::Tuple)::Union{Nothing,String}
     source isa AbstractString && (source = Dict{Symbol,Any}(:path => source))
     source isa AbstractDict || throw(InputValidationError("system_data.settings",
         "expected a path or an object, got $(repr(source))"))
-    haskey(source, :path) || return drop_unset_deprecated_settings!(settings_dict(source)), nothing
+    haskey(source, :path) || return nothing
     path = normpath(abspath(settings_file_path(source[:path], rel_path)))
-    if isdir(path)
-        candidates = [joinpath(path, filename) for filename in filenames]
-        index = findfirst(isfile, candidates)
-        path = isnothing(index) ? first(candidates) : candidates[index]
-    end
+    isdir(path) || return path
+    candidates = [joinpath(path, filename) for filename in filenames]
+    index = findfirst(isfile, candidates)
+    return isnothing(index) ? first(candidates) : candidates[index]
+end
+
+# Read a settings entry of system_data.json (see `settings_source_file`). Return the settings and
+# the absolute path of the file they were read from (`nothing` for inline settings).
+function read_settings_source(source, rel_path::AbstractString, filenames::Tuple)
+    path = settings_source_file(source, rel_path, filenames)
+    isnothing(path) && return drop_unset_deprecated_settings!(settings_dict(source)), nothing
     isfile(path) || error("Settings file not found: $path")
     return drop_unset_deprecated_settings!(settings_dict(read_file(path))), path
 end
@@ -134,16 +142,19 @@ same_settings_file(a, b) = !isnothing(a) && !isnothing(b) && samefile(a, b)
 # the case folder, so it is made absolute where it is found.
 settings_file_path(path::AbstractString, rel_path::AbstractString)::String = joinpath(rel_path, path)
 
-# The settings of `case_settings.json`, plus any deprecated per-period settings. A case without a
-# top-level `settings` entry uses the conventional file, if there is one.
-function merged_settings(case_data::AbstractDict{Symbol,Any}, case_dir::AbstractString)::OrderedDict{Symbol,Any}
+# The top-level `settings` entry of a case. A case without one uses the conventional file, if
+# there is one.
+function case_settings_entry(case_data::AbstractDict{Symbol,Any}, case_dir::AbstractString)
     source = get(case_data, :settings, nothing)
-    if isnothing(source)
-        # Absolute: the path already includes the case folder, which must not be joined to it again
-        implicit = abspath(case_dir, "settings", CASE_SETTINGS_FILENAME)
-        source = isfile(implicit) ? Dict{Symbol,Any}(:path => implicit) : Dict{Symbol,Any}()
-    end
-    settings, path = read_settings_source(source, case_dir, (CASE_SETTINGS_FILENAME, LEGACY_SYSTEM_SETTINGS_FILENAME))
+    isnothing(source) || return source
+    # Absolute: the path already includes the case folder, which must not be joined to it again
+    implicit = abspath(case_dir, "settings", CASE_SETTINGS_FILENAME)
+    return isfile(implicit) ? Dict{Symbol,Any}(:path => implicit) : Dict{Symbol,Any}()
+end
+
+# The settings of `case_settings.json`, plus any deprecated per-period settings
+function merged_settings(case_data::AbstractDict{Symbol,Any}, case_dir::AbstractString)::OrderedDict{Symbol,Any}
+    settings, path = read_settings_source(case_settings_entry(case_data, case_dir), case_dir, CASE_ENTRY_FILENAMES)
     legacy = legacy_period_settings(case_data[:case], case_dir, settings, path)
     isnothing(legacy) && return settings
     for (key, value) in legacy
