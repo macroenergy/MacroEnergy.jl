@@ -20,7 +20,7 @@ function generate_operation_subproblem(system::System,case_settings::NamedTuple,
 
     if include_subproblem_slacks == true && !haskey(model, :myslack_max)
         @info("Adding slack variables to ensure subproblems are always feasible")
-        slack_penalty = 2*maximum(coefficient(model[:eVariableCost],v) for v in all_variables(model))
+        slack_penalty = 2*maximum(abs(coefficient(model[:eVariableCost],v)) for v in all_variables(model))
         eq_cons_to_be_relaxed =  get_ldes_constraints_to_relax(system);
         less_ineq_cons_to_be_relaxed = get_policy_constraints_to_relax(system);
         greater_ineq_cons_to_be_relaxed = Vector{ConstraintRef}();
