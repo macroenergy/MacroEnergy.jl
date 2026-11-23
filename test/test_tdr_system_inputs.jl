@@ -400,6 +400,24 @@ end
     end
 end
 
+@testset "TDR copies an unused Benders file without reading it" begin
+    mktempdir() do root
+        mkpath(joinpath(root, "settings"))
+        write(joinpath(root, "time_data.json"), "{}")
+        write(joinpath(root, "settings", "benders_settings.json"), "{not json")
+        MacroEnergy.write_json(joinpath(root, "system_data.json"), Dict("time_data" => Dict("path" => "time_data.json")))
+        conventional = joinpath(root, "settings", "benders_settings.json")
+        @test conventional in keys(MacroEnergy.tdr_case_input_manifest(root))
+        output = joinpath(root, "..", basename(root) * "_copy")
+        try
+            MacroEnergy.tdr_copy_input_manifest!(root, mkpath(output))
+            @test read(joinpath(output, "settings", "benders_settings.json"), String) == "{not json"
+        finally
+            rm(output; recursive=true, force=true)
+        end
+    end
+end
+
 @testset "TDR follows a settings entry written as a plain path" begin
     mktempdir() do root
         mkpath(joinpath(root, "custom"))

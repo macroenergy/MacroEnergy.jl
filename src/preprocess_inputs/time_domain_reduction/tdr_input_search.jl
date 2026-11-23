@@ -184,9 +184,7 @@ function tdr_case_input_manifest(case_root::String; destination_root::String=cas
         end
     end
     root = isnothing(prepared) ? first(tdr_system_entries(case_root)) : prepared.root
-    for path in tdr_conventional_settings_files(case_root, root)
-        tdr_collect_manifest_paths!(manifest, case_root, path; destination_root)
-    end
+    tdr_collect_conventional_settings!(manifest, case_root, root; destination_root)
     for (directory, subdirectories, files) in walkdir(case_root)
         filter!(name -> !startswith(name, "results") &&
             !(directory == case_root && name == "TDR"), subdirectories)
@@ -217,9 +215,7 @@ function tdr_copy_input_manifest!(source_root::String, output_root::String; copy
     if length(systems) > 1 && isnothing(prepared)
         case_inputs = tdr_system_input_manifest(source_root,
             Dict(key => value for (key, value) in root if key != "case"))
-        for path in tdr_conventional_settings_files(source_root, root)
-            tdr_collect_manifest_paths!(case_inputs, source_root, path)
-        end
+        tdr_collect_conventional_settings!(case_inputs, source_root, root)
         additions = user_additions_path(source_root)
         filter!(manifest) do entry
             path = entry.first
@@ -252,14 +248,20 @@ function tdr_copy_input_manifest!(source_root::String, output_root::String; copy
     return nothing
 end
 
-# The settings files a case loads by their conventional names, with no reference in system_data.json:
-# settings/benders_settings.json, and settings/case_settings.json unless the Case names another file.
-function tdr_conventional_settings_files(case_root::String, root)
-    files = [joinpath(case_root, BENDERS_SETTINGS_FILEPATH)]
-    if !(haskey(root, "case") && !isnothing(get(root, "settings", nothing)))
-        push!(files, joinpath(case_root, "settings", CASE_SETTINGS_FILENAME))
+# Add the settings files a case loads by their conventional names, with no reference in
+# system_data.json: settings/case_settings.json unless the Case names another file, with the files
+# it names, and settings/benders_settings.json. The Benders file names no other files, and it is
+# copied without being read: a case that does not use Benders never reads it, so the file must
+# not stop preprocessing either.
+function tdr_collect_conventional_settings!(manifest::Dict{String,TDRTrackedInput}, case_root::String, root;
+    destination_root::String=case_root, read_input::Function=tdr_read_input_data)
+    case_settings = joinpath(case_root, "settings", CASE_SETTINGS_FILENAME)
+    if !(haskey(root, "case") && !isnothing(get(root, "settings", nothing))) && isfile(case_settings)
+        tdr_collect_manifest_paths!(manifest, case_root, case_settings; destination_root, read_input)
     end
-    return filter(isfile, files)
+    benders_settings = joinpath(case_root, BENDERS_SETTINGS_FILEPATH)
+    isfile(benders_settings) && tdr_manifest_path!(manifest, case_root, benders_settings; destination_root)
+    return nothing
 end
 
 function tdr_system_entries(case_root::String)

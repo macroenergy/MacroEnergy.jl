@@ -119,9 +119,7 @@ function tdr_output_cache_fingerprint(
         case_definition = haskey(root, "case") ? Dict(key => value for (key, value) in root if key != "case") : Dict()
         tdr_collect_manifest_references!(manifest, case_root, case_definition, Set{String}();
             recursive_directories=false)
-        for path in tdr_conventional_settings_files(case_root, root)
-            tdr_collect_manifest_paths!(manifest, case_root, path)
-        end
+        tdr_collect_conventional_settings!(manifest, case_root, root)
         additions = user_additions_path(case_root)
         isdir(additions) && tdr_collect_manifest_paths!(manifest, case_root, additions)
         system, case_definition, manifest
