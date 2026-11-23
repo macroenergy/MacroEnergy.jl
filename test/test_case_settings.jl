@@ -603,6 +603,26 @@ function test_system_data_survives_loading()
             @test isinf(read_json(path)[:settings][:MyopicSettings][:StopAfterPeriod])
         end
     end
+    @testset "A generated system_data.json names the settings file the case has" begin
+        generated_settings(dir) = (with_logger(() -> prep_system_data(joinpath(dir, "system_data.json")), NullLogger());
+            read_json(joinpath(dir, "system_data.json"))[:settings][:path])
+        mktempdir() do dir
+            @test generated_settings(dir) == "settings/case_settings.json"
+        end
+        # A case written for an earlier version: its settings are in macro_settings.json
+        mktempdir() do dir
+            mkpath(joinpath(dir, "settings"))
+            write(joinpath(dir, "settings", "macro_settings.json"), """{"ConstraintScaling": true}""")
+            @test generated_settings(dir) == "settings/macro_settings.json"
+            rm(joinpath(dir, "system_data.json"))
+            # With case_settings.json too, both are read, as earlier versions did
+            write(joinpath(dir, "settings", "case_settings.json"), """{"DiscountRate": 0.05}""")
+            @test generated_settings(dir) == "settings/macro_settings.json"
+            settings = with_logger(() -> standalone_settings(
+                Dict{Symbol,Any}(:settings => Dict{Symbol,Any}(:path => "settings/macro_settings.json")), dir), NullLogger())
+            @test settings.ConstraintScaling && settings.DiscountRate == 0.05
+        end
+    end
 end
 
 function test_old_names_before_the_model()

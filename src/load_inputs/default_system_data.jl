@@ -9,6 +9,16 @@ function default_system_data()
     )
 end
 
+# The `settings` entry of a system_data.json generated for a case that has none. A case written for
+# an earlier version keeps its settings in settings/macro_settings.json, which the generated file
+# names then, as earlier versions did: the case loads with those settings, and with
+# settings/case_settings.json too if it has one, as a deprecated two-file layout.
+function default_settings_entry(case_dir::AbstractString)::Dict{Symbol,Any}
+    legacy = "settings/$LEGACY_SYSTEM_SETTINGS_FILENAME"
+    path = isfile(joinpath(case_dir, legacy)) ? legacy : "settings/$CASE_SETTINGS_FILENAME"
+    return Dict{Symbol,Any}(:path => path)
+end
+
 """
     load_default_system_data()::Dict{Symbol,Any}
 
@@ -44,6 +54,7 @@ function prep_system_data(file_path::AbstractString)::Nothing
     else
         @warn("No system data file found at $file_path.\nUsing default system data")
         system_data = load_default_system_data()
+        system_data[:settings] = default_settings_entry(dirname(file_path))
     end
 
     # FIXME currently overwriting and then re-reading the system_data
