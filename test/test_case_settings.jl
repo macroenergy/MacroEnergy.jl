@@ -40,6 +40,8 @@ import MacroEnergy:
     period_index,
     Electricity
 
+include("utilities.jl")
+
 const test_path = joinpath(@__DIR__, "test_inputs")
 const test_path_data = joinpath(test_path, "system_data.json")
 
@@ -473,7 +475,7 @@ function test_older_settings_files()
     # The same Benders settings with either value of lazy_load: eager loading puts the contents of
     # the file named by BendersSettings.path in place of the path
     @testset "Benders settings do not depend on lazy_load" begin
-        mktempdir() do root
+        mktempdir_released() do root
             dir = joinpath(root, "case")
             cp(test_path, dir)
             write_json(joinpath(dir, "settings", "case_settings.json"),
@@ -529,7 +531,7 @@ function test_settings_entry_forms()
     # A file found by its conventional name already includes the case folder: with a relative
     # case path, joining the case folder again looked for <case>/<case>/settings/case_settings.json
     @testset "Cases load from a relative path" begin
-        mktempdir() do root
+        mktempdir_released() do root
             system = read_json(test_path_data)
             without_entry = Dict(key => value for (key, value) in pairs(system) if key != :settings)
             layouts = (
@@ -819,7 +821,7 @@ function test_settings_file_reloads()
 
     @testset "A case loads with the settings.json of an earlier run" begin
         for fixture in ("test_inputs", "test_small_case")
-            mktempdir() do root
+            mktempdir_released() do root
                 case_dir = joinpath(root, "case")
                 cp(joinpath(@__DIR__, fixture), case_dir)
                 rm(joinpath(case_dir, "results"); recursive=true, force=true)
@@ -836,7 +838,7 @@ function test_settings_file_reloads()
         end
         # A Benders run that read its settings from a file named in case_settings.json: the
         # snapshot keeps them, although settings/benders_settings.json is still there
-        mktempdir() do root
+        mktempdir_released() do root
             case_dir = joinpath(root, "case")
             cp(joinpath(@__DIR__, "test_inputs"), case_dir)
             write_json(joinpath(case_dir, "settings", "case_settings.json"),
@@ -852,7 +854,7 @@ function test_settings_file_reloads()
             @test isequal(reloaded.settings, original.settings)
         end
         # A rate written by hand as a whole number
-        mktempdir() do root
+        mktempdir_released() do root
             case_dir = joinpath(root, "case")
             cp(joinpath(@__DIR__, "test_inputs"), case_dir)
             for rate in ("0", "0.0")

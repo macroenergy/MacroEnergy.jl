@@ -6,6 +6,8 @@ using JSON3
 using MacroEnergy
 import MacroEnergy: migrate_settings, resolve_settings, standalone_settings, settings_dict, read_json, InputValidationError
 
+include("utilities.jl")
+
 # Write the files of a case, given as `relative path => JSON text`
 function write_case(dir, files)
     for (path, text) in files
@@ -353,7 +355,7 @@ period(name) = """{"time_data": {"path": "$name.json"}, "settings": {"path": "se
     end
 
     @testset "A case migrated from the test inputs loads with the same settings" begin
-        mktempdir() do dir
+        mktempdir_released() do dir
             cp(joinpath(@__DIR__, "test_inputs"), joinpath(dir, "case"))
             case_dir = joinpath(dir, "case")
             system = JSON3.read(read(joinpath(case_dir, "system_data.json"), String), Dict{String,Any})
