@@ -37,10 +37,102 @@ function finalize_planning_model_objective!(
 
     _, number_of_subperiods = get_period_to_subproblem_mapping(periods)
     @expression(model, eLowerBoundOperatingCost[w in 1:number_of_subperiods], AffExpr(0.0))
+    set_operating_cost_lower_bounds!(model, periods, settings)
 
     @objective(model, Min, model[:eFixedCost])
 
     return nothing
+end
+
+"""
+Set Benders lower bounds before the solver creates its theta constraints.
+By default each bound is `default_operating_cost_lower_bounds`, affine in the planning capacities.
+`BendersSettings[:OperatingCostLowerBounds]`, if given, replaces it: it maps period IDs to vectors,
+ordered by that period's representative subperiods, of annual weighted operating-cost lower bounds
+in original currency, valid for all allowed capacities. User bounds are converted with parameter
+scaling, period annuity, and case-start discounting.
+"""
+function set_operating_cost_lower_bounds!(model::Model, periods::Vector{System}, settings::NamedTuple)
+    bounds = get(settings.BendersSettings, :OperatingCostLowerBounds, nothing)
+    if isnothing(bounds)
+        unbounded = String[]
+        default_bounds = default_operating_cost_lower_bounds(periods, settings, unbounded)
+        isempty(unbounded) || throw(ArgumentError(
+            "Benders cannot bound the operating cost automatically: these negative costs are not limited " *
+            "by a CapacityConstraint or a finite max_supply: $(join(unbounded, ", ")). " *
+            "Add such a limit or set OperatingCostLowerBounds for every modeled period."))
+        for (w, bound) in default_bounds
+            model[:eLowerBoundOperatingCost][w] = bound
+        end
+        return nothing
+    end
+    bounds isa Union{AbstractDict,NamedTuple} || throw(ArgumentError("OperatingCostLowerBounds must map period IDs to vectors."))
+    bounds = Dict(string(k) => v for (k, v) in pairs(bounds))
+    mapping, _ = get_period_to_subproblem_mapping(periods)
+    factors = present_value_factor(settings.DiscountRate, collect(settings.PeriodLengths))
+    scaling = parameter_scaling_factor(settings)
+    for system in periods
+        p = period_index(system)
+        entries = get(bounds, string(p), nothing)
+        indices = mapping[p]
+        if !(entries isa AbstractVector) || length(entries) != length(indices)
+            throw(ArgumentError("OperatingCostLowerBounds period $p requires $(length(indices)) entries."))
+        end
+        multiplier = factors[p] * present_value_annuity_factor(settings.DiscountRate, settings.PeriodLengths[p]) / scaling^2
+        for (w, bound) in zip(indices, entries)
+            if !(bound isa Real) || bound isa Bool || !isfinite(bound)
+                throw(ArgumentError("OperatingCostLowerBounds period $p contains a non-finite or nonnumeric bound."))
+            end
+            model[:eLowerBoundOperatingCost][w] = AffExpr(Float64(bound) * multiplier)
+        end
+    end
+    return nothing
+end
+
+"""
+    default_operating_cost_lower_bounds(periods, settings, unbounded)
+
+Lower bound on each subproblem's discounted operating cost, in model units, keyed by subproblem index.
+Only negative unit costs can push the cost below zero: edge flows with `variable_om_cost < flow_credit_rate`,
+bounded by `availability × capacity` through a `CapacityConstraint`, and supply segments with a negative
+price, bounded by `max_supply`. All other operating cost terms are nonnegative. Components whose negative
+cost has no such limit are appended to `unbounded`.
+"""
+function default_operating_cost_lower_bounds(periods::Vector{System}, settings::NamedTuple, unbounded::Vector{String})
+    mapping, _ = get_period_to_subproblem_mapping(periods)
+    factors = present_value_factor(settings.DiscountRate, collect(settings.PeriodLengths))
+    bounds = Dict{Int64,AffExpr}()
+    for system in periods
+        p = period_index(system)
+        multiplier = factors[p] * present_value_annuity_factor(settings.DiscountRate, settings.PeriodLengths[p])
+        # Subproblems use the Electricity subperiods and weights for every commodity (generate_decomposed_system).
+        td = system.time_data[:Electricity]
+        for (i, w) in enumerate(mapping[p])
+            steps = td.subperiods[i]
+            weight = multiplier * td.subperiod_weights[td.subperiod_indices[i]]
+            bound = AffExpr(0.0)
+            for e in get_edges(system)
+                # BidirectionalEdge VOM is charged on |flow| and must be nonnegative; credits are rejected.
+                unit_cost = e isa BidirectionalEdge ? 0.0 : variable_om_cost(e) - flow_credit_rate(e)
+                unit_cost < 0 || continue
+                if has_capacity(e) && any(c -> c isa CapacityConstraint, e.constraints)
+                    add_to_expression!(bound, weight * unit_cost * sum(availability(e, t) for t in steps), capacity(e))
+                else
+                    push!(unbounded, string(id(e)))
+                end
+            end
+            for n in get_nodes(system), s in supply_segments(n), t in steps
+                price = price_supply(n, s, t)
+                price < 0 || continue
+                limit = max_supply(n, s, t)
+                isfinite(limit) ? add_to_expression!(bound, weight * price * limit) :
+                    push!(unbounded, "$(id(n)) supply segment $(supply_segment_name(n, s))")
+            end
+            bounds[w] = bound
+        end
+    end
+    unique!(unbounded)
+    return bounds
 end
 
 function get_available_capacity(periods::Vector{System})

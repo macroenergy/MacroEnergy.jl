@@ -59,7 +59,7 @@ function test_inputs()
         @test only(make_credit_system().assets).edge.investment_credit_rate == 0.0
         @test only(make_credit_system(rate = 0.3).assets).edge.investment_credit_rate == 0.3
         _, battery = make_battery_credit_system(Dict{Symbol,Any}(:storage_investment_credit_rate => 0.4))
-        @test battery.storage.investment_credit_rate == 0.4
+        @test battery.battery_storage.investment_credit_rate == 0.4
         @test battery.discharge_edge.investment_credit_rate == 0.0
         # The credit applies to new capacity, so it needs a component with capacity.
         @test_throws ArgumentError build_test_model(make_credit_system(rate = 0.3, has_capacity = false))
@@ -92,7 +92,7 @@ function test_small_model()
         model = build_test_model(system)
         reference, _ = make_battery_credit_system(Dict{Symbol,Any}(:storage_investment_cost => 2.0 * 0.6))
         @test objective_value(model) ≈ objective_value(build_test_model(reference)) rtol = 1e-9
-        @test value(ME.new_capacity(battery.storage)) > 0
+        @test value(ME.new_capacity(battery.battery_storage)) > 0
     end
 
     @testset "Parameter scaling leaves the rate unchanged" begin
