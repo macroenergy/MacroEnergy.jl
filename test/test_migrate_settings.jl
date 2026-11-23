@@ -233,13 +233,14 @@ period(name) = """{"time_data": {"path": "$name.json"}, "settings": {"path": "se
             end
             @test snapshot(other) == original
         end
-        # A file outside the case is reported in full
+        # A file outside the case is reported in full, with "/" on every OS
         mktempdir() do root
             shared, dir = mkpath(joinpath(root, "shared")), mkpath(joinpath(root, "case"))
             write_case(shared, ["macro_settings.json" => """{"ConstraintScaling": true}"""])
             outside = joinpath(shared, "macro_settings.json")
             write_case(dir, ["system_data.json" => """{"case": [{"settings": {"path": $(repr(outside))}}]}"""])
-            @test_logs (:info, Regex("delete them:\\n  - \\Q$outside\\E")) migrate_settings(dir)
+            shown = replace(outside, '\\' => '/')
+            @test_logs (:info, Regex("delete them:\\n  - \\Q$shown\\E")) migrate_settings(dir)
         end
     end
 
