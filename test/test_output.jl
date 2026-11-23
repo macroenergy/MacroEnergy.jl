@@ -389,6 +389,19 @@ function test_writing_output()
         @test result_fast isa DataFrame
         @test size(result_fast, 1) == 6
         @test result_fast[1, :value] == 100.0  # No scaling applied
+
+        # Retrofits are not implemented for storage capacity, so retrofitted capacity is reported as zero
+        storage_td = TimeData{Electricity}(; time_interval=1:4)
+        for S in (Storage, MacroEnergy.LongDurationStorage)
+            retrofit_result = get_optimal_capacity_by_field(
+                [S{Electricity}(; id=:storage_retrofit, timedata=storage_td)],
+                MacroEnergy.retrofitted_capacity,
+                1.0,
+            )
+            @test nrow(retrofit_result) == 1
+            @test retrofit_result[1, :variable] == :retrofitted_capacity
+            @test retrofit_result[1, :value] == 0.0
+        end
     end
 
     @testset "Flow Output Functions Tests" begin
