@@ -108,9 +108,22 @@ The term *annual* follows the supplied time weights. A case containing 168 h wit
 
 ## [Benders Settings](@id flow_credit_benders)
 
-A flow credit can make net operating cost negative. A zero operating-cost lower bound is therefore not assumed to be valid for Benders models with positive flow credits.
+A flow credit, like a negative `variable_om_cost` or a negative supply price, can make a subproblem's operating cost negative, so the usual zero lower bound on each subproblem's cost is not valid. Macro therefore sets a default bound for every subproblem ``w`` of period ``p``, affine in the planning capacities:
 
-Set `BendersSettings.OperatingCostLowerBounds` as a mapping from investment-period indices to arrays. Each array follows that period's subproblem order. Each entry is an annual operating-cost lower bound in **original monetary units, already including the representative-subperiod weight**. Do not include period length, discounting, or parameter scaling.
+```math
+\theta_{p,w} \ge \mathrm{DF}_p\mathrm{PVAF}_p\,\omega_w\Big[\sum_{e:\,c_e<0} c_e\,K_{e,p} \sum_{t\in w} a_{e,t} \;+ \sum_{(n,s,t):\,\pi_{n,s,t}<0,\ t\in w} \pi_{n,s,t}\,\overline{S}_{n,s,t}\Big],
+```
+
+where ``c_e = `` `variable_om_cost` ``-`` `flow_credit_rate` is the net unit cost of edge ``e``, ``a_{e,t}`` its availability and ``K_{e,p}`` its planning capacity, and ``\pi_{n,s,t}`` and ``\overline{S}_{n,s,t}`` are the price and `max_supply` of supply segment ``s`` at node ``n``. The bound holds for every capacity plan: each negative-cost flow is limited by its capacity (``\text{flow} \le a\,K`` through `CapacityConstraint`) or by `max_supply`, and all other operating costs are nonnegative. No user input is needed.
+
+Macro raises an error if a negative cost has no such limit, that is an edge with ``c_e < 0`` and no `CapacityConstraint`, or a supply segment with a negative price and no finite `max_supply`. In that case, set `OperatingCostLowerBounds` as described below.
+
+!!! note "Credits larger than fixed costs"
+    If one unit of an expandable edge's capacity could earn more from its credit at full availability than its investment and fixed O&M cost, the default bound does not limit that capacity before the first Benders cut, and the planning problem can be unbounded. If a Benders run fails on an unbounded planning problem, Macro reports the edges with a flow credit or a negative `variable_om_cost` and suggests adding a `MaxCapacityConstraint` with a finite `max_capacity` to those without one, or setting `OperatingCostLowerBounds`.
+
+### User-supplied bounds
+
+`BendersSettings.OperatingCostLowerBounds` replaces the default bound. It maps investment-period indices to arrays. Each array follows that period's subproblem order, and each entry is an annual operating-cost lower bound in **original monetary units, already including the representative-subperiod weight**. Do not include period length, discounting, or parameter scaling: Macro multiplies each entry by ``\mathrm{DF}_p\mathrm{PVAF}_p/S^2``. Provide an array for every modeled period. Myopic restarts use the original period index: a restart at period 2 reads key `"2"`.
 
 For a one-period model with one subproblem:
 
@@ -120,29 +133,14 @@ For a one-period model with one subproblem:
     "BendersSettings": {
         "OperatingCostLowerBounds": {
             "1": [-4000.0]
-        },
-        "IncludeSubproblemSlacksAutomatically": false,
-        "ExpectFeasibleSubproblems": true
+        }
     }
 }
 ```
 
-The bound above is valid if eligible capacity is limited to 100 MW, the subproblem has one 1 h step with unit weight, the rate is 40 per MWh, and all other operating costs are nonnegative. These are conditions for the bound, not general defaults.
+Macro validates the format and finite values of user bounds but does not prove them. A bound above the true minimum operating cost can make Benders stop with a negative gap or return a suboptimal plan.
 
-A conservative bound under those nonnegative-cost assumptions is:
-
-```math
-\mathrm{LB}_{p,w} = -\omega_w \sum_e r_{e,p}\overline{K}_e \sum_{t\in w} a_{e,t},
-```
-
-where ``\overline{K}_e`` is an enforced capacity limit and ``a_{e,t}`` is availability. The bound must hold for every permitted capacity plan. For expandable resources, the `max_capacity` input must be enforced by `MaxCapacityConstraint`; flow must also be bounded by `CapacityConstraint`. A parameter value alone is not a proof of a capacity limit. If capacity limits are disabled, derive a valid bound from other enforced limits. Additional negative costs or revenues require a new bound.
-
-The interface multiplies each input bound by ``\mathrm{DF}_p\mathrm{PVAF}_p/S^2`` before setting the existing Benders lower-bound expression. When the mapping is supplied, provide an array for every modeled period. Myopic restarts use the original period index: a restart at period 2 reads key `"2"`.
-
-!!! warning "Automatic subproblem slacks"
-    Both Monolithic and Benders support positive flow credits. With positive flow credits, Benders requires `IncludeSubproblemSlacksAutomatically=false`. The existing automatic-slack penalty has not been validated for negative operating costs. Ensure that the hard-constraint subproblems are feasible; setting `ExpectFeasibleSubproblems=true` does not itself establish feasibility.
-
-Macro validates the bound format and finite values, but does not derive or prove a bound. A Benders model with positive flow credits and no bound mapping produces an error. Models without flow credits retain the existing default when this mapping is omitted.
+Automatic subproblem slacks (`IncludeSubproblemSlacksAutomatically=true`) can be used with flow credits. The slack penalty is twice the largest absolute cost coefficient in the subproblem, so it exceeds the per-unit value of a credit.
 
 ## [Multiple Periods](@id flow_credit_periods)
 

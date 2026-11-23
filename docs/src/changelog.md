@@ -12,7 +12,7 @@ and this project follows Julia package versioning through `Project.toml` release
 ### Added
 
 - Commodity-independent flow credits through `flow_credit_rate`, with separate cost accounting, period-specific rates, and parameter scaling. Positive credits require unidirectional edges with `has_capacity=true` in the asset defaults; user capacity overrides do not change eligibility.
-- User-supplied Benders operating-cost lower bounds for negative net operating costs. Positive flow credits require these bounds and require automatic subproblem slacks to be disabled.
+- Benders sets a default lower bound on each subproblem's operating cost, affine in the planning capacities, when flow credits, a negative `variable_om_cost` or a negative supply price can make that cost negative. `BendersSettings.OperatingCostLowerBounds` optionally replaces it. The automatic-slack penalty uses absolute cost coefficients, so subproblem slacks can be used with flow credits.
 - `flow_credits.csv` with resource and edge identity, weighted flow, commodity identity, and annual, period, and discounted payments. Cost breakdowns include a negative `FlowCredit` category.
 - Added a `commodities` object to location inputs for defining commodity nodes directly in `locations.json`, including demand, supply segments, time series, and node constraints. Empty objects use existing node defaults and generate `<location>_<commodity>` node IDs; explicit IDs override the default. Existing location-name strings and independent `nodes.json` definitions remain supported.
 - Added `write_json(io::IO, data::AbstractDict)` for writing JSON to a caller-owned stream without closing it.

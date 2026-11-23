@@ -147,8 +147,8 @@ function test_inputs_and_bounds()
         @test_throws ArgumentError ME.add_flow_credit_payment!(bidirectional, Model())
         @test_throws ArgumentError ME.add_operation_model_varcosts!(bidirectional, Model())
     end
-    @testset "Benders lower-bound validation and slack guard" begin
-        for bounds in (nothing, Dict(:2 => [-4000.0]), Dict(:1 => [0.0, 0.0]),
+    @testset "Benders lower-bound validation and slack penalty" begin
+        for bounds in (Dict(:2 => [-4000.0]), Dict(:1 => [0.0, 0.0]),
             Dict(:1 => [NaN]), Dict(:1 => [Inf]), Dict(:1 => [true]), Dict(:1 => ["-4000"]))
             system = make_flow_credit_system()
             settings = settings_for(algorithm = "Benders", bounds = bounds)
@@ -156,7 +156,9 @@ function test_inputs_and_bounds()
             @test_throws ArgumentError ME.generate_model(ME.Case([system], settings),
                 optimizer_for("Benders"), ME.Benders())
         end
-        @test_throws ArgumentError ME.generate_operation_subproblem(make_flow_credit_system(), settings_for(), true)
+        # The slack penalty uses |coefficient|, so the credited flow's 3 - 40 sets it.
+        subproblem, _ = ME.generate_operation_subproblem(make_flow_credit_system(), settings_for(), true)
+        @test JuMP.coefficient(subproblem[:eVariableCost], subproblem[:myslack_max]) ≈ 2 * 37.0
         for rate in (0.0, 40.0)
             system = make_flow_credit_system(; rate)
             bounds = rate == 0.0 ? nothing : Dict(:1 => [-4000.0])
@@ -168,6 +170,56 @@ function test_inputs_and_bounds()
             expected = rate == 0.0 ? 0.0 : -4000.0 * factor / 1000.0^2
             @test JuMP.constant(model.planning_problem[:eLowerBoundOperatingCost][1]) ≈ expected
         end
+    end
+    @testset "Default Benders lower bound from planning capacities" begin
+        # At the fixed 100 MW (0.1 scaled), the bound equals the minimum operating cost 100 * (3 - 40),
+        # discounted and scaled. The planning capacity is a variable even when the edge cannot expand.
+        system = make_flow_credit_system()
+        settings = settings_for(algorithm = "Benders", scale = 1000.0, lengths = [2], discount = 0.05)
+        ME.prepare_case!([system], settings)
+        model = ME.generate_model(ME.Case([system], settings), optimizer_for("Benders"), ME.Benders())
+        factor = sum(1.05^(-year) for year in 1:2)
+        bound = model.planning_problem[:eLowerBoundOperatingCost][1]
+        @test JuMP.constant(bound) == 0.0
+        @test JuMP.coefficient(bound, ME.capacity(electricity_edge(system.assets[1]))) * 0.1 ≈ -3700.0 * factor / 1000.0^2
+        # Expandable capacity: the bound is affine in the planning capacity expression.
+        system = make_flow_credit_system(expand = true)
+        settings = settings_for(algorithm = "Benders")
+        ME.prepare_case!([system], settings)
+        model = ME.generate_model(ME.Case([system], settings), optimizer_for("Benders"), ME.Benders())
+        edge = electricity_edge(system.assets[1])
+        @test JuMP.isequal_canonical(model.planning_problem[:eLowerBoundOperatingCost][1], -37.0 * ME.capacity(edge))
+        # A negative cost without a CapacityConstraint cannot be bounded automatically.
+        system = make_flow_credit_system()
+        filter!(c -> !(c isa ME.CapacityConstraint), electricity_edge(system.assets[1]).constraints)
+        settings = settings_for(algorithm = "Benders")
+        ME.prepare_case!([system], settings)
+        @test_throws ArgumentError ME.generate_model(ME.Case([system], settings), optimizer_for("Benders"), ME.Benders())
+        # Benders converges without user bounds for a flow credit and for a negative VOM.
+        for (rate, vom) in ((40.0, 3.0), (0.0, -37.0))
+            system = make_flow_credit_system(; rate, vom)
+            settings = settings_for(algorithm = "Benders")
+            ME.prepare_case!([system], settings)
+            case, model = ME.solve_case(ME.Case([system], settings), optimizer_for("Benders"))
+            @test ME.solution_outcome(model).status == "OK"
+            @test last(model.convergence.UB_hist) ≈ -3700.0 atol = 1e-6
+            @test last(model.convergence.LB_hist) ≈ -3700.0 atol = 1e-6
+        end
+    end
+    @testset "Diagnostic for an unbounded Benders planning problem" begin
+        # Uncapped expandable edge: before any cut, the credit (37 per MW) outweighs fixed O&M (1 per MW).
+        system = make_flow_credit_system(expand = true)
+        filter!(c -> !(c isa ME.MaxCapacityConstraint), electricity_edge(system.assets[1]).constraints)
+        settings = settings_for(algorithm = "Benders")
+        ME.prepare_case!([system], settings)
+        bm = ME.generate_model(ME.Case([system], settings), optimizer_for("Benders"), ME.Benders())
+        planning = bm.planning_problem
+        @objective(planning, Min, planning[:eFixedCost] + sum(planning[:eLowerBoundOperatingCost]))
+        JuMP.optimize!(planning)
+        @test ME.planning_problem_unbounded(planning)
+        message = ME.unbounded_planning_diagnostic(bm)
+        @test occursin("flow_credit_generator_edge", message)
+        @test occursin("MaxCapacityConstraint", message)
     end
 end
 
