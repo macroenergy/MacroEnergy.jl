@@ -52,6 +52,14 @@ In this example, the user has enabled:
 
 Settings that are not listed keep their default values. Unknown settings are an error, so a misspelled name cannot be silently ignored.
 
+Macro checks all the settings before it stops, and lists every invalid setting in one error, with its full name:
+
+```
+InputValidationError: 2 invalid inputs:
+  case_settings: unknown key(s) ConstraintScalling. Valid keys are: PeriodLengths, DiscountRate, ...
+  case_settings.DiscountRate: expected a number ≥ 0, got -0.05
+```
+
 JSON has no comments, so keys starting with `#` are treated as comments and ignored, at any level of the file:
 
 ```json

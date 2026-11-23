@@ -72,14 +72,18 @@ Settings given per period (the `settings` entry of each period, usually
 `settings/macro_settings.json`) are deprecated: they are still read, with a warning, but they
 must be the same for every period and must not contradict `case_settings.json`.
 Deprecated keys are translated (see `translate_deprecated_settings`) and unknown keys are an error.
+With `num_periods`, `PeriodLengths` must also have one length per period. Once the settings are
+read, every invalid setting found is listed in one `InputValidationError`.
 """
-function resolve_settings(case_data::AbstractDict{Symbol,Any}, case_dir::AbstractString)::NamedTuple
+function resolve_settings(case_data::AbstractDict{Symbol,Any}, case_dir::AbstractString;
+    num_periods::Union{Nothing,Int}=nothing,
+)::NamedTuple
     @info("Configuring settings")
     raw = merged_settings(case_data, case_dir)
     if get(raw, :SolutionAlgorithm, nothing) == "Benders"
         load_benders_settings(raw, case_dir)
     end
-    settings = configure_settings(raw)
+    settings = configure_settings(raw; num_periods)
     @info(" -- Solution algorithm set to $(settings[:SolutionAlgorithm])")
     @info(" -- Expansion horizon set to $(settings[:ExpansionHorizon])")
     return settings

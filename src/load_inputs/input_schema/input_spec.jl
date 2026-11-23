@@ -9,16 +9,31 @@
 
 """
     InputValidationError(path::String, msg::String)
+    InputValidationError(invalid::Vector{Pair{String,String}})
 
-Error thrown when an input does not match its spec. `path` is the full key path of the invalid value
-(e.g., `"case_settings.BendersSettings.MaxIter"`) and `msg` says what was expected.
+Error thrown when inputs do not match their spec. It lists every invalid input found, each as its
+full key path (e.g., `"case_settings.BendersSettings.MaxIter"`) and a message that says what was
+expected.
 """
 struct InputValidationError <: Exception
-    path::String
-    msg::String
+    invalid::Vector{Pair{String,String}}
 end
 
-Base.showerror(io::IO, e::InputValidationError) = print(io, "InputValidationError: ", e.path, ": ", e.msg)
+InputValidationError(path::AbstractString, msg::AbstractString) = InputValidationError([String(path) => String(msg)])
+
+function Base.showerror(io::IO, e::InputValidationError)
+    print(io, "InputValidationError: ")
+    if length(e.invalid) == 1
+        path, msg = only(e.invalid)
+        print(io, path, ": ", msg)
+    else
+        print(io, length(e.invalid), " invalid inputs:")
+        for (path, msg) in e.invalid
+            print(io, "\n  ", path, ": ", msg)
+        end
+    end
+    return nothing
+end
 
 abstract type AbstractInputSpec end
 
@@ -124,7 +139,7 @@ Spec of an input object made of named `fields` (`InputField`, `InputMap` or nest
 - `additional_properties`: accept keys that are not declared in `fields`.
 - `check`: an optional function of the block's values that returns `nothing` when the values
   are consistent, or a message string otherwise. Use it only for rules that relate several keys.
-  It runs after every declared key has been validated.
+  It runs only if the values of the declared keys are all valid.
 """
 struct InputBlock <: AbstractInputSpec
     name::Symbol
@@ -189,30 +204,6 @@ function merge_defaults(block::InputBlock, values)::OrderedDict{Symbol,Any}
     return merged
 end
 
-"""
-    validate_inputs(block::InputBlock, values; path=String(block.name))::Nothing
-
-Check `values` (a `Symbol`-keyed dictionary or a `NamedTuple`) against `block`, and throw an
-`InputValidationError` naming the full key path of the first problem found.
-Keys declared in `block` but absent from `values` are not checked.
-"""
-function validate_inputs(block::InputBlock, values; path::AbstractString=String(block.name))::Nothing
-    is_keyed(values) || throw(InputValidationError(path, "expected an object, got $(repr(values))"))
-    if !block.additional_properties
-        unknown = [key for key in keys(values) if key ∉ input_keys(block)]
-        isempty(unknown) || throw(InputValidationError(path,
-            "unknown key(s) $(join(unknown, ", ")). Valid keys are: $(join(input_keys(block), ", "))"))
-    end
-    for (key, value) in pairs(values)
-        spec = input_spec(block, key)
-        isnothing(spec) || validate_value(spec, value, "$path.$key")
-    end
-    if !isnothing(block.check)
-        msg = block.check(values)
-        isnothing(msg) || throw(InputValidationError(path, msg))
-    end
-    return nothing
-end
 
 """
     resolve_inputs(block::InputBlock, values; path=String(block.name))::OrderedDict{Symbol,Any}
@@ -226,32 +217,79 @@ function resolve_inputs(block::InputBlock, values; path::AbstractString=String(b
     return merged
 end
 
-validate_value(block::InputBlock, value, path::AbstractString) = validate_inputs(block, value; path)
+"""
+    validate_inputs(block::InputBlock, values; path=String(block.name))::Nothing
 
-function validate_value(map::InputMap, value, path::AbstractString)::Nothing
-    if is_keyed(value)
-        unknown = [key for key in keys(value) if key ∉ map.keys]
-        isempty(unknown) || throw(InputValidationError(path,
-            "unknown key(s) $(join(unknown, ", ")). Valid keys are: $(join(map.keys, ", "))"))
-        for (key, item) in pairs(value)
-            validate_value(map.entry, item, "$path.$key")
-        end
-    elseif map.allow_scalar
-        validate_value(map.entry, value, path)
-    else
-        throw(InputValidationError(path, "expected an object with keys among $(join(map.keys, ", ")), got $(repr(value))"))
-    end
+Check `values` (a `Symbol`-keyed dictionary or a `NamedTuple`) against `block`, and throw one
+`InputValidationError` that lists every invalid input found, each with its full key path.
+Keys declared in `block` but absent from `values` are not checked.
+"""
+function validate_inputs(block::InputBlock, values; path::AbstractString=String(block.name))::Nothing
+    return validate_value(block, values, path)
+end
+
+# Check `value` against `spec`, and throw one error that lists every invalid input found
+function validate_value(spec::AbstractInputSpec, value, path::AbstractString)::Nothing
+    invalid = invalid_inputs(spec, value, path)
+    isempty(invalid) || throw(InputValidationError(invalid))
     return nothing
 end
 
-function validate_value(field::InputField, value, path::AbstractString)::Nothing
+# The invalid inputs found in `value` by checking it against `spec`, as key path => message
+# pairs. Empty if `value` is valid.
+function invalid_inputs(spec::AbstractInputSpec, value, path::AbstractString)::Vector{Pair{String,String}}
+    invalid = Pair{String,String}[]
+    add_invalid_inputs!(invalid, spec, value, path)
+    return invalid
+end
+
+function add_invalid_inputs!(invalid::Vector{Pair{String,String}}, block::InputBlock, values, path::AbstractString)
+    if !is_keyed(values)
+        push!(invalid, path => "expected an object, got $(repr(values))")
+        return invalid
+    end
+    if !block.additional_properties
+        unknown = [key for key in keys(values) if key ∉ input_keys(block)]
+        isempty(unknown) || push!(invalid,
+            path => "unknown key(s) $(join(unknown, ", ")). Valid keys are: $(join(input_keys(block), ", "))")
+    end
+    found = length(invalid)
+    for (key, value) in pairs(values)
+        spec = input_spec(block, key)
+        isnothing(spec) || add_invalid_inputs!(invalid, spec, value, "$path.$key")
+    end
+    # A rule that relates several keys can only be checked once each of them is valid
+    if !isnothing(block.check) && length(invalid) == found
+        msg = block.check(values)
+        isnothing(msg) || push!(invalid, path => msg)
+    end
+    return invalid
+end
+
+function add_invalid_inputs!(invalid::Vector{Pair{String,String}}, map::InputMap, value, path::AbstractString)
+    if is_keyed(value)
+        unknown = [key for key in keys(value) if key ∉ map.keys]
+        isempty(unknown) || push!(invalid,
+            path => "unknown key(s) $(join(unknown, ", ")). Valid keys are: $(join(map.keys, ", "))")
+        for (key, item) in pairs(value)
+            key in map.keys && add_invalid_inputs!(invalid, map.entry, item, "$path.$key")
+        end
+    elseif map.allow_scalar
+        add_invalid_inputs!(invalid, map.entry, value, path)
+    else
+        push!(invalid, path => "expected an object with keys among $(join(map.keys, ", ")), got $(repr(value))")
+    end
+    return invalid
+end
+
+function add_invalid_inputs!(invalid::Vector{Pair{String,String}}, field::InputField, value, path::AbstractString)
     valid = if isnothing(field.eltype)
         accepts_value(field, value, field.type)
     else
         value isa AbstractVector && all(x -> accepts_value(field, x, field.eltype), value)
     end
-    valid || throw(InputValidationError(path, "expected $(describe_input(field)), got $(repr(value))"))
-    return nothing
+    valid || push!(invalid, path => "expected $(describe_input(field)), got $(repr(value))")
+    return invalid
 end
 
 accepts_value(field::InputField, value, type::Type) =

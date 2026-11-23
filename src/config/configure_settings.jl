@@ -22,10 +22,15 @@ settings_dict(x::Union{AbstractSolutionAlgorithm,AbstractExpansionHorizon}) = se
 
 # Validate the settings of `case_settings.json`, fill in their defaults and return them.
 # Deprecated keys and values are translated first; the algorithm names become types last.
-function configure_settings(settings::Union{AbstractDict,NamedTuple})::NamedTuple
+# With `num_periods`, `PeriodLengths` must also have one length per period. Every invalid
+# setting found is listed in one `InputValidationError`.
+function configure_settings(settings::Union{AbstractDict,NamedTuple}; num_periods::Union{Nothing,Int}=nothing)::NamedTuple
     raw = translate_deprecated_settings(settings)
     translate_deprecated_solution_algorithm!(raw)
-    resolved = resolve_inputs(settings_spec(), raw)
+    resolved = merge_defaults(settings_spec(), raw)
+    invalid = invalid_settings(resolved)
+    isnothing(num_periods) || add_invalid_period_count!(invalid, raw, num_periods)
+    isempty(invalid) || throw(InputValidationError(invalid))
     set_numeric_types!(resolved)
     set_solution_algorithm!(resolved)
     set_expansion_horizon!(resolved)
@@ -40,6 +45,43 @@ function set_numeric_types!(settings::AbstractDict{Symbol,Any})
     settings[:DiscountRate] = Float64(settings[:DiscountRate])
     settings[:ParameterScalingFactor] = Float64(settings[:ParameterScalingFactor])
     return nothing
+end
+
+# The invalid settings in `settings`, the settings of case_settings.json with their defaults
+# filled in, as key path => message pairs. Empty if they are all valid.
+# The Benders and Myopic settings are checked when they are used: if `SolutionAlgorithm` or
+# `ExpansionHorizon` is itself invalid, it is not known whether they are.
+function invalid_settings(settings::AbstractDict{Symbol,Any})::Vector{Pair{String,String}}
+    invalid = invalid_inputs(settings_spec(), settings, "case_settings")
+    for (key, spec, used) in (
+        (:BendersSettings, benders_settings_spec(), isequal(settings[:SolutionAlgorithm], "Benders")),
+        (:MyopicSettings, myopic_settings_spec(), isequal(settings[:ExpansionHorizon], "Myopic")),
+    )
+        values = something(settings[key], Dict{Symbol,Any}())
+        # A value that is not an object is already reported, as an invalid `key`
+        used && is_keyed(values) && add_invalid_inputs!(invalid, spec, merge_defaults(spec, values), "case_settings.$key")
+    end
+    return invalid
+end
+
+# A case needs one period length per period (System). Checked by `load_case`, and by
+# `migrate_settings` before it writes anything. `settings` are the settings as written, without
+# their defaults, so that a missing `PeriodLengths` can be named as such.
+function add_invalid_period_count!(invalid::Vector{Pair{String,String}}, settings::AbstractDict{Symbol,Any}, num_periods::Int)
+    periods = num_periods == 1 ? "1 period" : "$num_periods periods"
+    if !haskey(settings, :PeriodLengths)
+        num_periods == 1 || push!(invalid, "case_settings.PeriodLengths" =>
+            "is not set, so the case would have one 1-year period, but it has $periods. Give one length per period.")
+        return invalid
+    end
+    lengths = settings[:PeriodLengths]
+    # A value that is not a list, null included, is already reported as an invalid PeriodLengths
+    if lengths isa AbstractVector && length(lengths) != num_periods
+        given = length(lengths) == 1 ? "1 length" : "$(length(lengths)) lengths"
+        push!(invalid, "case_settings.PeriodLengths" =>
+            "has $given, but the case has $periods. Give one length per period.")
+    end
+    return invalid
 end
 
 function set_solution_algorithm!(settings::AbstractDict{Symbol,Any})

@@ -100,6 +100,23 @@ function test_input_spec_engine()
         @test occursin("root: unknown key(s) typo", invalid((typo=1,)))
         @test occursin("root: rate > 0.5 needs mode b", invalid((rate=0.7,)))
         @test_throws InputValidationError resolve_inputs(block, (rate=-1,))
+        # One invalid input is reported on one line
+        @test invalid((rate=-1,)) == "InputValidationError: root.rate: expected a number ≥ 0, got -1"
+    end
+
+    @testset "Every invalid input is reported at once" begin
+        msg = error_message(() -> resolve_inputs(block, (typo=1, rate=-1, format=(x="xlsx", z="csv"), Inner=(count=0,))))
+        @test startswith(msg, "InputValidationError: 5 invalid inputs:\n")
+        lines = split(msg, "\n")[2:end]
+        @test length(lines) == 5
+        @test startswith(lines[1], "  root: unknown key(s) typo")
+        @test lines[2] == "  root.rate: expected a number ≥ 0, got -1"
+        @test startswith(lines[3], "  root.format: unknown key(s) z")
+        @test startswith(lines[4], "  root.format.x: expected one of")
+        @test lines[5] == "  root.Inner.count: expected an integer ≥ 1, got 0"
+        # The rule that relates rate and mode is checked only once both are valid
+        @test !occursin("needs mode b", error_message(() -> resolve_inputs(block, (rate=0.7, mode="c"))))
+        @test occursin("needs mode b", error_message(() -> resolve_inputs(block, (rate=0.7, typo=1))))
     end
 
     @testset "NaN is out of bounds" begin
@@ -251,6 +268,54 @@ function test_settings_validation()
             :ExpansionHorizon => "Myopic", :MyopicSettings => Dict{Symbol,Any}(:StopAfterPeriod => 0)))))
         @test occursin("case_settings.MyopicSettings.Restart: unknown key(s) from", error_message(() -> configure_settings(Dict{Symbol,Any}(
             :ExpansionHorizon => "Myopic", :MyopicSettings => Dict{Symbol,Any}(:Restart => Dict{Symbol,Any}(:from => 2))))))
+    end
+
+    @testset "Every invalid setting is reported at once" begin
+        msg = error_message(() -> configure_settings((
+            PeriodLengths=[10, 0],
+            DiscountRate=-0.05,
+            ConstraintScalling=true,
+            OutputSettings=(Format="xlsx", Layout=(Flow="tall",)),
+            SolutionAlgorithm="Benders",
+            BendersSettings=(MaxIter=0,),
+        )))
+        @test startswith(msg, "InputValidationError: 6 invalid inputs:\n")
+        lines = split(msg, "\n")[2:end]
+        @test length(lines) == 6
+        @test startswith(lines[1], "  case_settings: unknown key(s) ConstraintScalling")
+        @test lines[2] == "  case_settings.PeriodLengths: expected a list of integers > 0, got [10, 0]"
+        @test lines[3] == "  case_settings.DiscountRate: expected a number ≥ 0, got -0.05"
+        @test startswith(lines[4], "  case_settings.OutputSettings.Format: expected one of")
+        @test startswith(lines[5], "  case_settings.OutputSettings.Layout.Flow: expected one of")
+        @test lines[6] == "  case_settings.BendersSettings.MaxIter: expected an integer > 0, got 0"
+        # With a typo in the algorithm, it is not known whether the Benders settings are used
+        @test error_message(() -> configure_settings((SolutionAlgorithm="Bender", BendersSettings=(MaxIter=0,)))) ==
+            "InputValidationError: case_settings.SolutionAlgorithm: expected one of \"Monolithic\", \"Benders\", \"Myopic\", got \"Bender\""
+        # The restart rule is checked only once the restart settings are valid
+        msg = error_message(() -> configure_settings((ExpansionHorizon="Myopic",
+            MyopicSettings=(StopAfterPeriod=1, Restart=(enabled=true, from_period="2")))))
+        @test msg == "InputValidationError: case_settings.MyopicSettings.Restart.from_period: expected an integer ≥ 1, got \"2\""
+    end
+
+    @testset "One period length per period" begin
+        @test configure_settings((PeriodLengths=[5, 5],); num_periods=2).PeriodLengths == [5, 5]
+        @test configure_settings(NamedTuple(); num_periods=1).PeriodLengths == [1]
+        @test error_message(() -> configure_settings((PeriodLengths=[5, 5],); num_periods=3)) ==
+            "InputValidationError: case_settings.PeriodLengths: has 2 lengths, but the case has 3 periods. Give one length per period."
+        @test error_message(() -> configure_settings((PeriodLengths=[5],); num_periods=2)) ==
+            "InputValidationError: case_settings.PeriodLengths: has 1 length, but the case has 2 periods. Give one length per period."
+        @test error_message(() -> configure_settings(NamedTuple(); num_periods=2)) ==
+            "InputValidationError: case_settings.PeriodLengths: is not set, so the case would have one 1-year period, " *
+            "but it has 2 periods. Give one length per period."
+        # Reported with the other invalid settings
+        msg = error_message(() -> configure_settings((PeriodLengths=[5, 0], DiscountRate=-1); num_periods=3))
+        @test startswith(msg, "InputValidationError: 3 invalid inputs:\n")
+        @test occursin("\n  case_settings.PeriodLengths: has 2 lengths, but the case has 3 periods", msg)
+        # A value that is not a list is reported once, as such
+        @test error_message(() -> configure_settings(Dict{Symbol,Any}(:PeriodLengths => nothing); num_periods=2)) ==
+            "InputValidationError: case_settings.PeriodLengths: expected a list of integers > 0, got nothing"
+        # Without a number of periods, the lengths are not counted
+        @test configure_settings((PeriodLengths=[5, 5],)).PeriodLengths == [5, 5]
     end
 end
 
