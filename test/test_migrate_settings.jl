@@ -32,6 +32,16 @@ function loaded_settings(dir)
     return resolve_settings(data, dir)
 end
 quietly(f) = with_logger(f, NullLogger())
+# The report that migrate_settings logs
+function report(f)
+    logger = Test.TestLogger(min_level=Logging.Info)
+    with_logger(f, logger)
+    return last([string(record.message) for record in logger.logs if record.level == Logging.Info])
+end
+# A row of the table that compares the settings in the report, with any padding in its cells
+table_row(cells...) = Regex("│ " * join(["\\Q$cell\\E +" for cell in cells], "│ ") * "│")
+# The part of the report that compares the settings, after the settings it writes
+comparison(text) = text[first(findfirst("The settings that are not at their default", text)):end]
 same_settings(a, b) = isequal(settings_dict(a), settings_dict(b))
 json(text) = settings_dict(JSON3.read(text))
 
@@ -76,6 +86,74 @@ period(name) = """{"time_data": {"path": "$name.json"}, "settings": {"path": "se
         end
     end
 
+    @testset "The report compares the settings that are not at their default" begin
+        mktempdir() do dir
+            write_case(dir, ["settings/case_settings.json" => OLD_CASE_SETTINGS, "settings/macro_settings.json" => OLD_SYSTEM_SETTINGS,
+                "system_data.json" => """{"settings": {"path": "settings/case_settings.json"}, "case": [$(period("a")), $(period("b"))]}"""])
+            for dry_run in (true, false)
+                text = comparison(report(() -> migrate_settings(dir; dry_run)))
+                @test occursin(dry_run ? "now and as they will be after the update. After it, they will all be in settings/case_settings.json." :
+                    "as read back from the files after it. After it, they are all in settings/case_settings.json.", text)
+                # One row per setting: its current name, where it was and under which name, and its values
+                @test occursin(table_row("Setting", "Before: file", "Before: name", "Before", "After"), text)
+                @test occursin(table_row("OutputSettings.Layout.Capacity", "settings/macro_settings.json", "OutputLayout.Capacity", "\"wide\"", "\"wide\""), text)
+                @test occursin(table_row("OutputSettings.Write.FullTimeseries", "settings/case_settings.json", "WriteFullTimeseries", "true", "true"), text)
+                @test occursin(table_row("PeriodLengths", "settings/case_settings.json", "PeriodLengths", "[5,5]", "[5,5]"), text)
+                # Settings at their default are left out, even when they are written
+                @test !occursin("Layout.Flow", text)
+                @test !occursin("OutputSettings.Dir", text)
+                @test !occursin("SolutionAlgorithm", text)
+                @test occursin("All of them keep their values.", text)
+                @test occursin("Settings that are not listed are at their default. To see the defaults, run MacroEnergy.default_settings().", text)
+            end
+        end
+        # The deprecated Myopic algorithm is the expansion horizon now
+        mktempdir() do dir
+            write_case(dir, ["settings/case_settings.json" => """{"SolutionAlgorithm": "Myopic"}""",
+                "system_data.json" => """{"case": [{"time_data": {"path": "t.json"}}]}"""])
+            text = comparison(report(() -> migrate_settings(dir; dry_run=false)))
+            @test occursin(table_row("ExpansionHorizon", "settings/case_settings.json", "SolutionAlgorithm", "\"Myopic\"", "\"Myopic\""), text)
+        end
+        # Settings written in the top-level entry
+        mktempdir() do dir
+            write_case(dir, ["settings/macro_settings.json" => """{"ConstraintScaling": true}""",
+                "system_data.json" => """{"settings": {"OutputDir": "out"}, "case": [{"settings": {"path": "settings/macro_settings.json"}}]}"""])
+            text = comparison(report(() -> migrate_settings(dir)))
+            @test occursin("they will all be in system_data.json (settings).", text)
+            @test occursin(table_row("OutputSettings.Dir", "system_data.json (settings)", "OutputDir", "\"out\"", "\"out\""), text)
+            @test occursin(table_row("ConstraintScaling", "settings/macro_settings.json", "ConstraintScaling", "true", "true"), text)
+        end
+    end
+
+    @testset "Changed values are listed first" begin
+        reading(source, settings) = MacroEnergy.settings_reading(settings, [(source, settings)])
+        before = reading("a.json", MacroEnergy.OrderedDict{Symbol,Any}(:ConstraintScaling => true, :DiscountRate => 0.05, :StartYear => 2030))
+        after = reading("b.json", MacroEnergy.OrderedDict{Symbol,Any}(:ConstraintScaling => true, :DiscountRate => 0.07))
+        lines = MacroEnergy.settings_comparison(before, after, false)
+        @test lines[2] == "These changed:"
+        # A setting that is no longer set is at its default, so the file after the update gets a column
+        @test occursin(table_row("Setting", "Before: file", "Before: name", "Before", "After: file", "After"), lines[4])
+        @test occursin(table_row("DiscountRate", "a.json", "DiscountRate", "0.05", "b.json", "0.07"), lines[6])
+        @test occursin(table_row("StartYear", "a.json", "StartYear", "2030", "(default)", "null"), lines[7])
+        @test lines[9] == "These keep their values:"
+        @test occursin(table_row("ConstraintScaling", "a.json", "ConstraintScaling", "true", "b.json", "true"), lines[13])
+        # The lines of each table are as wide as each other
+        @test allequal(textwidth.(lines[3:8]))
+        # As in JSON, 0 and 0.0 are the same, and at the default
+        zero = MacroEnergy.settings_comparison(reading("a.json", MacroEnergy.OrderedDict{Symbol,Any}(:DiscountRate => 0)),
+            reading("b.json", MacroEnergy.OrderedDict{Symbol,Any}(:DiscountRate => 0.0)), true)
+        @test only(zero) == "Every setting is at its default, before and after the update. To see the defaults, run MacroEnergy.default_settings()."
+    end
+
+    @testset "The report writes paths with / on every OS" begin
+        mktempdir() do case_dir
+            @test MacroEnergy.report_path(joinpath(case_dir, "settings", "case_settings.json"), case_dir) == "settings/case_settings.json"
+            # A file outside the case is shown in full
+            outside = joinpath(dirname(case_dir), "shared", "case_settings.json")
+            @test MacroEnergy.report_path(outside, case_dir) == replace(outside, '\\' => '/')
+        end
+    end
+
     @testset "A single-period case written without a case key" begin
         mktempdir() do dir
             write_case(dir, ["settings/macro_settings.json" => """{"ConstraintScaling": true, "OutputDir": "out"}""",
@@ -101,11 +179,11 @@ period(name) = """{"time_data": {"path": "$name.json"}, "settings": {"path": "se
 
     @testset "A case key with macro_settings.json only" begin
         mktempdir() do dir
-            write_case(dir, ["settings/macro_settings.json" => """{"ConstraintScaling": true, "WriteOutputs": {"Duals": false}}""",
+            write_case(dir, ["settings/macro_settings.json" => """{"PeriodLengths": [5, 5], "ConstraintScaling": true, "WriteOutputs": {"Duals": false}}""",
                 "system_data.json" => """{"case": [$(period("a")), $(period("b"))]}"""])
             original = quietly(() -> loaded_settings(dir))
             @test isequal(migrate_settings(dir; dry_run=false),
-                json("""{"ConstraintScaling": true, "OutputSettings": {"Write": {"Duals": false}}}"""))
+                json("""{"PeriodLengths": [5, 5], "ConstraintScaling": true, "OutputSettings": {"Write": {"Duals": false}}}"""))
             @test isfile(joinpath(dir, "settings", "case_settings.json"))
             @test !any(p -> haskey(p, :settings), read_json(joinpath(dir, "system_data.json"))[:case])
             @test same_settings((@test_logs min_level=Logging.Warn loaded_settings(dir)), original)
@@ -158,11 +236,37 @@ period(name) = """{"time_data": {"path": "$name.json"}, "settings": {"path": "se
         # A file outside the case is reported in full
         mktempdir() do root
             shared, dir = mkpath(joinpath(root, "shared")), mkpath(joinpath(root, "case"))
-            write_case(shared, ["case_settings.json" => """{"DiscountRate": 0.05}"""])
-            target = joinpath(shared, "case_settings.json")
-            write_case(dir, ["settings/macro_settings.json" => """{"ConstraintScaling": true}""",
-                "system_data.json" => """{"settings": {"path": $(repr(target))}, "case": [$(period("a"))]}"""])
-            @test_logs (:info, Regex("these settings to \\Q$target\\E:")) migrate_settings(dir)
+            write_case(shared, ["macro_settings.json" => """{"ConstraintScaling": true}"""])
+            outside = joinpath(shared, "macro_settings.json")
+            write_case(dir, ["system_data.json" => """{"case": [{"settings": {"path": $(repr(outside))}}]}"""])
+            @test_logs (:info, Regex("delete them:\\n  - \\Q$outside\\E")) migrate_settings(dir)
+        end
+    end
+
+    @testset "Files outside the case are not changed" begin
+        # Two cases share their case-level settings file, and each has its own per-period settings
+        mktempdir() do root
+            write_case(root, ["shared/case_settings.json" => """{"SolutionAlgorithm": "Monolithic"}"""])
+            for (name, scaling) in (("a", true), ("b", false))
+                write_case(joinpath(root, name), ["settings/macro_settings.json" => """{"ConstraintScaling": $scaling}""",
+                    "system_data.json" => """{"settings": {"path": "../shared/case_settings.json"}, "case": [$(period("a"))]}"""])
+            end
+            original = snapshot(root)
+            for dry_run in (true, false)
+                @test_throws r"outside the case" quietly(() -> migrate_settings(joinpath(root, "a"); dry_run))
+            end
+            @test snapshot(root) == original
+            @test !quietly(() -> loaded_settings(joinpath(root, "b"))).ConstraintScaling
+        end
+        # Nothing to write there: only the settings entries of the periods are removed
+        mktempdir() do root
+            write_case(root, ["shared/case_settings.json" => """{"ConstraintScaling": true}""",
+                "case/settings/macro_settings.json" => """{"ConstraintScaling": true}""",
+                "case/system_data.json" => """{"settings": {"path": "../shared/case_settings.json"}, "case": [$(period("a"))]}"""])
+            shared = read(joinpath(root, "shared", "case_settings.json"), String)
+            migrate_settings(joinpath(root, "case"); dry_run=false)
+            @test read(joinpath(root, "shared", "case_settings.json"), String) == shared
+            @test !haskey(read_json(joinpath(root, "case", "system_data.json"))[:case][1], :settings)
         end
     end
 
@@ -180,6 +284,14 @@ period(name) = """{"time_data": {"path": "$name.json"}, "settings": {"path": "se
             @test_throws InputValidationError migrate_settings(dir; dry_run=false)
             @test snapshot(dir) == original
         end
+        # Two period lengths for one period
+        mktempdir() do dir
+            write_case(dir, ["settings/case_settings.json" => """{"PeriodLengths": [1, 1], "OutputDir": "out"}""",
+                "system_data.json" => """{"case": [{"time_data": {"path": "t.json"}}]}"""])
+            original = snapshot(dir)
+            @test_throws r"case_settings.PeriodLengths: has 2 lengths, but the case has 1 period" migrate_settings(dir; dry_run=false)
+            @test snapshot(dir) == original
+        end
         # case_settings.json and macro_settings.json disagree, under the same name or an old and a new one
         for (case_settings, system_settings) in (("""{"ConstraintScaling": true}""", """{"ConstraintScaling": false}"""),
                 ("""{"WriteFullTimeseries": true}""", """{"WriteOutputs": {"FullTimeseries": false}}"""))
@@ -190,6 +302,21 @@ period(name) = """{"time_data": {"path": "$name.json"}, "settings": {"path": "se
                 @test_throws InputValidationError migrate_settings(dir; dry_run=false)
                 @test snapshot(dir) == original
             end
+        end
+    end
+
+    @testset "The deprecated Myopic algorithm is replaced" begin
+        mktempdir() do dir
+            write_case(dir, ["settings/case_settings.json" => """{"SolutionAlgorithm": "Myopic"}""",
+                "system_data.json" => """{"case": [{"time_data": {"path": "t.json"}}]}"""])
+            original = quietly(() -> loaded_settings(dir))
+            migrate_settings(dir; dry_run=false)
+            # The file itself: loading it would translate the old value again
+            written = read_json(joinpath(dir, "settings", "case_settings.json"))
+            @test written[:SolutionAlgorithm] == "Monolithic"
+            @test written[:ExpansionHorizon] == "Myopic"
+            # No deprecation warning: only the one about the default MyopicSettings
+            @test same_settings((@test_logs (:warn, r"No myopic settings") min_level=Logging.Warn loaded_settings(dir)), original)
         end
     end
 

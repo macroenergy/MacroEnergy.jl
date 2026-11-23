@@ -81,8 +81,9 @@ end
 
 # The deprecated per-period settings of a case, or `nothing` if there are none. A period whose
 # `settings` entry is the case settings themselves (the same file or, for the inline settings that
-# eager loading produces, the same content) has no settings of its own. Every period must have
-# the same settings, so one period having some and another having none is an error.
+# eager loading produces, the same content) has no settings of its own. Every period must have the
+# same settings, so one period having some and another having none is an error: if there are
+# settings, the first period has them.
 function legacy_period_settings(periods::AbstractVector, case_dir::AbstractString,
     case_settings::AbstractDict, case_settings_path::Union{Nothing,AbstractString}
 )::Union{Nothing,OrderedDict{Symbol,Any}}

@@ -94,7 +94,34 @@ MacroEnergy.migrate_settings("path/to/case")                  # show the changes
 MacroEnergy.migrate_settings("path/to/case"; dry_run=false)   # make them
 ```
 
+It also replaces the deprecated `"SolutionAlgorithm": "Myopic"` with `"SolutionAlgorithm": "Monolithic"` and `"ExpansionHorizon": "Myopic"`.
+
+To check the update, the report has a table of the settings that are not at their default, before and after: the file each one is in, its name there, and its value. Settings whose value changes come first, in a table of their own. After a real update, the settings are read back from the files for this table. For the example below, the dry run shows:
+
+```
+The settings that are not at their default, now and as they will be after the update. After it, they will all be in settings/case_settings.json.
+┌─────────────────────────────────────┬──────────────────────────────┬──────────────────────────┬──────────┬──────────┐
+│ Setting                             │ Before: file                 │ Before: name             │ Before   │ After    │
+├─────────────────────────────────────┼──────────────────────────────┼──────────────────────────┼──────────┼──────────┤
+│ PeriodLengths                       │ settings/case_settings.json  │ PeriodLengths            │ [5,5]    │ [5,5]    │
+│ DiscountRate                        │ settings/case_settings.json  │ DiscountRate             │ 0.045    │ 0.045    │
+│ ConstraintScaling                   │ settings/macro_settings.json │ ConstraintScaling        │ true     │ true     │
+│ AutoCreateNodes                     │ settings/macro_settings.json │ AutoCreateNodes          │ true     │ true     │
+│ OutputSettings.Overwrite            │ settings/macro_settings.json │ OverwriteResults         │ true     │ true     │
+│ OutputSettings.Format               │ settings/macro_settings.json │ OutputFormat             │ "csv.gz" │ "csv.gz" │
+│ OutputSettings.Layout.Capacity      │ settings/macro_settings.json │ OutputLayout.Capacity    │ "wide"   │ "wide"   │
+│ OutputSettings.Write.Curtailment    │ settings/macro_settings.json │ WriteOutputs.Curtailment │ false    │ false    │
+│ OutputSettings.Write.FullTimeseries │ settings/case_settings.json  │ WriteFullTimeseries      │ true     │ true     │
+└─────────────────────────────────────┴──────────────────────────────┴──────────────────────────┴──────────┴──────────┘
+All of them keep their values.
+Settings that are not listed are at their default. To see the defaults, run MacroEnergy.default_settings().
+```
+
+Settings that are not listed are at their default, such as `"OutputDir": "results"` and `"OutputLayout": {"Flow": "long"}` here. `MacroEnergy.default_settings()` returns every default, and they are also listed in [Inputs](@ref). The table at the end of this section shows where each setting of earlier versions goes.
+
 It does not delete the old settings files: it lists the ones that are no longer used. Comments (keys starting with `#`) are not carried over, and rewriting `system_data.json` may change its formatting.
+
+It only changes files inside the case folder. If the top-level `settings` entry of `system_data.json` points to a file outside the folder, which other cases may use too, it stops with an error. Copy that file into the case, point the entry to the copy, and run it again.
 
 ### Example
 
