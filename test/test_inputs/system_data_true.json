@@ -20,11 +20,13 @@
     "settings": {
         "ConstraintScaling": false,
         "WriteSubcommodities": false,
-        "OverwriteResults": false,
-        "OutputDir": "results",
-        "OutputLayout": "long",
         "AutoCreateNodes": false,
-        "AutoCreateLocations": true
+        "AutoCreateLocations": true,
+        "OutputSettings": {
+            "Overwrite": false,
+            "Dir": "results",
+            "Layout": "long"
+        }
     },
     "nodes": [
         {

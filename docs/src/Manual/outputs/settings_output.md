@@ -10,20 +10,15 @@
 
 **Location:** Inside the outer results directory (e.g., `results_001/settings.json`), alongside the `results/` or `results_period_N/` subdirectories
 
-`settings.json` is a snapshot of all case-level and system-level settings used for the model run. It is written automatically after every solve, regardless of other output settings.
+`settings.json` is a snapshot of all the settings used for the model run. It is written automatically after every solve, regardless of other output settings.
 
 This file serves as a reproducibility record: given the same input data and the `settings.json` file, you can reconstruct the exact settings used for any run. It is also useful for debugging, comparing runs, and sharing results with collaborators.
 
 ## [Structure](@id manual-outputs-settings-output-structure)
 
-`settings.json` contains two top-level keys:
+`settings.json` contains all the settings of the run, in the same form as `case_settings.json` and with the default values filled in. The `Case` and every period of a multi-period model share these settings.
 
-| Key | Description |
-|---|---|
-| `case_settings` | Settings from `case_settings.json` (solution algorithm, period lengths, discount rate, start year, full time series flag, etc.) |
-| `system_settings` | Settings from `macro_settings.json` (output layout, dual exports, overwrite behavior, constraint scaling, etc.) |
-
-The `system_settings` are written as JSON arrays (one entry per period for multi-period models, or a single entry for single-period models).
+To rerun a case with the settings of an earlier run, copy that run's `settings.json` to the file the case reads its settings from: `settings/case_settings.json`, or the file named by the top-level `settings` entry of `system_data.json`. Its `BendersSettings` take priority over `settings/benders_settings.json`, so a Benders case runs with the Benders settings of the earlier run too.
 
 ## [Assumptions](@id manual-outputs-settings-output-assumptions)
 
@@ -35,30 +30,23 @@ The `system_settings` are written as JSON arrays (one entry per period for multi
 
 ```json
 {
-    "case_settings": [
-        {
-            "SolutionAlgorithm": "Monolithic",
-            "PeriodLengths": [1],
-            "DiscountRate": 0.0,
-            "WriteFullTimeseries": false
-        }
-    ],
-    "system_settings": [
-        {
-            "OutputLayout": "long",
-            "OutputFormat": "csv",
-            "WriteOutputs": {},
-            "OutputSignificantDigits": null,
-            "DualExportsEnabled": true,
-            "OverwriteResults": false,
-            "OutputDir": "results",
-            "OutputAssetTags": true,
-            "ConstraintScaling": false,
-            "Retrofitting": false,
-            "AutoCreateLocations": true,
-            "AutoCreateNodes": false
-        }
-    ]
+    "PeriodLengths": [1],
+    "DiscountRate": 0.0,
+    "SolutionAlgorithm": "Monolithic",
+    "ExpansionHorizon": "PerfectForesight",
+    "ConstraintScaling": false,
+    "Retrofitting": false,
+    "AutoCreateLocations": true,
+    "AutoCreateNodes": false,
+    "OutputSettings": {
+        "Dir": "results",
+        "Overwrite": false,
+        "Format": "csv",
+        "Layout": "long",
+        "Write": {},
+        "SignificantDigits": null,
+        "AssetTags": true
+    }
 }
 ```
 
@@ -68,8 +56,8 @@ The `system_settings` are written as JSON arrays (one entry per period for multi
 using JSON3
 
 settings = JSON3.read("settings.json")
-println("Solution algorithm: ", settings.case_settings.SolutionAlgorithm)
-println("Output layout: ", settings.system_settings[1].OutputLayout)
+println("Solution algorithm: ", settings.SolutionAlgorithm)
+println("Output layout: ", settings.OutputSettings.Layout)
 ```
 
 ## [See Also](@id manual-outputs-settings-output-see-also)

@@ -192,7 +192,7 @@ function solve_case(case::Case, opt::O, ::Myopic) where O <: Union{Optimizer, Di
             for period_idx in 1:restart_period_idx-1
                 capacity_results[period_idx] = load_previous_capacity_results(
                     find_output_file(joinpath(restart_folder, "results_period_$(period_idx)"), "capacity";
-                        hint="A Myopic restart needs the capacity file of every earlier period; was that run written with WriteOutputs.Capacity = false?")
+                        hint="A Myopic restart needs the capacity file of every earlier period; was that run written with OutputSettings.Write.Capacity = false?")
                 )
             end
             carry_over_capacities!(periods[restart_period_idx], capacity_results, restart_period_idx-1, parameter_scaling_factor(settings))

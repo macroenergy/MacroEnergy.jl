@@ -112,6 +112,19 @@ function validate_network_id(system::System, network_id::Symbol)
     return nothing
 end
 
+# The settings of a System are set once: by the loader, which gives every System of a case the
+# settings of the Case, or by hand on an empty System. They cannot be changed afterwards: the
+# loader validates them, and the System would no longer agree with the Case, whose settings are
+# written to results/settings.json.
+function Base.setproperty!(system::System, name::Symbol, value)
+    if name === :settings && !isempty(getfield(system, :settings))
+        throw(ArgumentError("The settings of a System cannot be changed once they are set. " *
+            "Change them in case_settings.json and load the case again."))
+    end
+    field_type = fieldtype(System, name)
+    return setfield!(system, name, value isa field_type ? value : convert(field_type, value))
+end
+
 function empty_system(data_dirpath::String)
     @debug("Creating empty system, with data relative path set to $data_dirpath")
     return System(

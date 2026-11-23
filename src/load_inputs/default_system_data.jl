@@ -5,8 +5,18 @@ function default_system_data()
         :nodes => Dict{Symbol,Any}(:path => "system/nodes.json"),
         :commodities => Dict{Symbol,Any}(:path => "system/commodities.json"),
         :time_data => Dict{Symbol,Any}(:path => "system/time_data.json"),
-        :settings => Dict{Symbol,Any}(:path => "settings/macro_settings.json"),
+        :settings => Dict{Symbol,Any}(:path => "settings/case_settings.json"),
     )
+end
+
+# The `settings` entry of a system_data.json generated for a case that has none. A case written for
+# an earlier version keeps its settings in settings/macro_settings.json, which the generated file
+# names then, as earlier versions did: the case loads with those settings, and with
+# settings/case_settings.json too if it has one, as a deprecated two-file layout.
+function default_settings_entry(case_dir::AbstractString)::Dict{Symbol,Any}
+    legacy = "settings/$LEGACY_SYSTEM_SETTINGS_FILENAME"
+    path = isfile(joinpath(case_dir, legacy)) ? legacy : "settings/$CASE_SETTINGS_FILENAME"
+    return Dict{Symbol,Any}(:path => path)
 end
 
 """
@@ -44,13 +54,14 @@ function prep_system_data(file_path::AbstractString)::Nothing
     else
         @warn("No system data file found at $file_path.\nUsing default system data")
         system_data = load_default_system_data()
+        system_data[:settings] = default_settings_entry(dirname(file_path))
     end
 
     # FIXME currently overwriting and then re-reading the system_data
     # This is a little janky, but lets us quickly use the JSON parsing functions
     @debug("Writing updated system data to $file_path")
-    open(file_path, "w") do io
-        JSON3.pretty(io, system_data)
-    end
+    # Serialize first: opening the file for writing empties it, so a failure must happen before that
+    contents = sprint(io -> JSON3.pretty(io, system_data; allow_inf=true))
+    write(file_path, contents)
     return nothing
 end

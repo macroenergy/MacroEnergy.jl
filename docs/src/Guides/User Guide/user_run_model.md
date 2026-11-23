@@ -116,7 +116,7 @@ To override any of these, create a file at `settings/benders_settings.json`. For
 }
 ```
 
-Alternatively, you can embed the Benders settings directly in `case_settings.json` (Note: don't include a `benders_settings.json` file if you use this approach, as it will have higher priority and the settings in the `case_settings.json` file will be ignored):
+Alternatively, you can embed the Benders settings directly in `case_settings.json`. They take priority over `settings/benders_settings.json`, which is then ignored, with a warning if the two differ:
 
 ```json
 {
@@ -128,7 +128,7 @@ Alternatively, you can embed the Benders settings directly in `case_settings.jso
 }
 ```
 
-Or point to a custom settings file path (high priority, even if a `benders_settings.json` file exists):
+Or point to a custom settings file path, which also takes priority over `settings/benders_settings.json`:
 ```json
 {
     "SolutionAlgorithm": "Benders",

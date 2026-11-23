@@ -162,6 +162,13 @@ function tdr_case_input_manifest(case_root::String; destination_root::String=cas
     manifest = Dict{String,TDRTrackedInput}()
     if isnothing(prepared)
         tdr_collect_manifest_paths!(manifest, case_root, root_file; destination_root)
+        # Following references in the file finds `{"path": ...}` objects, but not plain paths
+        root_entries = first(tdr_system_entries(case_root))
+        for data in (root_entries, get(root_entries, "case", Any[])...)
+            entry = data isa AbstractDict ? get(data, "settings", nothing) : nothing
+            entry isa AbstractDict && haskey(entry, "path") &&
+                tdr_collect_manifest_paths!(manifest, case_root, abspath(case_root, String(entry["path"])); destination_root)
+        end
     else
         tdr_manifest_path!(manifest, case_root, root_file; destination_root)
         case_definition = Dict(key => value for (key, value) in prepared.root if key != "case")
@@ -176,6 +183,8 @@ function tdr_case_input_manifest(case_root::String; destination_root::String=cas
             end
         end
     end
+    root = isnothing(prepared) ? first(tdr_system_entries(case_root)) : prepared.root
+    tdr_collect_conventional_settings!(manifest, case_root, root; destination_root)
     for (directory, subdirectories, files) in walkdir(case_root)
         filter!(name -> !startswith(name, "results") &&
             !(directory == case_root && name == "TDR"), subdirectories)
@@ -206,6 +215,7 @@ function tdr_copy_input_manifest!(source_root::String, output_root::String; copy
     if length(systems) > 1 && isnothing(prepared)
         case_inputs = tdr_system_input_manifest(source_root,
             Dict(key => value for (key, value) in root if key != "case"))
+        tdr_collect_conventional_settings!(case_inputs, source_root, root)
         additions = user_additions_path(source_root)
         filter!(manifest) do entry
             path = entry.first
@@ -238,14 +248,64 @@ function tdr_copy_input_manifest!(source_root::String, output_root::String; copy
     return nothing
 end
 
+# Add the settings files a case loads by their conventional names, with no reference in
+# system_data.json: settings/case_settings.json unless the Case names another file, with the files
+# it names, and settings/benders_settings.json. The Benders file names no other files, and it is
+# copied without being read: a case that does not use Benders never reads it, so the file must
+# not stop preprocessing either.
+function tdr_collect_conventional_settings!(manifest::Dict{String,TDRTrackedInput}, case_root::String, root;
+    destination_root::String=case_root, read_input::Function=tdr_read_input_data)
+    case_settings = joinpath(case_root, "settings", CASE_SETTINGS_FILENAME)
+    if !(haskey(root, "case") && !isnothing(get(root, "settings", nothing))) && isfile(case_settings)
+        tdr_collect_manifest_paths!(manifest, case_root, case_settings; destination_root, read_input)
+    end
+    benders_settings = joinpath(case_root, BENDERS_SETTINGS_FILEPATH)
+    isfile(benders_settings) && tdr_manifest_path!(manifest, case_root, benders_settings; destination_root)
+    return nothing
+end
+
 function tdr_system_entries(case_root::String)
     root_path = joinpath(case_root, "system_data.json")
     root = mutable_json_data(read_json(root_path))
     if haskey(root, "case")
         root["case"] isa AbstractVector || throw(ArgumentError("`case` in system_data.json must be an array."))
+        foreach(tdr_settings_entry_as_object!, (root, root["case"]...))
+        tdr_drop_case_level_settings!(root, case_root)
         return root, root["case"]
     end
+    tdr_settings_entry_as_object!(root)
     return root, Any[root]
+end
+
+# A `settings` entry can be a plain path, but TDR follows and rewrites `{"path": ...}` objects
+function tdr_settings_entry_as_object!(data)
+    data isa AbstractDict && get(data, "settings", nothing) isa AbstractString &&
+        (data["settings"] = Dict{String,Any}("path" => data["settings"]))
+    return nothing
+end
+
+# A period whose `settings` entry points to the case-level settings file has no settings of its
+# own. Drop the entry, so that the period does not get a private copy of the case-level file,
+# which would then look like separate per-period settings. As in `merged_settings`, a Case with no
+# top-level `settings` entry uses settings/case_settings.json, if there is one. Entries are
+# compared by the file the loader reads: a directory names case_settings.json for the Case but
+# macro_settings.json for a period, so the same directory in both can name two different files.
+function tdr_drop_case_level_settings!(root::AbstractDict, case_root::String)
+    case_entry = get(root, "settings", nothing)
+    case_settings = if isnothing(case_entry)
+        implicit = normpath(abspath(case_root, "settings", CASE_SETTINGS_FILENAME))
+        isfile(implicit) ? implicit : nothing
+    else
+        settings_source_file(settings_dict(case_entry), case_root, CASE_ENTRY_FILENAMES)
+    end
+    isnothing(case_settings) && return nothing
+    for system in root["case"]
+        entry = system isa AbstractDict ? get(system, "settings", nothing) : nothing
+        isnothing(entry) && continue
+        same_settings_file(settings_source_file(settings_dict(entry), case_root, PERIOD_ENTRY_FILENAMES), case_settings) &&
+            delete!(system, "settings")
+    end
+    return nothing
 end
 
 """Locate a normalized System in its original bare-System or Case document."""

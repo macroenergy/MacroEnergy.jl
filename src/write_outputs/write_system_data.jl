@@ -17,7 +17,7 @@ Serialize a `System` or `Case` object to a JSON file.
 
 # Notes
 - When serializing a `Case`, the output contains two top-level keys: `:case` (a vector of
-  per-period system data) and `:settings` (the case settings).
+  per-period system data) and `:settings` (the settings of the case).
 - Constraint dual values are included in the output when available.
 """
 function write_to_json(system::System, file_path::AbstractString=""; compress::Bool=true)::Nothing
@@ -30,8 +30,9 @@ end
 
 function write_to_json(case::Case, file_path::AbstractString=""; compress::Bool=true)::Nothing
     case_data = Dict{Symbol, Any}(
-        :case => [prepare_to_json(system) for system in case.systems],
-        :settings => prepare_to_json(case.settings)
+        # The systems share the settings of the case, which are written once
+        :case => [delete!(prepare_to_json(system), :settings) for system in case.systems],
+        :settings => settings_to_json(case.settings)
     )
     file_path = file_path == "" ? joinpath(pwd(), "output_system_data.json") : file_path
     @info("Writing system data to JSON file at: ", file_path)
@@ -54,7 +55,7 @@ function prepare_to_json(system::System)
         elseif ismissing(data) || field == :input_data
             continue    # Skip missing data
         end
-        system_data[field] = prepare_to_json(data)
+        system_data[field] = field == :settings ? settings_to_json(data) : prepare_to_json(data)
     end
 
     system_data[:locations] = Dict{Symbol, Any}(

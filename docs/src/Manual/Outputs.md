@@ -6,9 +6,9 @@
 
 ## [Overview](@id manual-outputs-overview)
 
-After solving a Macro model, results are automatically written to disk by [`write_outputs`](@ref). The output files are tabular data that describe the optimal capacity decisions, operational dispatch, and costs of every asset in the system. They are written as CSV by default; gzip-compressed CSV and Parquet are available through the [`OutputFormat`](@ref "manual-outputs-format") setting, which makes results folders much smaller (see the measured example there).
+After solving a Macro model, results are automatically written to disk by [`write_outputs`](@ref). The output files are tabular data that describe the optimal capacity decisions, operational dispatch, and costs of every asset in the system. They are written as CSV by default; gzip-compressed CSV and Parquet are available through the [`OutputSettings.Format`](@ref "manual-outputs-format") setting, which makes results folders much smaller (see the measured example there).
 
-Outputs are organized into one results directory per modeled period. Within each directory, each output type is stored in its own file. The files use a consistent **long format** by default (one row per observation, with metadata columns identifying the asset and time step), which makes them easy to filter and join using standard data tools. A **wide format** is also available via the [`OutputLayout`](@ref "manual-outputs-settings") setting, which allows pivoting of time steps or variables into columns for easier human readability.
+Outputs are organized into one results directory per modeled period. Within each directory, each output type is stored in its own file. The files use a consistent **long format** by default (one row per observation, with metadata columns identifying the asset and time step), which makes them easy to filter and join using standard data tools. A **wide format** is also available via the [`OutputSettings.Layout`](@ref "manual-outputs-settings") setting, which allows pivoting of time steps or variables into columns for easier human readability.
 
 All write functions are called automatically when you run [`run_case`](@ref) (or `solve_case` when using Myopic as solution algorithm). You can also call each function individually to re-export a specific output after modifying a solved system.
 
@@ -16,17 +16,16 @@ All write functions are called automatically when you run [`run_case`](@ref) (or
 
 ### Single-Period Models
 
-For a single-period model, results are written inside a two-level directory structure. An **outer directory** is created from the `OutputDir` setting (default `results` with a numeric suffix), and an **inner `results/` directory** is created inside it for the actual output files:
+For a single-period model, results are written inside a two-level directory structure. An **outer directory** is created from the `OutputSettings.Dir` setting (default `results` with a numeric suffix), and an **inner `results/` directory** is created inside it for the actual output files:
 
 ```
 my_case/
-├── case_settings.json
 ├── settings/
-│   └── macro_settings.json
+│   └── case_settings.json
 ├── system/
 │   └── ...
 ├── results_001/              ← outer directory (non-overwrite default)
-│   ├── settings.json         ← case-level settings snapshot
+│   ├── settings.json         ← settings snapshot
 |   ├── my_case.log           ← copied here after the run
 │   └── results/              ← all output files written here
 │       ├── capacity.csv
@@ -35,7 +34,7 @@ my_case/
 │       └── ...
 ```
 
-When `OverwriteResults = true`, the outer directory name is exactly `OutputDir` (default `results`) with no suffix:
+When `OutputSettings.Overwrite = true`, the outer directory name is exactly `OutputSettings.Dir` (default `results`) with no suffix:
 
 ```
 my_case/
@@ -56,7 +55,7 @@ my_case/
 ├── case_settings.json
 ├── my_case.log               ← written here during the run
 └── results_001/                  ← outer directory
-    ├── settings.json             ← case-level settings snapshot
+    ├── settings.json             ← settings snapshot
     ├── my_case.log               ← copied here after the run
     ├── capacity_summary.csv      ← cross-period capacity summary
     ├── results_period_1/         ← period 1 outputs
@@ -69,42 +68,53 @@ my_case/
 
 ### Overwrite Behavior
 
-By default (`OverwriteResults = false`), Macro will not overwrite an existing outer results directory. Instead, it appends an incremental numeric suffix: `results_001`, `results_002`, etc. This is controlled by the `OverwriteResults` and `OutputDir` settings in `macro_settings.json`.
+By default (`OutputSettings.Overwrite = false`), Macro will not overwrite an existing outer results directory. Instead, it appends an incremental numeric suffix: `results_001`, `results_002`, etc. This is controlled by the `OutputSettings.Overwrite` and `OutputSettings.Dir` settings in `case_settings.json`.
 
 !!! note "Settings snapshot"
-    A `settings.json` file is always written inside the outer directory (e.g., `results_001/settings.json`) recording the `case_settings` and `system_settings` used for the run. See [Settings Output](@ref "manual-outputs-settings-output") for details.
+    A `settings.json` file is always written inside the outer directory (e.g., `results_001/settings.json`) recording the settings used for the run. See [Settings Output](@ref "manual-outputs-settings-output") for details.
 
 ## [Output Settings](@id manual-outputs-settings)
 
-The following settings in `macro_settings.json` control the behavior of the output files.
+The `OutputSettings` block of `case_settings.json` controls the behavior of the output files. Its settings apply to every period of a multi-period case:
+
+```json
+"OutputSettings": {
+    "Dir": "results",
+    "Layout": "long",
+    "Format": "parquet",
+    "Write": {"Curtailment": false}
+}
+```
 
 ### Layout and Format
 
 | Setting | Type | Default | Description |
 |---|---|---|---|
-| `OutputLayout` | `String` or `JSON Object` | `"long"` | Output layout for tabular files. `"long"` stacks all observations as rows; `"wide"` pivots time steps or variables to columns. Can be set globally with a single string, or per-file as a JSON object (see below). |
-| `OutputFormat` | `String` or `JSON Object` | `"csv"` | File format for tabular files: `"csv"`, `"csv.gz"` (gzip-compressed CSV) or `"parquet"` (zstd-compressed). Sets the file extension. Can be set globally with a single string, or per output as a JSON object. See [Output Format and Size](@ref "manual-outputs-format"). |
-| `WriteOutputs` | `JSON Object` | `{}` | Output files to skip, e.g. `{"Curtailment": false}`. Outputs that are not listed are written. See [Selecting Outputs](@ref "manual-outputs-selecting"). |
-| `OutputSignificantDigits` | `Integer` or `null` | `null` | If set, round time-series outputs (flows, storage levels, curtailment, non-served demand and balance duals) to this many significant digits before writing. `null` writes full precision. Capacity, cost and CAPEX files are never rounded. |
-| `OverwriteResults` | `Bool` | `false` | If `true`, overwrite the output directory on each run. If `false`, append `_001`, `_002`, … suffixes to avoid overwriting. |
-| `OutputDir` | `String` | `"results"` | Base name for the results directory. |
-| `OutputAssetTags` | `Bool` | `true` | If `true`, include pipe-separated asset tags in `capacity.csv`, `capacity_summary.csv`, and `capex.csv`. |
-| `DualExportsEnabled` | `Bool` | — | **Deprecated**: use `"WriteOutputs": {"Duals": false}` to skip [`balance_duals.csv`](@ref "manual-outputs-duals-balance") and [`co2_cap_duals.csv`](@ref "manual-outputs-duals-co2"). Still accepted with a deprecation warning, and translated to `WriteOutputs.Duals`. For scripts that read it, `system.settings.DualExportsEnabled` is still `true` or `false`, mirroring `WriteOutputs.Duals`. |
+| `Layout` | `String` or `JSON Object` | `"long"` | Output layout for tabular files. `"long"` stacks all observations as rows; `"wide"` pivots time steps or variables to columns. Can be set globally with a single string, or per-file as a JSON object (see below). |
+| `Format` | `String` or `JSON Object` | `"csv"` | File format for tabular files: `"csv"`, `"csv.gz"` (gzip-compressed CSV) or `"parquet"` (zstd-compressed). Sets the file extension. Can be set globally with a single string, or per output as a JSON object. See [Output Format and Size](@ref "manual-outputs-format"). |
+| `Write` | `JSON Object` | `{}` | Output files to skip or add, e.g. `{"Curtailment": false}`. Outputs that are not listed are written, except `FullTimeseries`, which is off by default. See [Selecting Outputs](@ref "manual-outputs-selecting"). |
+| `SignificantDigits` | `Integer` or `null` | `null` | If set, round time-series outputs (flows, storage levels, curtailment, non-served demand and balance duals) to this many significant digits before writing. `null` writes full precision. Capacity, cost and CAPEX files are never rounded. |
+| `Overwrite` | `Bool` | `false` | If `true`, overwrite the output directory on each run. If `false`, append `_001`, `_002`, … suffixes to avoid overwriting. |
+| `Dir` | `String` | `"results"` | Base name for the results directory. |
+| `AssetTags` | `Bool` | `true` | If `true`, include pipe-separated asset tags in `capacity.csv`, `capacity_summary.csv`, and `capex.csv`. |
+| `DualExportsEnabled` | `Bool` | — | **Deprecated**: use `"Write": {"Duals": false}` to skip [`balance_duals.csv`](@ref "manual-outputs-duals-balance") and [`co2_cap_duals.csv`](@ref "manual-outputs-duals-co2"). Still accepted with a deprecation warning, and translated to `OutputSettings.Write.Duals`. `system.settings.DualExportsEnabled` no longer exists: code that read it should use `output_enabled(system, :Duals)`. |
 
 ### Per-File Layout Control
 
-Instead of a single string, `OutputLayout` can be a JSON object to control layout independently for each output type:
+Instead of a single string, `OutputSettings.Layout` can be a JSON object to control layout independently for each output type:
 
 ```json
-"OutputLayout": {
-    "Capacity":        "wide",
-    "CapacitySummary": "wide",
-    "Costs":           "long",
-    "Flow":            "long",
-    "StorageLevel":    "long",
-    "Curtailment":     "long",
-    "Losses":          "long",
-    "NonServedDemand": "long"
+"OutputSettings": {
+    "Layout": {
+        "Capacity":        "wide",
+        "CapacitySummary": "wide",
+        "Costs":           "long",
+        "Flow":            "long",
+        "StorageLevel":    "long",
+        "Curtailment":     "long",
+        "Losses":          "long",
+        "NonServedDemand": "long"
+    }
 }
 ```
 
@@ -112,7 +122,7 @@ Supported keys: `Capacity`, `CapacitySummary`, `Costs`, `Flow`, `StorageLevel`, 
 
 ### [Output Format and Size](@id manual-outputs-format)
 
-Time-series outputs make up most of a results folder, and `flows.csv` usually dominates. In long layout, each row repeats the same labels (commodity, nodes, asset, component, type), so the files compress very well. `OutputFormat` writes them compressed:
+Time-series outputs make up most of a results folder, and `flows.csv` usually dominates. In long layout, each row repeats the same labels (commodity, nodes, asset, component, type), so the files compress very well. `OutputSettings.Format` writes them compressed:
 
 | Format | Extension | Notes |
 |---|---|---|
@@ -124,66 +134,67 @@ For example, here is one multi-period case: 8 periods, 5 zones, 288 time steps p
 
 | Setting | Total size | Smaller by |
 |---|---|---|
-| `"OutputFormat": "csv"` | 184.3 MB | — |
-| `"OutputFormat": "csv.gz"` | 12.4 MB | 15× |
-| `"OutputFormat": "parquet"` | 7.0 MB | 26× |
-| `"OutputFormat": "parquet"`, `"OutputSignificantDigits": 6` | 5.4 MB | 34× |
+| `"Format": "csv"` | 184.3 MB | — |
+| `"Format": "csv.gz"` | 12.4 MB | 15× |
+| `"Format": "parquet"` | 7.0 MB | 26× |
+| `"Format": "parquet"`, `"SignificantDigits": 6` | 5.4 MB | 34× |
 
-Ratios depend on the case. Rounding with `OutputSignificantDigits` helps because digits beyond the solver's tolerance are noise that does not compress.
+Ratios depend on the case. Rounding with `OutputSettings.SignificantDigits` helps because digits beyond the solver's tolerance are noise that does not compress.
 
-Like `OutputLayout`, `OutputFormat` can be a JSON object to set the format per output. For example, you can keep small tables as plain CSV for spreadsheets and compress the time series:
+Like `OutputSettings.Layout`, `OutputSettings.Format` can be a JSON object to set the format per output. For example, you can keep small tables as plain CSV for spreadsheets and compress the time series:
 
 ```json
-"OutputFormat": {
-    "Flow":            "parquet",
-    "StorageLevel":    "parquet",
-    "Curtailment":     "parquet",
-    "NonServedDemand": "parquet",
-    "Duals":           "parquet"
+"OutputSettings": {
+    "Format": {
+        "Flow":            "parquet",
+        "StorageLevel":    "parquet",
+        "Curtailment":     "parquet",
+        "NonServedDemand": "parquet",
+        "Duals":           "parquet"
+    }
 }
 ```
 
 Supported keys: `Capacity`, `CapacitySummary`, `Capex`, `Costs`, `Curtailment`, `Duals`, `Flow`, `Losses`, `NonServedDemand`, `StorageLevel`, `TimeWeights`. Outputs that are not listed are written as `"csv"`. The `objective_value.csv`, `benders_convergence.csv` and `settings.json` files are always written as CSV/JSON.
 
 !!! note "Full time series"
-    Full time series files follow `OutputFormat` too, except that long-layout CSV files are always gzip-compressed (`.csv.gz`). See [Full Time Series](@ref "manual-outputs-full-timeseries").
+    Full time series files follow `OutputSettings.Format` too, except that long-layout CSV files are always gzip-compressed (`.csv.gz`). See [Full Time Series](@ref "manual-outputs-full-timeseries").
 
 ### [Selecting Outputs](@id manual-outputs-selecting)
 
-`WriteOutputs` switches off individual output files. Outputs that are not listed are written:
+`OutputSettings.Write` switches off individual output files. Outputs that are not listed are written:
 
 ```json
-"WriteOutputs": {
-    "Curtailment":  false,
-    "StorageLevel": false
+"OutputSettings": {
+    "Write": {
+        "Curtailment":  false,
+        "StorageLevel": false
+    }
 }
 ```
 
-Supported keys are the same as for `OutputFormat`. `Duals` covers `balance_duals` and `co2_cap_duals`. Switching it off also skips the extra solve that Macro runs to compute duals when the model has integer variables. Switching off an output also skips its file in `full_time_series/`. `Costs` covers all six cost files (discounted and undiscounted, totals and breakdowns by type and zone).
+Supported keys are the same as for `Format`, plus `FullTimeseries` (see [Full Time Series Setting](@ref "manual-outputs-settings")). `Duals` covers `balance_duals` and `co2_cap_duals`. Switching it off also skips the extra solve that Macro runs to compute duals when the model has integer variables. Switching off an output also skips its file in `full_time_series/`. `Costs` covers all six cost files (discounted and undiscounted, totals and breakdowns by type and zone).
 
-Each period of a multi-period case loads its own `macro_settings.json` (the `settings` entry of each system in `system_data.json`). To get a time series only for some periods (for example, hourly flows only for the final period), point those periods to a settings file that enables it, and point the other periods to one that switches it off. The cross-period `capacity_summary` uses the first period's settings.
+Every period of a multi-period case writes the same outputs.
 
 !!! warning "Myopic restarts need capacity outputs"
     A Myopic restart reads `capacity.csv` (or `capacity.csv.gz`/`capacity.parquet`) from each earlier period of the restart folder. Keep `Capacity` enabled if you may want to restart a run.
 
-    With `OverwriteResults = true`, files from an earlier run stay in the folder. If you change `OutputFormat` between runs into the same folder, a period can end up with two capacity files (e.g., `capacity.csv` and `capacity.parquet`). A restart then stops with an error rather than guess which one is current; delete the stale file.
+    With `OutputSettings.Overwrite = true`, files from an earlier run stay in the folder. If you change `OutputSettings.Format` between runs into the same folder, a period can end up with two capacity files (e.g., `capacity.csv` and `capacity.parquet`). A restart then stops with an error rather than guess which one is current; delete the stale file.
 
     A Myopic run that stops early (`StopAfterPeriod` before the last period) is meant to be continued, so it fails before the first solve if `Capacity` is switched off for any period it writes. A run to the last period only logs a warning.
 
 ### Full Time Series Setting
 
-!!! warn "Full time series output"
-    The `WriteFullTimeseries` setting needs to be set in `case_settings.json` (not `macro_settings.json`).
-
 | Setting | File | Default | Description |
 |---|---|---|---|
-| `WriteFullTimeseries` | `case_settings.json` | `false` | If `true` and time-domain reduction (TDR) is used, write expanded time-series outputs covering all `TotalHoursModeled` hours to a `full_time_series/` subdirectory. |
+| `OutputSettings.Write.FullTimeseries` | `case_settings.json` | `false` | If `true` and time-domain reduction (TDR) is used, write expanded time-series outputs covering all `TotalHoursModeled` hours to a `full_time_series/` subdirectory. |
 
 ## [Output Files](@id manual-outputs-files)
 
 The table below lists all output files produced by Macro. Click the file name to go to the detailed page for that output.
 
-File names are shown with the default `.csv` extension. With [`OutputFormat`](@ref "manual-outputs-format"), tabular files end in `.csv.gz` or `.parquet` instead, and files switched off in [`WriteOutputs`](@ref "manual-outputs-selecting") are not written.
+File names are shown with the default `.csv` extension. With [`OutputSettings.Format`](@ref "manual-outputs-format"), tabular files end in `.csv.gz` or `.parquet` instead, and files switched off in [`OutputSettings.Write`](@ref "manual-outputs-selecting") are not written.
 
 !!! note "Written when column"
     The **Written when** column indicates whether the file is always produced or only under specific conditions. There are three types of conditions:
@@ -203,15 +214,15 @@ File names are shown with the default `.csv` extension. With [`OutputFormat`](@r
 | [`undiscounted_costs_by_zone.csv`](@ref "manual-outputs-costs-breakdown-zone") | Undiscounted cost breakdown by zone and cost category | Always |
 | [`flows.csv`](@ref "manual-outputs-flows") | Commodity flow for every edge at every representative time step | Always |
 | [`time_weights.csv`](@ref "manual-outputs-time-weights") | Representative period weights mapping each time step to its full-year equivalent hours | Always |
-| [`settings.json`](@ref "manual-outputs-settings-output") | Snapshot of all case and system settings used for the run | Always |
+| [`settings.json`](@ref "manual-outputs-settings-output") | Snapshot of all the settings used for the run | Always |
 | [`storage_level.csv`](@ref "manual-outputs-storage-level") | State of charge for every storage component at every representative time step | System has storage assets |
 | [`curtailment.csv`](@ref "manual-outputs-curtailment") | Curtailed generation for VRE assets at every representative time step | System has VRE assets with `has_capacity = true` |
 | [`edge_losses.csv`](@ref "manual-outputs-losses") | Commodity lost on every lossy edge at every representative time step | System has edges with a nonzero `loss_fraction` |
 | [`non_served_demand.csv`](@ref "manual-outputs-nsd") | Non-served demand for every node with NSD variables at every representative time step | System has nodes with NSD variables |
-| [`balance_duals.csv`](@ref "manual-outputs-duals-balance") | Shadow prices of commodity balance constraints (locational marginal prices) | `WriteOutputs.Duals = true` (default) |
-| [`co2_cap_duals.csv`](@ref "manual-outputs-duals-co2") | Shadow prices of CO₂ cap constraints (carbon prices) | `WriteOutputs.Duals = true` (default) |
+| [`balance_duals.csv`](@ref "manual-outputs-duals-balance") | Shadow prices of commodity balance constraints (locational marginal prices) | `OutputSettings.Write.Duals = true` (default) |
+| [`co2_cap_duals.csv`](@ref "manual-outputs-duals-co2") | Shadow prices of CO₂ cap constraints (carbon prices) | `OutputSettings.Write.Duals = true` (default) |
 | [`<case_name>.log`](@ref "manual-outputs-log-file") | Plain-text log of all messages emitted during the run | `log_to_file = true` (default) |
-| [`full_time_series/`](@ref "manual-outputs-full-timeseries") | Expanded time-series outputs covering all `TotalHoursModeled` hours | `WriteFullTimeseries = true` and TDR used |
+| [`full_time_series/`](@ref "manual-outputs-full-timeseries") | Expanded time-series outputs covering all `TotalHoursModeled` hours | `OutputSettings.Write.FullTimeseries = true` and TDR used |
 | [`benders_convergence.csv`](@ref "manual-outputs-benders") | Benders decomposition convergence metrics per iteration | Benders algorithm only |
 
 ## [Reading All Periods as One Table](@id manual-outputs-reading-periods)

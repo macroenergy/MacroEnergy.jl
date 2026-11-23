@@ -80,7 +80,7 @@ function format_asset_tags(asset::AbstractAsset)
 end
 
 function add_asset_tags!(results::DataFrame, system::System)
-    hasproperty(system.settings, :OutputAssetTags) && !system.settings.OutputAssetTags && return results
+    output_setting(system, :AssetTags) || return results
     hasproperty(results, :resource_id) || return results
     tags_by_asset = Dict(id(asset) => format_asset_tags(asset) for asset in system.assets)
     results[!, :tags] = [get(tags_by_asset, resource_id, "") for resource_id in results.resource_id]

@@ -13,7 +13,7 @@
 The storage level represents how much commodity is held inside the storage at a given moment. Tracking this over time reveals charging and discharging patterns, how often storage reaches its capacity limits, and whether inter-period energy carry-over occurs.
 
 !!! note "Representative time steps vs. full year"
-    `storage_level.csv` contains only the representative time steps used in the optimization. If time-domain reduction (TDR) is active, this is a subset of the full year. Enable `WriteFullTimeseries = true` in `case_settings.json` to also write full-year storage levels. See [Full Time Series Output](@ref "manual-outputs-full-timeseries").
+    `storage_level.csv` contains only the representative time steps used in the optimization. If time-domain reduction (TDR) is active, this is a subset of the full year. Enable `OutputSettings.Write.FullTimeseries = true` in `case_settings.json` to also write full-year storage levels. See [Full Time Series Output](@ref "manual-outputs-full-timeseries").
 
 ## [Columns](@id manual-outputs-storage-level-columns)
 
@@ -33,11 +33,11 @@ The storage level represents how much commodity is held inside the storage at a 
 
 | Setting | File | Default | Effect |
 |---|---|---|---|
-| `OutputLayout` (or `OutputLayout.StorageLevel`) | `macro_settings.json` | `"long"` | Set to `"wide"` to pivot time steps into columns. |
-| `OutputFormat` (or `OutputFormat.StorageLevel`) | `macro_settings.json` | `"csv"` | Set to `"csv.gz"` or `"parquet"` to write a compressed file (`.csv.gz` or `.parquet`). See [Output Format and Size](@ref "manual-outputs-format"). |
-| `WriteOutputs.StorageLevel` | `macro_settings.json` | `true` | Set to `false` to skip this output. See [Selecting Outputs](@ref "manual-outputs-selecting"). |
-| `OutputSignificantDigits` | `macro_settings.json` | `null` | Set to an integer to round values to that many significant digits before writing. |
-| `WriteFullTimeseries` | `case_settings.json` | `false` | When `true` and TDR is active, also write full-year storage levels to `full_time_series/storage_level.csv`. |
+| `OutputSettings.Layout` (or `OutputSettings.Layout.StorageLevel`) | `case_settings.json` | `"long"` | Set to `"wide"` to pivot time steps into columns. |
+| `OutputSettings.Format` (or `OutputSettings.Format.StorageLevel`) | `case_settings.json` | `"csv"` | Set to `"csv.gz"` or `"parquet"` to write a compressed file (`.csv.gz` or `.parquet`). See [Output Format and Size](@ref "manual-outputs-format"). |
+| `OutputSettings.Write.StorageLevel` | `case_settings.json` | `true` | Set to `false` to skip this output. See [Selecting Outputs](@ref "manual-outputs-selecting"). |
+| `OutputSettings.SignificantDigits` | `case_settings.json` | `null` | Set to an integer to round values to that many significant digits before writing. |
+| `OutputSettings.Write.FullTimeseries` | `case_settings.json` | `false` | When `true` and TDR is active, also write full-year storage levels to `full_time_series/storage_level.csv`. |
 
 ## [Assumptions](@id manual-outputs-storage-level-assumptions)
 
@@ -59,7 +59,7 @@ The storage level represents how much commodity is held inside the storage at a 
 | Electricity | SE | battery\_SE | battery\_SE\_storage | Battery | Storage{Electricity} | storage\_level | 3 | 200.0 |
 | Electricity | SE | battery\_SE | battery\_SE\_storage | Battery | Storage{Electricity} | storage\_level | 4 | 112.7 |
 
-### Wide Format (`OutputLayout.StorageLevel = "wide"`)
+### Wide Format (`OutputSettings.Layout.StorageLevel = "wide"`)
 
 | commodity | zone | resource\_id | component\_id | resource\_type | component\_type | variable | 1 | 2 | 3 | 4 | … |
 |---|---|---|---|---|---|---|---|---|---|---|---|

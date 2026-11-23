@@ -4,7 +4,7 @@ TotalHoursModeled hours (typically 8760) using the SubPeriodMap.
 
 Outputs are written to a `full_time_series/` subdirectory inside the results directory.
 Only runs when the system uses time-domain reduction (i.e., a non-identity SubPeriodMap),
-and the settings option `WriteFullTimeseries` is `true`. Skips with a warning otherwise.
+and the settings option `OutputSettings.Write.FullTimeseries` is `true`. Skips with a warning otherwise.
 """
 
 """
@@ -13,10 +13,10 @@ and the settings option `WriteFullTimeseries` is `true`. Skips with a warning ot
 Write all time-series outputs expanded to `TotalHoursModeled` hours into a
 `full_time_series/` subdirectory of `results_dir`.
 
-Note: file formats follow the `OutputFormat` setting (see [`full_timeseries_file`](@ref)),
+Note: file formats follow the `OutputSettings.Format` setting (see [`full_timeseries_file`](@ref)),
 except that long-layout CSV outputs are written in compressed `.csv.gz` format.
 
-When duals are enabled (`WriteOutputs.Duals`, `true` by default), balance constraint
+When duals are enabled (`OutputSettings.Write.Duals`, `true` by default), balance constraint
 duals are also written, scaled by `var_cost_discount`.
 
 Skips with a warning if the system does not use time-domain reduction.
@@ -57,7 +57,7 @@ end
 """
     full_timeseries_file(fullts_dir::AbstractString, basename::AbstractString, system::System, variable::Symbol)
 
-Return the path of a full time series output file. The extension follows the `OutputFormat`
+Return the path of a full time series output file. The extension follows the `OutputSettings.Format`
 setting for `variable`, except that long-layout CSV files are always gzip-compressed
 (`.csv.gz`), since they can be very large at 8760 rows × many components.
 """
@@ -421,7 +421,7 @@ end
 Benders version: write all time-series outputs expanded to `TotalHoursModeled` hours,
 reconstructing from per-representative-period subproblem DataFrames.
 
-When duals are enabled (`WriteOutputs.Duals`, `true` by default), balance constraint
+When duals are enabled (`OutputSettings.Write.Duals`, `true` by default), balance constraint
 duals are also written, scaled by `scaling` and `var_cost_discount`.
 """
 function write_full_timeseries(

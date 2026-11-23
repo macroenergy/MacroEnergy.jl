@@ -64,8 +64,9 @@ function template_timedata_file(filepath::AbstractString)
 end
 
 function template_settings_file(filepath::AbstractString)
-    settings = default_settings()
-    write_json(filepath, Dict(k => v for (k, v) in zip(keys(settings), settings)))
+    # All defaults of case_settings.json, except the optional settings that are not set by default
+    settings = filter(entry -> !ismissing(last(entry)) && !isnothing(last(entry)), input_defaults(settings_spec()))
+    write_json(filepath, settings)
     return nothing
 end
 

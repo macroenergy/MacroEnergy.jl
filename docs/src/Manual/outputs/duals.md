@@ -8,7 +8,7 @@
 
 **Files:** `balance_duals.csv`, `co2_cap_duals.csv`
 
-**Condition:** Both files are written only when `WriteOutputs.Duals` is `true` (the default) in `macro_settings.json`.
+**Condition:** Both files are written only when `OutputSettings.Write.Duals` is `true` (the default) in `case_settings.json`.
 
 Dual values (also called shadow prices or Lagrange multipliers) are the marginal costs associated with binding constraints in the optimization. Macro exports duals for two types of constraints:
 
@@ -69,11 +69,11 @@ CO₂ cap duals are the shadow prices of CO₂ cap budget constraints. In power 
 
 | Setting | File | Default | Effect |
 |---|---|---|---|
-| `WriteOutputs.Duals` | `macro_settings.json` | `true` | Set to `false` to skip writing both `balance_duals.csv` and `co2_cap_duals.csv`, and the extra solve that computes duals for models with integer variables. See [Selecting Outputs](@ref "manual-outputs-selecting"). |
-| `DualExportsEnabled` | `macro_settings.json` | — | **Deprecated**: use `WriteOutputs.Duals` instead. Still accepted with a deprecation warning. |
-| `OutputFormat` (or `OutputFormat.Duals`) | `macro_settings.json` | `"csv"` | Set to `"csv.gz"` or `"parquet"` to write both files compressed (`.csv.gz` or `.parquet`). See [Output Format and Size](@ref "manual-outputs-format"). |
-| `OutputSignificantDigits` | `macro_settings.json` | `null` | Set to an integer to round `balance_duals` to that many significant digits before writing. |
-| `WriteFullTimeseries` | `case_settings.json` | `false` | When `true` and TDR is active, also write full-year `balance_duals.csv` to `full_time_series/balance_duals.csv`. |
+| `OutputSettings.Write.Duals` | `case_settings.json` | `true` | Set to `false` to skip writing both `balance_duals.csv` and `co2_cap_duals.csv`, and the extra solve that computes duals for models with integer variables. See [Selecting Outputs](@ref "manual-outputs-selecting"). |
+| `DualExportsEnabled` | `case_settings.json` | — | **Deprecated**: use `OutputSettings.Write.Duals` instead. Still accepted with a deprecation warning. |
+| `OutputSettings.Format` (or `OutputSettings.Format.Duals`) | `case_settings.json` | `"csv"` | Set to `"csv.gz"` or `"parquet"` to write both files compressed (`.csv.gz` or `.parquet`). See [Output Format and Size](@ref "manual-outputs-format"). |
+| `OutputSettings.SignificantDigits` | `case_settings.json` | `null` | Set to an integer to round `balance_duals` to that many significant digits before writing. |
+| `OutputSettings.Write.FullTimeseries` | `case_settings.json` | `false` | When `true` and TDR is active, also write full-year `balance_duals.csv` to `full_time_series/balance_duals.csv`. |
 
 ## [Assumptions](@id manual-outputs-duals-assumptions)
 

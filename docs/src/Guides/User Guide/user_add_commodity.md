@@ -39,7 +39,7 @@ If you created your System from scratch, you will have to add the Commodities yo
         "path": "system/locations.json"
     },
     "settings": {
-        "path": "settings/macro_settings.json"
+        "path": "settings/case_settings.json"
     },
     "assets": {
         "path": "assets"

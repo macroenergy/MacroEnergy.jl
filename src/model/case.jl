@@ -15,18 +15,9 @@ function generate_case(
 
     @info("*** Generating case ***")
 
-    settings = configure_case(systems_data[:settings], dirname(path))
-
     case = systems_data[:case]
     num_systems = length(case)
-
-    # Check that the number of systems matches the length of [PeriodLengths]
-    if num_systems != length(settings[:PeriodLengths])
-        error(
-            "Your number of systems ($(num_systems)) does not match the number of periods lengths ($(length(settings[:PeriodLengths]))) in your case settings.
-            If you didn't specify period lengths, the default is for one 1-year period"
-            )
-    end
+    settings = resolve_settings(systems_data, dirname(path); num_periods=num_systems)
 
     @info("Generating systems")
     
@@ -39,7 +30,7 @@ function generate_case(
             system_data[:time_data][:Year] = settings[:StartYear] + total_years(period_lengths[1:system_idx-1])
         end
         system = empty_system(dirname(path))
-        generate_system!(system, system_data)
+        generate_system!(system, system_data; settings)
         return system
     end
 

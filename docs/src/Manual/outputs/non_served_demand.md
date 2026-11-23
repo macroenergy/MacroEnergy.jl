@@ -49,11 +49,11 @@ The penalty costs for NSD segments are specified in the node's input data under 
 
 | Setting | File | Default | Effect |
 |---|---|---|---|
-| `OutputLayout` (or `OutputLayout.NonServedDemand`) | `macro_settings.json` | `"long"` | Set to `"wide"` to pivot time steps into columns with compound column names `{component_id}_seg{segment}`. |
-| `OutputFormat` (or `OutputFormat.NonServedDemand`) | `macro_settings.json` | `"csv"` | Set to `"csv.gz"` or `"parquet"` to write a compressed file (`.csv.gz` or `.parquet`). See [Output Format and Size](@ref "manual-outputs-format"). |
-| `WriteOutputs.NonServedDemand` | `macro_settings.json` | `true` | Set to `false` to skip this output. See [Selecting Outputs](@ref "manual-outputs-selecting"). |
-| `OutputSignificantDigits` | `macro_settings.json` | `null` | Set to an integer to round values to that many significant digits before writing. |
-| `WriteFullTimeseries` | `case_settings.json` | `false` | When `true` and TDR is active, also write full-year NSD to `full_time_series/non_served_demand.csv`. |
+| `OutputSettings.Layout` (or `OutputSettings.Layout.NonServedDemand`) | `case_settings.json` | `"long"` | Set to `"wide"` to pivot time steps into columns with compound column names `{component_id}_seg{segment}`. |
+| `OutputSettings.Format` (or `OutputSettings.Format.NonServedDemand`) | `case_settings.json` | `"csv"` | Set to `"csv.gz"` or `"parquet"` to write a compressed file (`.csv.gz` or `.parquet`). See [Output Format and Size](@ref "manual-outputs-format"). |
+| `OutputSettings.Write.NonServedDemand` | `case_settings.json` | `true` | Set to `false` to skip this output. See [Selecting Outputs](@ref "manual-outputs-selecting"). |
+| `OutputSettings.SignificantDigits` | `case_settings.json` | `null` | Set to an integer to round values to that many significant digits before writing. |
+| `OutputSettings.Write.FullTimeseries` | `case_settings.json` | `false` | When `true` and TDR is active, also write full-year NSD to `full_time_series/non_served_demand.csv`. |
 
 ## [Assumptions](@id manual-outputs-nsd-assumptions)
 
@@ -86,7 +86,7 @@ The penalty costs for NSD segments are specified in the node's input data under 
 
 In this example at time step 3, the first 100 MW of demand is unmet at the segment-1 penalty price, and an additional 50 MW is unmet at the (higher) segment-2 penalty price.
 
-### Wide Format (`OutputLayout.NonServedDemand = "wide"`)
+### Wide Format (`OutputSettings.Layout.NonServedDemand = "wide"`)
 
 | time | elec\_SE\_seg1 | elec\_SE\_seg2 | h2\_MIDAT\_seg1 |
 |---|---|---|---|

@@ -151,7 +151,11 @@ end
         @test_throws ArgumentError preprocess_inputs(source_case, colliding_output_case; tdr_settings_path=settings_path)
         rm(previous_output; recursive=true)
 
+        write(joinpath(source_case, "settings", "benders_settings.json"), """{"MaxIter": 7}""")
         @test preprocess_inputs(source_case, output_case; tdr_settings_path=settings_path) === nothing
+        # The settings files a Case finds by name reach the reduced Case
+        @test isfile(joinpath(output_case, "settings", "case_settings.json"))
+        @test isfile(joinpath(output_case, "settings", "benders_settings.json"))
         @test isfile(joinpath(output_case, "preprocessing_logs", "time_domain_reduction_provenance.json"))
         @test isfile(joinpath(output_case, "preprocessing_logs", "preprocess_log.json"))
         @test !isfile(joinpath(output_case, "preprocess_log.json"))
@@ -222,6 +226,8 @@ end
             prepared_system_data = MacroEnergy.read_json(joinpath(source_case, "system_data.json"))
             @test startswith(prepared_system_data["case"][1]["time_data"]["path"], "inputs/system_1/system/")
             @test prepared_system_data["case"][2]["assets"]["path"] == "inputs/system_2/assets"
+            # The periods' `settings` entries pointed to the case-level file: no private copies
+            @test !any(haskey(period, "settings") for period in prepared_system_data["case"])
             subperiod_case = joinpath(temporary_root, "system_2_period_1")
             MacroEnergy.tdr_materialize_subperiod_case!(
                 MacroEnergy.tdr_prepare_subperiod_inputs(MacroEnergy.tdr_prepare_inputs(source_case,
