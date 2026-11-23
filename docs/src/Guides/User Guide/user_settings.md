@@ -180,7 +180,7 @@ Every period now uses the same settings. If the periods of a case pointed to dif
 
 ### Julia code
 
-`case.settings` and the `settings` of every `System` in a case are now the same object. Read the output settings from `OutputSettings`, for example `system.settings.OutputSettings.Dir` instead of `system.settings.OutputDir`. Reading an old name is an error.
+`case.settings` and the `settings` of every `System` in a case are now the same object. They cannot be changed once the case is loaded: assigning `system.settings` is an error. To change a setting, change `case_settings.json` and load the case again. Read the output settings from `OutputSettings`, for example `system.settings.OutputSettings.Dir` instead of `system.settings.OutputDir`. Reading an old name is an error.
 
 ### Where each setting goes
 

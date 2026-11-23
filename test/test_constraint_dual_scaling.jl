@@ -76,18 +76,20 @@ end
 
 
 @testset "Per-model scaling metadata and repeated calls" begin
+    # Settings cannot change once set: one System without and one with constraint scaling
+    unscaled = MacroEnergy.empty_system(@__DIR__)
+    unscaled.settings = (; ConstraintScaling=false)
     system = MacroEnergy.empty_system(@__DIR__)
+    system.settings = (; ConstraintScaling=true)
     model = Model(OPTIMIZER)
     set_silent(model)
     @variable(model, x >= 0)
     row = @constraint(model, x <= 1e8)
     @objective(model, Min, -x)
-    system.settings = merge(system.settings, (; ConstraintScaling=false))
-    MacroEnergy.scale_constraints!(system, model)
+    MacroEnergy.scale_constraints!(unscaled, model)
     settings = model.ext[:macroenergy_scaling]
     @test isempty(settings.constraint_scaling_factors)
     @test normalized_rhs(row) == 1e8
-    system.settings = merge(system.settings, (; ConstraintScaling=true))
     for _ in 1:2
         MacroEnergy.scale_constraints!(system, model)
         @test model.ext[:macroenergy_scaling] === settings

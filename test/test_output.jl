@@ -458,11 +458,10 @@ function test_writing_output()
         written_df = MacroEnergy.load_dataframe(filtered_path)
         @test nrow(written_df) <= nrow(returned)
 
-        system.settings = MacroEnergy.configure_settings((OutputSettings=(AssetTags=false,),))
-        without_tags = write_capacity(joinpath(test_dir, "capacity_without_tags.csv"), system, scaling)
+        no_tags = with_settings(system, MacroEnergy.configure_settings((OutputSettings=(AssetTags=false,),)))
+        without_tags = write_capacity(joinpath(test_dir, "capacity_without_tags.csv"), no_tags, scaling)
         @test !hasproperty(without_tags, :tags)
         @test !hasproperty(MacroEnergy.load_dataframe(joinpath(test_dir, "capacity_without_tags.csv")), :tags)
-        system.settings = MacroEnergy.configure_settings(NamedTuple())
 
         rm(test_dir, recursive=true)
     end
@@ -792,7 +791,7 @@ function test_writing_output()
         @test "value" in names(written)
 
         # Test write_curtailment with wide layout
-        system_with_vre.settings = (OutputSettings=(Layout="wide",),)
+        system_with_vre = with_settings(system_with_vre, (OutputSettings=(Layout="wide",),))
         test_curtailment_wide_path = joinpath(curtailment_test_dir, "curtailment_wide.csv")
         @test_nowarn write_curtailment(test_curtailment_wide_path, system_with_vre, 1.0)
         @test isfile(test_curtailment_wide_path)
@@ -886,7 +885,7 @@ function test_writing_output()
         @test size(written, 1) == 3
         @test written[!, :value] ≈ [0.5, 0.6, 0.4]
 
-        system_with_lines.settings = (OutputSettings=(Layout="wide",),)
+        system_with_lines = with_settings(system_with_lines, (OutputSettings=(Layout="wide",),))
         test_losses_wide_path = joinpath(losses_test_dir, "losses_wide.csv")
         @test_nowarn write_losses(test_losses_wide_path, system_with_lines, 1.0)
         written = CSV.read(test_losses_wide_path, DataFrame)
@@ -894,7 +893,7 @@ function test_writing_output()
         @test written[!, :lossy_line] ≈ [0.5, 0.6, 0.4]
 
         # Benders path: per-subproblem DataFrames are concatenated
-        system_with_lines.settings = (OutputSettings=(Layout="long",),)
+        system_with_lines = with_settings(system_with_lines, (OutputSettings=(Layout="long",),))
         test_losses_benders_path = joinpath(losses_test_dir, "losses_benders.csv")
         parts = [get_optimal_losses(lossy_line, 1.0)[t:t, :] for t in 1:3]
         @test_nowarn write_losses(test_losses_benders_path, system_with_lines, [parts; DataFrame()])

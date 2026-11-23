@@ -17,6 +17,12 @@ const TEST_SUITE = macro_test_suite()
 
 run_long_tests() = TEST_SUITE == "long"
 
+# A copy of a System built by hand, with other settings: the settings of a System cannot be
+# changed once they are set. The copy shares everything else with the original.
+# (`typeof(system)` is MacroEnergy.System: some test modules import names from MacroEnergy only.)
+with_settings(system, settings::NamedTuple) = typeof(system)(system.data_dirpath, settings,
+    system.commodities, system.time_data, system.assets, system.locations, system.input_data, system.constraints)
+
 macro log_with_level(log_level, block)
     quote
         result = redirect_stdout(devnull) do

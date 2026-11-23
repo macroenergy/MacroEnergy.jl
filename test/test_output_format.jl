@@ -154,11 +154,11 @@ function test_output_format()
         @test get_output_format(system, :Flow) == "parquet"
         @test output_file("dir", "flows", system, :Flow) == joinpath("dir", "flows.parquet")
 
-        system.settings = configure_settings((OutputSettings=(
+        system = with_settings(system, configure_settings((OutputSettings=(
             Format=(Flow="csv.gz",),
             Write=(Curtailment=false,),
             SignificantDigits=4,
-        ),))
+        ),)))
         @test get_output_format(system, :Flow) == "csv.gz"
         @test get_output_format(system, :Capacity) == "csv"
         @test !output_enabled(system, :Curtailment)
@@ -169,7 +169,7 @@ function test_output_format()
 
         # Settings built by hand without the output keys fall back to the defaults
         for settings in ((OutputSettings=(Layout="long",),), (ConstraintScaling=false,))
-            system.settings = settings
+            system = with_settings(system, settings)
             @test get_output_format(system, :Flow) == "csv"
             @test output_enabled(system, :Flow)
             @test !output_enabled(system, :FullTimeseries)
@@ -177,10 +177,10 @@ function test_output_format()
         end
 
         # Old names set from Julia are an error, rather than silently ignored
-        system.settings = merge(configure_settings(NamedTuple()), (OutputLayout="wide",))
+        system = with_settings(system, merge(configure_settings(NamedTuple()), (OutputLayout="wide",)))
         @test_throws r"system.settings.OutputLayout: is no longer used" get_output_layout(system, :Flow)
-        system.settings = merge(configure_settings(NamedTuple()), (OverwriteResults=true,))
-        @test_throws r"Set system.settings.OutputSettings.Overwrite instead" output_enabled(system, :Flow)
+        system = with_settings(system, merge(configure_settings(NamedTuple()), (OverwriteResults=true,)))
+        @test_throws r"Use OutputSettings.Overwrite instead" output_enabled(system, :Flow)
 
         mktempdir() do dir
             @test_throws ErrorException find_output_file(dir, "capacity")

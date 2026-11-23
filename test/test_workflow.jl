@@ -362,9 +362,10 @@ function test_full_timeseries(case)
     @test has_tdr(system)
 
     # Force wide output layout so both rep-period and full timeseries CSVs
-    # share the same column structure (time + component columns)
-    saved_settings = system.settings
-    system.settings = merge(saved_settings, (OutputSettings=merge(saved_settings.OutputSettings, (Layout="wide",)),))
+    # share the same column structure (time + component columns). Settings cannot be changed
+    # once set: write from a copy of the System with other settings.
+    settings = system.settings
+    system = with_settings(system, merge(settings, (OutputSettings=merge(settings.OutputSettings, (Layout="wide",)),)))
 
     # Create a temp directory, write rep-period + full timeseries files
     results_dir = abspath(mktempdir("."))
@@ -439,7 +440,6 @@ function test_full_timeseries(case)
     end
 
     rm(results_dir; recursive=true)
-    system.settings = saved_settings
     return nothing
 end
 
@@ -447,54 +447,49 @@ end
 # with one exception: the default "csv" in long layout is written as .csv.gz
 function test_full_timeseries_formats(case)
     system = case.systems[1]
-    saved_settings = system.settings
-    output_settings(; kwargs...) = merge(saved_settings, (OutputSettings=merge(saved_settings.OutputSettings,
-        (Layout="long", Format="csv", Write=(;), SignificantDigits=nothing), (; kwargs...)),))
+    # Settings cannot be changed once set: write from copies of the System with other settings
+    output_settings(; kwargs...) = with_settings(system, merge(system.settings, (OutputSettings=merge(system.settings.OutputSettings,
+        (Layout="long", Format="csv", Write=(;), SignificantDigits=nothing), (; kwargs...)),)))
 
-    try
-        mktempdir() do results_dir
-            fullts_files(name) = sort(readdir(joinpath(results_dir, name, "full_time_series")))
+    mktempdir() do results_dir
+        fullts_files(name) = sort(readdir(joinpath(results_dir, name, "full_time_series")))
 
-            system.settings = output_settings()
-            write_full_timeseries(joinpath(results_dir, "default"), system, 1.0, 1.0)
-            default_files = fullts_files("default")
+        write_full_timeseries(joinpath(results_dir, "default"), output_settings(), 1.0, 1.0)
+        default_files = fullts_files("default")
 
-            system.settings = output_settings(Format="parquet", SignificantDigits=4, Write=(Curtailment=false,))
-            write_full_timeseries(joinpath(results_dir, "compact"), system, 1.0, 1.0)
-            compact_files = fullts_files("compact")
+        compact = output_settings(Format="parquet", SignificantDigits=4, Write=(Curtailment=false,))
+        write_full_timeseries(joinpath(results_dir, "compact"), compact, 1.0, 1.0)
+        compact_files = fullts_files("compact")
 
-            @testset "Full timeseries — output formats and switches" begin
-                # Long-layout tables are compressed; balance duals are always wide, so they stay .csv
-                @test "flows.csv.gz" in default_files
-                @test "curtailment.csv.gz" in default_files
-                @test "balance_duals.csv" in default_files
-                @test all(f -> endswith(f, ".csv.gz") || f == "balance_duals.csv", default_files)
+        @testset "Full timeseries — output formats and switches" begin
+            # Long-layout tables are compressed; balance duals are always wide, so they stay .csv
+            @test "flows.csv.gz" in default_files
+            @test "curtailment.csv.gz" in default_files
+            @test "balance_duals.csv" in default_files
+            @test all(f -> endswith(f, ".csv.gz") || f == "balance_duals.csv", default_files)
 
-                # Every table as Parquet, except the switched-off curtailment
-                @test !any(startswith("curtailment."), compact_files)
-                @test compact_files == sort([replace(f, r"\.csv(\.gz)?$" => ".parquet")
-                                             for f in default_files if !startswith(f, "curtailment.")])
+            # Every table as Parquet, except the switched-off curtailment
+            @test !any(startswith("curtailment."), compact_files)
+            @test compact_files == sort([replace(f, r"\.csv(\.gz)?$" => ".parquet")
+                                         for f in default_files if !startswith(f, "curtailment.")])
 
-                # Same rows and labels; values rounded to 4 significant digits
-                for f in compact_files
-                    base = first(split(f, '.'))
-                    default_df = duckdb_read(joinpath(results_dir, "default", "full_time_series", only(filter(startswith("$base."), default_files))))
-                    compact_df = duckdb_read(joinpath(results_dir, "compact", "full_time_series", f))
-                    @test names(compact_df) == names(default_df)
-                    @test nrow(compact_df) == nrow(default_df)
-                    for col in names(default_df)
-                        expected, actual = default_df[!, col], compact_df[!, col]
-                        if nonmissingtype(eltype(expected)) <: AbstractFloat
-                            @test all(isequal.(actual, passmissing(x -> round(x; sigdigits=4)).(expected)))
-                        else
-                            @test isequal(actual, expected)
-                        end
+            # Same rows and labels; values rounded to 4 significant digits
+            for f in compact_files
+                base = first(split(f, '.'))
+                default_df = duckdb_read(joinpath(results_dir, "default", "full_time_series", only(filter(startswith("$base."), default_files))))
+                compact_df = duckdb_read(joinpath(results_dir, "compact", "full_time_series", f))
+                @test names(compact_df) == names(default_df)
+                @test nrow(compact_df) == nrow(default_df)
+                for col in names(default_df)
+                    expected, actual = default_df[!, col], compact_df[!, col]
+                    if nonmissingtype(eltype(expected)) <: AbstractFloat
+                        @test all(isequal.(actual, passmissing(x -> round(x; sigdigits=4)).(expected)))
+                    else
+                        @test isequal(actual, expected)
                     end
                 end
             end
         end
-    finally
-        system.settings = saved_settings
     end
     return nothing
 end

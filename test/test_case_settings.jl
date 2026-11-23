@@ -30,6 +30,7 @@ import MacroEnergy:
     load_case,
     load_case_data,
     load_system,
+    empty_system,
     prep_system_data,
     prepare_to_json,
     read_json,
@@ -605,11 +606,18 @@ function test_system_data_survives_loading()
 end
 
 function test_old_names_before_the_model()
-    @testset "Old names set from Julia are reported before building the model" begin
+    @testset "Settings cannot be changed after loading" begin
         case = with_logger(() -> load_case(test_path), NullLogger())
         system = case.systems[1]
-        system.settings = merge(system.settings, (OverwriteResults=true,))
-        message = "system.settings.OverwriteResults: is no longer used"
+        changed = merge(system.settings, (ConstraintScaling=!system.settings.ConstraintScaling,))
+        @test_throws r"cannot be changed once they are set" (system.settings = changed)
+        @test system.settings === case.settings
+    end
+    @testset "Old names set on a System built by hand are reported before building the model" begin
+        system = empty_system(test_path)
+        system.settings = merge(configure_settings(NamedTuple()), (OverwriteResults=true,))
+        case = Case([system], system.settings)
+        message = "system.settings.OverwriteResults: is no longer used. Use OutputSettings.Overwrite instead"
         optimizer = create_optimizer(HiGHS.Optimizer)
         @test occursin(message, error_message(() -> generate_model(case, optimizer, Monolithic())))
         @test occursin(message, error_message(() -> generate_model(system, optimizer, case.settings, Monolithic())))

@@ -88,13 +88,13 @@ function find_available_path(path::String, basename::String="results"; max_attem
     error("Could not find available directory after $max_attempts attempts")
 end
 
-# Old names set on `system.settings` from Julia would otherwise be silently ignored, because they
-# are only translated when reading settings files. Checked before building a model, so that a
-# mistake does not cost a whole solve, and whenever output settings are read.
+# Old names in the settings of a System built by hand would otherwise be silently ignored, because
+# they are only translated when reading settings files. Checked before building a model, so that
+# a mistake does not cost a whole solve, and whenever output settings are read.
 function reject_deprecated_settings(system::System)
     for old in keys(DEPRECATED_SETTINGS)
         haskey(system.settings, old) && throw(InputValidationError("system.settings.$old",
-            "is no longer used. Set system.settings.$(join(DEPRECATED_SETTINGS[old], ".")) instead."))
+            "is no longer used. Use $(join(DEPRECATED_SETTINGS[old], ".")) instead."))
     end
     return nothing
 end
