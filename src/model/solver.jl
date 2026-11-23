@@ -244,9 +244,15 @@ end
 ####### optimize! for BendersModel #######
 function JuMP.optimize!(bm::BendersModel)
     # call MESolvers.jl to solve the Benders decomposition problem
-    raw = MacroEnergySolvers.benders(
-        bm.planning_problem, bm.subproblems, bm.linking_variables_sub, Dict(pairs(bm.settings))
-    )
+    raw = try
+        MacroEnergySolvers.benders(
+            bm.planning_problem, bm.subproblems, bm.linking_variables_sub, Dict(pairs(bm.settings))
+        )
+    catch
+        # Replace a failed unbounded planning solve with a diagnostic; the original error is kept as its cause.
+        planning_problem_unbounded(bm.planning_problem) && error(unbounded_planning_diagnostic(bm))
+        rethrow()
+    end
 
     # update case or system with the best planning solution found by Benders
     update_with_planning_solution!(bm.update_target, raw.planning_sol.values)
@@ -256,6 +262,41 @@ function JuMP.optimize!(bm::BendersModel)
     bm.subop_sol = MacroEnergySolvers.solve_subproblems(bm.subproblems, raw.planning_sol, true)
 
     bm.convergence = BendersConvergence(raw)
+end
+
+planning_problem_unbounded(model::Model) =
+    termination_status(model) in (MOI.DUAL_INFEASIBLE, MOI.INFEASIBLE_OR_UNBOUNDED)
+
+"""
+    unbounded_planning_diagnostic(bm::BendersModel)
+
+Message for a Benders planning problem found unbounded. It lists the edges with a flow credit or a negative
+`variable_om_cost`, which can make operating costs negative, and suggests capping their capacity.
+"""
+function unbounded_planning_diagnostic(bm::BendersModel)
+    systems = bm.update_target isa Case ? get_periods(bm.update_target) : [bm.update_target]
+    has_limit(e, T, limit) = any(c -> c isa T, e.constraints) && isfinite(limit(e))
+    uncapped, capped = String[], String[]
+    for system in systems, e in get_edges(system)
+        (flow_credit_rate(e) > 0 || variable_om_cost(e) < 0) || continue
+        is_capped = !can_expand(e) || has_limit(e, MaxCapacityConstraint, max_capacity) ||
+            has_limit(e, MaxNewCapacityConstraint, max_new_capacity)
+        push!(is_capped ? capped : uncapped, string(id(e)))
+    end
+    unique!(uncapped); unique!(capped); setdiff!(capped, uncapped)
+    status = termination_status(bm.planning_problem)
+    if isempty(uncapped) && isempty(capped)
+        return "The Benders planning problem is unbounded (termination status $status). No edge has a flow " *
+            "credit or a negative variable_om_cost; check the planning problem's costs and capacity limits."
+    end
+    message = "The Benders planning problem is unbounded (termination status $status). Flow credits and negative " *
+        "variable_om_cost can make operating costs negative, and the operating-cost lower bound then lets the " *
+        "capacity of those edges grow while their credit outweighs investment and fixed O&M costs."
+    isempty(uncapped) || (message *= " Consider adding a MaxCapacityConstraint with a finite max_capacity to these " *
+        "edges, which have none: $(join(uncapped, ", ")).")
+    isempty(capped) || (message *= " Edges with a credit or negative cost that already have a capacity limit: " *
+        "$(join(capped, ", ")).")
+    return message * " Alternatively, set OperatingCostLowerBounds in the Benders settings."
 end
 
 """

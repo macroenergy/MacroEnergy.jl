@@ -139,6 +139,8 @@ function configure_case(case_settings::AbstractDict{Symbol,Any})
     isa(settings[:SolutionAlgorithm], Benders) && configure_benders!(settings)
     isa(settings[:ExpansionHorizon], Myopic) && configure_myopic!(settings)
     validate_case_settings(settings)
+    # JSON preparation can serialize 0.0 as 0; economics methods use Float64.
+    settings[:DiscountRate] = Float64(settings[:DiscountRate])
     return namedtuple(settings)
 end
 

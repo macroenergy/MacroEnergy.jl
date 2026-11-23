@@ -201,6 +201,7 @@ File names are shown with the default `.csv` extension. With [`OutputFormat`](@r
 | [`costs_by_zone.csv`](@ref "manual-outputs-costs-breakdown-zone") | Discounted cost breakdown by zone and cost category | Always |
 | [`undiscounted_costs_by_type.csv`](@ref "manual-outputs-costs-breakdown") | Undiscounted cost breakdown by asset type and cost category | Always |
 | [`undiscounted_costs_by_zone.csv`](@ref "manual-outputs-costs-breakdown-zone") | Undiscounted cost breakdown by zone and cost category | Always |
+| [`flow_credits.csv`](@ref manual-outputs-flow_credit) | Nonnegative flow credit payments by resource and eligible edge; follows `OutputFormat.Costs` | When `WriteOutputs.Costs` is enabled (default); no payment rows when all rates are zero |
 | [`flows.csv`](@ref "manual-outputs-flows") | Commodity flow for every edge at every representative time step | Always |
 | [`time_weights.csv`](@ref "manual-outputs-time-weights") | Representative period weights mapping each time step to its full-year equivalent hours | Always |
 | [`settings.json`](@ref "manual-outputs-settings-output") | Snapshot of all case and system settings used for the run | Always |

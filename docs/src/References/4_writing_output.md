@@ -298,3 +298,11 @@ MacroEnergy.compute_supply_cost
 ```@docs
 MacroEnergy.compute_slack_cost
 ```
+
+## Flow credit payment helpers
+
+```@docs
+MacroEnergy.compute_flow_credit_payment
+MacroEnergy.get_flow_credits
+MacroEnergy.aggregate_flow_credits
+```

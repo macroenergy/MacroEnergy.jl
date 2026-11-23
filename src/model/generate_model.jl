@@ -279,8 +279,23 @@ function planning_model!(a::AbstractAsset, model::Model)
 end
 
 function operation_model!(a::AbstractAsset, model::Model)
+    default_edges = nothing
     for t in fieldnames(typeof(a))
-        operation_model!(getfield(a, t), model)
+        component = getfield(a, t)
+        if component isa AbstractEdge && !iszero(flow_credit_rate(component))
+            # Eligibility follows the asset definition, before input overrides.
+            # Obtain defaults only for assets with a nonzero credit.
+            if isnothing(default_edges)
+                asset_type = Base.typename(typeof(a)).wrapper
+                defaults = default_data(asset_type, id(a), "full")
+                default_edges = get(defaults, :edges, Dict{Symbol,Any}())
+            end
+            edge_defaults = get(default_edges, t, Dict{Symbol,Any}())
+            if get(edge_defaults, :has_capacity, false) !== true
+                throw(ArgumentError("Positive flow_credit_rate requires an edge with has_capacity=true in the asset's default definition: $(id(a)).$t."))
+            end
+        end
+        operation_model!(component, model)
     end
     return nothing
 end

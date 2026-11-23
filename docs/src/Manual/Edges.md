@@ -80,6 +80,7 @@ It is not currently possible to define `Edges` outside of Assets using the stand
 | `annualized_investment_cost` | Float64               | Annualized CAPEX                      | \$/MW/yr  | calculated |
 | `fixed_om_cost`          | Float64                   | Fixed O&M costs                       | \$/MW/yr  | 0.0        |
 | `variable_om_cost`       | Float64                   | Variable O&M costs                    | \$/MWh    | 0.0        |
+| `flow_credit_rate` | Float64 | Finite, nonnegative [flow credit](@ref user_flow_credit) | currency/commodity unit | 0.0 |
 | `wacc`                   | Float64                   | Weighted average cost of capital      | fraction | 0.0        |
 | `lifetime`               | Int                       | Asset lifetime in years               | years    | 1          |
 | `capital_recovery_period` | Int                      | Investment recovery period            | years    | 1          |
