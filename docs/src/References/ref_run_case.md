@@ -18,6 +18,7 @@ recorded in.
 ```@docs
 MacroEnergy.assert_solved
 MacroEnergy.solution_outcome
+MacroEnergy.unbounded_planning_diagnostic
 MacroEnergy.InfeasibleModel
 MacroEnergy.UnboundedModel
 MacroEnergy.SolveFailed
@@ -41,4 +42,5 @@ During operation-model construction, the flow credit uses the existing edge trav
 ```@docs
 MacroEnergy.add_flow_credit_payment!
 MacroEnergy.set_operating_cost_lower_bounds!
+MacroEnergy.default_operating_cost_lower_bounds
 ```
