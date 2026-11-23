@@ -426,7 +426,7 @@ function test_writing_output()
         @test size(result_fast, 1) == 6
         @test result_fast[1, :value] == 100.0  # No scaling applied
 
-        # Retrofits are not implemented for storage, so retrofitted capacity is reported as zero
+        # Retrofits are not implemented for storage capacity, so retrofitted capacity is reported as zero
         storage_td = TimeData{Electricity}(; time_interval=1:4)
         for S in (Storage, MacroEnergy.LongDurationStorage)
             retrofit_result = get_optimal_capacity_by_field(
