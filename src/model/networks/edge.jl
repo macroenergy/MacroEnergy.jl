@@ -21,6 +21,7 @@ macro AbstractEdgeBaseAttributes()
         has_capacity::Bool = $edge_defaults[:has_capacity]
         integer_decisions::Bool = $edge_defaults[:integer_decisions]
         investment_cost::Float64 = $edge_defaults[:investment_cost]
+        investment_credit_rate::Float64 = $edge_defaults[:investment_credit_rate]
         is_retrofit::Bool = $edge_defaults[:is_retrofit]
         lifetime::Int64 = $edge_defaults[:lifetime]
         loss_fraction::Vector{Float64} = $edge_defaults[:loss_fraction]
@@ -44,6 +45,7 @@ macro AbstractEdgeBaseAttributes()
         retrofitted_capacity_track::Dict{Int64,AffExpr} = Dict(1 => AffExpr(0.0))
         retrofitted_units::Union{JuMPVariable,Float64} = 0.0
         variable_om_cost::Float64 = $edge_defaults[:variable_om_cost]
+        flow_credit_rate::Float64 = $edge_defaults[:flow_credit_rate]
         min_down_time::Int64 = $edge_defaults[:min_down_time]
         min_up_time::Int64 = $edge_defaults[:min_up_time]
         startup_cost::Float64 = $edge_defaults[:startup_cost]
@@ -86,6 +88,7 @@ abstract type EdgeWithoutUC{T} <: AbstractEdge{T} end
     - has_capacity::Bool: Whether the edge has capacity variables
     - integer_decisions::Bool: Whether capacity decisions must be integer
     - investment_cost::Float64: CAPEX per unit of new capacity
+    - investment_credit_rate::Float64: Share of the investment cost of new capacity returned as a credit, in [0, 1]
     - loss_fraction::Vector{Float64}: Fraction of flow lost during transmission, it can be time-dependent.
     - max_capacity::Float64: Maximum allowed capacity
     - min_capacity::Float64: Minimum required capacity
@@ -128,6 +131,7 @@ end
     - has_capacity::Bool: Whether the edge has capacity variables
     - integer_decisions::Bool: Whether capacity decisions must be integer
     - investment_cost::Float64: CAPEX per unit of new capacity
+    - investment_credit_rate::Float64: Share of the investment cost of new capacity returned as a credit, in [0, 1]
     - loss_fraction::Vector{Float64}: Fraction of flow lost during transmission, it can be time-dependent.
     - max_capacity::Float64: Maximum allowed capacity
     - min_capacity::Float64: Minimum required capacity
@@ -323,6 +327,7 @@ has_capacity(e::AbstractEdge) = e.has_capacity;
 id(e::AbstractEdge) = e.id;
 integer_decisions(e::AbstractEdge) = e.integer_decisions;
 investment_cost(e::AbstractEdge) = e.investment_cost;
+investment_credit_rate(e::AbstractEdge) = e.investment_credit_rate;
 is_retrofit(e::AbstractEdge) = e.is_retrofit;
 lifetime(e::AbstractEdge) = e.lifetime;
 loss_fraction(e::AbstractEdge) = e.loss_fraction;
@@ -365,6 +370,7 @@ retrofitted_capacity_track(e::AbstractEdge,s::Int64) = (haskey(retrofitted_capac
 retrofitted_units(e::AbstractEdge) = e.retrofitted_units;
 start_vertex(e::AbstractEdge)::AbstractVertex = e.start_vertex;
 variable_om_cost(e::AbstractEdge) = e.variable_om_cost;
+flow_credit_rate(e::AbstractEdge) = e.flow_credit_rate;
 wacc(e::AbstractEdge) = e.wacc;
 annualized_investment_cost(e::AbstractEdge) = e.annualized_investment_cost;
 pv_period_investment_cost(e::AbstractEdge) = e.pv_period_investment_cost;
@@ -470,8 +476,26 @@ function compute_investment_costs!(e::AbstractEdge, model::Model, cost_type::Fun
                 cost_type(e),
                 new_capacity(e),
             )
+            add_investment_credit_payment!(e, model, cost_type)
         end
     end
+end
+
+"""
+Subtract the investment credit of new capacity directly from `eInvestmentFixedCost`, with the
+same cost attribute (`pv_period_investment_cost` or `cf_period_investment_cost`) as the
+investment cost. Output helpers calculate the credit from solved new capacity.
+"""
+function add_investment_credit_payment!(
+    o::Union{AbstractEdge,AbstractStorage},
+    model::Model,
+    cost_type::Function=pv_period_investment_cost,
+)
+    rate = investment_credit_rate(o)
+    validate_investment_credit_rate(rate)
+    iszero(rate) && return nothing
+    add_to_expression!(model[:eInvestmentFixedCost], -rate * cost_type(o), new_capacity(o))
+    return nothing
 end
 
 function compute_om_fixed_costs!(e::AbstractEdge, model::Model, cost_type::Function=pv_period_fixed_om_cost)
@@ -503,9 +527,29 @@ function compute_fixed_costs!(e::AbstractEdge, model::Model, cost_type::Symbol=:
     compute_om_fixed_costs!(e, model, fom_cost_function[cost_type])
 end
 
+"""
+Subtract annual weighted flow credit payments directly from `eVariableCost`.
+VOM and startup costs retain their existing calculations. The objective applies
+period discounting; output helpers calculate payments from solved flows.
+"""
+function add_flow_credit_payment!(e::AbstractEdge, model::Model)
+    rate = flow_credit_rate(e)
+    validate_flow_credit_rate(rate)
+    iszero(rate) && return nothing
+    if e isa BidirectionalEdge
+        throw(ArgumentError("Positive flow_credit_rate is not supported on bidirectional edges: $(id(e))."))
+    end
+    for t in time_interval(e)
+        w = current_subperiod(e, t)
+        add_to_expression!(model[:eVariableCost], -subperiod_weight(e, w) * rate, flow(e, t))
+    end
+    return nothing
+end
+
 function add_operation_model_varcosts!(e::EdgeWithoutUC, model::Model)
     # Used by UnidirectionalEdge; BidirectionalEdge and EdgeWithUC have their own methods.
     # A negative vom is a credit per unit flow (e.g. a carbon price on an edge leaving a CO2 sink).
+    add_flow_credit_payment!(e, model)
     vom_cost = variable_om_cost(e)
     if vom_cost != 0
         eVariableCost = model[:eVariableCost]::AffExpr
@@ -559,6 +603,7 @@ function define_flow_pos_neg!(e::BidirectionalEdge, model::Model)
 end
 
 function add_operation_model_varcosts!(e::BidirectionalEdge, model::Model)
+    add_flow_credit_payment!(e, model)
     vom_cost = variable_om_cost(e)
     # Charged on |flow|, so a negative vom would pay flow in both directions.
     vom_cost < 0 && error("BidirectionalEdge $(id(e)) has a negative variable_om_cost ($vom_cost); " *
@@ -715,6 +760,7 @@ ustart(e::EdgeWithUC, t::Int64) = (ustart(e)::VarArrayOrDense)[t];
 ##### End of EdgeWithUC interface #####
 
 function add_operation_model_varcosts!(e::EdgeWithUC, model::Model)
+    add_flow_credit_payment!(e, model)
     vom_cost = variable_om_cost(e)
     startup_c = startup_cost(e)
     if vom_cost != 0 || startup_c > 0

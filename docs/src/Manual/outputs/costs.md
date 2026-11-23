@@ -32,16 +32,16 @@ These files contain exactly three rows — one for fixed costs, one for variable
 
 | `variable` | Description |
 |---|---|
-| `DiscountedFixedCost` | Present value of all fixed costs (investment annuities + fixed O&M) |
-| `DiscountedVariableCost` | Present value of all variable costs (variable O&M, fuel, startup, NSD penalties) |
+| `DiscountedFixedCost` | Present value of all fixed costs (investment annuities + fixed O&M), less investment credits |
+| `DiscountedVariableCost` | Present value of all variable costs (variable O&M, fuel, startup, NSD penalties), less flow credit payments |
 | `DiscountedTotalCost` | Sum of `DiscountedFixedCost` + `DiscountedVariableCost` (the objective value) |
 
 #### `variable` values in `undiscounted_costs.csv`
 
 | `variable` | Description |
 |---|---|
-| `FixedCost` | Undiscounted total fixed costs |
-| `VariableCost` | Undiscounted total variable costs |
+| `FixedCost` | Undiscounted total fixed costs, less investment credits |
+| `VariableCost` | Undiscounted total variable costs, less flow credit payments |
 | `TotalCost` | Sum of `FixedCost` + `VariableCost` |
 
 ## [Breakdown Cost Files](@id manual-outputs-costs-breakdown)
@@ -80,7 +80,10 @@ Internally, Macro splits categories into two groups that use different discounti
 | Category | Discounted | Undiscounted |
 |---|---|---|
 | `Investment` | Annualized capital expenditure (CAPEX), amortized over the capital recovery period via CRF and then present-valued over the years the asset operates within the modeling horizon | Lump-sum CAPEX multiplied by the capital recovery factor (CRF) to annualize it, then multiplied by the number of years the asset operates within the modeling horizon (up to the CRP) |
+| `InvestmentCredit` | Negative investment credit: `investment_credit_rate` times the discounted `Investment` cost of the component | Negative investment credit: `investment_credit_rate` times the undiscounted `Investment` cost of the component |
 | `FixedOM` | Annual fixed operations and maintenance cost, present-valued over the period length | Annual fixed operations and maintenance cost multiplied by the period length |
+
+System totals already include the `InvestmentCredit` category. The separate [Investment Credits Output](@ref manual-outputs-investment_credit) reports positive credits by resource; do not subtract them again.
 
 **Variable operating cost categories** 
 
@@ -89,11 +92,14 @@ All follow the same discounting structure. For each category, $C$ is the **categ
 | Category | Description |
 |---|---|
 | `VariableOM` | Cost proportional to energy output, using the variable O&M rate per unit of flow |
+| `FlowCredit` | Negative flow credit payment, calculated from the positive `flow_credit_rate` and selected edge flow |
 | `Fuel` | Cost of fuel consumed, using the fuel price per unit of fuel flow |
 | `Startup` | Cost of starting thermal generators, using the startup cost per start event |
 | `NonServedDemand` | Penalty for unmet demand, using the non-served demand penalty parameter (not actual expenditure — an optimization penalty to incentivize meeting demand) |
 | `Supply` | Cost of purchasing commodity supply from nodes with an associated supply price |
 | `UnmetPolicyPenalty` | Penalty for violating policy constraints such as renewable portfolio standards or emission caps with slack variables (not actual expenditure — an optimization penalty) |
+
+The `FlowCredit` category uses the negative of the annual payment as its annual cost. System totals already include this credit. The separate [Flow Credit Payments Output](@ref manual-outputs-flow_credit) reports positive payments by resource; do not subtract them again.
 
 ### Notation and Formulas
 
@@ -126,6 +132,7 @@ Given these definitions, the cost categories are computed as follows:
 | Category | Discounted value | Undiscounted value |
 |---|---|---|
 | `Investment` | $\text{CAPEX} \times \text{CRF}(DR, \text{CRP}) \times \text{PVAF}(DR,\, \min(\text{CRP},\, M_i)) \times \text{DF}(DR, N_i)$ | $\text{CAPEX} \times \text{CRF}(DR, \text{CRP}) \times \min(\text{CRP},\, M_i)$ |
+| `InvestmentCredit` | $-r \times$ the discounted `Investment` value | $-r \times$ the undiscounted `Investment` value |
 | `FixedOM` | annual fixed O&M $\times\, \text{PVAF}(DR, L_i) \times \text{DF}(DR, N_i)$ | annual fixed O&M $\times\, L_i$ |
 
 !!! note "Myopic investment cost reporting"
@@ -133,9 +140,12 @@ Given these definitions, the cost categories are computed as follows:
 
 **Variable cost categories:**
 
+For `FlowCredit`, ``P`` is the nonnegative annual weighted payment.
+
 | Category | Discounted value | Undiscounted value |
 |---|---|---|
 | `VariableOM` | $C \times \text{PVAF}(DR, L_i) \times \text{DF}(DR, N_i)$ | $C \times L_i$ |
+| `FlowCredit` | ``-P \times \mathrm{PVAF}(DR,L_i) \times \mathrm{DF}(DR,N_i)`` | ``-P \times L_i`` |
 | `Fuel` | $C \times \text{PVAF}(DR, L_i) \times \text{DF}(DR, N_i)$ | $C \times L_i$ |
 | `Startup` | $C \times \text{PVAF}(DR, L_i) \times \text{DF}(DR, N_i)$ | $C \times L_i$ |
 | `NonServedDemand` | $C \times \text{PVAF}(DR, L_i) \times \text{DF}(DR, N_i)$ | $C \times L_i$ |
@@ -152,6 +162,8 @@ Given these definitions, the cost categories are computed as follows:
 | `OutputLayout` (or `OutputLayout.Costs`) | `macro_settings.json` | `"long"` | Set to `"wide"` to pivot all cost files. For `costs.csv`/`undiscounted_costs.csv`, the three rows become a single row with variable names as columns. For the breakdown files, cost categories are pivoted to columns and a `Total` column is added. |
 | `OutputFormat` (or `OutputFormat.Costs`) | `macro_settings.json` | `"csv"` | Set to `"csv.gz"` or `"parquet"` to write a compressed file (`.csv.gz` or `.parquet`). See [Output Format and Size](@ref "manual-outputs-format"). |
 | `WriteOutputs.Costs` | `macro_settings.json` | `true` | Set to `false` to skip this output. See [Selecting Outputs](@ref "manual-outputs-selecting"). |
+
+The separate [flow credit payment file](@ref manual-outputs-flow_credit) also follows `WriteOutputs.Costs` and the cost output format. It retains one row per credited resource and edge. `OutputLayout.Costs` does not pivot this payment table, and `OutputSignificantDigits` does not round its values.
 
 ## [Assumptions](@id manual-outputs-costs-assumptions)
 

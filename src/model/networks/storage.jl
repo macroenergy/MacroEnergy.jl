@@ -13,6 +13,7 @@ macro AbstractStorageBaseAttributes()
         existing_capacity::Union{JuMPVariable,AffExpr,Float64,Int64} = $storage_defaults[:existing_capacity]
         fixed_om_cost::Float64 = $storage_defaults[:fixed_om_cost]
         investment_cost::Float64 = $storage_defaults[:investment_cost]
+        investment_credit_rate::Float64 = $storage_defaults[:investment_credit_rate]
         lifetime::Int64 = $storage_defaults[:lifetime]
         long_duration::Bool = $storage_defaults[:long_duration]
         loss_fraction::Vector{Float64} = $storage_defaults[:loss_fraction]
@@ -69,6 +70,7 @@ end
     - existing_capacity::Float64: Initial installed storage capacity
     - fixed_om_cost::Float64: Fixed operation and maintenance costs
     - investment_cost::Float64: CAPEX per unit of new storage capacity
+    - investment_credit_rate::Float64: Share of the investment cost of new storage capacity returned as a credit, in [0, 1]
     - loss_fraction::Vector{Float64}: Fraction of stored commodity lost at each timestep
     - max_capacity::Float64: Maximum allowed storage capacity
     - max_duration::Float64: Maximum storage duration in hours
@@ -162,6 +164,7 @@ existing_capacity(g::AbstractStorage) = g.existing_capacity;
 fixed_om_cost(g::AbstractStorage) = g.fixed_om_cost;
 has_capacity(g::AbstractStorage) = true;
 investment_cost(g::AbstractStorage) = g.investment_cost;
+investment_credit_rate(g::AbstractStorage) = g.investment_credit_rate;
 lifetime(g::AbstractStorage) = g.lifetime;
 loss_fraction(g::AbstractStorage) = g.loss_fraction;
 function loss_fraction(g::AbstractStorage, t::Int64)
@@ -497,6 +500,7 @@ function compute_investment_costs!(g::AbstractStorage, model::Model, cost_type::
                     cost_type(g),
                     new_capacity(g),
                 )
+            add_investment_credit_payment!(g, model, cost_type)
         end
     end
 end

@@ -79,6 +79,10 @@ with_logger(test_logger) do
         include("test_annualized_costs.jl")
     end
 
+    Test.@testset verbose = true "Flow Credits" begin
+        include("test_flow_credit.jl")
+    end
+
     Test.@testset verbose = true "Writing Outputs" begin
         include("test_output.jl")
         include("test_full_timeseries.jl")
@@ -101,6 +105,10 @@ with_logger(test_logger) do
 
     Test.@testset verbose = true "Myopic Functionality" begin
         include("test_myopic.jl")
+    end
+
+    Test.@testset verbose = true "Investment Credits" begin
+        include("test_investment_credit.jl")
     end
 
     Test.@testset verbose = true "Container Types and Accessors" begin

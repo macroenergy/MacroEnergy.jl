@@ -58,6 +58,24 @@ end
 function validate_data(data::AbstractDict{Symbol,Any})
     # validate_id!(data)
     validate_constraints_data!(data)
+    haskey(data, :flow_credit_rate) && validate_flow_credit_rate(data[:flow_credit_rate])
+    haskey(data, :investment_credit_rate) && validate_investment_credit_rate(data[:investment_credit_rate])
+    return nothing
+end
+
+"""Validate one scalar flow credit rate in currency per unit of the selected commodity."""
+function validate_flow_credit_rate(rate)
+    if !(rate isa Real) || rate isa Bool || !isfinite(rate) || rate < 0
+        throw(ArgumentError("flow_credit_rate must be a finite, nonnegative scalar number."))
+    end
+    return nothing
+end
+
+"""Validate one scalar investment credit rate: the share of the investment cost credited, in [0, 1]."""
+function validate_investment_credit_rate(rate)
+    if !(rate isa Real) || rate isa Bool || !isfinite(rate) || rate < 0 || rate > 1
+        throw(ArgumentError("investment_credit_rate must be a finite scalar number between 0 and 1."))
+    end
     return nothing
 end
 

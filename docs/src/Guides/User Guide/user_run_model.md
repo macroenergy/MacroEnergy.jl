@@ -98,6 +98,7 @@ By default, Macro uses the following Benders settings:
 | `Distributed` | `false` | Solve subproblems in parallel using Julia's distributed computing. When enabled, `run_case` automatically spawns and cleans up the required worker processes. |
 | `ExpectFeasibleSubproblems` | `false` | Skip feasibility cuts (use only if subproblems are always feasible) |
 | `IncludeSubproblemSlacksAutomatically` | `false` | Automatically add slack variables to subproblems |
+| `OperatingCostLowerBounds` | omitted | Annual weighted operating-cost bounds in original monetary units, mapped by period and subproblem. When omitted, Macro sets a default bound from the planning capacities. See [Benders Settings for Flow Credits](@ref flow_credit_benders) for units and validity conditions. |
 
 !!! tip "Distributed Computing with Benders Decomposition"
     When `Distributed` is set to `true`, Macro solves subproblems in parallel using Julia's distributed computing. `run_case` automatically spawns and cleans up the required worker processes.

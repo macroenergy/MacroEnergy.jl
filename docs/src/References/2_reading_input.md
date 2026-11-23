@@ -73,3 +73,15 @@ MacroEnergy.load_benders_settings
 ```@docs
 MacroEnergy.try_load_benders_settings
 ```
+
+## Flow credit input validation
+
+```@docs
+MacroEnergy.validate_flow_credit_rate
+```
+
+## Investment credit input validation
+
+```@docs
+MacroEnergy.validate_investment_credit_rate
+```
