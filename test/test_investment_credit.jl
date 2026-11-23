@@ -17,16 +17,19 @@ const CRP = 20
 const SETTINGS = AssetTestUtilities.case_settings()
 
 # One expandable VRE serving a peak demand of 4.
-function make_credit_system(; rate = 0.0, investment_cost = 100.0, wacc = WACC, has_capacity = true)
+function make_credit_system(; rate = 0.0, investment_cost = 100.0, wacc = WACC, has_capacity = true,
+    annualized_investment_cost = nothing)
     system = make_test_system([ME.Electricity])
     push_locations!(system, make_demand_node(ME.Electricity, :sink, system.time_data[:Electricity], [2.0, 4.0, 1.0]))
-    push!(system.assets, ME.make(ME.VRE, Dict{Symbol,Any}(
+    data = Dict{Symbol,Any}(
         :id => :solar, :location => :A, :has_capacity => has_capacity,
         :can_expand => true, :can_retire => false, :existing_capacity => 0.0,
         :investment_cost => investment_cost, :wacc => wacc, :capital_recovery_period => CRP,
         :availability => [1.0, 1.0, 1.0], :end_vertex => :sink,
         :investment_credit_rate => rate,
-    ), system))
+    )
+    isnothing(annualized_investment_cost) || (data[:annualized_investment_cost] = annualized_investment_cost)
+    push!(system.assets, ME.make(ME.VRE, data, system))
     return system
 end
 
@@ -121,13 +124,22 @@ function test_outputs()
         @test row.annual_payment ≈ 0.3 * ME.annualized_investment_cost(edge) * capacity
         credit_pv, credit_cf = ME.compute_investment_credit(edge)
         @test row.discounted_payment ≈ credit_pv
-        @test row.period_payment ≈ credit_cf
+        @test row.undiscounted_payment ≈ credit_cf
 
         costs = ME.get_detailed_costs(system, SETTINGS, 1.0)
         credit_rows = costs.discounted[costs.discounted.category .== :InvestmentCredit, :]
         @test sum(credit_rows.value) ≈ -credit_pv
 
         @test isempty(ME.get_investment_credits(build_and_return(make_credit_system()), SETTINGS, 1.0))
+    end
+
+    @testset "Overnight credit with only annualized_investment_cost" begin
+        annualized = 100.0 * ME.capital_recovery_factor(WACC, CRP)
+        system = build_and_return(make_credit_system(rate = 0.3, investment_cost = 0.0,
+            annualized_investment_cost = annualized))
+        row = only(eachrow(ME.get_investment_credits(system, SETTINGS, 1.0)))
+        @test row.credited_capacity > 0
+        @test row.overnight_credit ≈ 0.3 * 100.0 * row.credited_capacity
     end
 end
 

@@ -27,27 +27,27 @@ The file uses a fixed long format, independent of `OutputLayout`. Zero-rate comp
 | `commodity` | String | Commodity type of the component |
 | `investment_credit_rate` | Float64 | Share of the investment cost credited |
 | `credited_capacity` | Float64 | New capacity receiving the credit |
-| `overnight_credit` | Float64 | Credit on the overnight investment cost, in original monetary units |
+| `overnight_credit` | Float64 | Credit on the overnight investment cost (`investment_credit_rate` times the `capex.csv` value), in original monetary units |
 | `annual_payment` | Float64 | Credit on the annualized investment cost |
-| `period_payment` | Float64 | Credit on the undiscounted investment cost of the period |
+| `undiscounted_payment` | Float64 | Undiscounted credit over the payment years within the horizon: `annual_payment` times ``\min(\mathrm{CRP}, M_p)``, as for the undiscounted `Investment` cost |
 | `discounted_payment` | Float64 | Credit discounted to the case start |
 
 All values are restored from parameter scaling.
 
 ## [Accounting](@id manual-outputs-investment_credit-accounting)
 
-For a component with rate ``r``, investment cost ``I`` and new capacity ``K``:
+For a component with rate ``r``, investment cost ``I`` and new capacity ``K`` (when only `annualized_investment_cost` is given, ``I`` is recovered from it as in `capex.csv`):
 
 ```math
 \begin{aligned}
 P^{\mathrm{overnight}} &= r I K, \\
 P^{\mathrm{annual}} &= r\, \text{annualized\_investment\_cost}\, K, \\
-P^{\mathrm{period}} &= r\, \text{cf\_period\_investment\_cost}\, K, \\
+P^{\mathrm{undiscounted}} &= r\, \text{cf\_period\_investment\_cost}\, K, \\
 P^{\mathrm{discounted}} &= \mathrm{DF}_p\, r\, \text{pv\_period\_investment\_cost}\, K.
 \end{aligned}
 ```
 
-The sum of `discounted_payment` equals the magnitude of the negative `InvestmentCredit` category in the discounted cost breakdown. The sum of `period_payment` corresponds to the undiscounted `InvestmentCredit` category. The system cost total already includes this subtraction.
+The sum of `discounted_payment` equals the magnitude of the negative `InvestmentCredit` category in the discounted cost breakdown. The sum of `undiscounted_payment` equals the magnitude of the undiscounted `InvestmentCredit` category. Unlike `period_payment` in [`flow_credits.csv`](@ref manual-outputs-flow_credit), it is not limited to the years of period ``p``: like the investment cost, it covers ``\min(\mathrm{CRP}, M_p)`` years, where ``M_p`` is the number of years from the start of period ``p`` to the end of the horizon. The system cost total already includes this subtraction.
 
 ## [Configuration](@id manual-outputs-investment_credit-configuration)
 

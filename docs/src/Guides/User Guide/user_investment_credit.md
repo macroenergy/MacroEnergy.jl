@@ -58,7 +58,7 @@ The credit belongs to the planning problem. Operating costs are unchanged, so Be
 
 ## [Multiple Periods](@id investment_credit_periods)
 
-Use a distinct resource ID for each vintage that needs separate accounting. Prepare each period's rate externally and set it to zero when the credit no longer applies. Macro does not infer eligibility or expiry from resource names or tags.
+The rate in period ``p`` applies only to the new capacity built in period ``p``. Each vintage therefore keeps the rate of the period in which it was built, and capacity carried over from earlier periods is not credited again. Separate resource IDs per vintage are not needed. Set each period's rate in that period's inputs, and set it to zero when the credit no longer applies. Macro does not infer eligibility or expiry from resource names or tags.
 
 ## [Outputs](@id investment_credit_outputs)
 

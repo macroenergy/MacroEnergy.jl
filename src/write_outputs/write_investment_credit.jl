@@ -14,7 +14,7 @@ function empty_investment_credits()
         zone=String[], type=String[], tags=String[], commodity=String[],
         investment_credit_rate=Float64[], credited_capacity=Float64[],
         overnight_credit=Float64[], annual_payment=Float64[],
-        period_payment=Float64[], discounted_payment=Float64[])
+        undiscounted_payment=Float64[], discounted_payment=Float64[])
 end
 
 """Extract investment credits in original units, one row per resource and credited component."""
@@ -37,7 +37,8 @@ function get_investment_credits(system::System, settings::NamedTuple, scaling::F
         push!(result, (period, string(id(asset)), string(id(o)), get_zone_name(o),
             get_type(asset), get(tags, id(asset), ""), string(get_commodity_name(o)),
             rate, credited_capacity * scaling,
-            rate * investment_cost(o) * credited_capacity * scaling^2,
+            # `_capex_value` recovers the overnight cost when only `annualized_investment_cost` is given.
+            rate * _capex_value(o, Float64(settings.DiscountRate)) * scaling^2,
             rate * annualized_investment_cost(o) * credited_capacity * scaling^2,
             credit_cf * scaling^2, credit_pv * discount_factor * scaling^2))
     end
