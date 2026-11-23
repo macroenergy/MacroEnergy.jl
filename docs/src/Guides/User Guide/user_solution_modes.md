@@ -100,7 +100,7 @@ The algorithm terminates when the gap between the upper bound (from the subprobl
 
 **`settings/benders_settings.json`**
 
-Macro automatically loads this file from `settings/benders_settings.json` inside the case directory if it exists. A minimal configuration:
+Macro automatically loads this file from `settings/benders_settings.json` inside the case directory if it exists, unless `case_settings.json` has its own `BendersSettings`, which take priority. A minimal configuration:
 
 ```json
 {

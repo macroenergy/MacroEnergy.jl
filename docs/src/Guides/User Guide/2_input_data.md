@@ -85,7 +85,7 @@ The `settings` folder contains `case_settings.json`, which holds all the setting
 | ParameterScalingFactor | Number > 0 | 1000 | Scale factor used when `ParameterScaling` is true. |
 | SolutionAlgorithm | "Monolithic", "Benders" | "Monolithic" | Solution algorithm. The value "Myopic" is deprecated: use `ExpansionHorizon` instead. |
 | ExpansionHorizon | "PerfectForesight", "Myopic" | "PerfectForesight" | Optimize all periods jointly, or one at a time. |
-| BendersSettings | Object | — | Settings of the Benders algorithm, used when `SolutionAlgorithm` is "Benders". Can also be kept in `settings/benders_settings.json`, which takes priority. |
+| BendersSettings | Object | — | Settings of the Benders algorithm, used when `SolutionAlgorithm` is "Benders". If they are not set here, they are read from `settings/benders_settings.json`, if it exists. |
 | MyopicSettings | Object | — | Settings of the myopic iterations, used when `ExpansionHorizon` is "Myopic". |
 | ConstraintScaling | True, False | False | If true, the model will scale the optimization model constraints to make it more numerically stable. |
 | AllowImplicitTopLevelCommodities | True, False | True | If true, unknown plain commodity names in `commodities.json` are treated as new top-level commodities inheriting from `Commodity`; if false, unknown names raise an error. |

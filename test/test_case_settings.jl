@@ -437,16 +437,52 @@ function test_older_settings_files()
             settings = @test_logs (:warn, r"not found") min_level=Logging.Warn match_mode=:any resolve_settings(case_with(Dict{Symbol,Any}()), dir)
             @test settings.BendersSettings[:MaxIter] == 7
         end
-        # The conventional file takes priority over different settings written in case_settings.json, with a warning
+        # Different settings written in case_settings.json take priority over the conventional file, with a warning
         with_settings_files(case_settings=merge(benders, Dict("BendersSettings" => Dict("MaxIter" => 8))),
             benders_settings=Dict("MaxIter" => 7)) do dir
-            settings = @test_logs (:warn, r"takes priority") min_level=Logging.Warn resolve_settings(case_with(Dict{Symbol,Any}()), dir)
-            @test settings.BendersSettings[:MaxIter] == 7
+            settings = @test_logs (:warn, r"take priority over settings/benders_settings.json") min_level=Logging.Warn resolve_settings(case_with(Dict{Symbol,Any}()), dir)
+            @test settings.BendersSettings[:MaxIter] == 8
+        end
+        # and so does a file named in case_settings.json
+        with_settings_files(case_settings=merge(benders, Dict("BendersSettings" => Dict("path" => "settings/other.json"))),
+            other=Dict("MaxIter" => 9), benders_settings=Dict("MaxIter" => 7)) do dir
+            settings = @test_logs (:warn, r"take priority") min_level=Logging.Warn match_mode=:any resolve_settings(case_with(Dict{Symbol,Any}()), dir)
+            @test settings.BendersSettings[:MaxIter] == 9
         end
         # No warning if they agree
         with_settings_files(case_settings=merge(benders, Dict("BendersSettings" => Dict("MaxIter" => 7))),
             benders_settings=Dict("MaxIter" => 7)) do dir
             @test (@test_logs min_level=Logging.Warn resolve_settings(case_with(Dict{Symbol,Any}()), dir)).BendersSettings[:MaxIter] == 7
+        end
+        # An empty BendersSettings sets nothing: the conventional file is used
+        with_settings_files(case_settings=merge(benders, Dict("BendersSettings" => Dict())), benders_settings=Dict("MaxIter" => 7)) do dir
+            @test (@test_logs min_level=Logging.Warn resolve_settings(case_with(Dict{Symbol,Any}()), dir)).BendersSettings[:MaxIter] == 7
+        end
+        # A BendersSettings that is not an object is reported as such, whether or not the conventional file exists
+        for value in ("settings/benders.json", 5), conventional in (nothing, Dict("MaxIter" => 7))
+            files = isnothing(conventional) ? (; case_settings=merge(benders, Dict("BendersSettings" => value))) :
+                (; case_settings=merge(benders, Dict("BendersSettings" => value)), benders_settings=conventional)
+            with_settings_files(; files...) do dir
+                msg = error_message(() -> with_logger(() -> resolve_settings(case_with(Dict{Symbol,Any}()), dir), NullLogger()))
+                @test startswith(something(msg, ""), "InputValidationError: case_settings.BendersSettings: expected null or an object")
+            end
+        end
+    end
+
+    # The same Benders settings with either value of lazy_load: eager loading puts the contents of
+    # the file named by BendersSettings.path in place of the path
+    @testset "Benders settings do not depend on lazy_load" begin
+        mktempdir() do root
+            dir = joinpath(root, "case")
+            cp(test_path, dir)
+            write_json(joinpath(dir, "settings", "case_settings.json"),
+                Dict("SolutionAlgorithm" => "Benders", "BendersSettings" => Dict("path" => "settings/explicit.json")))
+            write_json(joinpath(dir, "settings", "explicit.json"), Dict("MaxIter" => 9))
+            write_json(joinpath(dir, "settings", "benders_settings.json"), Dict("MaxIter" => 7))
+            for lazy_load in (true, false)
+                case = with_logger(() -> load_case(dir; lazy_load), NullLogger())
+                @test case.settings.BendersSettings[:MaxIter] == 9
+            end
         end
     end
 end
@@ -630,11 +666,11 @@ function test_benders_settings_sources()
             settings = resolve_settings(case_with(Dict{Symbol,Any}()), dir)
             @test settings.BendersSettings[:MaxIter] == 8
         end
-        # As documented, the conventional file has priority over settings written in case_settings.json
+        # Settings written in case_settings.json have priority over the conventional file
         with_settings_files(case_settings=merge(benders, Dict("BendersSettings" => Dict("MaxIter" => 8))),
             benders_settings=Dict("MaxIter" => 7)) do dir
             settings = resolve_settings(case_with(Dict{Symbol,Any}()), dir)
-            @test settings.BendersSettings[:MaxIter] == 7
+            @test settings.BendersSettings[:MaxIter] == 8
         end
         # A file named in case_settings.json has priority over the conventional file
         with_settings_files(case_settings=merge(benders, Dict("BendersSettings" => Dict("path" => "settings/other.json"))),
@@ -769,6 +805,23 @@ function test_settings_file_reloads()
                 @test reloaded.settings.DiscountRate isa Float64
                 @test length(reloaded.systems) == length(original.systems)
             end
+        end
+        # A Benders run that read its settings from a file named in case_settings.json: the
+        # snapshot keeps them, although settings/benders_settings.json is still there
+        mktempdir() do root
+            case_dir = joinpath(root, "case")
+            cp(joinpath(@__DIR__, "test_inputs"), case_dir)
+            write_json(joinpath(case_dir, "settings", "case_settings.json"),
+                Dict("SolutionAlgorithm" => "Benders", "BendersSettings" => Dict("path" => "settings/explicit.json")))
+            write_json(joinpath(case_dir, "settings", "explicit.json"), Dict("MaxIter" => 9))
+            write_json(joinpath(case_dir, "settings", "benders_settings.json"), Dict("MaxIter" => 7))
+            original = with_logger(() -> load_case(case_dir), NullLogger())
+            @test original.settings.BendersSettings[:MaxIter] == 9
+            settings_path = joinpath(root, "settings.json")
+            write_settings(original, settings_path)
+            cp(settings_path, joinpath(case_dir, "settings", "case_settings.json"); force=true)
+            reloaded = with_logger(() -> load_case(case_dir), NullLogger())
+            @test isequal(reloaded.settings, original.settings)
         end
         # A rate written by hand as a whole number
         mktempdir() do root

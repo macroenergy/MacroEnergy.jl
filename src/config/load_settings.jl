@@ -21,47 +21,48 @@ end
 """
     load_benders_settings(settings::AbstractDict{Symbol,Any}, path::AbstractString)::AbstractDict{Symbol,Any}
 
-Load Benders settings from a file. First checks if a specific path is provided in the settings,
-otherwise looks for benders_settings.json in the settings directory, which takes priority over
-settings written directly in `BendersSettings`, with a warning. Handles both absolute and relative
-paths. A path to a missing file is an error unless benders_settings.json exists.
+Load the Benders settings of a case into `settings[:BendersSettings]` and return `settings`.
+
+The `BendersSettings` of case_settings.json take priority. They are given either inline or as
+`{"path": ...}`, naming a file (absolute, or relative to the case) that is read here.
+settings/benders_settings.json is used only if case_settings.json has no `BendersSettings`, or
+an empty one. If both are given, benders_settings.json is ignored, with a warning if the two
+differ. If `BendersSettings.path` names a missing file, that is an error, unless
+benders_settings.json exists: then it is used instead, with a warning.
 """
 function load_benders_settings(settings::AbstractDict{Symbol,Any}, path::AbstractString)::AbstractDict{Symbol,Any}
-    # Try to load from specified path if provided
-    if haskey(settings, :BendersSettings) && 
-       isa(settings[:BendersSettings], AbstractDict) && 
-       haskey(settings[:BendersSettings], :path)
-
-        benders_path = settings_file_path(settings[:BendersSettings][:path], path)
+    case_benders = get(settings, :BendersSettings, nothing)
+    if case_benders isa AbstractDict && haskey(case_benders, :path)
+        benders_path = settings_file_path(case_benders[:path], path)
         if isfile(benders_path)
             @info("Loading Benders settings from path: $benders_path")
-            settings[:BendersSettings] = read_file(benders_path)
-            return settings
+            case_benders = settings[:BendersSettings] = read_file(benders_path)
+        else
+            @warn("Benders settings file not found: $benders_path")
+            isnothing(try_load_benders_settings(path)) && throw(InputValidationError("case_settings.BendersSettings.path",
+                "file not found: $benders_path"))
+            case_benders = nothing
         end
-        
-        @warn("Benders settings file not found: $benders_path")
-        isnothing(try_load_benders_settings(path)) && throw(InputValidationError("case_settings.BendersSettings.path",
-            "file not found: $benders_path"))
-        delete!(settings, :BendersSettings)
     end
 
-    # Otherwise, try to load from default location defined as BENDERS_SETTINGS_FILEPATH
-    benders_settings = try_load_benders_settings(path)
-    if !isnothing(benders_settings)
-        written = settings_dict(something(get(settings, :BendersSettings, nothing), Dict{Symbol,Any}()))
-        # Compared with the defaults filled in: results/settings.json writes all of them
-        spec = benders_settings_spec()
-        if !isempty(written) && !isequal(merge_defaults(spec, written), merge_defaults(spec, settings_dict(benders_settings)))
-            @warn("$BENDERS_SETTINGS_FILEPATH takes priority over the BendersSettings in case_settings.json, which are ignored.")
-        end
-        settings[:BendersSettings] = benders_settings
+    default_benders = try_load_benders_settings(path)
+    isnothing(default_benders) && return settings
+    if isnothing(case_benders) || (case_benders isa AbstractDict && isempty(case_benders))
+        settings[:BendersSettings] = default_benders
+        return settings
     end
-
+    # A value that is not an object is reported when the settings are checked
+    case_benders isa AbstractDict || return settings
+    # Compared with the defaults filled in: results/settings.json writes all of them
+    spec = benders_settings_spec()
+    if !isequal(merge_defaults(spec, settings_dict(case_benders)), merge_defaults(spec, settings_dict(default_benders)))
+        @warn("The BendersSettings of case_settings.json take priority over $BENDERS_SETTINGS_FILEPATH, which is ignored.")
+    end
     return settings
 end
 
 """
-    resolve_settings(case_data::AbstractDict{Symbol,Any}, case_dir::AbstractString)::NamedTuple
+    resolve_settings(case_data::AbstractDict{Symbol,Any}, case_dir::AbstractString; num_periods=nothing)::NamedTuple
 
 Read the settings of a case and return them as one `NamedTuple`, shared by the `Case` and by
 every `System` in it.

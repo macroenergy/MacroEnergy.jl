@@ -26,7 +26,7 @@ const LEGACY_SYSTEM_SETTINGS_FILENAME = "macro_settings.json"
 # top-level entry reads case_settings.json first, and a period's entry macro_settings.json first
 const CASE_ENTRY_FILENAMES = (CASE_SETTINGS_FILENAME, LEGACY_SYSTEM_SETTINGS_FILENAME)
 const PERIOD_ENTRY_FILENAMES = (LEGACY_SYSTEM_SETTINGS_FILENAME, CASE_SETTINGS_FILENAME)
-# The Benders settings can also be kept in this file, which takes priority over `BendersSettings`
+# The Benders settings can also be kept in this file, used if case_settings.json has no `BendersSettings`
 const BENDERS_SETTINGS_FILEPATH = "settings/benders_settings.json"
 
 function output_settings_spec()::InputBlock

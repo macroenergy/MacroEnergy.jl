@@ -18,7 +18,7 @@ This file serves as a reproducibility record: given the same input data and the 
 
 `settings.json` contains all the settings of the run, in the same form as `case_settings.json` and with the default values filled in. The `Case` and every period of a multi-period model share these settings.
 
-To rerun a case with the settings of an earlier run, copy that run's `settings.json` to `settings/case_settings.json`.
+To rerun a case with the settings of an earlier run, copy that run's `settings.json` to the file the case reads its settings from: `settings/case_settings.json`, or the file named by the top-level `settings` entry of `system_data.json`. Its `BendersSettings` take priority over `settings/benders_settings.json`, so a Benders case runs with the Benders settings of the earlier run too.
 
 ## [Assumptions](@id manual-outputs-settings-output-assumptions)
 
