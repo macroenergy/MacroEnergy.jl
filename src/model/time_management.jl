@@ -34,6 +34,9 @@ modeled_subperiods(y::Union{AbstractVertex,AbstractEdge}) = sort(collect(keys(y.
 subperiod_map(y::Union{AbstractVertex,AbstractEdge}) = y.timedata.subperiod_map;
 subperiod_map(y::Union{AbstractVertex,AbstractEdge}, n::Int64) = subperiod_map(y)[n];
 total_hours_modeled(y::Union{AbstractVertex,AbstractEdge}) = y.timedata.total_hours_modeled;
+# True when some modeled subperiods are represented by others, as after time-domain reduction.
+using_representative_subperiods(y::Union{AbstractVertex,AbstractEdge}) =
+    !isempty(setdiff(modeled_subperiods(y), subperiod_indices(y)))
 ######### TimeData interface #########
 
 

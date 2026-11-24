@@ -197,6 +197,7 @@ include("model/assets/battery.jl")
 include("model/assets/electrolyzer.jl")
 include("model/assets/fuelcell.jl")
 include("model/assets/gasstorage.jl")
+include("model/assets/netflowstorage.jl")
 include("model/assets/thermalhydrogen.jl")
 include("model/assets/thermalpower.jl")
 include("model/assets/transmissionlink.jl")
@@ -347,6 +348,7 @@ export AbstractAsset,
     MustRunConstraint,
     NaturalGas,
     NaturalGasDAC,
+    NetFlowStorage,
     Node,
     OperationConstraint,
     PlanningConstraint,

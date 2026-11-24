@@ -64,6 +64,7 @@ with_logger(test_logger) do
             include("asset_tests/test_asset_electricheating_balance.jl")
             include("asset_tests/test_asset_electricsteam_balance.jl")
             include("asset_tests/test_asset_gasstorage_balance.jl")
+            include("asset_tests/test_asset_netflowstorage_balance.jl")
             include("asset_tests/test_asset_hydrores_balance.jl")
             include("asset_tests/test_asset_mustrun_balance.jl")
             include("asset_tests/test_asset_electricarcfurnace_balance.jl")

@@ -224,6 +224,21 @@ flowchart LR
     linkStyle 4,5 stroke:lightblue, stroke-width: 3px;
 ```
 
+### [Net Flow Storage](@ref)
+
+```mermaid
+%%{init: {'theme': 'base', 'themeVariables': { 'background': '#D1EBDE' }}}%%
+flowchart LR
+  subgraph NetFlowStorage
+  direction LR
+    A((Commodity)) e1@<-->|Flow| B[Storage]
+    e1@{ animate: true }
+ end
+    style A r:55px,fill:lightblue,stroke:black,color:black,stroke-dasharray: 3,5;
+    style B fill:lightblue,stroke:black,color:black;
+    linkStyle 0 stroke:lightblue, stroke-width: 2px;
+```
+
 ### [Hydro Reservoir](@ref)
 
 ```mermaid
