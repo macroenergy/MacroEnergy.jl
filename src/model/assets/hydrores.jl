@@ -152,18 +152,19 @@ function make(asset_type::Type{HydroRes}, data::AbstractDict{Symbol,Any}, system
             (data, Symbol("inflow_", key)),
         ]
     )
+    inflow_commodity_symbol, inflow_commodity = checked_edge_commodity(id, inflow_edge_key, inflow_edge_data, Electricity)
     @start_vertex(
         inflow_start_node,
         inflow_edge_data,
-        Electricity,
+        inflow_commodity,
         [(inflow_edge_data, :start_vertex), (data, :hydro_source), (data, :location),],
     )
     inflow_end_node = hydrostor
     inflow_edge = Edge(
         Symbol(id, "_", inflow_edge_key),
         inflow_edge_data,
-        system.time_data[:Electricity],
-        Electricity,
+        system.time_data[inflow_commodity_symbol],
+        inflow_commodity,
         inflow_start_node,
         inflow_end_node,
     )
@@ -182,18 +183,19 @@ function make(asset_type::Type{HydroRes}, data::AbstractDict{Symbol,Any}, system
             (data, Symbol("spill_", key)),
         ]
     )
+    spill_commodity_symbol, spill_commodity = checked_edge_commodity(id, spill_edge_key, spill_edge_data, Electricity)
     spill_start_node = hydrostor
     @end_vertex(
         spill_end_node,
         spill_edge_data,
-        Electricity,
+        spill_commodity,
         [(spill_edge_data, :end_vertex), (data, :hydro_source), (data, :location),],
     )
     spill_edge = Edge(
         Symbol(id, "_", spill_edge_key),
         spill_edge_data,
-        system.time_data[:Electricity],
-        Electricity,
+        system.time_data[spill_commodity_symbol],
+        spill_commodity,
         spill_start_node,
         spill_end_node,
     )

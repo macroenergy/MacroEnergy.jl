@@ -10,6 +10,7 @@ and this project follows Julia package versioning through `Project.toml` release
 ### Added
 
 - Added a `commodities` object to location inputs for defining commodity nodes directly in `locations.json`, including demand, supply segments, time series, and node constraints. Empty objects use existing node defaults and generate `<location>_<commodity>` node IDs; explicit IDs override the default. Existing location-name strings and independent `nodes.json` definitions remain supported.
+- Library assets read the commodity of their edges from the input, so these edges can end on sub-Commodity (`acts_like`) nodes: the `edge` of `VRE`, the `elec_edge` and `heat_edge` of `ElectricHeating`, the `heat_edge` of `ThermalHeating`, the `inflow_edge` and `spill_edge` of `HydroRes`, the `co2_storage_edge` of `CO2Injection`, and the `h2_edge` of `Electrolyzer`, `SyntheticAmmonia` and `SyntheticMethanol`. A commodity outside the default commodity's family, or one that is not defined, raises an `ArgumentError` naming the asset and the edge. `CO2StorageConstraint` applies to nodes of any `CO2Captured` sub-Commodity.
 - Added `write_json(io::IO, data::AbstractDict)` for writing JSON to a caller-owned stream without closing it.
 
 ### Fixed
@@ -26,6 +27,7 @@ and this project follows Julia package versioning through `Project.toml` release
 - Multi-period cases no longer fail with a `MethodError` when carrying over capacities for an asset whose optional edge is absent, such as a `BECCSHydrogen` asset without a `fuel_edge`. Myopic runs with `ReturnModels: false` failed the same way when releasing such an asset.
 - Myopic runs with `ReturnModels: false` now also release the JuMP references held by system-wide and per-location grouped capacity constraints. These kept an emptied model alive for each period, which increased memory use with the number of periods.
 - Fixed location membership for automatically created nodes so location-based outputs and capacity constraints can identify their location correctly. Automatic nodes are registered before attachment, so rejected duplicate IDs leave membership unchanged and repeated lookups still fail.
+- The asset `location` now reaches the transformation of `Electrolyzer`, `BECCSHydrogen` and `ConstrainedFossilLiquidFuels`, as it already did for `ThermalPower`, so location-scoped constraints see all of their edges.
 - Fixed unresolved endpoint handling: `AutoCreateNodes` now reports an error when an endpoint matches neither an existing node nor a location, rather than attempting to create an anonymous node.
 - Fixed time-domain reduction commodity context for nodes defined within locations, so commodity-scoped feature weights and exclusions apply to inline series and CSV references. Reference exclusions now match actual input context, including file, field, asset, and commodity, even when a generic feature is selected.
 - Fixed `template_location` to support location dictionaries and mixed batches, preserve existing commodity and constraint definitions, and check duplicates by location ID. Conflicting definitions are rejected before writing; new JSON files and directories can be created directly.

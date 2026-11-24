@@ -4,7 +4,7 @@ Base.@kwdef mutable struct CO2StorageConstraint <: PolicyConstraint
     constraint_ref::Union{Missing,JuMPConstraint} = missing
 end
 
-function add_model_constraint!(ct::CO2StorageConstraint, n::Node{CO2Captured}, model::Model)
+function add_model_constraint!(ct::CO2StorageConstraint, n::Node{<:CO2Captured}, model::Model)
     ct_type = typeof(ct)
 
     subperiod_balance = @expression(model, [w in subperiod_indices(n)], 0 * model[:vREF])

@@ -104,18 +104,19 @@ function make(asset_type::Type{SyntheticAmmonia}, data::AbstractDict{Symbol,Any}
             (data, Symbol("h2_", key)),
         ]
     )
+    h2_commodity_symbol, h2_commodity = checked_edge_commodity(id, h2_edge_key, h2_edge_data, Hydrogen)
     @start_vertex(
         h2_start_node,
         h2_edge_data,
-        Hydrogen,
+        h2_commodity,
         [(h2_edge_data, :start_vertex), (data, :location)],
     )
     h2_end_node = synthetic_ammonia_transform
     h2_edge = Edge(
         Symbol(id, "_", h2_edge_key),
         h2_edge_data,
-        system.time_data[:Hydrogen],
-        Hydrogen,
+        system.time_data[h2_commodity_symbol],
+        h2_commodity,
         h2_start_node,
         h2_end_node,
     )

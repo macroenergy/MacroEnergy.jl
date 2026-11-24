@@ -119,18 +119,19 @@ function make(asset_type::Type{CO2Injection}, data::AbstractDict{Symbol,Any}, sy
             (data, Symbol("co2_storage_", key)),
         ]
     )
+    commodity_symbol, commodity = checked_edge_commodity(id, co2_storage_edge_key, co2_storage_edge_data, CO2Captured)
     co2_storage_start_node = co2injection_transform
     @end_vertex(
         co2_storage_end_node,
         co2_storage_edge_data,
-        CO2Captured,
+        commodity,
         [(co2_storage_edge_data, :end_vertex), (data, :co2_storage), (data, :location),],
     )
     co2_storage_edge = Edge(
         Symbol(id, "_", co2_storage_edge_key),
         co2_storage_edge_data,
-        system.time_data[:CO2Captured],
-        CO2Captured,
+        system.time_data[commodity_symbol],
+        commodity,
         co2_storage_start_node,
         co2_storage_end_node,
     )

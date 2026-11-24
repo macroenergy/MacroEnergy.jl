@@ -116,11 +116,12 @@ function make(asset_type::Type{ElectricHeating}, data::AbstractDict{Symbol,Any},
             (data, key),
         ]
     )
+    heat_commodity_symbol, heat_commodity = checked_edge_commodity(id, heat_edge_key, heat_edge_data, Heat)
     heat_start_node = heating_transform
     @end_vertex(
         heat_end_node,
         heat_edge_data,
-        Heat,
+        heat_commodity,
         [(heat_edge_data, :end_vertex), (data, :location)],
     )
 
@@ -128,8 +129,8 @@ function make(asset_type::Type{ElectricHeating}, data::AbstractDict{Symbol,Any},
     heat_edge = Edge(
         Symbol(id, "_", heat_edge_key),
         heat_edge_data,
-        system.time_data[:Heat],
-        Heat,
+        system.time_data[heat_commodity_symbol],
+        heat_commodity,
         heat_start_node,
         heat_end_node,
     )
@@ -145,18 +146,19 @@ function make(asset_type::Type{ElectricHeating}, data::AbstractDict{Symbol,Any},
         ]
     )
 
+    elec_commodity_symbol, elec_commodity = checked_edge_commodity(id, elec_edge_key, elec_edge_data, Electricity)
     @start_vertex(
         elec_start_node,
         elec_edge_data,
-        Electricity,
+        elec_commodity,
         [(elec_edge_data, :start_vertex), (data, :location)],
     )
     elec_end_node = heating_transform
     elec_edge = Edge(
         Symbol(id, "_", elec_edge_key),
         elec_edge_data,
-        system.time_data[:Electricity],
-        Electricity,
+        system.time_data[elec_commodity_symbol],
+        elec_commodity,
         elec_start_node,
         elec_end_node,
     )

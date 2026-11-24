@@ -93,6 +93,7 @@ end
 """
 function make(asset_type::Type{Electrolyzer}, data::AbstractDict{Symbol,Any}, system::System)
     id = AssetId(data[:id])
+    location = as_symbol_or_missing(get(data, :location, missing))
 
     @setup_data(asset_type, data, id)
 
@@ -110,6 +111,7 @@ function make(asset_type::Type{Electrolyzer}, data::AbstractDict{Symbol,Any}, sy
     electrolyzer = Transformation(;
         id = Symbol(id, "_", electrolyzer_key),
         timedata = system.time_data[Symbol(transform_data[:timedata])],
+        location = location,
         constraints = transform_data[:constraints],
     )
 
@@ -150,11 +152,12 @@ function make(asset_type::Type{Electrolyzer}, data::AbstractDict{Symbol,Any}, sy
             (data, key),
         ]
     )
+    h2_commodity_symbol, h2_commodity = checked_edge_commodity(id, h2_edge_key, h2_edge_data, Hydrogen)
     h2_start_node = electrolyzer
     @end_vertex(
         h2_end_node,
         h2_edge_data,
-        Hydrogen,
+        h2_commodity,
         [(h2_edge_data, :end_vertex), (data, :location)],
     )
     has_uc = get(h2_edge_data, :uc, false)
@@ -162,8 +165,8 @@ function make(asset_type::Type{Electrolyzer}, data::AbstractDict{Symbol,Any}, sy
     h2_edge = EdgeType(
         Symbol(id, "_", h2_edge_key),
         h2_edge_data,
-        system.time_data[:Hydrogen],
-        Hydrogen,
+        system.time_data[h2_commodity_symbol],
+        h2_commodity,
         h2_start_node,
         h2_end_node,
     )

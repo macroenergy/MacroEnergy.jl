@@ -12,6 +12,18 @@ function commodity_types(m::Module = MacroEnergy)
     return COMMODITY_TYPES
 end
 
+# The commodity of an asset edge, read from its input. It must be `family` or a sub-commodity of it,
+# because the asset stores the edge in a field typed for that family.
+function checked_edge_commodity(asset_id, edge_key::Symbol, edge_data::AbstractDict{Symbol,Any}, family::DataType)
+    name = Symbol(edge_data[:commodity])
+    commodity = get(commodity_types(), name, nothing)
+    isnothing(commodity) && throw(ArgumentError(
+        "Asset $asset_id: edge `$edge_key` has commodity $name, which is not a defined commodity."))
+    commodity <: family || throw(ArgumentError(
+        "Asset $asset_id: edge `$edge_key` has commodity $name, but it must be $(nameof(family)) or a sub-commodity of $(nameof(family))."))
+    return name, commodity
+end
+
 ###### ###### ###### ######
 
 function clean_line(line::AbstractString)::String
