@@ -1,6 +1,16 @@
-function generate_operation_subproblem(system::System,case_settings::NamedTuple,include_subproblem_slacks::Bool)
+function generate_operation_subproblem(system::System,case_settings::NamedTuple,include_subproblem_slacks::Bool,optimizer::Union{Optimizer,Nothing}=nothing)
 
-    model = Model()
+    # Honour `EnableJuMPDirectModel` as the Monolithic `generate_model` does. Direct mode needs the
+    # optimizer at construction; without one the subproblem stays a cached `Model()`.
+    model = if system.settings.EnableJuMPDirectModel && !isnothing(optimizer)
+        create_direct_model_with_optimizer(optimizer)
+    else
+        Model()
+    end
+
+    # Linking variables are always named: MacroEnergySolvers looks them up with `variable_by_name`
+    # to fix them to the planning solution and to read their duals.
+    set_string_names_on_creation(model, true)
 
     @variable(model, vREF == 1)
 
@@ -9,6 +19,10 @@ function generate_operation_subproblem(system::System,case_settings::NamedTuple,
     add_linking_variables!(system, model)
 
     linking_variables = name.(setdiff(all_variables(model), model[:vREF]))
+
+    # Everything created from here on is operational and never looked up by name, so names follow
+    # `EnableJuMPStringNames`, as in the Monolithic model.
+    set_string_names_on_creation(model, system.settings.EnableJuMPStringNames)
 
     define_available_capacity!(system, model)
 
@@ -42,9 +56,12 @@ end
 
 function initialize_subproblem(system::Any,optimizer::Optimizer,case_settings::NamedTuple,include_subproblem_slacks::Bool)
     
-    subproblem,linking_variables_sub = generate_operation_subproblem(system,case_settings,include_subproblem_slacks);
+    subproblem,linking_variables_sub = generate_operation_subproblem(system,case_settings,include_subproblem_slacks,optimizer);
 
-    set_optimizer(subproblem, optimizer)
+    # A direct model already carries its optimizer and attributes; only a cached model needs one attached.
+    if mode(subproblem) != DIRECT
+        set_optimizer(subproblem, optimizer)
+    end
 
     set_silent(subproblem)
 
@@ -88,6 +105,18 @@ function initialize_dist_subproblems!(system_decomp::Vector,opt::Dict,case_setti
 
     # Scatter the decomposed systems across the workers as a DArray
     systems_dist = distribute(system_decomp, subproblems_all);
+
+    # `distribute` has copied each subperiod's System to its worker, so the copies here are no longer
+    # needed. Emptying the vector in place (`generate_model` holds the same one) and collecting garbage
+    # releases them before the worker-side build, the phase with the highest memory use.
+    number_of_subproblems = length(system_decomp)
+    empty!(system_decomp)
+    GC.gc()
+
+    # The worker-side build logs nothing until it completes, so mark its start.
+    live_gib = round(Base.gc_live_bytes() / 2^30, digits=1)
+    @info(" -- Scattered $(number_of_subproblems) subperiod systems to $(length(procs(subproblems_all))) workers")
+    @info(" -- Released this process' copies, $(live_gib) GiB live here; building subproblems on the workers")
 
     @sync for p in procs(subproblems_all)
         @async @spawnat p begin

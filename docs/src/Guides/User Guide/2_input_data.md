@@ -89,8 +89,8 @@ The `settings` folder currently contains only one file, `macro_settings.yml`, wh
 | WriteOutputs | Object | {} | Output files to skip, e.g., `{"Curtailment": false, "Duals": false}`. Outputs that are not listed are written. |
 | OutputSignificantDigits | Integer, null | null | If set, round time-series outputs to this many significant digits before writing. |
 | DualExportsEnabled | True, False | — | Deprecated: use `WriteOutputs` with `"Duals": false` instead. Still accepted with a warning. |
-| EnableJuMPStringNames | True, False | False | If true, the model will attach a string name to each JuMP variables. Ignored when Benders decomposition is used. |
-| EnableJuMPDirectModel | True, False | False | If true, the model will be generate a JuMP direct model. Ignored when Benders decomposition is used. |
+| EnableJuMPStringNames | True, False | False | If true, the model will attach a string name to each JuMP variables. Under Benders decomposition it applies to the operational subproblems; the planning problem always has names, since its variables are looked up by name. |
+| EnableJuMPDirectModel | True, False | False | If true, the model will be generate a JuMP direct model. Under Benders decomposition it applies to the operational subproblems; the planning problem is never a direct model. |
 | AutoCreateNodes | True, False | False | If true, the model will automatically create a new Node if Macro is asked to find a Node of a given Commodity at a Location and the Node does not exist. |
 | AutoCreateLocations | True, False | True |  If true, the model will automatically create a new Location if Macro comes across a Node which is a assigned to a Location that does not exist. |
 | Retrofitting | True, False | False | If true, the model will consider retrofi investments |

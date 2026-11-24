@@ -75,6 +75,10 @@ with_logger(test_logger) do
         end
     end
 
+    Test.@testset verbose = true "Policy Budgets" begin
+        include("test_policy_budgets.jl")
+    end
+
     Test.@testset verbose = true "Annualized Costs" begin
         include("test_annualized_costs.jl")
     end
@@ -92,6 +96,7 @@ with_logger(test_logger) do
     
     Test.@testset verbose = true "Benders Output Utilities" begin
         include("test_benders_output_utilities.jl")
+        include("test_benders_subproblems.jl")
     end
     
     Test.@testset verbose = true "Solve Status Checks" begin

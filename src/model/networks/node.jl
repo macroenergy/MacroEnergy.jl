@@ -150,6 +150,37 @@ price_supply(n::Node,s::Int64,t::Int64) = length(price_supply(n, s)) == 1 ? pric
 ######### Node interface #########
 
 
+"""
+    receives_only(n::Node, edges) -> Bool
+
+Whether the rest of the system can only ever add to `n`: every edge touching it is
+unidirectional and has `n` as its `end_vertex`. A single edge drawing from `n`, or a
+bidirectional edge that could run backwards, makes this false.
+
+Used to decide whether `n`'s policy budget variables may be held nonnegative. A node that
+only receives cannot post a negative balance, so a negative per-subperiod budget is not a
+looser allowance but an infeasible one -- see `bound_receive_only_policy_budgets!`.
+
+Note this is a statement about topology, which is how Macro represents a flow leaving a
+node: removal is an edge with `start_vertex == n` (a DAC or BECCS `co2_edge` drawing from a
+CO2 sink), not a negative coefficient on an inflow. So a CO2 sink with any removal
+technology attached is correctly excluded, and the same sink without one is included.
+"""
+function receives_only(n::Node, edges)
+    inflows = 0
+    for e in edges
+        if start_vertex(e) === n
+            return false
+        elseif end_vertex(e) === n
+            unidirectional(e) || return false
+            inflows += 1
+        end
+    end
+    ### A node nothing touches has an identically-zero balance; leave its budget alone rather
+    ### than infer a sign from an empty set of edges.
+    return inflows > 0
+end
+
 function add_linking_variables!(n::Node, model::Model)
 
     if any(isa.(n.constraints, PolicyConstraint))
