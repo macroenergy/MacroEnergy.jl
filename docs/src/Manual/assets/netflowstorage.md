@@ -6,16 +6,16 @@
 
 ## [Overview](@id netflowstorage_overview)
 
-A `NetFlowStorage` asset is a storage of any Commodity connected to its node by a single signed flow edge: a positive flow charges the storage, a negative flow discharges it. The edge is one free variable per time step, so the storage cannot charge and discharge in the same time step.
+A `NetFlowStorage` asset is a storage of any Commodity connected to its node by a single signed flow edge: a positive flow charges the storage, a negative flow discharges it. With a lossless edge, the storage and node balances read one free variable per time step, so the storage cannot charge and discharge in the same time step.
 
-Storage assets with separate charge and discharge edges, such as [Battery](@ref) and [Gas Storage](@ref), have two non-negative flows per time step. When nothing in the model penalizes it, a solution can charge and discharge in the same time step. `NetFlowStorage` rules this out by construction. It suits stores whose charging and discharging share one connection to the network, such as liquid fuel and chemical tanks, thermal storage or CO₂ storage.
+Storage assets with separate charge and discharge edges, such as [Battery](@ref) and [Gas Storage](@ref), have two non-negative flows per time step. When nothing in the model penalizes it, a solution can charge and discharge in the same time step. A `NetFlowStorage` with a lossless flow edge rules this out by construction. It suits stores whose charging and discharging share one connection to the network, such as liquid fuel and chemical tanks, thermal storage or CO₂ storage.
 
 ## [Asset Structure](@id netflowstorage_asset_structure)
 
 A net flow storage asset consists of two components:
 
 1. **Storage Component**: tracks the storage level over time.
-2. **Flow Edge**: a lossless `BidirectionalEdge` from the node to the storage.
+2. **Flow Edge**: a `BidirectionalEdge` from the node to the storage.
 
 ```mermaid
 %%{init: {'theme': 'base', 'themeVariables': { 'background': '#D1EBDE' }}}%%
@@ -32,7 +32,7 @@ flowchart LR
 
 ## [Flow Equations](@id netflowstorage_flow_equations)
 
-The storage balance is:
+With a lossless flow edge, the storage balance is:
 
 ```math
 \begin{aligned}
@@ -42,9 +42,17 @@ The storage balance is:
 
 where `flow` is the flow of the flow edge, positive when the storage charges. If the flow edge has a capacity (`has_capacity = true`), the capacity bounds the flow in both directions, $|\text{flow}(t)| \leq \text{capacity}$, and it is the power of the storage.
 
-The flow edge must be lossless. A loss would make the storage balance read separate non-negative flows for each direction, so the storage could charge and discharge in the same time step. A non-zero `loss_fraction` on the flow edge raises an error; a standing loss can be set on the storage with `storage_loss_fraction`.
+With a loss on the flow edge (`flow_loss_fraction`), Macro splits the flow into non-negative parts for each direction, $\text{flow}(t) = \text{flow\_pos}(t) - \text{flow\_neg}(t)$, and the loss applies in both directions. The storage receives $(1 - \text{flow\_loss\_fraction}(t)) \cdot \text{flow\_pos}(t)$, and the node receives $(1 - \text{flow\_loss\_fraction}(t)) \cdot \text{flow\_neg}(t)$:
 
-A `variable_om_cost` on the flow edge is charged on $|\text{flow}(t)|$. To price it, Macro adds non-negative flows for each direction whose difference is the flow, while the storage and node balances still read the single signed flow.
+```math
+\begin{aligned}
+\text{storage\_level}(t) &= (1 - \text{loss\_fraction}(t)) \cdot \text{storage\_level}(t-1) + (1 - \text{flow\_loss\_fraction}(t)) \cdot \text{flow\_pos}(t) - \text{flow\_neg}(t)
+\end{aligned}
+```
+
+The round-trip efficiency is then $(1 - \text{flow\_loss\_fraction})^2$. As on any lossy bidirectional edge, such as a transmission line, both parts can be positive in the same time step, so the storage can charge and discharge at once. Doing so dissipates energy, so a solution does it only when that lowers the cost, for example to absorb a surplus that has nowhere else to go. A standing loss is set on the storage with `storage_loss_fraction`.
+
+A `variable_om_cost` on the flow edge is charged on $|\text{flow}(t)| = \text{flow\_pos}(t) + \text{flow\_neg}(t)$. On a lossless edge, Macro adds the two parts only to price this cost: the storage and node balances still read the single signed flow.
 
 ## [Input File (Standard Format)](@id netflowstorage_input_file)
 
@@ -96,8 +104,9 @@ The storage accepts the same parameters as the storage component of other storag
 | `flow_investment_cost` | Float64 | CAPEX per unit of flow capacity | \$/(unit/h) | 0.0 |
 | `flow_fixed_om_cost` | Float64 | Fixed O&M costs per unit of flow capacity | \$/(unit/h)/yr | 0.0 |
 | `flow_variable_om_cost` | Float64 | Variable O&M cost per unit of flow in either direction | \$/unit | 0.0 |
+| `flow_loss_fraction` | Float64 | Fraction of the flow lost on the edge, in either direction | fraction | 0.0 |
 
-The flow edge's `loss_fraction` must be 0. Units are those of the storage Commodity, for example MWh for Methanol and tonnes for CO₂.
+Units are those of the storage Commodity, for example MWh for Methanol and tonnes for CO₂.
 
 ### Constraints Configuration
 The storage has the following constraints by default:
@@ -112,7 +121,7 @@ The following constraints read separate charge and discharge edges and raise an 
 - `StorageSymmetricCapacityConstraint`
 
 !!! note "Long-duration storage with representative subperiods"
-    With `storage_long_duration = true` and representative subperiods (for example after time-domain reduction), the `LongDurationStorageImplicitMinMaxConstraint` is added, as for other storage assets. It bounds the storage level within the non-representative subperiods, using the signed flow of the flow edge.
+    With `storage_long_duration = true` and representative subperiods (for example after time-domain reduction), the `LongDurationStorageImplicitMinMaxConstraint` is added, as for other storage assets. It bounds the storage level within the non-representative subperiods, using what the flow edge delivers to the storage.
 
 ## [Types - Asset Structure](@id netflowstorage_type_definition)
 

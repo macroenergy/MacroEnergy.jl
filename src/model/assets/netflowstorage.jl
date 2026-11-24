@@ -1,5 +1,5 @@
-# A storage connected to its node by one signed, lossless flow edge (positive = charging). The edge is a single
-# free variable per time step, so the storage cannot charge and discharge in the same time step.
+# A storage connected to its node by one signed flow edge (positive = charging). With a lossless edge the balances
+# read one free variable per time step, so the storage cannot charge and discharge in the same time step.
 struct NetFlowStorage{T} <: AbstractAsset
     id::AssetId
     tags::AssetTags
@@ -141,13 +141,6 @@ function make(asset_type::Type{NetFlowStorage}, data::AbstractDict{Symbol,Any}, 
         flow_start_node,
         storage,
     )
-    # A loss makes the storage balance read flow_pos and flow_neg separately, so the storage could charge and
-    # discharge in the same time step. A variable O&M cost only prices |flow|: the balances still read `flow`.
-    if any(!iszero, loss_fraction(flow_edge))
-        throw(ArgumentError("NetFlowStorage $id: the flow_edge must be lossless (loss_fraction = " *
-            "$(loss_fraction(flow_edge))). Use the storage `loss_fraction` for a standing loss."))
-    end
-
     storage.balance_data = Dict(:storage => Dict(flow_edge.id => 1.0))
     # The flow edge is both the charge and the discharge edge, so constraints that read them see one signed flow.
     storage.charge_edge = flow_edge

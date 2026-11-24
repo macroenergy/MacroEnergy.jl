@@ -34,7 +34,7 @@ where:
     \text{storage\_balance(p)} = (1 - \text{loss\_fraction}) \times \text{storage\_initial(p)} + \text{efficiency(charge\_edge)} \times \text{flow(charge\_edge, tstart(p))} - \frac{\text{flow(discharge\_edge, tstart(p))}}{\text{efficiency(discharge\_edge)}}
 \end{aligned}
 ```
-When the charge and discharge edge are one bidirectional edge into the storage, as in a `NetFlowStorage`, the two flow terms are replaced by the signed flow of that edge.
+When the charge and discharge edge are one bidirectional edge into the storage, as in a `NetFlowStorage`, the two flow terms are replaced by what that edge delivers to the storage: its signed flow, or `(1 - loss_fraction) * flow_pos - flow_neg` when the edge is lossy.
 
 - `max_storage_level(r)` and `min_storage_level(r)` are the maximum and minimum storage levels for the representative subperiod `r`, respectively. These are used to constrain the storage levels as follows:
 
@@ -88,7 +88,14 @@ end
 # Net flow into `g` at `t` through its charge edge `c` and discharge edge `d`. When they are the same edge, a
 # signed flow towards `g` (as in NetFlowStorage), that flow is counted once.
 function storage_net_inflow(g::AbstractStorage, c, d, storage_data::BalanceData, t::Int64)
-    c === d && return balance_term_coefficient(storage_data, c, g, t) * flow(c, t)
+    if c === d
+        coeff = balance_term_coefficient(storage_data, c, g, t)
+        # As in update_balances!, a lossy edge delivers (1 - loss) of flow_pos to the storage and takes flow_neg.
+        if c isa BidirectionalEdge && lossy_edge(c)
+            return coeff * ((1 - loss_fraction(c, t)) * flow_pos(c, t) - flow_neg(c, t))
+        end
+        return coeff * flow(c, t)
+    end
     return balance_term_coefficient(storage_data, c, g, t) * flow(c, t) -
            balance_term_coefficient(storage_data, d, g, t) * flow(d, t)
 end

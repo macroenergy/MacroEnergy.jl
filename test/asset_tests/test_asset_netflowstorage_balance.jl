@@ -21,17 +21,21 @@ import MacroEnergy:
     SupplySegment,
     TimeData,
     asset_tags,
+    balance_data,
     capacity,
     commodity_types,
     end_vertex,
     flow,
     flow_neg,
     flow_pos,
+    get_balance,
     id,
+    loss_fraction,
     make,
     start_vertex,
     storage_initial,
-    storage_level
+    storage_level,
+    storage_net_inflow
 
 # Two representative 3-hour subperiods standing for three modeled ones (subperiod 3 is represented by 1).
 function tdr_timedata(::Type{T}) where {T}
@@ -73,6 +77,10 @@ function make_case(product::Symbol; storage = Dict{Symbol,Any}(), edge = Dict{Sy
 end
 
 has_implicit(storage) = any(c -> c isa LongDurationStorageImplicitMinMaxConstraint, storage.constraints)
+
+# What the flow edge delivers to the storage at t: on a lossy edge, (1 - loss) of flow_pos minus flow_neg.
+delivered(e, t) = isempty(flow_pos(e)) ? value(flow(e, t)) :
+    (1 - loss_fraction(e, t)) * value(flow_pos(e, t)) - value(flow_neg(e, t))
 
 function test_one_signed_flow()
     for product in (:Methanol, :Ammonia, :CO2Captured)
@@ -119,20 +127,56 @@ function test_long_duration()
         _, asset = make_case(:CO2Captured; storage = Dict{Symbol,Any}(:long_duration => true), tdr = true)
         @test asset.storage isa LongDurationStorage && has_implicit(asset.storage)
     end
-    # Subperiods 1 and 3 (both represented by 1) discharge 1 in their first hour and then charge 4 cheaply;
-    # subperiod 2 discharges 6. Subperiod 3 starts 3 below subperiod 1, so only the implicit min-max constraint
-    # keeps its first hour from going below 0: the capacity is 7 with the constraint and 6 without it.
-    @testset "the implicit min-max bounds the level in a non-representative subperiod" begin
+    # Subperiods 1 and 3 (both represented by 1) deliver 1 in their first hour and then charge cheaply; subperiod 2
+    # delivers 6. With η = 1 - edge loss, subperiod 3 starts 3/η below subperiod 1, so only the implicit min-max
+    # constraint keeps its first hour from going below 0: the capacity is 7/η with the constraint and 6/η without it.
+    @testset "the implicit min-max bounds the level in a non-representative subperiod (edge loss $loss)" for loss in (0.0, 0.1)
+        η = 1 - loss
         for with_implicit in (true, false)
             system, asset = make_case(:Methanol; storage = Dict{Symbol,Any}(:long_duration => true), tdr = true,
+                edge = Dict{Symbol,Any}(:loss_fraction => loss),
                 demand = [1.0, 0.0, 0.0, 2.0, 2.0, 2.0], price = [100.0, 1.0, 1.0, 100.0, 100.0, 100.0])
             with_implicit ||
                 filter!(c -> !(c isa LongDurationStorageImplicitMinMaxConstraint), asset.storage.constraints)
             build_test_model(system)
-            @test value(capacity(asset.storage)) ≈ (with_implicit ? 7.0 : 6.0) atol = 1e-6
+            @test value(capacity(asset.storage)) ≈ (with_implicit ? 7.0 : 6.0) / η atol = 1e-6
             # Level of subperiod 3 after its first hour.
-            @test value(storage_initial(asset.storage, 3)) + value(flow(asset.flow_edge, 1)) ≈
-                  (with_implicit ? 0.0 : -1.0) atol = 1e-6
+            @test value(storage_initial(asset.storage, 3)) + delivered(asset.flow_edge, 1) ≈
+                  (with_implicit ? 0.0 : -1.0) / η atol = 1e-6
+        end
+    end
+end
+
+# A loss of 0.1 applies in both directions: the storage keeps 0.9 of what it takes and the node gets 0.9 of what the
+# storage gives back. Delivering 5 per hour takes 50/9 from the storage, and filling it takes 1000/81 from the node.
+function test_lossy_flow_edge()
+    @testset "a lossy flow_edge loses in both directions" begin
+        system, asset = make_case(:Methanol; edge = Dict{Symbol,Any}(:loss_fraction => 0.1))
+        build_test_model(system)
+        e = asset.flow_edge
+        @test value.(flow_pos(e)) ≈ [1000 / 81, 0.0, 0.0] atol = 1e-6
+        @test value.(flow_neg(e)) ≈ [0.0, 50 / 9, 50 / 9] atol = 1e-6
+        @test value.(flow(e)) ≈ value.(flow_pos(e)) .- value.(flow_neg(e)) atol = 1e-6
+        @test value.(storage_level(asset.storage)) ≈ [100 / 9, 50 / 9, 0.0] atol = 1e-6
+        @test value(capacity(asset.storage)) ≈ 100 / 9 atol = 1e-6
+    end
+end
+
+# The implicit min-max constraint must count the flow edge as the storage balance does, with or without a loss.
+function test_net_inflow_matches_balance()
+    for loss in (0.0, 0.1)
+        @testset "storage_net_inflow has the storage balance's flow coefficients (edge loss $loss)" begin
+            system, asset = make_case(:Methanol; storage = Dict{Symbol,Any}(:long_duration => true), tdr = true,
+                                      edge = Dict{Symbol,Any}(:loss_fraction => loss))
+            build_test_model(system)
+            g, e = asset.storage, asset.flow_edge
+            for t in (1, 4)
+                inflow = storage_net_inflow(g, e, e, balance_data(g, :storage), t)
+                balance = get_balance(g, :storage, t)
+                vars = iszero(loss) ? [flow(e, t)] : [flow_pos(e, t), flow_neg(e, t)]
+                @test all(v -> coefficient(inflow, v) == coefficient(balance, v) != 0, vars)
+                @test coefficient(inflow, flow(e, t)) == coefficient(balance, flow(e, t))
+            end
         end
     end
 end
@@ -159,9 +203,6 @@ function test_rejected_inputs()
             @test_throws "$name is not supported" make_case(:CO2Captured;
                 storage = Dict{Symbol,Any}(:long_duration => true, :constraints => constraints))
         end
-    end
-    @testset "a lossy flow_edge is rejected" begin
-        @test_throws "must be lossless" make_case(:Methanol; edge = Dict{Symbol,Any}(:loss_fraction => 0.01))
     end
     @testset "a storage without a commodity is rejected" begin
         system = pool_system(:Methanol)
@@ -218,6 +259,8 @@ end
 test_one_signed_flow()
 test_simple_input_and_tags()
 test_long_duration()
+test_lossy_flow_edge()
+test_net_inflow_matches_balance()
 test_variable_om_cost()
 test_rejected_inputs()
 test_duration_constraints()
