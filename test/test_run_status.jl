@@ -3,6 +3,7 @@ module TestRunStatus
 using Test
 using HiGHS
 using JuMP
+import MacroEnergy
 import MacroEnergy:
     BendersConvergence,
     BendersModel,
@@ -365,8 +366,25 @@ test_write_run_status_requires_existing_directory()
 test_write_run_status_never_throws()
 test_write_run_status_guards_payload_construction()
 test_status_message_is_bounded()
+function test_bad_optimizer_attribute_raises()
+    @testset "A rejected optimizer attribute is an error, and the others are still set" begin
+        model = Model()
+        opt = MacroEnergy.create_optimizer(HiGHS.Optimizer, nothing, ("not_a_highs_option" => 1, "solver" => "ipm"))
+        err = try
+            MacroEnergy.set_optimizer(model, opt)
+            nothing
+        catch e
+            e
+        end
+        @test err isa ArgumentError
+        @test occursin("not_a_highs_option", sprint(showerror, err))
+        @test get_attribute(model, "solver") == "ipm"
+    end
+end
+
 test_run_case_writes_status_on_success()
 test_run_case_writes_status_on_error()
 test_run_case_status_can_be_disabled()
+test_bad_optimizer_attribute_raises()
 
 end # module TestRunStatus

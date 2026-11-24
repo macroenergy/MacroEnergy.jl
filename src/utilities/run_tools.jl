@@ -32,7 +32,7 @@ a complete Macro workflow.
 ## Optimizer (Monolithic/Myopic)
 - `optimizer::DataType=HiGHS.Optimizer`: Optimizer constructor for Monolithic or Myopic algorithms.
 - `optimizer_env::Any=nothing`: Optional optimizer environment.
-- `optimizer_attributes::Tuple`: Solver-specific settings. Default: `("BarConvTol" => 1e-3, "Crossover" => 0, "Method" => 2)`.
+- `optimizer_attributes::Tuple`: Solver-specific settings. Default: `("solver" => "ipm", "run_crossover" => "off", "ipm_optimality_tolerance" => 1e-3)` (HiGHS). An attribute the optimizer rejects is an error.
 
 ## Optimizer (Benders)
 - `planning_optimizer::DataType=HiGHS.Optimizer`: Optimizer constructor for the planning problem.

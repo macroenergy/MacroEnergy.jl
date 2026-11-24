@@ -513,7 +513,7 @@ function discount_fixed_costs!(y::Union{AbstractEdge,AbstractStorage},settings::
         nothing
     end
 
-    # This PV is relative to the start of the Case, not the start of the period
+    # PV at the start of the period; `finalize_model_objective!` discounts it to the start of the Case
     y.pv_period_investment_cost = annualized_investment_cost(y) * present_value_annuity_factor(discount_rate, payment_years_remaining)
     
     period_pv_annuity_factor = present_value_annuity_factor(discount_rate, period_length)

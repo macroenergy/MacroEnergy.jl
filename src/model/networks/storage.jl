@@ -136,6 +136,7 @@ function make_storage(
         filtered_data[:max_storage_level] = Float64[filtered_data[:max_storage_level]...];
     end
 
+    check_storage_variable_om_cost(id, filtered_data)
     _storage = Storage{commodity}(;
         id = id,
         timedata = time_data,
@@ -314,6 +315,16 @@ function resolve_balance_var(g::LongDurationStorage, var::Symbol, t::Int64, lag:
     return invoke(resolve_balance_var, Tuple{AbstractStorage, Symbol, Int64, Int64}, g, var, t, lag)
 end
 
+# A storage's `variable_om_cost` never enters the objective (variable costs are charged on edges),
+# so a non-zero value would be dropped silently.
+function check_storage_variable_om_cost(id::Symbol, data::AbstractDict{Symbol,Any})
+    vom = get(data, :variable_om_cost, 0.0)
+    iszero(vom) || throw(ArgumentError(
+        "Storage $id has variable_om_cost = $vom, which is never charged. " *
+        "Put it on the storage's discharge (or charge) edge instead."))
+    return nothing
+end
+
 function make_long_duration_storage(
     id::Symbol,
     data::Dict{Symbol,Any},
@@ -340,6 +351,7 @@ function make_long_duration_storage(
     if haskey(filtered_data,:max_storage_level) && !isa(filtered_data[:max_storage_level], Vector{Float64})
         filtered_data[:max_storage_level] = Float64[filtered_data[:max_storage_level]...];
     end
+    check_storage_variable_om_cost(id, filtered_data)
     _storage = LongDurationStorage{commodity}(;
         id=id,
         timedata=time_data,
