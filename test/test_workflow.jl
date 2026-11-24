@@ -512,4 +512,16 @@ end
 
 test_workflow()
 
+function test_storage_variable_om_cost_is_rejected()
+    @testset "A non-zero storage variable_om_cost is an error" begin
+        system = load_system(test_path)
+        time_data = system.time_data[:Electricity]
+        elec = MacroEnergy.Electricity
+        @test MacroEnergy.make_storage(:s0, Dict{Symbol,Any}(:variable_om_cost => 0.0), time_data, elec) isa MacroEnergy.Storage
+        @test_throws ArgumentError MacroEnergy.make_storage(:s1, Dict{Symbol,Any}(:variable_om_cost => 1.5), time_data, elec)
+        @test_throws ArgumentError MacroEnergy.make_long_duration_storage(:s2, Dict{Symbol,Any}(:variable_om_cost => 1.5), time_data, elec)
+    end
+end
+test_storage_variable_om_cost_is_rejected()
+
 end # module TestWorkflow

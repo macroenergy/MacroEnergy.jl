@@ -336,7 +336,8 @@ function build_grouped_capacity_constraints(
                 @warn "$constraint_name: edge field `$edge_field` of asset $(id(asset)) (`$(get_type(asset))`) has no capacity variable; skipping"
                 continue
             end
-            ismissing(location) || capped_edge_location(edge) == location || continue
+            # An edge without a location is in no location (`isequal`, since `missing == location` is not a Bool).
+            ismissing(location) || isequal(capped_edge_location(edge), location) || continue
             add_to_expression!(total, variable(edge))
             contributed = true
         end

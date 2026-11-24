@@ -195,7 +195,7 @@ If [`MaxCapacityConstraint`](@ref max_capacity_constraint_ref) or [`MinCapacityC
 | `storage_investment_cost` | Float64 | CAPEX per unit storage capacity | \$/MWh | 0.0 |
 | `storage_annualized_investment_cost` | Union{Nothing,Float64} | Annualized CAPEX | \$/MWh/yr | calculated |
 | `storage_fixed_om_cost` | Float64 | Fixed O&M costs of the storage component | \$/MWh/yr | 0.0 |
-| `storage_variable_om_cost` | Float64 | Variable O&M costs of the storage component | \$/MWh | 0.0 |
+| `storage_variable_om_cost` | Float64 | Not supported: must be 0, and a non-zero value raises. Put variable O&M costs on the charge or discharge edge | \$/MWh | 0.0 |
 | `storage_wacc` | Float64 | Weighted average cost of capital | fraction | 0.0 |
 | `storage_lifetime` | Int | Asset lifetime in years | years | 1 |
 | `storage_capital_recovery_period` | Int | Investment recovery period | years | 1 |

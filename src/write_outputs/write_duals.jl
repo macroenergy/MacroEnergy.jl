@@ -147,16 +147,17 @@ end
 """
     write_co2_cap_duals(results_dir::AbstractString, system::System, scaling::Float64)
 
-Write CO2 cap constraint dual values (carbon prices) and penalty costs to CSV file.
+Write CO2 cap constraint dual values (carbon prices) and cap slacks to CSV file.
 
 Extracts dual values from CO2 cap policy budget constraints and exports them to
-`co2_cap_duals.csv`. If slack variables exist, also exports penalty costs.
+`co2_cap_duals.csv`, with the slack quantity of nodes whose cap has a slack.
 
 # Output Format
 Long-format CSV with columns:
 - `Node`: Node ID
 - `CO2_Shadow_Price`: Carbon price (shadow price of the CO2 cap constraint)
-- `CO2_Slack`: Total penalty cost across subperiods (if slack variables exist)
+- `CO2_Slack`: Weighted sum over subperiods of the slack, i.e. the amount by which the cap is exceeded, in
+  the cap's unit (`missing` for nodes without a slack)
 
 # Arguments
 - `results_dir::AbstractString`: Directory where CSV file will be written
@@ -211,12 +212,12 @@ function write_co2_cap_duals(
             slack_var_key = Symbol(string(ct_type) * "_Slack")
             slack_vars = value.(policy_slack_vars(node)[slack_var_key])
 
-            # Total penalty cost across all subperiods
+            # Weighted slack quantity across all subperiods, in input units like the flows
             co2_slack_sum = sum(subperiod_indices(node)) do w
                 subperiod_weight(node, w) * slack_vars[w]
             end
 
-            push!(co2_slack_vars, co2_slack_sum)
+            push!(co2_slack_vars, scaling * co2_slack_sum)
         else
             # No slack variables for this node
             push!(co2_slack_vars, missing)

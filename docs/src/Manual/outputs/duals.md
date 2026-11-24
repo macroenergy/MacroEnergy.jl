@@ -58,12 +58,12 @@ CO₂ cap duals are the shadow prices of CO₂ cap budget constraints. In power 
 |---|---|---|
 | `Node` | String | Identifier of the CO₂ cap node (the node on which the cap constraint is defined) |
 | `CO2_Shadow_Price` | Float64 | (Discounted) shadow price of the CO₂ cap constraint (\$/tonne CO₂) — the marginal cost of tightening the cap by 1 tonne |
-| `CO2_Slack` | Float64 | Total weighted penalty cost associated with the CO₂ slack variable, if slack variables are present (only written when slack is non-zero) |
+| `CO2_Slack` | Float64 | Weighted sum over subperiods of the CO₂ cap slack (tonnes by which the cap is exceeded); empty for nodes without a slack |
 
 ### Interpretation
 
 - **`CO2_Shadow_Price`** is the carbon price implied by the model. If the CO₂ cap is non-binding, this value is `0.0`. A non-zero value indicates that the cap is binding.
-- **`CO2_Slack`** appears only when the CO₂ cap is modeled as a soft constraint (with slack variables and a penalty). It reports the total penalty cost incurred due to exceeding the cap.
+- **`CO2_Slack`** is filled when the CO₂ cap is modeled as a soft constraint (with slack variables and a penalty). It reports the amount by which the cap is exceeded; the penalty cost is this amount times the node's `price_unmet_policy`, and appears in the cost outputs as `UnmetPolicyPenalty`.
 
 ## [Configuration](@id manual-outputs-duals-configuration)
 

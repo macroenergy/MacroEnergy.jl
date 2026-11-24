@@ -26,22 +26,20 @@ import MacroEnergy:
 
 # Build a VRE asset of a given technology tag, placed in a given location.
 function make_vre_asset(id, technology, location, system; tags = [technology])
-    return make(
-        VRE,
-        Dict{Symbol,Any}(
-            :id => id,
-            :technology => technology,
-            :tags => tags,
-            :location => location,
-            :can_expand => true,
-            :can_retire => false,
-            :existing_capacity => 0.0,
-            :investment_cost => 1.0,
-            :availability => [1.0, 1.0, 1.0],
-            :end_vertex => :sink,
-        ),
-        system,
+    data = Dict{Symbol,Any}(
+        :id => id,
+        :technology => technology,
+        :tags => tags,
+        :location => location,
+        :can_expand => true,
+        :can_retire => false,
+        :existing_capacity => 0.0,
+        :investment_cost => 1.0,
+        :availability => [1.0, 1.0, 1.0],
+        :end_vertex => :sink,
     )
+    ismissing(location) && delete!(data, :location)
+    return make(VRE, data, system)
 end
 
 # A two-asset system: one VRE in location :A, one in location :B, both feeding a shared demand node.
@@ -219,6 +217,23 @@ function test_max_capacity()
             @test nterms(ctB.constraint_ref[:VRE]) == 1
             # Empty location group (:C) builds no constraint for that asset type.
             @test !haskey(ctC.constraint_ref, :VRE)
+        end
+
+        @testset "unlocated edges are in no location" begin
+            system = build_system()
+            unlocated = make_vre_asset(:solar_nowhere, "Solar", missing, system)
+            @test ismissing(capped_edge_location(get_component_by_fieldname(unlocated, :edge)))
+            push!(system.assets, unlocated)
+            ctA = MaxCapacityConstraint(; config = vre_cfg(3.0))
+            ctsys = MaxCapacityConstraint(; config = vre_cfg(5.0))
+            push!(system.locations, Location(; id = :A, system = system, constraints = [ctA]))
+            push!(system.constraints, ctsys)
+
+            build_test_model(system)
+
+            # Counted at system scope, not at location A.
+            @test nterms(ctA.constraint_ref[:VRE]) == 1
+            @test nterms(ctsys.constraint_ref[:VRE]) == 3
         end
 
         @testset "model release clears system and location references" begin

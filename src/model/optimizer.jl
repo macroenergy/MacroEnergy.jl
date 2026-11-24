@@ -33,11 +33,18 @@ function set_optimizer(models::Vector{Model}, opt::Optimizer)
 end
 
 function set_optimizer_attributes(model::Model, opt::Optimizer)
-    try
-        set_optimizer_attributes(model, opt.attributes...)
-    catch
-        @warn("Error setting optimizer attributes. Check that the optimizer is valid.")
+    # Set each attribute separately and fail on any error, so a misspelt or unsupported attribute
+    # never leaves the solve on partial settings.
+    failed = String[]
+    for (name, value) in opt.attributes
+        try
+            JuMP.set_attribute(model, name, value)
+        catch err
+            push!(failed, "$(repr(name)) => $(repr(value)): $(sprint(showerror, err))")
+        end
     end
+    isempty(failed) || throw(ArgumentError("Could not set optimizer attribute(s):\n  " * join(failed, "\n  ")))
+    return nothing
 end
 
 function create_optimizer_benders(

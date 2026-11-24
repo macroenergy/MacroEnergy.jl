@@ -30,10 +30,14 @@ and this project follows Julia package versioning through `Project.toml` release
 - Fixed time-domain reduction commodity context for nodes defined within locations, so commodity-scoped feature weights and exclusions apply to inline series and CSV references. Reference exclusions now match actual input context, including file, field, asset, and commodity, even when a generic feature is selected.
 - Fixed `template_location` to support location dictionaries and mixed batches, preserve existing commodity and constraint definitions, and check duplicates by location ID. Conflicting definitions are rejected before writing; new JSON files and directories can be created directly.
 - Fixed time-domain reduction of inputs defined inline within `case` entries in `system_data.json`. Bare and case-wrapped Systems now share scoped discovery and rewriting, so reduced and isolated subperiod cases use the selected periods' values without mixing Systems' profiles. Older output-feature caches are invalidated and regenerated.
+- A rejected optimizer attribute now raises an `ArgumentError` that names it. Before, the first rejected attribute logged a warning and every attribute after it was silently skipped.
+- `CO2_Slack` in `co2_cap_duals.csv` is the amount by which the CO₂ cap is exceeded, in the cap's units, and is now restored from parameter scaling. It was documented as a penalty cost and, with `ParameterScaling` on, was too small by the scaling factor.
+- A location-scoped grouped capacity constraint no longer throws a `TypeError` when a selected edge has no location; such an edge is in no location.
 
 ### Changed
 
 - Variable O&M cost on a `BidirectionalEdge` is now charged on |flow| via its `flow_pos`/`flow_neg` pair, instead of on the net flow; the `VariableOM` cost outputs follow the same rule.
+- A non-zero `variable_om_cost` on a storage component is now an error, since storage variable O&M never entered the objective. Put it on the charge or discharge edge.
 - A negative `variable_om_cost` on a unidirectional edge (including edges with unit commitment) is now a credit per unit of flow in the objective and the `VariableOM` cost outputs, instead of being ignored. A negative `variable_om_cost` on a `BidirectionalEdge` is an error, since it is charged on |flow|.
 - Extended DuckDB.jl compatibility to include 2.x (`DuckDB = "1, 2"`). Environments that resolve DuckDB.jl 2.x read CSV inputs with the bundled DuckDB 2.0 engine.
 - Automatically created commodity nodes now use `<location>_<commodity>` IDs instead of reusing the location ID.

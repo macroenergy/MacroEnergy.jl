@@ -273,6 +273,39 @@ function test_write_co2_cap_duals(case, model)
     end
 end
 
+# The small case has no CO2 slack, so give co2_sink_1 a penalty far below its cap's shadow price
+# (464.6 $/t in co2_cap_duals_true.csv): exceeding the cap is then cheaper than abating.
+function test_co2_slack_is_a_scaled_quantity()
+    @testset "CO2_Slack is a quantity that scales with ParameterScaling" begin
+        case = load_case(test_path)
+        system = case.systems[1]
+        sink = only(filter(n -> n isa Node && id(n) == :co2_sink_1, system.locations))
+        sink.price_unmet_policy[CO2CapConstraint] = 1.0
+        model = generate_model(case, create_optimizer(optim), solution_algorithm(case))
+        set_silent(model)
+        optimize!(model)
+        @test termination_status(model) == MOI.OPTIMAL
+
+        temp_dir = abspath(mktempdir("."))
+        try
+            output_file = joinpath(temp_dir, "co2_cap_duals.csv")
+            write_co2_cap_duals(temp_dir, system, 1.0, 1.0)
+            slack_1 = CSV.read(output_file, DataFrame)
+            write_co2_cap_duals(temp_dir, system, 2.0, 1.0)
+            slack_2 = CSV.read(output_file, DataFrame)
+
+            row_1 = only(eachrow(slack_1[string.(slack_1.Node) .== "co2_sink_1", :]))
+            row_2 = only(eachrow(slack_2[string.(slack_2.Node) .== "co2_sink_1", :]))
+            @test row_1.CO2_Slack > 1.0
+            @test row_2.CO2_Slack ≈ 2.0 * row_1.CO2_Slack
+            # Nodes without a penalty keep an empty slack.
+            @test all(ismissing, slack_1[string.(slack_1.Node) .!= "co2_sink_1", :CO2_Slack])
+        finally
+            rm(temp_dir, recursive=true)
+        end
+    end
+end
+
 # Test that the duals are written correctly to a CSV file
 function test_write_duals(case, model)
     @testset "write_duals Tests" begin
@@ -437,6 +470,7 @@ function run_all_dual_tests()
     test_dual_values_consistency(case, model)
     test_write_balance_duals(case, model)
     test_write_co2_cap_duals(case, model)
+    test_co2_slack_is_a_scaled_quantity()
     test_write_duals(case, model)
     test_error_handling()
 end
