@@ -119,6 +119,7 @@ const pages = [
             "Manual/assets/integrateddirectreductionelectricarcfurnace.md",
             "Manual/assets/mustrun.md",
             "Manual/assets/natgasdaq.md",
+            "Manual/assets/netflowstorage.md",
             "Manual/assets/onewaytransmissionlink.md",
             "Manual/assets/standalonelectricarcfurnace.md",
             "Manual/assets/syntheticammonia.md",

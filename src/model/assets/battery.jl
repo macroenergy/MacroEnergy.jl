@@ -147,8 +147,8 @@ function make(asset_type::Type{Battery}, data::AbstractDict{Symbol,Any}, system:
         location
     )
 
-    # If storage is long duration, add the implicit min-max constraint
-    if long_duration
+    # A long-duration storage needs the implicit min-max constraint only when subperiods are representative
+    if long_duration && using_representative_subperiods(battery_storage)
         lds_constraints = [LongDurationStorageImplicitMinMaxConstraint()]
         for c in lds_constraints
             if !(c in battery_storage.constraints)

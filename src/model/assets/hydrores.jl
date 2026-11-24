@@ -107,7 +107,7 @@ function make(asset_type::Type{HydroRes}, data::AbstractDict{Symbol,Any}, system
         Electricity,
         location
     )
-    if long_duration
+    if long_duration && using_representative_subperiods(hydrostor)
         lds_constraints = [LongDurationStorageImplicitMinMaxConstraint()]
         for c in lds_constraints
             if !(c in hydrostor.constraints)

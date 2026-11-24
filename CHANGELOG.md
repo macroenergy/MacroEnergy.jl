@@ -11,6 +11,7 @@ and this project follows Julia package versioning through `Project.toml` release
 
 - Added a `commodities` object to location inputs for defining commodity nodes directly in `locations.json`, including demand, supply segments, time series, and node constraints. Empty objects use existing node defaults and generate `<location>_<commodity>` node IDs; explicit IDs override the default. Existing location-name strings and independent `nodes.json` definitions remain supported.
 - Added `write_json(io::IO, data::AbstractDict)` for writing JSON to a caller-owned stream without closing it.
+- Added the `NetFlowStorage` asset: a storage of any Commodity connected to its node by one signed `BidirectionalEdge`. With a lossless edge it cannot charge and discharge in the same time step; a loss on the edge applies in both directions, as on other bidirectional edges. A capacitated flow edge is the storage power for the duration constraints, and a variable O&M cost on the flow edge is charged on |flow|. A long-duration `NetFlowStorage` gets `LongDurationStorageImplicitMinMaxConstraint` with representative subperiods; the constraint counts the flow once, net of its loss, when a storage's charge and discharge edge are the same edge. Constraints that need separate charge and discharge edges raise an error.
 
 ### Fixed
 
@@ -39,12 +40,14 @@ and this project follows Julia package versioning through `Project.toml` release
 - Automatically created commodity nodes now use `<location>_<commodity>` IDs instead of reusing the location ID.
 - Location entries are normalized into a validated `LocationInput` with a required nonempty string ID and optional constraint and commodity dictionaries. Programmatic location dictionaries must use symbol keys, matching parsed JSON inputs; location-name strings remain supported.
 - Location loading now creates each location and its declared nodes before loading independent nodes and assets. Node and location IDs share one namespace, with collisions rejected by both registration methods. Input validation also rejects duplicate commodity nodes within a location and conflicting location assignments as objects are loaded or registered.
+- `Battery`, `GasStorage` and `HydroRes` add `LongDurationStorageImplicitMinMaxConstraint` to a long-duration storage only when the subperiods are representative. Otherwise the constraint was redundant, and building it only logged a warning.
 - Multi-System TDR copies configured asset directories to `inputs/system_<n>/assets`, avoiding repeated source directory names such as `assets/assets_1` when the destination is free of other dependencies.
 
 ### Documentation
 
 - Synced the tutorials with MacroEnergyExamples.jl: added Tutorial 3 (a three-zone multisector showcase) and a Benders decomposition section in Tutorial 1, and updated the code in Tutorials 0-2 to the current API (`scaling` argument of the result functions, `resource_type` output column, sign of storage charge flows).
 - Fixed the Tutorial 2 asset diagrams, which did not load on the deployed site, and a table-of-contents entry pointing to a tutorial page that does not exist.
+- Corrected the signs of the charge and discharge terms in the `LongDurationStorageImplicitMinMaxConstraint` docstring formula.
 
 ## [0.3.0 - rc] - 2026-10-14
 

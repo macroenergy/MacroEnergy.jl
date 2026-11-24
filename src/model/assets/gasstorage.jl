@@ -189,7 +189,7 @@ function make(asset_type::Type{GasStorage}, data::AbstractDict{Symbol,Any}, syst
         commodity,
         location
     )
-    if long_duration
+    if long_duration && using_representative_subperiods(gas_storage)
         lds_constraints = [LongDurationStorageImplicitMinMaxConstraint()]
         for c in lds_constraints
             if !(c in gas_storage.constraints)
