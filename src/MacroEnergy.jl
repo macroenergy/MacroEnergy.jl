@@ -238,6 +238,7 @@ include("model/assets/thermalheating.jl")
 include("model/assets/electricheating.jl")
 include("model/assets/thermalsteam.jl")
 include("model/assets/electricsteam.jl")
+include("model/assets/flexdemand.jl")
 
 include("config/configure_settings.jl")
 include("config/case_settings.jl")
@@ -278,6 +279,7 @@ export AbstractAsset,
     CO2Injection,
     CO2StorageConstraint,
     CapacityConstraint,
+    FlexDemandConstraint,
     Commodity,
     update_node_supply_inputs,
     create_optimizer,
@@ -297,6 +299,7 @@ export AbstractAsset,
     UpstreamEmissions,
     ConstrainedFossilLiquidFuels,
     FuelCell,
+    FlexDemand,
     DownstreamEmissions,
     ThermalHeating,
     ThermalSteam,

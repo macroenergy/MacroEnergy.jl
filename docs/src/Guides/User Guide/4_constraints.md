@@ -53,6 +53,11 @@ The aggregated demand constraint sets the level of demand that must be met at a 
 ```@docs
 MacroEnergy.add_model_constraint!(ct::AggregatedDemandConstraint, n::Node{T}, model::Model) where {T}
 ```
+## [Flexible demand constraint](@id flex_demand_constraint_ref)
+The flexible demand constraint holds the rate limit and the delay and advance windows of a [Flexible Demand](@ref) asset. The asset adds it to its storage, so it is not listed in the input.
+```@docs
+MacroEnergy.add_model_constraint!(ct::FlexDemandConstraint, g::Storage, model::Model)
+```
 ## [Long-duration storage constraints](@id long_duration_storage_constraints_ref)
 These additional constraints (and variables) can be used to ensure that storage levels of long-duration storage systems do not exceed installed capacity over non-representative subperiods. 
 
