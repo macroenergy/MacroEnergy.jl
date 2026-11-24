@@ -10,6 +10,7 @@ and this project follows Julia package versioning through `Project.toml` release
 ### Added
 
 - Added a `commodities` object to location inputs for defining commodity nodes directly in `locations.json`, including demand, supply segments, time series, and node constraints. Empty objects use existing node defaults and generate `<location>_<commodity>` node IDs; explicit IDs override the default. Existing location-name strings and independent `nodes.json` definitions remain supported.
+- Added the `FlexDemand` asset, GenX's flexible demand: part of the demand at a node can be deferred by up to `max_flexible_demand_delay` hours or served up to `max_flexible_demand_advance` hours in advance, within a flexible capacity that can be expanded. It is a storage whose level is the deferred demand, connected to the node by a defer edge and a serve edge; `FlexDemandConstraint` holds GenX's rate limit and its delay and advance windows. Its inputs have GenX's names, and its results match a transcription of GenX's equations.
 - Added `write_json(io::IO, data::AbstractDict)` for writing JSON to a caller-owned stream without closing it.
 
 ### Fixed

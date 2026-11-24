@@ -110,6 +110,7 @@ const pages = [
             "Manual/assets/electricheating.md",
             "Manual/assets/electricsteam.md",
             "Manual/assets/electrolyzer.md",
+            "Manual/assets/flexdemand.md",
             "Manual/assets/fuelcell.md",
             "Manual/assets/thermalheating.md",
             "Manual/assets/thermalsteam.md",

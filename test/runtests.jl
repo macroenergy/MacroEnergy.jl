@@ -28,6 +28,7 @@ with_logger(test_logger) do
             include("asset_tests/test_asset_thermalpower_balance.jl")
             include("asset_tests/test_asset_electrolyzer_balance.jl")
             include("asset_tests/test_asset_battery_balance.jl")
+            include("asset_tests/test_asset_flexdemand_balance.jl")
             include("asset_tests/test_asset_aluminaplant_balance.jl")
             include("asset_tests/test_asset_aluminumrefining_balance.jl")
             include("asset_tests/test_asset_aluminumsmelting_balance.jl")
