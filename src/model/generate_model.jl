@@ -62,6 +62,8 @@ end
 function generate_model(case::Case, opt::Dict{Symbol,Dict{Symbol,Any}}, ::Benders)
     @info("*** Generating Benders decomposition model ***")
     
+    # The planning problem keeps its names whatever `EnableJuMPStringNames` says: MacroEnergySolvers
+    # and `write_benders_outputs` look its variables up by name.
     planning_model = Model()
     planning_optimizer = opt[:planning]
     optimizer = create_optimizer(planning_optimizer[:solver], opt_env(planning_optimizer[:solver]), planning_optimizer[:attributes])
@@ -91,6 +93,8 @@ function generate_model(case::Case, opt::Dict{Symbol,Dict{Symbol,Any}}, ::Bender
     scale_constraints!(case.systems[1], planning_model)
     
     bd_setup = settings.BendersSettings
+    # The distributed path empties the decomposed-system vector once the systems are on the workers,
+    # so it must not be read after this call.
     subproblems, linking_variables_sub = generate_subproblems(
         periods_decomp, opt[:subproblems], settings,
         bd_setup[:Distributed], bd_setup[:IncludeSubproblemSlacksAutomatically]
@@ -123,6 +127,8 @@ function generate_model(system::System, opt::Dict{Symbol,Dict{Symbol,Any}}, sett
     scale_constraints!(system, model)
     
     bd_setup = settings.BendersSettings
+    # The distributed path empties the decomposed-system vector once the systems are on the workers,
+    # so it must not be read after this call.
     subproblems, linking_variables_sub = generate_subproblems(
         period_decomp, opt[:subproblems], settings,
         bd_setup[:Distributed], bd_setup[:IncludeSubproblemSlacksAutomatically]
@@ -294,6 +300,51 @@ function add_linking_variables!(system::System, model::Model)
     for asset in system.assets
         add_linking_variables!(asset, model)
     end
+
+    ### Has to run after the assets, because whether a node's policy budget may go negative
+    ### depends on how the rest of the system is wired into it, and the edges live on assets.
+    bound_receive_only_policy_budgets!(system)
+end
+
+"""
+    bound_receive_only_policy_budgets!(system::System)
+
+Hold the policy budget variables of every receive-only node at or above zero.
+
+A policy budget splits a policy's right-hand side across the subperiods, and `planning_model!`
+pins the split with `sum(budget) == rhs_policy`. The shares carry no cost in the planning
+objective and are created without bounds, so nothing stops the split from going negative.
+
+That is deliberate where it is meaningful: a CO2 cap budget legitimately goes negative in a
+subperiod that runs net-negative emissions. It is not meaningful for a node that can only
+receive, because the constraint reads `balance <= budget` with `balance >= 0`, so a negative
+share admits no operation at all. Under Benders that is actively harmful -- the planning
+problem does not see the operational variables, so it will happily hand one subperiod a
+negative allowance in order to concentrate the budget elsewhere, and the subproblem that
+receives it comes back infeasible for reasons that have nothing to do with the plan.
+
+Where it applies the bound is implied by feasibility rather than a new restriction: any
+solution of the full problem already satisfies it, so nothing is cut off. It only stops the
+planning problem from proposing a split that no operation could have met.
+"""
+function bound_receive_only_policy_budgets!(system::System)
+
+    budget_nodes = [n for n in get_nodes(system) if !isempty(n.policy_budgeting_vars)]
+    isempty(budget_nodes) && return nothing
+
+    edges = get_edges(system)
+
+    for n in budget_nodes
+        receives_only(n, edges) || continue
+        for budget in values(n.policy_budgeting_vars)
+            ### Benders subproblems receive these as the planning solution's values
+            ### (`update_with_planning_solution!`); only bound what is still a decision variable.
+            eltype(budget) <: AbstractVariableRef || continue
+            set_lower_bound.(budget, 0.0)
+        end
+    end
+
+    return nothing
 end
 
 function add_linking_variables!(a::AbstractAsset, model::Model)

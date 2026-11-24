@@ -39,6 +39,11 @@ MacroEnergy.balance_ids
 MacroEnergy.balance_data
 ```
 
+## `bound_receive_only_policy_budgets!`
+```@docs
+MacroEnergy.bound_receive_only_policy_budgets!
+```
+
 ## `build_period_planning!`
 ```@docs
 MacroEnergy.build_period_planning!
@@ -223,6 +228,11 @@ MacroEnergy.output_file
 ## `print_struct_info`
 ```@docs
 MacroEnergy.print_struct_info
+```
+
+## `receives_only`
+```@docs
+MacroEnergy.receives_only
 ```
 
 ## `reconstruct_benders_variable`

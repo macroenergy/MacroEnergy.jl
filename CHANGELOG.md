@@ -21,6 +21,8 @@ and this project follows Julia package versioning through `Project.toml` release
 
 - Lossy bidirectional edges now split their flow into a single `vFLOWPOS`/`vFLOWNEG` pair shared by both vertex balances.
 - Iterating over `SubproblemsData`, the container for per-subproblem Benders results, no longer yields the first subproblem twice. Written outputs were not affected, since the output writers read its fields directly rather than iterating it.
+- The policy budget variables of a node that only receives (every edge touching it is one-way into it) are bounded at zero. Every feasible solution already satisfies the bound; under Benders it stops the planning problem from giving a subperiod a negative allowance that makes its subproblem infeasible.
+- On LSF clusters, the warning about `LSB_DJOB_NUMPROC` now compares the available processes with the requested workers and reports the number of processes started.
 - Fixed TDR weights for shared CSV columns so excluded references and references with no matching feature do not increase clustering influence. Total usage counts are retained for provenance; clustering occurrence summaries count included references only.
 - Corrected exported duals after MacroEnergyScaling constraint-row and objective scaling. All model builders now retain cumulative scaling metadata per model, and dual reporting restores the original model units before applying input scaling, time weights and discount conversions. Requires MacroEnergyScaling v0.4.1 or later.
 - Multi-period cases no longer fail with a `MethodError` when carrying over capacities for an asset whose optional edge is absent, such as a `BECCSHydrogen` asset without a `fuel_edge`. Myopic runs with `ReturnModels: false` failed the same way when releasing such an asset.
@@ -38,6 +40,7 @@ and this project follows Julia package versioning through `Project.toml` release
 - Extended DuckDB.jl compatibility to include 2.x (`DuckDB = "1, 2"`). Environments that resolve DuckDB.jl 2.x read CSV inputs with the bundled DuckDB 2.0 engine.
 - Automatically created commodity nodes now use `<location>_<commodity>` IDs instead of reusing the location ID.
 - Location entries are normalized into a validated `LocationInput` with a required nonempty string ID and optional constraint and commodity dictionaries. Programmatic location dictionaries must use symbol keys, matching parsed JSON inputs; location-name strings remain supported.
+- Benders subproblems now honour `EnableJuMPDirectModel` and `EnableJuMPStringNames`; linking variables stay named. With distributed subproblems, the main process releases its copies of the subperiod systems once they are on the workers.
 - Location loading now creates each location and its declared nodes before loading independent nodes and assets. Node and location IDs share one namespace, with collisions rejected by both registration methods. Input validation also rejects duplicate commodity nodes within a location and conflicting location assignments as objects are loaded or registered.
 - Multi-System TDR copies configured asset directories to `inputs/system_<n>/assets`, avoiding repeated source directory names such as `assets/assets_1` when the destination is free of other dependencies.
 
