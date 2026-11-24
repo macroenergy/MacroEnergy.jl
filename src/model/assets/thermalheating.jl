@@ -136,11 +136,12 @@ function make(asset_type::Type{ThermalHeating}, data::AbstractDict{Symbol,Any}, 
             (data, key),
         ]
     )
+    heat_commodity_symbol, heat_commodity = checked_edge_commodity(id, heat_edge_key, heat_edge_data, Heat)
     heat_start_node = heating_transform
     @end_vertex(
         heat_end_node,
         heat_edge_data,
-        Heat,
+        heat_commodity,
         [(heat_edge_data, :end_vertex), (data, :location)],
     )
     # Check if the edge has unit commitment constraints
@@ -150,8 +151,8 @@ function make(asset_type::Type{ThermalHeating}, data::AbstractDict{Symbol,Any}, 
     heat_edge = EdgeType(
         Symbol(id, "_", heat_edge_key),
         heat_edge_data,
-        system.time_data[:Heat],
-        Heat,
+        system.time_data[heat_commodity_symbol],
+        heat_commodity,
         heat_start_node,
         heat_end_node,
     )

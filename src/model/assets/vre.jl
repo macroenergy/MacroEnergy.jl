@@ -119,18 +119,19 @@ function make(asset_type::Type{VRE}, data::AbstractDict{Symbol,Any}, system::Sys
         ],
     )
 
+    commodity_symbol, commodity = checked_edge_commodity(id, elec_edge_key, elec_edge_data, Electricity)
     elec_start_node = vre_transform
     @end_vertex(
         elec_end_node,
         elec_edge_data,
-        Electricity,
+        commodity,
         [(elec_edge_data, :end_vertex), (data, :location)]
     )
     elec_edge = Edge(
         Symbol(id, "_", elec_edge_key),
         elec_edge_data,
-        system.time_data[:Electricity],
-        Electricity,
+        system.time_data[commodity_symbol],
+        commodity,
         elec_start_node,
         elec_end_node,
     )
